@@ -16,6 +16,9 @@
 
 package controllers
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import forms.SignupFormGenerator
@@ -63,17 +66,18 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val result = controller(applicationRouteConfig).signUp()(Request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SignUpController.present().url))
-      flash(result).data must be (Map("warning" -> "Faststream applications are now closed"))
+      flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are now closed"))
     }
     "display fast stream applications not started message" in new TestFixture {
       val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = false,
-        newAccountsEnabled = false, applicationsSubmitEnabled = false)
+        newAccountsEnabled = false, applicationsSubmitEnabled = false,
+        Some(LocalDateTime.parse("2016-12-06T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
       val (data, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
       val result = controller(applicationRouteConfig).signUp()(Request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SignUpController.present().url))
-      flash(result).data must be (Map("warning" -> "Faststream applications not opened yet"))
+      flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are opened from 06 Dec 2016"))
     }
   }
 

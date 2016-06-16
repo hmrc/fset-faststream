@@ -37,17 +37,17 @@ case class UserManagementUrl(host: String)
 case class FaststreamConfig(url: FaststreamUrl)
 case class FaststreamUrl(host: String, base: String)
 
-case class ApplicationRouteFrontendConfig(startNewAccountsDate: Option[LocalDateTime], blockNewAccountsDate: Option[LocalDateTime],
+case class ApplicationRouteFrontendConfig(timeZone: Option[String], startNewAccountsDate: Option[LocalDateTime],
+                                          blockNewAccountsDate: Option[LocalDateTime],
                                           blockApplicationsDate: Option[LocalDateTime])
 
 object ApplicationRouteFrontendConfig {
-  def read(startNewAccountsDate: Option[String], blockNewAccountsDate: Option[String],
+  def read(timeZone: Option[String], startNewAccountsDate: Option[String], blockNewAccountsDate: Option[String],
            blockApplicationsDate: Option[String]): ApplicationRouteFrontendConfig = {
-    val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
-    def parseDate(dateStr: String): LocalDateTime = LocalDateTime.parse(dateStr, format)
+    def parseDate(dateStr: String): LocalDateTime = LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 
-    new ApplicationRouteFrontendConfig(startNewAccountsDate map parseDate, blockNewAccountsDate map parseDate,
+    new ApplicationRouteFrontendConfig(timeZone, startNewAccountsDate map parseDate, blockNewAccountsDate map parseDate,
       blockApplicationsDate map parseDate)
   }
 }
@@ -84,16 +84,19 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   override lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
   override lazy val faststreamConfig = configuration.underlying.as[FaststreamConfig]("microservice.services.faststream")
   val faststreamFrontendConfig = ApplicationRouteFrontendConfig.read(
+    timeZone = configuration.getString("applicationRoute.timeZone"),
     startNewAccountsDate = configuration.getString("applicationRoute.faststream.startNewAccountsDate"),
     blockNewAccountsDate = configuration.getString("applicationRoute.faststream.blockNewAccountsDate"),
     blockApplicationsDate = configuration.getString("applicationRoute.faststream.blockApplicationsDate")
   )
   val edipFrontendConfig = ApplicationRouteFrontendConfig.read(
+    timeZone = configuration.getString("applicationRoute.timeZone"),
     startNewAccountsDate = configuration.getString("applicationRoute.edip.startNewAccountsDate"),
     blockNewAccountsDate = configuration.getString("applicationRoute.edip.blockNewAccountsDate"),
     blockApplicationsDate = configuration.getString("applicationRoute.edip.blockApplicationsDate")
   )
   val sdipFrontendConfig = ApplicationRouteFrontendConfig.read(
+    timeZone = configuration.getString("applicationRoute.timeZone"),
     startNewAccountsDate = configuration.getString("applicationRoute.sdip.startNewAccountsDate"),
     blockNewAccountsDate = configuration.getString("applicationRoute.sdip.blockNewAccountsDate"),
     blockApplicationsDate = configuration.getString("applicationRoute.sdip.blockApplicationsDate")

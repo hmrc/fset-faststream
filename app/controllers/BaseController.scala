@@ -16,9 +16,10 @@
 
 package controllers
 
-import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.{ LocalDateTime, ZoneId }
 
-import config.{ CSRCache, ApplicationRouteFrontendConfig }
+import config.{ ApplicationRouteFrontendConfig, CSRCache }
 import connectors.ApplicationClient
 import helpers.NotificationType._
 import models.ApplicationRoute.{ apply => _, _ }
@@ -30,7 +31,8 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-case class ApplicationRouteConfig(newAccountsStarted: Boolean, newAccountsEnabled: Boolean, applicationsSubmitEnabled: Boolean)
+case class ApplicationRouteConfig(newAccountsStarted: Boolean, newAccountsEnabled: Boolean,
+                                  applicationsSubmitEnabled: Boolean, applicationsStartDate: Option[LocalDateTime] = None)
 
 object ApplicationRouteConfig {
   def apply(config: ApplicationRouteFrontendConfig) = {
@@ -38,14 +40,17 @@ object ApplicationRouteConfig {
       config.startNewAccountsDate.forall(startDate => config.blockNewAccountsDate.forall(_.isAfter(startDate))),
       "start new accounts date must be before block new accounts date"
     )
-    val now = LocalDateTime.now()
+
+    val zoneId = config.timeZone.map(ZoneId.of).getOrElse(ZoneId.systemDefault())
+
+    val now = LocalDateTime.now(zoneId)
 
     def isAfterNow(date: Option[LocalDateTime]) = date forall (_.isAfter(now))
 
     def isBeforeNow(date: Option[LocalDateTime]) = date forall (_.isBefore(now))
 
     new ApplicationRouteConfig(isBeforeNow(config.startNewAccountsDate), isAfterNow(config.blockNewAccountsDate),
-      isAfterNow(config.blockApplicationsDate))
+      isAfterNow(config.blockApplicationsDate), config.startNewAccountsDate)
   }
 }
 
@@ -57,7 +62,7 @@ abstract class BaseController(applicationClient: ApplicationClient, val cacheCli
 
   implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
 
-  implicit val appRouteConfigMap = Map(
+  implicit def appRouteConfigMap = Map(
     Faststream -> ApplicationRouteConfig(config.FrontendAppConfig.faststreamFrontendConfig),
     Edip -> ApplicationRouteConfig(config.FrontendAppConfig.edipFrontendConfig),
     Sdip -> ApplicationRouteConfig(config.FrontendAppConfig.sdipFrontendConfig)
@@ -90,4 +95,10 @@ abstract class BaseController(applicationClient: ApplicationClient, val cacheCli
 
   def isSubmitApplicationsEnabled(implicit applicationRoute: ApplicationRoute = Faststream) =
     appRouteConfigMap.get(applicationRoute).forall(_.applicationsSubmitEnabled)
+
+  def getApplicationStartDate(implicit applicationRoute: ApplicationRoute = Faststream) =
+    appRouteConfigMap.get(applicationRoute)
+      .flatMap(_.applicationsStartDate.map(_.format(DateTimeFormatter.ofPattern("dd MMM YYYY"))))
+      .getOrElse("")
+
 }

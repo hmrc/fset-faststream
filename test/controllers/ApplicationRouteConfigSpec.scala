@@ -24,7 +24,7 @@ import config.ApplicationRouteFrontendConfig
 class ApplicationRouteConfigSpec extends UnitSpec {
   "New Accounts creation and submit applications" should {
     "be enabled when there is no start date and disable date" in {
-      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig(None, None, None))
+      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig(None, None, None, None))
       config.newAccountsStarted mustBe true
       config.newAccountsEnabled mustBe true
       config.applicationsSubmitEnabled mustBe true
@@ -33,7 +33,7 @@ class ApplicationRouteConfigSpec extends UnitSpec {
     "be enabled when there is no start date" in {
       val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
       val futureDate = LocalDateTime.now.plusDays(2L).format(format)
-      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(None, Some(futureDate), Some(futureDate)))
+      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(None, None, Some(futureDate), Some(futureDate)))
 
       config.newAccountsStarted mustBe true
       config.newAccountsEnabled mustBe true
@@ -45,7 +45,7 @@ class ApplicationRouteConfigSpec extends UnitSpec {
       val pastDate = LocalDateTime.now.minusDays(2L).format(format)
       val futureDate = LocalDateTime.now.plusDays(2L).format(format)
 
-      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(Some(pastDate), Some(futureDate), Some(futureDate)))
+      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(None, Some(pastDate), Some(futureDate), Some(futureDate)))
       config.newAccountsStarted mustBe true
       config.applicationsSubmitEnabled mustBe true
       config.newAccountsEnabled mustBe true
@@ -56,7 +56,8 @@ class ApplicationRouteConfigSpec extends UnitSpec {
       val startDate = LocalDateTime.now.minusDays(1L).format(format)
       val pastDisableDate = LocalDateTime.now.minusMinutes(1L).format(format)
 
-      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(Some(startDate), Some(pastDisableDate), Some(pastDisableDate)))
+      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(None,
+        Some(startDate), Some(pastDisableDate), Some(pastDisableDate)))
       config.newAccountsStarted mustBe true
       config.applicationsSubmitEnabled mustBe false
       config.newAccountsEnabled mustBe false
@@ -67,7 +68,7 @@ class ApplicationRouteConfigSpec extends UnitSpec {
       val futureDate = LocalDateTime.now.plusDays(2L).format(format)
       val pastDate = LocalDateTime.now.minusMinutes(1L).format(format)
 
-      an[IllegalArgumentException] must be thrownBy ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(Some(futureDate),
+      an[IllegalArgumentException] must be thrownBy ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(None, Some(futureDate),
         Some(pastDate), Some(pastDate)))
     }
 
@@ -76,7 +77,7 @@ class ApplicationRouteConfigSpec extends UnitSpec {
       val startDate = LocalDateTime.now.plusDays(2L).format(format)
       val blockDate = LocalDateTime.now.plusDays(3L).format(format)
 
-      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(Some(startDate), Some(blockDate), Some(blockDate)))
+      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(None, Some(startDate), Some(blockDate), Some(blockDate)))
       config.newAccountsStarted mustBe false
       config.applicationsSubmitEnabled mustBe true
       config.newAccountsEnabled mustBe true

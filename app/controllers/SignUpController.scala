@@ -26,6 +26,7 @@ import connectors.exchange.Implicits._
 import connectors.exchange._
 import helpers.NotificationType._
 import models.{ ApplicationRoute, SecurityUser }
+import play.api.i18n.Messages
 import play.api.mvc.Result
 import security.SignInService
 
@@ -52,9 +53,10 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
       def checkAppWindowBeforeProceeding (data: Map[String, String], fn: => Future[Result]) =
         data.get("applicationRoute").map(ApplicationRoute.withName).map {
           case appRoute if !isNewAccountsStarted(appRoute) =>
-            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(s"$appRoute applications not opened yet")))
+            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(
+              Messages(s"applicationRoute.$appRoute.notOpen", getApplicationStartDate(appRoute)))))
           case appRoute if !isNewAccountsEnabled(appRoute) =>
-            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(s"$appRoute applications are now closed")))
+            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(Messages(s"applicationRoute.$appRoute.closed"))))
           case _ => fn
         } getOrElse fn
 
