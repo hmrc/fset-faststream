@@ -1,0 +1,63 @@
+<configuration>
+
+    <!-- NOTE: Logback seems somewhat limited in terms of customisation of colors (see log4j2 by comparison),
+         and in terms of filtering based on level. Previous attempts using EvaluatorFilter were unfruitful,
+         so the following was a quick win (although unsightly). -->
+
+    <appender name="STDOUT-TRACE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%date{"HH:mm:ss,SSS"} %-5level [%logger] %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="STDOUT-DEBUG" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%date{"HH:mm:ss,SSS"} %-5level [%logger] %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="STDOUT-INFO" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%date{"HH:mm:ss,SSS"} %-5level [%logger] %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="STDOUT-WARN" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%yellow(%date{"HH:mm:ss,SSS"} %-5level [%logger] %msg%n)</pattern>
+        </encoder>
+    </appender>
+    <appender name="STDOUT-ERROR-FATAL" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <pattern>%red(%date{"HH:mm:ss,SSS"} %-5level [%logger] %msg%n)</pattern>
+        </encoder>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="STDOUT-TRACE" />
+        <appender-ref ref="STDOUT-DEBUG" />
+        <appender-ref ref="STDOUT-INFO" />
+        <appender-ref ref="STDOUT-WARN" />
+        <appender-ref ref="STDOUT-ERROR-FATAL" />
+    </root>
+</configuration>

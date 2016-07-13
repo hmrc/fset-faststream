@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cubiksReport xmlns="http://www.w3.org/TR/REC-html40"
+>
+    <Candidate>
+        <Name></Name>
+        <Email></Email>
+    </Candidate>
+    <Results>
+        <AssessmentScore>
+            <Name>Cubiks Factors</Name>
+            <Status>Completed</Status>
+            <T-Score>26</T-Score>
+            <Norm>CTQ: DEMONSTRATION NORM 1</Norm>
+        </AssessmentScore>
+        <AssessmentScore>
+            <Name>Civil Service Fast Track Apprentice SJQ</Name>
+            <Status>Completed</Status>
+            <RawScore>37</RawScore>
+            <T-Score>35</T-Score>
+            <Percentile>38</Percentile>
+            <Sten>39</Sten>
+            <Norm>Fast Track 1.0</Norm>
+        </AssessmentScore>
+        <AssessmentScore>
+            <Name>Logiks Verbal and Numerical</Name>
+            <Status>Completed</Status>
+            <Norm>Demonstration norm (for software testing purposes only)</Norm>
+            <Section>
+                <Name>Numerical</Name>
+                <T-Score>26</T-Score>
+                <RawScore>27</RawScore>
+                <Percentile>28</Percentile>
+            </Section>
+            <Section>
+                <Name>Verbal</Name>
+                <T-Score>46</T-Score>
+                <RawScore>47</RawScore>
+                <Percentile>48</Percentile>
+            </Section>
+        </AssessmentScore>
+    </Results>
+</cubiksReport>

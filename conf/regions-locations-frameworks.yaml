@@ -1,0 +1,220 @@
+Business:
+  Criteria: 1
+  Locations:
+    East:
+      - TestGCSE
+      - Southend
+    East-midlands:
+      - Nottingham
+    London:
+      - TestGCSE2
+      - London
+    North-east:
+      - Darlington
+      - Newcastle
+    North-west:
+      - Blackpool
+      - Stockport
+      - Warrington
+      - Manchester / Salford
+      - Liverpool / Bootle / Netherton
+    Scotland:
+      - Bathgate
+      - East Kilbride
+      - Edinburgh
+      - Glasgow
+      - Airdrie / Motherwell / Hamilton
+      - Springburn / Newlands / Govan
+    South-east:
+      - Hastings
+      - Reading
+      - Worthing
+    South-west:
+      - Bristol
+      - St Austell
+      - Torquay
+    Wales:
+      - Cardiff
+    West-midlands:
+      - Birmingham
+      - Coventry
+      - Telford
+    Yorkshire-humberside:
+      - Bradford
+      - Shipley
+      - Leeds / Sheffield
+Commercial: 
+  Criteria: 1
+  Locations:
+    East:
+      - TestGCSE
+    London:
+      - TestGCSE2
+      - London
+    North-west:
+      - Blackpool
+      - Manchester / Salford
+      - Liverpool / Bootle / Netherton
+    South-west:
+      - Bristol
+    Wales:
+      - Cardiff
+    West-midlands:
+      - Birmingham
+    Yorkshire-humberside:
+      - Bradford
+      - Leeds / Sheffield
+TestSchemeSTEM:
+  Criteria: 3
+  Locations:
+    East:
+      - TestGCSE
+      - TestALevelD
+      - TestALevelCSTEM
+      - Bedford
+      - Milton Keynes
+      - Norwich
+      - Southend
+    East-midlands:
+      - Leicester
+      - Nottingham
+    London:
+      - TestGCSE2
+      - TestALevelD2
+      - TestALevelCSTEM2
+      - Hackney
+      - London
+      - Northwood
+    North-east:
+      - Darlington
+      - Jarrow South
+      - Newcastle
+      - Stockton
+      - Teeside
+      - Washington
+    North-west:
+      - Blackpool
+      - Bootle
+      - Liverpool
+      - Lytham St Annes
+      - Manchester
+      - Preston
+      - Salford
+      - Shipley
+    Scotland:
+      - Cumbernauld
+      - East Kilbride
+      - Edinburgh
+    South-east:
+      - Andover
+      - Aylesbury (Buckinghamshire)
+      - Chilton
+      - Kent (inc.Ramsgate)
+      - Oxford
+      - Reading
+      - Shrivenham
+      - Surrey
+      - Worthing
+    Wales:
+      - Cardiff
+      - Merthyr Tydfil
+      - Swansea
+    West-midlands:
+      - Birmingham
+      - Cosford
+      - Coventry
+      - Handsworth
+      - Lichfield
+      - Stratford
+      - Sutton Coldfield
+      - Telford
+      - Walsall
+      - Wolverhampton
+    Yorkshire-humberside:
+      - Bradford
+      - Leeds
+      - Sheffield
+      - York
+Digital and technology: 
+  Criteria: 3
+  Locations:
+    East:
+      - TestGCSE
+      - TestALevelD
+      - TestALevelCSTEM
+    East-midlands:
+      - Nottingham
+    London:
+      - TestGCSE2
+      - TestALevelD2
+      - TestALevelCSTEM2
+      - London
+    North-east:
+      - Newcastle
+    North-west:
+      - Blackpool
+      - Manchester / Salford
+    South-east:
+      - Reading
+      - Worthing
+    Wales:
+      - Cardiff
+    West-midlands:
+      - Birmingham
+      - Coventry
+      - Telford
+    Yorkshire-humberside:
+      - Shipley
+      - Leeds / Sheffield
+Finance: 
+  Criteria: 1
+  Locations:
+    East:
+      - TestGCSE
+    London:
+      - TestGCSE2
+      - London
+    North-east:
+      - Newcastle
+    Scotland:
+      - Glasgow
+    South-east:
+      - High Wycombe
+      - Reading
+      - Worthing
+    South-west:
+      - Bristol
+      - Corsham
+    West-midlands:
+      - Whittington
+    Yorkshire-humberside:
+      - Leeds / Sheffield
+Project delivery: 
+  Criteria: 2
+  Locations:
+    East:
+      - TestGCSE
+      - TestALevelD
+    East-midlands:
+      - Nottingham
+    London:
+      - TestGCSE2
+      - TestALevelD2
+      - Croydon
+      - London
+    North-east:
+      - Newcastle
+    North-west:
+      - Manchester / Salford
+      - Liverpool / Bootle / Netherton
+    South-east:
+      - Andover
+      - High Wycombe
+      - Portsmouth
+    South-west:
+      - Bristol
+      - Corsham
+    West-midlands:
+      - Coventry
+    Yorkshire-humberside:
+      - Leeds / Sheffield

@@ -1,0 +1,81 @@
+# microservice specific routes
+
+POST        /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.personalDetails(userId: String, applicationId: String)
+GET         /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.find(userId: String, applicationId: String)
+
+PUT         /assistance-details/:userId/:applicationId                   controllers.AssistanceController.assistanceDetails(userId: String, applicationId: String)
+GET         /assistance-details/:userId/:applicationId                   controllers.AssistanceController.findAssistanceDetails(userId: String, applicationId: String)
+
+PUT         /application/create                                          controllers.ApplicationController.createApplication
+GET         /application/progress/:applicationId                         controllers.ApplicationController.applicationProgress(applicationId: String)
+GET         /application/status/:applicationId                           controllers.ApplicationController.applicationStatus(applicationId: String)
+GET         /application/find/user/:userId/framework/:frameworkId        controllers.ApplicationController.findApplication(userId: String, frameworkId: String)
+PUT         /application/review/:applicationId                           controllers.ApplicationController.review(applicationId: String)
+PUT         /application/submit/:userId/:applicationId                   controllers.SubmitApplicationController.submitApplication(userId: String, applicationId: String)
+PUT         /application/withdraw/:applicationId                         controllers.ApplicationController.applicationWithdraw(applicationId: String)
+PUT         /application/confirm/adjustment/:applicationId               controllers.ApplicationController.confirmAdjustment(applicationId:String)
+
+PUT         /media/create                                                controllers.MediaController.addMedia()
+
+GET         /frameworks-available-to-application/:applicationId          controllers.FrameworkController.getAvailableFrameworksWithLocations(applicationId: String)
+
+PUT         /framework-preference/first/:applicationId                   controllers.FrameworkPreferenceController.submitFirstPreference(applicationId: String)
+PUT         /framework-preference/second/:applicationId                  controllers.FrameworkPreferenceController.submitSecondPreference(applicationId: String)
+PUT         /framework-preference/second/intention/:applicationId        controllers.FrameworkPreferenceController.submitSecondPreferenceIntention(applicationId: String)
+PUT         /framework-preference/alternatives/:applicationId            controllers.FrameworkPreferenceController.submitAlternatives(applicationId: String)
+
+GET         /framework-preference/:applicationId                         controllers.FrameworkPreferenceController.getPreferences(applicationId: String)
+
+PUT         /pass-mark-settings/create                                   controllers.OnlineTestPassMarkSettingsController.createPassMarkSettings
+GET         /pass-mark-settings/getLatestVersion                         controllers.OnlineTestPassMarkSettingsController.getLatestVersion
+
+GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
+PUT         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.create
+
+GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
+GET         /assessment-schedule/venue/:venue/date/:date                 controllers.AssessmentScheduleController.getVenueDayCandidateSchedule(venue: String, date: String)
+GET         /assessment-schedule/details/venue/:venue/date/:date         controllers.AssessmentScheduleController.getVenueDayCandidateScheduleWithDetails(venue: String, date: String)
+GET         /assessment-schedule/application/:applicationId              controllers.AssessmentScheduleController.getApplicationAssessment(applicationId: String)
+DELETE      /assessment-schedule/application/:applicationId              controllers.AssessmentScheduleController.deleteApplicationAssessment(applicationId: String)
+GET         /assessment-schedule/centre-location/location/:locationName  controllers.AssessmentScheduleController.locationToAssessmentCentreLocation(locationName: String)
+GET         /assessment-schedule/location/:location                      controllers.AssessmentScheduleController.getApplicationForAssessmentAllocation(location: String, start: Int, end: Int)
+GET         /assessment-centres                                          controllers.AssessmentScheduleController.assessmentCentres
+GET         /assessment-centre-capacities/venue/:venue                   controllers.AssessmentScheduleController.getAssessmentCentreCapacities(venue: String)
+GET         /assessment-centre-allocation/venue/:venue                   controllers.AssessmentScheduleController.getAllocationsForVenue(venue: String)
+POST        /assessment-centre-allocation                                controllers.AssessmentScheduleController.allocate
+
+GET         /allocation-status/:applicationId                            controllers.AssessmentScheduleController.allocationStatus(applicationId)
+POST        /allocation-status/confirm/:applicationId                    controllers.AssessmentScheduleController.confirmAllocation(applicationId)
+
+PUT         /questionnaire/:applicationId/:sectionKey                    controllers.QuestionnaireController.addSection(applicationId: String,sectionKey: String)
+
+GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
+POST        /search/find-by-criteria                                     controllers.SearchForApplicantsController.findByCriteria
+GET         /report/diversity-monitoring                                 controllers.ReportingController.retrieveDiversityReport
+GET         /report/adjustments/:frameworkId                             controllers.ReportingController.createAdjustmentReports(frameworkId: String)
+GET         /report/assessment-centre-allocation/:frameworkId            controllers.ReportingController.createAssessmentCentreAllocationReport(frameworkId: String)
+GET         /report/pass-mark-modelling/:frameworkId                     controllers.ReportingController.createPassMarkModellingReport(frameworkId: String)
+GET         /report/pass-mark-personal-data/:frameworkId                 controllers.ReportingController.createPassMarkWithPersonalDataReport(frameworkId: String)
+GET         /report/non-submitted-applications/:frameworkId              controllers.ReportingController.createNonSubmittedAppsReports(frameworkId: String)
+GET         /report/preferences-and-contact/:frameworkId                 controllers.ReportingController.createPreferencesAndContactReports(frameworkId: String)
+GET         /report/application-user-ids/:frameworkId                    controllers.ReportingController.applicationAndUserIdsReport(frameworkId: String)
+GET         /report/assessment-results/:frameworkId                      controllers.ReportingController.createAssessmentResultsReport(frameworkId: String)
+GET         /report/successful-candidates/:frameworkId                   controllers.ReportingController.createSuccessfulCandidatesReport(frameworkId: String)
+GET         /report/:frameworkId                                         controllers.ReportingController.createReport(frameworkId: String)
+
+GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getUserById(userId: String)
+
+GET         /online-test/candidate/:userId                               controllers.OnlineTestController.getOnlineTest(userId: String)
+POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
+POST        /online-test/complete/:token                                 controllers.OnlineTestController.completeTests(token: String)
+POST        /online-test/reset/:appId                                    controllers.OnlineTestController.resetOnlineTests(appId: String)
+POST        /online-test/extend/:appId                                   controllers.OnlineTestController.extendOnlineTests(appId: String)
+GET         /online-test/pdf-report/:applicationId                       controllers.OnlineTestController.getPDFReport(applicationId: String)
+
+GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
+PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)
+PUT         /test-scores/accept/application/:applicationId               controllers.CandidateScoresController.acceptCandidateScoresAndFeedback(applicationId: String)
+
+GET         /application/:applicationId/issue                            controllers.FlagCandidateController.find(applicationId: String)
+PUT         /application/:applicationId/issue                            controllers.FlagCandidateController.save(applicationId: String)
+DELETE      /application/:applicationId/issue                            controllers.FlagCandidateController.remove(applicationId: String)

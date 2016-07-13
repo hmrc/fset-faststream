@@ -1,0 +1,131 @@
+Business:
+  Criteria: 1
+  Locations:
+    East:
+      - Southend
+    East-midlands:
+      - Nottingham
+    London:
+      - London
+    North-east:
+      - Darlington
+      - Newcastle
+    North-west:
+      - Blackpool
+      - Stockport
+      - Warrington
+      - Manchester / Salford
+      - Liverpool / Bootle / Netherton
+    Scotland:
+      - Bathgate
+      - East Kilbride
+      - Edinburgh
+      - Glasgow
+      - Airdrie / Motherwell / Hamilton
+      - Springburn / Newlands / Govan
+    South-east:
+      - Hastings
+      - Worthing
+    South-west:
+      - Bristol
+      - St Austell
+      - Torquay
+    Wales:
+      - Cardiff
+    West-midlands:
+      - Birmingham
+      - Coventry
+      - Telford
+    Yorkshire-humberside:
+      - Bradford
+      - Shipley
+      - Leeds / Sheffield
+Commercial: 
+  Criteria: 1
+  Locations:
+    East:
+      - Norwich
+    London:
+      - London
+    North-west:
+      - Manchester / Salford
+      - Liverpool / Bootle / Netherton
+    South-east:
+      - Reading
+    Wales:
+      - Newport
+    West-midlands:
+      - Telford
+    Yorkshire-humberside:
+      - Leeds / Sheffield
+Digital and technology: 
+  Criteria: 3
+  Locations:
+    East-midlands:
+      - Nottingham
+    London:
+      - London
+    North-east:
+      - Newcastle
+    North-west:
+      - Manchester / Salford
+    South-east:
+      - Reading
+      - Worthing
+    Wales:
+      - Cardiff
+    West-midlands:
+      - Coventry
+      - Telford
+    Yorkshire-humberside:
+      - Shipley
+      - Leeds / Sheffield
+Finance: 
+  Criteria: 1
+  Locations:
+    London:
+      - London
+    North-east:
+      - Newcastle
+    North-west:
+      - Blackpool
+    Scotland:
+      - Glasgow
+    South-east:
+      - High Wycombe
+      - Reading
+      - Worthing
+    South-west:
+      - Bristol
+      - Corsham
+    West-midlands:
+      - Birmingham
+      - Whittington
+    Yorkshire-humberside:
+      - Leeds / Sheffield
+Project delivery: 
+  Criteria: 2
+  Locations:
+    East-midlands:
+      - Nottingham
+    London:
+      - Croydon
+      - London
+    North-east:
+      - Newcastle
+    North-west:
+      - Blackpool
+      - Manchester / Salford
+      - Liverpool / Bootle / Netherton
+    South-east:
+      - Andover
+      - High Wycombe
+      - Portsmouth
+    South-west:
+      - Bristol
+      - Corsham
+    West-midlands:
+      - Birmingham
+      - Coventry
+    Yorkshire-humberside:
+      - Leeds / Sheffield
