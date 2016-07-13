@@ -11,7 +11,7 @@ addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.7.0")
 
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.10")
 
-addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.0.0-4-g2a8f1d5")
+addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.0.0")
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-distributables" % "0.11.0")
 
@@ -20,4 +20,3 @@ addSbtPlugin("uk.gov.hmrc" % "sbt-git-versioning" % "0.8.0")
 addSbtPlugin("uk.gov.hmrc" % "sbt-settings" % "3.2.0")
 
 //libraryDependencies += "org.scalariform" %% "scalariform" % "0.1.8"
-logLevel := Level.Debug

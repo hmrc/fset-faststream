@@ -54,9 +54,9 @@ trait MicroService {
       fork in Test := false,
       retrieveManaged := true,
       scalacOptions += "-feature")
-    //.settings(HeaderPlugin.settingsFor(IntegrationTest))
+    .settings(HeaderPlugin.settingsFor(IntegrationTest))
     .configs(IntegrationTest)
-    //.settings(inConfig(IntegrationTest)((Defaults.testSettings ++ AutomateHeaderPlugin.automateFor(IntegrationTest))) : _*)
+    .settings(inConfig(IntegrationTest)((Defaults.testSettings ++ AutomateHeaderPlugin.automateFor(IntegrationTest))) : _*)
     .settings(inConfig(IntegrationTest)(Defaults.itSettings))
     // Disable Scalastyle & Scalariform temporarily, as it is currently intermittently failing when building
 //    .settings(scalariformSettings: _*)
