@@ -1,0 +1,45 @@
+@(email: String, activationForm: Form[_root_.forms.ActivateAccountForm.Data],
+        notification: Option[(helpers.NotificationType, String)] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+    @import helpers.CSRFieldConstructor._
+
+    @main_template(title = "Activate your account", pageForms = Seq(activationForm), notification = notification) {
+
+        <h1 id="accountCreated" class="heading-xlarge">Activate your account</h1>
+        <p class="text">
+            We've sent an email to <b>@email</b> with a <span class="inl-block">7-character</span> code you’ll need to activate your account.
+        </p>
+
+        @helper.form(action = routes.ActivationController.activateForm(), 'id -> "activateForm", 'novalidate -> "novalidate") {
+            @helper.CSRF.formField
+            @helper.inputText(activationForm("activation"), 
+            '_label -> "Activation code", 
+            '_hasLink -> true,
+            'autofocus -> true,
+            'autocapitalize -> "characters",
+            'autocorrect -> "off",
+            'class -> "form-control", 
+            '_showConstraints -> false)
+            <p class="hide-nojs"><a class="hide-nojs" id="resend" href="#" onclick="$('#resendForm').submit()">Resend code</a></p>
+            <div class="form-group">
+                <button id="submit" type="submit" class="button activate-page-btn">Activate account</button>
+            </div>
+        }
+
+        @helper.form(action = routes.ActivationController.resendCode(), 'id -> "resendForm", 'novalidate -> "novalidate") {
+            @helper.CSRF.formField
+            <noscript>
+            <p><button id="resend" type="submit" class="button-link">Resend code</button></p>
+            </noscript>
+        }
+
+        <div class="panel-indent text">
+            <p>
+                You must activate your account within 30 days of receiving your activation code. After 30 days your account will be deleted and you'll need to register again.
+            </p>
+            <p>
+                If you haven't received the email within a few minutes, check your spam, bulk or junk email folder – it may have been mistakenly blocked by your email system.
+            </p>
+        </div>
+
+    }

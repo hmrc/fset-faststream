@@ -1,0 +1,13 @@
+@(field : play.api.data.Field, options: List[String])(defaultChoice: String = "-- Choose method --")(labelContent: Html)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@helper.input(field) { (id, name, value, args) =>
+    <label for="@id" class="form-label">@labelContent</label>
+    <select name="@name" id="@id">
+        <option value="">@defaultChoice</option>
+        @for(option <- options) {
+            <option value="@option"@if(value.contains(option)) { selected="selected"}>@option</option>
+        }
+    </select>
+}

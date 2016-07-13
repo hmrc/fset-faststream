@@ -1,0 +1,33 @@
+@(resetForm: Form[_root_.forms.RequestResetPasswordForm.Data], notification: Option[(helpers.NotificationType, String)] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import helpers.CSRFieldConstructor._
+
+@main_template(title = "Can't access your account?", pageForms = Seq(resetForm), notification = notification) {
+
+    <div class="text">
+        <h1 class="heading-xlarge">Can&#x27;t access your account?</h1>
+    </div>
+    <section>
+        <div class="text">
+            <h2 class="heading-medium">Forgotten your password?</h2>
+            <p>To reset your password we need to send you a 7-character code.</p>
+            <p> If you can’t see it in your inbox within a few minutes, check your
+                spam folder.</p>
+        </div>
+        @helper.form(action = routes.PasswordResetController.submitCode(), 'novalidate -> "novalidate") {
+            @helper.CSRF.formField
+
+            @helper.inputText(resetForm("email"),
+                '_label -> "Enter email",
+                'class -> "form-control",
+                '_showConstraints -> false)
+            <div class="form-group">
+                <button id="btnReset" type="submit" value="submit" class="button">Send code</button>
+            </div>
+        }
+    </section>
+    <div class="panel-indent">
+        <p>Your password reset code will expire after an hour</p>
+    </div>
+
+}

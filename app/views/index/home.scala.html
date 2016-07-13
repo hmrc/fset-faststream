@@ -1,0 +1,6 @@
+@(name: models.CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Hello from csr-fasttrack-frontend") {
+
+    <h1>Hello @{name.user.firstName}</h1>
+}

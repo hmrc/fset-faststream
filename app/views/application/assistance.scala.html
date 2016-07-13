@@ -1,0 +1,137 @@
+@(assistanceForm: Form[_root_.forms.AssistanceForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.{guard, guardWithLabel, inputCheckboxGroup, radioBox, select_guard}
+
+
+@main_template(title = "Additional information", pageForms = Seq(assistanceForm)) {
+
+    @helper.form(action = routes.AssistanceController.submit(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        <h1 class="heading-xlarge">Additional information</h1>
+        <section class="section-border clearfix">
+            <h2 class="heading-large">Disability and adjustments</h2>
+            @guard(assistanceForm("needsAssistance"), "Do you have a disability?",
+                    "For example, dyslexia",
+                    "Yes",
+                    "No",
+                    "Prefer not to say") {
+                    case "Yes" => {
+                        <div id="support-panel" class="form-group">
+                            <div class="form-group" data-optional>
+                                @inputCheckboxGroup(assistanceForm("typeOfdisability"),models.AssistanceTypes.seq,
+                                    '_label -> "Select from the list of disabilities"
+                                )
+
+                                @helper.textarea(assistanceForm("detailsOfdisability"),
+                                    '_label -> "Enter more information (optional)",
+                                    'class -> "form-control",
+                                    'rows -> 4,
+                                    'dataValLengthMax -> "4000",
+                                    '_showConstraints -> false
+                                )
+                            </div>
+                            <h2 class="heading-large">Guaranteed interview scheme</h2>
+                            <div class="panel-indent text">
+                                <img src='@routes.Assets.versioned("img/logo-ticks-small-2x.png")' width="38" alt="Two ticks - Positive about disabled people logo"
+                                class="image-left">
+                                <p>If you have a registered disability you may be eligible for the
+                                    <a
+                                    href="https://www.gov.uk/government/publications/civil-service-fast-track-apprenticeship-promoting-diversity-and-inclusion/civil-service-fast-track-apprenticeship-promoting-diversity-and-inclusion#guaranteed-interview-scheme"
+                                    target="_blank" rel="external">guaranteed interview scheme</a>.
+                                </p>
+                                <p>If you choose to apply, we may ask you for supporting documents, if available, at a later stage eg medical documents.</p>
+                            </div>
+                            <fieldset id="guaranteedInterview_field" data-requiredifshown>
+                            <legend class="form-label" id="gis-scheme">Would you like to apply under the guaranteed interview scheme?</legend>
+                            @radioBox(assistanceForm("guaranteedInterview"), options = Seq("Yes" -> "Yes", "No" -> "No"))
+                            </fieldset>
+                        </div>
+                    }
+                }
+                
+                @guardWithLabel(assistanceForm("needsAdjustment"), "Will you need adjustments or support for your assessment?",
+                    ("If you need extra support with your assessment we can offer reasonable adjustments, eg extra time. ",
+                            "We may need to contact you to talk about and agree any adjustments you request."),
+                    "Yes",
+                    "No") {
+                    case "Yes" => {
+                        <div id="adjustment-panel" data-optional>
+                            @inputCheckboxGroup(assistanceForm("typeOfAdjustments"), models.AdjustmentTypes.seq,
+                                '_label -> "Select which adjustments you'll need" )
+
+                            <div class="form-group">
+                                @helper.textarea(assistanceForm("otherAdjustments"),
+                                    '_label -> "Tell us more (optional)",
+                                    '_help -> "If you have any adjustment needs which aren't listed, or want to provide more information, tell us here. ",
+                                    'class -> "form-control",
+                                    'rows -> 4,
+                                    'dataValLengthMax -> "4000",
+                                    '_showConstraints -> false
+                                )
+                            </div>
+                            <div class="panel-indent text">
+                                <p>If you want to talk about your adjustment needs in more detail, <a href="@routes.Application.helpdesk()">contact us</a>.</p>
+                                <p>It's important you let us know this information now, as there won't be another opportunity to do this.</p>
+                                <p>(But if your situation changes between submitting your application and attending the assessment centre, contact us.)</p>
+                            </div>
+                        </div>
+                    }
+                }
+            </section>
+
+        <section>
+            <h2 class="heading-large">How did you hear about us?</h2>
+            <div data-optional>
+                @select_guard(assistanceForm("campaignReferrer"), models.CampaignReferrers.list,
+                    "hearAboutUsDetail", "-- Select one --") {
+                    Select how you heard about us (optional)
+                }
+            </div>
+
+            <div class="form-group toggle-content" id="hearAboutUsDetail" data-requiredifshown data-optional>
+                @helper.inputText(assistanceForm("campaignOther"),
+                    '_label -> "Provide more information (optional)",
+                    'class -> "form-control",
+                    '_showConstraints -> false)
+            </div>
+        </section>
+
+
+        <div class="form-group">
+            <div>
+                <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+            </div>
+        </div>
+    }
+
+
+}
+
+    <script>
+
+        function cleanCheckBoxGroupAndOther(checkBoxGroup,other){
+            $("#"+other).val("");
+
+            $("input[name*='"+checkBoxGroup+"']").each(function(){
+                //If the checkbox is checked, disable it.
+                //Using click because if deselected by property won't remove the clicked visual style.
+                if($(this).prop("checked"))
+                    $(this).click();
+            });
+        }
+        $(function(){
+            var needsAssistanceCleanup = function(){
+                cleanCheckBoxGroupAndOther("typeOfdisability","detailsOfdisability");
+                $("#guaranteedInterview_field").find("input").each(function(){
+                    $(this).attr('checked',false)
+                });
+            };
+            $("#needsAssistance-No").click(needsAssistanceCleanup);
+            $("#needsAssistance-Prefer-not-to-say").click(needsAssistanceCleanup);
+
+            $("#needsAdjustment-No").click(function(){
+                cleanCheckBoxGroupAndOther("typeOfAdjustments","otherAdjustments");
+            });
+        });
+    </script>

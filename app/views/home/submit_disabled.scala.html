@@ -1,0 +1,13 @@
+@(usr: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, fasttrackConfig: FasttrackConfig)
+
+@main_template(title = "Home") {
+
+    <div class="hgroup">
+        <h1 class="heading-xlarge">Applications are now closed</h1>
+    </div>
+    <div class="lede text">
+        <p>You can no longer apply for a Civil Service Fast Track apprenticeship.</p>
+        <p>You'll be able to apply again next year.</p>
+        <p>Or you can use the <a href="https://www.gov.uk/apply-apprenticeship" rel="external">Find an apprenticeship</a> service.</p>
+    </div>
+}

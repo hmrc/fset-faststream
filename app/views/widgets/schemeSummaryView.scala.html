@@ -1,0 +1,41 @@
+@(schemesAndLocations: models.frameworks.LocationAndSchemeSelection)(edit: Html)
+
+@import views.html.application.scheme.preferenceSummaryView
+
+@renderBoolean(value: Boolean) = {
+    @(value match {
+        case true => "Yes"
+        case false => "No"
+    })
+}
+
+<section class="section-border" id="choiceInfo">
+    <h2 class="heading-large">
+        <span class="sectionTitle">Locations and scheme</span>
+        @edit
+    </h2>
+
+    @preferenceSummaryView(title = "First preference", preference = schemesAndLocations.firstLocation, id = "firstPreference")
+
+    @if(schemesAndLocations.secondLocation.isDefined) {
+        @preferenceSummaryView(title = "Second preference", preference = schemesAndLocations.secondLocation.get, id = "secondPreference")
+    } else {
+        <section>
+            <h3 class="heading-small">Second preference</h3>
+            <p id="noSecondPreference">No second preference chosen</p>
+        </section>
+    }
+
+    @schemesAndLocations.alternatives.map { alternatives =>
+        <section>
+        <h3 class="heading-small">Would you consider an alternative location?</h3>
+        <p id="considerAltLocation">@(renderBoolean(alternatives.location))</p>
+        </section>
+        <section>
+        <h3 class="heading-small">Would you consider an alternative scheme?</h3>
+        <p id="considerAltScheme">@(renderBoolean(alternatives.framework))</p>
+        </section>
+    }
+
+
+</section>

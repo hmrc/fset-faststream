@@ -1,0 +1,39 @@
+@(withdrawForm: Form[_root_.forms.WithdrawApplicationForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.select_guard
+
+
+
+@main_template(title = "Withdraw your application", pageForms = Seq(withdrawForm)) {
+
+    <h1 class="heading-xlarge">Withdraw your application</h1>
+    <div class="panel-indent">
+        <div class="text">
+            <p>If you withdraw your application you won't be able to apply
+                using this account. To continue with your application you'll need to start again, with a new account.</p>
+            <p>If you've completed the online test and withdrawn your application,
+                you will be unable to re-apply.</p>
+        </div>
+    </div>
+
+    @helper.form(action = routes.HomeController.withdraw(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+
+        @select_guard(withdrawForm("reason"), models.WithdrawReasons.list, "moreInfo", "-- Select one --") {
+            Reason for withdrawal
+        }
+
+        <div class="form-group toggle-content" id="moreInfo">
+            @helper.textarea(withdrawForm("otherReason"),
+                '_label -> "More information about your withdrawal",
+                'class -> "form-control",
+                'rows -> 6, 'cols -> 80,
+                '_showConstraints -> false)
+        </div>
+
+        <button id="submit" type="submit" value="submit" class="button">Withdraw my application</button>
+
+    }
+
+}

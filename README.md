@@ -1,11 +1,19 @@
+# Civil Service Resourcing Fast Track Web Application
 
-# csr-faststream-frontend
+### Summary
+This repository contains the front-end for the Civil Service Resourcing Fast Track programme.
 
-[![Build Status](https://travis-ci.org/hmrc/csr-faststream-frontend.svg?branch=master)](https://travis-ci.org/hmrc/csr-faststream-frontend) [ ![Download](https://api.bintray.com/packages/hmrc/releases/csr-faststream-frontend/images/download.svg) ](https://bintray.com/hmrc/releases/csr-faststream-frontend/_latestVersion)
+### Requirements
+This service is written in Scala and Play, so needs at least a [JRE] to run.
 
-This is a placeholder README.md for a new repository
+### Testing
+To run it locally
+	
+	sbt -Dhttp.port=9283 run
+	
+
+If you go to `http://localhost:9000/csr-fast-track/signin` you can see the landing page
 
 ### License
 
-This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
-    
+This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html")

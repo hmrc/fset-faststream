@@ -1,0 +1,24 @@
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Online tests complete | Apply for a Civil Service apprenticeship") {
+
+    <div class="success-banner">
+        <h1 class="heading-large no-btm-margin"><i class="fa fa-check"></i>Online tests complete</h1>
+    </div>
+    <div class="text">
+        <p>You've completed all the sections of the online tests.</p>
+        <h2 class="heading-large">What happens next?</h2>
+        <p>We'll now assess your results and you can expect to hear back from us within 4 to 6 weeks.</p>
+        <p>We'll send you an email to let you know when your results are available.</p>
+        <p><a href="@feedbackUrl" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>
+        <div class="panel-indent">
+            @if(user.isDefined){
+                <p><a href="@routes.HomeController.present">Return to home</a>. Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a>.</p>
+            } else {
+                <p>You've been signed out. <a href="@routes.SignInController.signIn">Sign in</a> to return to your home page.</p>
+            }
+        </div>
+    </div>
+
+}
+

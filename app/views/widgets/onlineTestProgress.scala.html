@@ -1,0 +1,140 @@
+@import connectors.ExchangeObjects.OnlineTest
+@(usr: CachedData, onlineTest: Option[OnlineTest] = None,
+        applicationStatus: models.ApplicationData.ApplicationStatus.ApplicationStatus,
+        allocationDetails: Option[connectors.AllocationExchangeObjects.AllocationDetails])(implicit request: Request[_])
+
+@import models.ApplicationData.ApplicationStatus._
+
+@applicationStatus match {
+    case REGISTERED | CREATED | IN_PROGRESS | WITHDRAWN => {
+            <p>Once you've submitted your application and completed the diversity questions, you'll be invited to take the online tests. Once you've been invited, you'll have 7 days to complete the tests.</p>
+            <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-tests" rel="external" target="_blank">
+                        Find out more about the online tests</a></p>
+    }
+    case ONLINE_TEST_INVITED => {
+
+            <p>Your tests are now ready.</p>
+            <p>You have <b>@{
+                onlineTest.map(v => v.getDuration).getOrElse("")
+            }</b> to complete the tests.
+                <br>The tests will expire at @{
+                onlineTest.map(v => v.getExpireDateTime).getOrElse("")
+            }.</p>
+        <p>The tests will consist of</p>
+            <ol class="list-number">
+                <li>Competency questionnaire (untimed)</li>
+                <li>Verbal reasoning exercise (6 minutes) *</li>
+                <li>Numerical reasoning exercise (6 minutes) *</li>
+                <li>Situational judgement questionnaire (untimed)</li>
+            </ol>
+            <div class="panel-indent text">
+                <p>* Note: if you've applied under the guaranteed interview scheme (GIS), you don't need to do the verbal or numerical reasoning exercises.</p>
+            </div>
+            <div class="hide-tablet panel-indent">
+                <p><i class="fa fa-exclamation-triangle"></i>The online tests
+                    will be extremely difficult to use on a small device.</p>
+                <p>Use a laptop or desktop browser, or alternatively seek
+                    <a
+                    href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#help-with-getting-online"
+                    target="_blank" rel="external">help with getting online</a>. </p>
+            </div>
+
+            @helper.form(action = routes.OnlineTestController.startTests(), 'novalidate -> "novalidate") {
+                @helper.CSRF.formField
+
+                <button id="submit_online_tests" type="submit" value="submit" class="button">Start tests</button>
+            }
+
+            <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-selection-exercises"
+            target="_blank" rel="external">Find out more about the online tests</a>
+            </p>
+    }
+
+    case ONLINE_TEST_STARTED => {
+
+            <p>Your tests are now ready.</p>
+            <p>You have <b>@{
+                onlineTest.map(v => v.getDuration).getOrElse("")
+            }</b> to complete the tests.
+                <br>The tests will expire at @{
+                onlineTest.map(v => v.getExpireDateTime).getOrElse("")
+            }.</p>
+                <div class="hide-tablet panel-indent">
+        <p><i class="fa fa-exclamation-triangle"></i>The online tests
+            will be extremely difficult to use on a small device.</p>
+            <p>Use a laptop or desktop browser, or alternatively seek
+                <a
+                href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#help-with-getting-online"
+                target="_blank" rel="external">help with getting online</a>. </p>
+
+        @helper.form(action = routes.OnlineTestController.startTests(), 'novalidate -> "novalidate") {
+            @helper.CSRF.formField
+
+            <button id="submit_online_tests" type="submit" value="submit" class="button">Continue tests</button>
+        }
+
+        <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-selection-exercises"
+        target="_blank" rel="external">Find out more about the online tests</a>
+        </p>
+
+    }
+
+    case ONLINE_TEST_FAILED | ONLINE_TEST_FAILED_NOTIFIED if onlineTest.exists(_.pdfReportAvailable) => {
+        @* Only display failed section if a PDF report for the failure is available *@
+
+            <p>
+                We've assessed your test results and unfortunately you've been
+                unsuccessful this time.
+            </p>
+            <p>
+                You'll be able to reapply for Fast Track next year, alternatively
+                use the <a href="https://www.gov.uk/apply-apprenticeship" rel="external">find an apprenticeship</a> service to search for other apprenticeships in England.
+            </p>
+
+            @onlineTest.map { test =>
+                @if(test.pdfReportAvailable) {
+                    <p><a href="@routes.OnlineTestController.downloadPDFReport()">View your online test feedback (Less than 100kb)</a></p>
+                }
+            }
+
+            <p><a href="@routes.Application.helpdesk()">Contact us</a> if you believe there has been a mistake.</p>
+    }
+
+    case ONLINE_TEST_EXPIRED => {
+        <p><i class="fa fa-exclamation-triangle"></i>Your online tests
+            expired on @{onlineTest.map(_.getExpireDate).getOrElse("")}.</p>
+    <p>You can no longer take the online tests.</p>
+        <p><a href="@routes.Application.helpdesk()">Contact us</a> if you believe there
+            has been a mistake.</p>
+    }
+
+    case ONLINE_TEST_COMPLETED | AWAITING_ONLINE_TEST_RE_EVALUATION | ONLINE_TEST_FAILED | ONLINE_TEST_FAILED_NOTIFIED | AWAITING_ALLOCATION => {
+            <p><i class="fa fa-check the-icon"></i>You've completed the online
+                tests</p>
+            <p>We'll send you an email to let you know when your results are
+                available.</p>
+            <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-selection-exercises"
+            target="_blank" rel="external">Find out more about the online tests</a>
+            </p>
+
+    }
+
+    case ASSESSMENT_CENTRE_PASSED_NOTIFIED | ASSESSMENT_CENTRE_FAILED_NOTIFIED if onlineTest.exists(_.pdfReportAvailable) => {
+        <p><i class="fa fa-check the-icon"></i>Congratulations – we've assessed your test results and you've passed the online tests.</p>
+
+        @onlineTest.map { test =>
+            @if(test.pdfReportAvailable) {
+                <p><a href="@routes.OnlineTestController.downloadPDFReport()">View your online test feedback (Less than 100kb)</a></p>
+            }
+        }
+    }
+
+    case _ if(allocationDetails.isDefined) => {
+        <p><i class="fa fa-check the-icon"></i>Congratulations – we've assessed your test results and you've passed the online tests.</p>
+    }
+    case _ if(!allocationDetails.isDefined) => {
+        <p>The online tests are not available yet. Once you've been invited, you'll have 7 days to complete the tests.</p>
+        <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-tests" rel="external" target="_blank">
+                    Find out more about the online tests</a></p>
+    }
+}

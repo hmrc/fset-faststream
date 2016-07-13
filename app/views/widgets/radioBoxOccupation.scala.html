@@ -1,0 +1,35 @@
+@(field : play.api.data.Field, options: Seq[(String, String)], isCompound: Boolean = false)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@createId(id:String, label:String)=@{id + "-"+ label.replace(" ", "_").replace("/", "_")}
+@createDesc(id:String, label:String)=@{id + "-"+ label.replace(" ", "_").replace("/", "_")+"-description"}
+
+@helper.input(field) { (id, name, value, args) =>
+    <table class="grid-2-3" id="occupations">
+        <colgroup>
+            <col class="t40">
+            <col class="t60">
+            <col>
+        </colgroup>
+        <thead>
+            <tr>
+                <th>Type of occupation</th>
+                <th>Examples</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for((label, desc) <- options) {
+                <tr>
+                    <td>
+                        <label for="@createId(id, label)" class="block-label">
+                            <input name="@name" type="radio" aria-describedby="@createDesc(id, label)" class="showsContent" id="@createId(id,label)" value="@{label}" @(if(value.contains(label)) "checked" else "")>@{label}
+                        </label>
+                    </td>
+                    <td><span id="@createDesc(id, label)"><span class="visuallyhidden">For example </span>@{desc}</span></td>
+                </tr>
+
+            }
+        </tbody>
+    </table>
+}

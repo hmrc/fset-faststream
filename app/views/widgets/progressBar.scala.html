@@ -1,0 +1,8 @@
+@(id: String, progress: Int = 0)
+
+<p>@{progress}% complete</p>
+<progress max="100" value="@progress" id="@id">
+    <div class="progress-bar">
+        <span style="width: @{progress}%;"></span>
+    </div>
+</progress>

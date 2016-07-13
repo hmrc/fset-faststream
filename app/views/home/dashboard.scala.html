@@ -1,0 +1,280 @@
+@import connectors.ExchangeObjects.OnlineTest
+@import models.page.DashboardPage
+@import models.page.DashboardPage._
+@(usr: CachedData, dashboardPage: DashboardPage, onlineTest: Option[OnlineTest] = None,
+  allocationDetails: Option[connectors.AllocationExchangeObjects.AllocationDetails] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import connectors.AllocationExchangeObjects._
+@import models.ApplicationData.ApplicationStatus._
+@import org.joda.time.format._
+@import org.joda.time.{DateTime, LocalDate}
+@import security.Roles._
+@import views.html.widgets.onlineTestProgress
+
+@confirmAllocationExpired = @{
+    allocationDetails match {
+        case Some(AllocationDetails(_, _, _, Some(expirationDate))) if LocalDate.now().isAfter(expirationDate) => true
+        case _ => false
+    }
+}
+
+@date(date: LocalDate) = @{
+    DateTimeFormat.forPattern("dd MMMM yyyy").print(date)
+}
+
+@dateTime(date: DateTime) = @{
+    DateTimeFormat.forPattern("d MMMM yyyy, h:mma")
+            .print(date.toLocalDateTime)
+            .replace("AM", "am").replace("PM","pm")
+}
+
+@renderFullName(user: CachedData) = {
+@user.user.firstName @user.user.lastName
+}
+
+@noApp(body: Html) = {
+@if(ApplicationStartRole.isAuthorized(usr)) {@body}
+}
+
+@inProgress(flag: Boolean = true)(body: Html) = {
+@if(!(flag ^ PersonalDetailsRole.isAuthorized(usr))) {
+    @body
+}
+}
+
+@withdraw(flag: Boolean = true)(body: Html) = {
+@if(!(flag ^ WithdrawApplicationRole.isAuthorized(usr))) {@body}
+}
+
+@withdrawn(flag: Boolean = true)(body: Html) = {
+@if(!(flag ^ WithdrawnApplicationRole.isAuthorized(usr))) {@body}
+}
+
+
+@renderProgressElement(showLink: Boolean, checked: Boolean)(link: Call)(body: Html) = {
+    <li><i class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
+        <a href="@link">@body</a>
+    } else {
+        @body
+    } </li>
+}
+
+@setVisibility(visibility: ProgressStepVisibility) = @{
+    visibility match {
+        case ProgressActive => "active"
+        case ProgressInactiveDisabled => "disabled"
+        case _ => ""
+    }
+}
+
+@main_template(title = "Home") {
+
+    <div class="hgroup">
+        <h1 class="heading-xlarge">Home</h1>
+        <p class="subtitle">@renderFullName(usr)</p>
+    </div>
+    <section class="section-border">
+        <ol class="step-by-step-coloured" id="sixSteps">
+            <li class="first-step @setVisibility(dashboardPage.firstStepVisibility)">
+                <div class="grid-wrapper">
+                    <div class="grid grid-2-3">
+                        <div class="inner-block-padr">
+                            <h2 class='@inProgress() {heading-large} @inProgress(false) {heading-medium} '>
+                                1. Fill in your application form</h2>
+                            @withdrawn(false) {
+                                <ul class="list-text list-withicons">
+                                    @withdraw() {
+                                        <li><i class='fa fa-check the-icon'></i>Your application has been submitted</li>
+                                    }
+                                    @withdraw(false) {
+                                        @renderProgressElement(showLink = PersonalDetailsRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr))(routes.FastTrackApplication.generalDetails(None)) {Add personal details }
+                                        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceRole.isAuthorized(usr))(routes.SchemeController.entryPoint()) { Choose locations and schemes }
+                                        @renderProgressElement(showLink = AssistanceRole.isAuthorized(usr), checked = ReviewRole.isAuthorized(usr))(routes.AssistanceController.present()) { Tell us about any assistance needs you may have }
+                                        @renderProgressElement(showLink = ReviewRole.isAuthorized(usr), checked = (SubmitApplicationRole.isAuthorized(usr) || StartQuestionnaireRole.isAuthorized(usr)))(routes.ReviewApplicationController.present()) { Check your application }
+                                        @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr))(routes.QuestionnaireController.start()) { Fill in the diversity questions }
+                                        @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = WithdrawApplicationRole.isAuthorized(usr))(routes.SubmitApplicationController.present()) { Submit }
+                                    }
+                                </ul>
+                            }
+                            @withdraw() {
+                                <a class="" id="view-application" href="@routes.ReviewApplicationController.present()">
+                                    View your submitted application</a>
+                            }
+
+                            @withdrawn() {
+                                <a class="" id="view-withdrawn-application" href="@routes.ReviewApplicationController.present()">
+                                    View your withdrawn application</a>
+                            }
+
+                            @inProgress() {
+                                <a class="" id="continue-application" href="@routes.HomeController.resume()">
+                                    Continue with your application</a>
+                            }
+
+                            @noApp {
+                                <a class="button" id="start-application" href="@routes.HomeController.create()">
+                                    Start your application</a>
+                            }
+
+                        </div>
+                    </div>
+                    <div class="grid grid-1-3">
+                    </div>
+                </div>
+            </li>
+
+            <li class="second-step @setVisibility(dashboardPage.secondStepVisibility)">
+                <div class="grid-wrapper">
+                    <div class="grid grid-2-3">
+                        <div class="inner-block-padr">
+                            <h2 class="heading-medium">2. Take the online tests</h2>
+                        @onlineTestProgress(usr, onlineTest,
+                            usr.application.map { app =>
+                                if((app.applicationStatus == ONLINE_TEST_INVITED || app.applicationStatus == ONLINE_TEST_STARTED)
+                                        && onlineTest.exists(_.expireDate.isBeforeNow)) {
+                                    ONLINE_TEST_EXPIRED
+                                } else {
+                                    app.applicationStatus
+                                }
+                            }.getOrElse(REGISTERED), allocationDetails)
+                        </div>
+                    </div>
+                    <div class="grid grid-1-3">
+                    </div>
+                </div>
+            </li>
+
+            <li class="third-step @setVisibility(dashboardPage.thirdStepVisibility)">
+                <div class="grid-wrapper">
+                    <div class="grid grid-2-3">
+                        <div class="inner-block-padr">
+                            <h2 class="heading-medium">3. Attend an assessment centre</h2>
+                                @if(ConfirmedAllocatedCandidateRole.isAuthorized(usr)) {
+                                    @allocationDetails.map { aDetails =>
+                                        <p>Your assessment is booked for</p>
+                                        <p>
+                                            @dateTime(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
+                                            <br><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
+                                        </p>
+                                        <p>
+                                            If you're unable to attend, <a href="@routes.Application.helpdesk()" class="">let us know</a>.
+                                        </p>
+                                        <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#assessment-day" rel="external" target="_blank">
+                                            Find out more about the assessment day</a></p>
+                                    }
+                                } else {
+                                    @if(UnconfirmedAllocatedCandidateRole.isAuthorized(usr)){
+                                        @allocationDetails.map { aDetails =>
+                                            @if(confirmAllocationExpired) {
+                                                <p>
+                                                    <i class="fa fa-exclamation-triangle"></i>You failed to confirm your assessment centre in time.</p>
+                                                <p>
+                                                    <a href="@routes.Application.helpdesk()">Contact us</a> to discuss your options if you're still interested in attending an assessment centre.
+                                                </p>
+                                            } else {
+                                                <p>Your assessment is booked for </p>
+                                                <p>
+                                                    @dateTime(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
+                                                    <br /><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
+                                                </p>
+
+                                                    @helper.form(controllers.routes.HomeController.confirmAlloc) {
+                                                        @helper.CSRF.formField
+                                                        <div id="attendQuestion">
+                                                            <p class="small-btm-margin">Can you attend on this date and time?</p>
+                                                            <button type="submit" class="button" id="canAttendBtn">I can attend</button>
+                                                        </div>
+                                                    }
+
+                                                <p>
+                                                    @aDetails.expirationDate.map{ expirationDate =>
+                                                        <span id="confirmByText">
+                                                            Confirm by 11:59pm on @date(expirationDate) or you'll lose your booking.<br>
+                                                        </span>
+                                                    }
+
+                                                    If you're unable to attend, <a href="@routes.Application.helpdesk()" class="">let us know</a>.
+                                                </p>
+                                                <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#assessment-day" rel="external" target="_blank">
+                                                    Find out more about the assessment day</a></p>
+                                            }
+                                        }
+                                    } else {
+                                        @if(AssessmentCentreFailedNotifiedRole.isAuthorized(usr)  && onlineTest.exists(_.pdfReportAvailable)) {
+                                            <p>Thank you for attending the Fast Track assessment centre.</p>
+                                            <p>Unfortunately on this occasion you didn't reach the pass mark for the Fast Track scheme and we won't be taking your application further.</p>
+                                            <p>From December 2016, after we&#39;ve finished allocating placements, we can give you feedback on your performance at the assessment centre. Please contact us if you&#39;d like feedback.</p>
+                                            <p>Thank you for your interest in the Fast Track programme and we wish you every success for the future.</p>
+                                        } else {
+                                            @if(AssessmentCentrePassedNotifiedRole.isAuthorized(usr) && onlineTest.exists(_.pdfReportAvailable)) {
+                                                <p><i class="fa fa-check the-icon"></i>Congratulations! We&#39;re pleased to let you know you&#39;ve successfully passed the Fast Track assessment.</p>
+                                                <p>We&#39;ll match you to a role and then we&#39;ll be in touch to confirm your allocated department and location.</p>
+                                                <p>We&#39;ll also ask you to give us the information we need to complete a preappointment security check. Your offer depends upon successful completion of the checks. If you give information you know is false, or you withhold any relevant information, your application may be rejected. Or, if you&#39;ve already been appointed, you may be dismissed.</p>
+                                                <p>From December 2016, after we&#39;ve finished allocating placements, we can give you feedback on your performance at the assessment centre. Please contact us if you&#39;d like feedback.</p>
+                                                <p>We recommend you don&#39;t resign from any employment until you&#39;ve received a formal offer of appointment. If you withdraw your application, it won&#39;t be possible to re-instate your application at a later date.</p>
+                                            } else {
+                                                @if(AssessmentCentreFailedToAttendRole.isAuthorized(usr)) {
+                                                    <p>You did not attend your assessment. <a href="@routes.Application.helpdesk()">Contact us</a> to discuss your options if you're still interested in applying.</p>
+                                                } else {
+                                                    <p>If you pass the online tests, you'll be invited to attend an assessment centre.</p>
+                                                    <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#assessment-day" rel="external" target="_blank">
+                                                        Find out more about the assessment day</a></p>
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                        </div>
+                    </div>
+                    <div class="grid grid-1-3">
+                    </div>
+                </div>
+            </li>
+
+
+            <li class="fourth-step @setVisibility(dashboardPage.fourthStepVisibility)">
+                <div class="grid-wrapper">
+                    <div class="grid grid-2-3">
+                        <div class="inner-block-padr">
+                            @if(AssessmentCentreFailedNotifiedRole.isAuthorized(usr) || AssessmentCentreFailedToAttendRole.isAuthorized(usr)) {
+                                <h2 class="heading-medium">4. What happens next?</h2>
+                                <p>We appreciate this may be disappointing, however the Civil Service does offer other career opportunities. You can find details at: <a href="http://www.civilservice.gov.uk/jobs">www.civilservice.gov.uk/jobs</a>.</p>
+                                <p>You'll be able to reapply for Fast Track next year, alternatively
+                                    use the <a href="https://www.gov.uk/apply-apprenticeship" rel="external">find an apprenticeship</a> service to search
+                                    for other apprenticeships in England.</p>
+                            } else {
+                                <h2 class="heading-medium">4. Your final results</h2>
+                                @if(AssessmentCentrePassedNotifiedRole.isAuthorized(usr)) {
+                                    <p>We'll contact you soon to tell you about your role, scheme,
+                                        department and location. Make sure to regularly check your
+                                        email inbox for messages from us.</p>
+                                    <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#after-assessment" rel="external" target="_blank">
+                                        Find out more about the on boarding process</a>
+                                    </p>
+                                } else {
+                                    <p>We aim to let you know the outcome of your assessment by October 2016.</p>
+                                    <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#after-assessment" rel="external" target="_blank">
+                                        Find out more about what happens after your assessment day</a></p>
+                                }
+                            }
+                        </div>
+                    </div>
+                    <div class="grid grid-1-3">
+                    </div>
+                </div>
+            </li>
+        </ol>
+    </section>
+
+    @if(WithdrawComponent.isAuthorized(usr)) {
+        <section>
+            <h2 class="heading-medium">Withdraw application</h2>
+            <div class="text">
+                <p>If you no longer wish to proceed with your application you can withdraw
+                    at any time.</p>
+                <a id="withdraw-app" href="@routes.HomeController.presentWithDraw()">Withdraw application</a>
+            </div>
+        </section>
+    }
+
+}

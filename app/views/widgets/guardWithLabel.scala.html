@@ -1,0 +1,33 @@
+@(field: play.api.data.Field, label: String, labelHint: (String, String), options: String*)(subForm: PartialFunction[String, Html])
+
+<fieldset>
+  <legend class="form-label" id="@field.id-question">@label</legend>
+  <p class="form-hint text">@labelHint._1</p>
+  <p class="form-hint text">@labelHint._2</p>
+  @toId(option:String) = @{
+      option.replaceAll(" ","-")
+  }
+  
+  @helper.input(field, '_class -> "inline") { (id, name, value, args) =>
+      @for(option <- options) {
+          <label for="@id-@{toId(option)}" class="block-label" @if(subForm.isDefinedAt(option)) { data-target="@id-@option-panel" }>
+              <input name="@name"
+                     type="radio"
+                     id="@id-@{toId(option)}"
+                      value="@option" @(if(value.contains(option)) "checked" else "")
+                     @if(subForm.isDefinedAt(option)) { aria-controls="@id-@option-panel" aria-expanded="false" }>
+                  @option
+          </label>
+      }
+  }
+
+  @for(option <- options.filter(subForm.isDefinedAt)) {
+      <div class="toggle-content" id="@field.id-@option-panel" aria-hidden="true">
+          <div>
+              @subForm(option)
+          </div>
+      </div>
+  }
+</fieldset>
+
+

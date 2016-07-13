@@ -1,0 +1,148 @@
+error.invalidRole = You don't have access to this application.
+error.required.signIn = Enter your email
+error.required.password = Enter your password
+error.required.campaignOther = Tell us how you heard about us
+session.expired = You''ve been signed out due to inactivity. Sign in again if you want to continue
+
+application.cannotbe.withdrawn = You can''nt withdraw an application before you submit it
+error.cannot.withdraw = We can''t find an application to withdraw
+error.required.reason = Select a reason for withdrawal
+error.required.reason.more_info = Give more information about your withdrawal
+application.withdrawn = Your application has been withdrawn
+
+# Signin form
+signIn.giveFeedback = You''ve successfully signed out.<p><a href="{0}" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>
+signIn.invalid = Invalid email or password
+
+# Signup form
+error.firstName = Enter your first name
+error.lastName = Enter your last name
+error.email = Enter your full email address
+error.confirmpwd = Confirm your password
+error.password = Your password requires upper and lowercase letters, a number and at least 9 characters
+error.password.empty = Enter your password
+error.password.dontmatch = Your passwords don''t match
+agree.accept = Accept the terms and conditions
+agree.eligible = Confirm that you''re eligible to apply
+error.emailconfirm.notmatch = You must enter the same email address
+
+# Reset password form
+reset.code.wrong-format = The password reset code must be 7 characters
+error.email.not.registered = The email you entered does not have an account on this service
+error.resetpwd.code.expired = You''ve entered an expired code
+error.resetpwd.code.invalid = You''ve entered an incorrect code
+resetpwd.code-sent = We''ve sent a password reset code to your email.<p>If you can''t see it in your inbox within a few minutes, check your spam folder.</p>
+resetpwd.code-resent = We''ve sent a password reset code to your email.<p>If you can''t see it in your inbox within a few minutes, check your spam folder.</p>
+
+# Personal details form
+error.preferredName = Enter your preferred name
+error.dateOfBirth = Enter your date of birth
+error.dateOfBirthInFuture = Enter a valid date of birth
+error.recentSchool = Give the name of your most recent school
+
+aleveld.required = Select whether or not you have 2 A levels at grade D or above
+alevel.required = Select whether or not you have 2 A levels in STEM subjects at grade C or above
+
+# Activation form
+expired.activation-code = This activation code has expired
+wrong.activation-code = Enter a correct activation code
+account.successful = You''ve successfully created your account
+
+# Activation page
+activation.already = You''ve already activated your account
+activation.required = Enter your activation code
+activation.wrong-format = The activation code must have 7 characters
+activation.code-resent = A new activation code has been sent. Check your email.<p>If you can''t see it in your inbox within a few minutes, check your spam folder.</p>
+
+#Password reset
+passwordreset.required = Enter your password reset code
+passwordreset.wrong-format = The password reset code must have 7 characters
+
+#general authentication /authorization
+user.exists = An account with this email address already exists
+access.denied = You don''t have permission to access this page
+
+#contact details
+error.address.required = Enter the first line of your address
+error.postcode.required = Enter your postcode
+error.postcode.invalid = You''ve entered an invalid postcode
+
+error.phone.required = Add a phone number in case we need to contact you
+error.phoneNumber.format = You''ve entered an invalid phone number
+
+#assistance
+error.needsassistance.required = Tell us if you have a disability or need other assistance
+typeOfdisability.chooseone = Tell us about your disability
+needsAdjustment.chooseone = Tell us if you need adjustments
+otherAdjustments.chooseone = Tell us what adjustment needs you require
+guaranteedInterview.chooseone = Tell us if you wish to apply under the Guaranteed interview scheme
+typeOfAdjustments.chooseone = Tell us what adjustments you need
+
+#locations & schemes
+location.required= Select your preferred location
+firstScheme.required= Select your first preference of scheme
+second.required= Select your second preference of scheme
+
+error.alternativeLocation= Choose whether you would consider an alternative location
+error.alternativeScheme= Choose whether you would consider an alternative scheme
+
+firstScheme.unavailable=First preference of scheme is not available in this location
+secondScheme.unavailable=Second preference of scheme is not available in this location
+secondScheme.duplicate=Second preference of scheme can''t be the same as your first preference
+
+# Should rarely ever occur. Will either occur if we start calculating location availability dynamically, or if the
+# YAML file has changed between the user loading the page, and submitting their preference (unlikely, but possible).
+location.unavailable=This location isn''t available
+
+# review
+info.cannot.review.yet = You can''t review your application before you finish all the sections
+info.application.readonly = You''ve already submitted your application, so you can''t edit it.
+info.create.application = You need to create an application first
+error.cannot.submit = There are errors in your application. Fix them first before submitting.
+application.submit = You''ve successfully submitted your application
+
+last.attempt = Your account will be locked after another unsuccessful attempt to sign in, if you''ve forgotten your password select I can''t access my account
+locked.account = You''ve made too many unsuccessful attempts to sign in and your account is now locked
+
+# Questionnaire error messages:
+
+error.required.gender = What is your gender identity?
+error.required.sexOrientation = What is your sexual orientation?
+error.required.ethnicity = What is your ethnic group?
+error.required.schoolName = What was your school between ages 11 to 16?
+error.required.sixthForm = What was your school between ages 16  to 18?
+error.required.postcodeQ = What was your postcode when you were 14?
+error.required.freeSchoolMeals = Were you eligible for free school meals?
+error.required.university = Did your parent(s) or guardian(s) complete university?
+error.required.parentsOccupation = What was your parent(s) or guardian(s) work status?
+error.required.employee = Were your parent(s) or guardian(s) employed or self-employed?
+error.required.organizationSize = What was the size of the organisation?
+error.required.supervise = Were your parent(s) or guardian(s) supervising employees?
+
+#Questions section for questionnaire
+gender.question = What is your gender identity?
+sexOrientation.question = What is your sexual orientation?
+ethnicity.question = What is your ethnic group?
+schoolName.question = Between the ages of 11 to 16, in which school did you spend most of your education?
+sixthForm.question = Between the ages of 16 to 18, in which school did you spend most of your education?
+postcode.question = What was your home postcode when you were 14?
+freeSchoolMeals.question = During your school years, were you at any time eligible for free school meals?
+university.question = Did any of your parent(s) or guardian(s) complete a university degree course or equivalent?
+employedParent.question = Parent/guardian work status
+parentsOccupation.question = Which type of occupation did they have?
+employee.question = Did they work as an employee or were they self-employed?
+organizationSize.question = Which size would best describe their place of work?
+supervise.question = Did they supervise any other employees?
+
+success.allocation.confirmed = You''ve successfully confirmed your assessment date.
+
+global.error.badRequest400.title=Bad request - 400
+global.error.badRequest400.heading=Bad request
+global.error.badRequest400.message=Something went wrong, return to the start and try again.
+global.error.pageNotFound404.title=Page not found - 404
+global.error.pageNotFound404.heading=Page not found
+global.error.pageNotFound404.message=The page you were looking for could not be found. Make sure you''ve typed the correct web address
+global.error.InternalServerError500.title=Service unavailable - 500
+global.error.InternalServerError500.heading=Service unavailable
+global.error.InternalServerError500.message=Something went wrong, try again in a few minutes.
+

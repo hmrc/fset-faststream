@@ -1,0 +1,33 @@
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Diversity questions") {
+
+    <h1 class="heading-xlarge">Diversity questions</h1>
+    <div class="panel-indent text">
+        <p class="lede">
+            Any information you give is treated in strict confidence and your answers don't affect your application.
+        </p>
+        <p class="lede">
+            If you have a question about this form,  <a href="@routes.Application.helpdesk()" target="_blank">contact us</a>.
+        </p>
+    </div>
+    <details class="text">
+        <summary id="link-why-collect-data">Why do we collect this information?</summary>
+        <div id="panel-why-collect-data" class="detail-content panel-indent">
+            <p>
+                The Civil Service is committed to promoting diversity, irrespective of ethnicity or nationality, gender, transgender, sexuality, disability, age, religion, marital status, working patterns and socio-economic status.</p>
+            <p>
+                We collect diversity and socio economic information for monitoring purposes only and this data is treated separately from the application process. Your answers in this section don't affect your results in any way and are treated in strict confidence.
+            </p>
+        </div>
+    </details>
+    @helper.form(action = routes.QuestionnaireController.submitStart(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        <div class="panel-indent text">
+            <p>Once you save a page on the form, you won't be able to go back and change your answers.</p>
+        </div>
+        <div class="form-group">
+            <button id="btnStart" type="submit" value="submit" class="button">Start questions</button>
+        </div>
+    }
+}

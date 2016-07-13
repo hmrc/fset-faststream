@@ -1,0 +1,29 @@
+@(notification: Option[(helpers.NotificationType, String)] = None)(implicit flash: Flash)
+
+@import helpers.NotificationType
+@*
+This template will render a panel on the top of the screen to show some notifications. The type of the panel depends
+on the key of the notification. To create a notification you need to pass a tuple ok key -> value e.g.
+*@
+
+@renderMsg(notificationType: NotificationType, message: String) = {
+    @if( message == "feedback") {
+        <div class="panel-@notificationType.key">
+            <p id="panel-@notificationType.key" class="text">
+                You've successfully signed out.
+            <p><a href="https://www.gov.uk/done/apply-civil-service-apprenticeship" target="_blank"
+        rel="external">Give feedback?</a> (30 second survey)</p>
+            </p>
+        </div>
+    } else {
+        <div class="panel-@notificationType.key">
+            <p id="panel-@notificationType.key" class="text">@Html(message)</p>
+        </div>
+    }
+}
+
+@NotificationType.all.map { notificationType =>
+    @flash.get(notificationType.key).map(renderMsg(notificationType, _))
+}
+
+@notification.map{ case (msgType, msg) => @renderMsg(msgType, msg) }

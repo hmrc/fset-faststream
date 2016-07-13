@@ -1,0 +1,93 @@
+@(questionnaireForm: Form[_root_.forms.QuestionnaireOccupationInfoForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import views.html.widgets.{checkbox, radioBoxOccupation, radioBoxOccupationFirst, select_guard}
+
+@main_template(title = "Diversity questions", pageForms = Seq(questionnaireForm)) {
+
+    <div class="hgroup">
+        <h1 class="heading-xlarge">Diversity questions</h1>
+        <p class="subtitle">Page 3 of 3</p>
+    </div>
+    <div class="panel-indent text">
+        <p class="">
+           Any information you give is treated in strict confidence and your answers don't affect your application.
+        </p>
+    </div>
+    <details class="text">
+        <summary id="link-why-collect-data">Why do we collect this information?</summary>
+        <div id="panel-why-collect-data" class="detail-content panel-indent">
+            <p>
+                The Civil Service is committed to promoting diversity, irrespective of ethnicity or nationality, gender, transgender, sexuality, disability, age, religion, marital status, working patterns and socio-economic status.</p>
+            <p>
+                We collect diversity and socio economic information for monitoring purposes only and this data is treated separately from the application process. Your answers in this section don't affect your results in any way and are treated in strict confidence.
+            </p>
+        </div>
+    </details>
+    @helper.form(action = routes.QuestionnaireController.thirdPageSubmit(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        <section>
+            <h2 class="heading-large">
+                Parental occupation
+            </h2>
+            <div class="panel-indent text">
+                <p>
+                    Thinking back to when you were aged 14, answer the following questions about your <b>highest earning</b> parent / guardian.
+                </p>
+            </div>
+
+            <div id="parentsOccupation_field">
+
+                <fieldset>
+                    <legend class="form-label">@Messages("employedParent.question")</legend>
+                    
+                    @radioBoxOccupationFirst(questionnaireForm("employedParent"))
+                </fieldset>
+
+                <fieldset class="hidingOccupations initiallyHidden" data-requiredifshown data-optional>
+                    <legend class="form-label">@Messages("parentsOccupation.question")</legend>
+
+                    @radioBoxOccupation(questionnaireForm("parentsOccupation"), models.Occupations.seq)
+                </fieldset>
+            </div>
+        </section>
+        <section class="hidingContent initiallyHidden" id="employedContent" data-requiredifshown data-optional>
+
+            @select_guard(questionnaireForm("employee"), models.Employee.list,
+                "", "-- Select one --") {
+                @Messages("employee.question")
+            }
+
+            <div data-optional>
+                @checkbox(questionnaireForm("preferNotSay_employee"), Some("employee")) {
+                    Don't know/prefer not to say
+                }
+            </div>
+
+            @select_guard(questionnaireForm("organizationSize"), models.OrganizationSize.list,
+                "", "-- Select one --") {
+                @Messages("organizationSize.question")
+            }
+
+            <div data-optional>
+                @checkbox(questionnaireForm("preferNotSay_organizationSize"), Some("organizationSize")) {
+                    Don't know/prefer not to say
+                }
+            </div>
+
+            @select_guard(questionnaireForm("supervise"), models.Supervise.list,
+                "", "-- Select one --") {
+                @Messages("supervise.question")
+            }
+
+            <div data-optional>
+                @checkbox(questionnaireForm("preferNotSay_supervise"), Some("supervise")) {
+                    Don't know/prefer not to say
+                }
+            </div>
+
+        </section>
+        <div class="form-group">
+            <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+        </div>
+    }
+}

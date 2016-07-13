@@ -1,0 +1,18 @@
+@(forms: Seq[Form[_]])
+
+@defining(forms.flatMap(_.errors)) { errors =>
+  @if(errors.nonEmpty) {
+      <div id="validation-summary" class="form-group validation-summary-errors toggle-content" role="alert" style="display: block;" >
+          <h1 class="heading-small">Check and amend the following errors:</h1>
+          <ul>
+          @for(error <- errors) {
+              <li>
+                  <a href="#@{error.key}_field">
+                  @Messages(error.messages.head, error.args: _*)
+                  </a>
+              </li>
+          }
+          </ul>
+      </div>
+  }
+}

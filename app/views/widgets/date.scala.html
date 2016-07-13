@@ -1,0 +1,40 @@
+@(form: Form[_], fieldNamespace: String, labelContent: String)
+
+@defining(form.errors.filter(f => f.key.startsWith(s"$fieldNamespace.") || f.key == fieldNamespace)) { errors =>
+
+    <fieldset id="@{fieldNamespace}_field" class="form-group inline-fixed @if(errors.nonEmpty) {has-an-error input-validation-error}">
+        <legend class="form-label" id="dobMainLabel">@labelContent</legend>
+        <span class="form-hint">For example, 19 7 1994</span>
+
+        <div class="form-group form-group-compound @if(errors.nonEmpty) {has-an-error input-validation-error}">
+            <label class="date-hint" for="@form(s"$fieldNamespace.day").id" id="dobDayLabel">Day</label>
+            <input type="tel"
+                class="form-control form-control-xsmall"
+                maxlength="2"
+                id="@form(s"$fieldNamespace.day").id"
+                name="@form(s"$fieldNamespace.day").name"
+                value="@form(s"$fieldNamespace.day").value">
+        </div>
+        <div class="form-group form-group-compound @if(errors.nonEmpty) {has-an-error input-validation-error}">
+            <label class="date-hint" for="@form(s"$fieldNamespace.month").id" id="dobMonthLabel">Month</label>
+            <input type="tel"
+                class="form-control form-control-xsmall"
+                maxlength="2"
+                id="@form(s"$fieldNamespace.month").id"
+                name="@form(s"$fieldNamespace.month").name"
+                value="@form(s"$fieldNamespace.month").value">
+        </div>
+        <div class="form-group form-group-compound @if(errors.nonEmpty) {has-an-error input-validation-error}">
+            <label class="date-hint" for="@form(s"$fieldNamespace.year").id" id="dobYearLabel">Year</label>
+            <input type="tel"
+                class="form-control form-control-small"
+                maxlength="4"
+                id="@form(s"$fieldNamespace.year").id"
+                name="@form(s"$fieldNamespace.year").name"
+                value="@form(s"$fieldNamespace.year").value">
+        </div>
+
+        <span class="has-error">@errors.map(k => Messages(k.message)).headOption</span>
+    </fieldset>
+
+}

@@ -1,0 +1,54 @@
+@(generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange,
+        assistanceDetails: connectors.ExchangeObjects.AssistanceDetailsExchange,
+        schemesAndLocations: models.frameworks.LocationAndSchemeSelection,
+        applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import models.ApplicationData.ApplicationStatus._
+@import security.Roles._
+@import views.html.widgets.{assistanceViewSection, generalDetailsViewSection, schemeSummaryView}
+
+@appNotReadOnly(body: Html)= {
+    @if(!WithdrawApplicationRole.isAuthorized(user.get) && !WithdrawnApplicationRole.isAuthorized(user.get)) {@body}
+}
+
+
+@renderFullName(user: CachedData) = {
+@user.user.firstName @user.user.lastName
+}
+
+@edit_link(navigation: play.api.mvc.Call) = {
+    @if(!ApplicationData.isReadOnly(user.get.application.get.applicationStatus)) {
+        <a class="icon-with-text" href="@navigation"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+            Edit <span class="visuallyhidden editSection"></span> section</span></a>
+    }
+}
+
+@main_template(title = "View your application") {
+
+    <div class="text">
+        <h1 class="heading-xlarge" id="checkApplicationHeading">
+            @(applicationData.applicationStatus match {
+                case SUBMITTED => "View your submitted application"
+                case WITHDRAWN => "View your withdrawn application"
+                case _ => "Review your application before you continue"
+            })
+        </h1>
+    </div>
+
+    @generalDetailsViewSection(generalDetails)(edit_link(routes.FastTrackApplication.generalDetails(None)))
+
+    @schemeSummaryView(schemesAndLocations)(edit_link(routes.SchemeController.entryPoint()))
+
+    @assistanceViewSection(assistanceDetails)(edit_link(routes.AssistanceController.present()))
+
+    @appNotReadOnly {
+        @helper.form(action = routes.ReviewApplicationController.submit(), 'novalidate -> "novalidate") {
+            @helper.CSRF.formField
+            <div>
+                <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+            </div>
+
+        }
+    }
+}
+

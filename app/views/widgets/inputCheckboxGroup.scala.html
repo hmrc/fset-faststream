@@ -1,0 +1,42 @@
+@**
+* Generate an HTML checkbox group
+*
+* Example:
+* {{{
+* @inputCheckboxGroup(
+*           contactForm("hobbies"),
+*           options = Seq("S" -> "Surfing", "R" -> "Running", "B" -> "Biking","P" -> "Paddling"),
+*           '_label -> "Hobbies",
+*           '_error -> contactForm("hobbies").error.map(_.withMessage("select one or more hobbies")))
+*
+* }}}
+*
+* @param field The form field.
+* @param options Sequence of options as pairs of value and HTML
+* @param args Set of extra HTML attributes.
+* @param handler The field constructor.
+*@
+@import helpers.CSRSkinnyFieldConstructor._
+
+@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)
+
+@createId(id:String, v:(String,String))=@{id + "_"+v._1.replace(" ", "_").replace("/", "_").replace("'","_")}
+
+@helper.input(field, args.map{ x => if(x._1 == '_label) '_name -> x._2 else x }:_*) { (id, name, value, htmlArgs) =>
+    <fieldset>
+        <legend class="form-label" id="setLabel-@id">@args.map(x => if(x._1 == '_label) x._2 )</legend>
+        <div class="buttonset" id="@id">
+        @defining(field.indexes.map( i => field("[%s]".format(i)).value ).flatten.toSet) { values =>
+            @options.map { v =>
+                <div class="form-group no-btm-margin">
+                    <label class="block-label block-label-slim" for="@createId(id,v)">
+                        <input type="checkbox" id="@createId(id,v)" name="@{name + "[]"}" value="@v._1" @if(values.contains(v._1)){checked="checked"} @toHtmlArgs(htmlArgs)/>
+                        @v._2
+                    </label>
+                </div>
+        
+            }
+        }
+        </div>
+    </fieldset>
+}

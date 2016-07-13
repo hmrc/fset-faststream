@@ -1,0 +1,27 @@
+@(lockAccountForm: Form[_root_.forms.LockAccountForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@main_template(title = "Locked user") {
+    <div class="text">
+        <h1 class="heading-xlarge">Account locked</h1>
+    </div>
+    <div class="text">
+        <p>Your account has been locked due to a large amount of incorrect sign
+            in attempts.</p>
+        <p>You should receive a 7 character code in your email. Enter the code to
+            reset your password and unlock your account.</p>
+
+        @helper.form(action = routes.LockAccountController.submit(), 'novalidate -> "novalidate") {
+            @helper.CSRF.formField
+
+            @helper.input(lockAccountForm("email")) { (id, name, value, args) =>
+                <input type="hidden" id="@id" name="@name" value="@value" >
+            }
+
+            <div class="form-group">
+                <button id="btnReset" type="submit" value="submit" class="button">Reset password</button>
+            </div>
+        }
+    </div>
+}

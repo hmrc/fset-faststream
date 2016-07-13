@@ -1,0 +1,78 @@
+# microservice specific routes
+
+# Generic links
+GET         /                                                       controllers.Application.index
+GET         /terms                                                  controllers.Application.terms
+GET         /helpdesk                                               controllers.Application.helpdesk
+GET         /privacy                                                controllers.Application.privacy
+
+# Account lock
+GET         /locked                                                 controllers.LockAccountController.present
+POST        /locked                                                 controllers.LockAccountController.submit
+
+# Registration and activation
+GET         /signup                                                 controllers.SignUpController.present
+POST        /signup                                                 controllers.SignUpController.signUp
+
+GET         /activation                                             controllers.ActivationController.present
+POST        /activation/resend                                      controllers.ActivationController.resendCode
+POST        /activation                                             controllers.ActivationController.activateForm
+
+# User sign in
+GET         /signin                                                 controllers.SignInController.present
+POST        /signin                                                 controllers.SignInController.signIn
+GET         /signout                                                controllers.SignInController.signOut
+GET         /password/forgot                                        controllers.PasswordResetController.presentCode(email: Option[String])
+POST        /password/forgot                                        controllers.PasswordResetController.submitCode
+GET         /password/reset                                         controllers.PasswordResetController.presentReset(email: Option[String])
+POST        /password/reset                                         controllers.PasswordResetController.submitReset
+
+# Application pages
+GET         /dashboard                                              controllers.HomeController.present
+GET         /application/create                                     controllers.HomeController.create
+GET         /application/resume                                     controllers.HomeController.resume
+GET         /application/withdraw                                   controllers.HomeController.presentWithDraw
+POST        /application/withdraw                                   controllers.HomeController.withdraw
+POST        /application/confirm-allocation                         controllers.HomeController.confirmAlloc
+
+GET         /application/details                                    controllers.FastTrackApplication.generalDetails(start: Option[String])
+POST        /application/details                                    controllers.FastTrackApplication.submitGeneralDetails
+
+GET         /application/schemes                                    controllers.SchemeController.entryPoint
+GET         /application/schemes/first-preference                   controllers.SchemeController.firstPreference
+GET         /application/schemes/second-preference                  controllers.SchemeController.secondPreference
+GET         /application/schemes/summary                            controllers.SchemeController.summary
+
+POST        /application/schemes/first-preference                   controllers.SchemeController.saveFirstPreference
+POST        /application/schemes/second-preference/:consider        controllers.SchemeController.considerSecondPreference(consider:Boolean)
+POST        /application/schemes/second-preference                  controllers.SchemeController.saveSecondPreference
+POST        /application/schemes/consider-alternatives              controllers.SchemeController.saveConsiderAlternatives
+
+GET         /application/assistance                                 controllers.AssistanceController.present
+POST        /application/assistance                                 controllers.AssistanceController.submit
+
+GET         /application/review                                     controllers.ReviewApplicationController.present
+POST        /application/review                                     controllers.ReviewApplicationController.submit
+GET         /application/submit                                     controllers.SubmitApplicationController.present
+POST        /application/submit                                     controllers.SubmitApplicationController.submit
+GET         /application/success                                    controllers.SubmitApplicationController.success
+
+# Questionnaire
+GET         /questionnaire/start                                    controllers.QuestionnaireController.start
+POST        /questionnaire/start                                    controllers.QuestionnaireController.submitStart
+POST        /questionnaire/continue                                 controllers.QuestionnaireController.submitContinue
+GET         /questionnaire/page/1                                   controllers.QuestionnaireController.firstPageView
+POST        /questionnaire/page/1                                   controllers.QuestionnaireController.firstPageSubmit
+GET         /questionnaire/page/2                                   controllers.QuestionnaireController.secondPageView
+POST        /questionnaire/page/2                                   controllers.QuestionnaireController.secondPageSubmit
+GET         /questionnaire/page/3                                   controllers.QuestionnaireController.thirdPageView
+POST        /questionnaire/page/3                                   controllers.QuestionnaireController.thirdPageSubmit
+
+# Online Test
+POST        /online-tests/start                                     controllers.OnlineTestController.startTests
+GET         /online-tests/complete/:token                           controllers.OnlineTestController.complete(token: UniqueIdentifier)
+GET         /online-tests/pdf-report/download                       controllers.OnlineTestController.downloadPDFReport
+
+# Assets controller
+GET         /assets/*file                                           controllers.Assets.versioned(path="/public", file: Asset)
+

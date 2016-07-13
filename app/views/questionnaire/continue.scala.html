@@ -1,0 +1,53 @@
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Diversity questionnaire") {
+
+    <h1 class="heading-xlarge">Diversity questionnaire</h1>
+    <div class="panel-indent text">
+        <p class="lede">
+            Any information you give is treated in strict confidence and your answers don't affect your application.
+        </p>
+        <p class="lede">
+            If you have a question about this form,  <a href="@routes.Application.helpdesk()" target="_blank">contact us</a>.
+        </p>
+    </div>
+    <details class="text">
+        <summary id="link-why-collect-data">Why do we collect this information?</summary>
+        <div id="panel-why-collect-data" class="detail-content panel-indent">
+             <p>
+                The Civil Service is committed to promoting diversity, irrespective of ethnicity or nationality, gender, transgender, sexuality, disability, age, religion, marital status, working patterns and socio-economic status.</p>
+            <p>
+                We collect diversity and socio economic information for monitoring purposes only and this data is treated separately from the application process. Your answers in this section don't affect your results in any way and are treated in strict confidence.
+            </p>
+
+
+        </div>
+    </details>
+
+    <div>
+        @if(user.get.application.get.progress.diversityQuestionnaire) {
+            <div class="panel-indent text">
+                <p>Once you save a page on the form, you won't be able to go back and change your answers.</p>
+            </div>
+            <p>So far you've completed:</p>
+        }
+        <ul class="list-bullet">
+            @if(user.get.application.get.progress.diversityQuestionnaire) {
+                <li>Page 1 of the diversity questionnaire</li>
+            }
+            @if(user.get.application.get.progress.educationQuestionnaire) {
+                <li>Page 2 of the diversity questionnaire</li>
+            }
+            @if(user.get.application.get.progress.occupationQuestionnaire) {
+                <li>Page 3 of the diversity questionnaire</li>
+            }
+        </ul>
+    </div>
+
+    @helper.form(action = routes.QuestionnaireController.submitContinue(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        <div class="form-group">
+            <button id="btnStart" type="submit" value="submit" class="button">Continue questions</button>
+        </div>
+    }
+}

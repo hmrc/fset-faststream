@@ -1,0 +1,11 @@
+@(messages: Seq[String])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Hello from csr-fasttrack-frontend") {
+    <h1>Hello from csr-fasttrack-frontend !</h1>
+    <section>Backends</section>
+    <ul>
+        @for(msg <- messages) {
+            <li>@msg</li>
+        }
+    </ul>
+}

@@ -1,0 +1,27 @@
+@(user: Option[CachedData])(implicit request: Request[_])
+
+@user.map { data =>
+    <div class="account-info sign-out" id="bannerSignedIn">
+        <div class="small-btm-margin">
+            @data.user.preferredName match {
+                case Some(name) => {
+                    <span class="your-name" id="bannerUserName">@data.user.preferredName</span>
+                }
+                case None => {
+                    <span class="your-name" id="bannerUserName">@data.user.firstName @data.user.lastName</span>
+                }
+            }
+        </div>
+        <div>
+            <a class="account-link" id="applicationsLink" href="@routes.HomeController.present">Home</a>
+            <a class="account-link" href="@routes.SignInController.signOut" id="btnSignOut"><i class="fa fa-sign-out"></i>Sign out</a>
+        </div>
+    </div>
+
+}.getOrElse {
+    <div class="account-info sign-in">
+        <div class="small-btm-margin">
+            <a href="@routes.SignInController.present()"><i class="fa fa-sign-in"></i>Create an account</a> or <a href="@routes.SignInController.present()#signInSection">Sign in</a>
+        </div>
+    </div>
+}

@@ -1,0 +1,12 @@
+@(field : play.api.data.Field, data: Option[String] = None)(labelContent: Html)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@createId(id:String)=@{id.replace(" ", "_").replace("/", "_")}
+
+@helper.input(field) { (id, name, value, args) =>
+    <label for="@createId(id)" class="block-label" data-distarget='@data.getOrElse("")'>
+        <input type="checkbox" id="@createId(id)" name="@name" value="true" @if(value.contains("true")){ checked } >
+        @labelContent
+    </label>
+}

@@ -1,0 +1,10 @@
+@(title: String, pageForms: Seq[Form[_]] = Nil, notification: Option[(helpers.NotificationType,String)] = None
+)(mainContent: Html)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import views.html.template.{errorSummary, flashMessage}
+
+@govuk_template(title = title, user = user) {
+    @flashMessage(notification)
+    @errorSummary(pageForms)
+    @mainContent
+}

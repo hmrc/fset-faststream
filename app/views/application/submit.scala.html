@@ -1,0 +1,20 @@
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Submit your application") {
+
+    <h1 class="heading-xlarge">Submit application</h1>
+    <div class="panel-indent text">
+        <p>Once you submit your application you can't change any of your details.</p>
+    </div>
+
+        @helper.form(action = routes.SubmitApplicationController.submit(), 'novalidate -> "novalidate") {
+            @helper.CSRF.formField
+            <div>
+
+                <button id="submit" type="submit" value="submit" class="button">Submit application</button>
+                <a id="saveLater" href="@routes.HomeController.present()" class="button-link">Save to submit later</a>
+            </div>
+
+        }
+
+}

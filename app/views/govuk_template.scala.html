@@ -1,0 +1,141 @@
+@(title: String, user: Option[CachedData] = None)(mainContent: Html)(implicit request: Request[_], feedbackUrl: String)
+
+@import config.FrontendAppConfig
+@import views.html.template.userDetails
+
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+    <html lang="en-GB" class="no-js not-ie8">
+            <!--<![endif]-->
+        <head>
+            <meta charset="utf-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <title>@title | Apply for a Civil Service apprenticeship</title>
+            <meta name="description" content="">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="format-detection" content="telephone=no">
+                <!--[if gt IE 8]><!-->
+            <link href='@routes.Assets.versioned("css/main.css")' media="all" rel="stylesheet" type="text/css">
+                <!--<![endif]-->
+                <!--[if lte IE 8]><link href='@routes.Assets.versioned("css/main-ie8.css")' media="all" rel="stylesheet" type="text/css"><![endif]-->
+                <!--[if lte IE 8]>
+                <link href='@routes.Assets.versioned("css/fonts-ie8.css")' media="all" rel="stylesheet" type="text/css" />
+                <script src='@routes.Assets.versioned("js/vendor/ie.js")'></script>
+                <![endif]-->
+                <!--[if gte IE 9]><!-->
+            <link href='@routes.Assets.versioned("css/fonts.css")' media="all" rel="stylesheet" type="text/css"
+            />
+                <!--<![endif]-->
+            <link rel="shortcut icon" href='@routes.Assets.versioned("img/favicon.ico")' type="image/x-icon">
+            <link href='@routes.Assets.versioned("css/font-awesome/css/font-awesome.min.css")' rel="stylesheet"
+            type="text/css">
+        <script>
+            var html = document.documentElement;
+            html.className += " js-enabled";
+
+            if (!('open' in document.createElement('details'))) {
+              document.documentElement.className += ' no-details';
+            }
+          </script>
+
+            <script src='@routes.Assets.versioned("js/vendor/modernizr-custom.js")'></script>
+        </head>
+        <body>
+            @if(!CookiePolicy.bannerSeen(request)) {
+                <div id="global-cookie-message" class="cookie-banner">
+                    <div class="content-container" role="alert">
+                        <span class="copy-16">GOV.UK uses cookies to make the site simpler. <a href="">Find out more about cookies</a></span>
+                    </div>
+                </div>
+            }
+            <div class="skiplink-container">
+                <div>
+                    <a href="#main" class="skiplink">Skip to main content</a>
+                </div>
+            </div>
+            <header role="banner" class="global-header">
+                <div class="global-header__wrapper">
+                    <div class="global-header__logo">
+                        <a href="http://gov.uk" title="Go to the GOV.UK homepage" class="govuk-logo" id="govUkLink">
+                            <img src='@routes.Assets.versioned("img/gov.uk_logotype_crown.png")' alt="Crown">GOV.UK
+                        </a>
+                    </div>
+                    <div class="global-header__nav">
+                        <div class="global-header__title beta">
+                            <a href="@routes.HomeController.present">Apply for a Civil Service apprenticeship</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="content-container">
+                <div class="phase-notice gov-border grid-wrapper">
+                    <div class="grid grid-2-3">
+                        <div class="prototype-warning">
+                            <strong class="beta__label">Beta</strong> <span>This is a new service – your <a href="@feedbackUrl" target="_blank" rel="external">feedback</a> will help us to improve it.</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-1-3">
+                        @userDetails(user)
+                    </div>
+                </div>
+
+                <main role="main" id="main">
+                    @mainContent
+                </main>
+            </div>
+                <!-- Footer -->
+            <footer class="gov-border" role="contentinfo">
+                <div class="footer__wrapper">
+                    <div class="footer__meta">
+                        <ul class="footer__nav" role="navigation">
+                            <li class="small-btm-margin">
+                                <div>
+                                    <a class="footer__link bold-medium" href="@routes.Application.helpdesk()" target="_blank">Contact us</a>
+                                    <a class="footer__link bold-medium" href="@feedbackUrl" target="_blank" rel="external">Give feedback</a>
+                                </div>
+                            </li>
+                            <li class="footer__link"><a href="@routes.Application.privacy()">Privacy and cookies</a>
+                            </li>
+                            <li class="footer__link"><a href="@routes.Application.terms()">Terms and conditions</a>
+                            </li>
+                            <li class="footer__link">Built by <a href="https://www.gov.uk/government/organisations/civil-service-resourcing"
+                            target="_blank">Civil Service Resourcing</a>
+            </li>
+                            <li class="footer__ogl hide-print"><a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3"
+                            class="ir ogl-logo">OGL</a>
+                                All content is available under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3">Open Government Licence v3.0</a>
+                                ,
+                                except where otherwise stated
+                            </li>
+                        </ul>
+                        <a class="footer__copyright" href="http://www.nationalarchives.gov.uk/information-management/our-services/crown-copyright.htm"
+                        target="_blank">
+                            <img src='@routes.Assets.versioned("img/govuk-crest-2x.png")' width="125" height="102" alt="Crown copyright logo">
+                            <p>&copy; Crown copyright</p>
+                        </a>
+                    </div>
+                </div>
+            </footer> <!-- end of footer -->
+
+            <!-- Adapted from: https://github.com/hmrc/play-ui/blob/7a5a10c63e9623ca05346aa2fe3ad4a8457b2598/src/main/twirl/uk/gov/hmrc/play/views/layouts/footer.scala.html -->
+            @if(FrontendAppConfig.analyticsToken != "N/A") {
+                <script type="text/javascript">
+                    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+                    ga('create', '@FrontendAppConfig.analyticsToken', '@FrontendAppConfig.analyticsHost');
+                    ga('send', 'pageview', { 'anonymizeIp': true });
+                </script>
+            }
+
+            <script src='@routes.Assets.versioned("js/vendor/jquery-1.11.1.min.js")'></script>
+            <script src='@routes.Assets.versioned("js/vendor/fastclick-1.0.6.min.js")'></script>
+            <script src='@routes.Assets.versioned("js/scripts.js")'></script>
+            
+        </body>
+    </html>
+

@@ -1,0 +1,43 @@
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Terms and conditions") {
+    <h1 class="heading-xlarge">Terms and conditions</h1>
+
+    <section class="text">
+	    <p>By using this service you agree to these terms and conditions.</p>
+
+	    <h3 class="heading-large">
+	        Responsibility for the service
+	    </h3>
+
+	    <p>This service is run by Civil Service Resourcing (CSR).</p>
+
+	    <p>Our aim is to make sure this service is constantly available, free from viruses and that the information we give is accurate and complete.</p>
+
+	    <p>Civil Service Resourcing doesn't accept liability for:</p>
+
+	    <ul>
+	        <li>you being unable to access the service (eg because of excessive demand or because we've taken the service down for maintenance)</li>
+	        <li>loss of any data</li>
+	        <li>delay or failure in receiving data</li>
+	        <li>indirect damages arising from you using the service or relying on its content</li>
+	        <li>the content and availability of external websites that link to the service or which are linked from it</li>
+	    </ul>
+	</section>
+
+	<section class="text">
+	    <h3 class="heading-large">What happens if you misuse your account</h3>
+
+	    <p>We may delete your account if you:</p>
+
+	    <ul>
+	        <li>use an inappropriate email address for your username</li>
+	        <li>submit an application posing as someone else</li>
+	    </ul>
+
+	    <div class="panel-indent">
+	    	<p>If you make a false declaration of disability any offer of employment will be withdrawn. You may not be able to apply again in the future.</p>
+	    </div>
+	</section>
+
+}

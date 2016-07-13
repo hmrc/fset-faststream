@@ -1,0 +1,8 @@
+@(field : play.api.data.Field)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@helper.input(field, '_class -> "form-group-compound") { (id, name, value, args) =>
+    <label class="date-hint" for="@id"></label>
+    <input type="tel" class="form-control form-control-xsmall" maxlength="2" id="@id" name="@name">
+}

@@ -1,0 +1,21 @@
+@(preferenceForm: Form[_root_.forms.SchemeLocationPreferenceForm.Data], selection: models.frameworks.LocationAndSchemeSelection, notification: Option[(helpers.NotificationType, String)] = None)(regions: List[models.frameworks.Region])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+    @import views.html.application.scheme.widgets.preferenceSelection
+
+    @application.scheme.locationAndSchemeTemplate(pageForms = Seq(preferenceForm), disableMap = false, notification = notification) {
+
+        @preferenceSelection(
+            title = "First preference of location",
+            preferenceForm = preferenceForm,
+            action = routes.SchemeController.saveFirstPreference(),
+            selection = selection,
+            disabledLocation = selection.secondLocation.map(p=> s"${p.region};${p.location}"))(regions) {
+
+            <button id="choiceSave" type="submit" value="submit" class="button toggle-content first-choice-btn">
+                Save first location and scheme
+            </button>
+
+        }
+    }
+
+
+

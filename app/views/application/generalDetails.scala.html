@@ -1,0 +1,133 @@
+@(details: Form[_root_.forms.GeneralDetailsForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.{date, radioBox}
+
+@main_template(title = "Personal details", pageForms = Seq(details)) {
+
+    <h1 class="heading-xlarge">Personal details</h1>
+
+    @helper.form(action = routes.FastTrackApplication.submitGeneralDetails(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+
+        <section class="section-border">
+            <h2 class="heading-large">Name and date of birth</h2>
+            @helper.inputText(details("firstName"),
+                '_label -> "First name",
+                'class -> "form-control",
+                '_class -> "form-group-compound",
+                '_showConstraints -> false)
+            @helper.inputText(details("lastName"),
+                '_label -> "Last name",
+                'class -> "form-control",
+                '_showConstraints -> false)
+            @helper.inputText(details("preferredName"),
+                '_label -> "What should we call you?",
+                'class -> "form-control",
+                '_showConstraints -> false)
+
+            @date(details, "dateOfBirth", "Date of birth")
+
+            <div class="panel-indent text">
+                <p>You must be aged 16 years or older by 31 August 2016 to be eligible to apply</p>
+            </div>
+        </section>
+
+
+        <section class="section-border">
+            <h2 class="heading-large">Contact details</h2>
+
+            <div id="addressManualInput">
+                @views.html.widgets.address(details,"address")
+
+                @helper.inputText(details("postCode"),
+                    '_label -> "Postcode",
+                    'autocapitalize -> "characters",
+                    'autocorrect -> "off",
+                    'class -> "form-control form-control-large",
+                    '_showConstraints -> false)
+            </div>
+
+            @helper.inputText(details("phone"),
+            '_label -> "Telephone number",
+            '_help -> "Enter your mobile or landline number",
+            'class -> "form-control form-control-1-3 med-btm-margin",
+            'type -> "tel",
+            '_showConstraints -> false)
+
+        </section>
+
+        <section>
+            <h2 class="heading-large">Education details</h2>
+
+            <h3 class="heading-medium">Qualification requirements</h3>
+            <div class="grid-2-3">
+              <table>
+                <colgroup>
+                  <col class="t30">
+                  <col class="t70">
+                  <col>
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Scheme name</th>
+                    <th>Qualifications needed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <ul class="">
+                        <li>Business</li>
+                        <li>Commercial</li>
+                        <li>Finance</li>
+                      </ul>
+                    </td>
+                    <td>At least 5 GCSEs, grades A* to C including English language and maths, <a href="https://www.gov.uk/what-different-qualification-levels-mean/compare-different-qualification-levels" rel="external" target="_blank">or equivalent</a> 
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <ul class="">
+                        <li>Project delivery</li>
+                      </ul>
+                    </td>
+                    <td>
+                      2 A levels at grade D or above, in addition to your GCSEs, <a href="https://www.gov.uk/what-different-qualification-levels-mean/compare-different-qualification-levels" rel="external" target="_blank">or equivalent</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <ul class="">
+                        <li>Digital technology</li>
+                      </ul>
+                    </td>
+                    <td>
+                    2 A levels at grade C or above in a <a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-list-of-qualifying-stem-subjects" rel="external" target="_blank">STEM</a> subject (science, technology, engineering, mathematics) in addition to your GCSEs, <a href="https://www.gov.uk/what-different-qualification-levels-mean/compare-different-qualification-levels" rel="external" target="_blank">or equivalent</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <fieldset>
+              <legend class="form-label" id="alevelGradeD">Do you have 2 A levels at grade D or above?</legend>
+              <p class="form-hint">(Or you expect to have these by 31 August 2016, <a href="https://www.gov.uk/what-different-qualification-levels-mean/compare-different-qualification-levels" rel="external" target="_blank">or an equivalent qualification</a>)</p>
+              @radioBox(details("alevel-d"), options = Seq("true" -> "Yes", "false" -> "No"))
+            </fieldset>
+
+            <fieldset id="stem-panel">
+              <legend class="form-label" id="alevelGradeStem">Do you have 2 A levels in STEM subjects at grade C or above?</legend>
+              <p class="form-hint">(Or you expect to have these by 31 August 2016, <a href="https://www.gov.uk/what-different-qualification-levels-mean/compare-different-qualification-levels" rel="external" target="_blank">or an equivalent qualification</a>)</p>
+              @radioBox(details("alevel"), options = Seq("true" -> "Yes", "false" -> "No"))
+            </fieldset>
+        </section>
+
+        <div class="form-group">
+            <div>
+                <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+            </div>
+        </div>
+    }
+}
+

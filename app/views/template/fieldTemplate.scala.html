@@ -1,0 +1,10 @@
+@(elements: helper.FieldElements)
+
+@defining(if (elements.args.get('_hasLink).exists(_.asInstanceOf[Boolean])) "form-group-withlink" else "") {linkClass=>
+    <div id="@{elements.id}_field" class="form-group @elements.args.get('_class) @linkClass @if(elements.hasErrors) {has-an-error input-validation-error}">
+        <label for="@elements.id" class="form-label">@elements.label(elements.lang)</label>
+        <span class="form-hint text">@elements.infos(elements.lang).mkString(", ")</span>
+        <span class="has-error">@elements.errors(elements.lang).mkString(", ")</span>
+        @elements.input
+    </div>
+}

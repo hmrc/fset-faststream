@@ -1,0 +1,21 @@
+@(field : play.api.data.Field,
+        options: Map[String, List[(String, Boolean)]],
+        optionTrigger: String,
+        defaultChoice: String = "-- Choose One --")(labelContent: Html)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@helper.input(field) { (id, name, value, args) =>
+    <label for="@id" class="form-label">@labelContent</label>
+    <select name="@name" id="@id" class="selectWithOptionTrigger">
+        <option value="">@defaultChoice</option>
+        @for( key <- options) {
+            <optgroup label="@key._1">
+            @for(option <- key._2) {
+                <option value="@{option._1}" @if(value.contains(option._1)) { selected="selected"} @if(option._2) {
+                    class="optionTrigger" data-optiontrigger="@optionTrigger"}>@{option._1}</option>
+            }
+            </optgroup>
+        }
+    </select>
+}

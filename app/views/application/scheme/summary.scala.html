@@ -1,0 +1,49 @@
+@(alternateForm: Option[Form[_root_.forms.AlternateLocationsForm.Data]], selection: models.frameworks.LocationAndSchemeSelection)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+    @import views.html.application.scheme.widgets.{alternateLocation, preferenceSummary}
+
+    @application.scheme.locationAndSchemeTemplate(pageForms = alternateForm.map(Seq(_)).getOrElse(Seq()), disableMap = true) {
+
+        <section class="" id="choiceInfo">
+            @preferenceSummary(title = "First preference", idPrefix = "first", preference = selection.firstLocation)
+            <p><a id="firstChangeChoice" href="@routes.SchemeController.firstPreference()">Change this selection <span class="visuallyhidden">(First preference)</span></a></p>
+            @if(selection.secondLocationIntended.isEmpty) {
+                <div class="form-group" id="secondPreferenceControls">
+                @helper.form(action = routes.SchemeController.considerSecondPreference(false), 'novalidate -> "novalidate") {
+                    @helper.CSRF.formField
+                    <a href="@routes.SchemeController.secondPreference()" class="button" id="addSecondButton">
+                        Add a second location</a>
+                    <button type="submit" value="submit" class="button-link" id="noSecondPreference">
+                        Proceed without a second location
+                    </button>
+                }
+                </div>
+            }
+        </section>
+
+        @if(selection.secondLocation.isDefined || selection.secondLocationIntended.isDefined) {
+            <section class="" id="secondChoiceInfo">
+                @if(selection.secondLocation.isDefined) {
+                    @preferenceSummary(title = "Second preference", idPrefix = "second", preference = selection.secondLocation.get)
+                } else {
+                    <h2 class="heading-medium">Second preference</h2>
+                    <h3 class="heading-small" id="secondChosenLocation">No second preference</h3>
+                    <p class="small-btm-margin" id="secondChosenSchemes"></p>
+                }
+                <p><a id="secondChangeChoice" href="@routes.SchemeController.secondPreference()">Change this selection <span class="visuallyhidden">(Second preference)</span></a></p>
+            </section>
+        }
+
+        @if(selection.secondLocationIntended.isDefined) {
+            <section id="considerAlternatives">
+                <div class="panel-indent">
+                    <p>If we can’t place you in your preferred location or scheme, we may suggest an alternative.</p>
+                </div>
+                @alternateLocation(alternateForm)
+            </section>
+        }
+
+    }
+
+
+

@@ -1,0 +1,90 @@
+@(questionnaireForm: Form[_root_.forms.QuestionnaireDiversityInfoForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.{checkbox, select_guard, select_guard_multi}
+
+
+@main_template(title = "Diversity questions", pageForms = Seq(questionnaireForm)) {
+
+    <div class="hgroup">
+        <h1 class="heading-xlarge">Diversity questions</h1>
+        <p class="subtitle">Page 1 of 3</p>
+    </div>
+    <div class="panel-indent text">
+        <p class="">
+           Any information you give is treated in strict confidence and your answers don't affect your application.
+        </p>
+    </div>
+    <details class="text">
+        <summary id="link-why-collect-data">Why do we collect this information?</summary>
+        <div id="panel-why-collect-data" class="detail-content panel-indent">
+            <p>
+                The Civil Service is committed to promoting diversity, irrespective of ethnicity or nationality, gender, transgender, sexuality, disability, age, religion, marital status, working patterns and socio-economic status.</p>
+            <p>
+                We collect diversity and socio economic information for monitoring purposes only and this data is treated separately from the application process. Your answers in this section don't affect your results in any way and are treated in strict confidence.
+            </p>
+        </div>
+    </details>
+    <h2 class="heading-large">
+        Diversity
+    </h2>
+
+    @helper.form(action = routes.QuestionnaireController.firstPageSubmit(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        @select_guard(questionnaireForm("gender"), models.Gender.list,
+            "genderDescribe", "-- Select one --") {
+            @Messages("gender.question")
+        }
+        <div class="toggle-content form-group form-group-compound" id="genderDescribe">
+        @helper.inputText(questionnaireForm("other_gender"),
+            '_label -> "Provide more information (optional)",
+            'class -> "form-control",
+            '_showConstraints -> false,
+            'optional -> "")
+        </div>
+        <div data-optional>
+            @checkbox(questionnaireForm("preferNotSay_gender"), Some("gender")) {
+                Don't know/prefer not to say
+            }
+        </div>
+
+        @select_guard(questionnaireForm("sexOrientation"), models.SexOrientation.list,
+            "sexualDescribe", "-- Select one --") {
+            @Messages("sexOrientation.question")
+        }
+        <div class="toggle-content form-group form-group-compound" id="sexualDescribe">
+        @helper.inputText(questionnaireForm("other_sexOrientation"),
+            '_label -> "Provide more information (optional)",
+            'class -> "form-control",
+            '_showConstraints -> false,
+            'optional -> "")
+        </div>
+        <div data-optional>
+            @checkbox(questionnaireForm("preferNotSay_sexOrientation"), Some("sexOrientation")) {
+                Don't know/prefer not to say
+            }
+        </div>
+
+        @select_guard_multi(questionnaireForm("ethnicity"), models.Ethnicity.map,
+            "ethnicDescribe", "-- Select one --") {
+            @Messages("ethnicity.question")
+        }
+
+        <div class="toggle-content form-group form-group-compound" id="ethnicDescribe">
+        @helper.inputText(questionnaireForm("other_ethnicity"),
+            '_label -> "Provide more information (optional)",
+            'class -> "form-control",
+            '_showConstraints -> false,
+            'optional -> "")
+        </div>
+        <div data-optional>
+            @checkbox(questionnaireForm("preferNotSay_ethnicity"), Some("ethnicity")) {
+                Don't know/prefer not to say
+            }
+        </div>
+
+        <div class="form-group">
+            <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+        </div>
+    }
+}

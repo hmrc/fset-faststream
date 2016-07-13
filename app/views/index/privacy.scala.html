@@ -1,0 +1,137 @@
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Privacy and cookies") {
+    <h1 class="heading-xlarge">Privacy and cookies</h1>
+
+	
+	<section class="text">
+	    <h2 class="heading-large">Privacy</h2>
+	    <p>
+	        This service is run by Civil Service Resourcing. We'll handle the information you give to us according to the
+	        <a href="https://www.gov.uk/data-protection/the-data-protection-act" rel="external" target="_blank">Data Protection Act</a>.
+	    </p>
+	    <p>When you create an account on the service, the personal information you give us will be used:</p>
+	    <ul>
+	        <li>so you can apply for a Civil Service apprenticeship</li>
+	        <li>so that we can contact you about your application</li>
+	        <li>for administration and research purposes</li>
+	    </ul>
+	</section>
+
+	<section class="text">
+	    <h2 class="heading-medium">How long we hold your data</h2>
+	    <p>If you haven't signed in for 12 months or activated your account within 30 days of registering we'll delete your account and remove your personal details. You'll need to create another account to use the service.</p>
+	</section>
+
+	<section class="text">
+	    <h2 class="heading-large">Cookies</h2>
+	    <p>This service puts small files (known as 'cookies') on to your computer. Most websites do this. These cookies are used to:</p>
+	    <ul>
+	        <li>help us understand how you use the service, so we can improve it</li>
+	        <li>remember what notifications you've seen so you're not shown them again</li>
+	        <li>temporarily store the information you enter (eg informational messages)</li>
+	    </ul>
+	    <p>The cookies aren't used to identify you personally. They're put on to your computer to make the service work better for you. You can edit or delete the cookies.</p>
+	    <p>Find out how to <a rel="external" target="_blank" href="http://www.aboutcookies.org/">edit and delete cookies</a>.</p>
+	</section>
+
+	<section class="text">
+	    <h2 class="heading-medium">Google Analytics cookie</h2>
+	    <p>We use Google Analytics to collect information about how you use the service. This information helps us to make improvements.</p>
+	    <p>The Google Analytics cookie collects and stores information about:</p>
+	    <ul>
+	        <li>the pages you visit</li>
+	        <li>how long you spend on each page</li>
+	        <li>how you got to the service</li>
+	        <li>what you click on while you're using the service</li>
+	    </ul>
+	    <p>Google Analytics isn't allowed to use or share our analytics data with anyone, but you can <a href="https://tools.google.com/dlpage/gaoptout" rel="external" target="_blank">opt out</a> if you wish.</p>
+	    <table>
+	      <colgroup>
+	          <col class="t20">
+	          <col class="t60">
+	          <col class="t20">
+	          <col>
+	      </colgroup>
+	      <thead>
+	          <tr>
+	              <th>
+	                  Name
+	              </th>
+	              <th>
+	                  Purpose
+	              </th>
+	              <th>
+	                  Expires
+	              </th>
+	          </tr>
+	      </thead>
+	      <tbody>
+	        <tr>
+	          <td>
+	              _ga
+	          </td>
+	          <td>
+	              This helps us identify how you use GOV.UK so we can make the site better
+	          </td>
+	          <td>
+	              2 years
+	          </td>
+	      </tr>
+	    </tbody>
+	  </table>
+	</section>
+
+	<section class="text">
+	    <h2 class="heading-medium">Session cookies</h2>
+	    <p>We store session cookies on your computer to help keep your information secure while you use the service.</p>
+	    <table>
+		    <thead>
+		    <tr>
+		        <th>Name</th>
+		        <th>Purpose</th>
+		        <th>Expires</th>
+		    </tr>
+		    </thead>
+		    <tbody>
+		        <tr>
+		            <td>PLAY_FLASH</td>
+		            <td>Stores session data</td>
+		            <td>When you navigate to another page</td>
+		        </tr>
+		        <tr>
+		            <td>mdtp</td>
+		            <td>Stores session data</td>
+		            <td>When you close your browser</td>
+		        </tr>
+		        <tr>
+		            <td>mdtpdi</td>
+		            <td>Creates a unique ID for your device to prevent unauthorised access to the service</td>
+		            <td>10 years</td>
+		        </tr>
+		    </tbody>
+		</table>
+	</section>
+
+	<section class="text">
+	    <h2 class="heading-medium">Introductory message cookies</h2>
+	    <p>You may see a pop-up welcome message when you first visit. A cookie is stored so that your computer knows you’ve seen it and knows not to show it again.</p>
+	    <table>
+		    <thead>
+		    <tr>
+		        <th scope="col">Name</th>
+		        <th scope="col">Purpose</th>
+		        <th scope="col">Expires</th>
+		    </tr>
+		    </thead>
+		    <tbody>
+		    <tr>
+		        <td>cookies&#8209;banner&#8209;shown</td>
+		        <td>Saves a message to let us know that you have seen our cookie message</td>
+		        <td>20&nbsp;years</td>
+		    </tr>
+		    </tbody>
+		</table>
+	</section>
+}
+

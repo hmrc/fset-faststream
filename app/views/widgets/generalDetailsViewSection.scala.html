@@ -1,0 +1,50 @@
+@(generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange)(edit: Html)
+
+
+<section class="section-border">
+    <h2 class="heading-large">
+        <span class="sectionTitle">Your details</span>
+        @edit
+    </h2>
+    <section>
+        <h3 class="heading-small">Full name</h3>
+        <p id="fullName">@generalDetails.firstName @generalDetails.lastName </p>
+    </section>
+    <section>
+        <h3 class="heading-small">What should we call you?</h3>
+        <p id="preferredName">@generalDetails.preferredName</p>
+    </section>
+    <section>
+        <h3 class="heading-small">Date of birth</h3>
+        <p id="dateOfBirth">@generalDetails.dateOfBirth.toString("dd MMMM yyyy")</p>
+    </section>
+    <section>
+        <h3 class="heading-small">Address</h3>
+        <ul class="list-text">
+            <li id="address1">@generalDetails.address.line1</li>
+            <li id="address2">@generalDetails.address.line2.getOrElse("")</li>
+            <li id="address3">@generalDetails.address.line3.getOrElse("")</li>
+            <li id="address4">@generalDetails.address.line4.getOrElse("")</li>
+            <li id="postCode">@generalDetails.postCode</li>
+        </ul>
+    </section>
+    <section>
+        <h3 class="heading-small">Telephone number</h3>
+        @if(generalDetails.phone.isDefined || generalDetails.phone.map(!_.isEmpty)) {
+            <p id="phone-input">@generalDetails.phone.getOrElse("No phone number provided")</p>
+        }
+        @if(generalDetails.phone.isEmpty) {
+            <p id="phone-input3">No number provided</p>
+        }
+    </section>
+    <section>
+        <h3 class="heading-small">Qualifications</h3>
+        <p id="educationLevel">
+        @if(generalDetails.stemLevel) {
+            At least 2 A levels in STEM subjects, grade C or above
+        } else {
+            @if(generalDetails.aLevel) {At least 2 A levels, grade D or above} else {At least 5 GCSEs A* to C or equivalent}
+        }
+        </p>
+    </section>
+</section>

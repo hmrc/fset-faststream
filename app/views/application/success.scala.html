@@ -1,0 +1,21 @@
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Your application has been submitted") {
+
+    <div class="success-banner">
+        <h1 class="heading-large no-btm-margin"><i class="fa fa-check"></i>Application submitted</h1>
+    </div>
+    <div class="panel-indent">
+        <p><i class="fa fa-envelope-o"></i>We've sent you an email confirming your
+            application</p>
+    </div>
+    <h2 class="heading-large">What happens next?</h2>
+    <div class="text">
+        <p>The next step is to complete the online tests. You'll be sent an email once these are ready for you to start and you'll have 7 days to complete them.</p>
+        <p>If you can't see the email in your inbox, check your spam folder.</p>
+        <p><a href="@feedbackUrl" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>
+        <p>Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a>.</p>
+    </div>
+
+}
+

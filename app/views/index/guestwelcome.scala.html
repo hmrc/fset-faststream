@@ -1,0 +1,66 @@
+@(signInForm: Form[_root_.forms.SignInForm.Data], notification: Option[(helpers.NotificationType, String)] = None
+    )(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, fasttrackConfig: FasttrackConfig)
+
+@import helpers.CSRFieldConstructor._
+
+@main_template(title = "Create your account or Sign in", pageForms = Seq(signInForm), notification = notification) {
+
+    <h1 class="heading-xlarge">Create your account</h1>
+        @if(fasttrackConfig.newAccountsEnabled) {
+        <div class="text">
+
+            <p class="small-btm-margin">
+                To apply for a Civil Service Fast Track apprenticeship you'll need to create an account.
+            </p>
+            <p>Before you start make sure:</p>
+            <ul class="list-bullet">
+                <li>you meet the <a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-who-can-apply" rel="external" target="_blank">
+                    eligibility</a> requirements to apply</li>
+                <li>you’ve read about the <a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-fast-track-schemes" rel="external" target="_blank">
+                    schemes</a></li>
+            </ul>
+
+            <div class="form-group">
+                <a href="@routes.SignUpController.signUp()" class="button" id="createAccount">Create your account</a>
+            </div>
+        </div>
+
+        } else {
+
+            <section class="text">
+                <p>Applications for Civil Service Fast Track apprenticeship have now closed so you can no longer create an account or apply.</p>
+                <p>You'll be able to apply again next year.</p>
+                <p>Or you can use the <a href="https://www.gov.uk/apply-apprenticeship" rel="external">Find an apprenticeship</a> service.</p>
+            </section>
+        }
+    
+
+    <div class="text" id="signInSection">
+        <h2 class="heading-xlarge">Already have an account?</h2>
+        <h2 class="heading-large">Sign in</h2>
+    </div>
+
+    @helper.form(action = routes.SignInController.signIn(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+
+        @helper.inputText(signInForm("signIn"),
+            '_label -> "Email",
+            'type -> "email",
+            'class -> "form-control",
+            '_class -> "form-group-compound",
+            '_showConstraints -> false)
+        @helper.inputPassword(signInForm("signInPassword"),
+            '_label -> "Password",
+            'class -> "form-control",
+            '_hasLink -> true,
+            '_showConstraints -> false)
+
+        <p><a href="@routes.PasswordResetController.presentCode(None)">I can't access my account</a></p>
+
+        <div class="form-group small-btm-margin">
+            <button id="btnSignIn" type="submit" value="submit" class="button">Sign in</button>
+        </div>
+
+    }
+
+}

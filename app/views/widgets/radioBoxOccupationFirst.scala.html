@@ -1,0 +1,33 @@
+@(field : play.api.data.Field, isCompound: Boolean = false)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@createId(id:String, v:(String,String))=@{id + "-"+v._1.replace(" ", "_").replace("/", "_")}
+
+@helper.input(field) { (id, name, value, args) =>
+    <div>
+        <label for="occupation-09" class="block-label">
+            <input type="radio" name="@name" id="occupation-09" value="Unemployed but seeking work" class="hidesContent hidesOccupations"
+                @(if(value.contains("Unemployed but seeking work")) "checked" else "")>Unemployed but seeking work
+        </label>
+    </div>
+    <div>
+        <label for="occupation-10" class="block-label">
+            <input type="radio" name="@name" id="occupation-10" value="Unemployed" class="hidesContent hidesOccupations"
+                @(if(value.contains("Unemployed")) "checked" else "")>Unemployed
+        </label>
+    </div>
+    <div>
+        <label for="occupation-11" class="block-label inputTrigger" data-inputTrigger="occupations">
+            <input type="radio" name="@name" id="occupation-11" value="Employed" class="showsContent showsOccupations"
+                @(if(value.contains("Employed")) "checked" else "")>Employed/self-employed
+        </label>
+    </div>
+    <div>
+        <label for="occupation-12" class="block-label">
+            <input type="radio" name="@name" id="occupation-12" value="Unknown" class="hidesContent hidesOccupations"
+                @(if(value.contains("Unknown")) "checked" else "")>Don't know/prefer not to say
+        </label>
+    </div>
+
+}
