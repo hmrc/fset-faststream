@@ -34,7 +34,7 @@ trait SubmitApplicationController extends BaseController with ApplicationClient 
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
-      if (fasttrackConfig.applicationsSubmitEnabled) {
+      if (faststreamConfig.applicationsSubmitEnabled) {
         Future.successful(Ok(views.html.application.submit()))
       } else {
         Future.successful(Ok(views.html.home.submit_disabled(CachedData(user.user, Some(user.application)))))
@@ -48,7 +48,7 @@ trait SubmitApplicationController extends BaseController with ApplicationClient 
 
   def submit = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
-      if (fasttrackConfig.applicationsSubmitEnabled) {
+      if (faststreamConfig.applicationsSubmitEnabled) {
         submitApplication(user.user.userID, user.application.applicationId).flatMap { _ =>
           updateProgress(data =>
             data.copy(application = data.application.map(_.copy(applicationStatus = SUBMITTED))))(_ =>

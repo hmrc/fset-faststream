@@ -28,11 +28,11 @@ import security.Roles.PersonalDetailsRole
 
 import scala.concurrent.Future
 
-object FastTrackApplication extends FastTrackApplication {
+object FastStreamApplication extends FastStreamApplication {
   val http = CSRHttp
 }
 
-trait FastTrackApplication extends BaseController with ApplicationClient with UserManagementClient {
+trait FastStreamApplication extends BaseController with ApplicationClient with UserManagementClient {
 
   def generalDetails(start: Option[String] = None) = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
     implicit user =>

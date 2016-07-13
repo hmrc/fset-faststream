@@ -32,19 +32,18 @@ case class EmailTemplates(registration: String)
 case class UserManagementConfig(url: UserManagementUrl)
 case class UserManagementUrl(host: String)
 
-/** configuration for the fast tract backend */
-case class FasttrackConfig(url: FasttrackUrl)
-case class FasttrackUrl(host: String, base: String)
+case class FaststreamConfig(url: FaststreamUrl)
+case class FaststreamUrl(host: String, base: String)
 
-case class FasttrackFrontendConfig(blockNewAccountsDate: Option[LocalDateTime], blockApplicationsDate: Option[LocalDateTime])
+case class FaststreamFrontendConfig(blockNewAccountsDate: Option[LocalDateTime], blockApplicationsDate: Option[LocalDateTime])
 
-object FasttrackFrontendConfig {
-  def read(blockNewAccountsDate: Option[String], blockApplicationsDate: Option[String]): FasttrackFrontendConfig = {
+object FaststreamFrontendConfig {
+  def read(blockNewAccountsDate: Option[String], blockApplicationsDate: Option[String]): FaststreamFrontendConfig = {
     val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
     def parseDate(dateStr: String): LocalDateTime = LocalDateTime.parse(dateStr, format)
 
-    new FasttrackFrontendConfig(blockNewAccountsDate map parseDate, blockApplicationsDate map parseDate)
+    new FaststreamFrontendConfig(blockNewAccountsDate map parseDate, blockApplicationsDate map parseDate)
   }
 }
 
@@ -55,8 +54,8 @@ trait AppConfig {
   val reportAProblemNonJSUrl: String
   val emailConfig: EmailConfig
   val userManagementConfig: UserManagementConfig
-  val fasttrackConfig: FasttrackConfig
-  val fasttrackFrontendConfig: FasttrackFrontendConfig
+  val faststreamConfig: FaststreamConfig
+  val faststreamFrontendConfig: FaststreamFrontendConfig
 }
 
 object FrontendAppConfig extends AppConfig with ServicesConfig with RunMode {
@@ -66,7 +65,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig with RunMode {
   val feedbackUrl = configuration.getString("feedback.url").getOrElse("")
 
   private val contactHost = configuration.getString(s"$env.microservice.services.contact-frontend.host").getOrElse("")
-  private val contactFormServiceIdentifier = "CSRFastTrack"
+  private val contactFormServiceIdentifier = "CSRFastStream"
 
   override lazy val analyticsToken = loadConfig(s"$env.microservice.services.google-analytics.token")
   override lazy val analyticsHost = loadConfig(s"$env.microservice.services.google-analytics.host")
@@ -76,8 +75,8 @@ object FrontendAppConfig extends AppConfig with ServicesConfig with RunMode {
   override lazy val emailConfig = configuration.underlying.as[EmailConfig](s"$env.microservice.services.email")
 
   override lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig](s"$env.microservice.services.user-management")
-  override lazy val fasttrackConfig = configuration.underlying.as[FasttrackConfig](s"$env.microservice.services.fasttrack")
-  override val fasttrackFrontendConfig = FasttrackFrontendConfig.read(
+  override lazy val faststreamConfig = configuration.underlying.as[FaststreamConfig](s"$env.microservice.services.faststream")
+  override val faststreamFrontendConfig = FaststreamFrontendConfig.read(
     blockNewAccountsDate = configuration.getString("application.blockNewAccountsDate"),
     blockApplicationsDate = configuration.getString("application.blockApplicationsDate")
   )

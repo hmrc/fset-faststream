@@ -29,7 +29,7 @@ import scala.concurrent.Future
 
 trait SchemeClient {
 
-  import config.FrontendAppConfig.fasttrackConfig._
+  import config.FrontendAppConfig.faststreamConfig._
 
   val http: CSRHttp
 
