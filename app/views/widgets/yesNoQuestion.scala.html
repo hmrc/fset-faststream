@@ -1,0 +1,29 @@
+@(field: play.api.data.Field, question: String, noMessage: String)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@selectRadio(currentValue: Option[String], questionType: String) = @{(currentValue, questionType) match {
+    case (Some("true"), "yes") | (Some("false"), "no") => "checked=\"checked\""
+    case _ => ""
+}}
+
+@helper.input(field, '_class -> "inline") { (id, name, value, _) =>
+    <fieldset>
+        <legend class="form-label">@question</legend>
+        <div class="form-group">
+            <label for="@id-yes" class="block-label">
+                <input name="@name" type="radio" id="@id-yes" value="true" @selectRadio(value, "yes")>Yes
+            </label>
+            <label data-target="@name-panel" for="@id-no" class="block-label">
+                <input name="@name" type="radio" id="@id-no" aria-controls="@name-panel"
+                aria-expanded="false" value="false" @selectRadio(value, "no")>No
+            </label>
+        </div>
+
+        <div id="eligible-panel" class="toggle-content">
+            <div class="panel-danger">
+                <p>@noMessage</p>
+            </div>
+        </div>
+    </fieldset>
+}

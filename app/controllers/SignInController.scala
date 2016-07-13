@@ -32,7 +32,7 @@ object SignInController extends SignInController {
 
 trait SignInController extends BaseController with SignInUtils with ApplicationClient {
 
-  val present = CSRUserAwareAction { implicit request =>
+  def present = CSRUserAwareAction { implicit request =>
     implicit user =>
       request.identity match {
         case None =>
@@ -42,7 +42,7 @@ trait SignInController extends BaseController with SignInUtils with ApplicationC
       }
   }
 
-  val signIn = CSRUserAwareAction { implicit request =>
+  def signIn = CSRUserAwareAction { implicit request =>
     implicit user =>
       SignInForm.form.bindFromRequest.fold(
         invalidForm =>
@@ -62,7 +62,7 @@ trait SignInController extends BaseController with SignInUtils with ApplicationC
       )
   }
 
-  val signOut = CSRUserAwareAction { implicit request =>
+  def signOut = CSRUserAwareAction { implicit request =>
     implicit user =>
       request.identity.map(identity => env.eventBus.publish(LogoutEvent(identity, request, request2lang)))
       env.authenticatorService.retrieve.flatMap {

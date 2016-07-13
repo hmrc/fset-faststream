@@ -43,7 +43,7 @@ trait SignUpController extends BaseController with SignInUtils with ApplicationC
       })
   }
 
-  val signUp = CSRUserAwareAction { implicit request =>
+  def signUp = CSRUserAwareAction { implicit request =>
     implicit user =>
 
       SignUpForm.form.bindFromRequest.fold(
@@ -54,9 +54,9 @@ trait SignUpController extends BaseController with SignInUtils with ApplicationC
               u.toCached,
               redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful"))
             ).map { r =>
-                env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString), request, request2lang))
-                r
-              }
+              env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString), request, request2lang))
+              r
+            }
           }.recover {
             case e: EmailTakenException =>
               Ok(views.html.registration.signup(SignUpForm.form.fill(data), Some(danger("user.exists"))))

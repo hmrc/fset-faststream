@@ -82,18 +82,17 @@ object SignUpForm {
       passwordField -> of(passwordFormatter),
       confirmPasswordField -> nonEmptyTrimmedText("error.confirmpwd", passwordMaxLength),
       "agree" -> checked(Messages("agree.accept")),
-      "agreeEligibleToApply" -> checked(Messages("agree.eligible"))
+      "eligible" -> checked(Messages("agree.eligible"))
     )(Data.apply)(Data.unapply)
   )
 
-  case class Data(
-    firstName: String,
-    lastName: String,
-    email: String,
-    confirmEmail: String,
-    password: String,
-    confirmpwd: String,
-    agree: Boolean,
-    agreeEligibleToApply: Boolean
-  )
+  case class Data(firstName: String,
+                  lastName: String,
+                  email: String,
+                  confirmEmail: String,
+                  password: String,
+                  confirmpwd: String,
+                  agree: Boolean,
+                  eligibility: Boolean)
+
 }
