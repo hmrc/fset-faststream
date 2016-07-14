@@ -253,7 +253,7 @@ trait OnlineTestService {
   }
 
   private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
-    val onlineTestCompletedUrl = gatewayConfig.candidateAppUrl + "/csr-fast-track/online-tests/complete/" + token
+    val onlineTestCompletedUrl = gatewayConfig.candidateAppUrl + "/fset-fast-stream/online-tests/complete/" + token
     if (application.guaranteedInterview) {
       InviteApplicant(scheduleId, userId, onlineTestCompletedUrl, None, None)
     } else {
