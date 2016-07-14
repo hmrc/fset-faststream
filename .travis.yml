@@ -3,6 +3,8 @@ sudo: false
 language: scala
 scala:
 - 2.11.8
+script:
+  - sbt test it:test
 jdk:
 - oraclejdk8
 cache:
