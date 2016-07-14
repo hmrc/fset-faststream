@@ -33,11 +33,11 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object SchemeController extends SchemeController {
+object SchemeController extends SchemeController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait SchemeController extends BaseController with SchemeClient with ApplicationClient {
+abstract class SchemeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) with SchemeClient {
 
   def entryPoint = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>

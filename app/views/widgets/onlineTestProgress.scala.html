@@ -97,14 +97,14 @@
                 }
             }
 
-            <p><a href="@routes.Application.helpdesk()">Contact us</a> if you believe there has been a mistake.</p>
+            <p><a href="@routes.ApplicationController.helpdesk()">Contact us</a> if you believe there has been a mistake.</p>
     }
 
     case ONLINE_TEST_EXPIRED => {
         <p><i class="fa fa-exclamation-triangle"></i>Your online tests
             expired on @{onlineTest.map(_.getExpireDate).getOrElse("")}.</p>
     <p>You can no longer take the online tests.</p>
-        <p><a href="@routes.Application.helpdesk()">Contact us</a> if you believe there
+        <p><a href="@routes.ApplicationController.helpdesk()">Contact us</a> if you believe there
             has been a mistake.</p>
     }
 

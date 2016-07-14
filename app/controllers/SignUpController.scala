@@ -24,15 +24,15 @@ import connectors.ExchangeObjects.Implicits._
 import connectors.UserManagementClient.EmailTakenException
 import helpers.NotificationType._
 import models.SecurityUser
-import security.SignInUtils
+import security.SignInService
 
 import scala.concurrent.Future
 
-object SignUpController extends SignUpController {
+object SignUpController extends SignUpController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait SignUpController extends BaseController with SignInUtils with ApplicationClient {
+abstract class SignUpController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
@@ -52,7 +52,8 @@ trait SignUpController extends BaseController with SignInUtils with ApplicationC
           env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
             signInUser(
               u.toCached,
-              redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful"))
+              redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
+              env = env
             ).map { r =>
                 env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString), request, request2lang))
                 r

@@ -23,15 +23,15 @@ import connectors.ApplicationClient
 import connectors.UserManagementClient.{ InvalidEmailException, TokenEmailPairInvalidException, TokenExpiredException }
 import helpers.NotificationType._
 import models.CachedData
-import security.{ InvalidRole, SignInUtils }
+import security.{ InvalidRole, SignInService }
 
 import scala.concurrent.Future
 
-object PasswordResetController extends PasswordResetController {
+object PasswordResetController extends PasswordResetController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait PasswordResetController extends BaseController with ApplicationClient with SignInUtils {
+abstract class PasswordResetController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
 
   def presentCode(email: Option[String]) = CSRUserAwareAction { implicit request =>
     implicit user =>
@@ -105,8 +105,8 @@ trait PasswordResetController extends BaseController with ApplicationClient with
         case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(
           Redirect(routes.LockAccountController.present()).flashing("email" -> usr.email)
         )
-        case Right(usr) if usr.isActive => signInUser(usr)
-        case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()))
+        case Right(usr) if usr.isActive => signInUser(usr, env)
+        case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()), env = env)
         case Left(InvalidRole) => Future.successful(showErrorLogin(SignInForm.Data(
           signIn = email,
           signInPassword = newPassword

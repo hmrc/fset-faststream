@@ -30,19 +30,19 @@ import security.Roles._
 
 import scala.concurrent.Future
 
-object HomeController extends HomeController {
+object HomeController extends HomeController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait HomeController extends BaseController with ApplicationClient {
+abstract class HomeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
   val Withdrawer = "Candidate"
   val present = CSRSecureAction(ActiveUserRole) { implicit request =>
     implicit user =>
       // TODO: I think the non existance of the onlineTest can be handled with an Option
       // not an Exception. It is not really an exceptional situation as in most situations
       // the onlineTest will not be present until later.
-      getTestAssessment(user.user.userID).flatMap { onlineTest =>
-        getAllocationDetails(user.application.get.applicationId).flatMap { allocationDetails =>
+      applicationClient.getTestAssessment(user.user.userID).flatMap { onlineTest =>
+        applicationClient.getAllocationDetails(user.application.get.applicationId).flatMap { allocationDetails =>
           // It is possible that the scheduler may have enabled testing, but that the
           // current user session has older cached user data, so force an update
           // TODO Work out a better way to invalidate the cache across the site
@@ -80,7 +80,7 @@ trait HomeController extends BaseController with ApplicationClient {
   val create = CSRSecureAction(ApplicationStartRole) { implicit request =>
     implicit user =>
       for {
-        response <- createApplication(user.user.userID, ExchangeObjects.frameworkId)
+        response <- applicationClient.createApplication(user.user.userID, ExchangeObjects.frameworkId)
         _ <- env.userService.save(user.copy(application = Some(response)))
         if faststreamConfig.applicationsSubmitEnabled
       } yield {
@@ -104,7 +104,7 @@ trait HomeController extends BaseController with ApplicationClient {
       WithdrawApplicationForm.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.application.withdraw(invalidForm))),
         data => {
-          withdrawApplication(user.application.applicationId, WithdrawApplicationRequest(data.reason, data.otherReason,
+          applicationClient.withdrawApplication(user.application.applicationId, WithdrawApplicationRequest(data.reason, data.otherReason,
             Withdrawer)).flatMap { _ =>
             updateProgress(updateStatus)(_ => Redirect(routes.HomeController.present()).flashing(success("application.withdrawn")))
           }.recover {
@@ -117,7 +117,7 @@ trait HomeController extends BaseController with ApplicationClient {
   val confirmAlloc = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
     implicit user =>
 
-      confirmAllocation(user.application.get.applicationId).map { _ =>
+      applicationClient.confirmAllocation(user.application.get.applicationId).map { _ =>
         Redirect(controllers.routes.HomeController.present).flashing(success("success.allocation.confirmed"))
       }
   }
