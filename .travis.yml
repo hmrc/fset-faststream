@@ -2,12 +2,18 @@
 sudo: false
 language: scala
 scala:
-- 2.11.6
+- 2.11.8
 jdk:
 - oraclejdk8
 cache:
   directories:
     - '$HOME/.ivy2/cache'
+addons:
+  apt:
+    source:
+    - mongodb-3.0-precise
+    packages:
+    - mongodb-org-server
 branches:
   except:
     - master
