@@ -33,7 +33,7 @@ object ExchangeObjects {
 
   type LoginInfo = String
 
-  case class EmailWrapper(email: String)
+  case class EmailWrapper(email: String, service: String)
 
   case class CreateApplicationRequest(userId: UniqueIdentifier, frameworkId: String)
 
@@ -73,25 +73,26 @@ object ExchangeObjects {
 
   case class RegistrationEmail(to: List[String], templateId: String, parameters: Map[String, String])
 
-  case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, role: String)
+  case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, role: String, service: String)
 
-  case class UpdateDetails(firstName: String, lastName: String, preferredName: Option[String])
+  case class UpdateDetails(firstName: String, lastName: String, preferredName: Option[String], service: String)
 
-  case class UpdateUserRequest(email: String, password: String, firstName: String, lastName: String, userId: UniqueIdentifier, isActive: Boolean)
+  case class UpdateUserRequest(email: String, password: String, firstName: String, lastName: String,
+                               userId: UniqueIdentifier, isActive: Boolean, service: String)
 
-  case class SignInRequest(email: String, password: String)
+  case class SignInRequest(email: String, password: String, service: String)
 
   case class FindUserRequest(email: String)
 
   case class UserResponse(firstName: String, lastName: String, preferredName: Option[String],
     isActive: Boolean, userId: UniqueIdentifier, email: String, lockStatus: String, role: String)
 
-  case class ActivateEmailRequest(email: String, token: String)
+  case class ActivateEmailRequest(email: String, token: String, service: String)
 
-  case class ResendActivationTokenRequest(email: String)
+  case class ResendActivationTokenRequest(email: String, service: String)
 
-  case class SendPasswordCodeRequest(email: String)
-  case class ResetPasswordRequest(email: String, token: String, newPassword: String)
+  case class SendPasswordCodeRequest(email: String, service: String)
+  case class ResetPasswordRequest(email: String, token: String, newPassword: String, service: String)
 
   //  questionnaire
   case class Answer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
