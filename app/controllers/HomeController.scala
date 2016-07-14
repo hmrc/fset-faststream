@@ -60,7 +60,7 @@ trait HomeController extends BaseController with ApplicationClient {
           val applicationSubmitted = !user.application.forall { app =>
             app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
           }
-          val isDashboardEnabled = fasttrackConfig.applicationsSubmitEnabled || applicationSubmitted
+          val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled || applicationSubmitted
 
           if (isDashboardEnabled) {
             val dashboardPage = DashboardPage.fromUser(user)
@@ -82,9 +82,9 @@ trait HomeController extends BaseController with ApplicationClient {
       for {
         response <- createApplication(user.user.userID, ExchangeObjects.frameworkId)
         _ <- env.userService.save(user.copy(application = Some(response)))
-        if fasttrackConfig.applicationsSubmitEnabled
+        if faststreamConfig.applicationsSubmitEnabled
       } yield {
-        Redirect(routes.FastTrackApplication.generalDetails(Some("start")))
+        Redirect(routes.FastStreamApplication.generalDetails(Some("start")))
       }
   }
 

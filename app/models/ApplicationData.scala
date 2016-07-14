@@ -31,7 +31,7 @@ case class ApplicationData(
 
 object ApplicationData {
 
-  // TODO: We have to make sure we implement the application status in the same way in fasttrack and fasttrack-frontend
+  // TODO: We have to make sure we implement the application status in the same way in faststream and faststream-frontend
   object ApplicationStatus extends Enumeration {
     type ApplicationStatus = Value
     // format: OFF
