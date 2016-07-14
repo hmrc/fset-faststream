@@ -1,5 +1,9 @@
 $(function() {
 
+  // Variable used to track if there are any outstanding actions that webdriver should wait for during
+  // the acceptance test runs
+  window.csrActive = 0;
+
   var isMobile = {
     Android: function() {
       return navigator.userAgent.match(/Android/i);
