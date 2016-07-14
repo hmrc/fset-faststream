@@ -25,7 +25,7 @@ class LandingPageControllerSpec extends PlaySpec {
   "Landing page controller" should {
 
     "redirect to sign-in" in {
-      val request = FakeRequest(GET, controllers.routes.Application.index().url)
+      val request = FakeRequest(GET, controllers.routes.ApplicationController.index().url)
 
       val result = call(LandingPageController.index, request)
 

@@ -19,18 +19,19 @@ package controllers
 import _root_.forms.SignInForm
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.{ CSRCache, CSRHttp }
+import config.{CSRCache, CSRHttp}
 import connectors.ApplicationClient
 import helpers.NotificationType._
-import security._
+import security.{SignInService, _}
 
 import scala.concurrent.Future
 
-object SignInController extends SignInController {
+object SignInController extends SignInController(ApplicationClient) with SignInService {
   val http = CSRHttp
 }
 
-trait SignInController extends BaseController with SignInUtils with ApplicationClient {
+abstract class SignInController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+  self: SignInService =>
 
   val present = CSRUserAwareAction { implicit request =>
     implicit user =>
@@ -51,8 +52,8 @@ trait SignInController extends BaseController with SignInUtils with ApplicationC
           case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful {
             Redirect(routes.LockAccountController.present()).flashing("email" -> usr.email)
           }
-          case Right(usr) if usr.isActive => signInUser(usr)
-          case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()))
+          case Right(usr) if usr.isActive => signInUser(usr, env)
+          case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()), env = env)
           case Left(InvalidRole) => Future.successful(showErrorLogin(data, errorMsg = "error.invalidRole"))
           case Left(InvalidCredentials) => Future.successful(showErrorLogin(data))
           case Left(LastAttempt) => Future.successful(showErrorLogin(data, errorMsg = "last.attempt"))

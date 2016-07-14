@@ -16,24 +16,27 @@
 
 package security
 
-import com.mohiva.play.silhouette.api.{ LoginEvent, LoginInfo }
+import com.mohiva.play.silhouette.api.{LoginEvent, LoginInfo}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import connectors.ApplicationClient.ApplicationNotFound
-import connectors.{ ApplicationClient, ExchangeObjects }
-import controllers.{ BaseController, routes }
+import connectors.{ApplicationClient, ExchangeObjects}
+import controllers.{BaseController, routes}
 import forms.SignInForm
 import forms.SignInForm.Data
 import helpers.NotificationType._
-import models.{ ApplicationData, CachedData, CachedUser, SecurityUser }
-import play.api.mvc.{ Request, Result }
+import models.{ApplicationData, CachedData, CachedUser, SecurityUser}
+import play.api.mvc.{Request, Result}
 
 import scala.concurrent.Future
 
-trait SignInUtils {
-  this: BaseController with ApplicationClient =>
+trait SignInService {
+  self: BaseController =>
+
+  val applicationClient: ApplicationClient
 
   def signInUser(
     user: CachedUser,
+    env: SecurityEnvironment,
     redirect: Result = Redirect(routes.HomeController.present())
   )(implicit request: Request[_]): Future[Result] = {
     if (user.lockStatus == "LOCKED") {
@@ -49,7 +52,7 @@ trait SignInUtils {
         result
       }
 
-      findApplication(user.userID, ExchangeObjects.frameworkId).map { appData =>
+      applicationClient.findApplication(user.userID, ExchangeObjects.frameworkId).map { appData =>
         signIn(Some(appData))
       } recover {
         case e: ApplicationNotFound => signIn(None)

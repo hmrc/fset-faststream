@@ -28,11 +28,11 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
-object QuestionnaireController extends QuestionnaireController {
+object QuestionnaireController extends QuestionnaireController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait QuestionnaireController extends BaseController with ApplicationClient {
+abstract class QuestionnaireController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   def start = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
     implicit user =>
@@ -118,7 +118,7 @@ trait QuestionnaireController extends BaseController with ApplicationClient {
     implicit
     user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]
   ) = {
-    updateQuestionnaire(user.application.applicationId, sectionId, data).flatMap { _ =>
+    applicationClient.updateQuestionnaire(user.application.applicationId, sectionId, data).flatMap { _ =>
       updateProgress()(_ => onSuccess)
     }
   }

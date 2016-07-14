@@ -44,7 +44,7 @@ object FaststreamConfig {
 /**
  * should be extended by all controllers
  */
-trait BaseController extends FrontendController with SecureActions with ApplicationClient {
+abstract class BaseController(applicationClient: ApplicationClient) extends FrontendController with SecureActions {
 
   implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
   implicit def faststreamConfig = FaststreamConfig(config.FrontendAppConfig.faststreamFrontendConfig)
@@ -61,7 +61,7 @@ trait BaseController extends FrontendController with SecureActions with Applicat
     implicit
     user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]
   ): Future[A] =
-    getApplicationProgress(user.application.applicationId).flatMap { prog =>
+    applicationClient.getApplicationProgress(user.application.applicationId).flatMap { prog =>
       val cd = CachedData(user.user, Some(user.application)).copy(application = Some(user.application.copy(progress = prog)))
       env.userService.save(
         additionalChanges(cd)
@@ -71,7 +71,7 @@ trait BaseController extends FrontendController with SecureActions with Applicat
     }
 
   def refreshCachedUser()(implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[CachedData] =
-    findApplication(user.user.userID, ExchangeObjects.frameworkId).flatMap { appData =>
+    applicationClient.findApplication(user.user.userID, ExchangeObjects.frameworkId).flatMap { appData =>
       val cd = CachedData(user.user, Some(appData))
       env.userService.save(cd)
     } recover {

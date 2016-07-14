@@ -26,11 +26,11 @@ import security.Roles.{ SubmitApplicationRole, WithdrawApplicationRole }
 
 import scala.concurrent.Future
 
-object SubmitApplicationController extends SubmitApplicationController {
+object SubmitApplicationController extends SubmitApplicationController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait SubmitApplicationController extends BaseController with ApplicationClient {
+abstract class SubmitApplicationController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
@@ -49,7 +49,7 @@ trait SubmitApplicationController extends BaseController with ApplicationClient 
   def submit = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
       if (faststreamConfig.applicationsSubmitEnabled) {
-        submitApplication(user.user.userID, user.application.applicationId).flatMap { _ =>
+        applicationClient.submitApplication(user.user.userID, user.application.applicationId).flatMap { _ =>
           updateProgress(data =>
             data.copy(application = data.application.map(_.copy(applicationStatus = SUBMITTED))))(_ =>
             Redirect(routes.SubmitApplicationController.success()))

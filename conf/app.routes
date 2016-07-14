@@ -1,10 +1,10 @@
 # microservice specific routes
 
 # Generic links
-GET         /                                                       controllers.Application.index
-GET         /terms                                                  controllers.Application.terms
-GET         /helpdesk                                               controllers.Application.helpdesk
-GET         /privacy                                                controllers.Application.privacy
+GET         /                                                       controllers.ApplicationController.index
+GET         /terms                                                  controllers.ApplicationController.terms
+GET         /helpdesk                                               controllers.ApplicationController.helpdesk
+GET         /privacy                                                controllers.ApplicationController.privacy
 
 # Account lock
 GET         /locked                                                 controllers.LockAccountController.present

@@ -20,7 +20,7 @@ import config.CSRHttp
 import connectors.AllocationExchangeObjects._
 import connectors.ExchangeObjects._
 import connectors.exchange.ProgressResponse
-import forms.{ AssistanceForm, GeneralDetailsForm }
+import forms.{AssistanceForm, GeneralDetailsForm}
 import mappings.PostCodeMapping
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
@@ -30,6 +30,7 @@ import play.api.http.Status._
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
+import uk.gov.hmrc.play.http.ws.WSHttp
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -208,7 +209,9 @@ trait ApplicationClient {
   }
 }
 
-object ApplicationClient {
+object ApplicationClient extends ApplicationClient {
+
+  override val http: CSRHttp = CSRHttp
 
   sealed class CannotUpdateRecord extends Exception
 
