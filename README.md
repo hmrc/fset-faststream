@@ -1,5 +1,7 @@
 # Civil Service Resourcing Fast Stream Web Application
 
+[![Build Status](https://travis-ci.org/hmrc/fset-faststream-frontend.svg?branch=fset-558)](https://travis-ci.org/hmrc/fset-faststream-frontend)
+
 ### Summary
 This repository contains the front-end for the Civil Service Resourcing Fast Stream programme.
 
