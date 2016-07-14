@@ -27,13 +27,9 @@ import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 import org.joda.time.{ DateTime, LocalDate, Period }
 import play.api.libs.json.{ Format, Json }
 
-/**
- * this is duplicated from the auth project
- * todo fix
- */
 object ExchangeObjects {
 
-  val frameworkId = "FastTrack-2015"
+  val frameworkId = "FastStream-2016"
 
   type LoginInfo = String
 

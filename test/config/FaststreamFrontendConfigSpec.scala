@@ -20,37 +20,37 @@ import java.time.format.{ DateTimeFormatter, DateTimeParseException }
 
 import org.scalatestplus.play.PlaySpec
 
-class FasttrackFrontendConfigSpec extends PlaySpec {
+class FaststreamFrontendConfigSpec extends PlaySpec {
   val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
-  "Fasttrack frontend configuration reader" should {
+  "Faststream frontend configuration reader" should {
     "return configuration without any dates if they are not present" in {
-      val fasttrackFrontendConfig = FasttrackFrontendConfig.read(None, None)
-      fasttrackFrontendConfig must be(new FasttrackFrontendConfig(None, None))
+      val faststreamFrontendConfig = FaststreamFrontendConfig.read(None, None)
+      faststreamFrontendConfig must be(new FaststreamFrontendConfig(None, None))
     }
 
     "parse and return dates" in {
-      val fasttrackFrontendConfig = FasttrackFrontendConfig.read(Some("2016-03-30T12:01:02"), Some("2016-04-13T13:03:04"))
-      fasttrackFrontendConfig.blockNewAccountsDate.get.format(format) must be("2016-03-30T12:01:02")
-      fasttrackFrontendConfig.blockApplicationsDate.get.format(format) must be("2016-04-13T13:03:04")
+      val faststreamFrontendConfig = FaststreamFrontendConfig.read(Some("2016-03-30T12:01:02"), Some("2016-04-13T13:03:04"))
+      faststreamFrontendConfig.blockNewAccountsDate.get.format(format) must be("2016-03-30T12:01:02")
+      faststreamFrontendConfig.blockApplicationsDate.get.format(format) must be("2016-04-13T13:03:04")
     }
 
     "be throw when the new accounts disable date is invalid" in {
-      an[DateTimeParseException] should be thrownBy FasttrackFrontendConfig.read(Some("1/1/1999"), None)
+      an[DateTimeParseException] should be thrownBy FaststreamFrontendConfig.read(Some("1/1/1999"), None)
     }
 
     "be throw when the applications disable date is invalid" in {
-      an[DateTimeParseException] should be thrownBy FasttrackFrontendConfig.read(None, Some("1/1/1999"))
+      an[DateTimeParseException] should be thrownBy FaststreamFrontendConfig.read(None, Some("1/1/1999"))
     }
 
     "be throw when the new accounts disable date is invalid by having only one digit segment in time" in {
-      an[DateTimeParseException] should be thrownBy FasttrackFrontendConfig.read(
+      an[DateTimeParseException] should be thrownBy FaststreamFrontendConfig.read(
         Some("2016-03-30 9:01:02"), Some("2016-03-30 12:01:02")
       )
     }
 
     "be throw when the applications disable date is invalid by having only one digit segment in time" in {
-      an[DateTimeParseException] should be thrownBy FasttrackFrontendConfig.read(
+      an[DateTimeParseException] should be thrownBy FaststreamFrontendConfig.read(
         Some("2016-03-30T12:01:02"), Some("2016-03-30T9:01:02")
       )
     }

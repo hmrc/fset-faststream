@@ -18,7 +18,7 @@ package controllers
 
 import java.time.LocalDateTime
 
-import config.FasttrackFrontendConfig
+import config.FaststreamFrontendConfig
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.{ ApplicationClient, ExchangeObjects }
 import helpers.NotificationType._
@@ -30,14 +30,14 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-case class FasttrackConfig(newAccountsEnabled: Boolean, applicationsSubmitEnabled: Boolean)
+case class FaststreamConfig(newAccountsEnabled: Boolean, applicationsSubmitEnabled: Boolean)
 
-object FasttrackConfig {
-  def apply(config: FasttrackFrontendConfig) = {
+object FaststreamConfig {
+  def apply(config: FaststreamFrontendConfig) = {
     val now = LocalDateTime.now()
     def isAfterNow(date: Option[LocalDateTime]) = date forall (_.isAfter(now))
 
-    new FasttrackConfig(isAfterNow(config.blockNewAccountsDate), isAfterNow(config.blockApplicationsDate))
+    new FaststreamConfig(isAfterNow(config.blockNewAccountsDate), isAfterNow(config.blockApplicationsDate))
   }
 }
 
@@ -47,7 +47,7 @@ object FasttrackConfig {
 trait BaseController extends FrontendController with SecureActions with ApplicationClient {
 
   implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
-  implicit def fasttrackConfig = FasttrackConfig(config.FrontendAppConfig.fasttrackFrontendConfig)
+  implicit def faststreamConfig = FaststreamConfig(config.FrontendAppConfig.faststreamFrontendConfig)
 
   val redirectNoApplication = Future.successful {
     Redirect(routes.HomeController.present()).flashing(warning("info.create.application"))

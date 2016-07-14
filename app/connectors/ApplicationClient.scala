@@ -40,7 +40,7 @@ trait ApplicationClient {
 
   import ApplicationClient._
   import ExchangeObjects.Implicits._
-  import config.FrontendAppConfig.fasttrackConfig._
+  import config.FrontendAppConfig.faststreamConfig._
 
   def createApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier) = {
 

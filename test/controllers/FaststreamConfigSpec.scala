@@ -19,13 +19,13 @@ package controllers
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import config.FasttrackFrontendConfig
+import config.FaststreamFrontendConfig
 import org.scalatestplus.play.PlaySpec
 
-class FasttrackConfigSpec extends PlaySpec {
+class FaststreamConfigSpec extends PlaySpec {
   "New Accounts creation and submit applications" should {
     "be enabled when there is no disable date" in {
-      val config = FasttrackConfig(FasttrackFrontendConfig(None, None))
+      val config = FaststreamConfig(FaststreamFrontendConfig(None, None))
       config.newAccountsEnabled must be(true)
       config.applicationsSubmitEnabled must be(true)
     }
@@ -34,7 +34,7 @@ class FasttrackConfigSpec extends PlaySpec {
       val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
       val futureDate = LocalDateTime.now.plusDays(2L).format(format)
 
-      val config = FasttrackConfig(FasttrackFrontendConfig.read(Some(futureDate), Some(futureDate)))
+      val config = FaststreamConfig(FaststreamFrontendConfig.read(Some(futureDate), Some(futureDate)))
       config.applicationsSubmitEnabled must be(true)
       config.newAccountsEnabled must be(true)
     }
@@ -43,7 +43,7 @@ class FasttrackConfigSpec extends PlaySpec {
       val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
       val futureDate = LocalDateTime.now.minusMinutes(1L).format(format)
 
-      val config = FasttrackConfig(FasttrackFrontendConfig.read(Some(futureDate), Some(futureDate)))
+      val config = FaststreamConfig(FaststreamFrontendConfig.read(Some(futureDate), Some(futureDate)))
       config.applicationsSubmitEnabled must be(false)
       config.newAccountsEnabled must be(false)
     }
