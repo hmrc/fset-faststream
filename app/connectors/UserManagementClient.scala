@@ -28,21 +28,24 @@ import scala.concurrent.Future
 trait UserManagementClient {
 
   private val role = "candidate" // We have only one role for this application
+  private val ServiceName: String = "faststream"
 
   val http: CSRHttp
 
   import Implicits._
   import config.FrontendAppConfig.userManagementConfig._
 
+
   def register(email: String, password: String, firstName: String, lastName: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/add", AddUserRequest(email.toLowerCase, password, firstName, lastName, role)).map { (resp: HttpResponse) =>
+    http.POST(s"${url.host}/add",
+      AddUserRequest(email.toLowerCase, password, firstName, lastName, role, ServiceName)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
       case Upstream4xxResponse(_, 409, _, _) => throw new EmailTakenException()
     }
 
   def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/authenticate", SignInRequest(email.toLowerCase, password)).map { (resp: HttpResponse) =>
+    http.POST(s"${url.host}/authenticate", SignInRequest(email.toLowerCase, password, ServiceName)).map { (resp: HttpResponse) =>
       val response = resp.json.as[UserResponse]
       if (response.role != role) throw new InvalidRoleException() else {
         response
@@ -53,26 +56,26 @@ trait UserManagementClient {
     }
 
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    http.POST(s"${url.host}/activate", ActivateEmailRequest(email.toLowerCase, token)).map(_ => (): Unit)
+    http.POST(s"${url.host}/activate", ActivateEmailRequest(email.toLowerCase, token, ServiceName)).map(_ => (): Unit)
       .recover {
         case Upstream4xxResponse(_, 410, _, _) => throw new TokenExpiredException()
         case e: NotFoundException => throw new TokenEmailPairInvalidException()
       }
 
   def resendActivationCode(email: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    http.POST(s"${url.host}/resend-activation-code", ResendActivationTokenRequest(email.toLowerCase)).map(_ => (): Unit)
+    http.POST(s"${url.host}/resend-activation-code", ResendActivationTokenRequest(email.toLowerCase, ServiceName)).map(_ => (): Unit)
       .recover {
         case e: NotFoundException => throw new InvalidEmailException()
       }
 
   def sendResetPwdCode(email: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    http.POST(s"${url.host}/send-reset-password-code", SendPasswordCodeRequest(email.toLowerCase)).map(_ => (): Unit)
+    http.POST(s"${url.host}/send-reset-password-code", SendPasswordCodeRequest(email.toLowerCase, ServiceName)).map(_ => (): Unit)
       .recover {
         case e: NotFoundException => throw new InvalidEmailException()
       }
 
   def resetPasswd(email: String, token: String, newPassword: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    http.POST(s"${url.host}/reset-password", ResetPasswordRequest(email.toLowerCase, token, newPassword)).map(_ => (): Unit)
+    http.POST(s"${url.host}/reset-password", ResetPasswordRequest(email.toLowerCase, token, newPassword, ServiceName)).map(_ => (): Unit)
       .recover {
         case Upstream4xxResponse(_, 410, _, _) => throw new TokenExpiredException()
         case e: NotFoundException => throw new TokenEmailPairInvalidException()
@@ -80,10 +83,10 @@ trait UserManagementClient {
 
   def updateDetails(userId: UniqueIdentifier, firstName: String, lastName: String,
     preferredName: Option[String])(implicit hc: HeaderCarrier): Future[Unit] =
-    http.PUT(s"${url.host}/details/$userId", UpdateDetails(firstName, lastName, preferredName)).map(_ => ())
+    http.PUT(s"${url.host}/details/$userId", UpdateDetails(firstName, lastName, preferredName, ServiceName)).map(_ => ())
 
   def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.PUT(s"${url.host}/failedAttempt", EmailWrapper(email.toLowerCase)).map { (resp: HttpResponse) =>
+    http.PUT(s"${url.host}/failedAttempt", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
       case e: NotFoundException => throw new InvalidCredentialsException()
@@ -93,7 +96,7 @@ trait UserManagementClient {
     }
 
   def find(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/find", EmailWrapper(email.toLowerCase)).map { (resp: HttpResponse) =>
+    http.POST(s"${url.host}/find", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
       case e: NotFoundException => throw new InvalidCredentialsException()
