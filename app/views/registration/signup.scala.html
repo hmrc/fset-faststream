@@ -2,34 +2,39 @@
         implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, faststreamConfig: FaststreamConfig)
 
 @import helpers.CSRFieldConstructor._
-@import views.html.widgets.checkbox
+@import views.html.widgets.{checkbox, yesNoQuestion}
 
 @main_template(title = "Create your account", pageForms = Seq(signUpForm), notification = notification) {
     <h1 class="heading-xlarge">Create your account</h1>
 
+    <section class="panel-indent text">
+        <p>If you've already created an account on this site for the Civil Service
+            Fast Stream, you can return to <a href="@routes.SignInController.present#signInSection">sign in</a>.</p>
+    </section>
+
     @helper.form(action = routes.SignUpController.signUp(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
-        
-        <!-- The following will stop browsers from trying to autofill the username and password fields in the create account page -->
+
+            <!-- The following will stop browsers from trying to autofill the username and password fields in the create account page -->
         <input type="text" title="Hidden username" class="alwayshidden">
         <input type="password" name="Hidden password" class="alwayshidden">
-        <!-- End -->
-        
+            <!-- End -->
+
         <section class="section-border">
             <h2 class="heading-large">Name and email</h2>
-            @helper.inputText(signUpForm("firstName"), 
-                '_label -> "First name", 
-                'class -> "form-control", 
+            @helper.inputText(signUpForm("firstName"),
+                '_label -> "First name",
+                'class -> "form-control",
                 '_class -> "form-group-compound",
                 '_showConstraints -> false)
             @helper.inputText(signUpForm("lastName"),
-                '_label -> "Last name", 
-                'class -> "form-control", 
+                '_label -> "Last name",
+                'class -> "form-control",
                 '_showConstraints -> false)
-            @helper.inputText(signUpForm("email"), 
+            @helper.inputText(signUpForm("email"),
                 '_label -> "Email",
-                '_help -> "You'll need this to sign in to your account", 
-                'class -> "form-control", 
+                '_help -> "You'll need this to sign in to your account",
+                'class -> "form-control",
                 '_class -> "form-group-compound",
                 'type -> "email",
                 '_showConstraints -> false,
@@ -43,45 +48,64 @@
         </section>
         <section class="section-border">
             <h2 class="heading-large">Set your password</h2>
-            @helper.inputPassword(signUpForm("password"), 
-                'class -> "form-control new-password",
-                '_label -> "Create password",
-                '_help -> "Requires upper and lowercase letters, a number and at least 9 characters")
-            @helper.inputPassword(signUpForm("confirmpwd"), 
-                '_label -> "Confirm password", 
-                'class -> "form-control",
-                '_showConstraints -> false)
+            <div class="form-group">
+                <label for="password" class="form-label">Create password</label>
+
+                <div class="form-hint text">
+                    <p class="no-btm-margin">Must have:</p>
+                    <ul id="passwordRequirements" class="list-withicons list-text">
+                        <li id="includesUppercase" class=""><i class="fa the-icon fa-times fa-minus"></i>uppercase letters</li>
+                        <li id="includesLowercase" class=""><i class="fa the-icon fa-times fa-minus"></i>lowercase letters</li>
+                        <li id="includesNumber" class=""><i class="fa the-icon fa-times fa-minus"></i>a number</li>
+                        <li id="includes9Characters" class=""><i class="fa the-icon fa-times fa-minus"></i>at least 9 characters</li>
+                    </ul>
+                </div>
+                <div class="form-group password-wrapper">
+                @helper.inputPassword(signUpForm("password"),
+                    '_label -> "",
+                    'class -> "form-control new-password",
+                    '_showConstraints -> false,
+                    '_showErrors -> false,
+                    '_help -> ""
+                )
+                </div>
+                <div class="password-second form-group">
+                    <div id="confirmpwd_field" class="form-group">
+                        <label for="confirmpwd" class="form-label">Confirm password</label>
+                        <input id="confirmpwd" name="confirmpwd" type="password" class="form-control confirm-password">
+                        <div id="matchingHint" class="invisible">
+                            <p class="form-hint">Password matching:
+                                <span id="pass_match" class="strength-weak"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <section class="section-border">
+        <section class="section-border clearfix">
             <h2 class="heading-large">Eligibility</h2>
-
             <div class="text">
-                <h3 class="heading-medium">Confirm the following statements are true:</h3>
+                <h2 class="heading-medium">Confirm the following statements are true</h2>
             </div>
-
             <ul id="eligibility-list" class="para-btm-margin text">
-              <li>I’ll be aged 16 or older by 31 August 2016</li>
-              <li>I have at least 5 GCSEs, grades A* to C and including English language and maths, or <a href="https://www.gov.uk/what-different-qualification-levels-mean/compare-different-qualification-levels" rel="external" target="_blank">equivalent</a> (or I expect to have these by 31 August 2016)</li>
-              <li>I’m eligible according to the <a href="https://www.gov.uk/government/publications/nationality-rules" target="_blank" rel="external">Civil Service nationality rules</a></li>
-              <li>I’ve been resident in the UK for at least 2 of the 10 years immediately before my application (and this includes at least one continuous 12-month period)</li>
-              <li>I’m <a href="https://www.gov.uk/legal-right-work-uk" target="_blank" rel="external">eligible to work in the UK</a></li>
-              <li>I don't hold a degree</li>
-              <li>I’m available to start work in September 2016</li>
-              <li>If I'm currently a civil servant, or have previously worked for the Civil Service, I'm aware of the <a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-who-can-apply#conditions-for-existing-civil-servants" rel="external" target="_blank">conditions that apply</a></li>
+                <li>I'm <a href="http://neves.io/faststream-marketing/eligibility/" target="_blank" rel="external">eligible to work in the UK</a></li>
+                <li>I have a relevant degree or qualify as a current civil servant</li>
+                <li>I'm available to start work in January 2017</li>
+                <li>I meet my schemes eligibility requirements</li>
             </ul>
 
-            @checkbox(signUpForm("agreeEligibleToApply")) {
-                I confirm I'm eligible to apply
-            }
-
+            @yesNoQuestion(signUpForm("eligible"), question = "Are you eligible to apply?",
+                noMessage = "You must be eligible to apply for the Civil Service Fast Stream")
         </section>
 
         <section>
             <h2 class="heading-large">Terms and conditions</h2>
+            <div class="form-group">
             @checkbox(signUpForm("agree")) {
                 I accept the <a href="@routes.ApplicationController.terms()" target="_blank">terms and conditions</a>
             }
+            </div>
         </section>
 
         <div class="form-group">

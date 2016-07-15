@@ -43,7 +43,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient) extend
       })
   }
 
-  val signUp = CSRUserAwareAction { implicit request =>
+  def signUp = CSRUserAwareAction { implicit request =>
     implicit user =>
 
       SignUpForm.form.bindFromRequest.fold(
@@ -55,9 +55,9 @@ abstract class SignUpController(val applicationClient: ApplicationClient) extend
               redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
               env = env
             ).map { r =>
-                env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString), request, request2lang))
-                r
-              }
+              env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString), request, request2lang))
+              r
+            }
           }.recover {
             case e: EmailTakenException =>
               Ok(views.html.registration.signup(SignUpForm.form.fill(data), Some(danger("user.exists"))))

@@ -73,10 +73,10 @@ class SignUpFormSpec extends BaseSpec {
     }
 
     "throw an error if I haven't click on the I am eligible" in {
-      val (_, signUpForm) = SignupFormGenerator(agreeEligibleToApply = false).get
+      val (_, signUpForm) = SignupFormGenerator(eligible = false).get
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
-      signUpForm.errors("agreeEligibleToApply").head.messages must be(Seq(Messages("agree.eligible")))
+      signUpForm.errors("eligible").head.messages must be(Seq(Messages("agree.eligible")))
     }
 
     "throw an error if I haven't click on the I agree" in {
@@ -91,24 +91,22 @@ class SignUpFormSpec extends BaseSpec {
 }
 
 /**
- * A class that generates a proper form and data.
- * Usage:
- *
- *    val (data, signupForm) = SignupFormGenerator(email = "some_wrong_email).get
- *
- */
-case class SignupFormGenerator(
-  firstName: String = "name",
-  lastName: String = "last name",
-  email: String = "test@email.com",
-  confirmEmail: String = "test@email.com",
-  password: String = "aA1234567",
-  confirm: String = "aA1234567",
-  agree: Boolean = true,
-  agreeEligibleToApply: Boolean = true
-) {
+  * A class that generates a proper form and data.
+  * Usage:
+  *
+  *    val (data, signupForm) = SignupFormGenerator(email = "some_wrong_email).get
+  *
+  */
+case class SignupFormGenerator(firstName: String = "name",
+                               lastName: String = "last name",
+                               email: String = "test@email.com",
+                               confirmEmail: String = "test@email.com",
+                               password: String = "aA1234567",
+                               confirm: String = "aA1234567",
+                               agree: Boolean = true,
+                               eligible: Boolean = true) {
 
-  private val data = Data(firstName, lastName, email, confirmEmail, password, confirm, agree, agreeEligibleToApply)
+  private val data = Data(firstName, lastName, email, confirmEmail, password, confirm, agree, eligible)
 
   private val validFormData = Map(
     "firstName" -> data.firstName,
@@ -118,7 +116,7 @@ case class SignupFormGenerator(
     "password" -> data.password,
     "confirmpwd" -> data.confirmpwd,
     "agree" -> data.agree.toString,
-    "agreeEligibleToApply" -> data.agreeEligibleToApply.toString
+    "eligible" -> data.eligibility.toString
   )
 
   private def signUpForm = Form(SignUpForm.form.mapping).bind(validFormData)
