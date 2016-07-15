@@ -14,7 +14,7 @@ To run it locally
 	sbt -Dhttp.port=9282 run
 	
 
-If you go to `http://localhost:9000/csr-fast-stream/signin` you can see the landing page
+If you go to `http://localhost:9000/fset-fast-stream/signin` you can see the landing page
 
 ### Secrets File
 
