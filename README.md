@@ -1,9 +1,9 @@
-# Civil Service Fast Track Service
+# Civil Service Fast Stream Service
 
 [![Build Status](https://travis-ci.org/hmrc/fset-faststream.svg?branch=master)](https://travis-ci.org/hmrc/fset-faststream)
 
 ### Summary
-This repository provides a service containing business logic and storage to support the Fast Track project
+This repository provides a service containing business logic and storage to support the Fast Stream project
 
 ### Requirements
 This service is written in Scala and Play, so needs at least a [JRE] to run.
@@ -14,7 +14,7 @@ To run it locally
 	sbt -Dhttp.port=9282 run
 	
 
-If you go to `http://localhost:9000/csr-fast-track/signin` you can see the landing page
+If you go to `http://localhost:9000/fset-fast-stream/signin` you can see the landing page
 
 ### Secrets File
 
