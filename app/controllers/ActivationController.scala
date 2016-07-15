@@ -22,15 +22,15 @@ import connectors.ApplicationClient
 import connectors.UserManagementClient.{ TokenEmailPairInvalidException, TokenExpiredException }
 import helpers.NotificationType._
 import security.Roles._
-import security.SignInUtils
+import security.SignInService
 
 import scala.concurrent.Future
 
-object ActivationController extends ActivationController {
+object ActivationController extends ActivationController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait ActivationController extends BaseController with SignInUtils with ApplicationClient {
+abstract class ActivationController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
 
   val present = CSRSecureAction(NoRole) { implicit request =>
     implicit user => user.user.isActive match {
@@ -46,7 +46,7 @@ trait ActivationController extends BaseController with SignInUtils with Applicat
           Future.successful(Ok(views.html.registration.activation(user.user.email, invalidForm))),
         data => {
           env.activate(user.user.email, data.activationCode).flatMap { _ =>
-            signInUser(user.user.copy(isActive = true))
+            signInUser(user.user.copy(isActive = true), env)
           }.recover {
             case e: TokenExpiredException =>
               Ok(views.html.registration.activation(

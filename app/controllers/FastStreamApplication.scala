@@ -28,11 +28,11 @@ import security.Roles.PersonalDetailsRole
 
 import scala.concurrent.Future
 
-object FastStreamApplication extends FastStreamApplication {
+object FastStreamApplication extends FastStreamApplication(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait FastStreamApplication extends BaseController with ApplicationClient with UserManagementClient {
+abstract class FastStreamApplication(applicationClient: ApplicationClient) extends BaseController(applicationClient) with UserManagementClient {
 
   def generalDetails(start: Option[String] = None) = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
     implicit user =>
@@ -50,7 +50,7 @@ trait FastStreamApplication extends BaseController with ApplicationClient with U
         None
       ))
 
-      findPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
+      applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
         val form = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
           gd.firstName,
           gd.lastName,
@@ -79,7 +79,7 @@ trait FastStreamApplication extends BaseController with ApplicationClient with U
         },
         generalDetails => {
           (for {
-            _ <- updateGeneralDetails(user.application.applicationId, user.user.userID, generalDetails, user.user.email)
+            _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID, generalDetails, user.user.email)
             _ <- updateDetails(user.user.userID, generalDetails.firstName, generalDetails.lastName, Some(generalDetails.preferredName))
             redirect <- updateProgress(data =>
               data.copy(

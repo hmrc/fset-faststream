@@ -23,16 +23,16 @@ import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
 import security.Roles.{ QuestionnaireInProgressRole, ReviewRole, StartQuestionnaireRole }
 
-object ReviewApplicationController extends ReviewApplicationController {
+object ReviewApplicationController extends ReviewApplicationController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait ReviewApplicationController extends BaseController with ApplicationClient with SchemeClient {
+abstract class ReviewApplicationController(applicationClient: ApplicationClient) extends BaseController(applicationClient) with SchemeClient {
 
   def present = CSRSecureAppAction(ReviewRole) { implicit request =>
     implicit user =>
-      val personalDetailsFut = findPersonalDetails(user.user.userID, user.application.applicationId)
-      val assistanceDetailsFut = findAssistanceDetails(user.user.userID, user.application.applicationId)
+      val personalDetailsFut = applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId)
+      val assistanceDetailsFut = applicationClient.findAssistanceDetails(user.user.userID, user.application.applicationId)
       val frameworkLocationFut = getSelection(user.application.applicationId)
 
       (for {
@@ -49,7 +49,7 @@ trait ReviewApplicationController extends BaseController with ApplicationClient 
 
   def submit = CSRSecureAppAction(ReviewRole) { implicit request =>
     implicit user =>
-      updateReview(user.application.applicationId).flatMap { _ =>
+      applicationClient.updateReview(user.application.applicationId).flatMap { _ =>
         updateProgress() { u =>
           if (StartQuestionnaireRole.isAuthorized(u) || QuestionnaireInProgressRole.isAuthorized(u)) {
             Redirect(routes.QuestionnaireController.start())
