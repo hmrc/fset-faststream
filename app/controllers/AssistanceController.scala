@@ -25,16 +25,16 @@ import security.Roles.AssistanceRole
 
 import scala.concurrent.Future
 
-object AssistanceController extends AssistanceController {
+object AssistanceController extends AssistanceController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait AssistanceController extends BaseController with ApplicationClient {
+abstract class AssistanceController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   def present = CSRSecureAppAction(AssistanceRole) { implicit request =>
     implicit user =>
 
-      findAssistanceDetails(user.user.userID, user.application.applicationId).map { ad =>
+      applicationClient.findAssistanceDetails(user.user.userID, user.application.applicationId).map { ad =>
         val form = AssistanceForm.form.fill(AssistanceForm.Data(
           ad.needsAssistance,
           ad.typeOfdisability,
@@ -59,8 +59,8 @@ trait AssistanceController extends BaseController with ApplicationClient {
         invalidForm =>
           Future.successful(Ok(views.html.application.assistance(invalidForm))),
         data => {
-          addMedia(user.user.userID, extractMediaReferrer(data)).flatMap { _ =>
-            updateAssistanceDetails(user.application.applicationId, user.user.userID, data).flatMap { _ =>
+          applicationClient.addMedia(user.user.userID, extractMediaReferrer(data)).flatMap { _ =>
+            applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID, data).flatMap { _ =>
               updateProgress()(_ => Redirect(routes.ReviewApplicationController.present()))
             }.recover {
               case e: AssistanceDetailsNotFound =>

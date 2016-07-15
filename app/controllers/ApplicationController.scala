@@ -17,6 +17,7 @@
 package controllers
 
 import config.CSRHttp
+import connectors.ApplicationClient
 import play.api.mvc.Action
 
 import scala.concurrent.Future
@@ -25,11 +26,11 @@ import scala.concurrent.Future
  * Provide all the peripheral links from this controller, like T&C link
  *
  */
-object Application extends Application {
+object ApplicationController extends ApplicationController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait Application extends BaseController {
+abstract class ApplicationController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   def index = Action {
     Redirect(routes.SignInController.signIn)

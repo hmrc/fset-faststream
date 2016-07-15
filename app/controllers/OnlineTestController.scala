@@ -22,11 +22,11 @@ import models.ApplicationData.ApplicationStatus
 import models.UniqueIdentifier
 import security.Roles.{ DisplayOnlineTestSectionRole, OnlineTestInvitedRole }
 
-object OnlineTestController extends OnlineTestController {
+object OnlineTestController extends OnlineTestController(ApplicationClient) {
   val http = CSRHttp
 }
 
-trait OnlineTestController extends BaseController with ApplicationClient {
+abstract class OnlineTestController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   // TODO: I think the names can be improved
   // startTests is plural but then we call getTestAssesment.
@@ -56,8 +56,8 @@ trait OnlineTestController extends BaseController with ApplicationClient {
 
   def startTests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit user =>
-      getTestAssessment(user.user.userID).flatMap { onlineTest =>
-        onlineTestUpdate(user.user.userID, ApplicationStatus.ONLINE_TEST_STARTED).map { _ =>
+      applicationClient.getTestAssessment(user.user.userID).flatMap { onlineTest =>
+        applicationClient.onlineTestUpdate(user.user.userID, ApplicationStatus.ONLINE_TEST_STARTED).map { _ =>
           Redirect(onlineTest.onlineTestLink)
         }
       }
@@ -65,7 +65,7 @@ trait OnlineTestController extends BaseController with ApplicationClient {
 
   def downloadPDFReport = CSRSecureAppAction(DisplayOnlineTestSectionRole) { implicit request =>
     implicit user =>
-      getPDFReport(user.application.applicationId).map { pdfBinary =>
+      applicationClient.getPDFReport(user.application.applicationId).map { pdfBinary =>
         Ok(pdfBinary).as("application/pdf")
           .withHeaders(("Content-Disposition", s"""attachment;filename="report-${user.application.applicationId}.pdf" """))
       }
@@ -73,7 +73,7 @@ trait OnlineTestController extends BaseController with ApplicationClient {
 
   def complete(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
-      completeTests(token).map { _ =>
+      applicationClient.completeTests(token).map { _ =>
         Ok(views.html.application.onlineTestSuccess())
       }
   }
