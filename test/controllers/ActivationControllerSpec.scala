@@ -1,0 +1,67 @@
+package controllers
+
+import connectors.ApplicationClient
+import models.CachedData
+import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Mockito._
+import play.api.mvc.{Request, Result, Results}
+import play.api.test.Helpers._
+import security.SignInService
+import support.TestableSecureActions
+
+import scala.concurrent.Future
+
+class ActivationControllerSpec extends BaseControllerSpec {
+  val mockApplicationClient = mock[ApplicationClient]
+  val mockEnvironment = mock[security.SecurityEnvironment]
+  val mockSignInService = mock[SignInService]
+
+  import models.SecurityUserExamples._
+
+  class TestableActivationController extends ActivationController(mockApplicationClient) with TestableSignInService
+    with TestableSecureActions {
+    val signInService = mockSignInService
+    override protected def env = mockEnvironment
+  }
+
+  def controller = new TestableActivationController
+
+  "Activation Controllerp present" should {
+    "redirect to home page for active user" in {
+      val result = controller.present()(fakeRequest)
+
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) must be(Some(routes.HomeController.present().url))
+    }
+
+    "redirect to registration page for inactive user" in {
+      val controllerForInactiveUser = new TestableActivationController {
+        override val currentCandidate: CachedData = InactiveCandidate
+      }
+
+      val result = controllerForInactiveUser.present()(fakeRequest)
+
+      status(result) mustBe OK
+      contentAsString(result) must include("<title>Activate your account")
+    }
+  }
+
+  "Activation Controller activate form" should {
+    "activate user when activation form is valid" in {
+      val Token = "ABCDEFG"
+      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> Token)
+      when(mockEnvironment.activate(eqTo(InactiveCandidateUser.email), eqTo(Token))(any())).thenReturn(Future.successful(()))
+      when(mockSignInService.signInUser(
+        eqTo(InactiveCandidateUser.copy(isActive = true)),
+        eqTo(mockEnvironment),
+        any[Result])(any[Request[_]])
+      ).thenReturn(Future.successful(Results.Redirect(routes.HomeController.present())))
+
+      val result = controller.activateForm()(Request)
+
+      status(result) mustBe SEE_OTHER
+      val location = redirectLocation(result).get
+      location must be(routes.HomeController.present().url)
+    }
+  }
+}
