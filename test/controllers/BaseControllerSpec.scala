@@ -41,6 +41,11 @@ abstract class BaseControllerSpec extends PlaySpec with MockitoSugar with ScalaF
 
   def fakeRequest = FakeRequest().withSession(CSRF.TokenName -> CSRF.SignedTokenProvider.generateToken)
 
+  /**
+    * Wrapper on SignInService class to allow mocking
+    *
+    * @see security.SignInService
+    */
   trait TestableSignInService extends SignInService {
     self: BaseController =>
 

@@ -19,6 +19,7 @@ package models
 import java.util.UUID
 
 object SecurityUserExamples {
+  val ValidToken = "ABCDEFG"
   val ActiveCandidateUser = CachedUser(UniqueIdentifier(UUID.randomUUID.toString), "firstName", "lastName", Some("preferredName"),
     "email@test.com", isActive = true, "lockStatus")
   val ActiveCandidate = CachedData(ActiveCandidateUser, None)

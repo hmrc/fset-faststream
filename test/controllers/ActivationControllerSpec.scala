@@ -17,6 +17,7 @@
 package controllers
 
 import connectors.ApplicationClient
+import connectors.UserManagementClient.{TokenEmailPairInvalidException, TokenExpiredException}
 import models.CachedData
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
@@ -46,8 +47,9 @@ class ActivationControllerSpec extends BaseControllerSpec {
     "redirect to home page for active user" in {
       val result = controller.present()(fakeRequest)
 
-      status(result) mustBe SEE_OTHER
+      status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
+      flash(result).data must be (Map("warning" -> "You've already activated your account"))
     }
 
     "redirect to registration page for inactive user" in {
@@ -57,16 +59,15 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
       val result = controllerForInactiveUser.present()(fakeRequest)
 
-      status(result) mustBe OK
+      status(result) must be(OK)
       contentAsString(result) must include("<title>Activate your account")
     }
   }
 
   "Activation Controller activate form" should {
     "activate user when activation form is valid" in {
-      val Token = "ABCDEFG"
-      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> Token)
-      when(mockEnvironment.activate(eqTo(InactiveCandidateUser.email), eqTo(Token))(any())).thenReturn(Future.successful(()))
+      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
+      when(mockEnvironment.activate(eqTo(InactiveCandidateUser.email), eqTo(ValidToken))(any())).thenReturn(Future.successful(()))
       when(mockSignInService.signInUser(
         eqTo(InactiveCandidateUser.copy(isActive = true)),
         eqTo(mockEnvironment),
@@ -75,9 +76,57 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
       val result = controller.activateForm()(Request)
 
-      status(result) mustBe SEE_OTHER
-      val location = redirectLocation(result).get
-      location must be(routes.HomeController.present().url)
+      status(result) must be(SEE_OTHER)
+      redirectLocation(result) must be(Some(routes.HomeController.present().url))
+    }
+
+    "reject form when validation failed" in {
+      val TooShortToken = "A"
+      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> TooShortToken)
+
+      val result = controller.activateForm()(Request)
+
+      status(result) must be(OK)
+      contentAsString(result) must include("The activation code must have 7 characters")
+    }
+
+    "reject form when token expired" in {
+      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
+      when(mockEnvironment.activate(eqTo(ActiveCandidateUser.email), eqTo(ValidToken))(any()))
+        .thenReturn(Future.failed(new TokenExpiredException))
+
+      val result = controller.activateForm()(Request)
+
+      status(result) must be(OK)
+      contentAsString(result) must include("This activation code has expired")
+    }
+
+    "reject form when token and email pair invalid" in {
+      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
+      when(mockEnvironment.activate(eqTo(ActiveCandidateUser.email), eqTo(ValidToken))(any()))
+        .thenReturn(Future.failed(new TokenEmailPairInvalidException))
+
+      val result = controller.activateForm()(Request)
+
+      status(result) must be(OK)
+      contentAsString(result) must include("Enter a correct activation code")
     }
   }
+
+  "Activation Controller resend code" should {
+    "resend the activation code" in {
+      when(mockEnvironment.resendActivationCode(eqTo(ActiveCandidateUser.email))(any())).thenReturn(Future.successful(()))
+
+      val result = controller.resendCode()(fakeRequest)
+
+      status(result) must be(SEE_OTHER)
+      redirectLocation(result) must be(Some(routes.ActivationController.present().url))
+      flash(result).data must be (Map("success" -> ("A new activation code has been sent. " +
+        "Check your email.<p>If you can't see it in your inbox within a few minutes, " +
+        "check your spam folder.</p>"))
+      )
+
+    }
+  }
+
 }
