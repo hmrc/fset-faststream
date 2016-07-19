@@ -105,7 +105,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
     } apply originalRequest
   }
 
-  override protected def env = SecurityEnvironmentImpl
+  override protected def env: SecurityEnvironment = SecurityEnvironmentImpl
 
   implicit def hc(implicit request: Request[_]): HeaderCarrier
 

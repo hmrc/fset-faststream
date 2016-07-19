@@ -42,7 +42,8 @@ class UserManagementClientSpec extends ConnectorSpec with OneServerPerSuite {
              |  "lastName":"griffin",
              |  "isActive":true,
              |  "lockStatus":"UNLOCKED",
-             |  "role":"candidate"
+             |  "role":"candidate",
+             |  "service":"faststream"
              |}
         """.stripMargin
         )
