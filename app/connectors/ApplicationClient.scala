@@ -209,7 +209,26 @@ trait ApplicationClient {
   }
 }
 
-object ApplicationClient extends ApplicationClient {
+trait TestDataClient {
+  this: ApplicationClient =>
+
+  import config.FrontendAppConfig.faststreamConfig._
+
+  def getTestDataGenerator(path: String, queryParams: Map[String, String])(implicit hc: HeaderCarrier): Future[String] = {
+    val queryParamString = queryParams.toList.map { item => s"${item._1}=${item._2}" }.mkString("&")
+    http.GET(s"${url.host}${url.base}/test-data-generator/$path?$queryParamString").map { response =>
+      response.status match {
+        case OK => response.body
+        case NOT_FOUND => throw new TestDataGeneratorException("There is no such test data generation endpoint")
+        case _ => throw new TestDataGeneratorException("There was an error during test data generation")
+      }
+    }
+  }
+
+  sealed class TestDataGeneratorException(message: String) extends Exception(message)
+}
+
+object ApplicationClient extends ApplicationClient with TestDataClient {
 
   override val http: CSRHttp = CSRHttp
 
