@@ -12,24 +12,24 @@
     </div>
 
     <div id="addressManualInput">
-        @helper.inputText(form("address.line1"), 'id -> "addressLine1",
+        @helper.inputText(form("address.line1"), 'id -> "address.line1",
             '_label -> "Address",
             'class -> "form-control",
             '_class -> "form-group-compound",
             '_showConstraints -> false)(helpers.CSRFieldConstructor.myFields, lang)
-        @helper.inputText(form("address.line2"), 'id -> "addressLine2",
+        @helper.inputText(form("address.line2"),
             '_label -> "",
             'class -> "form-control",
             '_class -> "form-group-compound",
             '_showConstraints -> false,
             'optional -> "")(helpers.CSRFieldConstructor.myFields, lang)
-        @helper.inputText(form("address.line3"), 'id -> "addressLine3",
+        @helper.inputText(form("address.line3"),
             '_label -> "",
             'class -> "form-control",
             '_class -> "form-group-compound",
             '_showConstraints -> false,
             'optional -> "")(helpers.CSRFieldConstructor.myFields, lang)
-        @helper.inputText(form("address.line4"), 'id -> "addressLine4",
+        @helper.inputText(form("address.line4"),
             '_label -> "",
             'class -> "form-control",
             '_class -> "form-group-compound",

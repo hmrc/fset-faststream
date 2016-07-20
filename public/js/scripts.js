@@ -417,15 +417,15 @@ $(function() {
     e.preventDefault();
 
     $('#addressManualInput').removeClass('disabled');
-    $('#addressLine1').focus();
+    $('#address\\.line1').focus();
   });
 
   $('#outside-uk').on('change', function() {
 
-    $('#addressLine1').val("");
-    $('#addressLine2').val("");
-    $('#addressLine3').val("");
-    $('#addressLine4').val("");
+    $('#address\\.line1').val("");
+    $('#address_line2').val("");
+    $('#address_line3').val("");
+    $('#address_line4').val("");
     $('#postCode').val("");
 
     if($(this).is(':checked')) {
@@ -437,7 +437,7 @@ $(function() {
       $('#postCode').closest('.form-group').prev('.form-group').addClass('form-group-compound');
     }
 
-    $('#addressLine1').focus();
+    $('#address\\.line1').focus();
   });
 
   //------- Inline details toggle
