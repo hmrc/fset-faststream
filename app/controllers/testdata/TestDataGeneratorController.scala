@@ -18,9 +18,8 @@ package controllers.testdata
 
 import java.io.File
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigFactory
 import connectors.testdata.ExchangeObjects.Implicits._
-import model.ApplicationStatuses
 import model.EvaluationResults.Result
 import model.ApplicationStatuses
 import play.api.Play
@@ -30,10 +29,16 @@ import services.testdata._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object TestDataGeneratorController extends TestDataGeneratorController
 
 trait TestDataGeneratorController extends BaseController {
+
+  def ping = Action.async { implicit request =>
+    Future.successful(Ok("OK"))
+  }
+
   def clearDatabase() = Action.async { implicit request =>
     TestDataGeneratorService.clearDatabase().map { _ =>
       Ok(Json.parse("""{"message": "success"}"""))

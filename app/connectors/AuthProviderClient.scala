@@ -33,18 +33,19 @@ object AuthProviderClient extends AuthProviderClient {
   sealed class TokenEmailPairInvalidException() extends Exception
 }
 
-trait AuthProviderClient extends WSHttp {
-
+trait AuthProviderClient {
   sealed abstract class UserRole(val name: String)
 
   case object CandidateRole extends UserRole("candidate")
 
   case object ServiceManagerRole extends UserRole("service-manager")
 
+  private val ServiceName = "faststream"
+
   import config.MicroserviceAppConfig.userManagementConfig._
 
   def candidatesReport(implicit hc: HeaderCarrier): Future[List[Candidate]] =
-    GET(s"$url/candidates").map { response =>
+    WSHttp.GET(s"$url/service/$ServiceName/findByRole/${CandidateRole.name}").map { response =>
       if (response.status == OK) {
         response.json.as[List[Candidate]]
       } else {
@@ -53,15 +54,15 @@ trait AuthProviderClient extends WSHttp {
     }
 
   def addUser(email: String, password: String, firstName: String,
-    lastName: String, role: UserRole)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    POST(s"$url/add", AddUserRequest(email.toLowerCase, password, firstName, lastName, role.name)).map { response =>
+              lastName: String, role: UserRole)(implicit hc: HeaderCarrier): Future[UserResponse] =
+    WSHttp.POST(s"$url/add", AddUserRequest(email.toLowerCase, password, firstName, lastName, role.name, ServiceName)).map { response =>
       response.json.as[UserResponse]
     }.recover {
       case Upstream4xxResponse(_, 409, _, _) => throw new EmailTakenException()
     }
 
   def removeAllUsers()(implicit hc: HeaderCarrier): Future[Unit] =
-    GET(s"$url/test-commands/remove-all").map { response =>
+    WSHttp.GET(s"$url/test-commands/remove-all").map { response =>
       if (response.status == OK) {
         ()
       } else {
@@ -70,7 +71,7 @@ trait AuthProviderClient extends WSHttp {
     }
 
   def getToken(email: String)(implicit hc: HeaderCarrier): Future[String] =
-    GET(s"$url/auth-code/$email").map { response =>
+    WSHttp.GET(s"$url/auth-code/$ServiceName/$email").map { response =>
       if (response.status == OK) {
         response.body
       } else {
@@ -79,7 +80,7 @@ trait AuthProviderClient extends WSHttp {
     }
 
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    POST(s"$url/activate", ActivateEmailRequest(email.toLowerCase, token)).map(_ => (): Unit)
+    WSHttp.POST(s"$url/activate", ActivateEmailRequest(ServiceName, email.toLowerCase, token)).map(_ => (): Unit)
       .recover {
         case Upstream4xxResponse(_, 410, _, _) => throw new TokenExpiredException()
         case e: NotFoundException => throw new TokenEmailPairInvalidException()
