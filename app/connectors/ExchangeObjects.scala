@@ -85,7 +85,7 @@ object ExchangeObjects {
   case class FindUserRequest(email: String)
 
   case class UserResponse(firstName: String, lastName: String, preferredName: Option[String],
-    isActive: Boolean, userId: UniqueIdentifier, email: String, lockStatus: String, role: String)
+    isActive: Boolean, userId: UniqueIdentifier, email: String, lockStatus: String, role: String, service: String = "faststream")
 
   case class ActivateEmailRequest(email: String, token: String, service: String)
 
