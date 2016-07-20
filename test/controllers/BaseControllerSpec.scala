@@ -20,8 +20,6 @@ import java.util.UUID
 
 import models.{CachedUser, UniqueIdentifier}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.mvc.{Request, RequestHeader, Result}
 import play.api.test.FakeRequest
 import play.filters.csrf.CSRF
@@ -33,7 +31,7 @@ import scala.concurrent.Future
 /**
   * Each Controller test needs to extend this class to simplify controller testing
   */
-abstract class BaseControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with OneServerPerSuite {
+abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
   implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit val rh: RequestHeader = FakeRequest()
 

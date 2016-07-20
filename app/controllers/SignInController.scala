@@ -30,8 +30,7 @@ object SignInController extends SignInController(ApplicationClient) with SignInS
   val http = CSRHttp
 }
 
-abstract class SignInController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) {
-  self: SignInService =>
+abstract class SignInController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

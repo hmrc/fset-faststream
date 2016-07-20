@@ -17,6 +17,7 @@
 package controllers
 
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{ OneServerPerSuite, PlaySpec }
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import play.api.mvc.Results
 
 abstract class BaseSpec extends PlaySpec with MockitoSugar with OneServerPerSuite
