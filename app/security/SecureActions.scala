@@ -18,16 +18,16 @@ package security
 
 import java.util.UUID
 
-import com.mohiva.play.silhouette.api.{ Authorization, Silhouette }
+import com.mohiva.play.silhouette.api.{Authorization, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import config.SecurityEnvironmentImpl
 import controllers.routes
 import helpers.NotificationType._
-import models.{ CachedData, CachedDataWithApp, SecurityUser }
+import models.{CachedData, CachedDataWithApp, SecurityUser}
 import play.api.i18n.Lang
 import play.api.mvc._
 import security.Roles.CsrAuthorization
-import uk.gov.hmrc.play.http.{ HeaderCarrier, SessionKeys }
+import uk.gov.hmrc.play.http.{HeaderCarrier, SessionKeys}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
