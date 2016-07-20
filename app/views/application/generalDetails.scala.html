@@ -1,11 +1,11 @@
 @(details: Form[_root_.forms.GeneralDetailsForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
 
 @import views.html.application.personalDetails.{contactDetails, nameAndDateOfBirth}
-@import views.html.widgets.{pageHeader, pageProgress, saveAndContinueButton}
+@import views.html.widgets.{pageProgress, saveAndContinueButton}
 
 @main_template(title = "Personal details", pageForms = Seq(details)) {
     @pageProgress(1, 7)
-    @pageHeader("Personal details")
+    <h1 class="heading-xlarge" id="personalDetailsHeading">Personal details</h1>
 
     @helper.form(action = routes.FastStreamApplication.submitGeneralDetails(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
