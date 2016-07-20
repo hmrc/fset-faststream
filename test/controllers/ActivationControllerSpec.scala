@@ -43,7 +43,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
   def controller = new TestableActivationController
 
-  "Activation Controllerp present" should {
+  "Activation Controller present" should {
     "redirect to home page for active user" in {
       val result = controller.present()(fakeRequest)
 
