@@ -33,7 +33,7 @@ object AuthProviderClient extends AuthProviderClient {
   sealed class TokenEmailPairInvalidException() extends Exception
 }
 
-trait AuthProviderClient extends WSHttp {
+trait AuthProviderClient {
   sealed abstract class UserRole(val name: String)
 
   case object CandidateRole extends UserRole("candidate")
