@@ -32,14 +32,14 @@ object ActivationController extends ActivationController(ApplicationClient) {
 
 abstract class ActivationController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
 
-  val present = CSRSecureAction(NoRole) { implicit request =>
+  def present = CSRSecureAction(NoRole) { implicit request =>
     implicit user => user.user.isActive match {
       case true => Future.successful(Redirect(routes.HomeController.present()).flashing(warning("activation.already")))
       case false => Future.successful(Ok(views.html.registration.activation(user.user.email, ActivateAccountForm.form)))
     }
   }
 
-  val activateForm = CSRSecureAction(ActivationRole) { implicit request =>
+  def activateForm = CSRSecureAction(ActivationRole) { implicit request =>
     implicit user =>
       ActivateAccountForm.form.bindFromRequest.fold(
         invalidForm =>
@@ -65,7 +65,7 @@ abstract class ActivationController(val applicationClient: ApplicationClient) ex
       )
   }
 
-  val resendCode = CSRSecureAction(ActivationRole) { implicit request =>
+  def resendCode = CSRSecureAction(ActivationRole) { implicit request =>
     implicit user =>
       env.resendActivationCode(user.user.email).map { _ =>
         Redirect(routes.ActivationController.present()).flashing(success("activation.code-resent"))

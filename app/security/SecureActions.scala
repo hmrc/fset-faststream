@@ -18,16 +18,16 @@ package security
 
 import java.util.UUID
 
-import com.mohiva.play.silhouette.api.{ Authorization, Silhouette }
+import com.mohiva.play.silhouette.api.{Authorization, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import config.SecurityEnvironmentImpl
 import controllers.routes
 import helpers.NotificationType._
-import models.{ CachedData, CachedDataWithApp, SecurityUser }
+import models.{CachedData, CachedDataWithApp, SecurityUser}
 import play.api.i18n.Lang
 import play.api.mvc._
 import security.Roles.CsrAuthorization
-import uk.gov.hmrc.play.http.{ HeaderCarrier, SessionKeys }
+import uk.gov.hmrc.play.http.{HeaderCarrier, SessionKeys}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -105,7 +105,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
     } apply originalRequest
   }
 
-  override protected def env = SecurityEnvironmentImpl
+  override protected def env: SecurityEnvironment = SecurityEnvironmentImpl
 
   implicit def hc(implicit request: Request[_]): HeaderCarrier
 
