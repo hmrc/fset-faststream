@@ -103,7 +103,9 @@ trait UserManagementClient {
     }
 }
 
-object UserManagementClient {
+object UserManagementClient extends UserManagementClient {
+  val http: CSRHttp = CSRHttp
+
   sealed class InvalidRoleException extends Exception
   sealed class InvalidEmailException extends Exception
   sealed class EmailTakenException extends Exception

@@ -53,12 +53,16 @@ object GeneralDetailsForm {
         "lastName" -> nonEmptyTrimmedText("error.lastName", 256),
         "preferredName" -> nonEmptyTrimmedText("error.preferredName", 256),
         "dateOfBirth" -> DayMonthYear.validDayMonthYear("error.dateOfBirth", "error.dateOfBirthInFuture")(Some(minDob), maxDob),
+        "outsideUk" -> optional(checked("error.address.required")),
         "address" -> Address.address,
-        "postCode" -> text.verifying(validPostcode),
-        "phone" -> of(phoneNumberFormatter),
-        "alevel-d" -> optional(boolean).verifying("aleveld.required", _.isDefined),
-        "alevel" -> optional(boolean).verifying("alevel.required", _.isDefined)
-      )(Data.apply)(Data.unapply)
+        "postCode" -> optional(text.verifying(validPostcode)),
+        "phone" -> of(phoneNumberFormatter)
+      )(Data.apply)(Data.unapply).verifying(
+        "error.postcode.required",
+        d => d.outsideUk match {
+          case Some(true) => true
+          case _ => d.postCode.isDefined
+        })
     )
   }
 
@@ -71,12 +75,11 @@ object GeneralDetailsForm {
     dateOfBirth: DayMonthYear,
 
     //contact details
+    outsideUk: Option[Boolean],
     address: Address,
-    postCode: PostCode,
-    phone: Option[PhoneNumber],
+    postCode: Option[PostCode],
+    phone: Option[PhoneNumber]
 
-    aLevel: Option[Boolean],
-    stemLevel: Option[Boolean]
   )
 
 }

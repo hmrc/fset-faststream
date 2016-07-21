@@ -19,53 +19,50 @@ package controllers
 import _root_.forms.GeneralDetailsForm
 import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.{ ApplicationClient, UserManagementClient }
+import connectors.{ApplicationClient, UserManagementClient}
 import helpers.NotificationType._
-import mappings.{ Address, DayMonthYear }
+import mappings.{Address, DayMonthYear}
 import models.ApplicationData.ApplicationStatus._
 import org.joda.time.LocalDate
 import security.Roles.PersonalDetailsRole
 
 import scala.concurrent.Future
 
-object FastStreamApplication extends FastStreamApplication(ApplicationClient) {
+object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, UserManagementClient) {
   val http = CSRHttp
 }
 
-abstract class FastStreamApplication(applicationClient: ApplicationClient) extends BaseController(applicationClient) with UserManagementClient {
+abstract class PersonalDetailsController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
+  extends BaseController(applicationClient) {
 
-  def generalDetails(start: Option[String] = None) = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
+  def present(start: Option[String] = None) = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
     implicit user =>
       implicit val now: LocalDate = LocalDate.now
-
-      val formFromUser = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
-        user.user.firstName,
-        user.user.lastName,
-        user.user.firstName,
-        DayMonthYear("", "", ""),
-        Address("", None, None, None),
-        "",
-        None,
-        None,
-        None
-      ))
-
       applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
         val form = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
           gd.firstName,
           gd.lastName,
           gd.preferredName,
           gd.dateOfBirth,
+          Some(false),// TODO LT: fix for non uk without postcode
           gd.address,
-          gd.postCode,
-          gd.phone,
-          Some(gd.aLevel),
-          Some(gd.stemLevel)
+          Some(gd.postCode), // TODO LT: fix for non uk without postcode
+          gd.phone
         ))
         Ok(views.html.application.generalDetails(form))
 
       }.recover {
         case e: PersonalDetailsNotFound =>
+          val formFromUser = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
+            user.user.firstName,
+            user.user.lastName,
+            user.user.firstName,
+            DayMonthYear.emptyDate,
+            None,
+            Address.EmptyAddress,
+            postCode = Some(""),
+            phone = None
+          ))
           Ok(views.html.application.generalDetails(formFromUser))
       }
   }
@@ -80,7 +77,8 @@ abstract class FastStreamApplication(applicationClient: ApplicationClient) exten
         generalDetails => {
           (for {
             _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID, generalDetails, user.user.email)
-            _ <- updateDetails(user.user.userID, generalDetails.firstName, generalDetails.lastName, Some(generalDetails.preferredName))
+            _ <- userManagementClient.updateDetails(user.user.userID, generalDetails.firstName, generalDetails.lastName,
+              Some(generalDetails.preferredName))
             redirect <- updateProgress(data =>
               data.copy(
                 user = user.user.copy(

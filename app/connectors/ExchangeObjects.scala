@@ -47,9 +47,7 @@ object ExchangeObjects {
     dateOfBirth: LocalDate,
     address: Address,
     postCode: PostCode,
-    phone: Option[PhoneNumber],
-    aLevel: Boolean,
-    stemLevel: Boolean
+    phone: Option[PhoneNumber]
   )
 
   case class AssistanceDetailsExchange(

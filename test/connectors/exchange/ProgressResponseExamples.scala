@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package models
+package connectors.exchange
 
 import java.util.UUID
 
-object SecurityUserExamples {
-  val ValidToken = "ABCDEFG"
-  val CreatedApplication = CachedDataExample.CreatedApplication
-  val ActiveCandidateUser = CachedUser(CreatedApplication.userId, "firstName", "lastName", Some("preferredName"),
-    "email@test.com", isActive = true, "lockStatus")
-  val ActiveCandidate = CachedData(ActiveCandidateUser, None)
+import models.UniqueIdentifier
 
-  val InactiveCandidateUser = ActiveCandidateUser.copy(isActive = false)
-  val InactiveCandidate = CachedData(InactiveCandidateUser, None)
+object ProgressResponseExamples {
+  val EmptyProgress = ProgressResponse(UniqueIdentifier(UUID.randomUUID().toString), false, false, false, false, Nil, false, false, false,
+    false, false, false, false, false, false, false, false, false, false)
+  val InProgress = EmptyProgress.copy(personalDetails = true)
 
-  val CandidateWithApp = CachedDataWithApp(ActiveCandidateUser, CreatedApplication)
 }

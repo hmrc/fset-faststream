@@ -35,8 +35,8 @@ GET         /application/withdraw                                   controllers.
 POST        /application/withdraw                                   controllers.HomeController.withdraw
 POST        /application/confirm-allocation                         controllers.HomeController.confirmAlloc
 
-GET         /application/details                                    controllers.FastStreamApplication.generalDetails(start: Option[String])
-POST        /application/details                                    controllers.FastStreamApplication.submitGeneralDetails
+GET         /application/details                                    controllers.PersonalDetailsController.present(start: Option[String])
+POST        /application/details                                    controllers.PersonalDetailsController.submitGeneralDetails
 
 GET         /application/schemes                                    controllers.SchemeController.entryPoint
 GET         /application/schemes/first-preference                   controllers.SchemeController.firstPreference

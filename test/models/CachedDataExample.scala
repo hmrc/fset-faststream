@@ -29,7 +29,7 @@ object CachedDataExample {
   val NonActiveCandidateUser = CachedUser(UniqueIdentifier(UUID.randomUUID.toString), "firstName", "lastName",
     Some("preferredName"), email = "email@test.com", isActive = false, "")
 
-  val ActiveCandidate = CachedData(ActiveCandidateUser, Some(ApplicationData(
+  val CreatedApplication = ApplicationData(
     UniqueIdentifier(UUID.randomUUID.toString),
     UniqueIdentifier(UUID.randomUUID.toString),
     ApplicationStatus.CREATED,
@@ -39,5 +39,6 @@ object CachedDataExample {
       AssessmentScores(false, false),
       AssessmentCentre(false, false, false)
     )
-  )))
+  )
+  val ActiveCandidate = CachedData(ActiveCandidateUser, Some(CreatedApplication))
 }

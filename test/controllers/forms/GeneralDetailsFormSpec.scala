@@ -19,7 +19,7 @@ package controllers.forms
 import controllers.BaseSpec
 import forms.GeneralDetailsForm
 import forms.GeneralDetailsForm.Data
-import mappings.{ Address, DayMonthYear }
+import mappings.{Address, DayMonthYear}
 import org.joda.time.LocalDate
 
 class GeneralDetailsFormSpec extends BaseSpec {
@@ -142,11 +142,10 @@ class GeneralDetailsFormSpec extends BaseSpec {
       "Bloggs",
       "Joe",
       DayMonthYear("21", "1", "1988"),
+      None,
       Address("line1", Some("line2"), Some("line3"), Some("line4")),
-      "E14 9EL",
-      Some("07912333333"),
-      Some(false),
-      Some(false)
+      Some("E14 9EL"),
+      Some("07912333333")
     )
 
     val validFormValues = Map(
@@ -161,9 +160,7 @@ class GeneralDetailsFormSpec extends BaseSpec {
       "address.line3" -> "line3",
       "address.line4" -> "line4",
       "postCode" -> "E14 9EL",
-      "phone" -> "07912333333",
-      "alevel-d" -> "false",
-      "alevel" -> "false"
+      "phone" -> "07912333333"
     )
 
     def assertFieldRequired(expectedError: String, fieldKey: String) =
