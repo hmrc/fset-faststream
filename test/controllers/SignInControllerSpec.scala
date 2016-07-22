@@ -38,7 +38,7 @@ class SignInControllerSpec extends BaseControllerSpec {
       val result = signInController.present(fakeRequest)
 
       status(result) mustBe OK
-      contentAsString(result) must include ("Create your account or Sign in | Apply for the Civil Service Fast Stream")
+      contentAsString(result) must include ("Sign in | Apply for the Civil Service Fast Stream")
     }
 
     "Return home if a user has signed in" in new TestFixture {
@@ -59,7 +59,7 @@ class SignInControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include ("<title>Create your account or Sign in | Apply for the Civil Service Fast Stream")
+      content must include ("<title>Sign in | Apply for the Civil Service Fast Stream")
       content must include ("Enter your email")
       content must include ("Enter your password")
     }
@@ -73,7 +73,7 @@ class SignInControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include ("<title>Create your account or Sign in | Apply for the Civil Service Fast Stream")
+      content must include ("<title>Sign in | Apply for the Civil Service Fast Stream")
       content must include ("Enter your password")
     }
 
