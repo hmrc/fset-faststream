@@ -45,8 +45,9 @@ object ExchangeObjects {
     preferredName: String,
     email: String,
     dateOfBirth: LocalDate,
+    outsideUk: Boolean,
     address: Address,
-    postCode: PostCode,
+    postCode: Option[PostCode],
     phone: Option[PhoneNumber]
   )
 

@@ -101,8 +101,9 @@ trait ApplicationClient {
         data.preferredName,
         email,
         LocalDate.parse(s"${data.dateOfBirth.year}-${data.dateOfBirth.month}-${data.dateOfBirth.day}"),
+        data.outsideUk.getOrElse(false),
         data.address,
-        PostCodeMapping.formatPostcode(data.postCode.get), //TODO LT: fix for non UK without postcode
+        data.postCode.map(p => PostCodeMapping.formatPostcode(p)),
         data.phone
       )
     ).map {

@@ -49,22 +49,22 @@ object GeneralDetailsFormExamples {
     "phone"
   )
 
-  val ValidForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
-    None, AddressExamples.FullAddress, Some("A1 2BC"), Some("1234567890"))
+  val ValidUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
+    outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), Some("1234567890"))
 
   val ValidFormUrlEncodedBody = Seq(
-    "firstName" -> ValidForm.firstName,
-    "lastName" -> ValidForm.lastName,
-    "preferredName" -> ValidForm.preferredName,
-    "dateOfBirth.day" -> ValidForm.dateOfBirth.day,
-    "dateOfBirth.month" -> ValidForm.dateOfBirth.month,
-    "dateOfBirth.year" -> ValidForm.dateOfBirth.year,
-    "address.line1" -> ValidForm.address.line1,
-    "address.line2" -> ValidForm.address.line2.getOrElse(""),
-    "address.line3" -> ValidForm.address.line3.getOrElse(""),
-    "address.line4" -> ValidForm.address.line4.getOrElse(""),
-    "postCode" -> ValidForm.postCode.getOrElse(""),
-    "phone" -> ValidForm.phone.map(_.toString).getOrElse("")
+    "firstName" -> ValidUKAddressForm.firstName,
+    "lastName" -> ValidUKAddressForm.lastName,
+    "preferredName" -> ValidUKAddressForm.preferredName,
+    "dateOfBirth.day" -> ValidUKAddressForm.dateOfBirth.day,
+    "dateOfBirth.month" -> ValidUKAddressForm.dateOfBirth.month,
+    "dateOfBirth.year" -> ValidUKAddressForm.dateOfBirth.year,
+    "address.line1" -> ValidUKAddressForm.address.line1,
+    "address.line2" -> ValidUKAddressForm.address.line2.getOrElse(""),
+    "address.line3" -> ValidUKAddressForm.address.line3.getOrElse(""),
+    "address.line4" -> ValidUKAddressForm.address.line4.getOrElse(""),
+    "postCode" -> ValidUKAddressForm.postCode.getOrElse(""),
+    "phone" -> ValidUKAddressForm.phone.map(_.toString).getOrElse("")
   )
 
 
@@ -73,7 +73,4 @@ object GeneralDetailsFormExamples {
   def birthYear = LocalDate.now.minusYears(18).year().get().toString
 
   def now = LocalDate.now
-
-
-
 }

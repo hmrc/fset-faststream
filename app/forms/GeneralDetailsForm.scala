@@ -58,24 +58,24 @@ object GeneralDetailsForm {
         "address" -> Address.address,
         "postCode" -> optional(text.verifying(validPostcode)),
         "phone" -> of(phoneNumberFormatter)
-      )(Data.apply)(Data.unapply).verifying(
-        "error.postcode.required",
-        d => d.outsideUk match {
-          case Some(true) => true
-          case _ => d.postCode.isDefined
-        })
+      )(Data.apply)(Data.unapply).verifying("error.postcode.required", d =>
+        !d.insideUk || (d.insideUk && d.postCode.isDefined)
+      )
     )
   }
 
-  case class Data(
-    firstName: String,
-    lastName: String,
-    preferredName: String,
-    dateOfBirth: DayMonthYear,
-    outsideUk: Option[Boolean],
-    address: Address,
-    postCode: Option[PostCode],
-    phone: Option[PhoneNumber]
-  )
+  case class Data(firstName: String,
+                  lastName: String,
+                  preferredName: String,
+                  dateOfBirth: DayMonthYear,
+                  outsideUk: Option[Boolean],
+                  address: Address,
+                  postCode: Option[PostCode],
+                  phone: Option[PhoneNumber]) {
+    def insideUk = outsideUk match {
+      case Some(true) => false
+      case _ => true
+    }
+  }
 
 }

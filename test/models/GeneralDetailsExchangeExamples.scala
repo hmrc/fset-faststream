@@ -21,6 +21,6 @@ import org.joda.time.LocalDate
 import mappings.AddressExamples._
 
 object GeneralDetailsExchangeExamples {
-  val FullDetails = GeneralDetailsExchange("firstName", "lastName", "preferredName", "email", LocalDate.now(),
-    FullAddress, "postCode", Some("1234567"))
+  val FullDetails = GeneralDetailsExchange("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
+    FullAddress, Some("postCode"), Some("1234567"))
 }

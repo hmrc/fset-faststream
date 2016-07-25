@@ -44,9 +44,9 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient, u
           gd.lastName,
           gd.preferredName,
           gd.dateOfBirth,
-          Some(false),// TODO LT: fix for non uk without postcode
+          Some(gd.outsideUk),
           gd.address,
-          Some(gd.postCode), // TODO LT: fix for non uk without postcode
+          gd.postCode,
           gd.phone
         ))
         Ok(views.html.application.generalDetails(form))
@@ -58,9 +58,9 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient, u
             user.user.lastName,
             user.user.firstName,
             DayMonthYear.emptyDate,
-            None,
-            Address.EmptyAddress,
-            postCode = Some(""),
+            outsideUk = None,
+            address = Address.EmptyAddress,
+            postCode = None,
             phone = None
           ))
           Ok(views.html.application.generalDetails(formFromUser))
@@ -74,19 +74,13 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient, u
         errorForm => {
           Future.successful(Ok(views.html.application.generalDetails(errorForm)))
         },
-        generalDetails => {
+        gd => {
           (for {
-            _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID, generalDetails, user.user.email)
-            _ <- userManagementClient.updateDetails(user.user.userID, generalDetails.firstName, generalDetails.lastName,
-              Some(generalDetails.preferredName))
-            redirect <- updateProgress(data =>
-              data.copy(
-                user = user.user.copy(
-                  firstName = generalDetails.firstName,
-                  lastName = generalDetails.lastName, preferredName = Some(generalDetails.preferredName)
-                ),
-                application = data.application.map(_.copy(applicationStatus = IN_PROGRESS))
-              ))(_ => Redirect(routes.SchemeController.entryPoint()))
+            _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID, gd, user.user.email)
+            _ <- userManagementClient.updateDetails(user.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
+            redirect <- updateProgress(data => data.copy(user = user.user.copy(firstName = gd.firstName, lastName = gd.lastName,
+              preferredName = Some(gd.preferredName)), application = data.application.map(_.copy(applicationStatus = IN_PROGRESS))
+            ))(_ => Redirect(routes.SchemeController.entryPoint()))
           } yield {
             redirect
           }) recover {
