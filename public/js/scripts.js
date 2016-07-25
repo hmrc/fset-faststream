@@ -420,7 +420,7 @@ $(function() {
     $('#address\\.line1').focus();
   });
 
-  $('#outside-uk').on('change', function() {
+  $('#outsideUk').on('change', function() {
 
     $('#address\\.line1').val("");
     $('#address_line2').val("");
