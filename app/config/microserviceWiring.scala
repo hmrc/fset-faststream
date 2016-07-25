@@ -20,7 +20,7 @@ import play.api.Play.current
 import play.api.libs.ws.{ WS, WSClient }
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.config.{ AppName, RunMode }
+import uk.gov.hmrc.play.config.AppName
 import uk.gov.hmrc.play.http.ws._
 
 trait WSHttp extends WSGet with WSPut with WSPost with WSDelete with AppName {
@@ -31,6 +31,6 @@ trait WSHttp extends WSGet with WSPut with WSPost with WSDelete with AppName {
 
 object WSHttp extends WSHttp
 
-object MicroserviceAuditConnector extends AuditConnector with RunMode {
-  override lazy val auditingConfig = LoadAuditingConfig(s"$env.auditing")
+object MicroserviceAuditConnector extends AuditConnector {
+  override lazy val auditingConfig = LoadAuditingConfig("auditing")
 }

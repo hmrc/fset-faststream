@@ -94,38 +94,38 @@ object AssessmentEvaluationMinimumCompetencyLevel {
 }
 
 object MicroserviceAppConfig extends ServicesConfig with RunMode {
-  lazy val emailConfig = configuration.underlying.as[EmailConfig](s"$env.microservice.services.email")
-  lazy val frameworksConfig = configuration.underlying.as[FrameworksConfig](s"$env.microservice.frameworks")
-  lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig](s"$env.microservice.services.user-management")
-  lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig](s"$env.microservice.services.cubiks-gateway")
-  lazy val maxNumberOfDocuments = configuration.underlying.as[Int](s"$env.maxNumberOfDocuments")
+  lazy val emailConfig = configuration.underlying.as[EmailConfig]("microservice.services.email")
+  lazy val frameworksConfig = configuration.underlying.as[FrameworksConfig]("microservice.frameworks")
+  lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
+  lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
   lazy val sendInvitationJobConfig =
-    configuration.underlying.as[ScheduledJobConfig](s"$env.scheduling.online-testing.send-invitation-job")
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-invitation-job")
   lazy val expireOnlineTestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig](s"$env.scheduling.online-testing.expiry-job")
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-job")
   lazy val failedOnlineTestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig](s"$env.scheduling.online-testing.failed-test-job")
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-test-job")
   lazy val diversityMonitoringJobConfig =
-    configuration.underlying.as[DiversityMonitoringJobConfig](s"$env.scheduling.diversity-monitoring-job")
+    configuration.underlying.as[DiversityMonitoringJobConfig]("scheduling.diversity-monitoring-job")
   lazy val retrieveResultsJobConfig =
-    configuration.underlying.as[WaitingScheduledJobConfig](s"$env.scheduling.online-testing.retrieve-results-job")
+    configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-results-job")
   lazy val retrieveOnlineTestPDFReportJobConfig =
-    configuration.underlying.as[WaitingScheduledJobConfig](s"$env.scheduling.online-testing.retrieve-pdf-report-job")
+    configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-pdf-report-job")
   lazy val evaluateCandidateScoreJobConfig =
-    configuration.underlying.as[ScheduledJobConfig](s"$env.scheduling.online-testing.evaluate-candidate-score-job")
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.evaluate-candidate-score-job")
   lazy val confirmAttendanceReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig](s"$env.scheduling.confirm-attendance-reminder-job")
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.confirm-attendance-reminder-job")
   lazy val evaluateAssessmentScoreJobConfig =
-    configuration.underlying.as[ScheduledJobConfig](s"$env.scheduling.evaluate-assessment-score-job")
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.evaluate-assessment-score-job")
   lazy val notifyAssessmentCentrePassedOrFailedJobConfig =
-    configuration.underlying.as[ScheduledJobConfig](s"$env.scheduling.notify-assessment-centre-passed-or-failed-job")
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.notify-assessment-centre-passed-or-failed-job")
 
   lazy val assessmentCentresLocationsConfig =
-    configuration.underlying.as[AssessmentCentresLocationsConfig](s"$env.scheduling.online-testing.assessment-centres-locations")
+    configuration.underlying.as[AssessmentCentresLocationsConfig]("scheduling.online-testing.assessment-centres-locations")
   lazy val assessmentCentresConfig =
-    configuration.underlying.as[AssessmentCentresConfig](s"$env.scheduling.online-testing.assessment-centres")
+    configuration.underlying.as[AssessmentCentresConfig]("scheduling.online-testing.assessment-centres")
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
     configuration.underlying
-      .as[AssessmentEvaluationMinimumCompetencyLevel](s"$env.microservice.services.assessment-evaluation.minimum-competency-level")
+      .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")
 
 }
