@@ -56,9 +56,9 @@ trait MicroService {
       libraryDependencies ++= appDependencies,
       parallelExecution in Test := false,
       fork in Test := true,
+      javaOptions in Test += "-Dmicroservice.services.user-management.url.host=http://localhost:11111",
       retrieveManaged := true,
-      scalacOptions += "-feature",
-      javaOptions += "-Dmicroservice.services.user-management.url.host=http://localhost:11111"
+      scalacOptions += "-feature"
     )
     .configs(IntegrationTest)
     .settings(pipelineStages := Seq(digest, gzip))
