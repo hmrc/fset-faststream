@@ -76,7 +76,8 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient, u
         },
         gd => {
           (for {
-            _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID, gd, user.user.email)
+            _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID,
+              removePostCodeWhenOutsideUK(gd), user.user.email)
             _ <- userManagementClient.updateDetails(user.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
             redirect <- updateProgress(data => data.copy(user = user.user.copy(firstName = gd.firstName, lastName = gd.lastName,
               preferredName = Some(gd.preferredName)), application = data.application.map(_.copy(applicationStatus = IN_PROGRESS))
@@ -89,4 +90,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient, u
         }
       )
   }
+
+  private def removePostCodeWhenOutsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
+    if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(postCode = None) else generalDetails
 }
