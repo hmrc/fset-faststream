@@ -86,8 +86,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient, u
                   lastName = generalDetails.lastName, preferredName = Some(generalDetails.preferredName)
                 ),
                 application = data.application.map(_.copy(applicationStatus = IN_PROGRESS))
-              ))(_ =>
-              Redirect(routes.SchemeController.entryPoint()))
+              ))(_ => Redirect(routes.SchemeController.entryPoint()))
           } yield {
             redirect
           }) recover {

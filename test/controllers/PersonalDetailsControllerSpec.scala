@@ -21,7 +21,7 @@ import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.ProgressResponseExamples
 import connectors.{ApplicationClient, UserManagementClient}
-import controllers.forms.GeneralDetailsFormExamples
+import _root_.forms.GeneralDetailsFormExamples._
 import models.ApplicationData.ApplicationStatus
 import models.GeneralDetailsExchangeExamples
 import models.services.UserService
@@ -75,9 +75,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
   "submit general details" should {
     "update candidate's details" in {
-      val RequestForm = GeneralDetailsFormExamples.ValidForm
-      val Request = fakeRequest.withFormUrlEncodedBody(GeneralDetailsFormExamples.ValidFormUrlEncodedBody: _*)
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(RequestForm),
+      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
+      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidForm),
         eqTo(currentEmail))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       when(userManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
         eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
@@ -95,9 +94,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "fail updating the candidate when person cannot be found" in {
-      val RequestForm = GeneralDetailsFormExamples.ValidForm
-      val Request = fakeRequest.withFormUrlEncodedBody(GeneralDetailsFormExamples.ValidFormUrlEncodedBody: _*)
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(RequestForm),
+      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
+      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidForm),
         eqTo(currentEmail))(any[HeaderCarrier])).thenReturn(Future.failed(new PersonalDetailsNotFound))
 
       val result = controller.submitGeneralDetails()(Request)
