@@ -59,7 +59,7 @@ object GeneralDetailsForm {
         "postCode" -> optional(text.verifying(validPostcode)),
         "phone" -> of(phoneNumberFormatter)
       )(Data.apply)(Data.unapply).verifying("error.postcode.required", d =>
-        !d.insideUk || (d.insideUk && d.postCode.isDefined)
+        !d.insideUk || d.postCode.isDefined
       )
     )
   }
