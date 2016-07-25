@@ -55,7 +55,8 @@ trait MicroService {
       scalaVersion := "2.11.8",
       libraryDependencies ++= appDependencies,
       parallelExecution in Test := false,
-      fork in Test := false,
+      fork in Test := true,
+      javaOptions in Test += "-Dmicroservice.services.user-management.url.host=http://localhost:11111",
       retrieveManaged := true,
       scalacOptions += "-feature"
     )
