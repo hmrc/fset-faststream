@@ -29,6 +29,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+@deprecated("fasttrack version")
 trait ContactDetailsRepository {
 
   val errorCode = 500
@@ -42,6 +43,7 @@ trait ContactDetailsRepository {
   def findAll: Future[List[ContactDetailsWithId]]
 }
 
+@deprecated("fasttrack version")
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo,
     PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository {
