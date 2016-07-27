@@ -41,8 +41,8 @@ trait CandidateDetailsService {
   def update(applicationId: String, userId: String, candidateDetails: UpdateGeneralDetails): Future[Unit] = {
     val personalDetails = PersonalDetails(candidateDetails.firstName, candidateDetails.lastName, candidateDetails.preferredName,
       candidateDetails.dateOfBirth)
-    val contactDetails = ContactDetails(toPersistedAddress(candidateDetails.address), candidateDetails.postCode,
-      candidateDetails.email, candidateDetails.phone)
+    val contactDetails = ContactDetails(candidateDetails.outsideUk, toPersistedAddress(candidateDetails.address),
+      candidateDetails.postCode, candidateDetails.email, candidateDetails.phone)
 
     val updatePersonalDetailsFut = pdRepository.update(applicationId, userId, personalDetails, IN_PROGRESS)
     val contactDetailsFut = cdRepository.update(userId, contactDetails)
@@ -61,7 +61,7 @@ trait CandidateDetailsService {
       pd <- personalDetailsFut
       cd <- contactDetailsFut
     } yield UpdateGeneralDetails(pd.firstName, pd.lastName, pd.preferredName, cd.email, pd.dateOfBirth,
-      outsideUk = false, toRequestAddress(cd.address), cd.postCode, cd.phone)
+      cd.outsideUk, toRequestAddress(cd.address), cd.postCode, cd.phone)
   }
 
   private def toPersistedAddress(address: model.command.Address): model.persisted.Address =

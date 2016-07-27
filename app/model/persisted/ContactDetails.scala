@@ -20,7 +20,7 @@ import model.Commands.{PhoneNumber, PostCode}
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class ContactDetails(address: Address, postCode: PostCode, email: String, phone: PhoneNumber)
+case class ContactDetails(outsideUk: Boolean, address: Address, postCode: Option[PostCode], email: String, phone: PhoneNumber)
 
 object ContactDetails {
   implicit val contactDetailsFormat = Json.format[ContactDetails]

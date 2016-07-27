@@ -18,7 +18,7 @@ package repositories.personaldetails
 
 import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
-import model.persisted.{PersonalDetails, PersonalDetailsProgress}
+import model.persisted.PersonalDetails
 import reactivemongo.api.DB
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -44,7 +44,7 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
 
     val personalDetailsBSON = BSONDocument("$set" -> BSONDocument(
       "applicationStatus" -> newApplicationStatus, // TODO add converter to not put toString
-      "progress-status" -> PersonalDetailsProgress(true),
+      "progress-status.personal-details" -> true,
       PersonalDetailsCollection -> personalDetails
     ))
 

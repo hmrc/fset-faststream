@@ -27,7 +27,7 @@ case class UpdateGeneralDetails(firstName: String,
                                 dateOfBirth: LocalDate,
                                 outsideUk: Boolean,
                                 address: Address,
-                                postCode: PostCode,
+                                postCode: Option[PostCode],
                                 phone: PhoneNumber)
 
 object UpdateGeneralDetails {
