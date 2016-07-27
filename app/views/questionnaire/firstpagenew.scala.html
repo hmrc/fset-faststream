@@ -1,0 +1,82 @@
+@(questionnaireForm: Form[_root_.forms.QuestionnaireDiversityInfoForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.{checkbox, select_guard, select_guard_multi, radioBoxVertical}
+
+@main_template(title = "Diversity questions", pageForms = Seq(questionnaireForm)) {
+
+    <div class="hgroup">
+        <h1 class="heading-xlarge">About you</h1>
+        <p class="subtitle">Page 1 of 3</p>
+    </div>
+    <div class="panel-warning standard-panel">
+        <h2 class="heading-medium">Why are we asking these questions?</h2>
+        <p>The following questions are:</p>
+        <ul class="no-btm-margin">
+            <li>for information monitoring only</li>
+            <li>not part of your application</li>
+            <li>treated in strict confidence</li>
+            <li>to make sure the Civil Service is a <a href="https://www.gov.uk/government/organisations/civil-service/about/equality-and-diversity"
+            rel="external" target="_blank">diverse organisation</a></li>
+        </ul>
+    </div>
+
+    @helper.form(action = routes.QuestionnaireController.firstPageSubmitNew(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        <section>
+            <fieldset class="form_group">
+                <legend class="form-label" id="gender-ques">@Messages("gender.question")</legend>
+                <div class="form-group no-btm-margin">
+                    @radioBoxVertical(questionnaireForm("gender"), options = Seq(("male","Male",false),("female","Female",false),("other","Other",true),
+                        ("preferNotSay","I don't know/prefer not to say",false)), optionTrigger = "genderDescribe")
+                </div>
+                <div class="toggle-content form-group form-group-compound" id="genderDescribe">
+                @helper.inputText(questionnaireForm("genderDescribe"),
+                    '_label -> "Provide more information (optional)",
+                    'class -> "form-control",
+                    '_showConstraints -> false,
+                    'optional -> "")
+                </div>
+            </fieldset>
+        </section>
+
+        <section>
+            <fieldset class="form_group">
+                <legend class="form-label" id="orientation-ques">@Messages("sexOrientation.question")</legend>
+                @radioBoxVertical(questionnaireForm("orientation"), options = Seq(("straight","Heterosexual/straight",false), ("gay","Gay/lesbian",false),("bisexual","Bisexual",false),
+                    ("other","Other",false), ("dunno","I don't know/prefer not to say",false)))
+                <div class="toggle-content form-group form-group-compound" id="orientation-describe">
+                @helper.inputText(questionnaireForm("orientation-other"),
+                    '_label -> "Provide more information (optional)",
+                    'class -> "form-control",
+                    '_showConstraints -> false,
+                    'optional -> "")
+                </div>
+            </fieldset>
+        </section>
+
+        <section>
+            @select_guard_multi(questionnaireForm("ethnicity"), models.Ethnicity.map,
+                "ethnicity-describe", "-- Select one --") {
+                @Messages("ethnicity.question")
+            }
+
+            <div class="toggle-content form-group form-group-compound" id="ethnicity-describe">
+            @helper.inputText(questionnaireForm("ethnicity-other"),
+                '_label -> "Provide more information (optional)",
+                'class -> "form-control",
+                '_showConstraints -> false,
+                'optional -> "")
+            </div>
+            <div data-optional>
+            @checkbox(questionnaireForm("ethnicity-preferNotSay"), Some("ethnicity")) {
+                Don't know/prefer not to say
+            }
+            </div>
+        </section>
+
+        <div class="form-group">
+            <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
+        </div>
+    }
+}

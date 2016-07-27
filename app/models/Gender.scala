@@ -20,6 +20,7 @@ object Gender {
   val list = List(
     ("Male", false),
     ("Female", false),
-    ("Other", true)
+    ("Other", true),
+    ("I don't know/prefer not to say", false)
   )
 }

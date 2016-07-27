@@ -61,8 +61,8 @@ GET         /application/success                                    controllers.
 GET         /questionnaire/start                                    controllers.QuestionnaireController.start
 POST        /questionnaire/start                                    controllers.QuestionnaireController.submitStart
 POST        /questionnaire/continue                                 controllers.QuestionnaireController.submitContinue
-GET         /questionnaire/page/1                                   controllers.QuestionnaireController.firstPageView
-POST        /questionnaire/page/1                                   controllers.QuestionnaireController.firstPageSubmit
+GET         /questionnaire/page/1                                   controllers.QuestionnaireController.firstPageViewNew
+POST        /questionnaire/page/1                                   controllers.QuestionnaireController.firstPageSubmitNew
 GET         /questionnaire/page/2                                   controllers.QuestionnaireController.secondPageView
 POST        /questionnaire/page/2                                   controllers.QuestionnaireController.secondPageSubmit
 GET         /questionnaire/page/3                                   controllers.QuestionnaireController.thirdPageView

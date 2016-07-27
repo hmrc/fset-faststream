@@ -1,0 +1,36 @@
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Before you continue") {
+    <h1 class="heading-xlarge">Before you continue</h1>
+
+    <section>
+        <div class="text">
+            <p>We have a few more questions before you submit your application.</p>
+        </div>
+        <div id="panel-why-collect-data" class="panel-warning standard-panel">
+            <div class="text">
+                <p>The following questions are:</p>
+                <ul class="no-btm-margin">
+                    <li>for information monitoring only</li>
+                    <li>not part of your application</li>
+                    <li>treated in strict confidence</li>
+                    <li>to make sure the Civil Service is a <a id="link-to-diverse-org" href="https://www.gov.uk/government/organisations/civil-service/about/equality-and-diversity"
+                    rel="external" target="_blank">diverse organisation</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="text">
+            <p>For security reasons, once you save a page you won't be able to go
+                back and change your answers.</p>
+        </div>
+    </section>
+    @helper.form(action = routes.QuestionnaireController.submitStart(), 'novalidate -> "novalidate") {
+        <div class="form-group">
+            @helper.CSRF.formField
+            <label for="accept-terms" class="block-label">
+                <input type="checkbox" id="accept-terms">I understand this won't affect my application
+            </label>
+        </div>
+        <button id="btnStart" type="submit" value="submit" class="button">Start questions</button>
+    }
+}

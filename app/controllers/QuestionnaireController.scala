@@ -39,7 +39,8 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
       val p = user.application.progress
       Future.successful {
         if (!p.diversityQuestionnaire && !p.educationQuestionnaire && !p.occupationQuestionnaire) {
-          Ok(views.html.questionnaire.index())
+          //Ok(views.html.questionnaire.index())
+          Ok(views.html.questionnaire.intro())
         } else {
           Ok(views.html.questionnaire.continue())
         }
@@ -49,6 +50,11 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
   def firstPageView = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.questionnaire.firstpage(QuestionnaireDiversityInfoForm.form)))
+  }
+
+  def firstPageViewNew = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
+    implicit user =>
+      Future.successful(Ok(views.html.questionnaire.firstpagenew(QuestionnaireDiversityInfoForm.form)))
   }
 
   def secondPageView = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
@@ -64,7 +70,7 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
   def submitStart = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
     implicit user =>
       val empty = Questionnaire(List())
-      submitQuestionnaire(empty, "start_questionnaire")(Redirect(routes.QuestionnaireController.firstPageView()))
+      submitQuestionnaire(empty, "start_questionnaire")(Redirect(routes.QuestionnaireController.firstPageViewNew()))
   }
 
   def submitContinue = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
@@ -74,7 +80,7 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
         case (_, _, true) => Redirect(routes.SubmitApplicationController.present())
         case (_, true, _) => Redirect(routes.QuestionnaireController.thirdPageView())
         case (true, _, _) => Redirect(routes.QuestionnaireController.secondPageView())
-        case (_, _, _) => Redirect(routes.QuestionnaireController.firstPageView())
+        case (_, _, _) => Redirect(routes.QuestionnaireController.firstPageViewNew())
       })
   }
 
@@ -83,6 +89,18 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
       QuestionnaireDiversityInfoForm.form.bindFromRequest.fold(
         errorForm => {
           Future.successful(Ok(views.html.questionnaire.firstpage(errorForm)))
+        },
+        data => {
+          submitQuestionnaire(data.toQuestionnaire, "diversity_questionnaire")(Redirect(routes.QuestionnaireController.secondPageView()))
+        }
+      )
+  }
+
+  def firstPageSubmitNew = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
+    implicit user =>
+      QuestionnaireDiversityInfoForm.form.bindFromRequest.fold(
+        errorForm => {
+          Future.successful(Ok(views.html.questionnaire.firstpagenew(errorForm)))
         },
         data => {
           submitQuestionnaire(data.toQuestionnaire, "diversity_questionnaire")(Redirect(routes.QuestionnaireController.secondPageView()))
