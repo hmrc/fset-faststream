@@ -44,7 +44,8 @@ trait CandidateDetailsService {
     val contactDetails = ContactDetails(candidateDetails.outsideUk, toPersistedAddress(candidateDetails.address),
       candidateDetails.postCode, candidateDetails.email, candidateDetails.phone)
 
-    val updatePersonalDetailsFut = pdRepository.update(applicationId, userId, personalDetails, IN_PROGRESS)
+    val updatePersonalDetailsFut = pdRepository.update(applicationId, userId, personalDetails,
+      sourceStatuses = List(CREATED, IN_PROGRESS), targetStatus = IN_PROGRESS)
     val contactDetailsFut = cdRepository.update(userId, contactDetails)
 
     for {

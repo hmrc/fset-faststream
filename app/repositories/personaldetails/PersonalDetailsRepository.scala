@@ -20,7 +20,7 @@ import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONDocument, BSONObjectID}
+import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -28,7 +28,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait PersonalDetailsRepository {
-  def update(appId: String, userId: String, personalDetails: PersonalDetails, newAppStatus: ApplicationStatus.Value): Future[Unit]
+  def update(appId: String, userId: String, personalDetails: PersonalDetails,
+             sourceStatuses: Seq[ApplicationStatus.Value], targetStatus: ApplicationStatus.Value): Future[Unit]
 
   def find(appId: String): Future[PersonalDetails]
 }
@@ -39,8 +40,11 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
   val PersonalDetailsCollection = "personal-details"
 
   def update(applicationId: String, userId: String, personalDetails: PersonalDetails,
-             newApplicationStatus: ApplicationStatus.Value): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId, "userId" -> userId)
+             requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId, "userId" -> userId),
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> requiredStatuses))
+    ))
 
     val personalDetailsBSON = BSONDocument("$set" -> BSONDocument(
       "applicationStatus" -> newApplicationStatus, // TODO add converter to not put toString
