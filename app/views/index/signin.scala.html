@@ -11,8 +11,6 @@
         <p>If you don't have an account you can <a href="@routes.SignUpController.present" id="createAccount">create your account</a>.</p>
     </section>
 
-
-
     @helper.form(action = routes.SignInController.signIn(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
 
@@ -33,9 +31,5 @@
         <div class="form-group small-btm-margin">
             <button id="btnSignIn" type="submit" value="submit" class="button">Sign in</button>
         </div>
-
-
-
     }
-
 }
