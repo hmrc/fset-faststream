@@ -33,7 +33,7 @@ trait CommonHttpWorkflows { self: WireLevelHttpSpec =>
     (response.json \ "applicationId").as[String]
   }
 
-  def submitPersonalDetails(userId: String, applicationId: String, aLevelsAboveD: Boolean, aLevelsAboveCInStem: Boolean) = {
+  def submitPersonalDetails(userId: String, applicationId: String) = {
     val response = await(wsUrl(s"/personal-details/$userId/$applicationId")
       .withHeaders(CONTENT_TYPE -> JSON)
       .post(
@@ -49,9 +49,7 @@ trait CommonHttpWorkflows { self: WireLevelHttpSpec =>
            |   },
            |  "postCode":"H0H 0H0",
            |  "mobilePhone":"071234567",
-           |  "recentSchool":"Super hero's academy",
-           |  "aLevel": $aLevelsAboveD,
-           |  "stemLevel": $aLevelsAboveCInStem
+           |  "recentSchool":"Super hero's academy"
            |}
           """.stripMargin
       ))
