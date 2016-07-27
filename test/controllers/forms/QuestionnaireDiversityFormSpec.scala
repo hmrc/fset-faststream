@@ -29,7 +29,7 @@ class QuestionnaireDiversityFormSpec extends BaseSpec {
       actualData mustBe expectedData
     }
 
-    "fail when no gener" in new Fixture {
+    "fail when no gender" in new Fixture {
       assertFieldRequired("gender", "gender")
     }
 
@@ -54,19 +54,17 @@ class QuestionnaireDiversityFormSpec extends BaseSpec {
   trait Fixture {
 
     val validFormData = Data(
-      Some("Male"), None, None,
-      Some("Other"), Some("details"), None,
+      Some("Male"), None,
+      Some("Other"), Some("details"),
       None, None, Some(true)
     )
 
     val validFormValues = Map(
       "gender" -> "Male",
       "other_gender" -> "",
-      "preferNotSay_gender" -> "",
 
       "sexOrientation" -> "Other",
       "other_sexOrientation" -> "details",
-      "preferNotSay_sexOrientation" -> "",
 
       "ethnicity" -> "",
       "other_ethnicity" -> "",

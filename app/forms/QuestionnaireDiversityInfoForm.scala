@@ -25,24 +25,11 @@ object QuestionnaireDiversityInfoForm {
 
   val form = Form(
     mapping(
-//      "gender" -> of(Mappings.fieldWithCheckBox(256)),
-//      "gender-other" -> optional(Mappings.nonEmptyTrimmedText("error.required.gender", 256)),
-//      "gender-preferNotSay" -> optional(checked(Messages("error.required.gender"))),
-//
-//      "orientation" -> of(Mappings.fieldWithCheckBox(256)),
-//      "orientation-other" -> optional(Mappings.nonEmptyTrimmedText("error.required.sexOrientation", 256)),
-//      "orientation-preferNotSay" -> optional(checked(Messages("error.required.sexOrientation"))),
-//
-//      "ethnicity" -> of(Mappings.fieldWithCheckBox(256)),
-//      "ethnicity-other" -> optional(Mappings.nonEmptyTrimmedText("error.required.ethnicity", 256)),
-//      "ethnicity-preferNotSay" -> optional(checked(Messages("error.required.ethnicity")))
       "gender" -> of(Mappings.fieldWithCheckBox(256)),
       "other_gender" -> optional(Mappings.nonEmptyTrimmedText("error.required.gender", 256)),
-      "preferNotSay_gender" -> optional(checked(Messages("error.required.gender"))),
 
       "sexOrientation" -> of(Mappings.fieldWithCheckBox(256)),
       "other_sexOrientation" -> optional(Mappings.nonEmptyTrimmedText("error.required.sexOrientation", 256)),
-      "preferNotSay_sexOrientation" -> optional(checked(Messages("error.required.sexOrientation"))),
 
       "ethnicity" -> of(Mappings.fieldWithCheckBox(256)),
       "other_ethnicity" -> optional(Mappings.nonEmptyTrimmedText("error.required.ethnicity", 256)),
@@ -53,17 +40,15 @@ object QuestionnaireDiversityInfoForm {
   case class Data(
     gender: Option[String],
     otherGender: Option[String],
-    preferNotSayGender: Option[Boolean],
     sexOrientation: Option[String],
     otherSexOrientation: Option[String],
-    preferNotSaySexOrientation: Option[Boolean],
     ethnicity: Option[String],
     otherEthnicity: Option[String],
     preferNotSayEthnicity: Option[Boolean]
   ) {
     def toQuestionnaire: Questionnaire = Questionnaire(List(
-      Question(Messages("gender.question"), Answer(gender, otherGender, preferNotSayGender)),
-      Question(Messages("sexOrientation.question"), Answer(sexOrientation, otherSexOrientation, preferNotSaySexOrientation)),
+      Question(Messages("gender.question"), Answer(gender, otherGender, None)),
+      Question(Messages("sexOrientation.question"), Answer(sexOrientation, otherSexOrientation, None)),
       Question(Messages("ethnicity.question"), Answer(ethnicity, otherEthnicity, preferNotSayEthnicity))
     ))
   }
