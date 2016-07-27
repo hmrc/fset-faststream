@@ -34,127 +34,58 @@ import scala.concurrent.Future
 class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures {
 
   "authenticate" should {
-    "return InvalidRole if the role is invalid" in new TestFixture {
-      val csrCredentialsProvider = new CsrCredentialsProvider {
-        val http = CSRHttp
-        override def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          Future.failed(new InvalidRoleException)
-        }
-      }
+    "return user when credentials are valid" in new TestFixture {
+      val csrCredentialsProvider = new TestCsrCredentialsProvider(
+        signInResponse = Future.successful(userResponse))
+      val result = csrCredentialsProvider.authenticate(credentials)
+      result.futureValue mustBe Right(CachedUser(UserId, FirstName, LastName, Some(PreferredName), Email, true, ""))
+    }
 
-      val result = csrCredentialsProvider.authenticate(Credentials(Id, Password))
-      result.futureValue mustBe Left(InvalidRole)
+    "return InvalidRole if the role is invalid" in new TestFixture {
+      val csrCredentialsProvider = new TestCsrCredentialsProvider(signInResponse = Future.failed(new InvalidRoleException))
+      csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(InvalidRole)
+    }
+
+    "return AccountLocked when account status is locked" in new TestFixture {
+      val csrCredentialsProvider = new TestCsrCredentialsProvider(
+        signInResponse = Future.failed(new InvalidCredentialsException),
+        failedLoginResponse = Future.successful(userResponse.copy(lockStatus = "LOCKED")))
+      csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(AccountLocked)
+    }
+
+    "return LastAttempt when account status is last attempt" in new TestFixture {
+      val csrCredentialsProvider = new TestCsrCredentialsProvider(
+        signInResponse = Future.failed(new InvalidCredentialsException),
+        failedLoginResponse = Future.successful(userResponse.copy(lockStatus = "LAST_ATTEMPT")))
+      csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(LastAttempt)
     }
 
     "return InvalidCredentials when the credentials are invalid and we cannot record login failure" in new TestFixture {
-      val csrCredentialsProvider = new CsrCredentialsProvider {
-        val http = CSRHttp
-        override def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          Future.failed(new InvalidCredentialsException)
-        }
-        override def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          Future.failed(new InvalidCredentialsException())
-        }
-      }
-      val result = csrCredentialsProvider.authenticate(Credentials(Id, Password))
-      result.futureValue mustBe Left(InvalidCredentials)
+      val csrCredentialsProvider = new TestCsrCredentialsProvider(
+        signInResponse = Future.failed(new InvalidCredentialsException),
+        failedLoginResponse = Future.failed(new InvalidCredentialsException()))
+      csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(InvalidCredentials)
     }
 
-    "return InvalidCredentials when the credentials are invalid" in new TestFixture {
-      val csrCredentialsProvider = new CsrCredentialsProvider {
-        val http = CSRHttp
-        override def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          Future.failed(new InvalidCredentialsException)
-        }
-        override def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          val userResponse = UserResponse(FirstName, LastName, Some(PreferredName), true, UserId,
-            Email, "", Role, ServiceName)
-          Future.successful(userResponse)
-        }
-      }
-      val result = csrCredentialsProvider.authenticate(Credentials(Id, Password))
-      result.futureValue mustBe Left(InvalidCredentials)
+    "return InvalidCredentials when the credentials are invalid and we can record failed login" in new TestFixture {
+      val csrCredentialsProvider = new TestCsrCredentialsProvider(
+        signInResponse = Future.failed(new InvalidCredentialsException),
+        failedLoginResponse = Future.successful(userResponse))
+      csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(InvalidCredentials)
     }
 
-    "return user when credentials are valid" in new TestFixture {
-      val csrCredentialsProvider = new CsrCredentialsProvider {
-        val http = CSRHttp
-        override def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          val userResponse = UserResponse(FirstName, LastName, Some(PreferredName), true, UserId,
-            Email, "", Role, ServiceName)
-          Future.successful(userResponse)
-        }
-
-      }
-      val result = csrCredentialsProvider.authenticate(Credentials(Id, Password))
-      result.futureValue mustBe Right(CachedUser(UserId, FirstName, LastName, Some(PreferredName), Email, true, ""))
-    }
-  }
-  "recordFailedAttempt" should {
-    "return AccountLocked when status is locked" in new TestFixture {
-      val csrCredentialsProvider = new CsrCredentialsProvider {
-        val http = CSRHttp
-
-        override def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          val userResponse = UserResponse("", "", Some(""), true, UniqueIdentifier(UUID.randomUUID()),
-            Email, "LOCKED", "", ServiceName)
-          Future.successful(userResponse)
-        }
-      }
-      val result = csrCredentialsProvider.recordFailedAttempt(Email)
-      result.futureValue mustBe Left(AccountLocked)
-    }
-
-    "return LastAttempt when status is last attempt" in new TestFixture {
-      val csrCredentialsProvider = new CsrCredentialsProvider {
-        val http = CSRHttp
-
-        override def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          val userResponse = UserResponse("", "", Some(""), true, UniqueIdentifier(UUID.randomUUID()),
-            Email, "LAST_ATTEMPT", "", ServiceName)
-          Future.successful(userResponse)
-        }
-      }
-      val result = csrCredentialsProvider.recordFailedAttempt(Email)
-      result.futureValue mustBe Left(LastAttempt)
-    }
-
-    "return InvalidCredentials when status is not last attempt or locked" in new TestFixture {
-      val csrCredentialsProvider = new CsrCredentialsProvider {
-        val http = CSRHttp
-
-        override def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          val userResponse = UserResponse("", "", Some(""), true, UniqueIdentifier(UUID.randomUUID()),
-            Email, "xxxx", "", ServiceName)
-          Future.successful(userResponse)
-        }
-      }
-      val result = csrCredentialsProvider.recordFailedAttempt(Email)
-      result.futureValue mustBe Left(InvalidCredentials)
-    }
-
-    "return InvalidCredentials when there is an InvalidCredentialsException" in new TestFixture {
-      val csrCredentialsProvider = new CsrCredentialsProvider {
-        val http = CSRHttp
-
-        override def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          Future.failed(new InvalidCredentialsException)
-        }
-      }
-      val result = csrCredentialsProvider.recordFailedAttempt(Email)
-      result.futureValue mustBe Left(InvalidCredentials)
+    "return InvalidCredentials when sign in fails and status is not last attempt or locked" in new TestFixture {
+      val csrCredentialsProvider = new TestCsrCredentialsProvider(
+        signInResponse = Future.failed(new InvalidCredentialsException),
+        failedLoginResponse = Future.successful(userResponse.copy(lockStatus = "xxxx")))
+      csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(InvalidCredentials)
     }
 
     "return AccountLocked when there is an AccountLockedOutException" in new TestFixture {
-      val csrCredentialsProvider = new CsrCredentialsProvider {
-        val http = CSRHttp
-
-        override def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
-          Future.failed(new AccountLockedOutException)
-        }
-      }
-      val result = csrCredentialsProvider.recordFailedAttempt(Email)
-      result.futureValue mustBe Left(AccountLocked)
+      val csrCredentialsProvider = new TestCsrCredentialsProvider(
+        signInResponse = Future.failed(new InvalidCredentialsException),
+        failedLoginResponse = Future.failed(new AccountLockedOutException))
+      csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(AccountLocked)
     }
   }
 
@@ -170,5 +101,25 @@ class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures {
     val ServiceName = "faststream"
     val Id = "login"
     val Password = "password"
+
+    val credentials = Credentials(Id, Password)
+    val userResponse = UserResponse(FirstName, LastName, Some(PreferredName), true, UserId,
+      Email, "", Role, ServiceName)
+
+    class TestCsrCredentialsProvider(signInResponse: Future[UserResponse] = Future.successful(userResponse),
+                                     failedLoginResponse: Future[UserResponse] = Future.successful(userResponse))
+      extends CsrCredentialsProvider {
+
+      val http = CSRHttp
+
+      override def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
+        signInResponse
+      }
+
+      override def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
+        failedLoginResponse
+      }
+    }
+
   }
 }
