@@ -25,17 +25,28 @@ object QuestionnaireDiversityInfoForm {
 
   val form = Form(
     mapping(
+//      "gender" -> of(Mappings.fieldWithCheckBox(256)),
+//      "gender-other" -> optional(Mappings.nonEmptyTrimmedText("error.required.gender", 256)),
+//      "gender-preferNotSay" -> optional(checked(Messages("error.required.gender"))),
+//
+//      "orientation" -> of(Mappings.fieldWithCheckBox(256)),
+//      "orientation-other" -> optional(Mappings.nonEmptyTrimmedText("error.required.sexOrientation", 256)),
+//      "orientation-preferNotSay" -> optional(checked(Messages("error.required.sexOrientation"))),
+//
+//      "ethnicity" -> of(Mappings.fieldWithCheckBox(256)),
+//      "ethnicity-other" -> optional(Mappings.nonEmptyTrimmedText("error.required.ethnicity", 256)),
+//      "ethnicity-preferNotSay" -> optional(checked(Messages("error.required.ethnicity")))
       "gender" -> of(Mappings.fieldWithCheckBox(256)),
-      "gender-other" -> optional(Mappings.nonEmptyTrimmedText("error.required.gender", 256)),
-      "gender-preferNotSay" -> optional(checked(Messages("error.required.gender"))),
+      "other_gender" -> optional(Mappings.nonEmptyTrimmedText("error.required.gender", 256)),
+      "preferNotSay_gender" -> optional(checked(Messages("error.required.gender"))),
 
-      "orientation" -> of(Mappings.fieldWithCheckBox(256)),
-      "orientation-other" -> optional(Mappings.nonEmptyTrimmedText("error.required.sexOrientation", 256)),
-      "orientation-preferNotSay" -> optional(checked(Messages("error.required.sexOrientation"))),
+      "sexOrientation" -> of(Mappings.fieldWithCheckBox(256)),
+      "other_sexOrientation" -> optional(Mappings.nonEmptyTrimmedText("error.required.sexOrientation", 256)),
+      "preferNotSay_sexOrientation" -> optional(checked(Messages("error.required.sexOrientation"))),
 
       "ethnicity" -> of(Mappings.fieldWithCheckBox(256)),
-      "ethnicity-other" -> optional(Mappings.nonEmptyTrimmedText("error.required.ethnicity", 256)),
-      "ethnicity-preferNotSay" -> optional(checked(Messages("error.required.ethnicity")))
+      "other_ethnicity" -> optional(Mappings.nonEmptyTrimmedText("error.required.ethnicity", 256)),
+      "preferNotSay_ethnicity" -> optional(checked(Messages("error.required.ethnicity")))
     )(Data.apply)(Data.unapply)
   )
 

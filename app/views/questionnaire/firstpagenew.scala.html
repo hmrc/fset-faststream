@@ -31,7 +31,7 @@
                         ("preferNotSay","I don't know/prefer not to say",false)), optionTrigger = "genderDescribe")
                 </div>
                 <div class="toggle-content form-group form-group-compound" id="genderDescribe">
-                @helper.inputText(questionnaireForm("genderDescribe"),
+                @helper.inputText(questionnaireForm("other_gender"),
                     '_label -> "Provide more information (optional)",
                     'class -> "form-control",
                     '_showConstraints -> false,
@@ -43,10 +43,10 @@
         <section>
             <fieldset class="form_group">
                 <legend class="form-label" id="orientation-ques">@Messages("sexOrientation.question")</legend>
-                @radioBoxVertical(questionnaireForm("orientation"), options = Seq(("straight","Heterosexual/straight",false), ("gay","Gay/lesbian",false),("bisexual","Bisexual",false),
-                    ("other","Other",false), ("dunno","I don't know/prefer not to say",false)))
-                <div class="toggle-content form-group form-group-compound" id="orientation-describe">
-                @helper.inputText(questionnaireForm("orientation-other"),
+                @radioBoxVertical(questionnaireForm("sexOrientation"), options = Seq(("straight","Heterosexual/straight",false), ("gay","Gay/lesbian",false),("bisexual","Bisexual",false),
+                    ("other","Other",true), ("preferNotSay","I don't know/prefer not to say",false)), optionTrigger = "orientationDescribe")
+                <div class="toggle-content form-group form-group-compound" id="orientationDescribe">
+                @helper.inputText(questionnaireForm("other_sexOrientation"),
                     '_label -> "Provide more information (optional)",
                     'class -> "form-control",
                     '_showConstraints -> false,
@@ -62,7 +62,7 @@
             }
 
             <div class="toggle-content form-group form-group-compound" id="ethnicity-describe">
-            @helper.inputText(questionnaireForm("ethnicity-other"),
+            @helper.inputText(questionnaireForm("other_ethnicity"),
                 '_label -> "Provide more information (optional)",
                 'class -> "form-control",
                 '_showConstraints -> false,
