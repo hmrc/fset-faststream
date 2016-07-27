@@ -187,8 +187,7 @@ object Roles {
     AssistanceRole -> routes.AssistanceController.present,
     ReviewRole -> routes.ReviewApplicationController.present,
     StartQuestionnaireRole -> routes.QuestionnaireController.start,
-    //DiversityQuestionnaireRole -> routes.QuestionnaireController.firstPageView, //kjh todo
-    DiversityQuestionnaireRole -> routes.QuestionnaireController.firstPageViewNew,
+    DiversityQuestionnaireRole -> routes.QuestionnaireController.firstPageView,
     EducationQuestionnaireRole -> routes.QuestionnaireController.secondPageView,
     OccupationQuestionnaireRole -> routes.QuestionnaireController.thirdPageView,
     SubmitApplicationRole -> routes.SubmitApplicationController.present,

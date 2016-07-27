@@ -52,16 +52,10 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
       Future.successful(Ok(views.html.questionnaire.firstpage(QuestionnaireDiversityInfoForm.form)))
   }
 
-  def firstPageViewNew = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
-    implicit user =>
-      Future.successful(Ok(views.html.questionnaire.firstpagenew(QuestionnaireDiversityInfoForm.form)))
-  }
-
   def secondPageView = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.questionnaire.secondpage(QuestionnaireEducationInfoForm.form)))
   }
-
   def thirdPageView = CSRSecureAppAction(OccupationQuestionnaireRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.questionnaire.thirdpage(QuestionnaireOccupationInfoForm.form)))
@@ -70,7 +64,7 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
   def submitStart = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
     implicit user =>
       val empty = Questionnaire(List())
-      submitQuestionnaire(empty, "start_questionnaire")(Redirect(routes.QuestionnaireController.firstPageViewNew()))
+      submitQuestionnaire(empty, "start_questionnaire")(Redirect(routes.QuestionnaireController.firstPageView()))
   }
 
   def submitContinue = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
@@ -80,7 +74,7 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
         case (_, _, true) => Redirect(routes.SubmitApplicationController.present())
         case (_, true, _) => Redirect(routes.QuestionnaireController.thirdPageView())
         case (true, _, _) => Redirect(routes.QuestionnaireController.secondPageView())
-        case (_, _, _) => Redirect(routes.QuestionnaireController.firstPageViewNew())
+        case (_, _, _) => Redirect(routes.QuestionnaireController.firstPageView())
       })
   }
 
@@ -89,18 +83,6 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
       QuestionnaireDiversityInfoForm.form.bindFromRequest.fold(
         errorForm => {
           Future.successful(Ok(views.html.questionnaire.firstpage(errorForm)))
-        },
-        data => {
-          submitQuestionnaire(data.toQuestionnaire, "diversity_questionnaire")(Redirect(routes.QuestionnaireController.secondPageView()))
-        }
-      )
-  }
-
-  def firstPageSubmitNew = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
-    implicit user =>
-      QuestionnaireDiversityInfoForm.form.bindFromRequest.fold(
-        errorForm => {
-          Future.successful(Ok(views.html.questionnaire.firstpagenew(errorForm)))
         },
         data => {
           submitQuestionnaire(data.toQuestionnaire, "diversity_questionnaire")(Redirect(routes.QuestionnaireController.secondPageView()))
