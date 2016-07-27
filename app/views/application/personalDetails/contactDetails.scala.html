@@ -1,7 +1,14 @@
 @(form: Form[_root_.forms.GeneralDetailsForm.Data])(implicit lang: play.api.i18n.Lang)
 
 @import helpers.CSRFieldConstructor._
-    @import views.html.widgets.checkbox
+@import views.html.widgets.checkbox
+
+@isOutsideUk = @{
+    form("outsideUk").value match {
+        case Some("true") => true
+        case _ => false
+    }
+}
 
 <section class="section-border">
     <h2 class="heading-medium">Contact details</h2>
@@ -41,6 +48,7 @@
             'autocapitalize -> "characters",
             'autocorrect -> "off",
             'class -> "form-control form-control-large",
+            '_class -> (if(isOutsideUk) "toggle-content" else ""),
             '_showConstraints -> false)(helpers.CSRFieldConstructor.myFields, lang)
     </div>
 
