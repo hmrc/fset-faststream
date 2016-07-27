@@ -37,6 +37,12 @@ object QuestionnaireDiversityInfoForm {
     )(Data.apply)(Data.unapply)
   )
 
+  val acceptanceForm = Form(
+    mapping(
+      "accept-terms" -> checked(Messages("error.required.acceptance"))
+    )(AcceptanceTerms.apply)(AcceptanceTerms.unapply)
+  )
+
   case class Data(
     gender: Option[String],
     otherGender: Option[String],
@@ -53,4 +59,12 @@ object QuestionnaireDiversityInfoForm {
     ))
   }
 
+  case class AcceptanceTerms(acceptTerms: Boolean) {
+    def toQuestionnaire: Questionnaire = {
+      val answer = if (acceptTerms) Some("Yes") else Some("No")
+      Questionnaire(List(
+        Question(Messages("accept-terms.question"), Answer(answer, None, None)
+        )))
+    }
+  }
 }

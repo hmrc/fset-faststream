@@ -1,4 +1,5 @@
-@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@import views.html.widgets.checkbox
+@(acceptanceForm: Form[_root_.forms.QuestionnaireDiversityInfoForm.AcceptanceTerms])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @main_template(title = "Before you continue") {
     <h1 class="heading-xlarge">Before you continue</h1>
@@ -27,9 +28,9 @@
     @helper.form(action = routes.QuestionnaireController.submitStart(), 'novalidate -> "novalidate") {
         <div class="form-group">
             @helper.CSRF.formField
-            <label for="accept-terms" class="block-label">
-                <input type="checkbox" id="accept-terms">I understand this won't affect my application
-            </label>
+            @checkbox(acceptanceForm("accept-terms")) {
+                I understand this won't affect my application
+            }
         </div>
         <button id="btnStart" type="submit" value="submit" class="button">Start questions</button>
     }

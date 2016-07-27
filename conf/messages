@@ -118,6 +118,7 @@ error.required.parentsOccupation = What was your parent(s) or guardian(s) work s
 error.required.employee = Were your parent(s) or guardian(s) employed or self-employed?
 error.required.organizationSize = What was the size of the organisation?
 error.required.supervise = Were your parent(s) or guardian(s) supervising employees?
+error.required.acceptance = There is a problem on this page. Confirm you understand that the information you give here won''t affect your application.
 
 #Questions section for questionnaire
 gender.question = What is your gender identity?
@@ -133,6 +134,7 @@ parentsOccupation.question = Which type of occupation did they have?
 employee.question = Did they work as an employee or were they self-employed?
 organizationSize.question = Which size would best describe their place of work?
 supervise.question = Did they supervise any other employees?
+accept-terms.question = I understand this won''t affect my application
 
 success.allocation.confirmed = You''ve successfully confirmed your assessment date.
 
