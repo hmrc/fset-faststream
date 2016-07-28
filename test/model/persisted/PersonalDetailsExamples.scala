@@ -16,12 +16,9 @@
 
 package model.persisted
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import org.joda.time.LocalDate
+import org.scalatest.FunSuite
 
-case class Address(line1: String, line2: Option[String] = None, line3: Option[String] = None, line4: Option[String] = None)
-
-object Address {
-  implicit val addressFormat = Json.format[Address]
-  implicit val addressHandler = Macros.handler[Address]
+object PersonalDetailsExamples extends FunSuite {
+  val JohnDoe = PersonalDetails("John", "Doe", "johnd", LocalDate.now().minusYears(20))
 }

@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package model.command
+package model
 
-import org.joda.time.LocalDate
-import model.AddressExamples._
-
-object UpdateGeneralDetailsExamples {
-  val CandidateContactDetailsUK = UpdateGeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
-    outsideUk = false, FullAddress, Some("A1 B23"), "1234567890")
+object AddressExamples {
+  val FullAddress = Address("line1", Some("line2"), Some("line3"), Some("line4"))
 }

@@ -16,6 +16,7 @@
 
 package services.generaldetails
 
+import model.Address
 import model.ApplicationStatus._
 import model.command.UpdateGeneralDetails
 import model.persisted.{ContactDetails, PersonalDetails}
@@ -41,8 +42,8 @@ trait CandidateDetailsService {
   def update(applicationId: String, userId: String, candidateDetails: UpdateGeneralDetails): Future[Unit] = {
     val personalDetails = PersonalDetails(candidateDetails.firstName, candidateDetails.lastName, candidateDetails.preferredName,
       candidateDetails.dateOfBirth)
-    val contactDetails = ContactDetails(candidateDetails.outsideUk, toPersistedAddress(candidateDetails.address),
-      candidateDetails.postCode, candidateDetails.email, candidateDetails.phone)
+    val contactDetails = ContactDetails(candidateDetails.outsideUk, candidateDetails.address, candidateDetails.postCode,
+      candidateDetails.email, candidateDetails.phone)
 
     val updatePersonalDetailsFut = pdRepository.update(applicationId, userId, personalDetails,
       sourceStatuses = List(CREATED, IN_PROGRESS), targetStatus = IN_PROGRESS)
@@ -62,12 +63,7 @@ trait CandidateDetailsService {
       pd <- personalDetailsFut
       cd <- contactDetailsFut
     } yield UpdateGeneralDetails(pd.firstName, pd.lastName, pd.preferredName, cd.email, pd.dateOfBirth,
-      cd.outsideUk, toRequestAddress(cd.address), cd.postCode, cd.phone)
+      cd.outsideUk, cd.address, cd.postCode, cd.phone)
   }
 
-  private def toPersistedAddress(address: model.command.Address): model.persisted.Address =
-    model.persisted.Address(address.line1, address.line2, address.line3, address.line4)
-
-  private def toRequestAddress(address: model.persisted.Address) =
-    model.command.Address(address.line1, address.line2, address.line3, address.line4)
 }

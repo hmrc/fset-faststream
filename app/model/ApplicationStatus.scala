@@ -20,6 +20,7 @@ import model.persisted.GeneralDetailsStatuses
 import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
 import reactivemongo.bson.{BSON, BSONHandler, BSONString, Macros}
 
+
 object ApplicationStatus extends Enumeration with GeneralDetailsStatuses {
   type ApplicationStatus = Value
 

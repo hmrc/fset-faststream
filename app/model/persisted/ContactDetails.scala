@@ -16,6 +16,7 @@
 
 package model.persisted
 
+import model.Address
 import model.Commands.{PhoneNumber, PostCode}
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros

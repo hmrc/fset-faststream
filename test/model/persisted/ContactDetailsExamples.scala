@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package model.command
+package model.persisted
 
-import play.api.libs.json.Json
+import model.AddressExamples._
 
-case class Address(line1: String, line2: Option[String] = None, line3: Option[String] = None, line4: Option[String] = None)
-
-object Address {
-  implicit val addressFormat = Json.format[Address]
+object ContactDetailsExamples {
+  val ContactDetailsUK = ContactDetails(outsideUk = false, FullAddress, Some("A1 B23"), "johndoe@test.com", "1234567890")
 }

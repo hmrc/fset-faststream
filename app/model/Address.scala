@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package model.command
+package model
 
-import org.joda.time.LocalDate
-import model.AddressExamples._
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-object UpdateGeneralDetailsExamples {
-  val CandidateContactDetailsUK = UpdateGeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
-    outsideUk = false, FullAddress, Some("A1 B23"), "1234567890")
+case class Address(line1: String, line2: Option[String] = None, line3: Option[String] = None, line4: Option[String] = None)
+
+object Address {
+  implicit val addressFormat = Json.format[Address]
+  implicit val addressHandler = Macros.handler[Address]
 }

@@ -21,10 +21,15 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.Results
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 
 abstract class BaseControllerSpec extends PlaySpec with MockitoSugar with Results {
+  val AppId = "AppId"
+  val UserId = "UserId"
 
   def fakeRequest[T](request: T)(implicit tjs: Writes[T]) =
     FakeRequest("", "", FakeHeaders(), Json.toJson(request)).withHeaders("Content-Type" -> "application/json")
+
+  def fakeRequest = FakeRequest()
+
 }

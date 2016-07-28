@@ -16,6 +16,7 @@
 
 package model.command
 
+import model.Address
 import model.Commands.{PhoneNumber, PostCode}
 import org.joda.time.LocalDate
 import play.api.libs.json.Json

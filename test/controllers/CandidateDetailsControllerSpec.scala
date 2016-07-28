@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.{CannotUpdateContactDetails, CannotUpdateRecord}
+import model.Exceptions.{CannotUpdateContactDetails, CannotUpdateRecord, ContactDetailsNotFound, PersonalDetailsNotFound}
 import model.command.UpdateGeneralDetailsExamples._
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
@@ -32,44 +32,64 @@ class CandidateDetailsControllerSpec extends BaseControllerSpec {
   val mockCandidateDetailsService = mock[CandidateDetailsService]
   val mockAuditService = mock[AuditService]
 
-  def controller = new CandidateDetailsController {
+  val controller = new CandidateDetailsController {
     val candidateDetailsService = mockCandidateDetailsService
     val auditService = mockAuditService
   }
 
   "update details" should {
-    val Request = fakeRequest(GeneralDetailsInsideUK)
+    val Request = fakeRequest(CandidateContactDetailsUK)
 
     "return Created when update is successful" in {
-      when(mockCandidateDetailsService.update("appId", "userId", GeneralDetailsInsideUK)).thenReturn(Future.successful())
+      when(mockCandidateDetailsService.update(AppId, UserId, CandidateContactDetailsUK)).thenReturn(Future.successful())
       reset(mockAuditService)
 
-      val response = controller.updateDetails("userId", "appId")(Request)
+      val response = controller.updateDetails(UserId, AppId)(Request)
 
       status(response) mustBe CREATED
       verify(mockAuditService).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
     }
 
     "return Bad Request when CannotUpdateContactDetails is thrown" in {
-      when(mockCandidateDetailsService.update("appId", "userId", GeneralDetailsInsideUK))
-        .thenReturn(Future.failed(CannotUpdateContactDetails("userId")))
+      when(mockCandidateDetailsService.update(AppId, UserId, CandidateContactDetailsUK))
+        .thenReturn(Future.failed(CannotUpdateContactDetails(UserId)))
       reset(mockAuditService)
 
-      val response = controller.updateDetails("userId", "appId")(Request)
+      val response = controller.updateDetails(UserId, AppId)(Request)
 
       status(response) mustBe BAD_REQUEST
       verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
     }
 
     "return Bad Request when CannotUpdateRecord is thrown" in {
-      when(mockCandidateDetailsService.update("appId", "userId", GeneralDetailsInsideUK))
-        .thenReturn(Future.failed(CannotUpdateRecord("userId")))
+      when(mockCandidateDetailsService.update(AppId, UserId, CandidateContactDetailsUK))
+        .thenReturn(Future.failed(CannotUpdateRecord(UserId)))
       reset(mockAuditService)
 
-      val response = controller.updateDetails("userId", "appId")(Request)
+      val response = controller.updateDetails(UserId, AppId)(Request)
 
       status(response) mustBe BAD_REQUEST
       verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
+    }
+  }
+
+  "find" should {
+    "return a candidate details" in {
+      when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.successful(CandidateContactDetailsUK))
+      val response = controller.find(UserId, AppId)(fakeRequest)
+      status(response) mustBe OK
+    }
+
+    "return Not Found when contact details cannot be found" in {
+      when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.failed(ContactDetailsNotFound(UserId)))
+      val response = controller.find(UserId, AppId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
+    }
+
+    "return Not Found when person details cannot be found" in {
+      when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.failed(PersonalDetailsNotFound(AppId)))
+      val response = controller.find(UserId, AppId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
     }
   }
 }
