@@ -18,6 +18,7 @@ package repositories
 
 import config.MicroserviceAppConfig
 import model.Commands._
+import model.Address
 import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound }
 import model.PersistedObjects
 import model.PersistedObjects._

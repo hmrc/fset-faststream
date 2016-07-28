@@ -45,9 +45,6 @@ object Commands {
 
   case class PersonalDetailsAdded(applicationId: String, userId: String)
 
-  @deprecated("fasttrack version")
-  case class Address(line1: String, line2: Option[String] = None, line3: Option[String] = None, line4: Option[String] = None)
-
   type PostCode = String
   type PhoneNumber = String
 

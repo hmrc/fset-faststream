@@ -22,7 +22,7 @@ import connectors.{ CubiksGatewayClient, EmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import mocks._
 import mocks.application.{ DocumentRootInMemoryRepository, OnlineTestInMemoryRepository }
-import model.Commands.Address
+import model.Address
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PersistedObjects.ContactDetails
 import org.joda.time.DateTime
