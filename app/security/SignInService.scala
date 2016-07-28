@@ -62,7 +62,7 @@ trait SignInService {
   }
 
   def showErrorLogin(data: Data, errorMsg: String = "signIn.invalid")(implicit user: Option[CachedData], request: Request[_]): Result =
-    Ok(views.html.index.guestwelcome(
+    Ok(views.html.index.signin(
       SignInForm.form.fill(SignInForm.Data(signIn = data.signIn, signInPassword = "")), Some(danger(errorMsg))
     ))
 

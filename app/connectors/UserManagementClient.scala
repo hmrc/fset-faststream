@@ -52,7 +52,6 @@ trait UserManagementClient {
       }
     }.recover {
       case Upstream4xxResponse(_, 401, _, _) => throw new InvalidCredentialsException()
-      case Upstream4xxResponse(_, 429, _, _) => throw new AccountLockedOutException()
     }
 
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] =
@@ -105,7 +104,6 @@ trait UserManagementClient {
 
 object UserManagementClient extends UserManagementClient {
   val http: CSRHttp = CSRHttp
-
   sealed class InvalidRoleException extends Exception
   sealed class InvalidEmailException extends Exception
   sealed class EmailTakenException extends Exception
