@@ -29,6 +29,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+@deprecated("fasttrack version")
 trait PersonalDetailsRepository {
 
   val errorCode = 500
@@ -40,6 +41,7 @@ trait PersonalDetailsRepository {
   def findPersonalDetailsWithUserId(applicationId: String): Future[PersonalDetailsWithUserId]
 }
 
+@deprecated("fasttrack version")
 class PersonalDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[PersonalDetails, BSONObjectID]("application", mongo,
     PersistedObjects.Implicits.persistedPersonalDetailsFormats, ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository {
@@ -73,10 +75,8 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
         val lastName = root.getAs[String]("lastName").get
         val preferredName = root.getAs[String]("preferredName").get
         val dateOfBirth = root.getAs[LocalDate]("dateOfBirth").get
-        val aLevel = root.getAs[Boolean]("aLevel").get
-        val stemLevel = root.getAs[Boolean]("stemLevel").get
 
-        PersonalDetails(firstName, lastName, preferredName, dateOfBirth, aLevel, stemLevel)
+        PersonalDetails(firstName, lastName, preferredName, dateOfBirth, false, false)
       }
       case _ => throw new PersonalDetailsNotFound(applicationId)
     }

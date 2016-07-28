@@ -17,17 +17,18 @@
 package services.allocation
 
 import connectors.EmailClient
-import model.Commands.{ Address, ApplicationAssessment }
-import model.PersistedObjects.{ AllocatedCandidate, ContactDetails, PersonalDetailsWithUserId }
-import org.joda.time.{ DateTime, LocalDate }
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import model.Address
+import model.Commands.ApplicationAssessment
+import model.PersistedObjects.{AllocatedCandidate, ContactDetails, PersonalDetailsWithUserId}
+import org.joda.time.{DateTime, LocalDate}
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.time.{ Seconds, Span }
+import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.PlaySpec
 import repositories.application.CandidateAllocationRepository
-import repositories.{ ApplicationAssessmentRepository, ContactDetailsRepository }
+import repositories.{ApplicationAssessmentRepository, ContactDetailsRepository}
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 

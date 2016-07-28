@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import connectors.EmailClient
-import model.Commands.Address
+import model.Address
 import model.PersistedObjects.{ ContactDetails, ExpiringOnlineTest }
 import org.mockito.Matchers.{ any, eq => eqTo }
 import org.mockito.Mockito._

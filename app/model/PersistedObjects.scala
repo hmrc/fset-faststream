@@ -16,15 +16,17 @@
 
 package model
 
-import model.Commands.{ Address, PhoneNumber, PostCode }
+import model.Commands.{PhoneNumber, PostCode}
 import model.OnlineTestCommands.TestResult
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json._
 
+@deprecated("fasttrack version. Create one case class in one file. All persisted case classes are in model.persisted package")
 object PersistedObjects {
 
   case class ApplicationStatus(applicationId: String, applicationStatus: String)
 
+  @deprecated("fasttrack version")
   case class PersonalDetails(
     firstName: String,
     lastName: String,
