@@ -19,28 +19,28 @@ package services.applicationassessment
 import config.AssessmentEvaluationMinimumCompetencyLevel
 import connectors.EmailClient
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
-import model.CandidateScoresCommands.{ CandidateScores, CandidateScoresAndFeedback }
+import model.CandidateScoresCommands.{CandidateScores, CandidateScoresAndFeedback}
 import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
-import model.Exceptions.{ IncorrectStatusInApplicationException, NotFoundException }
-import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold }
-import model.PersistedObjects.{ ApplicationForNotification, ContactDetails }
-import model.{ EvaluationResults, LocationPreference, Preferences }
+import model.Exceptions.{IncorrectStatusInApplicationException, NotFoundException}
+import model.PassmarkPersistedObjects.{AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold}
+import model.PersistedObjects.{ApplicationForNotification, ContactDetails}
+import model.{Address, EvaluationResults, LocationPreference, Preferences}
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.time.{ Seconds, Span }
+import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.PlaySpec
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
-import repositories.{ ApplicationAssessmentScoresRepository, _ }
+import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.{ApplicationAssessmentScoresRepository, _}
 import services.AuditService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class ApplicationAssessmentServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures {
   implicit val ec: ExecutionContext = ExecutionContext.global
