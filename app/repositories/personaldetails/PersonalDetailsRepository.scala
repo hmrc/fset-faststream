@@ -47,7 +47,7 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
     ))
 
     val personalDetailsBSON = BSONDocument("$set" -> BSONDocument(
-      "applicationStatus" -> newApplicationStatus, // TODO add converter to not put toString
+      "applicationStatus" -> newApplicationStatus,
       "progress-status.personal-details" -> true,
       PersonalDetailsCollection -> personalDetails
     ))

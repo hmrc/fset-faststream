@@ -23,7 +23,6 @@ import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 case class PersonalDetails(firstName: String, lastName: String, preferredName: String, dateOfBirth: LocalDate)
 
 object PersonalDetails {
-
   import repositories.BSONLocalDateHandler
 
   implicit val personalDetailsFormat = Json.format[PersonalDetails]

@@ -54,10 +54,9 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     val projection = BSONDocument(ContactDetailsCollection -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument]("contact-details").isDefined => {
-        document.getAs[ContactDetails]("contact-details").get
-      }
-      case None => throw new ContactDetailsNotFound(userId)
+      case Some(d) if d.getAs[BSONDocument]("contact-details").isDefined =>
+        d.getAs[ContactDetails]("contact-details").get
+      case None => throw ContactDetailsNotFound(userId)
     }
   }
 }
