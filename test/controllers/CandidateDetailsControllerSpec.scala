@@ -41,7 +41,7 @@ class CandidateDetailsControllerSpec extends BaseControllerSpec {
     val Request = fakeRequest(CandidateContactDetailsUK)
 
     "return Created when update is successful" in {
-      when(mockCandidateDetailsService.update(AppId, UserId, CandidateContactDetailsUK)).thenReturn(Future.successful())
+      when(mockCandidateDetailsService.update(AppId, UserId, CandidateContactDetailsUK)).thenReturn(Future.successful(()))
       reset(mockAuditService)
 
       val response = controller.updateDetails(UserId, AppId)(Request)
