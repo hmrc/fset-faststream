@@ -1,0 +1,35 @@
+@(signInForm: Form[_root_.forms.SignInForm.Data], notification: Option[(helpers.NotificationType, String)] = None
+    )(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, faststreamConfig: FaststreamConfig)
+
+@import helpers.CSRFieldConstructor._
+
+@main_template(title = "Sign in", pageForms = Seq(signInForm), notification = notification) {
+
+    <h1 class="heading-xlarge">Sign in</h1>
+    <section class="panel-indent text">
+        <p>To sign in you must have already created an account for the Fast Stream.</p>
+        <p>If you don't have an account you can <a href="@routes.SignUpController.present" id="createAccount">create your account</a>.</p>
+    </section>
+
+    @helper.form(action = routes.SignInController.signIn(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+
+        @helper.inputText(signInForm("signIn"),
+            '_label -> "Email",
+            'type -> "email",
+            'class -> "form-control",
+            '_class -> "form-group-compound",
+            '_showConstraints -> false)
+        @helper.inputPassword(signInForm("signInPassword"),
+            '_label -> "Password",
+            'class -> "form-control",
+            '_hasLink -> true,
+            '_showConstraints -> false)
+
+        <p><a href="@routes.PasswordResetController.presentCode(None)">I can't access my account</a></p>
+
+        <div class="form-group small-btm-margin">
+            <button id="btnSignIn" type="submit" value="submit" class="button">Sign in</button>
+        </div>
+    }
+}
