@@ -80,7 +80,7 @@ trait AuthProviderClient {
     }
 
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    WSHttp.POST(s"$url/activate", ActivateEmailRequest(ServiceName, email.toLowerCase, token)).map(_ => (): Unit)
+    WSHttp.POST(s"$url/activate", ActivateEmailRequest(email.toLowerCase, token, ServiceName)).map(_ => (): Unit)
       .recover {
         case Upstream4xxResponse(_, 410, _, _) => throw new TokenExpiredException()
         case e: NotFoundException => throw new TokenEmailPairInvalidException()
