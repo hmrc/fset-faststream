@@ -34,6 +34,8 @@ object DayMonthYear {
     dmy.getYear.toString
   )
 
+  def emptyDate: DayMonthYear = DayMonthYear("", "", "")
+
   def validDayMonthYear(message: String, msgForFuture: String)(minInclusive: Option[LocalDate], maxInclusive: Option[LocalDate]) =
     dayMonthYear(message) verifying validDateConstraint(message, msgForFuture)(minInclusive, maxInclusive)
 

@@ -19,53 +19,50 @@ package controllers
 import _root_.forms.GeneralDetailsForm
 import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.{ ApplicationClient, UserManagementClient }
+import connectors.{ApplicationClient, UserManagementClient}
 import helpers.NotificationType._
-import mappings.{ Address, DayMonthYear }
+import mappings.{Address, DayMonthYear}
 import models.ApplicationData.ApplicationStatus._
 import org.joda.time.LocalDate
 import security.Roles.PersonalDetailsRole
 
 import scala.concurrent.Future
 
-object FastStreamApplication extends FastStreamApplication(ApplicationClient) {
+object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, UserManagementClient) {
   val http = CSRHttp
 }
 
-abstract class FastStreamApplication(applicationClient: ApplicationClient) extends BaseController(applicationClient) with UserManagementClient {
+abstract class PersonalDetailsController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
+  extends BaseController(applicationClient) {
 
-  def generalDetails(start: Option[String] = None) = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
+  def present(start: Option[String] = None) = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
     implicit user =>
       implicit val now: LocalDate = LocalDate.now
-
-      val formFromUser = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
-        user.user.firstName,
-        user.user.lastName,
-        user.user.firstName,
-        DayMonthYear("", "", ""),
-        Address("", None, None, None),
-        "",
-        None,
-        None,
-        None
-      ))
-
       applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
         val form = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
           gd.firstName,
           gd.lastName,
           gd.preferredName,
           gd.dateOfBirth,
+          Some(gd.outsideUk),
           gd.address,
           gd.postCode,
-          gd.phone,
-          Some(gd.aLevel),
-          Some(gd.stemLevel)
+          gd.phone
         ))
         Ok(views.html.application.generalDetails(form))
 
       }.recover {
         case e: PersonalDetailsNotFound =>
+          val formFromUser = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
+            user.user.firstName,
+            user.user.lastName,
+            user.user.firstName,
+            DayMonthYear.emptyDate,
+            outsideUk = None,
+            address = Address.EmptyAddress,
+            postCode = None,
+            phone = None
+          ))
           Ok(views.html.application.generalDetails(formFromUser))
       }
   }
@@ -77,19 +74,14 @@ abstract class FastStreamApplication(applicationClient: ApplicationClient) exten
         errorForm => {
           Future.successful(Ok(views.html.application.generalDetails(errorForm)))
         },
-        generalDetails => {
+        gd => {
           (for {
-            _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID, generalDetails, user.user.email)
-            _ <- updateDetails(user.user.userID, generalDetails.firstName, generalDetails.lastName, Some(generalDetails.preferredName))
-            redirect <- updateProgress(data =>
-              data.copy(
-                user = user.user.copy(
-                  firstName = generalDetails.firstName,
-                  lastName = generalDetails.lastName, preferredName = Some(generalDetails.preferredName)
-                ),
-                application = data.application.map(_.copy(applicationStatus = IN_PROGRESS))
-              ))(_ =>
-              Redirect(routes.SchemeController.entryPoint()))
+            _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID,
+              removePostCodeWhenOutsideUK(gd), user.user.email)
+            _ <- userManagementClient.updateDetails(user.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
+            redirect <- updateProgress(data => data.copy(user = user.user.copy(firstName = gd.firstName, lastName = gd.lastName,
+              preferredName = Some(gd.preferredName)), application = data.application.map(_.copy(applicationStatus = IN_PROGRESS))
+            ))(_ => Redirect(routes.SchemeController.entryPoint()))
           } yield {
             redirect
           }) recover {
@@ -98,4 +90,7 @@ abstract class FastStreamApplication(applicationClient: ApplicationClient) exten
         }
       )
   }
+
+  private def removePostCodeWhenOutsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
+    if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(postCode = None) else generalDetails
 }

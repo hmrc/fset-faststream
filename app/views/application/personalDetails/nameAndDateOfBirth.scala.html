@@ -1,0 +1,24 @@
+@(form: Form[_root_.forms.GeneralDetailsForm.Data])(implicit lang: play.api.i18n.Lang)
+
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.date
+
+<section class="section-border">
+    <h2 class="heading-medium">Name and date of birth</h2>
+
+    @helper.inputText(form("firstName"),
+        '_label -> "First name",
+        'class -> "form-control",
+        '_class -> "form-group-compound",
+        '_showConstraints -> false)
+    @helper.inputText(form("lastName"),
+        '_label -> "Last name",
+        'class -> "form-control",
+        '_showConstraints -> false)
+    @helper.inputText(form("preferredName"),
+        '_label -> "Preferred name",
+        'class -> "form-control",
+        '_showConstraints -> false)
+
+    @date(form, "dateOfBirth", "Date of birth")
+</section>

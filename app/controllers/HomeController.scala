@@ -84,7 +84,7 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
         _ <- env.userService.save(user.copy(application = Some(response)))
         if faststreamConfig.applicationsSubmitEnabled
       } yield {
-        Redirect(routes.FastStreamApplication.generalDetails(Some("start")))
+        Redirect(routes.PersonalDetailsController.present(Some("start")))
       }
   }
 

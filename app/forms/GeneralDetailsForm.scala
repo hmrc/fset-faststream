@@ -18,16 +18,17 @@ package forms
 
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
-import mappings.PostCodeMapping.{ PostCode, validPostcode }
-import mappings.{ Address, DayMonthYear, PhoneNumberMapping }
+import mappings.PostCodeMapping.{PostCode, validPostcode}
+import mappings.{Address, DayMonthYear, PhoneNumberMapping}
 import org.joda.time.LocalDate
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError }
+import play.api.data.{Form, FormError}
 
 object GeneralDetailsForm {
-  val minAge = 16
-  val minDob = new LocalDate(1900, 1, 1)
+  private val MinAge = 16
+  private val MinDob = new LocalDate(1900, 1, 1)
+
   def ageReference(implicit now: LocalDate) = new LocalDate(now.getYear, 8, 31)
 
   val phoneNumberFormatter = new Formatter[Option[String]] {
@@ -45,38 +46,36 @@ object GeneralDetailsForm {
   }
 
   def form(implicit now: LocalDate) = {
-    val maxDob = Some(ageReference.minusYears(minAge))
+    val maxDob = Some(ageReference.minusYears(MinAge))
 
     Form(
       mapping(
         "firstName" -> nonEmptyTrimmedText("error.firstName", 256),
         "lastName" -> nonEmptyTrimmedText("error.lastName", 256),
         "preferredName" -> nonEmptyTrimmedText("error.preferredName", 256),
-        "dateOfBirth" -> DayMonthYear.validDayMonthYear("error.dateOfBirth", "error.dateOfBirthInFuture")(Some(minDob), maxDob),
+        "dateOfBirth" -> DayMonthYear.validDayMonthYear("error.dateOfBirth", "error.dateOfBirthInFuture")(Some(MinDob), maxDob),
+        "outsideUk" -> optional(checked("error.address.required")),
         "address" -> Address.address,
-        "postCode" -> text.verifying(validPostcode),
-        "phone" -> of(phoneNumberFormatter),
-        "alevel-d" -> optional(boolean).verifying("aleveld.required", _.isDefined),
-        "alevel" -> optional(boolean).verifying("alevel.required", _.isDefined)
-      )(Data.apply)(Data.unapply)
+        "postCode" -> optional(text.verifying(validPostcode)),
+        "phone" -> of(phoneNumberFormatter)
+      )(Data.apply)(Data.unapply).verifying("error.postcode.required", d =>
+        !d.insideUk || d.postCode.isDefined
+      )
     )
   }
 
-  case class Data(
-
-    //personal details
-    firstName: String,
-    lastName: String,
-    preferredName: String,
-    dateOfBirth: DayMonthYear,
-
-    //contact details
-    address: Address,
-    postCode: PostCode,
-    phone: Option[PhoneNumber],
-
-    aLevel: Option[Boolean],
-    stemLevel: Option[Boolean]
-  )
+  case class Data(firstName: String,
+                  lastName: String,
+                  preferredName: String,
+                  dateOfBirth: DayMonthYear,
+                  outsideUk: Option[Boolean],
+                  address: Address,
+                  postCode: Option[PostCode],
+                  phone: Option[PhoneNumber]) {
+    def insideUk = outsideUk match {
+      case Some(true) => false
+      case _ => true
+    }
+  }
 
 }

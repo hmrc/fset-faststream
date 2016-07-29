@@ -101,11 +101,10 @@ trait ApplicationClient {
         data.preferredName,
         email,
         LocalDate.parse(s"${data.dateOfBirth.year}-${data.dateOfBirth.month}-${data.dateOfBirth.day}"),
+        data.outsideUk.getOrElse(false),
         data.address,
-        PostCodeMapping.formatPostcode(data.postCode),
-        data.phone,
-        data.aLevel.getOrElse(false),
-        data.stemLevel.getOrElse(false)
+        data.postCode.map(p => PostCodeMapping.formatPostcode(p)),
+        data.phone
       )
     ).map {
         case x: HttpResponse if x.status == CREATED => ()

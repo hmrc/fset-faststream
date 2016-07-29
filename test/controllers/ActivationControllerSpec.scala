@@ -24,7 +24,6 @@ import org.mockito.Mockito._
 import play.api.mvc.{Request, Result, Results}
 import play.api.test.Helpers._
 import security.SignInService
-import support.TestableSecureActions
 
 import scala.concurrent.Future
 
@@ -54,7 +53,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
     "redirect to registration page for inactive user" in {
       val controllerForInactiveUser = new TestableActivationController {
-        override val currentCandidate: CachedData = InactiveCandidate
+        override val Candidate: CachedData = InactiveCandidate
       }
 
       val result = controllerForInactiveUser.present()(fakeRequest)
@@ -67,9 +66,9 @@ class ActivationControllerSpec extends BaseControllerSpec {
   "Activation Controller activate form" should {
     "activate user when activation form is valid" in {
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
-      when(mockEnvironment.activate(eqTo(InactiveCandidateUser.email), eqTo(ValidToken))(any())).thenReturn(Future.successful(()))
+      when(mockEnvironment.activate(eqTo(currentEmail), eqTo(ValidToken))(any())).thenReturn(Future.successful(()))
       when(mockSignInService.signInUser(
-        eqTo(InactiveCandidateUser.copy(isActive = true)),
+        eqTo(currentCandidate.user.copy(isActive = true)),
         eqTo(mockEnvironment),
         any[Result])(any[Request[_]])
       ).thenReturn(Future.successful(Results.Redirect(routes.HomeController.present())))
@@ -92,7 +91,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
     "reject form when token expired" in {
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
-      when(mockEnvironment.activate(eqTo(ActiveCandidateUser.email), eqTo(ValidToken))(any()))
+      when(mockEnvironment.activate(eqTo(currentEmail), eqTo(ValidToken))(any()))
         .thenReturn(Future.failed(new TokenExpiredException))
 
       val result = controller.activateForm()(Request)
