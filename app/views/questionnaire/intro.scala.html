@@ -1,7 +1,7 @@
 @import views.html.widgets.checkbox
 @(acceptanceForm: Form[_root_.forms.QuestionnaireDiversityInfoForm.AcceptanceTerms])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@main_template(title = "Before you continue") {
+@main_template(title = "Before you continue", pageForms = Seq(acceptanceForm)) {
     <h1 class="heading-xlarge">Before you continue</h1>
 
     <section>
