@@ -15,7 +15,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0")
 
-addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.0.0")
+addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.1.0")
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-distributables" % "0.11.0")
 
