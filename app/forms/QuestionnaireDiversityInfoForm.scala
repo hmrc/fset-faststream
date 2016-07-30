@@ -25,10 +25,10 @@ object QuestionnaireDiversityInfoForm {
 
   val form = Form(
     mapping(
-      "gender" -> of(Mappings.fieldWithCheckBox(256)),
+      "gender" -> Mappings.nonEmptyTrimmedText("error.required.gender", 256),
       "other_gender" -> optional(Mappings.nonEmptyTrimmedText("error.required.gender", 256)),
 
-      "sexOrientation" -> of(Mappings.fieldWithCheckBox(256)),
+      "sexOrientation" -> Mappings.nonEmptyTrimmedText("error.required.sexOrientation", 256),
       "other_sexOrientation" -> optional(Mappings.nonEmptyTrimmedText("error.required.sexOrientation", 256)),
 
       "ethnicity" -> of(Mappings.fieldWithCheckBox(256)),
@@ -44,17 +44,17 @@ object QuestionnaireDiversityInfoForm {
   )
 
   case class Data(
-    gender: Option[String],
+    gender: String,
     otherGender: Option[String],
-    sexOrientation: Option[String],
+    sexOrientation: String,
     otherSexOrientation: Option[String],
     ethnicity: Option[String],
     otherEthnicity: Option[String],
     preferNotSayEthnicity: Option[Boolean]
   ) {
     def toQuestionnaire: Questionnaire = Questionnaire(List(
-      Question(Messages("gender.question"), Answer(gender, otherGender, None)),
-      Question(Messages("sexOrientation.question"), Answer(sexOrientation, otherSexOrientation, None)),
+      Question(Messages("gender.question"), Answer(Some(gender), otherGender, None)),
+      Question(Messages("sexOrientation.question"), Answer(Some(sexOrientation), otherSexOrientation, None)),
       Question(Messages("ethnicity.question"), Answer(ethnicity, otherEthnicity, preferNotSayEthnicity))
     ))
   }
