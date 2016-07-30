@@ -18,9 +18,9 @@ package models
 
 object Gender {
   val list = List(
-    ("Male", false),
-    ("Female", false),
-    ("Other", true),
-    ("I don't know/prefer not to say", false)
+    ("male", "Male", false),
+    ("female", "Female", false),
+    ("other", "Other", true),
+    ("preferNotSay","I don't know/prefer not to say",false)
   )
 }

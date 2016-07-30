@@ -5,11 +5,11 @@
 @createId(id:String, v:(String,String,Boolean))=@{id + "-"+v._1.replace(" ", "_").replace("/", "_")}
 
 @helper.input(field, '_class -> (if(isCompound) "form-group-compound" else "inline")) { (id, name, value, args) =>
-    @for(v <- options) {
+    @for(v <- options){
         <div>
-        <label for="@createId(id,v)" class="block-label" @if(v._3){ data-target="@optionTrigger"}>
-            <input name="@name" type="radio" id="@createId(id,v)" value="@{v._1}" @(if(value.contains(v._1)) "checked" else "")>@{v._2}
-        </label>
+            <label for="@createId(id,v)" class="block-label" @if(v._3){ data-target="@optionTrigger"}>
+                <input name="@name" type="radio" id="@createId(id,v)" value="@{v._2}" @(if(value.contains(v._2)) "checked" else "")>@{v._2}
+            </label>
         </div>
     }
 }

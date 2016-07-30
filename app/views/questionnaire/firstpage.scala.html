@@ -1,7 +1,7 @@
 @(questionnaireForm: Form[_root_.forms.QuestionnaireDiversityInfoForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import helpers.CSRFieldConstructor._
-@import views.html.widgets.{checkbox, select_guard, select_guard_multi, radioBoxVertical}
+@import views.html.widgets.{checkbox, radioBoxVertical, select_guard_multi}
 
 @main_template(title = "Diversity questions", pageForms = Seq(questionnaireForm)) {
 
@@ -27,10 +27,9 @@
             <fieldset class="form_group">
                 <legend class="form-label" id="gender-ques">@Messages("gender.question")</legend>
                 <div class="form-group no-btm-margin">
-                    @radioBoxVertical(questionnaireForm("gender"), options = Seq(("male","Male",false),("female","Female",false),("other","Other",true),
-                        ("preferNotSay","I don't know/prefer not to say",false)), optionTrigger = "genderDescribe")
+                    @radioBoxVertical(questionnaireForm("gender"), options = models.Gender.list, optionTrigger = "gender-describe")
                 </div>
-                <div class="toggle-content form-group form-group-compound" id="genderDescribe">
+                <div class="toggle-content form-group form-group-compound" id="gender-describe">
                 @helper.inputText(questionnaireForm("other_gender"),
                     '_label -> "Provide more information (optional)",
                     'class -> "form-control",
@@ -43,9 +42,8 @@
         <section>
             <fieldset class="form_group">
                 <legend class="form-label" id="orientation-ques">@Messages("sexOrientation.question")</legend>
-                @radioBoxVertical(questionnaireForm("sexOrientation"), options = Seq(("straight","Heterosexual/straight",false), ("gay","Gay/lesbian",false),("bisexual","Bisexual",false),
-                    ("other","Other",true), ("preferNotSay","I don't know/prefer not to say",false)), optionTrigger = "orientationDescribe")
-                <div class="toggle-content form-group form-group-compound" id="orientationDescribe">
+                @radioBoxVertical(questionnaireForm("sexOrientation"), options = models.SexOrientation.list, optionTrigger = "orientation-describe")
+                <div class="toggle-content form-group form-group-compound" id="orientation-describe">
                 @helper.inputText(questionnaireForm("other_sexOrientation"),
                     '_label -> "Provide more information (optional)",
                     'class -> "form-control",
