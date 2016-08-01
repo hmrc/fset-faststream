@@ -16,17 +16,11 @@
 
 package models
 
-import java.util.UUID
+import connectors.ExchangeObjects.GeneralDetailsExchange
+import org.joda.time.LocalDate
+import mappings.AddressExamples._
 
-object SecurityUserExamples {
-  val ValidToken = "ABCDEFG"
-  val CreatedApplication = CachedDataExample.CreatedApplication
-  val ActiveCandidateUser = CachedUser(CreatedApplication.userId, "firstName", "lastName", Some("preferredName"),
-    "email@test.com", isActive = true, "lockStatus")
-  val ActiveCandidate = CachedData(ActiveCandidateUser, None)
-
-  val InactiveCandidateUser = ActiveCandidateUser.copy(isActive = false)
-  val InactiveCandidate = CachedData(InactiveCandidateUser, None)
-
-  val CandidateWithApp = CachedDataWithApp(ActiveCandidateUser, CreatedApplication)
+object GeneralDetailsExchangeExamples {
+  val FullDetails = GeneralDetailsExchange("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
+    FullAddress, Some("postCode"), Some("1234567"))
 }

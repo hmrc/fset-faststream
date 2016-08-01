@@ -36,7 +36,7 @@ abstract class SignInController(val applicationClient: ApplicationClient) extend
     implicit user =>
       request.identity match {
         case None =>
-          Future.successful(Ok(views.html.index.guestwelcome(SignInForm.form)))
+          Future.successful(Ok(views.html.index.signin(SignInForm.form)))
         case Some(u) =>
           Future.successful(Redirect(routes.HomeController.present()))
       }
@@ -46,7 +46,7 @@ abstract class SignInController(val applicationClient: ApplicationClient) extend
     implicit user =>
       SignInForm.form.bindFromRequest.fold(
         invalidForm =>
-          Future.successful(Ok(views.html.index.guestwelcome(invalidForm))),
+          Future.successful(Ok(views.html.index.signin(invalidForm))),
         data => env.credentialsProvider.authenticate(Credentials(data.signIn, data.signInPassword)).flatMap {
           case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful {
             Redirect(routes.LockAccountController.present()).flashing("email" -> usr.email)

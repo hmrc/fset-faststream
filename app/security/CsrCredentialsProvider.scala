@@ -40,7 +40,7 @@ trait CsrCredentialsProvider extends Provider with UserManagementClient {
       user => Right(user.toCached)
     }.recoverWith {
       case e: InvalidCredentialsException => recordFailedAttempt(credentials.identifier)
-      case e: InvalidRoleException => Future.successful(Left(InvalidRole): Either[AccountError, CachedUser])
+      case e: InvalidRoleException => Future.successful(Left(InvalidRole))
 
     }
   }
@@ -50,13 +50,13 @@ trait CsrCredentialsProvider extends Provider with UserManagementClient {
   def recordFailedAttempt(email: String)(implicit hc: HeaderCarrier): Future[Either[AccountError, CachedUser]] = {
     failedLogin(email).map { usr =>
       usr.lockStatus match {
-        case "LOCKED" => Left(AccountLocked): Either[AccountError, CachedUser]
-        case "LAST_ATTEMPT" => Left(LastAttempt): Either[AccountError, CachedUser]
-        case _ => Left(InvalidCredentials): Either[AccountError, CachedUser]
+        case "LOCKED" => Left(AccountLocked)
+        case "LAST_ATTEMPT" => Left(LastAttempt)
+        case _ => Left(InvalidCredentials)
       }
     }.recover {
-      case e: InvalidCredentialsException => Left(InvalidCredentials): Either[AccountError, CachedUser]
-      case e: AccountLockedOutException => Left(AccountLocked): Either[AccountError, CachedUser]
+      case e: InvalidCredentialsException => Left(InvalidCredentials)
+      case e: AccountLockedOutException => Left(AccountLocked)
     }
   }
 

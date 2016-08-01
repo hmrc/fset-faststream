@@ -20,7 +20,7 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
-import controllers.FastStreamApplication
+import controllers.PersonalDetailsController
 import models._
 import org.joda.time.DateTime
 import play.api.mvc.{Action, AnyContent, Result}
@@ -51,7 +51,7 @@ trait TestableCSRSecureAction extends SecureActions {
           None, None
         ), request
       )
-      implicit val carrier = FastStreamApplication.hc(request)
+      implicit val carrier = PersonalDetailsController.hc(request)
       block(secReq)(CachedDataExample.ActiveCandidate)
     }
   }
@@ -69,7 +69,7 @@ trait TestableCSRUserAwareAction extends SecureActions {
           DateTime.now().plusDays(1),
           None, None
         )), request)
-      implicit val carrier = FastStreamApplication.hc(request)
+      implicit val carrier = PersonalDetailsController.hc(request)
 
       val session = userAwareReq.session + (SessionKeys.sessionId -> s"session-${UUID.randomUUID}")
       block(userAwareReq)(Some(CachedDataExample.ActiveCandidate)).map(_.withSession(session))
@@ -83,7 +83,7 @@ trait NoIdentityTestableCSRUserAwareAction extends SecureActions {
       val userAwareReq = UserAwareRequest(
         None,
         None, request)
-      implicit val carrier = FastStreamApplication.hc(request)
+      implicit val carrier = PersonalDetailsController.hc(request)
 
       val session = userAwareReq.session + (SessionKeys.sessionId -> s"session-${UUID.randomUUID}")
       block(userAwareReq)(Some(CachedDataExample.ActiveCandidate)).map(_.withSession(session))

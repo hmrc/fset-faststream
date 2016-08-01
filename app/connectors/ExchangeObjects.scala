@@ -45,11 +45,10 @@ object ExchangeObjects {
     preferredName: String,
     email: String,
     dateOfBirth: LocalDate,
+    outsideUk: Boolean,
     address: Address,
-    postCode: PostCode,
-    phone: Option[PhoneNumber],
-    aLevel: Boolean,
-    stemLevel: Boolean
+    postCode: Option[PostCode],
+    phone: Option[PhoneNumber]
   )
 
   case class AssistanceDetailsExchange(

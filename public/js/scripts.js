@@ -411,7 +411,34 @@ $(function() {
     });
   }
 
+  //------- Set personal details
 
+  $('#addressManualLink').on('click', function(e) {
+    e.preventDefault();
+
+    $('#addressManualInput').removeClass('disabled');
+    $('#address\\.line1').focus();
+  });
+
+  $('#outsideUk').on('change', function() {
+
+    $('#address\\.line1').val("");
+    $('#address_line2').val("");
+    $('#address_line3').val("");
+    $('#address_line4').val("");
+    $('#postCode').val("");
+
+    if($(this).is(':checked')) {
+      $('#addressManualInput').removeClass('disabled');
+      $('#postCode').closest('.form-group').addClass('toggle-content');
+      $('#postCode').closest('.form-group').prev('.form-group').removeClass('form-group-compound');
+    } else {
+      $('#postCode').closest('.form-group').removeClass('toggle-content');
+      $('#postCode').closest('.form-group').prev('.form-group').addClass('form-group-compound');
+    }
+
+    $('#address\\.line1').focus();
+  });
 
   //------- Inline details toggle
 
