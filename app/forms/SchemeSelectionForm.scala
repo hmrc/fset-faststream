@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 
 //scalastyle:off
 object SchemeSelectionForm {
-  val AllSchemes = Seq(
+  val AllSchemes = Map(
     "CentralDepartments" -> "Central Departments",
     "Commercial" -> "Commercial",
     "DigitalAndTechnology" -> "Digital and Technology",
@@ -40,21 +40,21 @@ object SchemeSelectionForm {
       )(SchemePreference.apply)(SchemePreference.unapply))
   }
 
-  case class SchemePreference(selectedSchemes: Map[String, String] = Map.empty[String, String], eligible:String = "", alternatives:String = "")
+  case class SchemePreference(selectedSchemes: List[String] = Nil, eligible:String = "", alternatives:String = "")
 
   val EmptyData = SchemePreference()
 
-  def schemeFormatter(formKey: String) = new Formatter[Map[String, String]] {
-    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Map[String, String]] = {
+  def schemeFormatter(formKey: String) = new Formatter[List[String]] {
+    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
       val selectedSchemes = data.filterKeys(_.contains("schemes"))
       selectedSchemes match {
         case selSchemes if selSchemes.isEmpty => Left(List(FormError("schemes", Messages("error.noSchemesSelected"))))
-        case _ => Right(selectedSchemes)
+        case _ => Right(selectedSchemes.values.toList)
       }
     }
 
-    def unbind(key: String, value: Map[String, String]): Map[String, String] = {
-      value
+    def unbind(key: String, value: List[String]): Map[String, String] = {
+      value.map(key => key -> AllSchemes.getOrElse(key,"")).toMap
     }
   }
 

@@ -18,7 +18,7 @@
 
         <section class="grid-wrapper scheme-wrapper">
             <div class="scheme-input-container">
-            @schemesCheckboxGroup(form("schemes"), SchemeSelectionForm.AllSchemes,
+            @schemesCheckboxGroup(form("schemes"), SchemeSelectionForm.AllSchemes.toSeq,
                 '_label -> "",
                 '_class -> ""
             )
