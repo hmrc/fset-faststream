@@ -33,10 +33,12 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
+@deprecated("fasttrack version")
 object SchemeController extends SchemeController(ApplicationClient) {
   val http = CSRHttp
 }
 
+@deprecated("fasttrack version")
 abstract class SchemeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) with SchemeClient {
 
   def entryPoint = CSRSecureAppAction(SchemesRole) { implicit request =>
@@ -112,7 +114,7 @@ abstract class SchemeController(applicationClient: ApplicationClient) extends Ba
           sel.alternatives.map(AlternateLocationsForm.form.fill(_)), sel
         )))
       }.flatMap(identity).recover {
-        case e: CannotFindSelection => Redirect(routes.SchemeController.entryPoint())
+        case e: CannotFindSelection => Redirect(routes.SchemeController2.present())
       }
 
   }
@@ -152,7 +154,7 @@ abstract class SchemeController(applicationClient: ApplicationClient) extends Ba
           data => {
             val errs = validateSchemeLocation(data, regions)
             if (errs.isEmpty) {
-              success(data)(request)(user)(hc).map(_ => Redirect(routes.SchemeController.entryPoint()))
+              success(data)(request)(user)(hc).map(_ => Redirect(routes.SchemeController2.present()))
             } else {
               val invalidForm = errs.foldLeft(preferenceForm.fill(data))((form, err) => form.withError(err, err))
               Future.successful(Ok(error(sel, regions, invalidForm)(request)(user)(hc)))
@@ -181,7 +183,7 @@ abstract class SchemeController(applicationClient: ApplicationClient) extends Ba
         getSelection(user.application.applicationId).map { sel =>
           f(sel, regions)(request)(user)
         }.flatMap(identity).recover {
-          case e: CannotFindSelection => Redirect(routes.SchemeController.entryPoint())
+          case e: CannotFindSelection => Redirect(routes.SchemeController2.present())
         }
       }
   }

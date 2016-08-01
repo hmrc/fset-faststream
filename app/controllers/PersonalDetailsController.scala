@@ -81,7 +81,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient, u
             _ <- userManagementClient.updateDetails(user.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
             redirect <- updateProgress(data => data.copy(user = user.user.copy(firstName = gd.firstName, lastName = gd.lastName,
               preferredName = Some(gd.preferredName)), application = data.application.map(_.copy(applicationStatus = IN_PROGRESS))
-            ))(_ => Redirect(routes.SchemeController.entryPoint()))
+            ))(_ => Redirect(routes.SchemeController2.present()))
           } yield {
             redirect
           }) recover {

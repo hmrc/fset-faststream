@@ -1,0 +1,70 @@
+@(form: Form[_root_.forms.SchemeSelectionForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
+
+@import views.html.widgets.pageProgress
+@import views.html.widgets.checkbox
+@import views.html.widgets.inputCheckboxGroup
+
+@main_template(title = "Choose your schemes", pageForms = Seq(form)) {
+    @pageProgress(2, 7)
+    <h1 class="heading-xlarge" id="personalDetailsHeading">Choose your schemes</h1>
+
+    <section class="text panel-indent">
+        <p class="">Your schemes will be offered to you in order of preference. You can withdraw
+            from individual schemes but you will not be able to reorder them after
+            submitting your application.</p>
+        <p>You can choose up to 5 preferences.</p>
+    </section>
+
+    <section class="grid-wrapper scheme-wrapper">
+        @inputCheckboxGroup(form("schemes"), models.AssistanceTypes.seq,
+            '_label -> "Select from the list of disabilities"
+        )
+    </section>
+
+    <section id="selectedPreferences" class="hide-nojs">
+        <h2 class="heading-large">Your chosen schemes</h2>
+        <div data-scheme-placeholder="">
+            <div class="scheme-warning text">
+                <p>Your schemes will appear here as you select them from the list</p>
+            </div>
+        </div>
+        <ol id="selectedPrefList" class="list-text">
+            <li></li>
+        </ol>
+            &nbsp;
+    </section>
+
+    <section class="text clearfix">
+        <fieldset>
+            <legend class="form-label">Are you eligible for your chosen schemes?</legend>
+            <p>Make sure you're <a href="https://www.gov.uk/guidance/civil-service-fast-stream-graduate-schemes" target="_blank" rel="external">eligible</a> for your chosen schemes.</p>
+            <div class="form-group no-btm-margin">
+                <label for="eligible-yes" class="block-label">
+                    <input name="eligible" type="radio" id="eligible-yes">Yes
+                </label>
+                <label for="eligible-no" class="block-label">
+                    <input name="eligible" type="radio" id="eligible-no">No
+                </label>
+            </div>
+        </fieldset>
+    </section>
+
+    <section class="text clearfix">
+        <fieldset>
+            <legend class="form-label">Would you consider other schemes?</legend>
+            <p>If we don't offer you a place on one of your chosen schemes, we may
+                suggest other schemes on the Fast Stream.</p>
+            <div class="form-group no-btm-margin">
+                <label for="alternatives-yes" class="block-label">
+                    <input name="alternatives" type="radio" id="alternatives-yes">Yes
+                </label>
+                <label for="alternatives-no" class="block-label">
+                    <input name="alternatives" type="radio" id="alternatives-no">No
+                </label>
+            </div>
+        </fieldset>
+    </section>
+
+    <a href="assistance.html" id="schemeSaveBtn" class="button">Save and continue</a>
+}
+
