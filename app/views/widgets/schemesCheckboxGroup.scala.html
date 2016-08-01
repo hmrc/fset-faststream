@@ -1,0 +1,40 @@
+@import helpers.CSRSkinnyFieldConstructor._
+
+@(field: play.api.data.Field, options: Seq[(String, String)], args: (Symbol, Any)*)
+
+@createId(id: String, v: (String, String)) = @{
+    id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_")
+}
+
+@helper.input(field, args.map { x => if(x._1 == '_label) '_name -> x._2 else x }: _*) { (id, name, value, htmlArgs) =>
+        <div class="inner-block-padr" id="@id">
+            <ul class="schemes-list">
+            @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
+                @options.map { case v@(optionValue, description) =>
+                <li class="scheme-container">
+                    <span class="selected-preference invisible"></span>
+                    <label class="block-label block-label-slim" for="@createId(id, v)">
+                        <input type="checkbox" id="@createId(id, v)" name="@{
+                            name + "[]"
+                        }" value="@optionValue" @if(values.contains(optionValue)) {
+                            checked="checked"
+                        } @toHtmlArgs(htmlArgs) />
+                        @description
+                    </label>
+                    <div class="nojs-schemepref">
+                        <select name="" id="">
+                            <option value="">Select a preference</option>
+                            <option value="">1st preference</option>
+                            <option value="">2nd preference</option>
+                            <option value="">3rd preference</option>
+                            <option value="">4th preference</option>
+                            <option value="">5th preference</option>
+                        </select>
+                    </div>
+                </li>
+
+                }
+            }
+            </ul>
+        </div>
+}
