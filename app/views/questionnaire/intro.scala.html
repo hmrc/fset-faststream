@@ -2,7 +2,12 @@
 @(acceptanceForm: Form[_root_.forms.QuestionnaireDiversityInfoForm.AcceptanceTerms])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @main_template(title = "Before you continue", pageForms = Seq(acceptanceForm)) {
-    <h1 class="heading-xlarge">Before you continue</h1>
+    <section class="page-progress">
+        <p><span class="lede">Page 4 of 8</span></p>
+    </section>
+    <div class="hgroup">
+        <h1 class="heading-xlarge">Before you continue</h1>
+    </div>
 
     <section>
         <div class="text">
