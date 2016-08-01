@@ -18,11 +18,12 @@ package connectors
 
 import config.CSRHttp
 import connectors.SchemeClient.CannotFindSelection
+import forms.SchemeSelectionForm.SchemePreference
 import models.UniqueIdentifier
-import models.frameworks.{ Alternatives, LocationAndSchemeSelection, Preference, Region }
+import models.frameworks.{Alternatives, LocationAndSchemeSelection, Preference, Region}
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse, NotFoundException}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -58,6 +59,17 @@ trait SchemeClient {
     ).map {
         case x: HttpResponse if x.status == OK => ()
       }
+  }
+
+  implicit val jsonFormatScheme = Json.format[SchemePreference]
+
+  def updateSchemePreference(data: SchemePreference)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+    http.PUT(
+      s"${url.host}${url.base}/framework-preference/scheme/$applicationId",
+      data
+    ).map {
+      case x: HttpResponse if x.status == OK => ()
+    }
   }
 
   case class SecondPreferenceIntention(secondPreferenceIntended: Boolean)

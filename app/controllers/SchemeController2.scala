@@ -17,9 +17,9 @@
 package controllers
 
 import config.CSRHttp
-import connectors.ApplicationClient
 import _root_.forms.SchemeSelectionForm
-import _root_.forms.SchemeSelectionForm._
+
+import connectors.{ ApplicationClient, SchemeClient }
 import security.Roles.{PersonalDetailsRole, SchemesRole}
 
 import scala.concurrent.Future
@@ -29,7 +29,7 @@ object SchemeController2 extends SchemeController2(ApplicationClient) {
 }
 
 // scalastyle:off
-abstract class SchemeController2(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+abstract class SchemeController2(applicationClient: ApplicationClient) extends BaseController(applicationClient) with SchemeClient{
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
@@ -40,12 +40,12 @@ abstract class SchemeController2(applicationClient: ApplicationClient) extends B
   def submit = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
     implicit user =>
       SchemeSelectionForm.form.bindFromRequest.fold(
-        errorForm => {
-         ???
+        invalidForm => {
+          Future.successful(Ok(views.html.application.schemeSelection(invalidForm)))
         },
-        s => {
-          println(s)
-          Future.successful(Ok(views.html.application.schemeSelection(form)))
+        schemePref => {
+          updateSchemePreference(schemePref)(user.application.applicationId)
+            .map(_ => Redirect(routes.SchemeController2.present()))
         }
     )
   }

@@ -34,21 +34,27 @@ object SchemeSelectionForm {
   def form = {
     Form(
       mapping(
-        "schemes" -> of(schemeFormatter("schemes"))
-      )(Data.apply)(Data.unapply))
+        "schemes" -> of(schemeFormatter("schemes")),
+        "eligible" -> Mappings.nonEmptyTrimmedText("error.required.eligible", 256),
+        "alternatives" -> Mappings.nonEmptyTrimmedText("error.required.alternatives", 256)
+      )(SchemePreference.apply)(SchemePreference.unapply))
   }
 
-  case class Data(selectedSchemes: Seq[(String, String)])
+  case class SchemePreference(selectedSchemes: Map[String, String] = Map.empty[String, String], eligible:String = "", alternatives:String = "")
 
-  val EmptyData = Data(AllSchemes)
+  val EmptyData = SchemePreference()
 
-  def schemeFormatter(formKey: String) = new Formatter[Seq[(String, String)]] {
-    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Seq[(String, String)]] = {
-      Right(List())
+  def schemeFormatter(formKey: String) = new Formatter[Map[String, String]] {
+    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Map[String, String]] = {
+      val selectedSchemes = data.filterKeys(_.contains("schemes"))
+      selectedSchemes match {
+        case selSchemes if selSchemes.isEmpty => Left(List(FormError("schemes", Messages("error.noSchemesSelected"))))
+        case _ => Right(selectedSchemes)
+      }
     }
 
-    def unbind(key: String, value: Seq[(String, String)]): Map[String, String] = {
-      Map()
+    def unbind(key: String, value: Map[String, String]): Map[String, String] = {
+      value
     }
   }
 
