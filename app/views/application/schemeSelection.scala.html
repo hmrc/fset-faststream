@@ -20,7 +20,7 @@
     </section>
 
     <section class="grid-wrapper scheme-wrapper">
-        @inputCheckboxGroup(form("schemes"), SchemeSelectionForm.AllSchemes,
+        @inputCheckboxGroup(form("schemes"), SchemeSelectionForm.AllSchemes.toSeq,
             '_label -> "Select from the list of disabilities"
         )
     </section>
