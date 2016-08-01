@@ -3,11 +3,13 @@
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.{checkbox, radioBoxVertical, select_guard_multi}
 
-@main_template(title = "Diversity questions", pageForms = Seq(questionnaireForm)) {
+@main_template(title = "About you", pageForms = Seq(questionnaireForm)) {
 
+    <section class="page-progress">
+        <p><span class="lede">Page 5 of 8</span></p>
+    </section>
     <div class="hgroup">
         <h1 class="heading-xlarge">About you</h1>
-        <p class="subtitle">Page 1 of 3</p>
     </div>
     <div class="panel-warning standard-panel">
         <h2 class="heading-medium">Why are we asking these questions?</h2>
