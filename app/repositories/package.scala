@@ -52,6 +52,7 @@ package object repositories {
   lazy val assistanceRepository = new AssistanceDetailsMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
+  lazy val frameworkSchemePreferenceRepository = new FrameworkSchemePreferenceMongoRepository()
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculatorTrait {})
   lazy val onlineTestRepository = new OnlineTestMongoRepository(DateTimeFactory)
   lazy val onlineTestPDFReportRepository = new OnlineTestPDFReportMongoRepository()

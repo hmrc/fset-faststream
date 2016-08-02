@@ -23,6 +23,7 @@ PUT         /framework-preference/first/:applicationId                   control
 PUT         /framework-preference/second/:applicationId                  controllers.FrameworkPreferenceController.submitSecondPreference(applicationId: String)
 PUT         /framework-preference/second/intention/:applicationId        controllers.FrameworkPreferenceController.submitSecondPreferenceIntention(applicationId: String)
 PUT         /framework-preference/alternatives/:applicationId            controllers.FrameworkPreferenceController.submitAlternatives(applicationId: String)
+PUT         /framework-preference/scheme/:applicationId                  controllers.FrameworkSchemePreferenceController.submitSchemePreference(applicationId: String)
 
 GET         /framework-preference/:applicationId                         controllers.FrameworkPreferenceController.getPreferences(applicationId: String)
 
