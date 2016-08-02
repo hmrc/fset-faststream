@@ -32,6 +32,7 @@
                 <div class="toggle-content form-group form-group-compound" id="gender-describe">
                 @helper.inputText(questionnaireForm("other_gender"),
                     '_label -> "Provide more information (optional)",
+                    '_labelClass -> "form-hint",
                     'class -> "form-control",
                     '_showConstraints -> false,
                     'optional -> "")
@@ -46,6 +47,7 @@
                 <div class="toggle-content form-group form-group-compound" id="orientation-describe">
                 @helper.inputText(questionnaireForm("other_sexOrientation"),
                     '_label -> "Provide more information (optional)",
+                    '_labelClass -> "form-hint",
                     'class -> "form-control",
                     '_showConstraints -> false,
                     'optional -> "")
@@ -62,6 +64,7 @@
             <div class="toggle-content form-group form-group-compound" id="ethnicity-describe">
             @helper.inputText(questionnaireForm("other_ethnicity"),
                 '_label -> "Provide more information (optional)",
+                '_labelClass -> "form-hint",
                 'class -> "form-control",
                 '_showConstraints -> false,
                 'optional -> "")
