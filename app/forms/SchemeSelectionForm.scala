@@ -22,25 +22,40 @@ import play.api.data.format.Formatter
 import play.api.i18n.Messages
 
 
-//scalastyle:off
 object SchemeSelectionForm {
+
+  val qua_degree2_1 = "2:1 degree in any subject "
+  val qua_degree2_2 = "2:2 degree in any subject "
+  val qua_economics = "2:1 degree in economics or a 2:2 with a postgraduate qualification in economics "
+  val qua_numerical = "2:1 degree in a numerate subject or a 2:2 with a relevant postgraduate qualification "
+  val qua_socialScience = "2:1 degree in social science or a 2:2 with a postgraduate qualification in social research "
+  val qua_chartaredEng = "2:1 degree, plus either chartered engineer status or a postgraduate degree in a relevant subject "
+
   val AllSchemes = Seq(
-    "CentralDepartments" -> "Central Departments",
-    "Commercial" -> "Commercial",
-    "DigitalAndTechnology" -> "Digital and Technology",
-    "DiplomaticService" -> "Diplomatic Service",
-    "European" -> "European",
-    "GovernmentCommunicationService" -> "Government Communication Service",
-    "GovernmentEconomicService" -> "Government Economic Service",
-    "GovernmentOperationalResearchService" -> "Government Operational Research Service",
-    "GovernmentSocialResearchService" -> "Government Social Research Service",
-    "GovernmentStatisticalService" -> "Government Statistical Service",
-    "HousesOfParliament" -> "Houses of Parliament",
-    "HumanResources" -> "Human Resources",
-    "ProjectDelivery" -> "Project Delivery",
-    "ScienceAndEngineering" -> "Science and Engineering",
-    "Tax" -> "Tax"
+    Scheme("CentralDepartments", "Central Departments",qua_degree2_2, specific=false),
+    Scheme("Commercial", "Commercial",qua_degree2_2, specific=false),
+    Scheme("DigitalAndTechnology", "Digital and Technology",qua_degree2_1, specific=false),
+    Scheme("DiplomaticService", "Diplomatic Service",qua_degree2_2, specific=false),
+    Scheme("European", "European",qua_degree2_2, specific=false),
+    Scheme("Finance", "Finance",qua_degree2_1, specific=false),
+    Scheme("GovernmentCommunicationService", "Government Communication Service",qua_degree2_1, specific=false),
+    Scheme("GovernmentEconomicService", "Government Economic Service",qua_economics, specific=true,
+      "civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility"),
+    Scheme("GovernmentOperationalResearchService", "Government Operational Research Service",qua_numerical, specific=true,
+      "civil-service-analytical-fast-streams/civil-service-fast-stream-government-operational-research-service#eligibility"),
+    Scheme("GovernmentSocialResearchService", "Government Social Research Service",qua_socialScience, specific=true,
+      "civil-service-analytical-fast-streams/civil-service-fast-stream-government-social-research-service#eligibility"),
+    Scheme("GovernmentStatisticalService", "Government Statistical Service", qua_numerical, specific=true,
+      "civil-service-analytical-fast-streams/civil-service-fast-stream-government-statistical-service#eligibility"),
+    Scheme("HousesOfParliament", "Houses of Parliament", qua_degree2_2, specific=false),
+    Scheme("HumanResources", "Human Resources", qua_degree2_2, specific=false),
+    Scheme("ProjectDelivery", "Project Delivery",qua_degree2_2, specific=false),
+    Scheme("ScienceAndEngineering", "Science and Engineering",qua_chartaredEng, specific=true,
+      "civil-service-generalist-fast-stream/fast-stream-science-and-engineering#eligibility"),
+    Scheme("Tax" ,"Tax", qua_degree2_2, specific=false)
   )
+
+  case class Scheme(id:String, description:String, qualification:String, specific:Boolean, link:String = "")
 
   def form = {
     Form(
@@ -66,7 +81,7 @@ object SchemeSelectionForm {
     }
 
     def unbind(key: String, value: List[String]): Map[String, String] = {
-      value.map(key => key -> AllSchemes.toMap.getOrElse(key,"")).toMap
+      value.map(key => key -> AllSchemes.find(_.id == key).map(_.description).getOrElse("")).toMap
     }
   }
 
