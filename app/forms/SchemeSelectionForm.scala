@@ -21,26 +21,38 @@ import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.i18n.Messages
 
+
 //scalastyle:off
 object SchemeSelectionForm {
-  val AllSchemes = Map(
+  val AllSchemes = Seq(
     "CentralDepartments" -> "Central Departments",
     "Commercial" -> "Commercial",
     "DigitalAndTechnology" -> "Digital and Technology",
     "DiplomaticService" -> "Diplomatic Service",
-    "European" -> "European"
+    "European" -> "European",
+    "GovernmentCommunicationService" -> "Government Communication Service",
+    "GovernmentEconomicService" -> "Government Economic Service",
+    "GovernmentOperationalResearchService" -> "Government Operational Research Service",
+    "GovernmentSocialResearchService" -> "Government Social Research Service",
+    "GovernmentStatisticalService" -> "Government Statistical Service",
+    "HousesOfParliament" -> "Houses of Parliament",
+    "HumanResources" -> "Human Resources",
+    "ProjectDelivery" -> "Project Delivery",
+    "ScienceAndEngineering" -> "Science and Engineering",
+    "Tax" -> "Tax"
   )
 
   def form = {
     Form(
       mapping(
         "schemes" -> of(schemeFormatter("schemes")),
+        "happy" -> Mappings.nonEmptyTrimmedText("error.required.happy", 256),
         "eligible" -> Mappings.nonEmptyTrimmedText("error.required.eligible", 256),
         "alternatives" -> Mappings.nonEmptyTrimmedText("error.required.alternatives", 256)
       )(SchemePreference.apply)(SchemePreference.unapply))
   }
 
-  case class SchemePreference(selectedSchemes: List[String] = Nil, eligible:String = "", alternatives:String = "")
+  case class SchemePreference(selectedSchemes: List[String] = Nil, happy:String="", eligible:String = "", alternatives:String = "")
 
   val EmptyData = SchemePreference()
 
@@ -54,7 +66,7 @@ object SchemeSelectionForm {
     }
 
     def unbind(key: String, value: List[String]): Map[String, String] = {
-      value.map(key => key -> AllSchemes.getOrElse(key,"")).toMap
+      value.map(key => key -> AllSchemes.toMap.getOrElse(key,"")).toMap
     }
   }
 
