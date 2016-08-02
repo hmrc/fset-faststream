@@ -25,17 +25,17 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait FrameworkSchemePreferenceController extends BaseController {
-  val frameworkPreferenceRepository2: FrameworkSchemePreferenceRepository
+  val frameworkSchemePreferenceRepository: FrameworkSchemePreferenceRepository
   val auditService: AuditService
 
   def submitSchemePreference(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[SchemePreference]{ schemePref =>
-      frameworkPreferenceRepository2.saveSchemePreference(applicationId, schemePref).map{_ => Ok}
+      frameworkSchemePreferenceRepository.saveSchemePreference(applicationId, schemePref).map{_ => Ok}
     }
   }
 }
 
 object FrameworkSchemePreferenceController extends FrameworkSchemePreferenceController {
-  val frameworkPreferenceRepository2: FrameworkSchemePreferenceRepository = repositories.frameworkSchemePreferenceRepository
+  val frameworkSchemePreferenceRepository: FrameworkSchemePreferenceRepository = repositories.frameworkSchemePreferenceRepository
   val auditService = AuditService
 }
