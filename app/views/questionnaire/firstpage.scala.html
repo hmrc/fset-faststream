@@ -26,11 +26,9 @@
     @helper.form(action = routes.QuestionnaireController.firstPageSubmit(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
         <section>
-            <fieldset class="form_group">
+            <fieldset class="form-group">
                 <legend class="form-label" id="gender-ques">@Messages("gender.question")</legend>
-                <div class="form-group no-btm-margin">
-                    @radioBoxVertical(questionnaireForm("gender"), options = models.Gender.list, optionTrigger = "gender-describe")
-                </div>
+                @radioBoxVertical(questionnaireForm("gender"), options = models.Gender.list, optionTrigger = "gender-describe")
                 <div class="toggle-content form-group form-group-compound" id="gender-describe">
                 @helper.inputText(questionnaireForm("other_gender"),
                     '_label -> "Provide more information (optional)",
@@ -42,7 +40,7 @@
         </section>
 
         <section>
-            <fieldset class="form_group">
+            <fieldset class="form-group">
                 <legend class="form-label" id="orientation-ques">@Messages("sexOrientation.question")</legend>
                 @radioBoxVertical(questionnaireForm("sexOrientation"), options = models.SexOrientation.list, optionTrigger = "orientation-describe")
                 <div class="toggle-content form-group form-group-compound" id="orientation-describe">

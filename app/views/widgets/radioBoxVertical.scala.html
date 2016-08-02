@@ -4,7 +4,7 @@
 
 @createId(id:String, v:(String,String,Boolean))=@{id + "-"+v._1.replace(" ", "_").replace("/", "_")}
 
-@helper.input(field, '_class -> (if(isCompound) "form-group-compound" else "inline")) { (id, name, value, args) =>
+@helper.input(field, '_class -> (if(isCompound) "form-group-compound" else "no-btm-margin")) { (id, name, value, args) =>
     @for(v <- options){
         <div>
             <label for="@createId(id,v)" class="block-label" @if(v._3){ data-target="@optionTrigger"}>
