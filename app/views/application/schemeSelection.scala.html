@@ -1,9 +1,18 @@
-@(form: Form[_root_.forms.SchemeSelectionForm.SchemePreference])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
+@(form: Form[_root_.forms.SelectedSchemesForm.SelectedSchemes])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
 
-@import _root_.forms.SchemeSelectionForm
+@import _root_.forms.SelectedSchemesForm
+@import _root_.forms.SelectedSchemesForm.Scheme
 @import views.html.widgets.pageProgress
 @import views.html.widgets.{checkbox, radioBox}
 @import views.html.widgets.schemesCheckboxGroup
+
+@getScheme(id: Int) = @{
+    val selectedSchemes = form.value match {
+                            case Some(formObject) => formObject.schemes
+                            case None => Nil
+                          }
+    if(id <= selectedSchemes.size) selectedSchemes.apply(id - 1) else ""
+}
 
 @main_template(title = "Choose your schemes", pageForms = Seq(form)) {
     @pageProgress(2, 7)
@@ -18,7 +27,7 @@
 
         <section class="grid-wrapper scheme-wrapper">
             <div class="scheme-input-container">
-            @schemesCheckboxGroup(form("schemes"), SchemeSelectionForm.AllSchemes,
+            @schemesCheckboxGroup(form("schemes"), SelectedSchemesForm.AllSchemes,
                 '_label -> "",
                 '_class -> ""
             )
@@ -40,11 +49,11 @@
                     <p>Your schemes will appear here as you select them from the list</p>
                 </div>
             </div>
-            <input type="hidden" id="scheme_1" name="scheme_1" value="" />
-            <input type="hidden" id="scheme_2" name="scheme_2" value="" />
-            <input type="hidden" id="scheme_3" name="scheme_3" value="" />
-            <input type="hidden" id="scheme_4" name="scheme_4" value="" />
-            <input type="hidden" id="scheme_5" name="scheme_5" value="" />
+            <input type="hidden" id="scheme_1" name="scheme_1" value="@getScheme(1)" />
+            <input type="hidden" id="scheme_2" name="scheme_2" value="@getScheme(2)" />
+            <input type="hidden" id="scheme_3" name="scheme_3" value="@getScheme(3)" />
+            <input type="hidden" id="scheme_4" name="scheme_4" value="@getScheme(4)" />
+            <input type="hidden" id="scheme_5" name="scheme_5" value="@getScheme(5)" />
             <ol id="selectedPrefList" class="list-text">
                 <li></li>
             </ol>
@@ -58,7 +67,7 @@
             <fieldset>
                 <legend class="form-label">Are you happy with the order of your schemes?</legend>
                 <div class="form-group no-btm-margin">
-                    @radioBox(form("happy"), options = Seq("true" -> "Yes", "false" -> "No"))
+                    @radioBox(form("orderAgreed"), options = Seq("true" -> "Yes", "false" -> "No"))
                 </div>
             </fieldset>
         </section>

@@ -17,7 +17,8 @@
 package controllers
 
 import config.CSRHttp
-import _root_.forms.SchemeSelectionForm
+import _root_.forms.SelectedSchemesForm
+import _root_.forms.SelectedSchemesForm._
 
 import connectors.{ ApplicationClient, SchemeClient }
 import security.Roles.{PersonalDetailsRole, SchemesRole}
@@ -32,18 +33,22 @@ abstract class SchemePreferencesController(applicationClient: ApplicationClient)
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
-      val form = SchemeSelectionForm.form.fill(SchemeSelectionForm.EmptyData)
+      /*getSchemePreferences(user.application.applicationId).flatMap { schemePreferences =>
+        SelectedSchemesForm.form.fill(schemePreferences.selectedSchemes.getOrElse(EmptyData))
+        Future.successful(Ok(views.html.application.schemeSelection(form)))
+      }*/
+      val form = SelectedSchemesForm.form.fill(EmptyData)
       Future.successful(Ok(views.html.application.schemeSelection(form)))
   }
 
   def submit = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
     implicit user =>
-      SchemeSelectionForm.form.bindFromRequest.fold(
+      SelectedSchemesForm.form.bindFromRequest.fold(
         invalidForm => {
           Future.successful(Ok(views.html.application.schemeSelection(invalidForm)))
         },
-        schemePref => {
-          updateSchemePreference(schemePref)(user.application.applicationId)
+        selectedSchemes => {
+          updateSchemePreferences(selectedSchemes)(user.application.applicationId)
             .map(_ => Redirect(routes.SchemePreferencesController.present()))
         }
     )

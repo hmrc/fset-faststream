@@ -169,11 +169,18 @@ $(function()
         for(i = 1; i <=5; i++){
             var scheme = $('#scheme_'+i).val();
             if(scheme !== ''){
+                console.log(scheme);
                 var sid = "#schemes_" + scheme;
+                var initialStatus = $(sid).is(':checked');
+                if(initialStatus == false){
+                    $(sid).click();
+                }
                 $(sid).checked = true;
                 $(sid).trigger('change');
             }
         }
       }
-      preselectSchemes();
+      $(document).ready(
+            preselectSchemes()
+      );
 });
