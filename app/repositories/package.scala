@@ -15,13 +15,13 @@
  */
 
 import factories.DateTimeFactory
-import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
+import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback}
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.PassmarkPersistedObjects._
-import model.PersistedObjects.{ ContactDetails, PersistedAnswer, PersonalDetails, _ }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
+import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -32,7 +32,7 @@ import services.reporting.SocioEconomicScoreCalculatorTrait
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 package object repositories {
@@ -42,9 +42,11 @@ package object repositories {
     ReactiveMongoPlugin.mongoConnector.db
   }
 
-  lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
-  lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository()
+  lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository
+  lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository
+  lazy val schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 
+  // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
   lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService)
   lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
@@ -52,7 +54,6 @@ package object repositories {
   lazy val assistanceRepository = new AssistanceDetailsMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
-  lazy val frameworkSchemePreferenceRepository = new FrameworkSchemePreferenceMongoRepository()
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculatorTrait {})
   lazy val onlineTestRepository = new OnlineTestMongoRepository(DateTimeFactory)
   lazy val onlineTestPDFReportRepository = new OnlineTestPDFReportMongoRepository()

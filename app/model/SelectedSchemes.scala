@@ -19,9 +19,9 @@ package model
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class SchemePreference(selectedSchemes: List[String] = Nil, happy:String = "", eligible:String = "", alternatives:String = "")
+case class SelectedSchemes(schemes: List[String], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
 
-object SchemePreference {
-  implicit val jsonFormat = Json.format[SchemePreference]
-  implicit val bsonFormat = Macros.handler[SchemePreference]
+object SelectedSchemes {
+  implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
+  implicit val selectedSchemesHandler = Macros.handler[SelectedSchemes]
 }

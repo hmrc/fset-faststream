@@ -1,5 +1,6 @@
 # microservice specific routes
 
+# Should it be PUT as calling this method twice does not create two users (idempotent operation)
 POST        /personal-details/:userId/:applicationId                     controllers.CandidateDetailsController.updateDetails(userId: String, applicationId: String)
 GET         /personal-details/:userId/:applicationId                     controllers.CandidateDetailsController.find(userId: String, applicationId: String)
 
@@ -19,13 +20,8 @@ PUT         /media/create                                                control
 
 GET         /frameworks-available-to-application/:applicationId          controllers.FrameworkController.getAvailableFrameworksWithLocations(applicationId: String)
 
-PUT         /framework-preference/first/:applicationId                   controllers.FrameworkPreferenceController.submitFirstPreference(applicationId: String)
-PUT         /framework-preference/second/:applicationId                  controllers.FrameworkPreferenceController.submitSecondPreference(applicationId: String)
-PUT         /framework-preference/second/intention/:applicationId        controllers.FrameworkPreferenceController.submitSecondPreferenceIntention(applicationId: String)
-PUT         /framework-preference/alternatives/:applicationId            controllers.FrameworkPreferenceController.submitAlternatives(applicationId: String)
-PUT         /framework-preference/scheme/:applicationId                  controllers.FrameworkSchemePreferenceController.submitSchemePreference(applicationId: String)
-
-GET         /framework-preference/:applicationId                         controllers.FrameworkPreferenceController.getPreferences(applicationId: String)
+GET         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.find(applicationId: String)
+PUT         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.update(applicationId: String)
 
 PUT         /pass-mark-settings/create                                   controllers.OnlineTestPassMarkSettingsController.createPassMarkSettings
 GET         /pass-mark-settings/getLatestVersion                         controllers.OnlineTestPassMarkSettingsController.getLatestVersion
