@@ -40,9 +40,9 @@ class SchemePreferencesServiceSpec extends BaseServiceSpec {
 
   "update preferences" should {
     "save the preferences" in {
-      when(mockSchemePreferencesRepository.save(AppId, TwoSchemes)).thenReturn(Future.successful())
-      val response = service.update(AppId, TwoSchemes).futureValue
-      response mustBe ()
+      when(mockSchemePreferencesRepository.save(AppId, TwoSchemes)).thenReturn(Future.successful(()))
+      val response = service.update(AppId, TwoSchemes)
+      assertNoExceptions(response)
     }
   }
 }

@@ -18,7 +18,7 @@ package controllers
 
 import model.Exceptions.SchemePreferencesNotFound
 import model.command.SchemePreferences
-import model.{SchemeQualification, SelectedSchemes}
+import model.{Scheme, SchemeType, SelectedSchemes}
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
@@ -37,7 +37,7 @@ trait SchemePreferencesController extends BaseController {
   val auditService: AuditService
 
   def find(applicationId: String) = Action.async { implicit request =>
-    val schemesAndQualifications = SchemeQualification.AllSchemesWithQualification
+    val schemesAndQualifications = Scheme.AllSchemesWithQualification
     val schemePreferences = schemePreferencesService.find(applicationId) map { selectedSchemes =>
       SchemePreferences(Some(selectedSchemes), schemesAndQualifications)
     } recover {

@@ -43,11 +43,11 @@ class CandidateDetailsServiceSpec extends BaseServiceSpec {
     "update personal and contact details" in {
       when(mockPdRepository.update(eqTo(AppId), eqTo(UserId), eqTo(JohnDoe), any[Seq[ApplicationStatus.Value]],
         any[ApplicationStatus.Value])).thenReturn(Future.successful(()))
-      when(mockCdRepository.update(UserId, ContactDetailsUK)).thenReturn(Future.successful(()))
+      when(mockCdRepository.update(UserId, ContactDetailsUK)).thenReturn(emptyFuture)
 
-      val response = service.update(AppId, UserId, CandidateContactDetailsUK).futureValue
+      val response = service.update(AppId, UserId, CandidateContactDetailsUK)
 
-      response mustBe ()
+      assertNoExceptions(response)
     }
   }
 

@@ -16,26 +16,34 @@
 
 package model
 
-import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
-import reactivemongo.bson.{BSON, BSONHandler, BSONString}
+import model.Qualification.Qualification
+import model.SchemeType.SchemeType
+import play.api.libs.json.Json
 
-object Scheme extends Enumeration {
-  type Scheme = Value
+case class Scheme(schemeId: SchemeType, qualification: Qualification, specificRequirement: Boolean)
 
-  val CentralDepartments, Commercial, DigitalAndTechnology, DiplomaticService, European, Finance,
-  GovernmentCommunicationService, GovernmentEconomicService, GovernmentOperationalResearchService,
-  GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
-  ProjectDelivery, ScienceAndEngineering, Tax = Value
+object Scheme {
+  implicit val schemeQualificationFormat = Json.format[Scheme]
 
-  implicit val schemeFormat = new Format[Scheme] {
-    def reads(json: JsValue) = JsSuccess(Scheme.withName(json.as[String]))
+  import SchemeType._
+  import Qualification._
 
-    def writes(myEnum: Scheme) = JsString(myEnum.toString)
-  }
-
-  implicit object BSONEnumHandler extends BSONHandler[BSONString, Scheme] {
-    def read(doc: BSONString) = Scheme.withName(doc.value)
-
-    def write(stats: Scheme) = BSON.write(stats.toString)
-  }
+  val AllSchemesWithQualification = List(
+    Scheme(CentralDepartments, Degree_22, specificRequirement = false),
+    Scheme(Commercial, Degree_22, specificRequirement = false),
+    Scheme(DigitalAndTechnology, Degree_21, specificRequirement = false),
+    Scheme(DiplomaticService, Degree_22, specificRequirement = false),
+    Scheme(European, Degree_22, specificRequirement = false),
+    Scheme(Finance, Degree_21, specificRequirement = false),
+    Scheme(GovernmentCommunicationService, Degree_21, specificRequirement = false),
+    Scheme(GovernmentEconomicService, Degree_Economics, specificRequirement = true),
+    Scheme(GovernmentOperationalResearchService, Degree_Numerate, specificRequirement = true),
+    Scheme(GovernmentSocialResearchService, Degree_SocialScience, specificRequirement = true),
+    Scheme(GovernmentStatisticalService, Degree_Numerate, specificRequirement = true),
+    Scheme(HousesOfParliament, Degree_22, specificRequirement = false),
+    Scheme(HumanResources, Degree_22, specificRequirement = false),
+    Scheme(ProjectDelivery, Degree_22, specificRequirement = false),
+    Scheme(ScienceAndEngineering, Degree_CharteredEngineer, specificRequirement = true),
+    Scheme(Tax, Degree_22, specificRequirement = false)
+  )
 }

@@ -16,7 +16,7 @@
 
 package model
 
-import model.Scheme._
+import model.SchemeType._
 
 object SelectedSchemesExamples {
   val TwoSchemes = SelectedSchemes(List(CentralDepartments, Commercial), orderAgreed = true, eligible = true, alternatives = true)

@@ -16,10 +16,10 @@
 
 package model.command
 
-import model.{SchemeQualification, SelectedSchemes}
+import model.{Scheme, SelectedSchemes}
 import play.api.libs.json.Json
 
-case class SchemePreferences(selectedSchemes: Option[SelectedSchemes], allSchemes: List[SchemeQualification])
+case class SchemePreferences(selectedSchemes: Option[SelectedSchemes], allSchemes: List[Scheme])
 
 
 object SchemePreferences {

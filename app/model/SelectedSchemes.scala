@@ -16,11 +16,11 @@
 
 package model
 
-import model.Scheme.Scheme
+import model.SchemeType.SchemeType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class SelectedSchemes(schemes: List[Scheme], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
+case class SelectedSchemes(schemes: List[SchemeType], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
 
 object SelectedSchemes {
   implicit val selectedSchemesFormat = Json.format[SelectedSchemes]

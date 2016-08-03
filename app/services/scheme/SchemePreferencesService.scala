@@ -21,7 +21,6 @@ import repositories._
 import repositories.schemepreferences.SchemePreferencesRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.concurrent.Future
 
 object SchemePreferencesService extends SchemePreferencesService {

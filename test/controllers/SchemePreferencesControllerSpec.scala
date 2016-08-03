@@ -62,7 +62,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
     val Request = fakeRequest(TwoSchemes)
 
     "create a new scheme preferences" in {
-      when(mockSchemePreferencesService.update(AppId, TwoSchemes)).thenReturn(Future.successful())
+      when(mockSchemePreferencesService.update(AppId, TwoSchemes)).thenReturn(Future.successful(()))
       val response = controller.update(AppId)(Request)
       status(response) mustBe OK
     }
