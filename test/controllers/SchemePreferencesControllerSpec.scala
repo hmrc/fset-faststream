@@ -16,10 +16,9 @@
 
 package controllers
 
-import model.Exceptions.SchemePreferencesNotFound
+import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import model.SelectedSchemes
 import model.SelectedSchemesExamples._
-import org.mockito.Matchers.{eq => eqTo}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import services.AuditService
@@ -46,7 +45,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       selectedSchemes mustBe TwoSchemes
     }
 
-    "return scheme preferences with empty selected schemes" in {
+    "return not found when selected schemes do not exist" in {
       when(mockSchemePreferencesService.find(AppId)).thenReturn(Future.failed(SchemePreferencesNotFound(AppId)))
 
       val response = controller.find(AppId)(fakeRequest)
@@ -62,6 +61,12 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       when(mockSchemePreferencesService.update(AppId, TwoSchemes)).thenReturn(emptyFuture)
       val response = controller.update(AppId)(Request)
       status(response) mustBe OK
+    }
+
+    "return bad request when update fails" in {
+      when(mockSchemePreferencesService.update(AppId, TwoSchemes)).thenReturn(Future.failed(CannotUpdateSchemePreferences(AppId)))
+      val response = controller.update(AppId)(Request)
+      status(response) mustBe BAD_REQUEST
     }
   }
 }

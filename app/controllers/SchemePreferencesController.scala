@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.SchemePreferencesNotFound
+import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import model.SelectedSchemes
 import play.api.libs.json.Json
 import play.api.mvc.Action
@@ -45,7 +45,11 @@ trait SchemePreferencesController extends BaseController {
 
   def update(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[SelectedSchemes] { schemePref =>
-      schemePreferencesService.update(applicationId, schemePref).map { _ => Ok }
+      schemePreferencesService.update(applicationId, schemePref) map { _ =>
+        Ok
+      } recover {
+        case e: CannotUpdateSchemePreferences => BadRequest(s"Cannot update scheme preferences for applicationId: $applicationId")
+      }
     }
   }
 }
