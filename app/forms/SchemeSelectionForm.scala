@@ -24,35 +24,35 @@ import play.api.i18n.Messages
 
 object SchemeSelectionForm {
 
-  val qua_degree2_1 = "2:1 degree in any subject "
-  val qua_degree2_2 = "2:2 degree in any subject "
-  val qua_economics = "2:1 degree in economics or a 2:2 with a postgraduate qualification in economics "
-  val qua_numerical = "2:1 degree in a numerate subject or a 2:2 with a relevant postgraduate qualification "
-  val qua_socialScience = "2:1 degree in social science or a 2:2 with a postgraduate qualification in social research "
-  val qua_chartaredEng = "2:1 degree, plus either chartered engineer status or a postgraduate degree in a relevant subject "
+  val Degree_21 = "Degree_21"
+  val Degree_22 = "Degree_22"
+  val Degree_Economics = "Degree_Economics"
+  val Degree_Numerate = "Degree_Numerate"
+  val Degree_SocialScience = "Degree_SocialScience"
+  val Degree_CharteredEngineer = "Degree_CharteredEngineer"
 
   val AllSchemes = Seq(
-    Scheme("CentralDepartments", "Central Departments",qua_degree2_2, specific=false),
-    Scheme("Commercial", "Commercial",qua_degree2_2, specific=false),
-    Scheme("DigitalAndTechnology", "Digital and Technology",qua_degree2_1, specific=false),
-    Scheme("DiplomaticService", "Diplomatic Service",qua_degree2_2, specific=false),
-    Scheme("European", "European",qua_degree2_2, specific=false),
-    Scheme("Finance", "Finance",qua_degree2_1, specific=false),
-    Scheme("GovernmentCommunicationService", "Government Communication Service",qua_degree2_1, specific=false),
-    Scheme("GovernmentEconomicService", "Government Economic Service",qua_economics, specific=true,
+    Scheme("CentralDepartments", "Central Departments",Degree_22, specific=false),
+    Scheme("Commercial", "Commercial",Degree_22, specific=false),
+    Scheme("DigitalAndTechnology", "Digital and Technology",Degree_21, specific=false),
+    Scheme("DiplomaticService", "Diplomatic Service",Degree_22, specific=false),
+    Scheme("European", "European",Degree_22, specific=false),
+    Scheme("Finance", "Finance",Degree_21, specific=false),
+    Scheme("GovernmentCommunicationService", "Government Communication Service",Degree_21, specific=false),
+    Scheme("GovernmentEconomicService", "Government Economic Service",Degree_Economics, specific=true,
       "civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility"),
-    Scheme("GovernmentOperationalResearchService", "Government Operational Research Service",qua_numerical, specific=true,
+    Scheme("GovernmentOperationalResearchService", "Government Operational Research Service",Degree_Numerate, specific=true,
       "civil-service-analytical-fast-streams/civil-service-fast-stream-government-operational-research-service#eligibility"),
-    Scheme("GovernmentSocialResearchService", "Government Social Research Service",qua_socialScience, specific=true,
+    Scheme("GovernmentSocialResearchService", "Government Social Research Service",Degree_SocialScience, specific=true,
       "civil-service-analytical-fast-streams/civil-service-fast-stream-government-social-research-service#eligibility"),
-    Scheme("GovernmentStatisticalService", "Government Statistical Service", qua_numerical, specific=true,
+    Scheme("GovernmentStatisticalService", "Government Statistical Service", Degree_Numerate, specific=true,
       "civil-service-analytical-fast-streams/civil-service-fast-stream-government-statistical-service#eligibility"),
-    Scheme("HousesOfParliament", "Houses of Parliament", qua_degree2_2, specific=false),
-    Scheme("HumanResources", "Human Resources", qua_degree2_2, specific=false),
-    Scheme("ProjectDelivery", "Project Delivery",qua_degree2_2, specific=false),
-    Scheme("ScienceAndEngineering", "Science and Engineering",qua_chartaredEng, specific=true,
+    Scheme("HousesOfParliament", "Houses of Parliament", Degree_22, specific=false),
+    Scheme("HumanResources", "Human Resources", Degree_22, specific=false),
+    Scheme("ProjectDelivery", "Project Delivery",Degree_22, specific=false),
+    Scheme("ScienceAndEngineering", "Science and Engineering",Degree_CharteredEngineer, specific=true,
       "civil-service-generalist-fast-stream/fast-stream-science-and-engineering#eligibility"),
-    Scheme("Tax" ,"Tax", qua_degree2_2, specific=false)
+    Scheme("Tax" ,"Tax", Degree_22, specific=false)
   )
 
   case class Scheme(id:String, description:String, qualification:String, specific:Boolean, link:String = "")
@@ -73,10 +73,14 @@ object SchemeSelectionForm {
 
   def schemeFormatter(formKey: String) = new Formatter[List[String]] {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
-      val selectedSchemes = data.filterKeys(_.contains("schemes"))
-      selectedSchemes match {
+      val priority: String => Int = _.split("_").last.toInt
+      val schemesByPriority = data.filterKeys(_.contains("scheme_"))
+        .map{case (name, value) => priority(name) -> value}.toSeq
+        .sorted
+        .map{_._2}
+      schemesByPriority match {
         case selSchemes if selSchemes.isEmpty => Left(List(FormError("schemes", Messages("error.noSchemesSelected"))))
-        case _ => Right(selectedSchemes.values.toList)
+        case _ => Right(schemesByPriority.toList)
       }
     }
 

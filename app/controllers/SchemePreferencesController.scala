@@ -24,12 +24,11 @@ import security.Roles.{PersonalDetailsRole, SchemesRole}
 
 import scala.concurrent.Future
 
-object SchemeController2 extends SchemeController2(ApplicationClient) {
+object SchemePreferencesController extends SchemePreferencesController(ApplicationClient) {
   val http = CSRHttp
 }
 
-// scalastyle:off
-abstract class SchemeController2(applicationClient: ApplicationClient) extends BaseController(applicationClient) with SchemeClient{
+abstract class SchemePreferencesController(applicationClient: ApplicationClient) extends BaseController(applicationClient) with SchemeClient{
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
@@ -45,7 +44,7 @@ abstract class SchemeController2(applicationClient: ApplicationClient) extends B
         },
         schemePref => {
           updateSchemePreference(schemePref)(user.application.applicationId)
-            .map(_ => Redirect(routes.SchemeController2.present()))
+            .map(_ => Redirect(routes.SchemePreferencesController.present()))
         }
     )
   }

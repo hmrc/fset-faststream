@@ -39,8 +39,8 @@ GET         /application/details                                    controllers.
 POST        /application/details                                    controllers.PersonalDetailsController.submitGeneralDetails
 
 # Probably only needed by fasttrack for scheme selection. TODO: Remove after fset-598 is merged
-GET         /application/schemes                                    controllers.SchemeController2.present
-POST        /application/schemes                                    controllers.SchemeController2.submit
+GET         /application/schemes                                    controllers.SchemePreferencesController.present
+POST        /application/schemes                                    controllers.SchemePreferencesController.submit
 
 GET         /application/schemes/first-preference                   controllers.SchemeController.firstPreference
 GET         /application/schemes/second-preference                  controllers.SchemeController.secondPreference
