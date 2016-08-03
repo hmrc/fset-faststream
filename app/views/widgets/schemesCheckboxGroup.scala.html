@@ -17,7 +17,6 @@
                     <label class="block-label block-label-slim" for="@createId(id, scheme)">
                         <input type="checkbox" id="@createId(id, scheme)" name="@{name + "[]"
                         }" value="@sid" @if(values.contains(sid)) {
-                            checked="checked"
                         } @toHtmlArgs(htmlArgs) data-schemename/>
                         @Messages("scheme."+sid+".description")
                     </label>

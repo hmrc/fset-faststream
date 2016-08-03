@@ -13,20 +13,20 @@ $(function()
     $('[data-schemename]').on('change', function()
       {
         var $this = $(this),
-          thisScheme = $this.closest('.block-label').text(),
-          thisSchemeID = $this.attr('id'),
-          thisSchemeValue = $this.attr('value'),
-          schemeReq = $this.closest('.scheme-container').find(
+        thisScheme = $this.closest('.block-label').text(),
+        thisSchemeID = $this.attr('id'),
+        thisSchemeValue = $this.attr('value'),
+        schemeReq = $this.closest('.scheme-container').find(
             '[data-scheme-req]').html(),
-          isSpecial = $this.closest('.scheme-container').find(
+        isSpecial = $this.closest('.scheme-container').find(
             '[data-spec-scheme]').length,
-          specialEligibility = isSpecial == 0 ?
-          '<p class="font-xsmall no-btm-margin">Requires at least a ' +
-          schemeReq + '</p>' :
-          '<div class="scheme-warning text"><p class="font-xsmall">Requires at least a ' +
-          schemeReq + '</p></div>',
-          arrayPosition = $.inArray(thisSchemeID, schemePrefArray),
-          emptyPosition = $.inArray('Empty', schemePrefArray);
+        specialEligibility = isSpecial == 0 ?
+            '<p class="font-xsmall no-btm-margin">Requires at least a ' +
+        schemeReq + '</p>' :
+            '<div class="scheme-warning text"><p class="font-xsmall">Requires at least a ' +
+        schemeReq + '</p></div>',
+        arrayPosition = $.inArray(thisSchemeID, schemePrefArray),
+        emptyPosition = $.inArray('Empty', schemePrefArray);
         if (arrayPosition >= 0)
         {
           //Do nothing
@@ -43,11 +43,10 @@ $(function()
           }
           var arrayPositionNow = $.inArray(thisSchemeID,
             schemePrefArray);
-          var selectionOrder = arrayPositionNow + 1;
-          var schemeSelectionId = "scheme_"+selectionOrder;
+          var priority = arrayPositionNow + 1;
+          var schemePriorityId = "#scheme_"+priority;
+          $(schemePriorityId).val(thisSchemeValue);
           $('#selectedPrefList li').eq(arrayPositionNow).after(
-              '<input type="hidden" name="'+schemeSelectionId+'" value="'+thisSchemeValue+'" data-scheme-id="' +
-              thisSchemeID + '"/>' +
               '<li class="med-btm-margin scheme-prefcontainer" data-scheme-id="' +
               thisSchemeID + '"><span data-schemeorder>' +
               preferencesAsText[arrayPositionNow] +
@@ -62,6 +61,9 @@ $(function()
         }
         if (!$this.is(':checked'))
         {
+          var priority = arrayPosition + 1;
+          var schemePriorityId = "#scheme_"+priority;
+          $(schemePriorityId).val('');
           schemePrefArray.splice(arrayPosition, 1, 'Empty');
           $('#selectedPrefList').find('[data-scheme-id="' +
             thisSchemeID + '"]').remove();
@@ -162,4 +164,16 @@ $(function()
       }
       $(window).scroll(sticky_relocate);
       sticky_relocate();
+
+      function preselectSchemes(){
+        for(i = 1; i <=5; i++){
+            var scheme = $('#scheme_'+i).val();
+            if(scheme !== ''){
+                var sid = "#schemes_" + scheme;
+                $(sid).checked = true;
+                $(sid).trigger('change');
+            }
+        }
+      }
+      preselectSchemes();
 });
