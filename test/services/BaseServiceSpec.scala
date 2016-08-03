@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package model
+package services
 
-import model.Scheme.Scheme
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.play.PlaySpec
 
-case class SelectedSchemes(schemes: List[Scheme], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
-
-object SelectedSchemes {
-  implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
-  implicit val selectedSchemesHandler = Macros.handler[SelectedSchemes]
+/**
+  * Common base class for all service tests
+  */
+class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures {
+  val AppId = "AppId"
+  val UserId = "UserId"
 }

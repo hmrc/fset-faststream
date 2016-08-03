@@ -34,9 +34,8 @@ object Scheme extends Enumeration {
   }
 
   implicit object BSONEnumHandler extends BSONHandler[BSONString, Scheme] {
-    def read(doc: BSONString) = Scheme.Value(doc.value)
+    def read(doc: BSONString) = Scheme.withName(doc.value)
 
     def write(stats: Scheme) = BSON.write(stats.toString)
   }
-
 }

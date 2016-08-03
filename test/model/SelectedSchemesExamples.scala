@@ -16,13 +16,8 @@
 
 package model
 
-import model.Scheme.Scheme
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import model.Scheme._
 
-case class SelectedSchemes(schemes: List[Scheme], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
-
-object SelectedSchemes {
-  implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
-  implicit val selectedSchemesHandler = Macros.handler[SelectedSchemes]
+object SelectedSchemesExamples {
+  val TwoSchemes = SelectedSchemes(List(CentralDepartments, Commercial), orderAgreed = true, eligible = true, alternatives = true)
 }

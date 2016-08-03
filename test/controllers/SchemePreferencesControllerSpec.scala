@@ -16,8 +16,16 @@
 
 package controllers
 
+import model.Exceptions.SchemePreferencesNotFound
+import model.SelectedSchemesExamples._
+import model.command.SchemePreferences
+import org.mockito.Matchers.{eq => eqTo}
+import org.mockito.Mockito._
+import play.api.test.Helpers._
 import services.AuditService
 import services.scheme.SchemePreferencesService
+
+import scala.concurrent.Future
 
 class SchemePreferencesControllerSpec extends BaseControllerSpec {
   val mockSchemePreferencesService = mock[SchemePreferencesService]
@@ -26,5 +34,37 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
   val controller = new SchemePreferencesController {
     val schemePreferencesService = mockSchemePreferencesService
     val auditService = mockAuditService
+  }
+
+  "find preferences" should {
+    "return scheme preferences with all possible schemes" in {
+      when(mockSchemePreferencesService.find(AppId)).thenReturn(Future.successful(TwoSchemes))
+
+      val response = controller.find(AppId)(fakeRequest)
+
+      val schemePreferences = contentAsJson(response).as[SchemePreferences]
+      schemePreferences.selectedSchemes mustBe Some(TwoSchemes)
+      schemePreferences.allSchemes.size mustBe 16
+    }
+
+    "return scheme preferences with empty selected schemes" in {
+      when(mockSchemePreferencesService.find(AppId)).thenReturn(Future.failed(SchemePreferencesNotFound(AppId)))
+
+      val response = controller.find(AppId)(fakeRequest)
+
+      val schemePreferences = contentAsJson(response).as[SchemePreferences]
+      schemePreferences.selectedSchemes mustBe None
+      schemePreferences.allSchemes.size mustBe 16
+    }
+  }
+
+  "update preferences" should {
+    val Request = fakeRequest(TwoSchemes)
+
+    "create a new scheme preferences" in {
+      when(mockSchemePreferencesService.update(AppId, TwoSchemes)).thenReturn(Future.successful())
+      val response = controller.update(AppId)(Request)
+      status(response) mustBe OK
+    }
   }
 }

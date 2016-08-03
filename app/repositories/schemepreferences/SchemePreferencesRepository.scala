@@ -16,9 +16,8 @@
 
 package repositories.schemepreferences
 
-import model.Exceptions.{CannotUpdateContactDetails, CannotUpdateSchemePreferences, ContactDetailsNotFound, SchemePreferencesNotFound}
+import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import model.SelectedSchemes
-import model.persisted.ContactDetails
 import reactivemongo.api.DB
 import reactivemongo.bson.{BSONDocument, BSONObjectID, _}
 import uk.gov.hmrc.mongo.ReactiveRepository

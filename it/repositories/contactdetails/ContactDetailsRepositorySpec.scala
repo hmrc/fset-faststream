@@ -11,8 +11,6 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = "contact-details"
 
-  val UserId = "UserId"
-
   def repository = new ContactDetailsMongoRepository
 
   "update contact details" should {

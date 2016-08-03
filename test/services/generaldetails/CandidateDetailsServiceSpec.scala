@@ -22,21 +22,16 @@ import model.persisted.ContactDetailsExamples._
 import model.persisted.PersonalDetailsExamples._
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.AuditService
+import services.{AuditService, BaseServiceSpec}
 
 import scala.concurrent.Future
 
-class CandidateDetailsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures {
+class CandidateDetailsServiceSpec extends BaseServiceSpec {
   val mockPdRepository = mock[PersonalDetailsRepository]
   val mockCdRepository = mock[ContactDetailsRepository]
   val mockAuditService = mock[AuditService]
-  val AppId = "AppId"
-  val UserId = "UserId"
 
   val service = new CandidateDetailsService {
     val pdRepository = mockPdRepository

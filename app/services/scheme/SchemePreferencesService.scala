@@ -31,11 +31,8 @@ object SchemePreferencesService extends SchemePreferencesService {
 trait SchemePreferencesService {
   val spRepository: SchemePreferencesRepository
 
-  def find(applicationId: String): Future[SelectedSchemes] = {
-    spRepository.find(applicationId)
-  }
+  def find(applicationId: String): Future[SelectedSchemes] = spRepository.find(applicationId)
 
-  def update(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit] = {
+  def update(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit] =
     spRepository.save(applicationId, selectedSchemes) map (_ => ())
-  }
 }

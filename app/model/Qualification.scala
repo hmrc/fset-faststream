@@ -31,7 +31,7 @@ object Qualification  extends Enumeration {
   }
 
   implicit object BSONEnumHandler extends BSONHandler[BSONString, Qualification] {
-    def read(doc: BSONString) = Qualification.Value(doc.value)
+    def read(doc: BSONString) = Qualification.withName(doc.value)
 
     def write(stats: Qualification) = BSON.write(stats.toString)
   }
