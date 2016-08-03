@@ -16,19 +16,20 @@
 
 package testkit
 
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.PlaySpec
 
 import scala.concurrent.Future
-import scala.util.Failure
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait FutureHelper {
-  this: PlaySpec =>
+  this: PlaySpec with ScalaFutures =>
 
-  def assertNoExceptions(future: Future[Unit]) = future.onComplete {
-    case Failure(e) => fail(e)
-    case _ => // ok
+  def assertNoExceptions(future: Future[Unit]) = try {
+    implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
+    future.futureValue
+  } catch {
+    case e: Throwable => fail(e)
   }
 
   def emptyFuture = Future.successful(())

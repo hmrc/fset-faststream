@@ -17,6 +17,7 @@
 package controllers
 
 import org.mockito.Matchers.{eq => eqTo}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{Json, Writes}
@@ -27,7 +28,7 @@ import testkit.FutureHelper
 /**
   * Common base class for all controller tests
   */
-abstract class BaseControllerSpec extends PlaySpec with MockitoSugar with Results with FutureHelper {
+abstract class BaseControllerSpec extends PlaySpec with MockitoSugar with Results with ScalaFutures with FutureHelper {
   val AppId = "AppId"
   val UserId = "UserId"
 
