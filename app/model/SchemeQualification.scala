@@ -36,14 +36,14 @@ object SchemeQualification {
     SchemeQualification(European, Degree_22, specificRequirement = false),
     SchemeQualification(Finance, Degree_21, specificRequirement = false),
     SchemeQualification(GovernmentCommunicationService, Degree_21, specificRequirement = false),
-    SchemeQualification(GovernmentEconomicService, Degree_Economics, specificRequirement = false),
-    SchemeQualification(GovernmentOperationalResearchService, Degree_Numerate, specificRequirement = false),
-    SchemeQualification(GovernmentSocialResearchService, Degree_SocialScience, specificRequirement = false),
-    SchemeQualification(GovernmentStatisticalService, Degree_Numerate, specificRequirement = false),
+    SchemeQualification(GovernmentEconomicService, Degree_Economics, specificRequirement = true),
+    SchemeQualification(GovernmentOperationalResearchService, Degree_Numerate, specificRequirement = true),
+    SchemeQualification(GovernmentSocialResearchService, Degree_SocialScience, specificRequirement = true),
+    SchemeQualification(GovernmentStatisticalService, Degree_Numerate, specificRequirement = true),
     SchemeQualification(HousesOfParliament, Degree_22, specificRequirement = false),
     SchemeQualification(HumanResources, Degree_22, specificRequirement = false),
     SchemeQualification(ProjectDelivery, Degree_22, specificRequirement = false),
-    SchemeQualification(ScienceAndEngineering, Degree_CharteredEngineer, specificRequirement = false),
+    SchemeQualification(ScienceAndEngineering, Degree_CharteredEngineer, specificRequirement = true),
     SchemeQualification(Tax, Degree_22, specificRequirement = false)
   )
 }
