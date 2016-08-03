@@ -16,34 +16,11 @@
 
 package model
 
-import model.Qualification.Qualification
 import model.SchemeType.SchemeType
 import play.api.libs.json.Json
 
-case class Scheme(schemeId: SchemeType, qualification: Qualification, specificRequirement: Boolean)
+case class Scheme(schemeId: SchemeType)
 
 object Scheme {
   implicit val schemeQualificationFormat = Json.format[Scheme]
-
-  import SchemeType._
-  import Qualification._
-
-  val AllSchemesWithQualification = List(
-    Scheme(CentralDepartments, Degree_22, specificRequirement = false),
-    Scheme(Commercial, Degree_22, specificRequirement = false),
-    Scheme(DigitalAndTechnology, Degree_21, specificRequirement = false),
-    Scheme(DiplomaticService, Degree_22, specificRequirement = false),
-    Scheme(European, Degree_22, specificRequirement = false),
-    Scheme(Finance, Degree_21, specificRequirement = false),
-    Scheme(GovernmentCommunicationService, Degree_21, specificRequirement = false),
-    Scheme(GovernmentEconomicService, Degree_Economics, specificRequirement = true),
-    Scheme(GovernmentOperationalResearchService, Degree_Numerate, specificRequirement = true),
-    Scheme(GovernmentSocialResearchService, Degree_SocialScience, specificRequirement = true),
-    Scheme(GovernmentStatisticalService, Degree_Numerate, specificRequirement = true),
-    Scheme(HousesOfParliament, Degree_22, specificRequirement = false),
-    Scheme(HumanResources, Degree_22, specificRequirement = false),
-    Scheme(ProjectDelivery, Degree_22, specificRequirement = false),
-    Scheme(ScienceAndEngineering, Degree_CharteredEngineer, specificRequirement = true),
-    Scheme(Tax, Degree_22, specificRequirement = false)
-  )
 }

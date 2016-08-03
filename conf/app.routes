@@ -18,8 +18,6 @@ PUT         /application/confirm/adjustment/:applicationId               control
 
 PUT         /media/create                                                controllers.MediaController.addMedia()
 
-GET         /frameworks-available-to-application/:applicationId          controllers.FrameworkController.getAvailableFrameworksWithLocations(applicationId: String)
-
 GET         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.find(applicationId: String)
 PUT         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.update(applicationId: String)
 

@@ -17,8 +17,7 @@
 package controllers
 
 import model.Exceptions.SchemePreferencesNotFound
-import model.command.SchemePreferences
-import model.{Scheme, SchemeType, SelectedSchemes}
+import model.SelectedSchemes
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
@@ -28,7 +27,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object SchemePreferencesController extends SchemePreferencesController {
-  val schemePreferencesService: SchemePreferencesService = SchemePreferencesService
+  val schemePreferencesService = SchemePreferencesService
   val auditService = AuditService
 }
 
@@ -37,14 +36,11 @@ trait SchemePreferencesController extends BaseController {
   val auditService: AuditService
 
   def find(applicationId: String) = Action.async { implicit request =>
-    val schemesAndQualifications = Scheme.AllSchemesWithQualification
-    val schemePreferences = schemePreferencesService.find(applicationId) map { selectedSchemes =>
-      SchemePreferences(Some(selectedSchemes), schemesAndQualifications)
+    schemePreferencesService.find(applicationId) map { sp =>
+      Ok(Json.toJson(sp))
     } recover {
-      case e: SchemePreferencesNotFound => SchemePreferences(None, schemesAndQualifications)
+      case e: SchemePreferencesNotFound => NotFound(s"Cannot find scheme preferences for applicationId: $applicationId")
     }
-
-    schemePreferences.map(sp => Ok(Json.toJson(sp)))
   }
 
   def update(applicationId: String) = Action.async(parse.json) { implicit request =>

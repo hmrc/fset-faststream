@@ -16,7 +16,7 @@
 
 package model
 
-// TODO: Read all schemes from yaml file
+@deprecated("Fasttrack version. Use the new 'model.SchemeType' enum instead")
 object Schemes {
   val Business = "Business"
   val Commercial = "Commercial"

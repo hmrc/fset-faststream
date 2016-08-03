@@ -22,11 +22,12 @@ import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.Results
 import play.api.test.{FakeHeaders, FakeRequest}
+import testkit.FutureHelper
 
 /**
   * Common base class for all controller tests
   */
-abstract class BaseControllerSpec extends PlaySpec with MockitoSugar with Results {
+abstract class BaseControllerSpec extends PlaySpec with MockitoSugar with Results with FutureHelper {
   val AppId = "AppId"
   val UserId = "UserId"
 

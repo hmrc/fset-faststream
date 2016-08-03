@@ -19,6 +19,7 @@ package services
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import testkit.FutureHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -27,14 +28,7 @@ import scala.util.Failure
 /**
   * Common base class for all service tests
   */
-class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures {
+class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with FutureHelper {
   val AppId = "AppId"
   val UserId = "UserId"
-
-  def assertNoExceptions(future: Future[Unit]) = future.onComplete {
-    case Failure(e) => fail(e)
-    case _ => // ok
-  }
-
-  def emptyFuture = Future.successful(())
 }

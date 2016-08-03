@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package model.command
+package testkit
 
-import model.{Scheme, SelectedSchemes}
-import play.api.libs.json.Json
+import org.scalatestplus.play.PlaySpec
 
-case class SchemePreferences(selectedSchemes: Option[SelectedSchemes], allSchemes: List[Scheme])
+import scala.concurrent.Future
+import scala.util.Failure
 
+import scala.concurrent.ExecutionContext.Implicits.global
 
-object SchemePreferences {
-  implicit val schemePreferencesFormat = Json.format[SchemePreferences]
+trait FutureHelper {
+  this: PlaySpec =>
+
+  def assertNoExceptions(future: Future[Unit]) = future.onComplete {
+    case Failure(e) => fail(e)
+    case _ => // ok
+  }
+
+  def emptyFuture = Future.successful(())
 }
