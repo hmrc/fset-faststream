@@ -52,14 +52,33 @@ object SelectedSchemesForm {
 
   case class Scheme(id: String, qualification: String, specificRequirement: Boolean)
 
+  case class SchemePreferences(schemes: List[String], orderAgreed: Boolean, eligible: Boolean, alternatives: String)
+
+
+  implicit def toSchemePreferences(optSelectedSchemes: Option[SelectedSchemes]): Form[SchemePreferences] =
+    optSelectedSchemes.map(selectedSchemes => SelectedSchemesForm.form.fill(SchemePreferences(
+      selectedSchemes.schemes,
+      selectedSchemes.orderAgreed,
+      selectedSchemes.eligible,
+      selectedSchemes.alternatives.toString
+    ))).getOrElse(form)
+
+
+  implicit def toSelectedSchemes(schemePreferences: SchemePreferences):SelectedSchemes = SelectedSchemes(
+    schemePreferences.schemes,
+    schemePreferences.orderAgreed,
+    schemePreferences.eligible,
+    schemePreferences.alternatives.toBoolean
+  )
+
   def form = {
     Form(
       mapping(
         "schemes" -> of(schemeFormatter("schemes")),
         "orderAgreed" -> checked(Messages("orderAgreed.required")),
         "eligible" -> checked(Messages("eligible.required")),
-        "alternatives" -> checked(Messages("eligible.required"))
-      )(SelectedSchemes.apply)(SelectedSchemes.unapply))
+        "alternatives" -> Mappings.nonEmptyTrimmedText("eligible.required", 10)
+      )(SchemePreferences.apply)(SchemePreferences.unapply))
   }
 
 

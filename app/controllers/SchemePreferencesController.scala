@@ -16,10 +16,9 @@
 
 package controllers
 
+import _root_.forms.SelectedSchemesForm._
 import config.CSRHttp
-import _root_.forms.SelectedSchemesForm
-
-import connectors.{ ApplicationClient, SchemeClient }
+import connectors.{ApplicationClient, SchemeClient}
 import security.Roles.{PersonalDetailsRole, SchemesRole}
 
 import scala.concurrent.Future
@@ -33,14 +32,13 @@ abstract class SchemePreferencesController(applicationClient: ApplicationClient)
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
       getSchemePreferences(user.application.applicationId).flatMap { selectedSchemes =>
-        val form = selectedSchemes.map(schemes => SelectedSchemesForm.form.fill(schemes)).getOrElse(SelectedSchemesForm.form)
-        Future.successful(Ok(views.html.application.schemeSelection(form)))
+        Future.successful(Ok(views.html.application.schemeSelection(selectedSchemes)))
       }
   }
 
   def submit = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
     implicit user =>
-      SelectedSchemesForm.form.bindFromRequest.fold(
+      form.bindFromRequest.fold(
         invalidForm => {
           Future.successful(Ok(views.html.application.schemeSelection(invalidForm)))
         },
