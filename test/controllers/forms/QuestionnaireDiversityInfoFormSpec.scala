@@ -19,7 +19,7 @@ package controllers.forms
 import controllers.BaseSpec
 import forms.QuestionnaireDiversityInfoForm.{ Data, form }
 
-class QuestionnaireDiversityFormSpec extends BaseSpec {
+class QuestionnaireDiversityInfoFormSpec extends BaseSpec {
 
   "the diversity form" should {
     "be valid when all values are correct" in new Fixture {
@@ -30,15 +30,15 @@ class QuestionnaireDiversityFormSpec extends BaseSpec {
     }
 
     "fail when no gender" in new Fixture {
-      assertFieldRequired("gender", "gender")
+      assertFieldRequired(expectedError = "gender", "gender")
     }
 
     "fail when no orientation" in new Fixture {
-      assertFieldRequired("sexOrientation", "sexOrientation")
+      assertFieldRequired(expectedError = "sexOrientation", "sexOrientation")
     }
 
     "fail when no ethnicity" in new Fixture {
-      assertFieldRequired("ethnicity", "other_sexOrientation", "preferNotSay_ethnicity")
+      assertFieldRequired(expectedError = "ethnicity", "other_ethnicity", "preferNotSay_ethnicity")
     }
 
     "transform properly to a question list" in new Fixture {
