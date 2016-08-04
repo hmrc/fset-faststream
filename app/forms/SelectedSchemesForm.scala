@@ -58,7 +58,7 @@ object SelectedSchemesForm {
         "schemes" -> of(schemeFormatter("schemes")),
         "orderAgreed" -> checked(Messages("orderAgreed.required")),
         "eligible" -> checked(Messages("eligible.required")),
-        "alternatives" -> checked(Messages("alternatives.required"))
+        "alternatives" -> checked(Messages("eligible.required"))
       )(SelectedSchemes.apply)(SelectedSchemes.unapply))
   }
 

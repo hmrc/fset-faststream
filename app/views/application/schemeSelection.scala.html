@@ -8,8 +8,8 @@
 
 @getScheme(id: Int) = @{
     form.value match {
-        case Some(formObject) if id <= formObject.schemes.size => formObject.schemes.apply(id - 1)
-        case _ => form.data.getOrElse("scheme_"+id, "") // to handle invalid forms
+        case Some(formObject) => formObject.schemes.lift(id).getOrElse("")
+        case _ => form.data.getOrElse("scheme_"+id, "")
     }
 }
 
@@ -48,11 +48,9 @@
                     <p>Your schemes will appear here as you select them from the list</p>
                 </div>
             </div>
-            <input type="hidden" id="scheme_1" name="scheme_1" value="@getScheme(1)" />
-            <input type="hidden" id="scheme_2" name="scheme_2" value="@getScheme(2)" />
-            <input type="hidden" id="scheme_3" name="scheme_3" value="@getScheme(3)" />
-            <input type="hidden" id="scheme_4" name="scheme_4" value="@getScheme(4)" />
-            <input type="hidden" id="scheme_5" name="scheme_5" value="@getScheme(5)" />
+            @for(i <- 0 to 4) {
+                <input type="hidden" id="scheme_@i" name="scheme_@i" value="@getScheme(i)" />
+            }
             <ol id="selectedPrefList" class="list-text">
                 <li></li>
             </ol>

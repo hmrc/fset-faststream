@@ -43,8 +43,7 @@ $(function()
           }
           var arrayPositionNow = $.inArray(thisSchemeID,
             schemePrefArray);
-          var priority = arrayPositionNow + 1;
-          var schemePriorityId = "#scheme_"+priority;
+          var schemePriorityId = "#scheme_"+arrayPositionNow;
           $(schemePriorityId).val(thisSchemeValue);
           $('#selectedPrefList li').eq(arrayPositionNow).after(
               '<li class="med-btm-margin scheme-prefcontainer" data-scheme-id="' +
@@ -61,8 +60,7 @@ $(function()
         }
         if (!$this.is(':checked'))
         {
-          var priority = arrayPosition + 1;
-          var schemePriorityId = "#scheme_"+priority;
+          var schemePriorityId = "#scheme_"+arrayPosition;
           $(schemePriorityId).val('');
           schemePrefArray.splice(arrayPosition, 1, 'Empty');
           $('#selectedPrefList').find('[data-scheme-id="' +
@@ -166,10 +164,9 @@ $(function()
       sticky_relocate();
 
       function preselectSchemes(){
-        for(i = 1; i <=5; i++){
+        for(i = 0; i < 5; i++){
             var scheme = $('#scheme_'+i).val();
             if(scheme !== ''){
-                console.log(scheme);
                 var sid = "#schemes_" + scheme;
                 var initialStatus = $(sid).is(':checked');
                 if(initialStatus == false){
