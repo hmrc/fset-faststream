@@ -16,10 +16,10 @@
 
 package forms
 
-import connectors.SchemePreferencesExchangeObjects.SelectedSchemes
-import play.api.data.{Form, FormError}
+import models.SelectedSchemes
 import play.api.data.Forms._
 import play.api.data.format.Formatter
+import play.api.data.{Form, FormError}
 import play.api.i18n.Messages
 
 object SelectedSchemesForm {
@@ -52,47 +52,26 @@ object SelectedSchemesForm {
 
   case class Scheme(id: String, qualification: String, specificRequirement: Boolean)
 
-  case class SchemePreferences(schemes: List[String] = Nil,
-                               orderAgreed: String = "", eligible: String = "", alternatives: String = "")
-
-  implicit def toSchemePreferences(optSelectedSchemes: Option[SelectedSchemes]):SchemePreferences =
-    optSelectedSchemes.map(selectedSchemes => SchemePreferences(
-      selectedSchemes.schemes,
-      selectedSchemes.orderAgreed.toString,
-      selectedSchemes.eligible.toString,
-      selectedSchemes.alternatives.toString
-    )).getOrElse(EmptyData)
-
-  implicit def toSelectedSchemes(schemePreferences: SchemePreferences):SelectedSchemes = SelectedSchemes(
-    schemePreferences.schemes,
-    schemePreferences.orderAgreed.toBoolean,
-    schemePreferences.eligible.toBoolean,
-    schemePreferences.alternatives.toBoolean
-  )
-
   def form = {
     Form(
       mapping(
         "schemes" -> of(schemeFormatter("schemes")),
-        "orderAgreed" -> Mappings.nonEmptyTrimmedText("error.required.orderAgreed", 256),
-        "eligible" -> Mappings.nonEmptyTrimmedText("error.required.eligible", 256),
-        "alternatives" -> Mappings.nonEmptyTrimmedText("error.required.alternatives", 256)
-      )(SchemePreferences.apply)(SchemePreferences.unapply))
+        "orderAgreed" -> checked(Messages("orderAgreed.required")),
+        "eligible" -> checked(Messages("eligible.required")),
+        "alternatives" -> checked(Messages("alternatives.required"))
+      )(SelectedSchemes.apply)(SelectedSchemes.unapply))
   }
 
-  val EmptyData = SchemePreferences()
 
   def schemeFormatter(formKey: String) = new Formatter[List[String]] {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
       val validSchemeParams = (name:String, value:String) => name.startsWith("scheme_") && !value.isEmpty
       val priority: String => Int = _.split("_").last.toInt
       val schemesByPriority = data.filter(pair => validSchemeParams(pair._1, pair._2))
-        .collect{
-          case (name, value) => priority(name) -> value
-        }.toSeq
+        .collect{ case (name, value) => priority(name) -> value }.toSeq
         .sortBy{_._1}
       schemesByPriority match {
-        case selSchemes if selSchemes.isEmpty => Left(List(FormError("schemes", Messages("error.noSchemesSelected"))))
+        case selSchemes if selSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
         case _ => Right(schemesByPriority.toMap.values.toList)
       }
     }

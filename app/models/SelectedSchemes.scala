@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package connectors
+package models
 
 import play.api.libs.json.Json
 
-object SchemePreferencesExchangeObjects {
 
-  case class SelectedSchemes(schemes: List[String], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
+case class SelectedSchemes(schemes: List[String], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
 
-  object SelectedSchemes{
+object SelectedSchemes {
     implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
-  }
-
 }

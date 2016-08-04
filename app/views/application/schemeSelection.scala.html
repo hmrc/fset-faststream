@@ -1,17 +1,16 @@
-@(form: Form[_root_.forms.SelectedSchemesForm.SchemePreferences])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
+@(form: Form[_root_.models.SelectedSchemes])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
 
 @import _root_.forms.SelectedSchemesForm
 @import _root_.forms.SelectedSchemesForm.Scheme
 @import views.html.widgets.pageProgress
-@import views.html.widgets.{checkbox, radioBox}
+@import views.html.widgets.{checkbox, radioBox, yesNoQuestion}
 @import views.html.widgets.schemesCheckboxGroup
 
 @getScheme(id: Int) = @{
-    val selectedSchemes = form.value match {
-                            case Some(formObject) => formObject.schemes
-                            case None => Nil
-                          }
-    if(id <= selectedSchemes.size) selectedSchemes.apply(id - 1) else ""
+    form.value match {
+        case Some(formObject) if id <= formObject.schemes.size => formObject.schemes.apply(id - 1)
+        case _ => form.data.getOrElse("scheme_"+id, "") // to handle invalid forms
+    }
 }
 
 @main_template(title = "Choose your schemes", pageForms = Seq(form)) {
@@ -64,22 +63,12 @@
             <p>You will not be able to reorder them after submitting your application.</p>
         </section>
         <section class="text">
-            <fieldset>
-                <legend class="form-label">Are you happy with the order of your schemes?</legend>
-                <div class="form-group no-btm-margin">
-                    @radioBox(form("orderAgreed"), options = Seq("true" -> "Yes", "false" -> "No"))
-                </div>
-            </fieldset>
+                @yesNoQuestion(form("orderAgreed"), question = "Are you happy with the order of your schemes?",
+                noMessage = "If you're not happy with the order of your preferences, change the order now before you continue.")
         </section>
         <section class="text">
-            <fieldset>
-                <legend class="form-label">Are you eligible for your chosen schemes?</legend>
-                <p>Make sure you're <a href="https://www.gov.uk/guidance/civil-service-fast-stream-graduate-schemes" target="_blank" rel="external">
-                    eligible</a> for your chosen schemes.</p>
-                <div class="form-group no-btm-margin">
-                    @radioBox(form("eligible"), options = Seq("true" -> "Yes", "false" -> "No"))
-                </div>
-            </fieldset>
+                @yesNoQuestion(form("eligible"), question = "Are you eligible for your chosen schemes?",
+                noMessage = "You can only apply for a scheme you're eligible for. Check you're eligible for the scheme and then choose your preferred scheme.")
         </section>
         <section class="text">
             <fieldset>

@@ -91,6 +91,11 @@ secondScheme.unavailable=Second preference of scheme is not available in this lo
 secondScheme.duplicate=Second preference of scheme can''t be the same as your first preference
 
 #Schemes & qualification
+schemes.required=You must choose a scheme
+orderAgreed.required=Select whether or not you are happy with the order of your schemes
+eligible.required=Select whether or not you are eligible for your chosen schemes
+alternatives.required=Select whether or not you would consider other schemes
+
 scheme.CentralDepartments.description=Central Departments
 scheme.Commercial.description=Commercial
 scheme.DigitalAndTechnology.description=Digital and Technology

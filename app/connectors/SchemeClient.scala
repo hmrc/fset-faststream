@@ -17,8 +17,7 @@
 package connectors
 
 import config.CSRHttp
-import connectors.SchemePreferencesExchangeObjects.SelectedSchemes
-import models.UniqueIdentifier
+import models.{SelectedSchemes, UniqueIdentifier}
 import play.api.http.Status._
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse, NotFoundException}
 

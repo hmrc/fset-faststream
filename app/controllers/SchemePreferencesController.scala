@@ -33,7 +33,7 @@ abstract class SchemePreferencesController(applicationClient: ApplicationClient)
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
       getSchemePreferences(user.application.applicationId).flatMap { selectedSchemes =>
-        val form = SelectedSchemesForm.form.fill(selectedSchemes)
+        val form = selectedSchemes.map(schemes => SelectedSchemesForm.form.fill(schemes)).getOrElse(SelectedSchemesForm.form)
         Future.successful(Ok(views.html.application.schemeSelection(form)))
       }
   }
