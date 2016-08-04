@@ -17,8 +17,8 @@
 package connectors
 
 import config.CSRHttp
+import connectors.SchemePreferencesExchangeObjects.SelectedSchemes
 import connectors.SchemeClient.CannotFindSelection
-import forms.SelectedSchemesForm.SelectedSchemes
 import models.UniqueIdentifier
 import models.frameworks.{Alternatives, LocationAndSchemeSelection, Preference, Region}
 import play.api.http.Status._
@@ -64,8 +64,10 @@ trait SchemeClient {
   def getSchemePreferences(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(
       s"${url.host}${url.base}/scheme-preferences/$applicationId"
-    ).map {
-      case x: HttpResponse if x.status == OK => ()
+    ).map(
+      _.json.as[SelectedSchemes]
+    ).recover {
+      case e: NotFoundException => throw new CannotFindSelection
     }
   }
 

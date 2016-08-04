@@ -16,11 +16,11 @@
 
 package forms
 
+import connectors.SchemePreferencesExchangeObjects.SelectedSchemes
 import play.api.data.{Form, FormError}
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.i18n.Messages
-import play.api.libs.json._
 
 object SelectedSchemesForm {
 
@@ -30,37 +30,6 @@ object SelectedSchemesForm {
   val Degree_Numerate = "Degree_Numerate"
   val Degree_SocialScience = "Degree_SocialScience"
   val Degree_CharteredEngineer = "Degree_CharteredEngineer"
-
-  case class Scheme(schemeId: String, qualification: String, specificRequirement: Boolean)
-
-  object Scheme {
-    implicit val schemeFormat = Json.format[Scheme]
-  }
-
-  case class SelectedSchemes(schemes: List[String] = Nil,
-                             orderAgreed: String = "", eligible: String = "", alternatives: String = "")
-
-  object SelectedSchemes {
-    implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
-  }
-
-  case class SchemePreferences(selectedSchemes: Option[SelectedSchemes])
-
-  object SchemePreferences {
-    implicit val schemePreferencesFormat = Json.format[SchemePreferences]
-  }
-
-  def form = {
-    Form(
-      mapping(
-        "schemes" -> of(schemeFormatter("schemes")),
-        "orderAgreed" -> Mappings.nonEmptyTrimmedText("error.required.orderAgreed", 256),
-        "eligible" -> Mappings.nonEmptyTrimmedText("error.required.eligible", 256),
-        "alternatives" -> Mappings.nonEmptyTrimmedText("error.required.alternatives", 256)
-      )(SelectedSchemes.apply)(SelectedSchemes.unapply))
-  }
-
-  val EmptyData = SelectedSchemes()
 
   val AllSchemes = Seq(
     Scheme("CentralDepartments", Degree_22, specificRequirement=false),
@@ -81,17 +50,49 @@ object SelectedSchemesForm {
     Scheme("Tax" ,Degree_22, specificRequirement=false)
   )
 
+  case class Scheme(id: String, qualification: String, specificRequirement: Boolean)
+
+  case class SchemePreferences(schemes: List[String] = Nil,
+                               orderAgreed: String = "", eligible: String = "", alternatives: String = "")
+
+  implicit def toSchemePreferences(selectedSchemes: SelectedSchemes):SchemePreferences = SchemePreferences(
+      selectedSchemes.schemes,
+      selectedSchemes.orderAgreed.toString,
+      selectedSchemes.eligible.toString,
+      selectedSchemes.alternatives.toString
+    )
+
+  implicit def toSelectedSchemes(schemePreferences: SchemePreferences):SelectedSchemes = SelectedSchemes(
+    schemePreferences.schemes,
+    schemePreferences.orderAgreed.toBoolean,
+    schemePreferences.eligible.toBoolean,
+    schemePreferences.alternatives.toBoolean
+  )
+
+  def form = {
+    Form(
+      mapping(
+        "schemes" -> of(schemeFormatter("schemes")),
+        "orderAgreed" -> Mappings.nonEmptyTrimmedText("error.required.orderAgreed", 256),
+        "eligible" -> Mappings.nonEmptyTrimmedText("error.required.eligible", 256),
+        "alternatives" -> Mappings.nonEmptyTrimmedText("error.required.alternatives", 256)
+      )(SchemePreferences.apply)(SchemePreferences.unapply))
+  }
+
+  val EmptyData = SchemePreferences()
 
   def schemeFormatter(formKey: String) = new Formatter[List[String]] {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
+      val validSchemeParams = (name:String, value:String) => name.startsWith("scheme_") && !value.isEmpty
       val priority: String => Int = _.split("_").last.toInt
-      val schemesByPriority = data.filterKeys(_.contains("scheme_"))
-        .map{case (name, value) => priority(name) -> value}.toSeq
-        .sorted
-        .map{_._2}
+      val schemesByPriority = data.filter(pair => validSchemeParams(pair._1, pair._2))
+        .collect{
+          case (name, value) => priority(name) -> value
+        }.toSeq
+        .sortBy{_._1}
       schemesByPriority match {
         case selSchemes if selSchemes.isEmpty => Left(List(FormError("schemes", Messages("error.noSchemesSelected"))))
-        case _ => Right(schemesByPriority.toList)
+        case _ => Right(schemesByPriority.toMap.values.toList)
       }
     }
 
