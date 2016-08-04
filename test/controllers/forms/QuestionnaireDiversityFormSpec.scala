@@ -54,8 +54,8 @@ class QuestionnaireDiversityFormSpec extends BaseSpec {
   trait Fixture {
 
     val validFormData = Data(
-      Some("Male"), None,
-      Some("Other"), Some("details"),
+      "Male", None,
+      "Other", Some("details"),
       None, None, Some(true)
     )
 
