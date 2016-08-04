@@ -43,7 +43,8 @@ object QuestionnaireOccupationInfoForm {
 
   val form = Form(
     mapping(
-      "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.parentsOccupation", 256),
+      "parentsDegree" -> Mappings.nonEmptyTrimmedText("error.required.parentsDegree", 256),
+      "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.allQuestions", 256),
       "parentsOccupation" -> of(parentsOccupationFormatter),
       "employee" -> of(Mappings.fieldWithCheckBox(256, Some("employedParent"), skipValues)),
       "preferNotSay_employee" -> optional(checked(Messages("error.required.employee"))),
@@ -55,6 +56,7 @@ object QuestionnaireOccupationInfoForm {
   )
 
   case class Data(
+    parentsDegree: String,
     employedParent: String,
     parentsOccupation: Option[String],
     employee: Option[String],
@@ -68,6 +70,7 @@ object QuestionnaireOccupationInfoForm {
       val occupation = if (employedParent == "Employed") parentsOccupation else Some(employedParent)
 
       Questionnaire(List(
+        Question(Messages("parentsDegree.question"), Answer(Some(parentsDegree), None, None)),
         Question(Messages("parentsOccupation.question"), Answer(occupation.sanitize, None, None)),
         Question(Messages("employee.question"), Answer(employee, None, preferNotSayEmployee)),
         Question(Messages("organizationSize.question"), Answer(organizationSize, None, preferNotSayOrganizationSize)),
