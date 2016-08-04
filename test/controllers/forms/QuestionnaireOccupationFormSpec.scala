@@ -55,11 +55,12 @@ class QuestionnaireOccupationFormSpec extends BaseSpec {
 
     "transform properly to a question list" in new Fixture {
       val questionList = validFormData.toQuestionnaire.questions
-      questionList.size must be(4)
-      questionList(0).answer.answer must be(Some("Some occupation"))
-      questionList(1).answer.answer must be(Some("some employee"))
-      questionList(2).answer.answer must be(Some("Org size"))
-      questionList(3).answer.unknown must be(Some(true))
+      questionList.size must be(5)
+      questionList(0).answer.answer must be(Some("Yes"))
+      questionList(1).answer.answer must be(Some("Some occupation"))
+      questionList(2).answer.answer must be(Some("some employee"))
+      questionList(3).answer.answer must be(Some("Org size"))
+      questionList(4).answer.unknown must be(Some(true))
     }
 
   }
@@ -76,6 +77,7 @@ class QuestionnaireOccupationFormSpec extends BaseSpec {
     )
 
     val validFormValues = Map(
+      "parentsDegree" -> "Yes",
       "employedParent" -> "Employed",
       "parentsOccupation" -> "Some occupation",
       "employee" -> "some employee",
@@ -95,6 +97,7 @@ class QuestionnaireOccupationFormSpec extends BaseSpec {
     )
 
     val validFormValuesUnemployed = Map(
+      "parentsDegree" -> "No",
       "employedParent" -> "Unemployed",
       "parentsOccupation" -> "",
       "employee" -> "",
