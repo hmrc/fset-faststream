@@ -25,11 +25,11 @@
         @helper.CSRF.formField
 
         <section>
-            <div class="text">
-                <p class="form-label">@Messages(Did any of your parent(s) or guardian(s) complete a university degree
-                    course or equivalent? </p>
-                @radioBox(questionnaireForm("parentsDegree"), Seq("Yes" -> "Yes", "No" -> "No", "I don't know/prefer not to say" -> "I don't know/prefer not to say"))
-            </div>
+            <fieldset class="text">
+                <legend class="form-label" id="uni-ques">@Messages("university.question")</legend>
+                @radioBox(questionnaireForm("university"), options = Seq("Yes" -> "Yes", "No" -> "No",
+                    "Unknown/prefer not to say" -> "I don't know/prefer not to say"))
+            </fieldset>
         </section>
 
         <section>

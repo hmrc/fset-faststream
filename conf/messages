@@ -114,6 +114,7 @@ error.required.sixthForm = What was your school between ages 16  to 18?
 error.required.postcodeQ = What was your postcode when you were 14?
 error.required.freeSchoolMeals = Were you eligible for free school meals?
 error.required.university = Did your parent(s) or guardian(s) complete university?
+error.required.parentsDegree = Did your parent(s) or guardian(s) complete university?
 error.required.parentsOccupation = What was your parent(s) or guardian(s) work status?
 error.required.employee = Were your parent(s) or guardian(s) employed or self-employed?
 error.required.organizationSize = What was the size of the organisation?

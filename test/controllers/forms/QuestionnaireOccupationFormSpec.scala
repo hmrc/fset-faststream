@@ -67,6 +67,7 @@ class QuestionnaireOccupationFormSpec extends BaseSpec {
   trait Fixture {
 
     val validFormData = Data(
+      "Yes",
       "Employed",
       Some("Some occupation"),
       Some("some employee"), None,
@@ -86,6 +87,7 @@ class QuestionnaireOccupationFormSpec extends BaseSpec {
     )
 
     val validFormDataUnemployed = Data(
+      "No",
       "Unemployed", Some(""),
       None, None,
       None, None,
