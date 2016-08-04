@@ -18,48 +18,17 @@ package connectors
 
 import config.CSRHttp
 import connectors.SchemePreferencesExchangeObjects.SelectedSchemes
-import connectors.SchemeClient.CannotFindSelection
 import models.UniqueIdentifier
-import models.frameworks.{Alternatives, LocationAndSchemeSelection, Preference, Region}
 import play.api.http.Status._
-import play.api.libs.json.Json
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse, NotFoundException}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 trait SchemeClient {
 
   import config.FrontendAppConfig.faststreamConfig._
 
   val http: CSRHttp
-
-  def getAvailableFrameworksWithLocations(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[List[Region]] =
-    http.GET(s"${url.host}${url.base}/frameworks-available-to-application/$applicationId").map(_.json.as[List[Region]])
-
-  def getSelection(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[LocationAndSchemeSelection] =
-    http.GET(s"${url.host}${url.base}/framework-preference/$applicationId").map(_.json.as[LocationAndSchemeSelection]).recover {
-      case e: NotFoundException => throw new CannotFindSelection()
-    }
-
-  def updateFirstPref(data: Preference)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(
-      s"${url.host}${url.base}/framework-preference/first/$applicationId",
-      data
-    ).map {
-        case x: HttpResponse if x.status == CREATED => ()
-        case x: HttpResponse if x.status == OK => ()
-      }
-  }
-
-  def updateSecondPref(data: Preference)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
-    http.PUT(
-      s"${url.host}${url.base}/framework-preference/second/$applicationId",
-      data
-    ).map {
-        case x: HttpResponse if x.status == OK => ()
-      }
-  }
 
   def getSchemePreferences(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(
@@ -78,28 +47,6 @@ trait SchemeClient {
     ).map {
       case x: HttpResponse if x.status == OK => ()
     }
-  }
-
-  case class SecondPreferenceIntention(secondPreferenceIntended: Boolean)
-
-  implicit val jsonFormatPref = Json.format[SecondPreferenceIntention]
-
-  def updateNoSecondPref(noSecPref: Boolean)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
-    http.PUT(
-      s"${url.host}${url.base}/framework-preference/second/intention/$applicationId",
-      SecondPreferenceIntention(noSecPref)
-    ).map {
-        case x: HttpResponse if x.status == OK => ()
-      }
-  }
-
-  def updateAlternatives(data: Alternatives)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
-    http.PUT(
-      s"${url.host}${url.base}/framework-preference/alternatives/$applicationId",
-      data
-    ).map {
-        case x: HttpResponse if x.status == OK => ()
-      }
   }
 
 }
