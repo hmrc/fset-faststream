@@ -25,11 +25,11 @@
         @helper.CSRF.formField
 
         <section>
-            <fieldset class="text">
-                <legend class="form-label" id="uni-ques">@Messages("parentsDegree.question")</legend>
+            <div class="text">
+                <p class="form-label">@Messages("parentsDegree.question")</p>
                 @radioBox(questionnaireForm("parentsDegree"), options = Seq("Yes" -> "Yes", "No" -> "No",
                     "Unknown/prefer not to say" -> "I don't know/prefer not to say"))
-            </fieldset>
+            </div>
         </section>
 
         <section>
