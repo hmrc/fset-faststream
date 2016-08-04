@@ -65,9 +65,9 @@ trait SchemeClient {
     http.GET(
       s"${url.host}${url.base}/scheme-preferences/$applicationId"
     ).map(
-      _.json.as[SelectedSchemes]
+      httpResponse => Some(httpResponse.json.as[SelectedSchemes])
     ).recover {
-      case e: NotFoundException => throw new CannotFindSelection
+      case e: NotFoundException => None
     }
   }
 

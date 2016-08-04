@@ -55,12 +55,13 @@ object SelectedSchemesForm {
   case class SchemePreferences(schemes: List[String] = Nil,
                                orderAgreed: String = "", eligible: String = "", alternatives: String = "")
 
-  implicit def toSchemePreferences(selectedSchemes: SelectedSchemes):SchemePreferences = SchemePreferences(
+  implicit def toSchemePreferences(optSelectedSchemes: Option[SelectedSchemes]):SchemePreferences =
+    optSelectedSchemes.map(selectedSchemes => SchemePreferences(
       selectedSchemes.schemes,
       selectedSchemes.orderAgreed.toString,
       selectedSchemes.eligible.toString,
       selectedSchemes.alternatives.toString
-    )
+    )).getOrElse(EmptyData)
 
   implicit def toSelectedSchemes(schemePreferences: SchemePreferences):SelectedSchemes = SelectedSchemes(
     schemePreferences.schemes,

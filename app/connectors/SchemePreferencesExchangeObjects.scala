@@ -16,7 +16,7 @@
 
 package connectors
 
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.Json
 
 object SchemePreferencesExchangeObjects {
 
