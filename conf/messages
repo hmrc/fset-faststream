@@ -106,15 +106,15 @@ locked.account = You''ve made too many unsuccessful attempts to sign in and your
 
 # Questionnaire error messages:
 
-error.required.gender = You must tell us your gender identity or choose prefer not to say.
-error.required.sexOrientation = You must tell us your sexual orientation or choose prefer not to say.
-error.required.ethnicity = You must tell us your ethnic group or choose prefer not to say.
+error.required.gender = You must tell us your gender identity or choose prefer not to say
+error.required.sexOrientation = You must tell us your sexual orientation or choose prefer not to say
+error.required.ethnicity = You must tell us your ethnic group or choose prefer not to say
 error.required.schoolName = What was your school between ages 11 to 16?
 error.required.sixthForm = What was your school between ages 16  to 18?
 error.required.postcodeQ = What was your postcode when you were 14?
 error.required.freeSchoolMeals = Were you eligible for free school meals?
 error.required.university = Did your parent(s) or guardian(s) complete university?
-error.required.parentsDegree = Did your parent(s) or guardian(s) complete university?
+error.required.parentsDegree = You must tell us if your parent or guardian has a degree course or choose prefer not to say
 error.required.parentsOccupation = What was your parent(s) or guardian(s) work status?
 error.required.employee = Were your parent(s) or guardian(s) employed or self-employed?
 error.required.organizationSize = What was the size of the organisation?
