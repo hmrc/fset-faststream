@@ -84,20 +84,25 @@ object SelectedSchemesForm {
 
   def schemeFormatter(formKey: String) = new Formatter[List[String]] {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
-      val validSchemeParams = (name:String, value:String) => name.startsWith("scheme_") && !value.isEmpty
-      val priority: String => Int = _.split("_").last.toInt
-      val schemesByPriority = data.filter(pair => validSchemeParams(pair._1, pair._2))
-        .collect{ case (name, value) => priority(name) -> value }.toSeq
-        .sortBy{_._1}
-      schemesByPriority match {
+      getSchemesByPriority(data) match {
         case selSchemes if selSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case _ => Right(schemesByPriority.toMap.values.toList)
+        case selSchemes => Right(selSchemes)
       }
     }
 
     def unbind(key: String, value: List[String]): Map[String, String] = {
       value.map(key => key -> Messages("scheme." + key + ".description")).toMap
     }
+  }
+
+  def getSchemesByPriority(formData: Map[String, String]) = {
+    val validSchemeParams = (name:String, value:String) => name.startsWith("scheme_") && !value.isEmpty
+    val priority: String => Int = _.split("_").last.toInt
+    formData.filter(pair => validSchemeParams(pair._1, pair._2))
+      .collect{ case (name, value) => priority(name) -> value }.toSeq
+      .sortBy{_._1}
+      .map {_._2}
+      .toList
   }
 
 }

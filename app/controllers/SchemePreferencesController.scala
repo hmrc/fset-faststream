@@ -31,8 +31,8 @@ abstract class SchemePreferencesController(applicationClient: ApplicationClient)
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
-      getSchemePreferences(user.application.applicationId).flatMap { selectedSchemes =>
-        Future.successful(Ok(views.html.application.schemeSelection(selectedSchemes)))
+      getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
+        Ok(views.html.application.schemeSelection(selectedSchemes))
       }
   }
 
