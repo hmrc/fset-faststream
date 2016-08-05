@@ -42,6 +42,9 @@ package object repositories {
     ReactiveMongoPlugin.mongoConnector.db
   }
 
+  lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
+  lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository()
+
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
   lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService)
   lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
@@ -99,6 +102,7 @@ package object repositories {
   }
 
   /** Implicit transformation for the PersistedPersonalDetails **/
+  @deprecated("fasttrack version")
   implicit object BSONPersistedPersonalDetailsHandler extends BSONHandler[BSONDocument, PersonalDetails] {
     def read(doc: BSONDocument): PersonalDetails = {
       val root = doc.getAs[BSONDocument]("personal-details").get
@@ -106,19 +110,15 @@ package object repositories {
       val lastName = root.getAs[String]("lastName").get
       val preferredName = root.getAs[String]("preferredName").get
       val dateOfBirth = doc.getAs[LocalDate]("dateOfBirth").get
-      val aLevel = doc.getAs[Boolean]("aLevel").get
-      val stemLevel = doc.getAs[Boolean]("stemLevel").get
 
-      PersonalDetails(firstName, lastName, preferredName, dateOfBirth, aLevel, stemLevel)
+      PersonalDetails(firstName, lastName, preferredName, dateOfBirth, false, false)
     }
 
     def write(psDoc: PersonalDetails) = BSONDocument(
       "firstName" -> psDoc.firstName,
       "lastName" -> psDoc.lastName,
       "preferredName" -> psDoc.preferredName,
-      "dateOfBirth" -> psDoc.dateOfBirth,
-      "aLevel" -> psDoc.aLevel,
-      "stemLevel" -> psDoc.stemLevel
+      "dateOfBirth" -> psDoc.dateOfBirth
     )
   }
 
@@ -158,7 +158,6 @@ package object repositories {
 
   implicit val withdrawHandler: BSONHandler[BSONDocument, WithdrawApplicationRequest] = Macros.handler[WithdrawApplicationRequest]
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
-  implicit val addressHandler: BSONHandler[BSONDocument, Address] = Macros.handler[Address]
   implicit val assistanceHandler: BSONHandler[BSONDocument, AssistanceDetailsExchange] = Macros.handler[AssistanceDetailsExchange]
   implicit val answerHandler: BSONHandler[BSONDocument, PersistedAnswer] = Macros.handler[PersistedAnswer]
   implicit val diversityEthnicityHandler: BSONHandler[BSONDocument, DiversityEthnicity] = Macros.handler[DiversityEthnicity]

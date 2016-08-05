@@ -22,21 +22,22 @@ import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
 import mocks._
 import mocks.application.DocumentRootInMemoryRepository
-import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
+import model.Address
+import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback}
 import model.Commands._
 import model.Commands.Implicits._
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.ContactDetailsWithId
 import org.joda.time.LocalDate
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{ JsArray, JsValue }
+import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories.application.GeneralApplicationRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, QuestionnaireRepository, ReportingRepository, TestReportRepository }
+import repositories.{ApplicationAssessmentScoresRepository, ContactDetailsRepository, QuestionnaireRepository, ReportingRepository, TestReportRepository}
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.MockitoSugar
 

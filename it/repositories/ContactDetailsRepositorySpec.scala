@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.Commands.Address
+import model.Address
 import model.PersistedObjects.ContactDetails
 import testkit.MongoRepositorySpec
 

@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package testkit
+package model.persisted
 
-import java.util.UUID
+import org.joda.time.LocalDate
+import play.api.libs.json.Json
+import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
-trait UserFixture {
-  val spec: WireLevelHttpSpec with CommonHttpWorkflows
-  val userId = UUID.randomUUID.toString
-  lazy val applicationId = spec.createApplication(userId)
+case class PersonalDetails(firstName: String, lastName: String, preferredName: String, dateOfBirth: LocalDate)
+
+object PersonalDetails {
+  import repositories.BSONLocalDateHandler
+
+  implicit val personalDetailsFormat = Json.format[PersonalDetails]
+  implicit val personalDetailsHandler = Macros.handler[PersonalDetails]
 }

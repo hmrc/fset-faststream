@@ -18,28 +18,28 @@ package services.onlinetesting
 
 import config._
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, CubiksGatewayClient }
+import connectors.{CSREmailClient, CubiksGatewayClient}
 import controllers.OnlineTestDetails
-import factories.{ DateTimeFactory, UUIDFactory }
-import model.Commands
+import factories.{DateTimeFactory, UUIDFactory}
+import model.{Address, Commands}
 import model.Commands._
-import model.Exceptions.{ ConnectorException, NotFoundException }
+import model.Exceptions.{ConnectorException, NotFoundException}
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
-import repositories.{ ContactDetailsRepository, OnlineTestPDFReportRepository, TestReportRepository }
+import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.{ContactDetailsRepository, OnlineTestPDFReportRepository, TestReportRepository}
 import services.AuditService
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global

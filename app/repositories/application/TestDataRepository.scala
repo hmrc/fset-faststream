@@ -17,6 +17,7 @@
 package repositories.application
 
 import model.Commands._
+import model.Address
 import model.PersistedObjects
 import model.PersistedObjects.ContactDetails
 import org.joda.time.{ DateTime, LocalDate }

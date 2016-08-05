@@ -16,7 +16,7 @@
 
 package mocks
 
-import model.Commands.Address
+import model.Address
 import model.Exceptions.ContactDetailsNotFound
 import model.PersistedObjects.{ ContactDetails, ContactDetailsWithId }
 import repositories.ContactDetailsRepository

@@ -45,23 +45,8 @@ object Commands {
 
   case class PersonalDetailsAdded(applicationId: String, userId: String)
 
-  case class Address(line1: String, line2: Option[String] = None, line3: Option[String] = None, line4: Option[String] = None)
-
   type PostCode = String
   type PhoneNumber = String
-
-  case class UpdateGeneralDetails(
-    firstName: String,
-    lastName: String,
-    preferredName: String,
-    email: String,
-    dateOfBirth: LocalDate,
-    address: Address,
-    postCode: PostCode,
-    phone: Option[PhoneNumber],
-    aLevel: Boolean,
-    stemLevel: Boolean
-  )
 
   case class AssistanceDetailsExchange(
     needsAssistance: String,
@@ -310,7 +295,6 @@ object Commands {
     implicit val personalDetailsAddedFormat = Json.format[PersonalDetailsAdded]
     implicit val createApplicationRequestFormats: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
     implicit val withdrawApplicationRequestFormats: Format[WithdrawApplicationRequest] = Json.format[WithdrawApplicationRequest]
-    implicit val updatePersonalDetailsRequestFormats: Format[UpdateGeneralDetails] = Json.format[UpdateGeneralDetails]
     implicit val updateAssistanceDetailsRequestFormats: Format[AssistanceDetailsExchange] = Json.format[AssistanceDetailsExchange]
 
     implicit val answerFormats = Json.format[Answer]
