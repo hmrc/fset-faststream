@@ -109,16 +109,23 @@ $(function() {
   // Add/remove selected class
   $('.block-label').on('click', 'input[type=radio], input[type=checkbox]', function() {
     var $this   = $(this),
-      $target = $this.parent().attr('data-target'),
-      $siblingArray = [],
-      $siblingTarget = '',
-      $disTarget = $this.parent().attr('data-distarget'),
-      $theTargetControl = $('#' + $disTarget);
+        $target = $this.parent().attr('data-target'),
+        $siblingArray = [],
+        $siblingTarget = '',
+        $disTarget = $.trim($this.parent().attr('data-distarget')).split(" "),
+        $theTargetControl = '';
 
     $this.closest('.form-group').find('.block-label').not($this.parent()).each(function() {
       $siblingArray.push('#' + $(this).attr('data-target'));
       $siblingTarget = $siblingArray.join(", ");
     });
+
+    if($disTarget.length > 1) {
+      var multipleTargets = $($disTarget.join(", "));
+      $theTargetControl = multipleTargets;
+    } else {
+      $theTargetControl = $('#' + $disTarget);
+    }
 
     $('input:not(:checked)').parent().removeClass('selected');
     $('input:checked').parent().addClass('selected');

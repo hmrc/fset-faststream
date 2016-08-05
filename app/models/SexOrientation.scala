@@ -18,10 +18,10 @@ package models
 
 object SexOrientation {
   val list = List(
-    ("Heterosexual/straight", false),
-    ("Gay woman/lesbian", false),
-    ("Gay man", false),
-    ("Bisexual", false),
-    ("Other", true)
+    ("straight", "Heterosexual/straight", false),
+    ("gay", "Gay/lesbian", false),
+    ("other", "Other", true),
+    ("bisexual", "Bisexual", false),
+    ("preferNotSay","I don't know/prefer not to say",false)
   )
 }

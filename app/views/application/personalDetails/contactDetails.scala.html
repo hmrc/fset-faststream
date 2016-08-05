@@ -20,6 +20,11 @@
     </div>
 
     <div id="addressManualInput">
+        @*
+         * The id for the line1 needs to be provided explicitly because otherwise the field is generated
+         * with underscore in it. This is making the validation error-link unclickable when address line 1 is omitted.
+         * The rest of the fields with dotted id are not using this trick because they are not used in validation.
+         *@
         @helper.inputText(form("address.line1"), 'id -> "address.line1",
             '_label -> "Address",
             'class -> "form-control",
