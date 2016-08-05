@@ -19,6 +19,7 @@ package controllers
 import _root_.forms.SelectedSchemesForm._
 import config.CSRHttp
 import connectors.{ApplicationClient, SchemeClient}
+import models.CachedData
 import security.Roles.{PersonalDetailsRole, SchemesRole}
 
 import scala.concurrent.Future
@@ -43,8 +44,12 @@ abstract class SchemePreferencesController(applicationClient: ApplicationClient)
           Future.successful(Ok(views.html.application.schemeSelection(invalidForm)))
         },
         selectedSchemes => {
-          updateSchemePreferences(selectedSchemes)(user.application.applicationId)
-            .map(_ => Redirect(routes.HomeController.present()))
+          for {
+            _ <- updateSchemePreferences(selectedSchemes)(user.application.applicationId)
+            redirect <- refreshCachedUser().map(_ => Redirect(routes.AssistanceController.present()))
+          } yield {
+            redirect
+          }
         }
     )
   }

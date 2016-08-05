@@ -23,7 +23,7 @@ import scala.language.implicitConversions
 
 case class Progress(
   personalDetails: Boolean,
-  frameworksLocation: Boolean,
+  schemePreferences: Boolean,
   assistance: Boolean,
   review: Boolean,
   startedQuestionnaire: Boolean,
@@ -63,7 +63,7 @@ object Progress {
   implicit def fromProgressRespToAppProgress(progressResponse: ProgressResponse): Progress =
     Progress(
       personalDetails = progressResponse.personalDetails,
-      frameworksLocation = progressResponse.frameworksLocation,
+      schemePreferences = progressResponse.schemePreferences,
       assistance = progressResponse.assistance,
       review = progressResponse.review,
       startedQuestionnaire = progressResponse.questionnaire.contains("start_questionnaire"),
