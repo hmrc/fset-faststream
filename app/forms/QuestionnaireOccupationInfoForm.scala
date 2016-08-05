@@ -33,7 +33,7 @@ object QuestionnaireOccupationInfoForm {
 
       (check, value) match {
         case (Some("Employed"), Some(v)) => Right(value)
-        case (Some("Employed"), None) => Left(List(FormError("parentsOccupation", Messages("error.required.parentsOccupation"))))
+        case (Some("Employed"), None) => Left(List(FormError("parentsOccupation", Messages("error.required.parentsJobType"))))
         case _ => Right(value)
       }
     }
@@ -44,7 +44,7 @@ object QuestionnaireOccupationInfoForm {
   val form = Form(
     mapping(
       "parentsDegree" -> Mappings.nonEmptyTrimmedText("error.required.parentsDegree", 256),
-      "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.allQuestions", 256),
+      "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.parentsOccupation", 256),
       "parentsOccupation" -> of(parentsOccupationFormatter),
       "employee" -> of(Mappings.fieldWithCheckBox(256, Some("employedParent"), skipValues)),
       "preferNotSay_employee" -> optional(checked(Messages("error.required.employee"))),
