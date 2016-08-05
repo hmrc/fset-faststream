@@ -21,7 +21,8 @@ import common.FutureEx
 import org.joda.time.DateTime
 import play.api.libs.concurrent.Akka
 import repositories._
-import repositories.application.{ AssistanceDetailsRepository, GeneralApplicationRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.assistancedetails.AssistanceDetailsRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,7 +33,7 @@ object DiversityMonitoringReport extends DiversityMonitoringReport {
   override val qRepository = questionnaireRepository
   override val reportRepository = diversityReportRepository
   override val appRepository = applicationRepository
-  override val asRepository = assistanceRepository
+  override val asRepository = faststreamAssistanceDetailsRepository
 
   val yamlRepository = frameworkRepository
 

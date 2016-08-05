@@ -164,7 +164,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
         applicationId,
         personalDetails = getProgress("personal-details"),
         frameworksLocation = getProgress("frameworks-location"),
-        assistance = getProgress("assistance"),
+        assistanceDetails = getProgress("assistance-details"),
         review = getProgress("review"),
         questionnaire = questionnaire,
         submitted = getProgress("submitted"),
@@ -851,7 +851,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     collection.find(query, projection).one[BSONDocument].map {
       _.flatMap { doc =>
-        doc.getAs[BSONDocument]("assistance-details").map(_.getAs[String]("guaranteedInterview").contains("Yes"))
+        doc.getAs[BSONDocument]("assistance-details").map(_.getAs[Boolean]("guaranteedInterview").contains(true))
       }.getOrElse(false)
     }
   }

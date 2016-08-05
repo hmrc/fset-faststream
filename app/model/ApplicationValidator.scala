@@ -18,11 +18,11 @@ package model
 
 import java.io.Serializable
 
-import model.Commands.AssistanceDetailsExchange
 import model.PersistedObjects.PersonalDetails
+import model.persisted.AssistanceDetails
 import repositories.FrameworkRepository.Region
 // scalastyle:off cyclomatic.complexity
-case class ApplicationValidator(gd: PersonalDetails, ad: AssistanceDetailsExchange, sl: Option[Preferences], availableRegions: List[Region]) {
+case class ApplicationValidator(gd: PersonalDetails, ad: AssistanceDetails, sl: Option[Preferences], availableRegions: List[Region]) {
 
   def validate: Boolean = validateGeneralDetails && validateAssistanceDetails && validateSchemes
 
@@ -31,32 +31,33 @@ case class ApplicationValidator(gd: PersonalDetails, ad: AssistanceDetailsExchan
 
   def validateAssistanceDetails: Boolean = {
 
-    def ifNeeds(value: Option[String])(f: AssistanceDetailsExchange => Boolean) = value match {
-      case Some("Yes") => f(ad)
+    def ifNeeds(value: Option[Boolean])(f: AssistanceDetails => Boolean) = value match {
+      case Some(true) => f(ad)
       case _ => true
     }
 
-    val ifNeedsAssistance = ifNeeds(Some(ad.needsAssistance)) _
-    val ifNeedsAdjustment = ifNeeds(ad.needsAdjustment) _
+    val ifHasDisability = ifNeeds(Some(ad.hasDisability=="Yes")) _
+    val ifNeedsOnlineAdjustments = ifNeeds(Some(ad.needsSupportForOnlineAssessment)) _
+    val ifNeedsVenueAdjustments = ifNeeds(Some(ad.needsSupportAtVenue)) _
 
-    def hasAtLeastOneDisability(ad: AssistanceDetailsExchange): Boolean = ad.typeOfdisability match {
+    def hasGis(ad: AssistanceDetails): Boolean = ad.guaranteedInterview match {
+      case Some(x) => x
+      case _ => false
+    }
+
+    def hasOnlineAdjustmentDescription(ad: AssistanceDetails): Boolean = ad.needsSupportForOnlineAssessmentDescription match {
       case Some(x) => x.nonEmpty
       case _ => false
-
     }
 
-    def hasAtLeastOneAdjustment(ad: AssistanceDetailsExchange): Boolean = ad.typeOfAdjustments match {
+
+    def hasVenueAdjustmentDescription(ad: AssistanceDetails): Boolean = ad.needsSupportAtVenueDescription match {
       case Some(x) => x.nonEmpty
       case _ => false
     }
 
-    def hasDecidedGuaranteedInterview(ad: AssistanceDetailsExchange): Boolean = ad.guaranteedInterview match {
-      case Some(_) => true
-      case _ => false
-    }
-
-    ifNeedsAssistance(hasAtLeastOneDisability) && ifNeedsAdjustment(hasAtLeastOneAdjustment) &&
-      ifNeedsAssistance(hasDecidedGuaranteedInterview)
+    ifNeedsOnlineAdjustments(hasOnlineAdjustmentDescription) && ifNeedsVenueAdjustments(hasVenueAdjustmentDescription) &&
+      ifHasDisability(hasGis)
 
   }
 

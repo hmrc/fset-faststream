@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package mocks.application
+package services
 
-import mocks.InMemoryStorage
-import model.Exceptions.AssistanceDetailsNotFound
-import model.persisted.AssistanceDetails
-import repositories.assistancedetails.AssistanceDetailsRepository
+import org.mockito.Matchers.{eq => eqTo}
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.play.PlaySpec
+import play.api.mvc.Results
 
-import scala.concurrent.Future
-
-object AssistanceDetailsInMemoryRepository extends AssistanceDetailsRepository with InMemoryStorage[AssistanceDetails] {
-  // Seed with test data.
-  inMemoryRepo +=
-    "111-111" ->
-    AssistanceDetails("No", None, None, false, None, false, None)
-
-  override def notFound(applicationId: String) = throw new AssistanceDetailsNotFound(applicationId)
+abstract class BaseServiceSpec extends PlaySpec with MockitoSugar with Results with ScalaFutures {
+  val AppId = "AppId"
+  val UserId = "UserId"
 }

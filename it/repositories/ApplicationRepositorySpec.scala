@@ -17,13 +17,15 @@
 package repositories
 
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
-import model.Commands.{AdjustmentReport, AssistanceDetailsExchange, _}
+import model.Commands._
 import model.{ApplicationStatuses, EvaluationResults}
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
+import model.persisted.AssistanceDetails
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{AssistanceDetailsMongoRepository, GeneralApplicationMongoRepository, TestDataMongoRepository}
+import repositories.application.{GeneralApplicationMongoRepository, TestDataMongoRepository}
+import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
@@ -59,7 +61,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val userId = "userId9876"
       val applicationId = applicationRepo.create(userId, "frameworkId").futureValue.applicationId
 
-      val details = AssistanceDetailsExchange("Yes", None, None, Some("Yes"), None, None, None, None, None, None, None, None)
+      val details = AssistanceDetails("Yes", Some("disability"), Some(true), true, Some("adjustment online"), true, Some("adjustment venue"))
       assistanceRepo.update(applicationId, userId, details).futureValue
 
       applicationRepo.gisByApplication(applicationId).futureValue must be(true)

@@ -56,7 +56,7 @@ object ApplicationStatusOrder {
   def statusMaps(progress: ProgressResponse) = Seq(
     (progress.personalDetails, 10, PersonalDetailsCompletedProgress),
     (progress.frameworksLocation, 20, SchemesAndLocationCompletedProgress),
-    (progress.assistance, 30, AssistanceCompletedProgress),
+    (progress.assistanceDetails, 30, AssistanceDetailsCompletedProgress),
     (progress.review, 40, ReviewCompletedProgress),
     (progress.questionnaire.contains("start_questionnaire"), 50, StartDiversityQuestionnaireProgress),
     (progress.questionnaire.contains("diversity_questionnaire"), 60, DiversityQuestionsCompletedProgress),

@@ -3,8 +3,8 @@
 POST        /personal-details/:userId/:applicationId                     controllers.CandidateDetailsController.updateDetails(userId: String, applicationId: String)
 GET         /personal-details/:userId/:applicationId                     controllers.CandidateDetailsController.find(userId: String, applicationId: String)
 
-PUT         /assistance-details/:userId/:applicationId                   controllers.AssistanceController.assistanceDetails(userId: String, applicationId: String)
-GET         /assistance-details/:userId/:applicationId                   controllers.AssistanceController.findAssistanceDetails(userId: String, applicationId: String)
+PUT         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.update(userId: String, applicationId: String)
+GET         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.find(userId: String, applicationId: String)
 
 PUT         /application/create                                          controllers.ApplicationController.createApplication
 GET         /application/progress/:applicationId                         controllers.ApplicationController.applicationProgress(applicationId: String)
