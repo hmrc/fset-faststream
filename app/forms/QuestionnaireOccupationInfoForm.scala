@@ -32,9 +32,24 @@ object QuestionnaireOccupationInfoForm {
       val value = data.get("parentsOccupation")
 
       (check, value) match {
-        case (Some("Employed"), Some(v)) => Right(value)
-        case (Some("Employed"), None) => Left(List(FormError("parentsOccupation", Messages("error.required.parentsJobType"))))
-        case _ => Right(value)
+        case (Some("Employed"), Some(v)) if !v.isEmpty  => Right(value)
+        case (Some("Employed"), None | Some("")) => Left(List(FormError("parentsOccupation", Messages("error.required.parentsJobType"))))
+        case _ => Right(None)
+      }
+    }
+
+    override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
+  }
+
+  val employeeTypeFormatter = new Formatter[Option[String]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      val check = data.get("employedParent")
+      val value = data.get("employee")
+
+      (check, value) match {
+        case (Some("Employed"), Some(v)) if !v.isEmpty => Right(value)
+        case (Some("Employed"), None | Some("")) => Left(List(FormError("employee", Messages("error.required.employee"))))
+        case _ => Right(None)
       }
     }
 
@@ -46,8 +61,7 @@ object QuestionnaireOccupationInfoForm {
       "parentsDegree" -> Mappings.nonEmptyTrimmedText("error.required.parentsDegree", 256),
       "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.parentsOccupation", 256),
       "parentsOccupation" -> of(parentsOccupationFormatter),
-      "employee" -> of(Mappings.fieldWithCheckBox(256, Some("employedParent"), skipValues)),
-      "preferNotSay_employee" -> optional(checked(Messages("error.required.employee"))),
+      "employee" -> of(employeeTypeFormatter),
       "organizationSize" -> of(Mappings.fieldWithCheckBox(256, Some("employedParent"), skipValues)),
       "preferNotSay_organizationSize" -> optional(checked(Messages("error.required.organizationSize"))),
       "supervise" -> of(Mappings.fieldWithCheckBox(256, Some("employedParent"), skipValues)),
@@ -60,7 +74,6 @@ object QuestionnaireOccupationInfoForm {
     employedParent: String,
     parentsOccupation: Option[String],
     employee: Option[String],
-    preferNotSayEmployee: Option[Boolean],
     organizationSize: Option[String],
     preferNotSayOrganizationSize: Option[Boolean],
     supervise: Option[String],
@@ -72,7 +85,7 @@ object QuestionnaireOccupationInfoForm {
       Questionnaire(List(
         Question(Messages("parentsDegree.question"), Answer(Some(parentsDegree), None, None)),
         Question(Messages("parentsOccupation.question"), Answer(occupation.sanitize, None, None)),
-        Question(Messages("employee.question"), Answer(employee, None, preferNotSayEmployee)),
+        Question(Messages("employee.question"), Answer(employee, None, None)),
         Question(Messages("organizationSize.question"), Answer(organizationSize, None, preferNotSayOrganizationSize)),
         Question(Messages("supervise.question"), Answer(supervise, None, preferNotSaySupervise))
       ))
