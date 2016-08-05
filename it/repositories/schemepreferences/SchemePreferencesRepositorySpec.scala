@@ -5,6 +5,8 @@ import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFoun
 import model.SelectedSchemesExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepository}
+import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
 class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
@@ -13,16 +15,19 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   val collectionName: String = "application"
 
   def repository = new SchemePreferencesMongoRepository
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService)
 
   "save and find" should {
     "save and return scheme preferences" in {
-      val persistedSchemes = (for {
-        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED))
+      val (persistedSchemes, application) = (for {
+        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED, "frameworkId" -> FrameworkId))
         _ <- repository.save(AppId, TwoSchemes)
+        appResponse <- applicationRepository.findByUserId(UserId, FrameworkId)
         schemes <- repository.find(AppId)
-      } yield schemes).futureValue
+      } yield (schemes, appResponse)).futureValue
 
       persistedSchemes mustBe TwoSchemes
+      application.progressResponse.schemePreferences mustBe true
     }
 
     "return an exception when application does not exist" in {
