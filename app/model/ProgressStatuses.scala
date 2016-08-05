@@ -19,7 +19,7 @@ package model
 object ProgressStatuses {
   val RegisteredProgress = "registered"
   val PersonalDetailsCompletedProgress = "personal_details_completed"
-  val SchemesAndLocationCompletedProgress = "schemes_and_locations_completed"
+  val SchemePreferencesCompleted = "scheme_preferences_completed"
   val AssistanceCompletedProgress = "assistance_completed"
   val ReviewCompletedProgress = "review_completed"
   val StartDiversityQuestionnaireProgress = "start_diversity_questionnaire"

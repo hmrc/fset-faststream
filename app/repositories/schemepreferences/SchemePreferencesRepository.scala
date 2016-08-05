@@ -50,7 +50,10 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
 
   def save(applicationId: String, schemePreference: SelectedSchemes): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val preferencesBSON = BSONDocument("$set" -> BSONDocument("scheme-preferences" -> schemePreference))
+    val preferencesBSON = BSONDocument("$set" -> BSONDocument(
+      "scheme-preferences" -> schemePreference,
+      "progress-status." + SchemePreferencesCollection -> true
+    ))
     collection.update(query, preferencesBSON, upsert = false) map {
       case lastError if lastError.nModified == 0 && lastError.n == 0 =>
         logger.error(
