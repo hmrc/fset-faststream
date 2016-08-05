@@ -29,16 +29,27 @@ object CachedDataExample {
   val NonActiveCandidateUser = CachedUser(UniqueIdentifier(UUID.randomUUID.toString), "firstName", "lastName",
     Some("preferredName"), email = "email@test.com", isActive = false, "")
 
+  val InitialProgress = Progress(false, false, false, false, false, false, false, false, false, false,
+    OnlineTestProgress(false, false, false, false, false, false, false, false, false, false),
+    false,
+    AssessmentScores(false, false),
+    AssessmentCentre(false, false, false)
+  )
   val CreatedApplication = ApplicationData(
     UniqueIdentifier(UUID.randomUUID.toString),
     UniqueIdentifier(UUID.randomUUID.toString),
     ApplicationStatus.CREATED,
-    Progress(false, false, false, false, false, false, false, false, false, false,
-      OnlineTestProgress(false, false, false, false, false, false, false, false, false, false),
-      false,
-      AssessmentScores(false, false),
-      AssessmentCentre(false, false, false)
-    )
+    InitialProgress
   )
+
+  val InPersonalDetailsApplication = CreatedApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,
+    progress = InitialProgress.copy(personalDetails = true))
+
+  val InFrameworkDetailsApplication = InPersonalDetailsApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,
+    progress = InitialProgress.copy(frameworksLocation = true))
+
+  val InAssistanceDetailsApplication = InFrameworkDetailsApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,
+    progress = InitialProgress.copy(assistance = true))
+
   val ActiveCandidate = CachedData(ActiveCandidateUser, Some(CreatedApplication))
 }

@@ -20,8 +20,9 @@ import config.CSRHttp
 import connectors.AllocationExchangeObjects._
 import connectors.ExchangeObjects._
 import connectors.exchange.ProgressResponse
-import forms.{AssistanceForm, GeneralDetailsForm}
+import forms.{AssistanceDetailsForm, GeneralDetailsForm}
 import mappings.PostCodeMapping
+import model.exchange.AssistanceDetailsExchange._
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
 import org.joda.time.LocalDate
@@ -30,7 +31,6 @@ import play.api.http.Status._
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
-import uk.gov.hmrc.play.http.ws.WSHttp
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -121,7 +121,7 @@ trait ApplicationClient {
     }
   }
 
-  def updateAssistanceDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, data: AssistanceForm.Data)(
+  def updateAssistanceDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, data: AssistanceDetailsForm.Data)(
     implicit
     hc: HeaderCarrier
   ) = {
@@ -129,15 +129,15 @@ trait ApplicationClient {
       s"${url.host}${url.base}/assistance-details/$userId/$applicationId",
       data.exchange
     ).map {
-        case x: HttpResponse if x.status == CREATED => ()
-      } recover {
-        case _: BadRequestException => throw new CannotUpdateRecord()
-      }
+      case x: HttpResponse if x.status == CREATED => ()
+    } recover {
+      case _: BadRequestException => throw new CannotUpdateRecord()
+    }
   }
 
   def findAssistanceDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(s"${url.host}${url.base}/assistance-details/$userId/$applicationId").map { response =>
-      response.json.as[AssistanceDetailsExchange]
+      response.json.as[model.exchange.AssistanceDetailsExchange]
     } recover {
       case _: NotFoundException => throw new AssistanceDetailsNotFound()
     }

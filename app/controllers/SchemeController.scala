@@ -124,7 +124,7 @@ abstract class SchemeController(applicationClient: ApplicationClient) extends Ba
           Future.successful(Ok(views.html.application.scheme.summary(Some(invalidForm), sel))),
         data =>
           updateAlternatives(data)(user.application.applicationId).flatMap { _ =>
-            updateProgress()(_ => Redirect(routes.AssistanceController.present()))
+            updateProgress()(_ => Redirect(routes.AssistanceDetailsController.present()))
           }
       )
   }

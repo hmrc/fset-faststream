@@ -64,7 +64,7 @@ object Progress {
     Progress(
       personalDetails = progressResponse.personalDetails,
       frameworksLocation = progressResponse.frameworksLocation,
-      assistance = progressResponse.assistance,
+      assistance = progressResponse.assistanceDetails,
       review = progressResponse.review,
       startedQuestionnaire = progressResponse.questionnaire.contains("start_questionnaire"),
       diversityQuestionnaire = progressResponse.questionnaire.contains("diversity_questionnaire"),

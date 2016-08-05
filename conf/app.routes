@@ -48,8 +48,8 @@ POST        /application/schemes/second-preference/:consider        controllers.
 POST        /application/schemes/second-preference                  controllers.SchemeController.saveSecondPreference
 POST        /application/schemes/consider-alternatives              controllers.SchemeController.saveConsiderAlternatives
 
-GET         /application/assistance                                 controllers.AssistanceController.present
-POST        /application/assistance                                 controllers.AssistanceController.submit
+GET         /application/assistance                                 controllers.AssistanceDetailsController.present
+POST        /application/assistance                                 controllers.AssistanceDetailsController.submit
 
 GET         /application/review                                     controllers.ReviewApplicationController.present
 POST        /application/review                                     controllers.ReviewApplicationController.submit

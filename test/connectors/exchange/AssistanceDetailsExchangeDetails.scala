@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package connectors.exchange
+package models
 
 import java.util.UUID
 
-import models.UniqueIdentifier
+import connectors.exchange.ProgressResponse
+import model.exchange.AssistanceDetailsExchange
 
-object ProgressResponseExamples {
-  val EmptyProgress = ProgressResponse(UniqueIdentifier(UUID.randomUUID().toString), false, false, false, false, Nil, false, false, false,
-    false, false, false, false, false, false, false, false, false, false)
-  val InProgress = EmptyProgress.copy(personalDetails = true)
-  val InPersonalDetails = EmptyProgress.copy(personalDetails = true)
-  val InFrameworkDetails = InPersonalDetails.copy(frameworksLocation = true)
-  val InAssistanceDetails = InFrameworkDetails.copy(assistanceDetails = true)
-
+object AssistanceDetailsExchangeExamples {
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetailsExchange("Yes", Some(""), Some(false), false, None, false, None)
+  val DisabilityGisAndAdjustments = AssistanceDetailsExchange("Yes", Some("disability description"), Some(true), true,
+    Some("online adjustment description xxx"), true, Some("venue adjustment description yyy"))
 }

@@ -17,11 +17,11 @@
 package controllers
 
 import config.CSRHttp
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PersonalDetailsNotFound }
+import connectors.ApplicationClient.{AssistanceDetailsNotFound, PersonalDetailsNotFound}
 import connectors.SchemeClient.CannotFindSelection
-import connectors.{ ApplicationClient, SchemeClient }
+import connectors.{ApplicationClient, SchemeClient}
 import helpers.NotificationType._
-import security.Roles.{ QuestionnaireInProgressRole, ReviewRole, StartQuestionnaireRole }
+import security.Roles.{AssistanceDetailsRole, QuestionnaireInProgressRole, ReviewRole, StartQuestionnaireRole}
 
 object ReviewApplicationController extends ReviewApplicationController(ApplicationClient) {
   val http = CSRHttp

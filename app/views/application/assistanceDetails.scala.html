@@ -1,0 +1,18 @@
+@(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import views.html.application.assistancedetails.{hasDisability, needsSupportOnlineAssessments, needsSupportAtVenue}
+@import views.html.widgets.{pageProgress, saveAndContinueButton}
+
+@main_template(title = "Disability and health conditions", pageForms = Seq(form)) {
+    @pageProgress(3, 8)
+    <div class="text">
+        <h1 class="heading-xlarge" id="assistanceDetailsHeading">Disability and health conditions</h1>
+    </div>
+    @helper.form(action = routes.AssistanceDetailsController.submit(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        @hasDisability(form)
+        @needsSupportOnlineAssessments(form)
+        @needsSupportAtVenue(form)
+        @saveAndContinueButton()
+    }
+}
