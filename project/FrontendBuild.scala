@@ -41,7 +41,7 @@ private object Versions {
   val wiremock      = "1.57"
   val hmrctest      = "1.4.0"
   val scalatestplus = "1.2.0"
-  val silhouette    = "2.0.1"
+  val silhouette    = "2.0.2"
 }
 
 private object AppDependencies {
