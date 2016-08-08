@@ -22,8 +22,6 @@ import play.api.data.format.Formatter
 import play.api.data.{Form, FormError}
 import play.api.i18n.Messages
 
-import scala.collection.SortedMap
-
 object SelectedSchemesForm {
 
   val Degree_21 = "Degree_21"
