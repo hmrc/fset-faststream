@@ -19,7 +19,7 @@ package controllers.forms
 import controllers.BaseSpec
 import forms.QuestionnaireDiversityInfoForm.{ Data, form }
 
-class QuestionnaireDiversityFormSpec extends BaseSpec {
+class QuestionnaireDiversityInfoFormSpec extends BaseSpec {
 
   "the diversity form" should {
     "be valid when all values are correct" in new Fixture {
@@ -29,16 +29,16 @@ class QuestionnaireDiversityFormSpec extends BaseSpec {
       actualData mustBe expectedData
     }
 
-    "fail when no gener" in new Fixture {
-      assertFieldRequired("gender", "gender")
+    "fail when no gender" in new Fixture {
+      assertFieldRequired(expectedError = "gender", "gender")
     }
 
     "fail when no orientation" in new Fixture {
-      assertFieldRequired("sexOrientation", "sexOrientation")
+      assertFieldRequired(expectedError = "sexOrientation", "sexOrientation")
     }
 
     "fail when no ethnicity" in new Fixture {
-      assertFieldRequired("ethnicity", "other_sexOrientation", "preferNotSay_ethnicity")
+      assertFieldRequired(expectedError = "ethnicity", "other_ethnicity", "preferNotSay_ethnicity")
     }
 
     "transform properly to a question list" in new Fixture {
@@ -54,19 +54,17 @@ class QuestionnaireDiversityFormSpec extends BaseSpec {
   trait Fixture {
 
     val validFormData = Data(
-      Some("Male"), None, None,
-      Some("Other"), Some("details"), None,
+      "Male", None,
+      "Other", Some("details"),
       None, None, Some(true)
     )
 
     val validFormValues = Map(
       "gender" -> "Male",
       "other_gender" -> "",
-      "preferNotSay_gender" -> "",
 
       "sexOrientation" -> "Other",
       "other_sexOrientation" -> "details",
-      "preferNotSay_sexOrientation" -> "",
 
       "ethnicity" -> "",
       "other_ethnicity" -> "",

@@ -39,7 +39,7 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
       val p = user.application.progress
       Future.successful {
         if (!p.diversityQuestionnaire && !p.educationQuestionnaire && !p.occupationQuestionnaire) {
-          Ok(views.html.questionnaire.index())
+          Ok(views.html.questionnaire.intro(QuestionnaireDiversityInfoForm.acceptanceForm))
         } else {
           Ok(views.html.questionnaire.continue())
         }
@@ -55,7 +55,6 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
     implicit user =>
       Future.successful(Ok(views.html.questionnaire.secondpage(QuestionnaireEducationInfoForm.form)))
   }
-
   def thirdPageView = CSRSecureAppAction(OccupationQuestionnaireRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.questionnaire.thirdpage(QuestionnaireOccupationInfoForm.form)))
@@ -63,8 +62,14 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
 
   def submitStart = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
     implicit user =>
-      val empty = Questionnaire(List())
-      submitQuestionnaire(empty, "start_questionnaire")(Redirect(routes.QuestionnaireController.firstPageView()))
+      QuestionnaireDiversityInfoForm.acceptanceForm.bindFromRequest.fold(
+        errorForm => {
+          Future.successful(Ok(views.html.questionnaire.intro(errorForm)))
+        },
+        data => {
+          submitQuestionnaire(data.toQuestionnaire, "start_questionnaire")(Redirect(routes.QuestionnaireController.firstPageView()))
+        }
+      )
   }
 
   def submitContinue = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>

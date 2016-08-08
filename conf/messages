@@ -107,9 +107,9 @@ locked.account = You''ve made too many unsuccessful attempts to sign in and your
 
 # Questionnaire error messages:
 
-error.required.gender = What is your gender identity?
-error.required.sexOrientation = What is your sexual orientation?
-error.required.ethnicity = What is your ethnic group?
+error.required.gender = You must tell us your gender identity or choose prefer not to say.
+error.required.sexOrientation = You must tell us your sexual orientation or choose prefer not to say.
+error.required.ethnicity = You must tell us your ethnic group or choose prefer not to say.
 error.required.schoolName = What was your school between ages 11 to 16?
 error.required.sixthForm = What was your school between ages 16  to 18?
 error.required.postcodeQ = What was your postcode when you were 14?
@@ -119,6 +119,7 @@ error.required.parentsOccupation = What was your parent(s) or guardian(s) work s
 error.required.employee = Were your parent(s) or guardian(s) employed or self-employed?
 error.required.organizationSize = What was the size of the organisation?
 error.required.supervise = Were your parent(s) or guardian(s) supervising employees?
+error.required.acceptance = Confirm you understand that the information you give here won''t affect your application.
 
 #Questions section for questionnaire
 gender.question = What is your gender identity?
@@ -134,6 +135,7 @@ parentsOccupation.question = Which type of occupation did they have?
 employee.question = Did they work as an employee or were they self-employed?
 organizationSize.question = Which size would best describe their place of work?
 supervise.question = Did they supervise any other employees?
+accept-terms.question = I understand this won''t affect my application
 
 success.allocation.confirmed = You''ve successfully confirmed your assessment date.
 
