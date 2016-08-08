@@ -16,10 +16,10 @@
 
 package models
 
-object Supervise {
+object SimpleAnswerOptions {
   val list = List(
-    ("Yes", false),
-    ("No", false),
-    ("Unknown/prefer not to say",false)
+    ("yes", "Yes", false),
+    ("no", "No", false),
+    ("unknown", "I don't know/prefer not to say", false)
   )
 }

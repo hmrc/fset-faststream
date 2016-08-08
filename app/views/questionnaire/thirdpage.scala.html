@@ -1,40 +1,35 @@
 @(questionnaireForm: Form[_root_.forms.QuestionnaireOccupationInfoForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@import views.html.widgets.{checkbox, radioBoxOccupation, radioBoxOccupationFirst, select_guard, guard, radioBox, pageProgress, radioBoxVertical}
+@import views.html.widgets.{pageProgress, radioBoxHorizontal, radioBoxVertical, radioBoxOccupation, radioBoxOccupationFirst}
 
 @main_template(title = "About your parents", pageForms = Seq(questionnaireForm)) {
     @pageProgress(8,8)
     <div class="hgroup">
         <h1 class="heading-xlarge">About your parents</h1>
     </div>
-    <div id="panel-why-collect-data" class="panel-warning standard-panel">
-        <h2 class="heading-medium">Why are we asking these questions?</h2>
-        <p>The following questions are:</p>
-        <ul class="no-btm-margin">
-            <li>for information monitoring only</li>
-            <li>not part of your application</li>
-            <li>treated in strict confidence</li>
-            <li>to make sure the Civil Service is a <a id="link-to-diverse-org" href="https://www.gov.uk/government/organisations/civil-service/about/equality-and-diversity"
-            rel="external" target="_blank">diverse organisation</a></li>
-        </ul>
+    <div id="panel-why-collect-data" class="panel-info standard-panel">
+        <div class="text">
+            <h2 class="heading-medium">Why do we ask about your parents?</h2>
+            <p>Every civil servant comes from a different background. Gathering anonymous
+                data about people's parents helps us make sure that people aren't
+                disadvantaged because of their background.</p>
+        </div>
     </div>
     @helper.form(action = routes.QuestionnaireController.thirdPageSubmit(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
 
         <section>
             <div class="text">
-                <p class="form-label">@Messages("parentsDegree.question")</p>
-                @radioBox(questionnaireForm("parentsDegree"), options = Seq("Yes" -> "Yes", "No" -> "No",
-                    "Unknown/prefer not to say" -> "I don't know/prefer not to say"))
+                <fieldset>
+                    <legend class="form-label">@Messages("parentsDegree.question")</legend>
+                    @radioBoxHorizontal(questionnaireForm("parentsDegree"), options = SimpleAnswerOptions.list)
+                </fieldset>
             </div>
         </section>
 
         <section>
-            <div id="parentsOccupation_field">
-
                 <fieldset>
                     <legend class="form-label">@Messages("employedParent.question")</legend>
-                    
                     @radioBoxOccupationFirst(questionnaireForm("employedParent"))
                 </fieldset>
 
@@ -43,8 +38,8 @@
 
                     @radioBoxOccupation(questionnaireForm("parentsOccupation"), models.Occupations.seq)
                 </fieldset>
-            </div>
         </section>
+
         <section class="hidingContent initiallyHidden" id="employedContent" data-requiredifshown data-optional>
             <section>
                 <fieldset>
@@ -59,21 +54,17 @@
                 <fieldset>
                     <legend class="form-label">@Messages("organizationSize.question")</legend>
                     <div class="form-group inline">
-                    @radioBoxVertical(questionnaireForm("organizationSize"), options = models.OrganizationSize.list)
+                        @radioBoxVertical(questionnaireForm("organizationSize"), options = models.OrganizationSize.list)
                     </div>
                 </fieldset>
             </section>
 
-            @select_guard(questionnaireForm("supervise"), models.Supervise.list,
-                "", "-- Select one --") {
-                @Messages("supervise.question")
-            }
-
-            <div data-optional>
-                @checkbox(questionnaireForm("preferNotSay_supervise"), Some("supervise")) {
-                    Don't know/prefer not to say
-                }
-            </div>
+            <section>
+                <fieldset>
+                    <legend class="form-label">@Messages("supervise.question")</legend>
+                    @radioBoxHorizontal(questionnaireForm("supervise"), options = SimpleAnswerOptions.list)
+                </fieldset>
+            </section>
 
         </section>
         <div class="form-group">

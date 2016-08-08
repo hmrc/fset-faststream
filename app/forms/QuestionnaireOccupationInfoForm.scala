@@ -24,8 +24,6 @@ import play.api.i18n.Messages
 
 object QuestionnaireOccupationInfoForm {
 
-  val skipValues = Seq("Unemployed but seeking work", "Unemployed", "none", "Unknown") // none is a value to denote that the field is empty
-
   val employedDependentFormatter = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val check = data.get("employedParent")
@@ -44,12 +42,11 @@ object QuestionnaireOccupationInfoForm {
   val form = Form(
     mapping(
       "parentsDegree" -> Mappings.nonEmptyTrimmedText("error.required.parentsDegree", 256),
-      "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.parentsOccupation", 256),
+      "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.employmentStatus", 256),
       "parentsOccupation" -> of(employedDependentFormatter),
       "employee" -> of(employedDependentFormatter),
       "organizationSize" -> of(employedDependentFormatter),
-      "supervise" -> of(Mappings.fieldWithCheckBox(256, Some("employedParent"), skipValues)),
-      "preferNotSay_supervise" -> optional(checked(Messages("error.required.supervise")))
+      "supervise" -> of(employedDependentFormatter)
     )(Data.apply)(Data.unapply)
   )
 
@@ -59,8 +56,7 @@ object QuestionnaireOccupationInfoForm {
     parentsOccupation: Option[String],
     employee: Option[String],
     organizationSize: Option[String],
-    supervise: Option[String],
-    preferNotSaySupervise: Option[Boolean]
+    supervise: Option[String]
   ) {
     def toQuestionnaire: Questionnaire = {
       val occupation = if (employedParent == "Employed") parentsOccupation else Some(employedParent)
@@ -70,9 +66,8 @@ object QuestionnaireOccupationInfoForm {
         Question(Messages("parentsOccupation.question"), Answer(occupation.sanitize, None, None)),
         Question(Messages("employee.question"), Answer(employee, None, None)),
         Question(Messages("organizationSize.question"), Answer(organizationSize, None, None)),
-        Question(Messages("supervise.question"), Answer(supervise, None, preferNotSaySupervise))
+        Question(Messages("supervise.question"), Answer(supervise, None, None))
       ))
     }
   }
-
 }

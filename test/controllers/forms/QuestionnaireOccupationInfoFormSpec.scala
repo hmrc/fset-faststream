@@ -43,7 +43,7 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
     }
 
     "fail when no supervise" in new Fixture {
-      assertFieldRequired(expectedError = "supervise", "supervise", "preferNotSay_supervise")
+      assertFieldRequired(expectedError = "supervise", "supervise")
     }
 
     "be valid when parents were unemployed" in new Fixture {
@@ -60,7 +60,7 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
       questionList(1).answer.answer must be(Some("Some occupation"))
       questionList(2).answer.answer must be(Some("Some employee"))
       questionList(3).answer.answer must be(Some("Org size"))
-      questionList(4).answer.unknown must be(Some(true))
+      questionList(4).answer.answer must be(Some("Yes"))
     }
 
   }
@@ -73,8 +73,7 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
       Some("Some occupation"),
       Some("Some employee"),
       Some("Org size"),
-      None,
-      Some(true)
+      Some("Yes")
     )
 
     val validFormValues = Map(
@@ -83,14 +82,12 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
       "parentsOccupation" -> "Some occupation",
       "employee" -> "Some employee",
       "organizationSize" -> "Org size",
-      "supervise" -> "",
-      "preferNotSay_supervise" -> "true"
+      "supervise" -> "Yes"
     )
 
     val validFormDataUnemployed = Data(
       "No",
       "Unemployed",
-      None,
       None,
       None,
       None,
@@ -102,10 +99,8 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
       "employedParent" -> "Unemployed",
       "parentsOccupation" -> "",
       "employee" -> "",
-      "preferNotSay_employee" -> "",
       "organizationSize" -> "",
-      "supervise" -> "",
-      "preferNotSay_supervise" -> ""
+      "supervise" -> ""
     )
 
     def assertFieldRequired(expectedError: String, fieldKey: String*) =
