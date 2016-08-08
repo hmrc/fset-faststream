@@ -39,7 +39,7 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
     }
 
     "fail when no organizationSize" in new Fixture {
-      assertFieldRequired(expectedError = "organizationSize", "organizationSize", "preferNotSay_organizationSize")
+      assertFieldRequired(expectedError = "organizationSize", "organizationSize")
     }
 
     "fail when no supervise" in new Fixture {
@@ -74,7 +74,6 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
       Some("Some employee"),
       Some("Org size"),
       None,
-      None,
       Some(true)
     )
 
@@ -84,7 +83,6 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
       "parentsOccupation" -> "Some occupation",
       "employee" -> "Some employee",
       "organizationSize" -> "Org size",
-      "preferNotSay_organizationSize" -> "",
       "supervise" -> "",
       "preferNotSay_supervise" -> "true"
     )
@@ -92,7 +90,6 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
     val validFormDataUnemployed = Data(
       "No",
       "Unemployed",
-      None,
       None,
       None,
       None,
@@ -107,7 +104,6 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
       "employee" -> "",
       "preferNotSay_employee" -> "",
       "organizationSize" -> "",
-      "preferNotSay_organizationSize" -> "",
       "supervise" -> "",
       "preferNotSay_supervise" -> ""
     )

@@ -55,16 +55,14 @@
                 </fieldset>
             </section>
 
-            @select_guard(questionnaireForm("organizationSize"), models.OrganizationSize.list,
-                "", "-- Select one --") {
-                @Messages("organizationSize.question")
-            }
-
-            <div data-optional>
-                @checkbox(questionnaireForm("preferNotSay_organizationSize"), Some("organizationSize")) {
-                    Don't know/prefer not to say
-                }
-            </div>
+            <section>
+                <fieldset>
+                    <legend class="form-label">@Messages("organizationSize.question")</legend>
+                    <div class="form-group inline">
+                    @radioBoxVertical(questionnaireForm("organizationSize"), options = models.OrganizationSize.list)
+                    </div>
+                </fieldset>
+            </section>
 
             @select_guard(questionnaireForm("supervise"), models.Supervise.list,
                 "", "-- Select one --") {
