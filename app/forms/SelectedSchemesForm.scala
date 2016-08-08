@@ -108,7 +108,7 @@ object SelectedSchemesForm {
   private val getInvalidSchemes = (selectedSchemes: List[String]) => selectedSchemes.diff(AllSchemes.map(_.id))
 
   private def getSchemesByPriority(formData: Map[String, String]) = {
-    val validSchemeParams = (name:String, value:String) => name.startsWith("scheme_") && !value.isEmpty
+    val validSchemeParams = (name:String, value:String) => name.startsWith("scheme_") && value.nonEmpty
     val priority: String => Int = _.split("_").last.toInt
     formData.filter(pair => validSchemeParams(pair._1, pair._2))
       .collect{ case (name, value) => priority(name) -> value }.toSeq

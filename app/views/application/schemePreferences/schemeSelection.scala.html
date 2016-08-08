@@ -6,7 +6,7 @@
 @import views.html.widgets.{checkbox, radioBox, yesNoQuestion}
 @import views.html.application.schemePreferences.schemesCheckboxGroup
 
-@preselectedSchemes = @{
+@selectedSchemes = @{
     form.value match {
         case Some(formObject) => formObject.schemes.lift(_)
         case _ => SelectedSchemesForm.getValidSchemesByPriority(form.data).lift(_)
@@ -49,7 +49,7 @@
                 </div>
             </div>
             @for(i <- 0 until SelectedSchemesForm.schemesMaxLimit) {
-                <input type="hidden" id="scheme_@i" name="scheme_@i" value='@preselectedSchemes(i).getOrElse("")' />
+                <input type="hidden" id="scheme_@i" name="scheme_@i" value='@selectedSchemes(i).getOrElse("")' />
             }
             <ol id="selectedPrefList" class="list-text">
                 <li></li>
