@@ -88,7 +88,7 @@
                                     }
                                     @withdraw(false) {
                                         @renderProgressElement(showLink = PersonalDetailsRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr))(routes.PersonalDetailsController.present(None)) {Add personal details }
-                                        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceRole.isAuthorized(usr))(routes.SchemePreferencesController.present()) { Choose locations and schemes }
+                                        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceRole.isAuthorized(usr))(routes.SchemePreferencesController.present()) { Choose your scheme preferences }
                                         @renderProgressElement(showLink = AssistanceRole.isAuthorized(usr), checked = ReviewRole.isAuthorized(usr))(routes.AssistanceController.present()) { Tell us about any assistance needs you may have }
                                         @renderProgressElement(showLink = ReviewRole.isAuthorized(usr), checked = (SubmitApplicationRole.isAuthorized(usr) || StartQuestionnaireRole.isAuthorized(usr)))(routes.ReviewApplicationController.present()) { Check your application }
                                         @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr))(routes.QuestionnaireController.start()) { Fill in the diversity questions }
