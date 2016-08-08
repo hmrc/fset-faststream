@@ -22,6 +22,8 @@ import play.api.data.format.Formatter
 import play.api.data.{Form, FormError}
 import play.api.i18n.Messages
 
+import scala.collection.SortedMap
+
 object SelectedSchemesForm {
 
   val Degree_21 = "Degree_21"
@@ -111,10 +113,10 @@ object SelectedSchemesForm {
     val validSchemeParams = (name:String, value:String) => name.startsWith("scheme_") && value.nonEmpty
     val priority: String => Int = _.split("_").last.toInt
     formData.filter(pair => validSchemeParams(pair._1, pair._2))
-      .collect{ case (name, value) => priority(name) -> value }.toSeq
-      .sortBy{_._1}
-      .map {_._2}
+      .collect{ case (name, value) => priority(name) -> value }
       .toList
+      .sortBy{_._1}
+      .map{_._2}
       .distinct
   }
 
