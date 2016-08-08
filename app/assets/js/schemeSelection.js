@@ -10,6 +10,7 @@ $(function()
       '4th preference',
       '5th preference'
     ];
+
     $('[data-schemename]').on('change', function()
       {
         var $this = $(this),
@@ -126,6 +127,8 @@ $(function()
             'toggle-content');
         }
       });
+
+
       function sticky_relocate()
       {
         if ($('.global-header__title').css('font-size') !== '16px')
@@ -163,7 +166,7 @@ $(function()
       $(window).scroll(sticky_relocate);
       sticky_relocate();
 
-      function preselectSchemes(){
+      function selectSchemes(){
         for(i = 0; i < 5; i++){
             var scheme = $('#scheme_'+i).val();
             if(scheme !== ''){
@@ -177,5 +180,5 @@ $(function()
             }
         }
       }
-      preselectSchemes()
+      selectSchemes();
 });
