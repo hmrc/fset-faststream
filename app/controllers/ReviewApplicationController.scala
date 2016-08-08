@@ -18,7 +18,7 @@ package controllers
 
 import config.CSRHttp
 import connectors.ApplicationClient.{AssistanceDetailsNotFound, PersonalDetailsNotFound}
-import connectors.SchemeClient.CannotFindSelection
+import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ApplicationClient, SchemeClient}
 import helpers.NotificationType._
 import models.frameworks.LocationAndSchemeSelection
@@ -41,7 +41,7 @@ abstract class ReviewApplicationController(applicationClient: ApplicationClient)
       } yield {
         Ok(views.html.application.review(gd, ad, LocationAndSchemeSelection.empty, user.application))
       }).recover {
-        case e @ (_: PersonalDetailsNotFound | _: AssistanceDetailsNotFound | _: CannotFindSelection) =>
+        case e @ (_: PersonalDetailsNotFound | _: AssistanceDetailsNotFound | _: SchemePreferencesNotFound) =>
           Redirect(routes.HomeController.present()).flashing(warning("info.cannot.review.yet"))
       }
   }

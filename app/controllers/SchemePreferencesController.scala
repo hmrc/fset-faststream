@@ -17,40 +17,45 @@
 package controllers
 
 import _root_.forms.SelectedSchemesForm._
-import config.CSRHttp
+import connectors.SchemeClient.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import connectors.{ApplicationClient, SchemeClient}
-import models.CachedData
-import security.Roles.{PersonalDetailsRole, SchemesRole}
+import helpers.NotificationType._
+import security.Roles.SchemesRole
 
 import scala.concurrent.Future
 
-object SchemePreferencesController extends SchemePreferencesController(ApplicationClient) {
-  val http = CSRHttp
-}
-
-abstract class SchemePreferencesController(applicationClient: ApplicationClient) extends BaseController(applicationClient) with SchemeClient{
+class SchemePreferencesController(applicationClient: ApplicationClient, schemeClient: SchemeClient) extends
+  BaseController(applicationClient){
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
-      getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
-        Ok(views.html.application.schemeSelection(selectedSchemes))
+      schemeClient.getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
+        Ok(views.html.application.schemePreferences.schemeSelection(form.fill(selectedSchemes)))
+      }.recover {
+        case e: SchemePreferencesNotFound =>
+          Ok(views.html.application.schemePreferences.schemeSelection(form))
       }
   }
 
-  def submit = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
+  def submit = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
       form.bindFromRequest.fold(
         invalidForm => {
-          Future.successful(Ok(views.html.application.schemeSelection(invalidForm)))
+          Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(invalidForm)))
         },
         selectedSchemes => {
-          for {
-            _ <- updateSchemePreferences(selectedSchemes)(user.application.applicationId)
+          (for {
+            _ <- schemeClient.updateSchemePreferences(selectedSchemes)(user.application.applicationId)
             redirect <- refreshCachedUser().map(_ => Redirect(routes.AssistanceController.present()))
           } yield {
             redirect
+          }) recover {
+            case e: CannotUpdateSchemePreferences => Redirect(routes.SchemePreferencesController.present())
+              .flashing(danger("schemes.error"))
           }
         }
     )
   }
 }
+
+object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, SchemeClient)

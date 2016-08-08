@@ -17,9 +17,10 @@
 package connectors
 
 import config.CSRHttp
+import connectors.SchemeClient.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import models.{SelectedSchemes, UniqueIdentifier}
 import play.api.http.Status._
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse, NotFoundException}
+import uk.gov.hmrc.play.http.{BadRequestException, HeaderCarrier, HttpResponse, NotFoundException}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -33,9 +34,9 @@ trait SchemeClient {
     http.GET(
       s"${url.host}${url.base}/scheme-preferences/$applicationId"
     ).map(
-      httpResponse => Some(httpResponse.json.as[SelectedSchemes])
+      httpResponse => httpResponse.json.as[SelectedSchemes]
     ).recover {
-      case e: NotFoundException => None
+      case e: NotFoundException => throw new SchemePreferencesNotFound
     }
   }
 
@@ -45,13 +46,17 @@ trait SchemeClient {
       data
     ).map {
       case x: HttpResponse if x.status == OK => ()
+    }.recover {
+      case _: BadRequestException => throw new CannotUpdateSchemePreferences
     }
   }
 
 }
 
-object SchemeClient {
+object SchemeClient extends SchemeClient {
+  val http = CSRHttp
 
-  sealed class CannotFindSelection extends Exception
+  sealed class SchemePreferencesNotFound extends Exception
 
+  sealed class CannotUpdateSchemePreferences extends Exception
 }

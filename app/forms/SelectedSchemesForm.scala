@@ -50,18 +50,19 @@ object SelectedSchemesForm {
     Scheme("Tax" ,Degree_22, specificRequirement=false)
   )
 
+  val schemesMaxLimit = 5
+
   case class Scheme(id: String, qualification: String, specificRequirement: Boolean)
 
   case class SchemePreferences(schemes: List[String], orderAgreed: Boolean, eligible: Boolean, alternatives: String)
 
 
-  implicit def toSchemePreferences(optSelectedSchemes: Option[SelectedSchemes]): Form[SchemePreferences] =
-    optSelectedSchemes.map(selectedSchemes => SelectedSchemesForm.form.fill(SchemePreferences(
+  implicit def toSchemePreferences(selectedSchemes: SelectedSchemes): SchemePreferences = SchemePreferences(
       selectedSchemes.schemes,
       selectedSchemes.orderAgreed,
       selectedSchemes.eligible,
       selectedSchemes.alternatives.toString
-    ))).getOrElse(form)
+    )
 
 
   implicit def toSelectedSchemes(schemePreferences: SchemePreferences):SelectedSchemes = SelectedSchemes(
@@ -77,7 +78,8 @@ object SelectedSchemesForm {
         "schemes" -> of(schemeFormatter("schemes")),
         "orderAgreed" -> checked(Messages("orderAgreed.required")),
         "eligible" -> checked(Messages("eligible.required")),
-        "alternatives" -> Mappings.nonEmptyTrimmedText("eligible.required", 10)
+        "alternatives" -> Mappings.nonEmptyTrimmedText("alternatives.required", 5)
+          .verifying(Messages("alternatives.required"), boolValue => boolValue == true.toString || boolValue == false.toString)
       )(SchemePreferences.apply)(SchemePreferences.unapply))
   }
 
@@ -85,8 +87,10 @@ object SelectedSchemesForm {
   def schemeFormatter(formKey: String) = new Formatter[List[String]] {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
       getSchemesByPriority(data) match {
-        case selSchemes if selSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selSchemes => Right(selSchemes)
+        case selectedSchemes if selectedSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes if selectedSchemes.size > schemesMaxLimit => Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes if getInvalidSchemes(selectedSchemes).nonEmpty  => Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes => Right(selectedSchemes)
       }
     }
 
@@ -95,7 +99,15 @@ object SelectedSchemesForm {
     }
   }
 
-  def getSchemesByPriority(formData: Map[String, String]) = {
+  def getValidSchemesByPriority(formData: Map[String, String]) = {
+    val selectedSchemes = getSchemesByPriority(formData)
+    val invalidSchemes = getInvalidSchemes(selectedSchemes)
+    selectedSchemes.filterNot(schemeId => invalidSchemes.contains(schemeId))
+  }
+
+  private val getInvalidSchemes = (selectedSchemes: List[String]) => selectedSchemes.diff(AllSchemes.map(_.id))
+
+  private def getSchemesByPriority(formData: Map[String, String]) = {
     val validSchemeParams = (name:String, value:String) => name.startsWith("scheme_") && !value.isEmpty
     val priority: String => Int = _.split("_").last.toInt
     formData.filter(pair => validSchemeParams(pair._1, pair._2))
@@ -103,6 +115,7 @@ object SelectedSchemesForm {
       .sortBy{_._1}
       .map {_._2}
       .toList
+      .distinct
   }
 
 }

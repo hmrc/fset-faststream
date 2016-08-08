@@ -4,12 +4,12 @@
 @import _root_.forms.SelectedSchemesForm.Scheme
 @import views.html.widgets.pageProgress
 @import views.html.widgets.{checkbox, radioBox, yesNoQuestion}
-@import views.html.widgets.schemesCheckboxGroup
+@import views.html.application.schemePreferences.schemesCheckboxGroup
 
 @preselectedSchemes = @{
     form.value match {
         case Some(formObject) => formObject.schemes.lift(_)
-        case _ => SelectedSchemesForm.getSchemesByPriority(form.data).lift(_)
+        case _ => SelectedSchemesForm.getValidSchemesByPriority(form.data).lift(_)
     }
 }
 
@@ -48,7 +48,7 @@
                     <p>Your schemes will appear here as you select them from the list</p>
                 </div>
             </div>
-            @for(i <- 0 to 4) {
+            @for(i <- 0 until SelectedSchemesForm.schemesMaxLimit) {
                 <input type="hidden" id="scheme_@i" name="scheme_@i" value='@preselectedSchemes(i).getOrElse("")' />
             }
             <ol id="selectedPrefList" class="list-text">
