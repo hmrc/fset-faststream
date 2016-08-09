@@ -17,7 +17,6 @@
 package repositories.schemepreferences
 
 import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
-import model.ProgressStatuses.SchemePreferencesCompletedProgress
 import model.SelectedSchemes
 import reactivemongo.api.DB
 import reactivemongo.bson.{BSONDocument, BSONObjectID, _}
@@ -53,7 +52,7 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
     val query = BSONDocument("applicationId" -> applicationId)
     val preferencesBSON = BSONDocument("$set" -> BSONDocument(
       SchemePreferencesDocumentKey -> schemePreference,
-      "progress-status." + SchemePreferencesCompletedProgress -> true
+      "progress-status." + SchemePreferencesDocumentKey -> true
     ))
     collection.update(query, preferencesBSON, upsert = false) map {
       case lastError if lastError.nModified == 0 && lastError.n == 0 =>
