@@ -106,9 +106,9 @@ locked.account = You''ve made too many unsuccessful attempts to sign in and your
 
 # Questionnaire error messages:
 
-error.required.gender = You must tell us your gender identity or choose prefer not to say
-error.required.sexOrientation = You must tell us your sexual orientation or choose prefer not to say
-error.required.ethnicity = You must tell us your ethnic group or choose prefer not to say
+error.required.gender = You must tell us your gender identity or choose ''prefer not to say''
+error.required.sexOrientation = You must tell us your sexual orientation or choose ''prefer not to say''
+error.required.ethnicity = You must tell us your ethnic group or choose ''prefer not to say''
 error.required.schoolName = What was your school between ages 11 to 16?
 error.required.sixthForm = What was your school between ages 16  to 18?
 error.required.postcodeQ = What was your postcode when you were 14?

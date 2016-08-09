@@ -27,11 +27,11 @@ object QuestionnaireOccupationInfoForm {
   val employedDependentFormatter = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val check = data.get("employedParent")
-      val value = data.get(key)
+      val value = data.get(key).filterNot( _.isEmpty )
 
       (check, value) match {
-        case (Some("Employed"), Some(v)) if !v.isEmpty => Right(value)
-        case (Some("Employed"), None | Some("")) => Left(List(FormError(key, Messages(s"error.required.$key"))))
+        case (Some("Employed"), Some(v))  => Right(value)
+        case (Some("Employed"), None) => Left(List(FormError(key, Messages(s"error.required.$key"))))
         case _ => Right(None)
       }
     }
