@@ -24,7 +24,7 @@ import scheduler.assessment._
 import scheduler.onlinetesting._
 import scheduler.reporting.DiversityMonitoringJob
 import uk.gov.hmrc.play.audit.filters.AuditFilter
-import uk.gov.hmrc.play.config.{ AppName, ControllerConfig, RunMode }
+import uk.gov.hmrc.play.config.{ AppName, ControllerConfig }
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.scheduling.{ RunningOfScheduledJobs, ScheduledJob }
@@ -43,7 +43,7 @@ object MicroserviceLoggingFilter extends LoggingFilter {
   override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
 
-trait Scheduler extends RunningOfScheduledJobs with RunMode {
+trait Scheduler extends RunningOfScheduledJobs {
   import config.MicroserviceAppConfig._
 
   private lazy val sendInvitationJob: Option[ScheduledJob] =
@@ -125,7 +125,7 @@ trait Scheduler extends RunningOfScheduledJobs with RunMode {
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with Scheduler {
   override val auditConnector = MicroserviceAuditConnector
 
-  override def microserviceMetricsConfig(implicit app: Application) = app.configuration.getConfig(s"$env.microservice.metrics")
+  override def microserviceMetricsConfig(implicit app: Application) = app.configuration.getConfig("microservice.metrics")
 
   override val loggingFilter = MicroserviceLoggingFilter
 
