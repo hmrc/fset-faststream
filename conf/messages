@@ -76,8 +76,11 @@ error.hasDisabilityDescription.required=
 error.guaranteedInterview.required = Tell us if you wish to apply under the Guaranteed interview scheme
 error.needsSupportForOnlineAssessment.required = Tell us if you will need extra support for your online assessment
 error.needsSupportForOnlineAssessmentDescription.required = Tell us what adjustments you need for your online asssessment
+error.needsSupportForOnlineAssessmentDescription.maxLength = You have exceed the maximum number of characters allowed (2048) for extra online assessment support description
 error.needsSupportAtVenue.required = Tell us if you need extra support when you visit any of our venues
 error.needsSupportAtVenueDescription.required = Tell us what adjustments you need at any of our venues
+error.needsSupportAtVenueDescription.maxLength = You have exceed the maximum number of characters allowed (2048) for extra support at venue description
+
 
 #locations & schemes
 location.required= Select your preferred location

@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 
 object AssistanceDetailsForm {
 
-  def requiredFormatter(requiredKey: String, key: String) = new Formatter[Option[String]] {
+  def requiredFormatterWithMaxLengthCheck(requiredKey: String, key: String, maxLength: Option[Int]) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val requiredField: Option[String] = data.get(requiredKey)
       val keyField: Option[String] = data.get(key)
@@ -31,7 +31,8 @@ object AssistanceDetailsForm {
       (requiredField, keyField) match {
         case (Some("Yes"), None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
         case (Some("Yes"), Some("")) => Left(List(FormError(key, Messages(s"error.$key.required"))))
-        case _ => Right(keyField)
+        case _ => if (maxLength.isDefined && keyField.isDefined && keyField.get.size > maxLength.get) {
+          Left(List(FormError(key, Messages(s"error.$key.maxLength")))) } else { Right(keyField) }
       }
     }
 
@@ -42,12 +43,13 @@ object AssistanceDetailsForm {
     mapping(
       "hasDisability" -> Mappings.nonEmptyTrimmedText("error.hasDisability.required", 31),
       "hasDisabilityDescription" -> optional(Mappings.nonEmptyTrimmedText("error.hasDisabilityDescription.required", 2048)),
-      "guaranteedInterview" -> of(requiredFormatter("hasDisability", "guaranteedInterview")),
+      "guaranteedInterview" -> of(requiredFormatterWithMaxLengthCheck("hasDisability", "guaranteedInterview", None)),
       "needsSupportForOnlineAssessment" -> Mappings.nonEmptyTrimmedText("error.needsSupportForOnlineAssessment.required", 31),
-      "needsSupportForOnlineAssessmentDescription" -> of(requiredFormatter("needsSupportForOnlineAssessment",
-        "needsSupportForOnlineAssessmentDescription")),
+      "needsSupportForOnlineAssessmentDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportForOnlineAssessment",
+        "needsSupportForOnlineAssessmentDescription", Some(2048))),
       "needsSupportAtVenue" -> Mappings.nonEmptyTrimmedText("error.needsSupportAtVenue.required", 31),
-      "needsSupportAtVenueDescription" -> of(requiredFormatter("needsSupportAtVenue", "needsSupportAtVenueDescription"))
+      "needsSupportAtVenueDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportAtVenue", "needsSupportAtVenueDescription",
+        Some(2048)))
     )(Data.apply)(Data.unapply)
   )
 
