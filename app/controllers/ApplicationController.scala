@@ -24,7 +24,6 @@ import scala.concurrent.Future
 
 /**
  * Provide all the peripheral links from this controller, like T&C link
- *
  */
 object ApplicationController extends ApplicationController(ApplicationClient) {
   val http = CSRHttp
@@ -33,7 +32,7 @@ object ApplicationController extends ApplicationController(ApplicationClient) {
 abstract class ApplicationController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   def index = Action {
-    Redirect(routes.SignInController.signIn)
+    Redirect(routes.SignInController.signIn())
   }
 
   def terms = CSRUserAwareAction { implicit request =>
