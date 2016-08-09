@@ -17,6 +17,7 @@
 package repositories.schemepreferences
 
 import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import model.ProgressStatuses.SchemePreferencesCompletedProgress
 import model.SelectedSchemes
 import reactivemongo.api.DB
 import reactivemongo.bson.{BSONDocument, BSONObjectID, _}
@@ -35,15 +36,15 @@ trait SchemePreferencesRepository {
 class SchemePreferencesMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[SelectedSchemes, BSONObjectID]("application", mongo,
     SelectedSchemes.selectedSchemesFormat, ReactiveMongoFormats.objectIdFormats) with SchemePreferencesRepository {
-  val SchemePreferencesCollection = "scheme-preferences"
+  private val SchemePreferencesDocumentKey = "scheme-preferences"
 
   def find(applicationId: String): Future[SelectedSchemes] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument(SchemePreferencesCollection -> 1, "_id" -> 0)
+    val projection = BSONDocument(SchemePreferencesDocumentKey -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument](SchemePreferencesCollection).isDefined =>
-        document.getAs[SelectedSchemes](SchemePreferencesCollection).get
+      case Some(document) if document.getAs[BSONDocument](SchemePreferencesDocumentKey).isDefined =>
+        document.getAs[SelectedSchemes](SchemePreferencesDocumentKey).get
       case _ => throw SchemePreferencesNotFound(applicationId)
     }
   }
@@ -51,8 +52,8 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
   def save(applicationId: String, schemePreference: SelectedSchemes): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val preferencesBSON = BSONDocument("$set" -> BSONDocument(
-      "scheme-preferences" -> schemePreference,
-      "progress-status." + SchemePreferencesCollection -> true
+      SchemePreferencesDocumentKey -> schemePreference,
+      "progress-status." + SchemePreferencesCompletedProgress -> true
     ))
     collection.update(query, preferencesBSON, upsert = false) map {
       case lastError if lastError.nModified == 0 && lastError.n == 0 =>
