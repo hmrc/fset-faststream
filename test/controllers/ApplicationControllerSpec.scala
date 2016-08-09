@@ -28,7 +28,7 @@ class ApplicationControllerSpec extends BaseControllerSpec {
   }
 
   "privacy" should {
-    "load privacy pge" in {
+    "load privacy page" in {
       val result = controller.privacy()(fakeRequest)
       assertPageTitle(result, "Privacy and cookies")
     }
