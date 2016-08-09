@@ -18,7 +18,7 @@ package models
 
 object AssistanceTypes {
   val seq = Seq(
-    ("ADHD1", "ADHD2"),
+    ("ADHD", "ADHD"),
     ("Asperger's syndrome", "Asperger's syndrome"),
     ("cerebral palsy", "Cerebral palsy"),
     ("chronic fatigue syndrome/M.E.", "Chronic fatigue syndrome/M.E."),
