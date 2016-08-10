@@ -1,7 +1,0 @@
-@(title:String, preference: models.frameworks.Preference, id:String)
-
-<section>
-    <h3 class="heading-small">@title</h3>
-    <p id="@id">@(preference.location) (@(preference.firstFramework)@(preference.secondFramework.map(p => s", $p")))</p>
-</section>
-

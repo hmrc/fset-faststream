@@ -25,7 +25,7 @@ object ProgressResponseExamples {
     false, false, false, false, false, false, false, false, false, false)
   val InProgress = EmptyProgress.copy(personalDetails = true)
   val InPersonalDetails = EmptyProgress.copy(personalDetails = true)
-  val InFrameworkDetails = InPersonalDetails.copy(frameworksLocation = true)
+  val InFrameworkDetails = InPersonalDetails.copy(schemePreferences = true)
   val InAssistanceDetails = InFrameworkDetails.copy(assistanceDetails = true)
 
 }

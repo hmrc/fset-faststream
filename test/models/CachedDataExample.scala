@@ -46,10 +46,10 @@ object CachedDataExample {
     progress = InitialProgress.copy(personalDetails = true))
 
   val InFrameworkDetailsApplication = InPersonalDetailsApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,
-    progress = InitialProgress.copy(frameworksLocation = true))
+    progress = InitialProgress.copy(schemePreferences = true))
 
   val InAssistanceDetailsApplication = InFrameworkDetailsApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,
-    progress = InitialProgress.copy(assistance = true))
+    progress = InitialProgress.copy(assistanceDetails = true))
 
   val ActiveCandidate = CachedData(ActiveCandidateUser, Some(CreatedApplication))
 }

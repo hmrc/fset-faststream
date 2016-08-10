@@ -21,17 +21,21 @@ import java.util.UUID
 import com.mohiva.play.silhouette.api.util.Credentials
 import config.CSRHttp
 import connectors.ExchangeObjects.UserResponse
-import connectors.UserManagementClient
 import connectors.UserManagementClient._
 import connectors.UserManagementClient.InvalidRoleException
-import controllers.{BaseControllerSpec, BaseSpec}
+import controllers.BaseSpec
 import models.{CachedUser, UniqueIdentifier}
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Seconds, Span}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures {
+class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures{
+
+
+  implicit override val patienceConfig =
+    PatienceConfig(timeout = Span(2, Seconds), interval = Span(1, Seconds))
 
   "authenticate" should {
     "return user when credentials are valid" in new TestFixture {

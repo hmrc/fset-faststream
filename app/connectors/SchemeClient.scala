@@ -17,15 +17,12 @@
 package connectors
 
 import config.CSRHttp
-import connectors.SchemeClient.CannotFindSelection
-import models.UniqueIdentifier
-import models.frameworks.{ Alternatives, LocationAndSchemeSelection, Preference, Region }
+import connectors.SchemeClient.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import models.{SelectedSchemes, UniqueIdentifier}
 import play.api.http.Status._
-import play.api.libs.json.Json
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
+import uk.gov.hmrc.play.http.{BadRequestException, HeaderCarrier, HttpResponse, NotFoundException}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 trait SchemeClient {
 
@@ -33,59 +30,33 @@ trait SchemeClient {
 
   val http: CSRHttp
 
-  def getAvailableFrameworksWithLocations(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[List[Region]] =
-    http.GET(s"${url.host}${url.base}/frameworks-available-to-application/$applicationId").map(_.json.as[List[Region]])
-
-  def getSelection(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[LocationAndSchemeSelection] =
-    http.GET(s"${url.host}${url.base}/framework-preference/$applicationId").map(_.json.as[LocationAndSchemeSelection]).recover {
-      case e: NotFoundException => throw new CannotFindSelection()
+  def getSchemePreferences(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+    http.GET(
+      s"${url.host}${url.base}/scheme-preferences/$applicationId"
+    ).map(
+      httpResponse => httpResponse.json.as[SelectedSchemes]
+    ).recover {
+      case e: NotFoundException => throw new SchemePreferencesNotFound
     }
-
-  def updateFirstPref(data: Preference)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(
-      s"${url.host}${url.base}/framework-preference/first/$applicationId",
-      data
-    ).map {
-        case x: HttpResponse if x.status == CREATED => ()
-        case x: HttpResponse if x.status == OK => ()
-      }
   }
 
-  def updateSecondPref(data: Preference)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+  def updateSchemePreferences(data: SelectedSchemes)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.PUT(
-      s"${url.host}${url.base}/framework-preference/second/$applicationId",
+      s"${url.host}${url.base}/scheme-preferences/$applicationId",
       data
     ).map {
-        case x: HttpResponse if x.status == OK => ()
-      }
-  }
-
-  case class SecondPreferenceIntention(secondPreferenceIntended: Boolean)
-
-  implicit val jsonFormatPref = Json.format[SecondPreferenceIntention]
-
-  def updateNoSecondPref(noSecPref: Boolean)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
-    http.PUT(
-      s"${url.host}${url.base}/framework-preference/second/intention/$applicationId",
-      SecondPreferenceIntention(noSecPref)
-    ).map {
-        case x: HttpResponse if x.status == OK => ()
-      }
-  }
-
-  def updateAlternatives(data: Alternatives)(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
-    http.PUT(
-      s"${url.host}${url.base}/framework-preference/alternatives/$applicationId",
-      data
-    ).map {
-        case x: HttpResponse if x.status == OK => ()
-      }
+      case x: HttpResponse if x.status == OK => ()
+    }.recover {
+      case _: BadRequestException => throw new CannotUpdateSchemePreferences
+    }
   }
 
 }
 
-object SchemeClient {
+object SchemeClient extends SchemeClient {
+  val http = CSRHttp
 
-  sealed class CannotFindSelection extends Exception
+  sealed class SchemePreferencesNotFound extends Exception
 
+  sealed class CannotUpdateSchemePreferences extends Exception
 }

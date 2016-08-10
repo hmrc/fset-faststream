@@ -18,10 +18,11 @@ package controllers
 
 import config.CSRHttp
 import connectors.ApplicationClient.{AssistanceDetailsNotFound, PersonalDetailsNotFound}
-import connectors.SchemeClient.CannotFindSelection
+import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ApplicationClient, SchemeClient}
 import helpers.NotificationType._
-import security.Roles.{AssistanceDetailsRole, QuestionnaireInProgressRole, ReviewRole, StartQuestionnaireRole}
+import models.frameworks.LocationAndSchemeSelection
+import security.Roles.{QuestionnaireInProgressRole, ReviewRole, StartQuestionnaireRole}
 
 object ReviewApplicationController extends ReviewApplicationController(ApplicationClient) {
   val http = CSRHttp
@@ -33,16 +34,14 @@ abstract class ReviewApplicationController(applicationClient: ApplicationClient)
     implicit user =>
       val personalDetailsFut = applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId)
       val assistanceDetailsFut = applicationClient.findAssistanceDetails(user.user.userID, user.application.applicationId)
-      val frameworkLocationFut = getSelection(user.application.applicationId)
 
       (for {
         gd <- personalDetailsFut
         ad <- assistanceDetailsFut
-        fl <- frameworkLocationFut
       } yield {
-        Ok(views.html.application.review(gd, ad, fl, user.application))
+        Ok(views.html.application.review(gd, ad, LocationAndSchemeSelection.empty, user.application))
       }).recover {
-        case e @ (_: PersonalDetailsNotFound | _: AssistanceDetailsNotFound | _: CannotFindSelection) =>
+        case e @ (_: PersonalDetailsNotFound | _: AssistanceDetailsNotFound | _: SchemePreferencesNotFound) =>
           Redirect(routes.HomeController.present()).flashing(warning("info.cannot.review.yet"))
       }
   }

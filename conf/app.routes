@@ -38,15 +38,8 @@ POST        /application/confirm-allocation                         controllers.
 GET         /application/details                                    controllers.PersonalDetailsController.present(start: Option[String])
 POST        /application/details                                    controllers.PersonalDetailsController.submitGeneralDetails
 
-GET         /application/schemes                                    controllers.SchemeController.entryPoint
-GET         /application/schemes/first-preference                   controllers.SchemeController.firstPreference
-GET         /application/schemes/second-preference                  controllers.SchemeController.secondPreference
-GET         /application/schemes/summary                            controllers.SchemeController.summary
-
-POST        /application/schemes/first-preference                   controllers.SchemeController.saveFirstPreference
-POST        /application/schemes/second-preference/:consider        controllers.SchemeController.considerSecondPreference(consider:Boolean)
-POST        /application/schemes/second-preference                  controllers.SchemeController.saveSecondPreference
-POST        /application/schemes/consider-alternatives              controllers.SchemeController.saveConsiderAlternatives
+GET         /application/schemes                                    controllers.SchemePreferencesController.present
+POST        /application/schemes                                    controllers.SchemePreferencesController.submit
 
 GET         /application/assistance                                 controllers.AssistanceDetailsController.present
 POST        /application/assistance                                 controllers.AssistanceDetailsController.submit

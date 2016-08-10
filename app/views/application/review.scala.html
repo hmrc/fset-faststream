@@ -5,7 +5,7 @@
 
 @import models.ApplicationData.ApplicationStatus._
 @import security.Roles._
-@import views.html.widgets.{assistanceViewSection, generalDetailsViewSection, schemeSummaryView}
+@import views.html.widgets.{assistanceViewSection, generalDetailsViewSection}
 
 @appNotReadOnly(body: Html)= {
     @if(!WithdrawApplicationRole.isAuthorized(user.get) && !WithdrawnApplicationRole.isAuthorized(user.get)) {@body}
@@ -37,9 +37,8 @@
 
     @generalDetailsViewSection(generalDetails)(edit_link(routes.PersonalDetailsController.present(None)))
 
-    @schemeSummaryView(schemesAndLocations)(edit_link(routes.SchemeController.entryPoint()))
-
     @assistanceViewSection(assistanceDetails)(edit_link(routes.AssistanceDetailsController.present()))
+
 
     @appNotReadOnly {
         @helper.form(action = routes.ReviewApplicationController.submit(), 'novalidate -> "novalidate") {
