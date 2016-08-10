@@ -71,11 +71,11 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
       secondRequest.identity.toUserFuture.flatMap {
         case Some(CachedData(_, None)) => gotoUnauthorised
         case Some(data @ CachedData(u, Some(app))) =>
-          val unAuthorisedMessage = role.notCompletedBefore(data) match {
+          val unAuthMsg = role.notCompletedBefore(data) match {
             case false => Seq(unAuthorisedMsg.getOrElse(DefaultAuthorisedMsg))
             case true => Seq(DefaultAuthorisedMsg)
           }
-          SecuredActionWithCSRAuthorisation(secondRequest.withAdditionalHeader(UnauthorisedMsgHeader -> unAuthorisedMessage),
+          SecuredActionWithCSRAuthorisation(secondRequest.withAdditionalHeader(UnauthorisedMsgHeader -> unAuthMsg),
             block, role, data, CachedDataWithApp(u, app))
         case None => gotoAuthentication
       }

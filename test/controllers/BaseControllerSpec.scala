@@ -20,6 +20,7 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
+import com.mohiva.play.silhouette.test.FakeEnvironment
 import models.SecurityUserExamples._
 import models._
 import org.joda.time.DateTime
@@ -96,7 +97,7 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
     override def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedData => Future[Result]): Action[AnyContent] =
       execute(Candidate)(block)
 
-    override def CSRSecureAppAction(role: CsrAuthorization, unauthorizedMsg:Option[String] = None)
+    override def CSRSecureAppAction(role: CsrAuthorization, unAuthorizedMsg:Option[String] = None)
                                    (block: (SecuredRequest[_]) => (CachedDataWithApp) =>
       Future[Result]): Action[AnyContent] = execute(CandidateWithApp)(block)
 
