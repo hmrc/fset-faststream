@@ -26,6 +26,7 @@ import org.joda.time.DateTime
 import org.scalatest.concurrent.ScalaFutures
 import play.api.mvc._
 import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import play.filters.csrf.CSRF
 import security.Roles.CsrAuthorization
 import security.{SecureActions, SecurityEnvironment, SignInService}
@@ -39,6 +40,7 @@ import scala.concurrent.Future
 abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
   implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit val rh: RequestHeader = FakeRequest()
+  val securityEnvironment = mock[security.SecurityEnvironment]
 
   def currentCandidate: CachedData = ActiveCandidate
 
@@ -74,6 +76,16 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
       signInService.signInUser(user, env, redirect)(request)
   }
 
+  def assertPageTitle(result: Future[Result], expectedTitle: String) = {
+    status(result) must be(OK)
+    val content = contentAsString(result)
+    content must include(s"<title>$expectedTitle")
+  }
+
+  def assertPageRedirection(result: Future[Result], expectedUrl: String) = {
+    status(result) must be(SEE_OTHER)
+    redirectLocation(result) must be(Some(expectedUrl))
+  }
 
   // scalastyle:off method.name
   trait TestableSecureActions extends SecureActions {
@@ -87,6 +99,13 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
     override def CSRSecureAppAction(role: CsrAuthorization, unauthorizedMsg:Option[String] = None)
                                    (block: (SecuredRequest[_]) => (CachedDataWithApp) =>
       Future[Result]): Action[AnyContent] = execute(CandidateWithApp)(block)
+
+    override def CSRUserAwareAction(block: UserAwareRequest[_] => Option[CachedData] => Future[Result]): Action[AnyContent] =
+      Action.async { request =>
+        val secReq = UserAwareRequest(None, None, request)
+        implicit val carrier = hc(request)
+        block(secReq)(None)
+      }
 
     private def execute[T](result: T)(block: (SecuredRequest[_]) => (T) => Future[Result]): Action[AnyContent] = {
       Action.async { request =>

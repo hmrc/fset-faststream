@@ -35,7 +35,6 @@ import scala.concurrent.Future
 class PersonalDetailsControllerSpec extends BaseControllerSpec {
   val applicationClient = mock[ApplicationClient]
   val userManagementClient = mock[UserManagementClient]
-  val securityEnvironment = mock[security.SecurityEnvironment]
   val userService = mock[UserService]
 
   class TestablePersonalDetailsController extends PersonalDetailsController(applicationClient, userManagementClient)
@@ -54,9 +53,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
       val result = controller.present()(fakeRequest)
-      status(result) must be(OK)
+      assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
-      content must include("<title>Personal details")
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
     }
 
@@ -66,9 +64,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
       val result = controller.present()(fakeRequest)
 
-      status(result) must be(OK)
+      assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
-      content must include("<title>Personal details")
       content must include(s"""name="preferredName" value="${GeneralDetailsExchangeExamples.FullDetails.preferredName}"""")
     }
   }
@@ -89,8 +86,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
       val result = controller.submitGeneralDetails()(Request)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.SchemeController.entryPoint().url))
+      assertPageRedirection(result, routes.SchemeController.entryPoint().url)
     }
 
     "fail updating the candidate when person cannot be found" in {
@@ -100,8 +96,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
       val result = controller.submitGeneralDetails()(Request)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.HomeController.present().url))
+      assertPageRedirection(result, routes.HomeController.present().url)
       flash(result).data must be (Map("danger" -> "account.error"))
     }
   }
