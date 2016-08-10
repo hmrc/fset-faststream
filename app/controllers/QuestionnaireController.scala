@@ -29,7 +29,7 @@ import scala.language.reflectiveCalls
 
 object QuestionnaireController extends QuestionnaireController(ApplicationClient)
 
-abstract class QuestionnaireController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class QuestionnaireController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   val QuestionnaireCompleted = Some("questionnaire.completed")
 
