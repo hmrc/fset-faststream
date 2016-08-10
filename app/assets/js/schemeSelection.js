@@ -28,11 +28,7 @@ $(function()
         schemeReq + '</p></div>',
         arrayPosition = $.inArray(thisSchemeID, schemePrefArray),
         emptyPosition = $.inArray('Empty', schemePrefArray);
-        if (arrayPosition >= 0)
-        {
-          //Do nothing
-        }
-        else if ($this.is(':checked'))
+        if (arrayPosition < 0 && $this.is(':checked'))
         {
           if (emptyPosition < 0)
           {

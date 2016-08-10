@@ -181,20 +181,20 @@ object Roles {
   }
 
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
-    ApplicationStartRole -> routes.HomeController.present,
+    ApplicationStartRole -> routes.HomeController.present(),
     PersonalDetailsRole -> routes.PersonalDetailsController.present(None),
-    SchemesRole -> routes.SchemePreferencesController.present,
-    AssistanceRole -> routes.AssistanceController.present,
-    ReviewRole -> routes.ReviewApplicationController.present,
-    StartQuestionnaireRole -> routes.QuestionnaireController.start,
-    DiversityQuestionnaireRole -> routes.QuestionnaireController.firstPageView,
-    EducationQuestionnaireRole -> routes.QuestionnaireController.secondPageView,
-    OccupationQuestionnaireRole -> routes.QuestionnaireController.thirdPageView,
-    SubmitApplicationRole -> routes.SubmitApplicationController.present,
-    DisplayOnlineTestSectionRole -> routes.HomeController.present,
-    ConfirmedAllocatedCandidateRole -> routes.HomeController.present,
-    UnconfirmedAllocatedCandidateRole -> routes.HomeController.present,
-    WithdrawApplicationRole -> routes.HomeController.present
+    SchemesRole -> routes.SchemePreferencesController.present(),
+    AssistanceRole -> routes.AssistanceController.present(),
+    ReviewRole -> routes.ReviewApplicationController.present(),
+    StartQuestionnaireRole -> routes.QuestionnaireController.start(),
+    DiversityQuestionnaireRole -> routes.QuestionnaireController.firstPageView(),
+    EducationQuestionnaireRole -> routes.QuestionnaireController.secondPageView(),
+    OccupationQuestionnaireRole -> routes.QuestionnaireController.thirdPageView(),
+    SubmitApplicationRole -> routes.SubmitApplicationController.present(),
+    DisplayOnlineTestSectionRole -> routes.HomeController.present(),
+    ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),
+    UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
+    WithdrawApplicationRole -> routes.HomeController.present()
   ).reverse
 
 }

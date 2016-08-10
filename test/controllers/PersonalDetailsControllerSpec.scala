@@ -85,7 +85,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(userService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
 
       val result = controller.submitGeneralDetails()(Request)
-      
+
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))
     }

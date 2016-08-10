@@ -32,22 +32,22 @@ object SelectedSchemesForm {
   val Degree_CharteredEngineer = "Degree_CharteredEngineer"
 
   val AllSchemes = Seq(
-    Scheme("CentralDepartments", Degree_22, specificRequirement=false),
-    Scheme("Commercial",Degree_22, specificRequirement=false),
-    Scheme("DigitalAndTechnology",Degree_21, specificRequirement=false),
-    Scheme("DiplomaticService",Degree_22, specificRequirement=false),
-    Scheme("European",Degree_22, specificRequirement=false),
-    Scheme("Finance",Degree_21, specificRequirement=false),
-    Scheme("GovernmentCommunicationService",Degree_21, specificRequirement=false),
-    Scheme("GovernmentEconomicService",Degree_Economics, specificRequirement=true),
-    Scheme("GovernmentOperationalResearchService", Degree_Numerate, specificRequirement=true),
-    Scheme("GovernmentSocialResearchService", Degree_SocialScience, specificRequirement=true),
-    Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement=true),
-    Scheme("HousesOfParliament", Degree_22, specificRequirement=false),
-    Scheme("HumanResources", Degree_22, specificRequirement=false),
-    Scheme("ProjectDelivery", Degree_22, specificRequirement=false),
-    Scheme("ScienceAndEngineering", Degree_CharteredEngineer, specificRequirement=true),
-    Scheme("Tax" ,Degree_22, specificRequirement=false)
+    Scheme("CentralDepartments", Degree_22, specificRequirement = false),
+    Scheme("Commercial", Degree_22, specificRequirement = false),
+    Scheme("DigitalAndTechnology", Degree_21, specificRequirement = false),
+    Scheme("DiplomaticService", Degree_22, specificRequirement = false),
+    Scheme("European", Degree_22, specificRequirement = false),
+    Scheme("Finance", Degree_21, specificRequirement = false),
+    Scheme("GovernmentCommunicationService", Degree_21, specificRequirement = false),
+    Scheme("GovernmentEconomicService", Degree_Economics, specificRequirement = true),
+    Scheme("GovernmentOperationalResearchService", Degree_Numerate, specificRequirement = true),
+    Scheme("GovernmentSocialResearchService", Degree_SocialScience, specificRequirement = true),
+    Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement = true),
+    Scheme("HousesOfParliament", Degree_22, specificRequirement = false),
+    Scheme("HumanResources", Degree_22, specificRequirement = false),
+    Scheme("ProjectDelivery", Degree_22, specificRequirement = false),
+    Scheme("ScienceAndEngineering", Degree_CharteredEngineer, specificRequirement = true),
+    Scheme("Tax", Degree_22, specificRequirement = false)
   )
 
   val schemesMaxLimit = 5
@@ -56,16 +56,14 @@ object SelectedSchemesForm {
 
   case class SchemePreferences(schemes: List[String], orderAgreed: Boolean, eligible: Boolean, alternatives: String)
 
-
   implicit def toSchemePreferences(selectedSchemes: SelectedSchemes): SchemePreferences = SchemePreferences(
-      selectedSchemes.schemes,
-      selectedSchemes.orderAgreed,
-      selectedSchemes.eligible,
-      selectedSchemes.alternatives.toString
-    )
+    selectedSchemes.schemes,
+    selectedSchemes.orderAgreed,
+    selectedSchemes.eligible,
+    selectedSchemes.alternatives.toString
+  )
 
-
-  implicit def toSelectedSchemes(schemePreferences: SchemePreferences):SelectedSchemes = SelectedSchemes(
+  implicit def toSelectedSchemes(schemePreferences: SchemePreferences): SelectedSchemes = SelectedSchemes(
     schemePreferences.schemes,
     schemePreferences.orderAgreed,
     schemePreferences.eligible,
@@ -83,13 +81,12 @@ object SelectedSchemesForm {
       )(SchemePreferences.apply)(SchemePreferences.unapply))
   }
 
-
   def schemeFormatter(formKey: String) = new Formatter[List[String]] {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
       getSchemesByPriority(data) match {
         case selectedSchemes if selectedSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
         case selectedSchemes if selectedSchemes.size > schemesMaxLimit => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selectedSchemes if getInvalidSchemes(selectedSchemes).nonEmpty  => Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes if getInvalidSchemes(selectedSchemes).nonEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
         case selectedSchemes => Right(selectedSchemes)
       }
     }
@@ -108,13 +105,17 @@ object SelectedSchemesForm {
   private val getInvalidSchemes = (selectedSchemes: List[String]) => selectedSchemes.diff(AllSchemes.map(_.id))
 
   private def getSchemesByPriority(formData: Map[String, String]) = {
-    val validSchemeParams = (name:String, value:String) => name.startsWith("scheme_") && value.nonEmpty
+    val validSchemeParams = (name: String, value: String) => name.startsWith("scheme_") && value.nonEmpty
     val priority: String => Int = _.split("_").last.toInt
     formData.filter(pair => validSchemeParams(pair._1, pair._2))
-      .collect{ case (name, value) => priority(name) -> value }
+      .collect { case (name, value) => priority(name) -> value }
       .toList
-      .sortBy{_._1}
-      .map{_._2}
+      .sortBy {
+        _._1
+      }
+      .map {
+        _._2
+      }
       .distinct
   }
 
