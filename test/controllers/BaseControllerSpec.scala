@@ -84,7 +84,8 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
     override def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedData => Future[Result]): Action[AnyContent] =
       execute(Candidate)(block)
 
-    override def CSRSecureAppAction(role: CsrAuthorization)(block: (SecuredRequest[_]) => (CachedDataWithApp) =>
+    override def CSRSecureAppAction(role: CsrAuthorization, unauthorizedMsg:Option[String] = None)
+                                   (block: (SecuredRequest[_]) => (CachedDataWithApp) =>
       Future[Result]): Action[AnyContent] = execute(CandidateWithApp)(block)
 
     private def execute[T](result: T)(block: (SecuredRequest[_]) => (T) => Future[Result]): Action[AnyContent] = {

@@ -17,7 +17,6 @@
 package controllers
 
 import _root_.forms.{ QuestionnaireDiversityInfoForm, QuestionnaireEducationInfoForm, QuestionnaireOccupationInfoForm }
-import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.ExchangeObjects.Questionnaire
 import models.CachedDataWithApp
@@ -28,13 +27,13 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
-object QuestionnaireController extends QuestionnaireController(ApplicationClient) {
-  val http = CSRHttp
-}
+object QuestionnaireController extends QuestionnaireController(ApplicationClient)
 
 abstract class QuestionnaireController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
-  def start = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
+  val QuestionnaireCompleted = Some("questionnaire.completed")
+
+  def start = CSRSecureAppAction(StartQuestionnaireRole, QuestionnaireCompleted) { implicit request =>
     implicit user =>
       val p = user.application.progress
       Future.successful {
@@ -46,16 +45,16 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient) ext
       }
   }
 
-  def firstPageView = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
+  def firstPageView = CSRSecureAppAction(DiversityQuestionnaireRole, QuestionnaireCompleted) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.questionnaire.firstpage(QuestionnaireDiversityInfoForm.form)))
   }
 
-  def secondPageView = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
+  def secondPageView = CSRSecureAppAction(EducationQuestionnaireRole, QuestionnaireCompleted) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.questionnaire.secondpage(QuestionnaireEducationInfoForm.form)))
   }
-  def thirdPageView = CSRSecureAppAction(OccupationQuestionnaireRole) { implicit request =>
+  def thirdPageView = CSRSecureAppAction(OccupationQuestionnaireRole, QuestionnaireCompleted) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.questionnaire.thirdpage(QuestionnaireOccupationInfoForm.form)))
   }

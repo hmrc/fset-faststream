@@ -27,7 +27,7 @@ object Roles {
 
   import RoleUtils._
 
-  trait CsrAuthorization {
+  trait CsrAuthorization extends ActionPending {
     def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang): Boolean
 
     def isAuthorized(user: CachedDataWithApp)(implicit request: RequestHeader, lang: Lang): Boolean =
@@ -39,6 +39,10 @@ object Roles {
 
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && isEnabled(user)
+  }
+
+  trait ActionPending {
+    def notCompletedBefore(user: CachedData) = true
   }
 
   //all the roles
@@ -87,6 +91,8 @@ object Roles {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasReview(user) &&
         !(hasDiversity(user) && hasEducation(user) && hasOccupation(user))
+
+    override def notCompletedBefore(user: CachedData) = !(hasDiversity(user) && hasEducation(user) && hasOccupation(user))
   }
 
   object QuestionnaireInProgressRole extends CsrAuthorization {
@@ -97,17 +103,23 @@ object Roles {
 
   object DiversityQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasStartedQuest(user) && !hasDiversity(user)
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasStartedQuest(user) && notCompletedBefore(user)
+
+    override def notCompletedBefore(user: CachedData) = !hasDiversity(user)
   }
 
   object EducationQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasDiversity(user) && !hasEducation(user)
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasDiversity(user) && notCompletedBefore(user)
+
+    override def notCompletedBefore(user: CachedData) = !hasEducation(user)
   }
 
   object OccupationQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasEducation(user) && !hasOccupation(user)
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasEducation(user) && notCompletedBefore(user)
+
+    override def notCompletedBefore(user: CachedData) = !hasOccupation(user)
   }
 
   object SubmitApplicationRole extends CsrAuthorization {
@@ -200,6 +212,7 @@ object Roles {
 }
 
 object RoleUtils {
+
   implicit def hc(implicit request: RequestHeader): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
 
   def activeUserWithApp(user: CachedData)(implicit request: RequestHeader, lang: Lang) =

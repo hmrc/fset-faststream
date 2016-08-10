@@ -61,6 +61,7 @@ passwordreset.wrong-format = The password reset code must have 7 characters
 #general authentication /authorization
 user.exists = An account with this email address already exists
 access.denied = You don''t have permission to access this page
+questionnaire.completed = You've now completed this part of the application and for security reasons you can't go back and change your answers.
 
 #contact details
 error.address.required = Enter the first line of your address
