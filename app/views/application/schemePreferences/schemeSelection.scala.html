@@ -1,0 +1,87 @@
+@(form: Form[_root_.forms.SelectedSchemesForm.SchemePreferences])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
+
+@import _root_.forms.SelectedSchemesForm
+@import _root_.forms.SelectedSchemesForm.Scheme
+@import views.html.widgets.pageProgress
+@import views.html.widgets.{checkbox, radioBox, yesNoQuestion}
+@import views.html.application.schemePreferences.schemesCheckboxGroup
+
+@selectedSchemes = @{
+    form.value match {
+        case Some(formObject) => formObject.schemes.lift(_)
+        case _ => SelectedSchemesForm.getValidSchemesByPriority(form.data).lift(_)
+    }
+}
+
+@main_template(title = "Choose your schemes", pageForms = Seq(form)) {
+    @pageProgress(2, 7)
+
+    @helper.form(action = routes.SchemePreferencesController.submit(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        <h1 class="heading-xlarge" id="personalDetailsHeading">Choose your schemes</h1>
+
+        <section class="text panel-indent">
+            <p>From 1 up to 5 preferences</p>
+        </section>
+
+        <section class="grid-wrapper scheme-wrapper">
+            <div class="scheme-input-container">
+            @schemesCheckboxGroup(form("schemes"), SelectedSchemesForm.AllSchemes,
+                '_label -> "",
+                '_class -> ""
+            )
+            </div>
+            <div class="scheme-info-container hide-nojs">
+                <div id="sticky-anchor" style="height: 0px;"></div>
+                <div class="scheme-info-panel">
+                    <p class="bold-small" id="chooseYourPrefs">Choose your <span id="chooseNextPreference">1st preference</span>
+                        <span class="hidden" data-optionalappended=""><br> (optional)</span></p>
+                    <p class="bold-small hidden" id="chosenLimit">You've chosen 5 preferences</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="selectedPreferences" class="hide-nojs">
+            <h2 class="heading-large">Your chosen schemes</h2>
+            <div data-scheme-placeholder="">
+                <div class="scheme-warning text">
+                    <p>Your schemes will appear here as you select them from the list</p>
+                </div>
+            </div>
+            @for(i <- 0 until SelectedSchemesForm.schemesMaxLimit) {
+                <input type="hidden" id="scheme_@i" name="scheme_@i" value='@selectedSchemes(i).getOrElse("")' />
+            }
+            <ol id="selectedPrefList" class="list-text">
+                <li></li>
+            </ol>
+                &nbsp;
+        </section>
+        <section class="text panel-indent">
+            <p>Your schemes will be offered to you in order of preference.</p>
+            <p>You will not be able to reorder them after submitting your application.</p>
+        </section>
+        <section class="text">
+                @yesNoQuestion(form("orderAgreed"), question = "Are you happy with the order of your schemes?",
+                noMessage = "If you're not happy with the order of your preferences, change the order now before you continue.")
+        </section>
+        <section class="text">
+                @yesNoQuestion(form("eligible"), question = "Are you eligible for your chosen schemes?",
+                noMessage = "You can only apply for a scheme you're eligible for. Check you're eligible for the scheme and then choose your preferred scheme.")
+        </section>
+        <section class="text">
+            <fieldset>
+                <legend class="form-label">Would you consider other schemes?</legend>
+                <p>If we don't offer you a place on one of your chosen schemes, we may
+                    suggest other schemes on the Fast Stream.</p>
+                <div class="form-group no-btm-margin">
+                    @radioBox(form("alternatives"), options = Seq("true" -> "Yes", "false" -> "No"))
+                </div>
+            </fieldset>
+        </section>
+        <div class="form-group no-btm-margin">
+            <button id="schemeSaveBtn" type="submit" value="submit" class="button">Save and continue</button>
+        </div>
+    }
+}
+<script src='@routes.Assets.versioned("js/schemeSelection.js")' type="text/javascript"></script>
+

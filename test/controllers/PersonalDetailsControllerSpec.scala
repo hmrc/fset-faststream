@@ -86,7 +86,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
       val result = controller.submitGeneralDetails()(Request)
 
-      assertPageRedirection(result, routes.SchemeController.entryPoint().url)
+      status(result) must be(SEE_OTHER)
+      redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))
     }
 
     "fail updating the candidate when person cannot be found" in {
