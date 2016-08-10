@@ -36,7 +36,6 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   val applicationClient = mock[ApplicationClient]
   val schemeClient  = mock[SchemeClient]
-  val securityEnvironment = mock[security.SecurityEnvironment]
   val userService = mock[UserService]
 
   def controllerUnderTest = new SchemePreferencesController(applicationClient, schemeClient) with TestableSecureActions {
