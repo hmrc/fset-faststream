@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package model
+package services
 
-@deprecated("Fasttrack version. Use the new 'model.SchemeType' enum instead")
-object Schemes {
-  val Business = "Business"
-  val Commercial = "Commercial"
-  val DigitalAndTechnology = "Digital and technology"
-  val Finance = "Finance"
-  val ProjectDelivery = "Project delivery"
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.play.PlaySpec
+import testkit.FutureHelper
 
-  val AllSchemes = Business :: Commercial :: DigitalAndTechnology :: Finance :: ProjectDelivery :: Nil
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.Failure
+
+/**
+  * Common base class for all service tests
+  */
+class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with FutureHelper {
+  val AppId = "AppId"
+  val UserId = "UserId"
 }

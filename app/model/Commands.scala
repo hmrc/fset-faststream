@@ -79,7 +79,7 @@ object Commands {
   case class ProgressResponse(
     applicationId: String,
     personalDetails: Boolean = false,
-    frameworksLocation: Boolean = false,
+    schemePreferences: Boolean = false,
     assistance: Boolean = false,
     review: Boolean = false,
     questionnaire: List[String] = Nil,

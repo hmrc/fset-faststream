@@ -37,8 +37,11 @@ trait MongoRepositorySpec extends PlaySpec with Inside with Inspectors with Scal
   import MongoRepositorySpec._
 
   val timeout = 10 seconds
-
   val collectionName: String
+
+  val AppId = "AppId"
+  val UserId = "UserId"
+  val FrameworkId = "FrameworkId"
 
   override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(timeout.toMillis, Millis)))
 
@@ -70,5 +73,5 @@ trait IndexesReader {
 }
 
 object MongoRepositorySpec {
-  val fakeApplication = new FakeApplication()
+  val fakeApplication = FakeApplication()
 }

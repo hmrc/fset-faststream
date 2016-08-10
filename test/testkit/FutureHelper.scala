@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package model
+package testkit
 
-@deprecated("Fasttrack version. Use the new 'model.SchemeType' enum instead")
-object Schemes {
-  val Business = "Business"
-  val Commercial = "Commercial"
-  val DigitalAndTechnology = "Digital and technology"
-  val Finance = "Finance"
-  val ProjectDelivery = "Project delivery"
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Seconds, Span}
+import org.scalatestplus.play.PlaySpec
 
-  val AllSchemes = Business :: Commercial :: DigitalAndTechnology :: Finance :: ProjectDelivery :: Nil
+import scala.concurrent.Future
+
+trait FutureHelper {
+  this: PlaySpec with ScalaFutures =>
+
+  def assertNoExceptions(future: Future[Unit]) = try {
+    implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
+    future.futureValue
+  } catch {
+    case e: Throwable => fail(e)
+  }
+
+  def emptyFuture = Future.successful(())
 }

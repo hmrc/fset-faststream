@@ -30,7 +30,7 @@ object ApplicationStatus extends Enumeration with GeneralDetailsStatuses {
   }
 
   implicit object BSONEnumHandler extends BSONHandler[BSONString, ApplicationStatus] {
-    def read(doc: BSONString) = ApplicationStatus.Value(doc.value)
+    def read(doc: BSONString) = ApplicationStatus.withName(doc.value)
     def write(stats: ApplicationStatus) = BSON.write(stats.toString)
   }
 }

@@ -16,13 +16,13 @@
 
 package model
 
-@deprecated("Fasttrack version. Use the new 'model.SchemeType' enum instead")
-object Schemes {
-  val Business = "Business"
-  val Commercial = "Commercial"
-  val DigitalAndTechnology = "Digital and technology"
-  val Finance = "Finance"
-  val ProjectDelivery = "Project delivery"
+import model.SchemeType.SchemeType
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-  val AllSchemes = Business :: Commercial :: DigitalAndTechnology :: Finance :: ProjectDelivery :: Nil
+case class SelectedSchemes(schemes: List[SchemeType], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
+
+object SelectedSchemes {
+  implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
+  implicit val selectedSchemesHandler = Macros.handler[SelectedSchemes]
 }

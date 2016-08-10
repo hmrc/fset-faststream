@@ -16,13 +16,11 @@
 
 package model
 
-@deprecated("Fasttrack version. Use the new 'model.SchemeType' enum instead")
-object Schemes {
-  val Business = "Business"
-  val Commercial = "Commercial"
-  val DigitalAndTechnology = "Digital and technology"
-  val Finance = "Finance"
-  val ProjectDelivery = "Project delivery"
+import model.SchemeType.SchemeType
+import play.api.libs.json.Json
 
-  val AllSchemes = Business :: Commercial :: DigitalAndTechnology :: Finance :: ProjectDelivery :: Nil
+case class Scheme(schemeId: SchemeType)
+
+object Scheme {
+  implicit val schemeQualificationFormat = Json.format[Scheme]
 }
