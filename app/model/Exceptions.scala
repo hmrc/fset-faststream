@@ -33,6 +33,10 @@ object Exceptions {
 
   case class PersonalDetailsNotFound(applicationId: String) extends Exception(applicationId)
 
+  case class SchemePreferencesNotFound(applicationId: String) extends Exception(applicationId)
+
+  case class CannotUpdateSchemePreferences(applicationId: String) extends Exception(applicationId)
+
   case class ApplicationNotFound(id: String) extends Exception(id)
 
   case class PassMarkSettingsNotFound() extends Exception

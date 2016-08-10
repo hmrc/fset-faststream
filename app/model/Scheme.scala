@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package services
+package model
 
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import testkit.FutureHelper
+import model.SchemeType.SchemeType
+import play.api.libs.json.Json
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.Failure
+case class Scheme(schemeId: SchemeType)
 
-/**
-  * Common base class for all service tests
-  */
-class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with FutureHelper {
-  val AppId = "AppId"
-  val UserId = "UserId"
+object Scheme {
+  implicit val schemeQualificationFormat = Json.format[Scheme]
 }

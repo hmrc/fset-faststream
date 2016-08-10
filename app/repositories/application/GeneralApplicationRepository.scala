@@ -163,7 +163,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       ProgressResponse(
         applicationId,
         personalDetails = getProgress("personal-details"),
-        frameworksLocation = getProgress("frameworks-location"),
+        schemePreferences = getProgress("scheme-preferences"),
         assistanceDetails = getProgress("assistance-details"),
         review = getProgress("review"),
         questionnaire = questionnaire,

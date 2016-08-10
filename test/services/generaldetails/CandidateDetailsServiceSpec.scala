@@ -22,21 +22,16 @@ import model.persisted.ContactDetailsExamples._
 import model.persisted.PersonalDetailsExamples._
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.AuditService
+import services.{AuditService, BaseServiceSpec}
 
 import scala.concurrent.Future
 
-class CandidateDetailsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures {
+class CandidateDetailsServiceSpec extends BaseServiceSpec {
   val mockPdRepository = mock[PersonalDetailsRepository]
   val mockCdRepository = mock[ContactDetailsRepository]
   val mockAuditService = mock[AuditService]
-  val AppId = "AppId"
-  val UserId = "UserId"
 
   val service = new CandidateDetailsService {
     val pdRepository = mockPdRepository
@@ -48,11 +43,11 @@ class CandidateDetailsServiceSpec extends PlaySpec with MockitoSugar with ScalaF
     "update personal and contact details" in {
       when(mockPdRepository.update(eqTo(AppId), eqTo(UserId), eqTo(JohnDoe), any[Seq[ApplicationStatus.Value]],
         any[ApplicationStatus.Value])).thenReturn(Future.successful(()))
-      when(mockCdRepository.update(UserId, ContactDetailsUK)).thenReturn(Future.successful(()))
+      when(mockCdRepository.update(UserId, ContactDetailsUK)).thenReturn(emptyFuture)
 
-      val response = service.update(AppId, UserId, CandidateContactDetailsUK).futureValue
+      val response = service.update(AppId, UserId, CandidateContactDetailsUK)
 
-      response mustBe ()
+      assertNoExceptions(response)
     }
   }
 

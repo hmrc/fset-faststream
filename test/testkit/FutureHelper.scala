@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package services
+package testkit
 
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.PlaySpec
-import testkit.FutureHelper
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Failure
 
-/**
-  * Common base class for all service tests
-  */
-class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with FutureHelper {
-  val AppId = "AppId"
-  val UserId = "UserId"
+trait FutureHelper {
+  this: PlaySpec with ScalaFutures =>
+
+  def assertNoExceptions(future: Future[Unit]) = try {
+    implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
+    future.futureValue
+  } catch {
+    case e: Throwable => fail(e)
+  }
+
+  def emptyFuture = Future.successful(())
 }

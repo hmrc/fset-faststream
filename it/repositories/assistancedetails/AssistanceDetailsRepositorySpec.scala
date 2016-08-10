@@ -8,9 +8,7 @@ import testkit.MongoRepositorySpec
 
 class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
-
-  val FrameworkId = "FrameworkId"
-
+  
   override val collectionName = "application"
 
   def repository = new AssistanceDetailsMongoRepository

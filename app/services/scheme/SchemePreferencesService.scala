@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package services
+package services.scheme
 
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import testkit.FutureHelper
+import model.SelectedSchemes
+import repositories._
+import repositories.schemepreferences.SchemePreferencesRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Failure
 
-/**
-  * Common base class for all service tests
-  */
-class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with FutureHelper {
-  val AppId = "AppId"
-  val UserId = "UserId"
+object SchemePreferencesService extends SchemePreferencesService {
+  val spRepository: SchemePreferencesRepository = schemePreferencesRepository
+}
+
+trait SchemePreferencesService {
+  val spRepository: SchemePreferencesRepository
+
+  def find(applicationId: String): Future[SelectedSchemes] = spRepository.find(applicationId)
+
+  def update(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit] =
+    spRepository.save(applicationId, selectedSchemes) map (_ => ())
 }
