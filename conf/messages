@@ -91,6 +91,44 @@ firstScheme.unavailable=First preference of scheme is not available in this loca
 secondScheme.unavailable=Second preference of scheme is not available in this location
 secondScheme.duplicate=Second preference of scheme can''t be the same as your first preference
 
+#Schemes & qualification
+schemes.error = Problem while updating your scheme preferences
+schemes.required=You must choose a scheme
+orderAgreed.required=Select whether or not you are happy with the order of your schemes
+eligible.required=Select whether or not you are eligible for your chosen schemes
+alternatives.required=Select whether or not you would consider other schemes
+
+scheme.CentralDepartments.description=Central Departments
+scheme.Commercial.description=Commercial
+scheme.DigitalAndTechnology.description=Digital and Technology
+scheme.DiplomaticService.description=Diplomatic Service
+scheme.European.description=European
+scheme.Finance.description=Finance
+scheme.GovernmentCommunicationService.description=Government Communication Service
+scheme.GovernmentEconomicService.description=Government Economic Service
+scheme.GovernmentOperationalResearchService.description=Government Operational Research Service
+scheme.GovernmentSocialResearchService.description=Government Social Research Service
+scheme.GovernmentStatisticalService.description=Government Statistical Service
+scheme.HousesOfParliament.description=Houses of Parliament
+scheme.HumanResources.description=Human Resources
+scheme.ProjectDelivery.description=Project Delivery
+scheme.ScienceAndEngineering.description=Science and Engineering
+scheme.Tax.description=Tax
+
+scheme.GovernmentEconomicService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility
+scheme.GovernmentOperationalResearchService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-operational-research-service#eligibility
+scheme.GovernmentSocialResearchService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-social-research-service#eligibility
+scheme.GovernmentStatisticalService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-statistical-service#eligibility
+scheme.ScienceAndEngineering.link=civil-service-generalist-fast-stream/fast-stream-science-and-engineering#eligibility
+
+qualification.Degree_21.description=2:1 degree in any subject
+qualification.Degree_22.description=2:2 degree in any subject
+qualification.Degree_Economics.description=2:1 degree in economics or a 2:2 with a postgraduate qualification in economics
+qualification.Degree_Numerate.description=2:1 degree in a numerate subject or a 2:2 with a relevant postgraduate qualification
+qualification.Degree_SocialScience.description=2:1 degree in social science or a 2:2 with a postgraduate qualification in social research
+qualification.Degree_CharteredEngineer.description=2:1 degree, plus either chartered engineer status or a postgraduate degree in a relevant subject
+
+
 # Should rarely ever occur. Will either occur if we start calculating location availability dynamically, or if the
 # YAML file has changed between the user loading the page, and submitting their preference (unlikely, but possible).
 location.unavailable=This location isn''t available

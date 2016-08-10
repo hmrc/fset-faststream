@@ -1,7 +1,0 @@
-@(title:String, idPrefix:String, preference: models.frameworks.Preference)(implicit request: Request[_], flash: Flash, user: Option[CachedData])
-
-<h2 class="heading-medium">@title</h2>
-<h3 class="heading-small" id="@(idPrefix + "ChosenLocation")">@(preference.location)</h3>
-<p class="small-btm-margin" id="@(idPrefix + "ChosenSchemes")">@(preference.firstFramework)@(preference.secondFramework.map(p => s", $p")) </p>
-
-
