@@ -4,20 +4,18 @@
 @import views.html.widgets.{checkbox, radioBoxVertical, select_guard_multi, pageProgress}
 
 @main_template(title = "About you", pageForms = Seq(questionnaireForm)) {
-    @pageProgress(5,8)
+    @pageProgress(6,8)
     <div class="hgroup">
         <h1 class="heading-xlarge">About you</h1>
     </div>
-    <div class="panel-warning standard-panel">
-        <h2 class="heading-medium">Why are we asking these questions?</h2>
-        <p>The following questions are:</p>
-        <ul class="no-btm-margin">
-            <li>for information monitoring only</li>
-            <li>not part of your application</li>
-            <li>treated in strict confidence</li>
-            <li>to make sure the Civil Service is a <a href="https://www.gov.uk/government/organisations/civil-service/about/equality-and-diversity"
-            rel="external" target="_blank">diverse organisation</a></li>
-        </ul>
+    <div class="panel-info standard-panel">
+        <div class="text">
+            <h2 class="heading-medium">Why do we ask these questions?</h2>
+            <p>These questions help us to gather data on people's gender, sexual orientation
+                and ethnicity. We anonymise the data and use it to monitor the Civil
+                Service and make sure it's a diverse organisation that reflects the
+                society it serves.</p>
+        </div>
     </div>
 
     @helper.form(action = routes.QuestionnaireController.firstPageSubmit(), 'novalidate -> "novalidate") {

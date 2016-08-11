@@ -18,8 +18,9 @@ package models
 
 object Employee {
   val list = List(
-    ("Employee", false),
-    ("Self-employed with employees", false),
-    ("Self-employed/freelancer without employees", false)
+    ("employee", "Employee", false),
+    ("self-with-employees", "Self-employed with employees", false),
+    ("self-without-employees", "Self-employed/freelancer without employees", false),
+    ("unknown", "I don't know/prefer not to say", false)
   )
 }
