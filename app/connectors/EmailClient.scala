@@ -35,7 +35,7 @@ trait CSREmailClient extends EmailClient {
     POST(s"$url/send-templated-email", UserEmail(List(to), template, parameters), Seq()).map(_ => (): Unit)
 
   override def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier) =
-    sendEmail(to, "csr_app_submit_confirmation", Map("name" -> name))
+    sendEmail(to, "fset_faststream_app_submit_confirmation", Map("name" -> name))
 
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier) =
     sendEmail(
