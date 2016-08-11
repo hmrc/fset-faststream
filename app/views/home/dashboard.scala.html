@@ -18,28 +18,10 @@
     }
 }
 
-@date(date: LocalDate) = @{
-    DateTimeFormat.forPattern("dd MMMM yyyy").print(date)
-}
 
-@dateTime(date: DateTime) = @{
-    DateTimeFormat.forPattern("d MMMM yyyy, h:mma")
-            .print(date.toLocalDateTime)
-            .replace("AM", "am").replace("PM","pm")
-}
-
-@renderFullName(user: CachedData) = {
-@user.user.firstName @user.user.lastName
-}
 
 @noApp(body: Html) = {
 @if(ApplicationStartRole.isAuthorized(usr)) {@body}
-}
-
-@inProgress(flag: Boolean = true)(body: Html) = {
-@if(!(flag ^ PersonalDetailsRole.isAuthorized(usr))) {
-    @body
-}
 }
 
 @renderProgressElement(showLink: Boolean, checked: Boolean)(link: Call)(body: Html) = {
@@ -50,27 +32,21 @@
     } </li>
 }
 
-@setVisibility(visibility: ProgressStepVisibility) = @{
-    visibility match {
-        case ProgressActive => "active"
-        case ProgressInactiveDisabled => "disabled"
-        case _ => ""
-    }
-}
+
 
 @main_template(title = "Home") {
 
     <div class="hgroup">
         <h1 class="heading-xlarge">Home</h1>
-        <p class="subtitle">@renderFullName(usr)</p>
+        <p class="subtitle">@dashboardPage.fullName</p>
     </div>
     <section class="section-border">
         <ol class="step-by-step-coloured" id="sixSteps">
-            <li class="first-step @setVisibility(dashboardPage.firstStepVisibility)">
+            <li class="first-step @dashboardPage.isFirstStepVisible)">
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
-                            <h2 class='@inProgress() {heading-large} @inProgress(false) {heading-medium} '>
+                            <h2 class='@if(dashboardPage.isApplicationCreatedOrInProgress) {heading-large} else {heading-medium} '>
                                 1. Fill in your application form</h2>
                             @if(!dashboardPage.isApplicationWithdrawn) {
                                 <ul class="list-text list-withicons">
@@ -114,7 +90,7 @@
                 </div>
             </li>
 
-            <li class="second-step @setVisibility(dashboardPage.secondStepVisibility)">
+            <li class="second-step @dashboardPage.isSecondStepVisible">
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
@@ -135,7 +111,7 @@
                 </div>
             </li>
 
-            <li class="third-step @setVisibility(dashboardPage.thirdStepVisibility)">
+            <li class="third-step @dashboardPage.isThirdStepVisible">
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
@@ -144,7 +120,7 @@
                                     @allocationDetails.map { aDetails =>
                                         <p>Your assessment is booked for</p>
                                         <p>
-                                            @dateTime(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
+                                            @dashboardPage.todMMMMyyyyhmmaFormat(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
                                             <br><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
                                         </p>
                                         <p>
@@ -165,7 +141,7 @@
                                             } else {
                                                 <p>Your assessment is booked for </p>
                                                 <p>
-                                                    @dateTime(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
+                                                    @dashboardPage.todMMMMyyyyhmmaFormat(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
                                                     <br /><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
                                                 </p>
 
@@ -180,7 +156,7 @@
                                                 <p>
                                                     @aDetails.expirationDate.map{ expirationDate =>
                                                         <span id="confirmByText">
-                                                            Confirm by 11:59pm on @date(expirationDate) or you'll lose your booking.<br>
+                                                            Confirm by 11:59pm on @dashboardPage.toddMMMMyyyyFormat(expirationDate) or you'll lose your booking.<br>
                                                         </span>
                                                     }
 
@@ -223,7 +199,7 @@
             </li>
 
 
-            <li class="fourth-step @setVisibility(dashboardPage.fourthStepVisibility)">
+            <li class="fourth-step @dashboardPage.isFourthStepVisible">
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">

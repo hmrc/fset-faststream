@@ -16,10 +16,10 @@
 
 package models.page
 
-import models.ApplicationData.ApplicationStatus
-import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.page.DashboardPage.ProgressStepVisibility
-import models.{ApplicationData, CachedData, Progress}
+import models.{CachedData, Progress}
+import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.format.DateTimeFormat
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import security.RoleUtils
@@ -33,14 +33,30 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
                          isApplicationSubmittedAndNotWithdrawn: Boolean,
                          isApplicationInProgressAndNotWithdrawn: Boolean,
                          isApplicationWithdrawn: Boolean,
-                         isApplicationCreatedOrInProgress: Boolean
-                        )
+                         isApplicationCreatedOrInProgress: Boolean,
+                         isFirstStepVisible: String,
+                         isSecondStepVisible: String,
+                         isThirdStepVisible: String,
+                         isFourthStepVisible: String,
+                         fullName: String
+                        ) {
+  import DashboardPage._
 
+  def toddMMMMyyyyFormat(date: LocalDate): String = ddMMMMyyyy.print(date)
+
+  def todMMMMyyyyhmmaFormat(date: DateTime): String = dMMMMyyyyhmma.print(date.toLocalDateTime)
+    .replace("AM", "am")
+    .replace("PM","pm")
+}
 // format: ON
+
 
 object DashboardPage {
 
-  def apply(user: CachedData)(implicit request: RequestHeader, lang: Lang): DashboardPage = {
+  import models.ApplicationData.ApplicationStatus
+  import models.ApplicationData.ApplicationStatus.ApplicationStatus
+
+  def apply(user: CachedData) (implicit request: RequestHeader, lang: Lang): DashboardPage = {
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility, fourthStepVisibility) = fromUser(user)
     DashboardPage(
       firstStepVisibility,
@@ -50,7 +66,13 @@ object DashboardPage {
       isApplicationSubmittedAndNotWithdrawn(user),
       isApplicationInProgressAndNotWithdrawn(user),
       isApplicationWithdrawn(user),
-      isApplicationCreatedOrInProgress(user))
+      isApplicationCreatedOrInProgress(user),
+      stepVisibility(firstStepVisibility),
+      stepVisibility(secondStepVisibility),
+      stepVisibility(thirdStepVisibility),
+      stepVisibility(fourthStepVisibility),
+      user.user.firstName + " " + user.user.lastName
+    )
   }
 
   sealed trait ProgressStepVisibility
@@ -118,6 +140,12 @@ object DashboardPage {
   private def isApplicationCreatedOrInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     PersonalDetailsRole.isAuthorized(user)
 
+  private def stepVisibility(step: ProgressStepVisibility): String = step match {
+    case ProgressActive => "active"
+    case ProgressInactiveDisabled => "disabled"
+    case _ => ""
+  }
+
   private def fromUser(user: CachedData)(implicit request: RequestHeader, lang: Lang):
   (ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility) = status(user) match {
     case Some(ApplicationStatus.WITHDRAWN) => withdrawn(user)
@@ -150,4 +178,7 @@ object DashboardPage {
 
   private def status(user: CachedData)(implicit request: RequestHeader, lang: Lang): Option[ApplicationStatus] =
     user.application.map(_.applicationStatus)
+
+  private val ddMMMMyyyy = DateTimeFormat.forPattern("dd MMMM yyyy")
+  private val dMMMMyyyyhmma = DateTimeFormat.forPattern("d MMMM yyyy, h:mma")
 }
