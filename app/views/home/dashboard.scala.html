@@ -42,15 +42,6 @@
 }
 }
 
-@withdraw(flag: Boolean = true)(body: Html) = {
-@if(!(flag ^ WithdrawApplicationRole.isAuthorized(usr))) {@body}
-}
-
-@withdrawn(flag: Boolean = true)(body: Html) = {
-@if(!(flag ^ WithdrawnApplicationRole.isAuthorized(usr))) {@body}
-}
-
-
 @renderProgressElement(showLink: Boolean, checked: Boolean)(link: Call)(body: Html) = {
     <li><i class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
         <a href="@link">@body</a>
@@ -81,12 +72,12 @@
                         <div class="inner-block-padr">
                             <h2 class='@inProgress() {heading-large} @inProgress(false) {heading-medium} '>
                                 1. Fill in your application form</h2>
-                            @withdrawn(false) {
+                            @if(!dashboardPage.isApplicationWithdrawn) {
                                 <ul class="list-text list-withicons">
-                                    @withdraw() {
+                                    @if(dashboardPage.isApplicationSubmittedAndNotWithdrawn) {
                                         <li><i class='fa fa-check the-icon'></i>Your application has been submitted</li>
                                     }
-                                    @withdraw(false) {
+                                    @if(dashboardPage.isApplicationInProgressAndNotWithdrawn) {
                                         @renderProgressElement(showLink = PersonalDetailsRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr))(routes.PersonalDetailsController.present(None)) {Add personal details }
                                         @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceRole.isAuthorized(usr))(routes.SchemePreferencesController.present()) { Choose your scheme preferences }
                                         @renderProgressElement(showLink = AssistanceRole.isAuthorized(usr), checked = ReviewRole.isAuthorized(usr))(routes.AssistanceController.present()) { Tell us about any assistance needs you may have }
@@ -96,17 +87,17 @@
                                     }
                                 </ul>
                             }
-                            @withdraw() {
+                            @if(dashboardPage.isApplicationSubmittedAndNotWithdrawn) {
                                 <a class="" id="view-application" href="@routes.ReviewApplicationController.present()">
                                     View your submitted application</a>
                             }
 
-                            @withdrawn() {
+                            @if(dashboardPage.isApplicationWithdrawn) {
                                 <a class="" id="view-withdrawn-application" href="@routes.ReviewApplicationController.present()">
                                     View your withdrawn application</a>
                             }
 
-                            @inProgress() {
+                            @if(dashboardPage.isApplicationCreatedOrInProgress) {
                                 <a class="" id="continue-application" href="@routes.HomeController.resume()">
                                     Continue with your application</a>
                             }

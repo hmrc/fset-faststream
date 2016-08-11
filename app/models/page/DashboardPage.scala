@@ -19,21 +19,39 @@ package models.page
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.page.DashboardPage.ProgressStepVisibility
-import models.{ ApplicationData, CachedData, Progress }
+import models.{ApplicationData, CachedData, Progress}
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import security.RoleUtils
-import security.Roles.DisplayOnlineTestSectionRole
+import security.Roles._
 
 // format: OFF
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
                          secondStepVisibility: ProgressStepVisibility,
                          thirdStepVisibility: ProgressStepVisibility,
-                         fourthStepVisibility: ProgressStepVisibility)
+                         fourthStepVisibility: ProgressStepVisibility,
+                         isApplicationSubmittedAndNotWithdrawn: Boolean,
+                         isApplicationInProgressAndNotWithdrawn: Boolean,
+                         isApplicationWithdrawn: Boolean,
+                         isApplicationCreatedOrInProgress: Boolean
+                        )
 
 // format: ON
 
 object DashboardPage {
+
+  def apply(user: CachedData)(implicit request: RequestHeader, lang: Lang): DashboardPage = {
+    val (firstStepVisibility, secondStepVisibility, thirdStepVisibility, fourthStepVisibility) = fromUser(user)
+    DashboardPage(
+      firstStepVisibility,
+      secondStepVisibility,
+      thirdStepVisibility,
+      fourthStepVisibility,
+      isApplicationSubmittedAndNotWithdrawn(user),
+      isApplicationInProgressAndNotWithdrawn(user),
+      isApplicationWithdrawn(user),
+      isApplicationCreatedOrInProgress(user))
+  }
 
   sealed trait ProgressStepVisibility
   case object ProgressActive extends ProgressStepVisibility
@@ -88,35 +106,48 @@ object DashboardPage {
     }
   }
 
-  def fromUser(user: CachedData)(implicit request: RequestHeader, lang: Lang): DashboardPage = status(user) match {
+  private def isApplicationSubmittedAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    WithdrawApplicationRole.isAuthorized(user)
+
+  private def isApplicationInProgressAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    CreatedOrInProgressRole.isAuthorized(user)
+
+  private def isApplicationWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    WithdrawnApplicationRole.isAuthorized(user)
+
+  private def isApplicationCreatedOrInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    PersonalDetailsRole.isAuthorized(user)
+
+  private def fromUser(user: CachedData)(implicit request: RequestHeader, lang: Lang):
+  (ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility) = status(user) match {
     case Some(ApplicationStatus.WITHDRAWN) => withdrawn(user)
     case _ => activeApplication(user)
   }
 
-  private def withdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) = {
+  private def withdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang):
+  (ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility) = {
     val progress = user.application.map(_.progress)
     val latestStepBeforeWithdrawn = Step.determineStep(progress)
 
     latestStepBeforeWithdrawn match {
-      case Step1 => DashboardPage(ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled)
-      case Step2 => DashboardPage(ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled)
-      case Step3 => DashboardPage(ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled)
-      case Step4 => DashboardPage(ProgressActive, ProgressActive, ProgressActive, ProgressInactiveDisabled)
+      case Step1 => (ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled)
+      case Step2 => (ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled)
+      case Step3 => (ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled)
+      case Step4 => (ProgressActive, ProgressActive, ProgressActive, ProgressInactiveDisabled)
     }
   }
 
-  private def activeApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang): DashboardPage = {
+  private def activeApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang):
+  (ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility) = {
     val firstStep = if (RoleUtils.activeUserWithApp(user)) ProgressActive else ProgressInactive
     val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user)) ProgressActive else ProgressInactive
     val isStatusOnlineTestFailedNotified = user.application.exists(_.applicationStatus == ApplicationStatus.ONLINE_TEST_FAILED_NOTIFIED)
     val thirdStep = if (isStatusOnlineTestFailedNotified) ProgressInactiveDisabled else ProgressInactive
     val fourthStep = if (isStatusOnlineTestFailedNotified) ProgressInactiveDisabled else ProgressInactive
 
-    DashboardPage(firstStep, secondStep, thirdStep, fourthStep)
+    (firstStep, secondStep, thirdStep, fourthStep)
   }
 
-  private def isApplicationInStatus(application: Option[ApplicationData], status: ApplicationStatus) =
-    application.exists(_.applicationStatus == status)
-
-  private def status(user: CachedData)(implicit request: RequestHeader, lang: Lang) = user.application.map(_.applicationStatus)
+  private def status(user: CachedData)(implicit request: RequestHeader, lang: Lang): Option[ApplicationStatus] =
+    user.application.map(_.applicationStatus)
 }
