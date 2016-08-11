@@ -34,6 +34,7 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
                          isApplicationInProgressAndNotWithdrawn: Boolean,
                          isApplicationWithdrawn: Boolean,
                          isApplicationCreatedOrInProgress: Boolean,
+                         isUserWithNoApplication: Boolean,
                          isFirstStepVisible: String,
                          isSecondStepVisible: String,
                          isThirdStepVisible: String,
@@ -67,6 +68,7 @@ object DashboardPage {
       isApplicationInProgressAndNotWithdrawn(user),
       isApplicationWithdrawn(user),
       isApplicationCreatedOrInProgress(user),
+      isUserWithNoApplication(user),
       stepVisibility(firstStepVisibility),
       stepVisibility(secondStepVisibility),
       stepVisibility(thirdStepVisibility),
@@ -139,6 +141,9 @@ object DashboardPage {
 
   private def isApplicationCreatedOrInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     PersonalDetailsRole.isAuthorized(user)
+
+  private def isUserWithNoApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    ApplicationStartRole.isAuthorized(user)
 
   private def stepVisibility(step: ProgressStepVisibility): String = step match {
     case ProgressActive => "active"

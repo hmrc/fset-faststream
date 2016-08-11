@@ -18,12 +18,6 @@
     }
 }
 
-
-
-@noApp(body: Html) = {
-@if(ApplicationStartRole.isAuthorized(usr)) {@body}
-}
-
 @renderProgressElement(showLink: Boolean, checked: Boolean)(link: Call)(body: Html) = {
     <li><i class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
         <a href="@link">@body</a>
@@ -31,8 +25,6 @@
         @body
     } </li>
 }
-
-
 
 @main_template(title = "Home") {
 
@@ -78,7 +70,7 @@
                                     Continue with your application</a>
                             }
 
-                            @noApp {
+                            @if(dashboardPage.isUserWithNoApplication) {
                                 <a class="button" id="start-application" href="@routes.HomeController.create()">
                                     Start your application</a>
                             }
