@@ -16,8 +16,8 @@
 
 package services.testdata
 
-import connectors.AuthProviderClient
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import connectors.{AuthProviderClient, ExchangeObjects}
+import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.testdata.faker.DataFaker._
@@ -98,7 +98,7 @@ trait CreatedStatusGenerator extends ConstructiveGenerator {
   )
 
   private def createApplication(userId: String): Future[String] = {
-    appRepository.create(userId, "FastTrack-2015").map { application =>
+    appRepository.create(userId, ExchangeObjects.frameworkId).map { application =>
       application.applicationId
     }
   }

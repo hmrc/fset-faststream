@@ -34,7 +34,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   import ImplicitBSONHandlers._
 
-  val frameworkId = "FastTrack-2015"
+  val frameworkId = "FastStream-2016"
 
   val collectionName = "application"
 
@@ -184,7 +184,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   "return the adjustments report" should {
     "return a list of AdjustmentReports" in {
-      val frameworkId = "FastTrack-2015"
+      val frameworkId = "FastStream-2016"
 
       lazy val testData = new TestDataMongoRepository()
       testData.createApplications(1000).futureValue
