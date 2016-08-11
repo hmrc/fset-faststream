@@ -17,7 +17,7 @@
 package forms
 
 import mappings.{AddressExamples, DayMonthYear}
-import model.exchange.AssistanceDetailsExchange
+import connectors.exchange.AssistanceDetailsExchange
 import org.joda.time.{DateTime, LocalDate}
 
 object AssistanceDetailsFormExamples {

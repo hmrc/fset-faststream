@@ -18,12 +18,12 @@ package controllers
 
 import connectors.SchemeClient.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import connectors.{ApplicationClient, SchemeClient}
-import models.{CachedData, SelectedSchemes}
+import models.CachedData
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import _root_.forms.SelectedSchemesForm._
 import connectors.ExchangeObjects.ApplicationResponse
-import connectors.exchange.ProgressResponseExamples
+import connectors.exchange.{ProgressResponseExamples, SelectedSchemes}
 import models.ApplicationData.ApplicationStatus
 import models.services.UserService
 import play.api.test.Helpers._

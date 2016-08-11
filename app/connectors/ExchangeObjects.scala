@@ -20,7 +20,7 @@ import connectors.exchange.ProgressResponse
 import mappings.Address
 import mappings.PhoneNumberMapping._
 import mappings.PostCodeMapping._
-import model.exchange.AssistanceDetailsExchange
+import connectors.exchange.AssistanceDetailsExchange
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
 import org.joda.time.format.{DateTimeFormatterBuilder, PeriodFormatterBuilder}

@@ -1,11 +1,10 @@
-@(assistanceDetails: model.exchange.AssistanceDetailsExchange)(edit: Html)
+@(assistanceDetails: connectors.exchange.AssistanceDetailsExchange)(edit: Html)
 
 <section class="section-border">
     <h2 class="heading-large">
         <span class="sectionTitle">Disability and health conditions</span>
         @edit
-        </h2>
-
+    </h2>
     <section>
         <h3 class="heading-small">Do you consider yourself to have a disability?</h3>
         <p>@assistanceDetails.hasDisability</p>
@@ -24,9 +23,6 @@
                 </p>
             }
         }
-
-
-
     </section>
     <section>
         <h3 class="heading-small">Will you need extra support for your online exercises?</h3>
@@ -52,5 +48,4 @@
             }
         }
     </section>
-
 </section>

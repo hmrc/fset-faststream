@@ -1,0 +1,38 @@
+@(selectedSchemes: connectors.exchange.SelectedSchemes)(edit: Html)
+
+@getOrder(pos: Int) = @{
+    pos match {
+        case 1 => "1st"
+        case 2 => "2nd"
+        case 3 => "3rd"
+        case _ => s"${pos}th"
+    }
+}
+
+<section class="section-border">
+    <h2 class="heading-large">
+        Scheme preference
+        @edit
+    </h2>
+    <section>
+        <ul id="schemePreferenceList" class="list-text">
+            @for(position <- 0 to selectedSchemes.schemes.size - 1) {
+                <li>
+                    <h3 class="bold-small">@getOrder(position + 1) preference</h3>
+                    <p> @selectedSchemes.schemes(position)</p>
+                </li>
+            }
+        </ul>
+    </section>
+    <section>
+        <h3 class="heading-small">Would you consider other schemes?</h3>
+        <p id="">@{
+            selectedSchemes.alternatives match {
+                case true => "Yes"
+                case false => "No"
+            }
+        }
+    </p>
+    </section>
+
+</section>

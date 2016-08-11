@@ -19,27 +19,31 @@ package controllers
 import config.CSRHttp
 import connectors.ApplicationClient.{AssistanceDetailsNotFound, PersonalDetailsNotFound}
 import connectors.SchemeClient.SchemePreferencesNotFound
+import connectors.exchange.SelectedSchemes
 import connectors.{ApplicationClient, SchemeClient}
 import helpers.NotificationType._
 import models.frameworks.LocationAndSchemeSelection
 import security.Roles.{QuestionnaireInProgressRole, ReviewRole, StartQuestionnaireRole}
 
-object ReviewApplicationController extends ReviewApplicationController(ApplicationClient) {
+object ReviewApplicationController extends ReviewApplicationController(ApplicationClient, SchemeClient) {
   val http = CSRHttp
 }
 
-abstract class ReviewApplicationController(applicationClient: ApplicationClient) extends BaseController(applicationClient) with SchemeClient {
+abstract class ReviewApplicationController(applicationClient: ApplicationClient, schemeClient: SchemeClient) extends
+  BaseController(applicationClient) with SchemeClient {
 
   def present = CSRSecureAppAction(ReviewRole) { implicit request =>
     implicit user =>
       val personalDetailsFut = applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId)
       val assistanceDetailsFut = applicationClient.findAssistanceDetails(user.user.userID, user.application.applicationId)
+      val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
 
       (for {
         gd <- personalDetailsFut
         ad <- assistanceDetailsFut
+        sp <- schemePreferencesFut
       } yield {
-        Ok(views.html.application.review(gd, ad, LocationAndSchemeSelection.empty, user.application))
+        Ok(views.html.application.review(gd, ad, sp, user.application))
       }).recover {
         case e @ (_: PersonalDetailsNotFound | _: AssistanceDetailsNotFound | _: SchemePreferencesNotFound) =>
           Redirect(routes.HomeController.present()).flashing(warning("info.cannot.review.yet"))

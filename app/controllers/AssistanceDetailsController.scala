@@ -20,8 +20,8 @@ import _root_.forms.AssistanceDetailsForm
 import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
+import connectors.exchange.AssistanceDetailsExchange
 import helpers.NotificationType._
-import model.exchange.AssistanceDetailsExchange
 import security.Roles.AssistanceDetailsRole
 
 import scala.concurrent.Future

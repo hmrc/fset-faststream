@@ -16,7 +16,7 @@
 
 package forms
 
-import models.SelectedSchemes
+import connectors.exchange.SelectedSchemes
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.{Form, FormError}

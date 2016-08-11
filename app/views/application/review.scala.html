@@ -1,11 +1,11 @@
 @(generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange,
-        assistanceDetails: model.exchange.AssistanceDetailsExchange,
-        schemesAndLocations: models.frameworks.LocationAndSchemeSelection,
+        assistanceDetails: connectors.exchange.AssistanceDetailsExchange,
+        schemePreferences: connectors.exchange.SelectedSchemes,
         applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
+@import views.html.review.{assistanceDetailsViewSection, generalDetailsViewSection, schemePreferencesViewSection}
 @import models.ApplicationData.ApplicationStatus._
 @import security.Roles._
-@import views.html.widgets.{assistanceViewSection, generalDetailsViewSection}
 
 @appNotReadOnly(body: Html)= {
     @if(!WithdrawApplicationRole.isAuthorized(user.get) && !WithdrawnApplicationRole.isAuthorized(user.get)) {@body}
@@ -30,15 +30,16 @@
             @(applicationData.applicationStatus match {
                 case SUBMITTED => "View your submitted application"
                 case WITHDRAWN => "View your withdrawn application"
-                case _ => "Review your application before you continue"
+                case _ => "Check your application before you send it"
             })
         </h1>
     </div>
 
     @generalDetailsViewSection(generalDetails)(edit_link(routes.PersonalDetailsController.present(None)))
 
-    @assistanceViewSection(assistanceDetails)(edit_link(routes.AssistanceDetailsController.present()))
+    @assistanceDetailsViewSection(assistanceDetails)(edit_link(routes.AssistanceDetailsController.present()))
 
+    @schemePreferencesViewSection(schemePreferences)(edit_link(routes.SchemePreferencesController.present()))
 
     @appNotReadOnly {
         @helper.form(action = routes.ReviewApplicationController.submit(), 'novalidate -> "novalidate") {

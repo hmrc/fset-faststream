@@ -22,7 +22,7 @@ import connectors.ExchangeObjects._
 import connectors.exchange.ProgressResponse
 import forms.{AssistanceDetailsForm, GeneralDetailsForm}
 import mappings.PostCodeMapping
-import model.exchange.AssistanceDetailsExchange._
+import connectors.exchange.AssistanceDetailsExchange._
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
 import org.joda.time.LocalDate
@@ -137,7 +137,7 @@ trait ApplicationClient {
 
   def findAssistanceDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(s"${url.host}${url.base}/assistance-details/$userId/$applicationId").map { response =>
-      response.json.as[model.exchange.AssistanceDetailsExchange]
+      response.json.as[connectors.exchange.AssistanceDetailsExchange]
     } recover {
       case _: NotFoundException => throw new AssistanceDetailsNotFound()
     }

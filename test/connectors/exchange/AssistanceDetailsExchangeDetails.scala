@@ -19,7 +19,7 @@ package models
 import java.util.UUID
 
 import connectors.exchange.ProgressResponse
-import model.exchange.AssistanceDetailsExchange
+import connectors.exchange.AssistanceDetailsExchange
 
 object AssistanceDetailsExchangeExamples {
   val OnlyDisabilityNoGisNoAdjustments = AssistanceDetailsExchange("Yes", Some(""), Some(false), false, None, false, None)
