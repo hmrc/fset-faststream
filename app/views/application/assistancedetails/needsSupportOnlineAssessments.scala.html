@@ -1,0 +1,34 @@
+@(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit lang: play.api.i18n.Lang)
+
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.radioBoxHorizontal
+
+<section>
+    <fieldset class="form-group">
+        <legend class="form-label">Will you need extra support for your online assessments?</legend>
+        <p class="form-hint">This includes the online tests, eTray and the video interview</p>
+        @radioBoxHorizontal(form("needsSupportForOnlineAssessment"), options = List(("yes", "Yes", true), ("no", "No", false)),
+            optionTrigger = "needsSupportForOnlineAssessment-describe")
+        <div id="needsSupportForOnlineAssessment-describe" class="toggle-content" aria-hidden="true">
+            <div class="form-group">
+                <label id="adj-other" class="form-label">What adjustments will you need?</label>
+                <p class="form-hint">For example, time extension or a phone interview</p>
+                @helper.textarea(form("needsSupportForOnlineAssessmentDescription"),
+                    '_label -> "",
+                    '_labelClass -> "form-hint",
+                    'class -> "form-control",
+                    'rows -> 4,
+                    'dataValLengthMax -> "2048",
+                    '_showConstraints -> false)
+                <span class="visuallyhidden aria-limit" aria-live="polite"></span>
+            </div>
+            <div class="panel-indent text">
+                <p>If you want to talk about your adjustment needs in more detail,
+                    <a
+                    href="helpdesk.html">please contact us</a>.</p>
+                <p>It's important you let us know this information now, as there won't
+                    be another opportunity to do this unless your situation changes.</p>
+            </div>
+        </div>
+    </fieldset>
+</section>

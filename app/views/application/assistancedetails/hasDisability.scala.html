@@ -1,0 +1,27 @@
+@(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit lang: play.api.i18n.Lang)
+
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.{radioBox, radioBoxHorizontal}
+
+<section>
+    <fieldset class="form-group">
+        <legend class="form-label">Do you consider yourself to have a disability?</legend>
+        @radioBoxHorizontal(form("hasDisability"), options = List(("yes", "Yes", true), ("no", "No", false),
+            ("preferNotToSay", "I don't know/prefer not to say", false)), optionTrigger = "hasDisability-describe")
+        <div class="toggle-content form-group form-group-compound" id="hasDisability-describe">
+            @helper.textarea(form("hasDisabilityDescription"),
+            '_label -> "Provide more information (optional)",
+            '_labelClass -> "form-hint",
+            'class -> "form-control",
+            'rows -> 4,
+            'dataValLengthMax -> "2048",
+            '_showConstraints -> false)
+            <section>
+                    <legend class="form-label">Would you like to apply under the guaranteed interview scheme?</legend>
+                    <p class="form-hint">Find out <a href="https://www.gov.uk/guidance/civil-service-fast-stream-how-to-apply#applicants-with-disabilities"
+                    rel="external" target="_blank">more about this scheme</a></p>
+                    @radioBox(form("guaranteedInterview"), options = Seq("Yes" -> "Yes", "No" -> "No"))
+            </section>
+        </div>
+    </fieldset>
+</section>
