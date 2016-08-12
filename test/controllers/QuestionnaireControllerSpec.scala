@@ -14,7 +14,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
   val applicationClient = mock[ApplicationClient]
   val candidateWithApp = currentCandidateWithApp.copy(
     application = currentCandidateWithApp.application.copy(applicationStatus = IN_PROGRESS))
-  val errorContent = "questionnaire.completed"
+  val errorContent = "You've now completed this part of the application and for security reasons you can't go back and change your answers."
 
   def controllerUnderTest(appStatus: Progress) = new QuestionnaireController(applicationClient) with TestableSecureActions {
     override val CandidateWithApp: CachedDataWithApp = candidateWithApp
@@ -75,7 +75,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
       val result = controllerUnderTest(diversityQuestCompleted).secondPageView()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
-      content must include ("Page 2 of 3")
+      content must include ("Diversity questions")
     }
 
     "redirect to continue questionnaire page, when the second page is completed already" in {
@@ -98,7 +98,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
       val result = controllerUnderTest(educationQuestCompleted).thirdPageView()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
-      content must include ("Page 3 of 3")
+      content must include ("About your parents")
     }
 
     "redirect to continue questionnaire page, when the third page is completed already" in {
