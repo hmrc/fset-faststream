@@ -16,147 +16,26 @@
 
 package services.testdata
 
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersistedQuestion, PersonalDetails}
-import model.persisted.AssistanceDetails
-import model.{Address, Alternatives, LocationPreference, Preferences}
-import org.joda.time.LocalDate
 import repositories._
-import repositories.application.{GeneralApplicationRepository, PersonalDetailsRepository}
-import repositories.assistancedetails.AssistanceDetailsRepository
-import services.testdata.faker.DataFaker._
+import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object SubmittedStatusGenerator extends SubmittedStatusGenerator {
-  override val previousStatusGenerator = CreatedStatusGenerator
+  override val previousStatusGenerator = InProgressQuestionnaireStatusGenerator
   override val appRepository = applicationRepository
-  override val pdRepository = personalDetailsRepository
-  override val adRepository = faststreamAssistanceDetailsRepository
-  override val cdRepository = contactDetailsRepository
-  override val fpRepository = frameworkPreferenceRepository
-  override val qRepository = questionnaireRepository
-
 }
 
 trait SubmittedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
-  val pdRepository: PersonalDetailsRepository
-  val adRepository: AssistanceDetailsRepository
-  val cdRepository: ContactDetailsRepository
-  val fpRepository: FrameworkPreferenceRepository
-  val qRepository: QuestionnaireRepository
 
-  // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
-    def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
-      PersonalDetails(
-        candidateInformation.firstName,
-        candidateInformation.lastName,
-        "Pref" + candidateInformation.firstName,
-        new LocalDate(2015, 5, 21),
-        Random.bool,
-        Random.bool
-      )
-    }
-
-    def getAssistanceDetails(gis: Boolean) = {
-      if (gis) {
-        AssistanceDetails("Yes", Some("disability"), Some(true), true, Some("adjustment online"), true, Some("adjustment at venue"))
-      } else {
-        AssistanceDetails("Yes", Some("disability"), Some(false), true, Some("adjustment online"), true, Some("adjustment at venue"))
-      }
-    }
-
-    def getContactDetails(candidateInformation: DataGenerationResponse) = {
-      ContactDetails(
-        Address("123, Fake street"),
-        "AB1 2CD",
-        candidateInformation.email,
-        Some("07770 774 914")
-      )
-    }
-
-    def getFrameworkPrefs: Future[Preferences] = {
-      for {
-        randomRegion <- Random.region
-        region = generatorConfig.region.getOrElse(randomRegion)
-        firstLocation <- Random.location(region)
-        secondLocation <- Random.location(region, List(firstLocation))
-      } yield {
-        Preferences(
-          LocationPreference(region, firstLocation, "Commercial", None),
-          None,
-          None,
-          Some(Alternatives(
-            Random.bool,
-            Random.bool
-          ))
-        )
-      }
-    }
-
-    def getAllQuestionnaireQuestions = List(
-      PersistedQuestion("What is your gender identity?", PersistedAnswer(Some(Random.gender), None, None)),
-      PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some(Random.sexualOrientation), None, None)),
-      PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some(Random.ethnicGroup), None, None)),
-      PersistedQuestion(
-        "Between the ages of 11 to 16, in which school did you spend most of your education?",
-        PersistedAnswer(Some(Random.age11to16School), None, None)
-      ),
-      PersistedQuestion(
-        "Between the ages of 16 to 18, in which school did you spend most of your education?",
-        PersistedAnswer(Some(Random.age16to18School), None, None)
-      ),
-      PersistedQuestion("What was your home postcode when you were 14?", PersistedAnswer(Some(Random.homePostcode), None, None)),
-      PersistedQuestion(
-        "During your school years, were you at any time eligible for free school meals?",
-        PersistedAnswer(Some(Random.yesNo), None, None)
-      ),
-      PersistedQuestion(
-        "Did any of your parent(s) or guardian(s) complete a university degree course or equivalent?",
-        PersistedAnswer(Some(Random.yesNo), None, None)
-      ),
-      PersistedQuestion(
-        "Which type of occupation did they have?",
-        PersistedAnswer(Some(Random.parentsOccupation), None, None)
-      ),
-      PersistedQuestion(
-        "Did they work as an employee or were they self-employed?",
-        PersistedAnswer(Random.employeeOrSelf, None, None)
-      ),
-      PersistedQuestion(
-        "Which size would best describe their place of work?",
-        PersistedAnswer(Some(Random.sizeOfPlaceOfWork), None, None)
-      ),
-      PersistedQuestion(
-        "Did they supervise any other employees?",
-        PersistedAnswer(Some(Random.yesNo), None, None)
-      )
-    )
-
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- pdRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
-        getPersonalDetails(candidateInPreviousStatus))
-      _ <- adRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
-        getAssistanceDetails(generatorConfig.setGis))
-      _ <- cdRepository.update(candidateInPreviousStatus.userId, getContactDetails(candidateInPreviousStatus))
-      frameworkPrefs <- getFrameworkPrefs
-      _ <- fpRepository.savePreferences(candidateInPreviousStatus.applicationId.get, frameworkPrefs)
-      _ <- qRepository.addQuestions(candidateInPreviousStatus.applicationId.get, getAllQuestionnaireQuestions)
-      _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "start_questionnaire")
-      _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "education_questionnaire")
-      _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "diversity_questionnaire")
-      _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "occupation_questionnaire")
       submit <- appRepository.submit(candidateInPreviousStatus.applicationId.get)
     } yield {
-      candidateInPreviousStatus.copy(
-        preferences = Some(frameworkPrefs)
-      )
+      candidateInPreviousStatus
     }
   }
-  // scalastyle:on method.length
 }

@@ -25,6 +25,7 @@ import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import model.SchemeType._
 
 object DataFaker {
   object ExchangeObjects {
@@ -38,6 +39,21 @@ object DataFaker {
         throw new DataFakingException(s"There were no items left after filtering.")
       } else {
         util.Random.shuffle(filtered).head
+      }
+    }
+
+    def randList[T](options: List[T], size:Int, cannotBe: List[T] = Nil): List[T] = {
+      if (size > 0) {
+
+        val filtered = options.filterNot(cannotBe.contains)
+        if (filtered.isEmpty) {
+          throw new DataFakingException(s"There were no items left after filtering.")
+        } else {
+          val newItem = util.Random.shuffle(filtered).head
+          newItem :: randList(options, size - 1, newItem :: cannotBe)
+        }
+      } else {
+        Nil
       }
     }
 
@@ -94,6 +110,13 @@ object DataFaker {
         randOne(locationsInRegion, cannotBe)
       }
     }
+
+    def schemeTypes = randList(List(
+      CentralDepartments, Commercial, DigitalAndTechnology, DiplomaticService, European, Finance,
+      GovernmentCommunicationService, GovernmentEconomicService, GovernmentOperationalResearchService,
+      GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
+      ProjectDelivery, ScienceAndEngineering, Tax),
+      5)
 
     def gender = randOne(List("Male", "Female"))
     def sexualOrientation = randOne(List("Heterosexual/straight", "Gay woman/lesbian", "Gay man", "Bisexual", "Other"))
