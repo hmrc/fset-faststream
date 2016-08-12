@@ -62,9 +62,9 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
     }
 
     "redirect to home page, when the questionnaire is completed already" in {
-      val questionnaireStarted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
+      val questionnaireCompleted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
         educationQuestionnaire = true, occupationQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireStarted).firstPageView()(fakeRequest)
+      val result = controllerUnderTest(questionnaireCompleted).firstPageView()(fakeRequest)
       assertHomePageRedirect(result)
     }
   }
@@ -85,9 +85,9 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
     }
 
     "redirect to home page, when the questionnaire is completed already" in {
-      val questionnaireStarted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
+      val questionnaireCompleted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
         educationQuestionnaire = true, occupationQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireStarted).secondPageView()(fakeRequest)
+      val result = controllerUnderTest(questionnaireCompleted).secondPageView()(fakeRequest)
       assertHomePageRedirect(result)
     }
   }
@@ -108,9 +108,9 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
     }
 
     "redirect to home page, when the questionnaire is completed already" in {
-      val questionnaireStarted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
+      val questionnaireCompleted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
         educationQuestionnaire = true, occupationQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireStarted).thirdPageView()(fakeRequest)
+      val result = controllerUnderTest(questionnaireCompleted).thirdPageView()(fakeRequest)
       assertHomePageRedirect(result)
     }
   }
