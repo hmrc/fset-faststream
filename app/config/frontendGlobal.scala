@@ -20,7 +20,6 @@ import com.mohiva.play.silhouette.api.{ Environment, SecuredSettings, Silhouette
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import com.typesafe.config.Config
 import controllers.routes
-import security.SecureActions._
 import filters.CookiePolicyFilter
 import forms.{ SignInForm, SignUpForm }
 import helpers.NotificationType._
@@ -71,12 +70,11 @@ object FrontendGlobal
       override protected def env: Environment[SecurityUser, SessionAuthenticator] = SecurityEnvironmentImpl
 
       def whereTo: Some[Future[Result]] = {
-        val unauthorisedMsgKey = request.headers.get(UnauthorisedMsgHeader).getOrElse(DefaultAuthorisedMsg)
         val sec = request.asInstanceOf[SecuredRequest[AnyContent]]
         Some(
           sec.identity.toUserFuture(hc(sec)).map {
-            case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present()).flashing(danger(unauthorisedMsgKey))
-            case _ => Redirect(routes.ActivationController.present()).flashing(danger(unauthorisedMsgKey))
+            case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
+            case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
           }
         )
       }

@@ -28,7 +28,6 @@ import play.api.i18n.Lang
 import play.api.mvc._
 import security.Roles.CsrAuthorization
 import uk.gov.hmrc.play.http.{HeaderCarrier, SessionKeys}
-import SecureActions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -64,18 +63,13 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
     }
   }
 
-  def CSRSecureAppAction(role: CsrAuthorization, unAuthorisedMsg:Option[String] = None)
+  def CSRSecureAppAction(role: CsrAuthorization)
                         (block: SecuredRequest[_] => CachedDataWithApp => Future[Result]): Action[AnyContent] = {
     SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
       secondRequest.identity.toUserFuture.flatMap {
         case Some(CachedData(_, None)) => gotoUnauthorised
-        case Some(data @ CachedData(u, Some(app))) =>
-          val unAuthMsg = role.notCompletedBefore(data) match {
-            case false => Seq(unAuthorisedMsg.getOrElse(DefaultAuthorisedMsg))
-            case true => Seq(DefaultAuthorisedMsg)
-          }
-          SecuredActionWithCSRAuthorisation(secondRequest.withAdditionalHeader(UnauthorisedMsgHeader -> unAuthMsg),
+        case Some(data @ CachedData(u, Some(app))) => SecuredActionWithCSRAuthorisation(secondRequest,
             block, role, data, CachedDataWithApp(u, app))
         case None => gotoAuthentication
       }
@@ -121,7 +115,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
 
   private def gotoAuthentication = Future.successful(Redirect(routes.SignInController.present()))
 
-  private def gotoUnauthorised = Future.successful(Redirect(routes.HomeController.present()).flashing(danger(DefaultAuthorisedMsg)))
+  private def gotoUnauthorised = Future.successful(Redirect(routes.HomeController.present()).flashing(danger("access.denied")))
 
   /* method to wrap the functionality to generate a session is if not exists. */
   private def withSession(block: Action[AnyContent]) = Action.async { implicit request =>
@@ -134,27 +128,4 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
         block(request).map(_.withSession(session))
     }
   }
-
-  implicit class SecuredRequestUtils(secRequest:SecuredRequest[AnyContent]) {
-
-    case class AdditionalHeaders(existing: Headers, additional: Seq[(String, Seq[String])]) extends Headers {
-      override protected val data: Seq[(String, Seq[String])] = (existing.toMap ++ additional).toSeq
-    }
-
-    def withAdditionalHeader(additionalHeader:(String, Seq[String])*) = {
-      new SecuredRequest(secRequest.identity, secRequest.authenticator, secRequest) {
-         override def headers = AdditionalHeaders(secRequest.headers, additionalHeader)
-      }
-    }
-
-  }
-
-}
-
-object SecureActions {
-
-  val UnauthorisedMsgHeader = "UnauthorisedMsgHeader"
-
-  val DefaultAuthorisedMsg = "access.denied"
-
 }

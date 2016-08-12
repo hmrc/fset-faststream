@@ -18,16 +18,17 @@ package security
 
 import controllers.routes
 import models.ApplicationData.ApplicationStatus._
-import models.{ CachedData, CachedDataWithApp, Progress }
+import models.{CachedData, CachedDataWithApp, Progress}
 import play.api.i18n.Lang
-import play.api.mvc.{ Call, RequestHeader }
+import play.api.mvc.{Call, RequestHeader}
+import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 object Roles {
 
   import RoleUtils._
 
-  trait CsrAuthorization extends ActionPending {
+  trait CsrAuthorization {
     def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang): Boolean
 
     def isAuthorized(user: CachedDataWithApp)(implicit request: RequestHeader, lang: Lang): Boolean =
@@ -39,10 +40,6 @@ object Roles {
 
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && isEnabled(user)
-  }
-
-  trait ActionPending {
-    def notCompletedBefore(user: CachedData) = true
   }
 
   //all the roles
@@ -85,41 +82,6 @@ object Roles {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && !statusIn(user)(CREATED) &&
         hasPersonalDetails(user) && hasAssistance(user) && hasSchemes(user)
-  }
-
-  object StartQuestionnaireRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasReview(user) &&
-        !(hasDiversity(user) && hasEducation(user) && hasOccupation(user))
-
-    override def notCompletedBefore(user: CachedData) = !(hasDiversity(user) && hasEducation(user) && hasOccupation(user))
-  }
-
-  object QuestionnaireInProgressRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasReview(user) &&
-        (!hasDiversity(user) || !hasEducation(user) || !hasOccupation(user))
-  }
-
-  object DiversityQuestionnaireRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasStartedQuest(user) && notCompletedBefore(user)
-
-    override def notCompletedBefore(user: CachedData) = !hasDiversity(user)
-  }
-
-  object EducationQuestionnaireRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasDiversity(user) && notCompletedBefore(user)
-
-    override def notCompletedBefore(user: CachedData) = !hasEducation(user)
-  }
-
-  object OccupationQuestionnaireRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasEducation(user) && notCompletedBefore(user)
-
-    override def notCompletedBefore(user: CachedData) = !hasOccupation(user)
   }
 
   object SubmitApplicationRole extends CsrAuthorization {
@@ -198,10 +160,7 @@ object Roles {
     SchemesRole -> routes.SchemePreferencesController.present(),
     AssistanceRole -> routes.AssistanceController.present(),
     ReviewRole -> routes.ReviewApplicationController.present(),
-    StartQuestionnaireRole -> routes.QuestionnaireController.start(),
-    DiversityQuestionnaireRole -> routes.QuestionnaireController.firstPageView(),
-    EducationQuestionnaireRole -> routes.QuestionnaireController.secondPageView(),
-    OccupationQuestionnaireRole -> routes.QuestionnaireController.thirdPageView(),
+    QuestionnaireInProgressRole -> routes.QuestionnaireController.start(),
     SubmitApplicationRole -> routes.SubmitApplicationController.present(),
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),
     ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),
