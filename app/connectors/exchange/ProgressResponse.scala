@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 case class ProgressResponse(
   applicationId: UniqueIdentifier,
   personalDetails: Boolean,
-  frameworksLocation: Boolean,
+  schemePreferences: Boolean,
   assistance: Boolean,
   review: Boolean,
   questionnaire: List[String],
