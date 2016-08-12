@@ -43,7 +43,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
 
       val result = diagnosticReportRepo.findByUserId("user1").futureValue
 
-      val expectedApplicationUser = ApplicationUser("app1", "user1", "FastTrack-2015", "AWAITING_ALLOCATION",
+      val expectedApplicationUser = ApplicationUser("app1", "user1", "FastStream-2016", "AWAITING_ALLOCATION",
         ApplicationProgressStatuses(Some(List(
           ApplicationProgressStatus("registered", true),
           ApplicationProgressStatus("personal_details_completed", true),
@@ -72,7 +72,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
 
       val result = diagnosticReportRepo.findByUserId("user1").futureValue
 
-      val expectedApplicationUser = ApplicationUser("app1", "user1", "FastTrack-2015", "SUBMITED",
+      val expectedApplicationUser = ApplicationUser("app1", "user1", "FastStream-2016", "SUBMITED",
         ApplicationProgressStatuses(Some(List(
           ApplicationProgressStatus("registered", true),
           ApplicationProgressStatus("personal_details_completed", true),
@@ -96,7 +96,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
 
       val result = diagnosticReportRepo.findByUserId("user1").futureValue
 
-      val expectedApplicationUser = ApplicationUser("app1", "user1", "FastTrack-2015", "CREATED",
+      val expectedApplicationUser = ApplicationUser("app1", "user1", "FastStream-2016", "CREATED",
         ApplicationProgressStatuses(Some(List(
           ApplicationProgressStatus("registered", true)
         )), None))
@@ -110,7 +110,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   val UserWithAllDetails = BSONDocument(
     "applicationId" -> "app1",
     "userId" -> "user1",
-    "frameworkId" -> "FastTrack-2015",
+    "frameworkId" -> "FastStream-2016",
     "applicationStatus" -> "AWAITING_ALLOCATION",
     "progress-status" -> BSONDocument(
       "registered" -> BSONBoolean(true),
@@ -134,7 +134,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   val UserWithoutQuestionnaire = BSONDocument(
     "applicationId" -> "app1",
     "userId" -> "user1",
-    "frameworkId" -> "FastTrack-2015",
+    "frameworkId" -> "FastStream-2016",
     "applicationStatus" -> "SUBMITED",
     "progress-status" -> BSONDocument(
       "registered" -> BSONBoolean(true),
@@ -152,7 +152,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   val UserWithOnlyRegistedStatus = BSONDocument(
     "applicationId" -> "app1",
     "userId" -> "user1",
-    "frameworkId" -> "FastTrack-2015",
+    "frameworkId" -> "FastStream-2016",
     "applicationStatus" -> "CREATED"
   )
 }

@@ -35,9 +35,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "Get overall report for an application with all fields" in {
       val userId = generateUUID()
       val appId = generateUUID()
-      createApplicationWithAllFields(userId, appId, "FastTrack-2015")
+      createApplicationWithAllFields(userId, appId, "FastStream-2016")
 
-      val result = repository.overallReport("FastTrack-2015").futureValue
+      val result = repository.overallReport("FastStream-2016").futureValue
 
       result must not be empty
       result.head must be(Report(
@@ -52,9 +52,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "Get overall report for the minimum application" in {
       val userId = generateUUID()
       val appId = generateUUID()
-      createMinimumApplication(userId, appId, "FastTrack-2015")
+      createMinimumApplication(userId, appId, "FastStream-2016")
 
-      val result = repository.overallReport("FastTrack-2015").futureValue
+      val result = repository.overallReport("FastStream-2016").futureValue
 
       result must not be empty
       result.head must be(Report(appId, Some("registered"),

@@ -48,7 +48,7 @@ class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results 
         s"""
            |{
            |  "userId":"1234",
-           |  "frameworkId":"FASTTRACK-2015"
+           |  "frameworkId":"FASTSTREAM-2016"
            |}
         """.stripMargin
       ))

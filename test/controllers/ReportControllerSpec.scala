@@ -374,7 +374,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
   }
 
   trait TestFixture extends TestFixtureBase {
-    val frameworkId = "FastTrack-2015"
+    val frameworkId = "FastStream-2016"
 
     def createAdjustmentsReport(frameworkId: String) = {
       FakeRequest(Helpers.GET, controllers.routes.ReportingController.createAdjustmentReports(frameworkId).url, FakeHeaders(), "")
