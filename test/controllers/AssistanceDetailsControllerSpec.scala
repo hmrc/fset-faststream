@@ -41,7 +41,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
   "present" should {
     "load assistance details page for the new user" in new TestFixture {
-      when(mockApplicationClient.findAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new AssistanceDetailsNotFound))
 
       val result = controller.present()(fakeRequest)
@@ -52,7 +52,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "load assistance details page for the already created assistance details" in new TestFixture {
-      when(mockApplicationClient.findAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments ))
 
       val result = controller.present()(fakeRequest)

@@ -35,7 +35,7 @@ abstract class AssistanceDetailsController(applicationClient: ApplicationClient)
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
 
-      applicationClient.findAssistanceDetails(user.user.userID, user.application.applicationId).map { ad =>
+      applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId).map { ad =>
         val form = AssistanceDetailsForm.form.fill(assistanceDetailsExchange2Data(ad))
         Ok(views.html.application.assistanceDetails(form))
       }.recover {
@@ -52,7 +52,6 @@ abstract class AssistanceDetailsController(applicationClient: ApplicationClient)
         data => {
           applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID, sanitizeData(data)).flatMap { _ =>
             updateProgress()(_ => Redirect(routes.QuestionnaireController.start()))
-//            updateProgress()(_ => Redirect(routes.ReviewApplicationController.present()))
           }.recover {
             case e: AssistanceDetailsNotFound =>
               Redirect(routes.HomeController.present()).flashing(danger("account.error"))
