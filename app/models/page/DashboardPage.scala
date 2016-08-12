@@ -16,8 +16,9 @@
 
 package models.page
 
+import connectors.{AllocationExchangeObjects, ExchangeObjects}
 import models.page.DashboardPage.ProgressStepVisibility
-import models.{CachedData, Progress}
+import models._
 import org.joda.time.{DateTime, LocalDate}
 import org.joda.time.format.DateTimeFormat
 import play.api.i18n.Lang
@@ -39,7 +40,9 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
                          isSecondStepVisible: String,
                          isThirdStepVisible: String,
                          isFourthStepVisible: String,
-                         fullName: String
+                         fullName: String,
+                         assessmentInProgressStatus: AssessmentStatus,
+                         assessmentCompletedStatus: AssessmentStatus
                         ) {
   import DashboardPage._
 
@@ -48,16 +51,20 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   def todMMMMyyyyhmmaFormat(date: DateTime): String = dMMMMyyyyhmma.print(date.toLocalDateTime)
     .replace("AM", "am")
     .replace("PM","pm")
+
+
 }
 // format: ON
 
 
 object DashboardPage {
 
+  import connectors.AllocationExchangeObjects.AllocationDetails
   import models.ApplicationData.ApplicationStatus
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  def apply(user: CachedData) (implicit request: RequestHeader, lang: Lang): DashboardPage = {
+  def apply(user: CachedData, allocationDetails: Option[AllocationExchangeObjects.AllocationDetails], test: Option[ExchangeObjects.OnlineTest])
+           (implicit request: RequestHeader, lang: Lang): DashboardPage = {
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility, fourthStepVisibility) = fromUser(user)
     DashboardPage(
       firstStepVisibility,
@@ -73,7 +80,9 @@ object DashboardPage {
       stepVisibility(secondStepVisibility),
       stepVisibility(thirdStepVisibility),
       stepVisibility(fourthStepVisibility),
-      user.user.firstName + " " + user.user.lastName
+      user.user.firstName + " " + user.user.lastName,
+      getAssessmentInProgressStatus(user, allocationDetails, test),
+      getAssessmentCompletedStatus(user, allocationDetails, test)
     )
   }
 
@@ -151,6 +160,60 @@ object DashboardPage {
     case _ => ""
   }
 
+  private def getAssessmentInProgressStatus(user: CachedData,
+                              allocationDetails: Option[AllocationExchangeObjects.AllocationDetails],
+                              test: Option[ExchangeObjects.OnlineTest])
+                             (implicit request: RequestHeader, lang: Lang): AssessmentStatus = {
+    if(ConfirmedAllocatedCandidateRole.isAuthorized(user)) {
+      ASSESSMENT_BOOKED_CONFIRMED
+    }
+    else {
+      if(UnconfirmedAllocatedCandidateRole.isAuthorized(user)) {
+        if(isConfirmationAllocationExpired(allocationDetails)) {
+          ASSESSMENT_CONFIRMATION_EXPIRED
+        }
+        else {
+          ASSESSMENT_PENDING_CONFIRMATION
+        }
+      }
+      else {
+        if(AssessmentCentreFailedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)) {
+          ASSESSMENT_FAILED
+        }
+        else {
+          if(AssessmentCentrePassedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)) {
+            ASSESSMENT_PASSED
+          }
+          else {
+            if(AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
+              ASSESSMENT_NOT_ATTENDED
+            }
+            else{
+              ASSESSMENT_STATUS_UNKNOWN
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private def getAssessmentCompletedStatus(user: CachedData,
+                                            allocationDetails: Option[AllocationExchangeObjects.AllocationDetails],
+                                            test: Option[ExchangeObjects.OnlineTest])
+                                           (implicit request: RequestHeader, lang: Lang): AssessmentStatus = {
+    if(AssessmentCentreFailedNotifiedRole.isAuthorized(user) || AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
+      ASSESSMENT_FAILED_RETRY
+    }
+    else {
+      if(AssessmentCentrePassedNotifiedRole.isAuthorized(user)) {
+        ASSESSMENT_PASSED_ON_BOARD
+      }
+      else {
+        ASSESSMENT_STATUS_UNKNOWN
+      }
+    }
+  }
+
   private def fromUser(user: CachedData)(implicit request: RequestHeader, lang: Lang):
   (ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility) = status(user) match {
     case Some(ApplicationStatus.WITHDRAWN) => withdrawn(user)
@@ -183,6 +246,13 @@ object DashboardPage {
 
   private def status(user: CachedData)(implicit request: RequestHeader, lang: Lang): Option[ApplicationStatus] =
     user.application.map(_.applicationStatus)
+
+  private[this] def isConfirmationAllocationExpired(allocationDetails: Option[AllocationExchangeObjects.AllocationDetails]): Boolean = {
+    allocationDetails match {
+      case Some(AllocationDetails(_, _, _, Some(expirationDate))) if LocalDate.now().isAfter(expirationDate) => true
+      case _ => false
+    }
+  }
 
   private val ddMMMMyyyy = DateTimeFormat.forPattern("dd MMMM yyyy")
   private val dMMMMyyyyhmma = DateTimeFormat.forPattern("d MMMM yyyy, h:mma")
