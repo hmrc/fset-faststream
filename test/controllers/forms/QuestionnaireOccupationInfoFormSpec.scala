@@ -19,7 +19,7 @@ package controllers.forms
 import controllers.BaseSpec
 import forms.QuestionnaireOccupationInfoForm.{ Data, form }
 
-class QuestionnaireOccupationFormSpec extends BaseSpec {
+class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
 
   "the occupation form" should {
 
@@ -31,19 +31,19 @@ class QuestionnaireOccupationFormSpec extends BaseSpec {
     }
 
     "fail when no employedParent" in new Fixture {
-      assertFieldRequired("employedParent", "employedParent")
+      assertFieldRequired(expectedError = "employedParent", "employedParent")
     }
 
     "fail when no employee" in new Fixture {
-      assertFieldRequired("employee", "employee", "preferNotSay_employee")
+      assertFieldRequired(expectedError = "employee", "employee")
     }
 
     "fail when no organizationSize" in new Fixture {
-      assertFieldRequired("organizationSize", "organizationSize", "preferNotSay_organizationSize")
+      assertFieldRequired(expectedError = "organizationSize", "organizationSize")
     }
 
     "fail when no supervise" in new Fixture {
-      assertFieldRequired("supervise", "supervise", "preferNotSay_supervise")
+      assertFieldRequired(expectedError = "supervise", "supervise")
     }
 
     "be valid when parents were unemployed" in new Fixture {
@@ -55,11 +55,12 @@ class QuestionnaireOccupationFormSpec extends BaseSpec {
 
     "transform properly to a question list" in new Fixture {
       val questionList = validFormData.toQuestionnaire.questions
-      questionList.size must be(4)
-      questionList(0).answer.answer must be(Some("Some occupation"))
-      questionList(1).answer.answer must be(Some("some employee"))
-      questionList(2).answer.answer must be(Some("Org size"))
-      questionList(3).answer.unknown must be(Some(true))
+      questionList.size must be(5)
+      questionList(0).answer.answer must be(Some("Yes"))
+      questionList(1).answer.answer must be(Some("Some occupation"))
+      questionList(2).answer.answer must be(Some("Some employee"))
+      questionList(3).answer.answer must be(Some("Org size"))
+      questionList(4).answer.answer must be(Some("Yes"))
     }
 
   }
@@ -67,40 +68,39 @@ class QuestionnaireOccupationFormSpec extends BaseSpec {
   trait Fixture {
 
     val validFormData = Data(
+      "Yes",
       "Employed",
       Some("Some occupation"),
-      Some("some employee"), None,
-      Some("Org size"), None,
-      None, Some(true)
+      Some("Some employee"),
+      Some("Org size"),
+      Some("Yes")
     )
 
     val validFormValues = Map(
+      "parentsDegree" -> "Yes",
       "employedParent" -> "Employed",
       "parentsOccupation" -> "Some occupation",
-      "employee" -> "some employee",
-      "preferNotSay_employee" -> "",
+      "employee" -> "Some employee",
       "organizationSize" -> "Org size",
-      "preferNotSay_organizationSize" -> "",
-      "supervise" -> "",
-      "preferNotSay_supervise" -> "true"
+      "supervise" -> "Yes"
     )
 
     val validFormDataUnemployed = Data(
-      "Unemployed", Some(""),
-      None, None,
-      None, None,
-      None, None
+      "No",
+      "Unemployed",
+      None,
+      None,
+      None,
+      None
     )
 
     val validFormValuesUnemployed = Map(
+      "parentsDegree" -> "No",
       "employedParent" -> "Unemployed",
       "parentsOccupation" -> "",
       "employee" -> "",
-      "preferNotSay_employee" -> "",
       "organizationSize" -> "",
-      "preferNotSay_organizationSize" -> "",
-      "supervise" -> "",
-      "preferNotSay_supervise" -> ""
+      "supervise" -> ""
     )
 
     def assertFieldRequired(expectedError: String, fieldKey: String*) =

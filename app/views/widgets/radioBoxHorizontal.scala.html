@@ -1,0 +1,13 @@
+@(field : play.api.data.Field, options: Seq[(String, String, Boolean)], optionTrigger: String = "", isCompound: Boolean = false)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@createId(id: String, key: String)= @{id + "-" + key.replace(" ", "_").replace("/", "_")}
+
+@helper.input(field, '_class -> (if(isCompound) "form-group-compound" else "inline")) { (id, name, value, args) =>
+    @for( (key, displayText, shouldTrigger)  <- options){
+        <label for="@createId(id, key)" class="block-label" @if(shouldTrigger){ data-target="@optionTrigger"}>
+            <input name="@name" type="radio" id="@createId(id, key)" value="@displayText" @(if(value.contains(displayText)) "checked" else "")>@displayText
+        </label>
+    }
+}
