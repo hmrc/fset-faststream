@@ -115,7 +115,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
 
     progress = personalDetails.map(_ => progress ++ ("personal-details" -> true)).getOrElse(progress)
     progress = frameworks.map(_ => progress ++ ("frameworks-location" -> true)).getOrElse(progress)
-    progress = assistance.map(_ => progress ++ ("assistance" -> true)).getOrElse(progress)
+    progress = assistance.map(_ => progress ++ ("assistance-details" -> true)).getOrElse(progress)
     progress = isSubmitted.map(_ => progress ++ ("submitted" -> true)).getOrElse(progress)
     progress = isWithdrawn.map(_ => progress ++ ("withdrawn" -> true)).getOrElse(progress)
 

@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package mocks.application
+package persisted
 
-import mocks.InMemoryStorage
-import model.Exceptions.AssistanceDetailsNotFound
 import model.persisted.AssistanceDetails
-import repositories.assistancedetails.AssistanceDetailsRepository
 
-import scala.concurrent.Future
+object AssistanceDetailsExamples {
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, false, None)
+  val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("disability description"), Some(true), true,
+    Some("online adjustment description"), true, Some("venue adjustment description"))
 
-object AssistanceDetailsInMemoryRepository extends AssistanceDetailsRepository with InMemoryStorage[AssistanceDetails] {
-  // Seed with test data.
-  inMemoryRepo +=
-    "111-111" ->
-    AssistanceDetails("No", None, None, false, None, false, None)
-
-  override def notFound(applicationId: String) = throw new AssistanceDetailsNotFound(applicationId)
 }

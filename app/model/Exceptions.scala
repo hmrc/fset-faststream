@@ -29,6 +29,8 @@ object Exceptions {
 
   case class CannotUpdateContactDetails(userId: String) extends Exception(userId)
 
+  case class CannotUpdateAssistanceDetails(userId: String) extends Exception(userId)
+
   case class PersonalDetailsNotFound(applicationId: String) extends Exception(applicationId)
 
   case class SchemePreferencesNotFound(applicationId: String) extends Exception(applicationId)

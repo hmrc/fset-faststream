@@ -19,20 +19,20 @@ package services.onlinetesting
 import _root_.services.AuditService
 import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
+import connectors.{CSREmailClient, CubiksGatewayClient, EmailClient}
 import controllers.OnlineTest
-import factories.{ DateTimeFactory, UUIDFactory }
+import factories.{DateTimeFactory, UUIDFactory}
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
 import org.joda.time.DateTime
 import play.api.Logger
 import play.libs.Akka
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 object OnlineTestService extends OnlineTestService {

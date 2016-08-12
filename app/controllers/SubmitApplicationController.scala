@@ -16,12 +16,13 @@
 
 package controllers
 
-import connectors.{ CSREmailClient, EmailClient }
+import connectors.{CSREmailClient, EmailClient}
 import model.ApplicationValidator
 import play.api.mvc.Action
 import repositories.FrameworkRepository.CandidateHighestQualification
 import repositories._
-import repositories.application.{ AssistanceDetailsRepository, GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.application.{GeneralApplicationRepository, PersonalDetailsRepository}
+import repositories.assistancedetails.AssistanceDetailsRepository
 import services.AuditService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -31,7 +32,7 @@ import scalaz.Scalaz._
 
 object SubmitApplicationController extends SubmitApplicationController {
   override val pdRepository: PersonalDetailsRepository = personalDetailsRepository
-  override val adRepository: AssistanceDetailsRepository = assistanceRepository
+  override val adRepository: AssistanceDetailsRepository = faststreamAssistanceDetailsRepository
   override val cdRepository = contactDetailsRepository
   override val frameworkPrefRepository: FrameworkPreferenceMongoRepository = frameworkPreferenceRepository
   override val frameworkRegionsRepository: FrameworkRepository = frameworkRepository

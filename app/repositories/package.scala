@@ -21,6 +21,7 @@ import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.PassmarkPersistedObjects._
 import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
+import model.persisted.AssistanceDetails
 import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.indexes.Index
@@ -42,8 +43,9 @@ package object repositories {
     ReactiveMongoPlugin.mongoConnector.db
   }
 
-  lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository
-  lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository
+  lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
+  lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository()
+  lazy val faststreamAssistanceDetailsRepository = new assistancedetails.AssistanceDetailsMongoRepository()
   lazy val schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 
   // Below repositories will be deleted as they are valid only for Fasttrack
@@ -51,7 +53,6 @@ package object repositories {
   lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService)
   lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
   lazy val mediaRepository = new MediaMongoRepository()
-  lazy val assistanceRepository = new AssistanceDetailsMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculatorTrait {})
@@ -160,7 +161,7 @@ package object repositories {
 
   implicit val withdrawHandler: BSONHandler[BSONDocument, WithdrawApplicationRequest] = Macros.handler[WithdrawApplicationRequest]
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
-  implicit val assistanceHandler: BSONHandler[BSONDocument, AssistanceDetailsExchange] = Macros.handler[AssistanceDetailsExchange]
+  implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
   implicit val answerHandler: BSONHandler[BSONDocument, PersistedAnswer] = Macros.handler[PersistedAnswer]
   implicit val diversityEthnicityHandler: BSONHandler[BSONDocument, DiversityEthnicity] = Macros.handler[DiversityEthnicity]
   implicit val diversitySocioEconomicsHandler: BSONHandler[BSONDocument, DiversitySocioEconomic] = Macros.handler[DiversitySocioEconomic]
