@@ -56,13 +56,13 @@ class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
   override def update(applicationId: String, userId: String, ad: AssistanceDetails): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId, "userId" -> userId)
     val updateBSON = BSONDocument("$set" -> BSONDocument(
-      s"progress-status.assistance-details" -> true,
+      "progress-status.assistance-details" -> true,
       AssistanceDetailsCollection -> ad
     ))
 
     collection.update(query, updateBSON, upsert = true) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        logger.error(s"""Failed to write assistance details for user: $userId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}""")
+      case result if result.nModified == 0 && result.n == 0 =>
+        logger.error(s"""Failed to write assistance details for user: $userId -> ${result.writeConcernError.map(_.errmsg).mkString(",")}""")
         throw CannotUpdateAssistanceDetails(userId)
       case _ => ()
     }
