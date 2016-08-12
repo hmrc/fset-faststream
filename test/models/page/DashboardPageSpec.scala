@@ -20,7 +20,7 @@ import connectors.exchange.{ AssessmentCentre, AssessmentScores }
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus._
 import models.page.DashboardPage._
-import models.{ OnlineTestProgress, Progress }
+import models._
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.play.PlaySpec
 import play.api.i18n.Lang
@@ -35,44 +35,70 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
   implicit val lang: Lang = Lang.defaultLang
 
   // format: OFF
+  // scalastyle:off line.size.limit
   val Applications = Table(
-    ("applicationStatus", "step1", "step2", "step3", "step4"),
-    (REGISTERED,                               ProgressInactive, ProgressInactive, ProgressInactive, ProgressInactive),
-    (CREATED,                                  ProgressActive, ProgressInactive, ProgressInactive, ProgressInactive),
-    (IN_PROGRESS,                              ProgressActive, ProgressInactive, ProgressInactive, ProgressInactive),
-    (SUBMITTED,                                ProgressActive, ProgressInactive, ProgressInactive, ProgressInactive),
-    (WITHDRAWN,                                ProgressActive, ProgressActive, ProgressActive, ProgressInactiveDisabled),
-    (ONLINE_TEST_INVITED,                      ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ONLINE_TEST_STARTED,                      ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ONLINE_TEST_COMPLETED,                    ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ONLINE_TEST_EXPIRED,                      ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ALLOCATION_CONFIRMED,                     ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ALLOCATION_UNCONFIRMED,                   ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (AWAITING_ALLOCATION,                      ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ONLINE_TEST_FAILED,                       ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ONLINE_TEST_FAILED_NOTIFIED,              ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled),
-    (AWAITING_ONLINE_TEST_RE_EVALUATION,       ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (FAILED_TO_ATTEND,                         ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ASSESSMENT_SCORES_ENTERED,                ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ASSESSMENT_SCORES_ACCEPTED,               ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ASSESSMENT_CENTRE_PASSED,                 ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ASSESSMENT_CENTRE_FAILED,                 ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ASSESSMENT_CENTRE_PASSED_NOTIFIED,        ProgressActive, ProgressActive, ProgressInactive, ProgressInactive),
-    (ASSESSMENT_CENTRE_FAILED_NOTIFIED,        ProgressActive, ProgressActive, ProgressInactive, ProgressInactive)
+    ("applicationStatus",                      "step1",          "step2",         "step3",                    "step4",                  "isApplicationSubmittedAndNotWithdrawn", "isApplicationInProgressAndNotWithdrawn", "isApplicationWithdrawn", "isApplicationCreatedOrInProgress", "isUserWithNoApplication",  "isFirstStepVisible", "isSecondStepVisible", "isThirdStepVisible", "isFourthStepVisible", "fullName", "assessmentInProgressStatus", "assessmentCompletedStatus"),
+    (REGISTERED,                               ProgressInactive, ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   false,                                    false,                    false,                              true,                        "", "", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (CREATED,                                  ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   true,                                     false,                    true,                               false,                       "active", "", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (IN_PROGRESS,                              ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   true,                                     false,                    true,                               false,                       "active", "", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (SUBMITTED,                                ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (WITHDRAWN,                                ProgressActive,   ProgressActive,   ProgressActive,            ProgressInactiveDisabled, false,                                   false,                                    true,                     false,                              false,                       "active", "active", "active", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_INVITED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_STARTED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_COMPLETED,                    ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_EXPIRED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (ALLOCATION_CONFIRMED,                     ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_BOOKED_CONFIRMED, ASSESSMENT_STATUS_UNKNOWN),
+    (ALLOCATION_UNCONFIRMED,                   ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_PENDING_CONFIRMATION, ASSESSMENT_STATUS_UNKNOWN),
+    (AWAITING_ALLOCATION,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_FAILED,                       ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_FAILED_NOTIFIED,              ProgressActive,   ProgressActive,   ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                    false,                                    false,                    false,                              false,                       "active", "active", "disabled", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (AWAITING_ONLINE_TEST_RE_EVALUATION,       ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (FAILED_TO_ATTEND,                         ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_NOT_ATTENDED, ASSESSMENT_FAILED_RETRY),
+    (ASSESSMENT_SCORES_ENTERED,                ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_BOOKED_CONFIRMED, ASSESSMENT_STATUS_UNKNOWN),
+    (ASSESSMENT_SCORES_ACCEPTED,               ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_BOOKED_CONFIRMED, ASSESSMENT_STATUS_UNKNOWN),
+    (AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_BOOKED_CONFIRMED, ASSESSMENT_STATUS_UNKNOWN),
+    (ASSESSMENT_CENTRE_PASSED,                 ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (ASSESSMENT_CENTRE_FAILED,                 ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (ASSESSMENT_CENTRE_PASSED_NOTIFIED,        ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_PASSED_ON_BOARD),
+    (ASSESSMENT_CENTRE_FAILED_NOTIFIED,        ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_FAILED_RETRY)
   )
+  // scalastyle:on line.size.limit
   // format: ON
 
   "The Steps visibility" should {
     "be correctly determined by applicationStatus" in {
-      forAll(Applications) { (status: ApplicationStatus.Value, step1: ProgressStepVisibility, step2: ProgressStepVisibility,
-        step3: ProgressStepVisibility, step4: ProgressStepVisibility) =>
-        DashboardPage.fromUser(user(status)) must be(DashboardPage(step1, step2, step3, step4))
+      forAll(Applications) {
+        (status: ApplicationStatus.Value,
+         step1: ProgressStepVisibility,
+         step2: ProgressStepVisibility,
+         step3: ProgressStepVisibility,
+         step4: ProgressStepVisibility,
+         isApplicationSubmittedAndNotWithdrawn: Boolean,
+         isApplicationInProgressAndNotWithdrawn: Boolean,
+         isApplicationWithdrawn: Boolean,
+         isApplicationCreatedOrInProgress: Boolean,
+         isUserWithNoApplication: Boolean,
+         isFirstStepVisible: String,
+         isSecondStepVisible: String,
+         isThirdStepVisible: String,
+         isFourthStepVisible: String,
+         fullName: String,
+         assessmentInProgressStatus: AssessmentStatus,
+         assessmentCompletedStatus: AssessmentStatus
+        ) => {
+          DashboardPage(user(status), None, None) must be(
+            DashboardPage(step1, step2, step3, step4,
+              isApplicationSubmittedAndNotWithdrawn, isApplicationInProgressAndNotWithdrawn,
+              isApplicationWithdrawn, isApplicationCreatedOrInProgress, isUserWithNoApplication,
+              isFirstStepVisible, isSecondStepVisible, isThirdStepVisible, isFourthStepVisible,
+              fullName, assessmentInProgressStatus, assessmentCompletedStatus)
+          )
+        }
       }
     }
 
     "be tested for all statuses" in {
-      val statusesTested = Applications.toList.map { case (status, _, _, _, _) => status }
+      val statusesTested = Applications.toList.map { case (status, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => status }
       val allStatuses = ApplicationStatus.values.toList
 
       val statusesNotTested = allStatuses.diff(statusesTested)
@@ -81,27 +107,54 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
   }
 
   // format: off
+  // scalastyle:off line.size.limit
   val WithdrawnApplications = Table(
-    ("Status before Withdraw", "step1", "step2", "step3", "step4"),
-    (PersonalDetailsProgress, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled),
-    (SubmittedProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled),
-    (AwaitingAssessmentCentreAllocation, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled),
-    (OnlineTestInvited, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled),
-    (OnlineTestFailed, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled),
-    (AssessmentCentreInvited, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled)
+    ("Status before Withdraw", "step1", "step2", "step3", "step4", "isApplicationSubmittedAndNotWithdrawn", "isApplicationInProgressAndNotWithdrawn", "isApplicationWithdrawn", "isApplicationCreatedOrInProgress", "isUserWithNoApplication",  "isFirstStepVisible", "isSecondStepVisible", "isThirdStepVisible", "isFourthStepVisible", "fullName", "assessmentInProgressStatus", "assessmentCompletedStatus"),
+    (PersonalDetailsProgress, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "disabled", "disabled", "disabled", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (SubmittedProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "active", "disabled", "disabled", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (AwaitingAssessmentCentreAllocation, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "active", "active", "disabled", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (OnlineTestInvited, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "active", "active", "disabled", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (OnlineTestFailed, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "active", "active", "disabled", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
+    (AssessmentCentreInvited, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "active", "active", "disabled", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN)
   )
+  // scalastyle:on line.size.limit
   // format: on
 
   "The steps visibility when application is withdrawn from status" should {
     "be correctly determined by previous applicationStatus" in {
-      forAll(WithdrawnApplications) { (progress: Progress, step1: ProgressStepVisibility, step2: ProgressStepVisibility,
-        step3: ProgressStepVisibility, step4: ProgressStepVisibility) =>
-        DashboardPage.fromUser(withdrawnApplication(progress)) must be(DashboardPage(step1, step2, step3, step4))
+
+      forAll(WithdrawnApplications) {
+        (progress: Progress,
+         step1: ProgressStepVisibility,
+         step2: ProgressStepVisibility,
+         step3: ProgressStepVisibility,
+         step4: ProgressStepVisibility,
+         isApplicationSubmittedAndNotWithdrawn: Boolean,
+         isApplicationInProgressAndNotWithdrawn: Boolean,
+         isApplicationWithdrawn: Boolean,
+         isApplicationCreatedOrInProgress: Boolean,
+         isUserWithNoApplication: Boolean,
+         isFirstStepVisible: String,
+         isSecondStepVisible: String,
+         isThirdStepVisible: String,
+         isFourthStepVisible: String,
+         fullName: String,
+         assessmentInProgressStatus: AssessmentStatus,
+         assessmentCompletedStatus: AssessmentStatus
+        ) => {
+          DashboardPage(withdrawnApplication(progress), None, None) must be(
+            DashboardPage(step1, step2, step3, step4,
+              isApplicationSubmittedAndNotWithdrawn, isApplicationInProgressAndNotWithdrawn,
+              isApplicationWithdrawn, isApplicationCreatedOrInProgress, isUserWithNoApplication,
+              isFirstStepVisible, isSecondStepVisible, isThirdStepVisible, isFourthStepVisible,
+              fullName, assessmentInProgressStatus, assessmentCompletedStatus)
+          )
+        }
       }
     }
 
     "be tested for all statuses" in {
-      val statusesTested = Applications.toList.map { case (status, _, _, _, _) => status }
+      val statusesTested = Applications.toList.map { case (status, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => status }
       // For any new status DashboardPage.Step1/2/3 or 4 needs to have this status
       // Add this new status to isReached method and increase this value
       statusesTested.length must be(23)
