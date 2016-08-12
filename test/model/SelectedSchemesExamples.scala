@@ -16,13 +16,8 @@
 
 package model
 
-@deprecated("Fasttrack version. Use the new 'model.SchemeType' enum instead")
-object Schemes {
-  val Business = "Business"
-  val Commercial = "Commercial"
-  val DigitalAndTechnology = "Digital and technology"
-  val Finance = "Finance"
-  val ProjectDelivery = "Project delivery"
+import model.SchemeType._
 
-  val AllSchemes = Business :: Commercial :: DigitalAndTechnology :: Finance :: ProjectDelivery :: Nil
+object SelectedSchemesExamples {
+  val TwoSchemes = SelectedSchemes(List(CentralDepartments, Commercial), orderAgreed = true, eligible = true, alternatives = true)
 }

@@ -23,7 +23,7 @@ import play.api.libs.json.Json
 
 object ExchangeObjects {
 
-  val frameworkId = "FastTrack-2015"
+  val frameworkId = "FastStream-2016"
 
   case class UserEmail(to: List[String], templateId: String, parameters: Map[String, String])
 

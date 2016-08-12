@@ -29,6 +29,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+@deprecated("fasttrack version. Framework need to be renamed to Scheme")
 trait FrameworkRepository {
   def getFrameworkNames: Future[List[String]]
   def getFrameworksByRegion: Future[List[Region]]

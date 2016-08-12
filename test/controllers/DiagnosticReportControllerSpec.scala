@@ -36,7 +36,7 @@ class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoS
 
   "Get user by id" should {
     "return all information about the user" in new TestFixture {
-      val applicationUser = ApplicationUser("app1", "user1", "FastTrack-2015", "AWAITING_ALLOCATION",
+      val applicationUser = ApplicationUser("app1", "user1", "FastStream-2016", "AWAITING_ALLOCATION",
         ApplicationProgressStatuses(None, None))
       when(mockSecretReportRepository.findByUserId("user1")).thenReturn(Future.successful(applicationUser))
       val result = TestableSecretReportingController.getUserById(applicationUser.userId)(createOnlineTestRequest(

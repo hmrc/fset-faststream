@@ -51,12 +51,18 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  lazy val cubiksUrlFromConfig = Play.current.configuration.getString("cubiks.url").getOrElse(fetchSecretConfigKeyFromFile("cubiks.url"))
+  val secretsFileCubiksUrlKey = "microservice.services.cubiks-gateway.testdata.url"
+  lazy val cubiksUrlFromConfig = Play.current.configuration.getString(secretsFileCubiksUrlKey)
+    .getOrElse(fetchSecretConfigKeyFromFile("cubiks.url"))
 
   private def fetchSecretConfigKeyFromFile(key: String): String = {
     val path = System.getProperty("user.home") + "/.csr/.secrets"
     val testConfig = ConfigFactory.parseFile(new File(path))
-    testConfig.getString(s"testdata.$key")
+    if (testConfig.isEmpty) {
+      throw new IllegalArgumentException(s"No key found at '$secretsFileCubiksUrlKey' and .secrets file does not exist.")
+    } else {
+      testConfig.getString(s"testdata.$key")
+    }
   }
 
   // scalastyle:off parameter.number

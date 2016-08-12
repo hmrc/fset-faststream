@@ -16,13 +16,14 @@
 
 package repositories.application
 
+import connectors.ExchangeObjects
 import model.Commands._
 import model.Address
 import model.PersistedObjects
 import model.PersistedObjects.ContactDetails
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -135,7 +136,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     var document = BSONDocument(
       "applicationId" -> id.toString,
       "userId" -> id.toString,
-      "frameworkId" -> "FastTrack-2015",
+      "frameworkId" -> ExchangeObjects.frameworkId,
       "applicationStatus" -> applicationStatus
     )
     document = buildDocument(document)(personalDetails.map(d => "personal-details" -> d))

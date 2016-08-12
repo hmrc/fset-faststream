@@ -12,9 +12,6 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = "application"
 
-  val AppId = "AppId"
-  val UserId = "UserId"
-
   def repository = new PersonalDetailsMongoRepository
 
   "update candidate" should {
