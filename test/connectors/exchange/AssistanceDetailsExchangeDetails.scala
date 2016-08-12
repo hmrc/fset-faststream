@@ -16,9 +16,13 @@
 
 package models
 
-object Supervise {
-  val list = List(
-    ("Yes", false),
-    ("No", false)
-  )
+import java.util.UUID
+
+import connectors.exchange.ProgressResponse
+import model.exchange.AssistanceDetailsExchange
+
+object AssistanceDetailsExchangeExamples {
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetailsExchange("Yes", Some(""), Some(false), false, None, false, None)
+  val DisabilityGisAndAdjustments = AssistanceDetailsExchange("Yes", Some("disability description"), Some(true), true,
+    Some("online adjustment description xxx"), true, Some("venue adjustment description yyy"))
 }

@@ -77,7 +77,7 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasPersonalDetails(user)
   }
 
-  object AssistanceRole extends CsrAuthorization {
+  object AssistanceDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasSchemes(user)
   }
@@ -85,18 +85,18 @@ object Roles {
   object ReviewRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && !statusIn(user)(CREATED) &&
-        hasPersonalDetails(user) && hasAssistance(user) && hasSchemes(user)
+        hasPersonalDetails(user) && hasAssistanceDetails(user) && hasSchemes(user)
   }
 
   object StartQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasReview(user) &&
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
         !(hasDiversity(user) && hasEducation(user) && hasOccupation(user))
   }
 
   object QuestionnaireInProgressRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasReview(user) &&
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
         (!hasDiversity(user) || !hasEducation(user) || !hasOccupation(user))
   }
 
@@ -190,7 +190,7 @@ object Roles {
     ApplicationStartRole -> routes.HomeController.present(),
     PersonalDetailsRole -> routes.PersonalDetailsController.present(None),
     SchemesRole -> routes.SchemePreferencesController.present(),
-    AssistanceRole -> routes.AssistanceController.present(),
+    AssistanceDetailsRole -> routes.AssistanceDetailsController.present,
     ReviewRole -> routes.ReviewApplicationController.present(),
     StartQuestionnaireRole -> routes.QuestionnaireController.start(),
     DiversityQuestionnaireRole -> routes.QuestionnaireController.firstPageView(),
@@ -220,7 +220,7 @@ object RoleUtils {
 
   def hasSchemes(implicit user: CachedData) = progress.schemePreferences
 
-  def hasAssistance(implicit user: CachedData) = progress.assistance
+  def hasAssistanceDetails(implicit user: CachedData) = progress.assistanceDetails
 
   def hasReview(implicit user: CachedData) = progress.review
 

@@ -23,7 +23,7 @@ case class ProgressResponse(
   applicationId: UniqueIdentifier,
   personalDetails: Boolean,
   schemePreferences: Boolean,
-  assistance: Boolean,
+  assistanceDetails: Boolean,
   review: Boolean,
   questionnaire: List[String],
   submitted: Boolean,

@@ -24,5 +24,8 @@ object ProgressResponseExamples {
   val EmptyProgress = ProgressResponse(UniqueIdentifier(UUID.randomUUID().toString), false, false, false, false, Nil, false, false, false,
     false, false, false, false, false, false, false, false, false, false)
   val InProgress = EmptyProgress.copy(personalDetails = true)
+  val InPersonalDetails = EmptyProgress.copy(personalDetails = true)
+  val InFrameworkDetails = InPersonalDetails.copy(schemePreferences = true)
+  val InAssistanceDetails = InFrameworkDetails.copy(assistanceDetails = true)
 
 }

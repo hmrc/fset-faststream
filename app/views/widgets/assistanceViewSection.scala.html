@@ -1,65 +1,56 @@
-@(assistanceDetails: connectors.ExchangeObjects.AssistanceDetailsExchange)(edit: Html)
+@(assistanceDetails: model.exchange.AssistanceDetailsExchange)(edit: Html)
 
 <section class="section-border">
     <h2 class="heading-large">
-        <span class="sectionTitle">Additional information</span>
+        <span class="sectionTitle">Disability and health conditions</span>
         @edit
         </h2>
 
     <section>
-        @assistanceDetails.typeOfdisability match {
-            case Some(v) if v.length > 1 || (assistanceDetails.detailsOfdisability.isDefined && assistanceDetails.detailsOfdisability.exists(!_.isEmpty)) => {
-                <h3 class="heading-small">Disabilities</h3>
-            }
-            case _ => {
-                <h3 class="heading-small">Disability</h3>
+        <h3 class="heading-small">Do you consider yourself to have a disability?</h3>
+        <p>@assistanceDetails.hasDisability</p>
+        @if(assistanceDetails.hasDisability)  {
+            <p>@assistanceDetails.hasDisabilityDescription</p>
+            @assistanceDetails.guaranteedInterview.map { gis =>
+                <h3 class="heading-small">Would you like to apply under the guaranteed interview scheme?</h3>
+                <p>
+                @{
+                if(gis) {
+                    "Yes"
+                } else {
+                    "No"
+                }
+                }
+                </p>
             }
         }
 
-        @if(assistanceDetails.needsAssistance.equals("No") || assistanceDetails.needsAssistance.equals("Prefer not to say")) {
-            <p id="needsAssistance">@assistanceDetails.needsAssistance </p>
-        } else {
-            <ul id="disabilityDetails">
-                @assistanceDetails.typeOfdisability.map { v =>
-                    @for( i <- v) {
-                        <li>@i</li>
-                    }
-                }
 
-                @if(assistanceDetails.detailsOfdisability.isDefined && assistanceDetails.detailsOfdisability.exists(!_.isEmpty)) {
-                    <li id="detailsOfDisability">@assistanceDetails.detailsOfdisability.getOrElse("No other details were provided")</li>
-                }
 
-            </ul>
-        }
     </section>
-
-    @if(assistanceDetails.needsAssistance.equals("Yes")) {
-        <section>
-            <h3 class="heading-small">Guaranteed interview scheme</h3>
-            <p id="guaranteedInterview">@assistanceDetails.guaranteedInterview.getOrElse("")</p>
-        </section>
-    }
     <section>
-        <h3 class="heading-small">Adjustment needs</h3>
-        @if(assistanceDetails.needsAdjustment.contains("No")) {
-            <p id="needsAdjustment">@assistanceDetails.needsAdjustment.getOrElse("") </p>
-        } else {
-            <ul id="adjustmentDetails">
-                @assistanceDetails.typeOfAdjustments.map { v =>
-                    @for( i <- v) {
-                        <li>@i</li>
-                    }
-                }
-
-                @if(assistanceDetails.otherAdjustments.isDefined && assistanceDetails.otherAdjustments.exists(!_.isEmpty)) {
-                    <li id="otherAdjustments">@assistanceDetails.otherAdjustments.getOrElse("No other adjustments were provided")</li>
-                }
-
-            </ul>
-
+        <h3 class="heading-small">Will you need extra support for your online exercises?</h3>
+        @assistanceDetails.needsSupportForOnlineAssessment match {
+            case true => {
+                <p>Yes</p>
+                <p>@assistanceDetails.needsSupportForOnlineAssessmentDescription</p>
+            }
+            case false => {
+                <p>No</p>
+            }
         }
     </section>
-
+    <section>
+        <h3 class="heading-small">Will you need extra support at the assessment centre?</h3>
+        @assistanceDetails.needsSupportAtVenue match {
+            case true => {
+                <p>Yes</p>
+                <p>@assistanceDetails.needsSupportAtVenueDescription</p>
+            }
+            case false => {
+                <p>No</p>
+            }
+        }
+    </section>
 
 </section>

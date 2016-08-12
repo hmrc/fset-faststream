@@ -71,12 +71,16 @@ error.phone.required = Add a phone number in case we need to contact you
 error.phoneNumber.format = You''ve entered an invalid phone number
 
 #assistance
-error.needsassistance.required = Tell us if you have a disability or need other assistance
-typeOfdisability.chooseone = Tell us about your disability
-needsAdjustment.chooseone = Tell us if you need adjustments
-otherAdjustments.chooseone = Tell us what adjustment needs you require
-guaranteedInterview.chooseone = Tell us if you wish to apply under the Guaranteed interview scheme
-typeOfAdjustments.chooseone = Tell us what adjustments you need
+error.hasDisability.required=Tell us if you consider yourself to have a disability
+error.hasDisabilityDescription.required=
+error.guaranteedInterview.required = Tell us if you wish to apply under the Guaranteed interview scheme
+error.needsSupportForOnlineAssessment.required = Tell us if you will need extra support for your online assessment
+error.needsSupportForOnlineAssessmentDescription.required = Tell us what adjustments you need for your online asssessment
+error.needsSupportForOnlineAssessmentDescription.maxLength = You have exceed the maximum number of characters allowed (2048) for extra online assessment support description
+error.needsSupportAtVenue.required = Tell us if you need extra support when you visit any of our venues
+error.needsSupportAtVenueDescription.required = Tell us what adjustments you need at any of our venues
+error.needsSupportAtVenueDescription.maxLength = You have exceed the maximum number of characters allowed (2048) for extra support at venue description
+
 
 #locations & schemes
 location.required= Select your preferred location
@@ -144,19 +148,21 @@ locked.account = You''ve made too many unsuccessful attempts to sign in and your
 
 # Questionnaire error messages:
 
-error.required.gender = You must tell us your gender identity or choose prefer not to say.
-error.required.sexOrientation = You must tell us your sexual orientation or choose prefer not to say.
-error.required.ethnicity = You must tell us your ethnic group or choose prefer not to say.
+error.required.gender = You must tell us your gender identity or choose ''prefer not to say''
+error.required.sexOrientation = You must tell us your sexual orientation or choose ''prefer not to say''
+error.required.ethnicity = You must tell us your ethnic group or choose ''prefer not to say''
 error.required.schoolName = What was your school between ages 11 to 16?
 error.required.sixthForm = What was your school between ages 16  to 18?
 error.required.postcodeQ = What was your postcode when you were 14?
 error.required.freeSchoolMeals = Were you eligible for free school meals?
 error.required.university = Did your parent(s) or guardian(s) complete university?
-error.required.parentsOccupation = What was your parent(s) or guardian(s) work status?
-error.required.employee = Were your parent(s) or guardian(s) employed or self-employed?
-error.required.organizationSize = What was the size of the organisation?
-error.required.supervise = Were your parent(s) or guardian(s) supervising employees?
-error.required.acceptance = Confirm you understand that the information you give here won''t affect your application.
+error.required.parentsDegree = You must tell us if your parent/guardian has a degree, or choose ''prefer not to say''
+error.required.employmentStatus = You must tell us the employment status of your highest-earning parent/guardian, or choose ''prefer not to say''
+error.required.parentsOccupation = You must tell us what type of work your highest-earning parent/guardian did
+error.required.employee = You must tell us if your parent/guardian was either employed or self-employed, or choose ''prefer not to say''
+error.required.organizationSize = You must tell us the size of your parent/guardian’s workplace, or choose ''prefer not to say''
+error.required.supervise = You must tell us if your parent/guardian supervised employees, or choose ''prefer not to say''
+error.required.acceptance = Confirm you understand that the information you give here won''t affect your application
 
 #Questions section for questionnaire
 gender.question = What is your gender identity?
@@ -167,11 +173,12 @@ sixthForm.question = Between the ages of 16 to 18, in which school did you spend
 postcode.question = What was your home postcode when you were 14?
 freeSchoolMeals.question = During your school years, were you at any time eligible for free school meals?
 university.question = Did any of your parent(s) or guardian(s) complete a university degree course or equivalent?
-employedParent.question = Parent/guardian work status
-parentsOccupation.question = Which type of occupation did they have?
+employedParent.question = When you were 14, was your highest earning parent / guardian?
+parentsOccupation.question = When you were 14, what kind of work did your highest-earning parent or guardian do?
+parentsDegree.question = Do you have a parent or guardian that has completed a university degree course or equivalent?
 employee.question = Did they work as an employee or were they self-employed?
 organizationSize.question = Which size would best describe their place of work?
-supervise.question = Did they supervise any other employees?
+supervise.question = Did they supervise employees?
 accept-terms.question = I understand this won''t affect my application
 
 success.allocation.confirmed = You''ve successfully confirmed your assessment date.

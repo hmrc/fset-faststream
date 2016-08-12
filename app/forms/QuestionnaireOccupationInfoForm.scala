@@ -24,17 +24,15 @@ import play.api.i18n.Messages
 
 object QuestionnaireOccupationInfoForm {
 
-  val skipValues = Seq("Unemployed but seeking work", "Unemployed", "none", "Unknown") // none is a value to denote that the field is empty
-
-  val parentsOccupationFormatter = new Formatter[Option[String]] {
+  val employedDependentFormatter = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val check = data.get("employedParent")
-      val value = data.get("parentsOccupation")
+      val value = data.get(key).filterNot( _.isEmpty )
 
       (check, value) match {
-        case (Some("Employed"), Some(v)) => Right(value)
-        case (Some("Employed"), None) => Left(List(FormError("parentsOccupation", Messages("error.required.parentsOccupation"))))
-        case _ => Right(value)
+        case (Some("Employed"), Some(v))  => Right(value)
+        case (Some("Employed"), None) => Left(List(FormError(key, Messages(s"error.required.$key"))))
+        case _ => Right(None)
       }
     }
 
@@ -43,37 +41,33 @@ object QuestionnaireOccupationInfoForm {
 
   val form = Form(
     mapping(
-      "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.parentsOccupation", 256),
-      "parentsOccupation" -> of(parentsOccupationFormatter),
-      "employee" -> of(Mappings.fieldWithCheckBox(256, Some("employedParent"), skipValues)),
-      "preferNotSay_employee" -> optional(checked(Messages("error.required.employee"))),
-      "organizationSize" -> of(Mappings.fieldWithCheckBox(256, Some("employedParent"), skipValues)),
-      "preferNotSay_organizationSize" -> optional(checked(Messages("error.required.organizationSize"))),
-      "supervise" -> of(Mappings.fieldWithCheckBox(256, Some("employedParent"), skipValues)),
-      "preferNotSay_supervise" -> optional(checked(Messages("error.required.supervise")))
+      "parentsDegree" -> Mappings.nonEmptyTrimmedText("error.required.parentsDegree", 256),
+      "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.employmentStatus", 256),
+      "parentsOccupation" -> of(employedDependentFormatter),
+      "employee" -> of(employedDependentFormatter),
+      "organizationSize" -> of(employedDependentFormatter),
+      "supervise" -> of(employedDependentFormatter)
     )(Data.apply)(Data.unapply)
   )
 
   case class Data(
+    parentsDegree: String,
     employedParent: String,
     parentsOccupation: Option[String],
     employee: Option[String],
-    preferNotSayEmployee: Option[Boolean],
     organizationSize: Option[String],
-    preferNotSayOrganizationSize: Option[Boolean],
-    supervise: Option[String],
-    preferNotSaySupervise: Option[Boolean]
+    supervise: Option[String]
   ) {
     def toQuestionnaire: Questionnaire = {
       val occupation = if (employedParent == "Employed") parentsOccupation else Some(employedParent)
 
       Questionnaire(List(
+        Question(Messages("parentsDegree.question"), Answer(Some(parentsDegree), None, None)),
         Question(Messages("parentsOccupation.question"), Answer(occupation.sanitize, None, None)),
-        Question(Messages("employee.question"), Answer(employee, None, preferNotSayEmployee)),
-        Question(Messages("organizationSize.question"), Answer(organizationSize, None, preferNotSayOrganizationSize)),
-        Question(Messages("supervise.question"), Answer(supervise, None, preferNotSaySupervise))
+        Question(Messages("employee.question"), Answer(employee, None, None)),
+        Question(Messages("organizationSize.question"), Answer(organizationSize, None, None)),
+        Question(Messages("supervise.question"), Answer(supervise, None, None))
       ))
     }
   }
-
 }
