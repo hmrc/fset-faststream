@@ -135,7 +135,7 @@ trait ApplicationClient {
     }
   }
 
-  def findAssistanceDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+  def getAssistanceDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(s"${url.host}${url.base}/assistance-details/$userId/$applicationId").map { response =>
       response.json.as[connectors.exchange.AssistanceDetailsExchange]
     } recover {

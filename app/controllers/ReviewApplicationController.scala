@@ -35,7 +35,7 @@ abstract class ReviewApplicationController(applicationClient: ApplicationClient,
   def present = CSRSecureAppAction(ReviewRole) { implicit request =>
     implicit user =>
       val personalDetailsFut = applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId)
-      val assistanceDetailsFut = applicationClient.findAssistanceDetails(user.user.userID, user.application.applicationId)
+      val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
       val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
 
       (for {
