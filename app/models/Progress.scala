@@ -22,20 +22,20 @@ import play.api.libs.json.Json
 import scala.language.implicitConversions
 
 case class Progress(
-  personalDetails: Boolean,
-  schemePreferences: Boolean,
-  assistance: Boolean,
-  review: Boolean,
-  startedQuestionnaire: Boolean,
-  diversityQuestionnaire: Boolean,
-  educationQuestionnaire: Boolean,
-  occupationQuestionnaire: Boolean,
-  submitted: Boolean,
-  withdrawn: Boolean,
-  onlineTest: OnlineTestProgress,
-  failedToAttend: Boolean,
-  assessmentScores: AssessmentScores,
-  assessmentCentre: AssessmentCentre
+                     personalDetails: Boolean,
+                     schemePreferences: Boolean,
+                     assistanceDetails: Boolean,
+                     review: Boolean,
+                     startedQuestionnaire: Boolean,
+                     diversityQuestionnaire: Boolean,
+                     educationQuestionnaire: Boolean,
+                     occupationQuestionnaire: Boolean,
+                     submitted: Boolean,
+                     withdrawn: Boolean,
+                     onlineTest: OnlineTestProgress,
+                     failedToAttend: Boolean,
+                     assessmentScores: AssessmentScores,
+                     assessmentCentre: AssessmentCentre
 )
 
 case class OnlineTestProgress(
@@ -64,7 +64,7 @@ object Progress {
     Progress(
       personalDetails = progressResponse.personalDetails,
       schemePreferences = progressResponse.schemePreferences,
-      assistance = progressResponse.assistance,
+      assistanceDetails = progressResponse.assistanceDetails,
       review = progressResponse.review,
       startedQuestionnaire = progressResponse.questionnaire.contains("start_questionnaire"),
       diversityQuestionnaire = progressResponse.questionnaire.contains("diversity_questionnaire"),

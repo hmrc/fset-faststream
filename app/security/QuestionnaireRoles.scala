@@ -29,7 +29,7 @@ object QuestionnaireRoles {
 
   object StartQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasReview(user)
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS)
   }
 
   object QuestionnaireNotStartedRole extends CsrAuthorization {
@@ -40,7 +40,7 @@ object QuestionnaireRoles {
 
   object QuestionnaireInProgressRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasReview(user) &&
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
         (!hasDiversity(user) || !hasEducation(user) || !hasOccupation(user))
   }
 

@@ -1,5 +1,5 @@
 @(generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange,
-        assistanceDetails: connectors.ExchangeObjects.AssistanceDetailsExchange,
+        assistanceDetails: model.exchange.AssistanceDetailsExchange,
         schemesAndLocations: models.frameworks.LocationAndSchemeSelection,
         applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
@@ -37,7 +37,8 @@
 
     @generalDetailsViewSection(generalDetails)(edit_link(routes.PersonalDetailsController.present(None)))
 
-    @assistanceViewSection(assistanceDetails)(edit_link(routes.AssistanceController.present()))
+    @assistanceViewSection(assistanceDetails)(edit_link(routes.AssistanceDetailsController.present()))
+
 
     @appNotReadOnly {
         @helper.form(action = routes.ReviewApplicationController.submit(), 'novalidate -> "novalidate") {
