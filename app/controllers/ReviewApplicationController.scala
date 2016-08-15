@@ -51,8 +51,8 @@ abstract class ReviewApplicationController(applicationClient: ApplicationClient)
     implicit user =>
       applicationClient.updateReview(user.application.applicationId).flatMap { _ =>
         updateProgress() { usr =>
-          if (StartQuestionnaireRole.isAuthorized(usr) && QuestionnaireInProgressRole.isAuthorized(usr)) {
-            Redirect(routes.QuestionnaireController.start())
+          if (QuestionnaireInProgressRole.isAuthorized(usr)) {
+            Redirect(routes.QuestionnaireController.startOrContinue())
           } else {
             Redirect(routes.SubmitApplicationController.present())
           }

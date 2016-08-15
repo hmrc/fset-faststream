@@ -40,7 +40,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
   "start" should {
     "load start page when the questionnaire is not started already" in {
       val applicationReviewed = candidateWithApp.application.progress.copy(review = true)
-      val result = controllerUnderTest(applicationReviewed).start()(fakeRequest)
+      val result = controllerUnderTest(applicationReviewed).startOrContinue()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include ("We have a few more questions before you submit your application")
@@ -48,7 +48,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
 
     "load continue questionnaire page when the questionnaire is started already" in {
       val questionnaireStarted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireStarted).start()(fakeRequest)
+      val result = controllerUnderTest(questionnaireStarted).startOrContinue()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include ("Page 1 of the diversity questionnaire")
@@ -57,7 +57,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
     "redirect to home page when the questionnaire is completed already" in {
       val questionnaireCompleted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
         educationQuestionnaire = true, occupationQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireCompleted).start()(fakeRequest)
+      val result = controllerUnderTest(questionnaireCompleted).startOrContinue()(fakeRequest)
       assertHomePageRedirect(result)
     }
   }
@@ -139,7 +139,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
 
   private def assertQuestionnaireContinueRedirect(result:Future[Result]): Unit = {
     status(result) mustBe SEE_OTHER
-    redirectLocation(result) must be(Some(routes.QuestionnaireController.start().url))
+    redirectLocation(result) must be(Some(routes.QuestionnaireController.startOrContinue().url))
     flash(result).data mustBe Map("danger" -> errorContent)
   }
 

@@ -160,7 +160,7 @@ object Roles {
     SchemesRole -> routes.SchemePreferencesController.present(),
     AssistanceDetailsRole -> routes.AssistanceDetailsController.present,
     ReviewRole -> routes.ReviewApplicationController.present(),
-    QuestionnaireInProgressRole -> routes.QuestionnaireController.start(),
+    QuestionnaireInProgressRole -> routes.QuestionnaireController.startOrContinue(),
     SubmitApplicationRole -> routes.SubmitApplicationController.present(),
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),
     ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),

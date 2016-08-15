@@ -24,8 +24,7 @@ import play.api.mvc.{ Request, RequestHeader, Result }
 import security.QuestionnaireRoles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import helpers.NotificationType._
-import play.api.i18n.Lang
-import security.Roles.CsrAuthorization
+import security.Roles.{ CsrAuthorization, SubmitApplicationRole }
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
@@ -34,13 +33,13 @@ object QuestionnaireController extends QuestionnaireController(ApplicationClient
 
 class QuestionnaireController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
-  val QuestionnaireCompleted = "questionnaire.completed"
+  val QuestionnaireCompletedBanner = danger("questionnaire.completed")
 
-  def start = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
+  def startOrContinue = CSRSecureAppAction(StartOrContinueQuestionnaireRole) { implicit request =>
     implicit user =>
       Future.successful {
-        (QuestionnaireCompletedRole.isAuthorized(user), QuestionnaireNotStartedRole.isAuthorized(user)) match {
-          case (true, _) => Redirect(routes.HomeController.present()).flashing(danger(QuestionnaireCompleted))
+        (SubmitApplicationRole.isAuthorized(user), QuestionnaireNotStartedRole.isAuthorized(user)) match {
+          case (true, _) => Redirect(routes.HomeController.present()).flashing(QuestionnaireCompletedBanner)
           case (_, true) => Ok(views.html.questionnaire.intro(QuestionnaireDiversityInfoForm.acceptanceForm))
           case _ =>   Ok(views.html.questionnaire.continue())
         }
@@ -65,10 +64,10 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
         Ok(views.html.questionnaire.thirdpage(QuestionnaireOccupationInfoForm.form)))
   }
 
-  def submitStart = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
+  def submitStart = CSRSecureAppAction(StartOrContinueQuestionnaireRole) { implicit request =>
     implicit user =>
-      QuestionnaireCompletedRole.isAuthorized(user) match {
-        case true => Future.successful(Redirect(routes.HomeController.present()).flashing(danger(QuestionnaireCompleted)))
+      SubmitApplicationRole.isAuthorized(user) match {
+        case true => Future.successful(Redirect(routes.HomeController.present()).flashing(QuestionnaireCompletedBanner))
         case false => QuestionnaireDiversityInfoForm.acceptanceForm.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.intro(errorForm)))
@@ -80,10 +79,10 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
       }
   }
 
-  def submitContinue = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
+  def submitContinue = CSRSecureAppAction(StartOrContinueQuestionnaireRole) { implicit request =>
     implicit user =>
-      QuestionnaireCompletedRole.isAuthorized(user) match {
-        case true => Future.successful(Redirect(routes.HomeController.present()).flashing(danger(QuestionnaireCompleted)))
+      SubmitApplicationRole.isAuthorized(user) match {
+        case true => Future.successful(Redirect(routes.HomeController.present()).flashing(QuestionnaireCompletedBanner))
         case false =>
           Future.successful {
             (DiversityQuestionnaireCompletedRole.isAuthorized(user), EducationQuestionnaireCompletedRole.isAuthorized(user),
@@ -100,7 +99,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
   def firstPageSubmit = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
     implicit user =>
       DiversityQuestionnaireCompletedRole.isAuthorized(user) match {
-        case true => Future.successful(Redirect(routes.QuestionnaireController.start()).flashing(danger(QuestionnaireCompleted)))
+        case true => Future.successful(Redirect(routes.QuestionnaireController.startOrContinue()).flashing(QuestionnaireCompletedBanner))
         case false => QuestionnaireDiversityInfoForm.form.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.firstpage(errorForm)))
@@ -115,7 +114,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
   def secondPageSubmit = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
       EducationQuestionnaireCompletedRole.isAuthorized(user) match {
-        case true => Future.successful(Redirect(routes.QuestionnaireController.start()).flashing(danger(QuestionnaireCompleted)))
+        case true => Future.successful(Redirect(routes.QuestionnaireController.startOrContinue()).flashing(QuestionnaireCompletedBanner))
         case false => QuestionnaireEducationInfoForm.form.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.secondpage(errorForm)))
@@ -130,7 +129,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
   def thirdPageSubmit = CSRSecureAppAction(OccupationQuestionnaireRole) { implicit request =>
     implicit user =>
       OccupationQuestionnaireCompletedRole.isAuthorized(user) match {
-        case true => Future.successful(Redirect(routes.QuestionnaireController.start()).flashing(danger(QuestionnaireCompleted)))
+        case true => Future.successful(Redirect(routes.QuestionnaireController.startOrContinue()).flashing(QuestionnaireCompletedBanner))
         case false => QuestionnaireOccupationInfoForm.form.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.thirdpage(errorForm)))
@@ -145,9 +144,9 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
   private def presentPageIfNotFilledInPreviously(pageFilledPreviously:CsrAuthorization, presentPage: => Result)
                                                 (implicit user: CachedDataWithApp, requestHeader: RequestHeader) = {
     Future.successful {
-      (pageFilledPreviously.isAuthorized(user), QuestionnaireCompletedRole.isAuthorized(user)) match {
-        case (_, true) => Redirect(routes.HomeController.present()).flashing(danger(QuestionnaireCompleted))
-        case (true, _) => Redirect(routes.QuestionnaireController.start()).flashing(danger(QuestionnaireCompleted))
+      (pageFilledPreviously.isAuthorized(user), SubmitApplicationRole.isAuthorized(user)) match {
+        case (_, true) => Redirect(routes.HomeController.present()).flashing(QuestionnaireCompletedBanner)
+        case (true, _) => Redirect(routes.QuestionnaireController.startOrContinue()).flashing(QuestionnaireCompletedBanner)
         case _ => presentPage
       }
     }
