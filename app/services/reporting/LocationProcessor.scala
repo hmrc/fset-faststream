@@ -18,11 +18,11 @@ package services.reporting
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.{ Actor, ActorRef, Props }
+import akka.actor.{Actor, ActorRef, Props}
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories.application.AssistanceDetailsRepository
-import repositories.{ QuestionnaireRepository, ReportingRepository }
+import repositories.assistancedetails.AssistanceDetailsRepository
+import repositories.{QuestionnaireRepository, ReportingRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -97,7 +97,7 @@ trait LocationProcessorTrait {
     questionnaireRepository.findQuestions(applicationId)
 
   def haveDisabilities(applicationId: String): Future[Boolean] = {
-    asRepository.find(applicationId).map(ans => if (ans.needsAssistance == "Yes") true else false)
+    asRepository.find(applicationId).map(ans => if (ans.hasDisability == "Yes") true else false)
   }
 
   def createTotals(appIds: List[String], countDisabilities: Future[List[Boolean]]): Future[Totals] = {

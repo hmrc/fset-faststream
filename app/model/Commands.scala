@@ -48,21 +48,6 @@ object Commands {
   type PostCode = String
   type PhoneNumber = String
 
-  case class AssistanceDetailsExchange(
-    needsAssistance: String,
-    typeOfdisability: Option[List[String]],
-    detailsOfdisability: Option[String],
-    guaranteedInterview: Option[String],
-    needsAdjustment: Option[String],
-    typeOfAdjustments: Option[List[String]],
-    otherAdjustments: Option[String],
-    campaignReferrer: Option[String],
-    campaignOther: Option[String],
-    confirmedAdjustments: Option[Boolean],
-    numericalTimeAdjustmentPercentage: Option[Int],
-    verbalTimeAdjustmentPercentage: Option[Int]
-  )
-
   case class AssessmentScores(
     entered: Boolean = false,
     accepted: Boolean = false
@@ -80,7 +65,7 @@ object Commands {
     applicationId: String,
     personalDetails: Boolean = false,
     schemePreferences: Boolean = false,
-    assistance: Boolean = false,
+    assistanceDetails: Boolean = false,
     review: Boolean = false,
     questionnaire: List[String] = Nil,
     submitted: Boolean = false,
@@ -295,7 +280,6 @@ object Commands {
     implicit val personalDetailsAddedFormat = Json.format[PersonalDetailsAdded]
     implicit val createApplicationRequestFormats: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
     implicit val withdrawApplicationRequestFormats: Format[WithdrawApplicationRequest] = Json.format[WithdrawApplicationRequest]
-    implicit val updateAssistanceDetailsRequestFormats: Format[AssistanceDetailsExchange] = Json.format[AssistanceDetailsExchange]
 
     implicit val answerFormats = Json.format[Answer]
     implicit val questionFormats = Json.format[Question]

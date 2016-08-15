@@ -18,14 +18,15 @@ package controllers
 
 import config.TestFixtureBase
 import connectors.EmailClient
-import mocks.application.{ AssistanceDetailsInMemoryRepository, DocumentRootInMemoryRepository, PersonalDetailsInMemoryRepository }
-import mocks.{ ContactDetailsInMemoryRepository, _ }
-import org.mockito.Matchers.{ eq => eqTo }
+import mocks.application.{AssistanceDetailsInMemoryRepository, DocumentRootInMemoryRepository, PersonalDetailsInMemoryRepository}
+import mocks.{ContactDetailsInMemoryRepository, _}
+import org.mockito.Matchers.{eq => eqTo}
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories._
-import repositories.application.{ AssistanceDetailsRepository, GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.application.{GeneralApplicationRepository, PersonalDetailsRepository}
+import repositories.assistancedetails.AssistanceDetailsRepository
 import services.AuditService
 
 import scala.language.postfixOps

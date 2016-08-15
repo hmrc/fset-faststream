@@ -16,12 +16,12 @@
 
 package services
 
-import model.Commands.AssistanceDetailsExchange
 import model.PersistedObjects.PersonalDetails
-import model.{ ApplicationValidator, LocationPreference, Preferences }
+import model.{ApplicationValidator, LocationPreference, Preferences}
 import org.joda.time.LocalDate
 import org.scalatestplus.play.PlaySpec
-import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
+import persisted.AssistanceDetailsExamples
+import repositories.FrameworkRepository.{CandidateHighestQualification, Framework, Location, Region}
 
 class ApplicationValidatorSpec extends PlaySpec {
 
@@ -40,62 +40,29 @@ class ApplicationValidatorSpec extends PlaySpec {
       validator.validateAssistanceDetails must be(true)
     }
 
-    "return true if we have only one adjustment" in {
+    "return false if we don't have a description for at venue adjustment" in {
       val validator = ApplicationValidator(
         personalDetails,
-        assistanceDetails.copy(typeOfAdjustments = Some(List("Time extension"))), None, List()
-      )
-      validator.validateAssistanceDetails must be(true)
-    }
-
-    "return false if we don't have an adjustment when adjustment is needed" in {
-      val validator = ApplicationValidator(
-        personalDetails,
-        assistanceDetails.copy(typeOfAdjustments = None), None, List()
+        assistanceDetails.copy(needsSupportAtVenueDescription = None), None, List()
       )
       validator.validateAssistanceDetails must be(false)
     }
 
-    "return true if we don't have an adjustment when adjustment are not needed" in {
+    "return false if we don't have a description for online adjustment" in {
       val validator = ApplicationValidator(
         personalDetails,
-        assistanceDetails.copy(typeOfAdjustments = None, needsAdjustment = Some("No")), None, List()
-      )
-      validator.validateAssistanceDetails must be(true)
-    }
-
-    "return true if disability question is answered no and no disablities are selected" in {
-      val validator = ApplicationValidator(
-        personalDetails,
-        assistanceDetails.copy(needsAssistance = "No", typeOfdisability = None), None, List()
-      )
-      validator.validateAssistanceDetails must be(true)
-    }
-
-    "return false if disability question answer is yes and no disabilities are selected" in {
-      val validator = ApplicationValidator(
-        personalDetails,
-        assistanceDetails.copy(needsAssistance = "Yes", typeOfdisability = None), None, List()
+        assistanceDetails.copy(needsSupportForOnlineAssessmentDescription = None), None, List()
       )
       validator.validateAssistanceDetails must be(false)
     }
 
-    "return true if disability question answer is 'Prefer not to say' and no disabilities are selected" in {
+    "return false if we don't have gis setting and have disability" in {
       val validator = ApplicationValidator(
         personalDetails,
-        assistanceDetails.copy(needsAssistance = "Prefer not to say", typeOfdisability = None), None, List()
+        assistanceDetails.copy(guaranteedInterview = None), None, List()
       )
-      validator.validateAssistanceDetails must be(true)
+      validator.validateAssistanceDetails must be(false)
     }
-
-    "return true if disability question answer is yes and multiple disabilities are selected" in {
-      val validator = ApplicationValidator(
-        personalDetails,
-        assistanceDetails.copy(needsAssistance = "Yes", typeOfdisability = Some(List("ADHD", "Epilepsy"))), None, List()
-      )
-      validator.validateAssistanceDetails must be(true)
-    }
-
   }
 
   "given schemes and locations" should {
@@ -115,10 +82,7 @@ class ApplicationValidatorSpec extends PlaySpec {
 object ApplicationValidatorSpec {
   def personalDetails = PersonalDetails("firstName", "lastName", "preferredName", new LocalDate(), true, true)
 
-  def assistanceDetails = AssistanceDetailsExchange("Yes", Some(List("muscular pain", "neural pain")), Some("detailsOfDisability"),
-    Some("Yes"), Some("Yes"),
-    Some(List("Extra time", "Paper colour")), Some("otherAdjustments"), None, None, None, None, None)
-
+  def assistanceDetails = AssistanceDetailsExamples.DisabilityGisAndAdjustments
   def preferences: Option[Preferences] = Some(
     Preferences(LocationPreference("London", "London", "Business", Some("IT")), Some(LocationPreference("London", "Reading", "Logistics", None)))
   )

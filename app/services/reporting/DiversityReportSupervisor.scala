@@ -20,8 +20,8 @@ import akka.actor.SupervisorStrategy.Stop
 import akka.actor._
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories.application.AssistanceDetailsRepository
-import repositories.{ QuestionnaireRepository, ReportingRepository }
+import repositories.assistancedetails.AssistanceDetailsRepository
+import repositories.{QuestionnaireRepository, ReportingRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

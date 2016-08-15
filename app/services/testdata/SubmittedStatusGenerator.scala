@@ -17,12 +17,13 @@
 package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.Commands.AssistanceDetailsExchange
 import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersistedQuestion, PersonalDetails}
+import model.persisted.AssistanceDetails
 import model.{Address, Alternatives, LocationPreference, Preferences}
 import org.joda.time.LocalDate
 import repositories._
-import repositories.application.{AssistanceDetailsRepository, GeneralApplicationRepository, PersonalDetailsRepository}
+import repositories.application.{GeneralApplicationRepository, PersonalDetailsRepository}
+import repositories.assistancedetails.AssistanceDetailsRepository
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -33,7 +34,7 @@ object SubmittedStatusGenerator extends SubmittedStatusGenerator {
   override val previousStatusGenerator = CreatedStatusGenerator
   override val appRepository = applicationRepository
   override val pdRepository = personalDetailsRepository
-  override val adRepository = assistanceRepository
+  override val adRepository = faststreamAssistanceDetailsRepository
   override val cdRepository = contactDetailsRepository
   override val fpRepository = frameworkPreferenceRepository
   override val qRepository = questionnaireRepository
@@ -63,14 +64,9 @@ trait SubmittedStatusGenerator extends ConstructiveGenerator {
 
     def getAssistanceDetails(gis: Boolean) = {
       if (gis) {
-        AssistanceDetailsExchange(
-          "yes", Some(List("Wheelchair")), Some("Wheelchair required"), Some("yes"),
-          Some("yes"), Some(List()), None, None, None, None, None, None
-        )
+        AssistanceDetails("Yes", Some("disability"), Some(true), true, Some("adjustment online"), true, Some("adjustment at venue"))
       } else {
-        AssistanceDetailsExchange(
-          "no", Some(List()), None, None, Some("no"), Some(List()), None, None, None, None, None, None
-        )
+        AssistanceDetails("Yes", Some("disability"), Some(false), true, Some("adjustment online"), true, Some("adjustment at venue"))
       }
     }
 
