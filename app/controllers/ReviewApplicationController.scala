@@ -21,8 +21,9 @@ import connectors.ApplicationClient.{AssistanceDetailsNotFound, PersonalDetailsN
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ApplicationClient, SchemeClient}
 import helpers.NotificationType._
+import security.QuestionnaireRoles._
 import models.frameworks.LocationAndSchemeSelection
-import security.Roles.{QuestionnaireInProgressRole, ReviewRole, StartQuestionnaireRole}
+import security.Roles.ReviewRole
 
 object ReviewApplicationController extends ReviewApplicationController(ApplicationClient) {
   val http = CSRHttp
@@ -49,9 +50,9 @@ abstract class ReviewApplicationController(applicationClient: ApplicationClient)
   def submit = CSRSecureAppAction(ReviewRole) { implicit request =>
     implicit user =>
       applicationClient.updateReview(user.application.applicationId).flatMap { _ =>
-        updateProgress() { u =>
-          if (StartQuestionnaireRole.isAuthorized(u) || QuestionnaireInProgressRole.isAuthorized(u)) {
-            Redirect(routes.QuestionnaireController.start())
+        updateProgress() { usr =>
+          if (QuestionnaireInProgressRole.isAuthorized(usr)) {
+            Redirect(routes.QuestionnaireController.startOrContinue())
           } else {
             Redirect(routes.SubmitApplicationController.present())
           }
