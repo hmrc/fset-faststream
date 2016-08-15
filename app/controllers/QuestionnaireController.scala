@@ -145,7 +145,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
   private def presentPageIfNotFilledInPreviously(pageFilledPreviously:CsrAuthorization, presentPage: => Result)
                                                 (implicit user: CachedDataWithApp, requestHeader: RequestHeader) = {
     Future.successful {
-      (pageFilledPreviously.isAuthorized(user), SubmitApplicationRole.isAuthorized(user)) match {
+      (pageFilledPreviously.isAuthorized(user), ReviewApplicationRole.isAuthorized(user)) match {
         case (_, true) => Redirect(routes.HomeController.present()).flashing(QuestionnaireCompletedBanner)
         case (true, _) => Redirect(routes.QuestionnaireController.startOrContinue()).flashing(QuestionnaireCompletedBanner)
         case _ => presentPage
