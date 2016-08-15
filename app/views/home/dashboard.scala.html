@@ -53,8 +53,8 @@
 
 
 @renderProgressElement(showLink: Boolean, checked: Boolean, id: String)(link: Call)(body: Html) = {
-    <li><i id="@id" class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
-        <a href="@link">@body</a>
+    <li id="@id"><i id="@id-icon" class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
+        <a id="@id-link" href="@link">@body</a>
     } else {
         @body
     }
