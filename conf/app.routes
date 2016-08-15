@@ -41,8 +41,8 @@ POST        /application/details                                    controllers.
 GET         /application/schemes                                    controllers.SchemePreferencesController.present
 POST        /application/schemes                                    controllers.SchemePreferencesController.submit
 
-GET         /application/assistance                                 controllers.AssistanceController.present
-POST        /application/assistance                                 controllers.AssistanceController.submit
+GET         /application/assistance-details                         controllers.AssistanceDetailsController.present
+POST        /application/assistance-details                         controllers.AssistanceDetailsController.submit
 
 GET         /application/review                                     controllers.ReviewApplicationController.present
 POST        /application/review                                     controllers.ReviewApplicationController.submit

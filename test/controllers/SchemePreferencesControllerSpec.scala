@@ -90,7 +90,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
       val result = controllerUnderTest.submit(request)
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.AssistanceController.present().url))
+      redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
     }
 
     "fail updating scheme preferences details" in {

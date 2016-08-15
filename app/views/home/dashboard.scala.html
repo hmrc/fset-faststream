@@ -51,12 +51,13 @@
 }
 
 
-@renderProgressElement(showLink: Boolean, checked: Boolean)(link: Call)(body: Html) = {
-    <li><i class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
+@renderProgressElement(showLink: Boolean, checked: Boolean, id: String)(link: Call)(body: Html) = {
+    <li><i id="@id" class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
         <a href="@link">@body</a>
     } else {
         @body
-    } </li>
+    }
+    </li>
 }
 
 @setVisibility(visibility: ProgressStepVisibility) = @{
@@ -87,12 +88,12 @@
                                         <li><i class='fa fa-check the-icon'></i>Your application has been submitted</li>
                                     }
                                     @withdraw(false) {
-                                        @renderProgressElement(showLink = PersonalDetailsRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr))(routes.PersonalDetailsController.present(None)) {Add personal details }
-                                        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceRole.isAuthorized(usr))(routes.SchemePreferencesController.present()) { Choose your scheme preferences }
-                                        @renderProgressElement(showLink = AssistanceRole.isAuthorized(usr), checked = ReviewRole.isAuthorized(usr))(routes.AssistanceController.present()) { Tell us about any assistance needs you may have }
-                                        @renderProgressElement(showLink = ReviewRole.isAuthorized(usr), checked = (SubmitApplicationRole.isAuthorized(usr) || StartQuestionnaireRole.isAuthorized(usr)))(routes.ReviewApplicationController.present()) { Check your application }
-                                        @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr))(routes.QuestionnaireController.start()) { Fill in the diversity questions }
-                                        @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = WithdrawApplicationRole.isAuthorized(usr))(routes.SubmitApplicationController.present()) { Submit }
+                                        @renderProgressElement(showLink = PersonalDetailsRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.present(None)) {Add personal details }
+                                        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose locations and schemes }
+                                        @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr), checked = ReviewRole.isAuthorized(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Tell us about any assistance needs you may have }
+                                        @renderProgressElement(showLink = ReviewRole.isAuthorized(usr), checked = (SubmitApplicationRole.isAuthorized(usr) || StartQuestionnaireRole.isAuthorized(usr)), "reviewStep")(routes.ReviewApplicationController.present()) { Check your application }
+                                        @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.start()) { Fill in the diversity questions }
+                                        @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = WithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.present()) { Submit }
                                     }
                                 </ul>
                             }

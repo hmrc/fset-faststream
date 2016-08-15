@@ -17,15 +17,15 @@
 package connectors
 
 import connectors.exchange.ProgressResponse
-import forms.AssistanceForm
 import mappings.Address
 import mappings.PhoneNumberMapping._
 import mappings.PostCodeMapping._
+import model.exchange.AssistanceDetailsExchange
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
-import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
-import org.joda.time.{ DateTime, LocalDate, Period }
-import play.api.libs.json.{ Format, Json }
+import org.joda.time.format.{DateTimeFormatterBuilder, PeriodFormatterBuilder}
+import org.joda.time.{DateTime, LocalDate, Period}
+import play.api.libs.json.{Format, Json}
 
 object ExchangeObjects {
 
@@ -49,18 +49,6 @@ object ExchangeObjects {
     address: Address,
     postCode: Option[PostCode],
     phone: Option[PhoneNumber]
-  )
-
-  case class AssistanceDetailsExchange(
-    needsAssistance: String,
-    typeOfdisability: Option[List[String]],
-    detailsOfdisability: Option[String],
-    guaranteedInterview: Option[String],
-    needsAdjustment: Option[String],
-    typeOfAdjustments: Option[List[String]],
-    otherAdjustments: Option[String],
-    campaignReferrer: Option[String],
-    campaignOther: Option[String]
   )
 
   case class AddMedia(userId: UniqueIdentifier, media: String)
@@ -200,26 +188,6 @@ object ExchangeObjects {
     implicit val onlineTestFormats = Json.format[OnlineTest]
 
     implicit val onlineTestStatusFormats = Json.format[OnlineTestStatus]
-
-    implicit class assistanceDetailsFormtoRequest(data: AssistanceForm.Data) {
-      def adjustmentValid[T](data: AssistanceForm.Data, value: Option[T]) = {
-        if (data.needsAdjustment == "Yes") value else None
-      }
-
-      def needsAssistance: Boolean = data.needsAssistance == "No" || data.needsAssistance == "Prefer not to say"
-
-      def exchange = AssistanceDetailsExchange(
-        data.needsAssistance,
-        if (needsAssistance) { None } else data.typeOfdisability,
-        if (needsAssistance) { None } else data.detailsOfdisability,
-        if (needsAssistance) { None } else data.guaranteedInterview,
-        Some(data.needsAdjustment),
-        if (data.needsAdjustment == "No") { None } else data.typeOfAdjustments,
-        adjustmentValid(data, data.otherAdjustments),
-        data.campaignReferrer,
-        data.campaignOther
-      )
-    }
 
   }
 
