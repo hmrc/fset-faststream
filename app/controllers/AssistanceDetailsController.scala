@@ -49,7 +49,7 @@ class AssistanceDetailsController(applicationClient: ApplicationClient) extends 
           Future.successful(Ok(views.html.application.assistanceDetails(invalidForm))),
         data => {
           applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID, sanitizeData(data)).flatMap { _ =>
-            updateProgress()(_ => Redirect(routes.QuestionnaireController.start()))
+            updateProgress()(_ => Redirect(routes.QuestionnaireController.startOrContinue()))
           }.recover {
             case e: AssistanceDetailsNotFound =>
               Redirect(routes.HomeController.present()).flashing(danger("account.error"))

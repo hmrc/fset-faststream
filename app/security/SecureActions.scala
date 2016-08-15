@@ -28,7 +28,6 @@ import play.api.i18n.Lang
 import play.api.mvc._
 import security.Roles.CsrAuthorization
 import uk.gov.hmrc.play.http.{HeaderCarrier, SessionKeys}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -64,13 +63,14 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
     }
   }
 
-  def CSRSecureAppAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedDataWithApp => Future[Result]): Action[AnyContent] = {
+  def CSRSecureAppAction(role: CsrAuthorization)
+                        (block: SecuredRequest[_] => CachedDataWithApp => Future[Result]): Action[AnyContent] = {
     SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
       secondRequest.identity.toUserFuture.flatMap {
         case Some(CachedData(_, None)) => gotoUnauthorised
-        case Some(data @ CachedData(u, Some(app))) =>
-          SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, CachedDataWithApp(u, app))
+        case Some(data @ CachedData(u, Some(app))) => SecuredActionWithCSRAuthorisation(secondRequest,
+            block, role, data, CachedDataWithApp(u, app))
         case None => gotoAuthentication
       }
     }
@@ -113,9 +113,9 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
 
   implicit def userWithAppToOptionCachedUser(implicit u: CachedDataWithApp): Option[CachedData] = Some(CachedData(u.user, Some(u.application)))
 
-  private def gotoAuthentication = Future.successful(Redirect(routes.SignInController.present))
+  private def gotoAuthentication = Future.successful(Redirect(routes.SignInController.present()))
 
-  private def gotoUnauthorised = Future.successful(Redirect(routes.HomeController.present).flashing(danger("access.denied")))
+  private def gotoUnauthorised = Future.successful(Redirect(routes.HomeController.present()).flashing(danger("access.denied")))
 
   /* method to wrap the functionality to generate a session is if not exists. */
   private def withSession(block: Action[AnyContent]) = Action.async { implicit request =>
@@ -128,5 +128,4 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
         block(request).map(_.withSession(session))
     }
   }
-
 }
