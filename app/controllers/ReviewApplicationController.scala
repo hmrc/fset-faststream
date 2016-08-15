@@ -24,7 +24,7 @@ import connectors.{ApplicationClient, SchemeClient}
 import helpers.NotificationType._
 import security.QuestionnaireRoles._
 import models.frameworks.LocationAndSchemeSelection
-import security.Roles.ReviewRole
+import security.Roles.ReviewApplicationRole
 
 object ReviewApplicationController extends ReviewApplicationController(ApplicationClient, SchemeClient) {
   val http = CSRHttp
@@ -33,7 +33,7 @@ object ReviewApplicationController extends ReviewApplicationController(Applicati
 abstract class ReviewApplicationController(applicationClient: ApplicationClient, schemeClient: SchemeClient) extends
   BaseController(applicationClient) with SchemeClient {
 
-  def present = CSRSecureAppAction(ReviewRole) { implicit request =>
+  def present = CSRSecureAppAction(ReviewApplicationRole) { implicit request =>
     implicit user =>
       val personalDetailsFut = applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId)
       val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
@@ -51,7 +51,7 @@ abstract class ReviewApplicationController(applicationClient: ApplicationClient,
       }
   }
 
-  def submit = CSRSecureAppAction(ReviewRole) { implicit request =>
+  def submit = CSRSecureAppAction(ReviewApplicationRole) { implicit request =>
     implicit user =>
       applicationClient.updateReview(user.application.applicationId).flatMap { _ =>
         updateProgress() { usr =>

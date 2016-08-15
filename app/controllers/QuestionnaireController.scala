@@ -24,7 +24,7 @@ import play.api.mvc.{ Request, RequestHeader, Result }
 import security.QuestionnaireRoles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import helpers.NotificationType._
-import security.Roles.{ CsrAuthorization, SubmitApplicationRole }
+import security.Roles.{ CsrAuthorization, ReviewApplicationRole, SubmitApplicationRole }
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
@@ -38,7 +38,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
   def startOrContinue = CSRSecureAppAction(StartOrContinueQuestionnaireRole) { implicit request =>
     implicit user =>
       Future.successful {
-        (SubmitApplicationRole.isAuthorized(user), QuestionnaireNotStartedRole.isAuthorized(user)) match {
+        (ReviewApplicationRole.isAuthorized(user), QuestionnaireNotStartedRole.isAuthorized(user)) match {
           case (true, _) => Redirect(routes.HomeController.present()).flashing(QuestionnaireCompletedBanner)
           case (_, true) => Ok(views.html.questionnaire.intro(QuestionnaireDiversityInfoForm.acceptanceForm))
           case _ =>   Ok(views.html.questionnaire.continue())

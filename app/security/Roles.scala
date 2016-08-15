@@ -78,7 +78,7 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasSchemes(user)
   }
 
-  object ReviewRole extends CsrAuthorization {
+  object ReviewApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && !statusIn(user)(CREATED) &&
         hasDiversity(user) && hasEducation(user) && hasOccupation(user)
@@ -159,7 +159,7 @@ object Roles {
     SchemesRole -> routes.SchemePreferencesController.present(),
     AssistanceDetailsRole -> routes.AssistanceDetailsController.present,
     QuestionnaireInProgressRole -> routes.QuestionnaireController.startOrContinue(),
-    ReviewRole -> routes.ReviewApplicationController.present(),
+    ReviewApplicationRole -> routes.ReviewApplicationController.present(),
     SubmitApplicationRole -> routes.SubmitApplicationController.present(),
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),
     ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),
