@@ -26,11 +26,9 @@ import security.Roles.AssistanceDetailsRole
 
 import scala.concurrent.Future
 
-object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient) {
-  val http = CSRHttp
-}
+object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient)
 
-abstract class AssistanceDetailsController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class AssistanceDetailsController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
