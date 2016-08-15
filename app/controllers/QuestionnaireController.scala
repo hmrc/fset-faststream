@@ -136,7 +136,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
             Future.successful(Ok(views.html.questionnaire.thirdpage(errorForm)))
           },
           data => {
-            submitQuestionnaire(data.toQuestionnaire, "occupation_questionnaire")(Redirect(routes.SubmitApplicationController.present()))
+            submitQuestionnaire(data.toQuestionnaire, "occupation_questionnaire")(Redirect(routes.ReviewApplicationController.present()))
           }
         )
       }
