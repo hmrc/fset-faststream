@@ -28,7 +28,7 @@ object StatusGeneratorFactory {
       case "IN_PROGRESS_PERSONAL_DETAILS" => InProgressPersonalDetailsStatusGenerator
       case "IN_PROGRESS_SCHEME_PREFERENCES" => InProgressSchemePreferencesStatusGenerator
       case "IN_PROGRESS_ASSISTANCE_DETAILS" => InProgressAssistanceDetailsStatusGenerator
-      case "IN_PROGRESS_QUESTIONNAIRE" => InProgressAssistanceDetailsStatusGenerator
+      case "IN_PROGRESS_QUESTIONNAIRE" => InProgressQuestionnaireStatusGenerator
       case ApplicationStatuses.Submitted => SubmittedStatusGenerator
       case ApplicationStatuses.OnlineTestInvited => OnlineTestInvitedStatusGenerator
       case ApplicationStatuses.OnlineTestStarted => OnlineTestStartedStatusGenerator
