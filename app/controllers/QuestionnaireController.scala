@@ -16,14 +16,16 @@
 
 package controllers
 
-import _root_.forms.{QuestionnaireDiversityInfoForm, QuestionnaireEducationInfoForm, QuestionnaireOccupationInfoForm}
+import _root_.forms.{ QuestionnaireDiversityInfoForm, QuestionnaireEducationInfoForm, QuestionnaireOccupationInfoForm }
 import connectors.ApplicationClient
 import connectors.ExchangeObjects.Questionnaire
 import models.CachedDataWithApp
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{ Request, RequestHeader, Result }
 import security.QuestionnaireRoles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import helpers.NotificationType._
+import play.api.i18n.Lang
+import security.Roles.CsrAuthorization
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
@@ -47,35 +49,20 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
 
   def firstPageView = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
     implicit user =>
-      Future.successful {
-        (DiversityQuestionnaireCompletedRole.isAuthorized(user), QuestionnaireCompletedRole.isAuthorized(user)) match {
-          case (_, true) => Redirect(routes.HomeController.present()).flashing(danger(QuestionnaireCompleted))
-          case (true, _) => Redirect(routes.QuestionnaireController.start()).flashing(danger(QuestionnaireCompleted))
-          case _ => Ok(views.html.questionnaire.firstpage(QuestionnaireDiversityInfoForm.form))
-        }
-      }
+      presentPageIfNotFilledInPreviously(DiversityQuestionnaireCompletedRole,
+        Ok(views.html.questionnaire.firstpage(QuestionnaireDiversityInfoForm.form)))
   }
 
   def secondPageView = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
-      Future.successful {
-        (EducationQuestionnaireCompletedRole.isAuthorized(user), QuestionnaireCompletedRole.isAuthorized(user)) match {
-          case (_, true) => Redirect(routes.HomeController.present()).flashing(danger(QuestionnaireCompleted))
-          case (true, _) => Redirect(routes.QuestionnaireController.start()).flashing(danger(QuestionnaireCompleted))
-          case _ => Ok(views.html.questionnaire.secondpage(QuestionnaireEducationInfoForm.form))
-        }
-      }
+      presentPageIfNotFilledInPreviously(EducationQuestionnaireCompletedRole,
+        Ok(views.html.questionnaire.secondpage(QuestionnaireEducationInfoForm.form)))
   }
 
   def thirdPageView = CSRSecureAppAction(OccupationQuestionnaireRole) { implicit request =>
     implicit user =>
-      Future.successful {
-        (OccupationQuestionnaireCompletedRole.isAuthorized(user), QuestionnaireCompletedRole.isAuthorized(user)) match {
-          case (_, true) => Redirect(routes.HomeController.present()).flashing(danger(QuestionnaireCompleted))
-          case (true, _) => Redirect(routes.QuestionnaireController.start()).flashing(danger(QuestionnaireCompleted))
-          case _ => Ok(views.html.questionnaire.thirdpage(QuestionnaireOccupationInfoForm.form))
-        }
-      }
+      presentPageIfNotFilledInPreviously(OccupationQuestionnaireCompletedRole,
+        Ok(views.html.questionnaire.thirdpage(QuestionnaireOccupationInfoForm.form)))
   }
 
   def submitStart = CSRSecureAppAction(StartQuestionnaireRole) { implicit request =>
@@ -153,6 +140,17 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
           }
         )
       }
+  }
+
+  private def presentPageIfNotFilledInPreviously(pageFilledPreviously:CsrAuthorization, presentPage: => Result)
+                                                (implicit user: CachedDataWithApp, requestHeader: RequestHeader) = {
+    Future.successful {
+      (pageFilledPreviously.isAuthorized(user), QuestionnaireCompletedRole.isAuthorized(user)) match {
+        case (_, true) => Redirect(routes.HomeController.present()).flashing(danger(QuestionnaireCompleted))
+        case (true, _) => Redirect(routes.QuestionnaireController.start()).flashing(danger(QuestionnaireCompleted))
+        case _ => presentPage
+      }
+    }
   }
 
   private def submitQuestionnaire(data: Questionnaire, sectionId: String)(onSuccess: Result)(
