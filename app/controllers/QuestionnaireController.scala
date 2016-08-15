@@ -81,15 +81,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
 
   def submitContinue = CSRSecureAppAction(StartOrContinueQuestionnaireRole) { implicit request =>
     implicit user =>
-<<<<<<< HEAD
-      val p = user.application.progress
-      Future.successful((p.diversityQuestionnaire, p.educationQuestionnaire, p.occupationQuestionnaire) match {
-        case (_, _, true) => Redirect(routes.ReviewApplicationController.present())
-        case (_, true, _) => Redirect(routes.QuestionnaireController.thirdPageView())
-        case (true, _, _) => Redirect(routes.QuestionnaireController.secondPageView())
-        case (_, _, _) => Redirect(routes.QuestionnaireController.firstPageView())
-      })
-=======
+
       SubmitApplicationRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.HomeController.present()).flashing(QuestionnaireCompletedBanner))
         case false =>
@@ -103,7 +95,6 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
             }
           }
       }
->>>>>>> master
   }
 
   def firstPageSubmit = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
@@ -138,16 +129,6 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
 
   def thirdPageSubmit = CSRSecureAppAction(OccupationQuestionnaireRole) { implicit request =>
     implicit user =>
-<<<<<<< HEAD
-      QuestionnaireOccupationInfoForm.form.bindFromRequest.fold(
-        errorForm => {
-          Future.successful(Ok(views.html.questionnaire.thirdpage(errorForm)))
-        },
-        data => {
-          submitQuestionnaire(data.toQuestionnaire, "occupation_questionnaire")(Redirect(routes.ReviewApplicationController.present()))
-        }
-      )
-=======
       OccupationQuestionnaireCompletedRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.QuestionnaireController.startOrContinue()).flashing(QuestionnaireCompletedBanner))
         case false => QuestionnaireOccupationInfoForm.form.bindFromRequest.fold(
@@ -170,7 +151,6 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
         case _ => presentPage
       }
     }
->>>>>>> master
   }
 
   private def submitQuestionnaire(data: Questionnaire, sectionId: String)(onSuccess: Result)(

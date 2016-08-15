@@ -91,12 +91,6 @@ object Roles {
         hasDiversity(user) && hasEducation(user) && hasOccupation(user)
   }
 
-  object SubmitApplicationRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
-        hasDiversity(user) && hasEducation(user) && hasOccupation(user) && hasReview(user)
-  }
-
   object InProgressRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS)
