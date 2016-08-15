@@ -39,44 +39,82 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
   // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
 
+    val didYouLiveInUkBetween14and18Answer = Random.yesNo
+    def getWhatWasYourHomePostCodeWhenYouWere14 = {
+      if (didYouLiveInUkBetween14and18Answer == "Yes") {
+        Some(PersistedQuestion("What was your home postcode when you were 14?",
+          PersistedAnswer(Some(Random.homePostcode), None, None)))
+      } else {
+        None
+      }
+    }
+
+    def parentsOccupation = Random.parentsOccupation
+
+    def getParentsOccupationDetail = {
+      if (parentsOccupation == "Employeed/Self-employeed") {
+        Some(PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+          PersistedAnswer(Some(Random.parentsOccupationDetails), None, None)))
+      } else {
+        None
+      }
+    }
+
+    def getEmployeedOrSelfEmployeed = {
+      if (parentsOccupation == "Employeed/Self-employeed") {
+        Some(PersistedQuestion("Did they work as an employee or were they self employed?",
+          PersistedAnswer(Some(Random.employeeOrSelf), None, None)))
+      } else {
+        None
+      }
+    }
+
+    def getSizeParentsEmployeer = {
+      if (parentsOccupation == "Employeed/Self-employeed") {
+        Some(PersistedQuestion("Which size would best describe their place of work?",
+          PersistedAnswer(Some(Random.sizeParentsEmployeer), None, None)))
+      } else {
+        None
+      }
+    }
+
+    def getSuperviseEmployees = {
+      if (parentsOccupation == "Employeed/Self-employeed") {
+        Some(PersistedQuestion("Did they supervise employees?",
+          PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
+      } else {
+        None
+      }
+    }
+
     def getAllQuestionnaireQuestions = List(
-      PersistedQuestion("What is your gender identity?", PersistedAnswer(Some(Random.gender), None, None)),
-      PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some(Random.sexualOrientation), None, None)),
-      PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some(Random.ethnicGroup), None, None)),
-      PersistedQuestion(
-        "Between the ages of 11 to 16, in which school did you spend most of your education?",
-        PersistedAnswer(Some(Random.age11to16School), None, None)
-      ),
-      PersistedQuestion(
-        "Between the ages of 16 to 18, in which school did you spend most of your education?",
-        PersistedAnswer(Some(Random.age16to18School), None, None)
-      ),
-      PersistedQuestion("What was your home postcode when you were 14?", PersistedAnswer(Some(Random.homePostcode), None, None)),
-      PersistedQuestion(
-        "During your school years, were you at any time eligible for free school meals?",
-        PersistedAnswer(Some(Random.yesNo), None, None)
-      ),
-      PersistedQuestion(
-        "Did any of your parent(s) or guardian(s) complete a university degree course or equivalent?",
-        PersistedAnswer(Some(Random.yesNo), None, None)
-      ),
-      PersistedQuestion(
-        "Which type of occupation did they have?",
-        PersistedAnswer(Some(Random.parentsOccupation), None, None)
-      ),
-      PersistedQuestion(
-        "Did they work as an employee or were they self-employed?",
-        PersistedAnswer(Random.employeeOrSelf, None, None)
-      ),
-      PersistedQuestion(
-        "Which size would best describe their place of work?",
-        PersistedAnswer(Some(Random.sizeOfPlaceOfWork), None, None)
-      ),
-      PersistedQuestion(
-        "Did they supervise any other employees?",
-        PersistedAnswer(Some(Random.yesNo), None, None)
-      )
-    )
+      Some(PersistedQuestion("I understand this won't affect my application", PersistedAnswer(Some(Random.yesNo), None, None))),
+      Some(PersistedQuestion("What is your gender identity?", PersistedAnswer(Some(Random.gender), None, None))),
+      Some(PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some(Random.sexualOrientation), None, None))),
+      Some(PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some(Random.ethnicGroup), None, None))),
+      Some(PersistedQuestion("Did you live in the UK between the ages of 14 and 18?", PersistedAnswer(
+        Some(didYouLiveInUkBetween14and18Answer), None, None))),
+      getWhatWasYourHomePostCodeWhenYouWere14,
+      Some(PersistedQuestion("Aged 14 to 16 what was the name of your school?",
+        PersistedAnswer(Some(Random.age14to16School), None, None))),
+      Some(PersistedQuestion("Aged 16 to 18 what was the name of your school or college?",
+        PersistedAnswer(Some(Random.age16to18School), None, None))),
+      Some(PersistedQuestion("Were you at any time eligible for free school meals?",
+        PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None))),
+      Some(PersistedQuestion("What is the name of the university you received your degree from?",
+        PersistedAnswer(Some(Random.university), None, None))),
+      Some(PersistedQuestion("Which category best describes your degree?",
+        PersistedAnswer(Some(Random.degree), None, None))),
+      Some(PersistedQuestion("Do you have a parent or guardian that has completed a university degree course or equivalent?",
+        PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None))),
+      Some(PersistedQuestion("When you were 14, was your highest-earning parent or guardian?",
+        PersistedAnswer(Some(Random.parentsOccupation), None, None))),
+      getParentsOccupationDetail,
+      getEmployeedOrSelfEmployeed,
+      getSizeParentsEmployeer,
+      getSuperviseEmployees
+    ).filter(_.isDefined).map { someItem => someItem.get }
+
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
