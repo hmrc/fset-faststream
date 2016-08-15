@@ -19,8 +19,7 @@ package models.page
 import connectors.{AllocationExchangeObjects, ExchangeObjects}
 import models.page.DashboardPage.ProgressStepVisibility
 import models._
-import org.joda.time.{DateTime, LocalDate}
-import org.joda.time.format.DateTimeFormat
+import org.joda.time.LocalDate
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import security.RoleUtils
@@ -43,19 +42,8 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
                          fullName: String,
                          assessmentInProgressStatus: AssessmentStatus,
                          assessmentCompletedStatus: AssessmentStatus
-                        ) {
-  import DashboardPage._
-
-  def toddMMMMyyyyFormat(date: LocalDate): String = ddMMMMyyyy.print(date)
-
-  def todMMMMyyyyhmmaFormat(date: DateTime): String = dMMMMyyyyhmma.print(date.toLocalDateTime)
-    .replace("AM", "am")
-    .replace("PM","pm")
-
-
-}
+                        )
 // format: ON
-
 
 object DashboardPage {
 
@@ -167,33 +155,25 @@ object DashboardPage {
     if(ConfirmedAllocatedCandidateRole.isAuthorized(user)) {
       ASSESSMENT_BOOKED_CONFIRMED
     }
-    else {
-      if(UnconfirmedAllocatedCandidateRole.isAuthorized(user)) {
-        if(isConfirmationAllocationExpired(allocationDetails)) {
-          ASSESSMENT_CONFIRMATION_EXPIRED
-        }
-        else {
-          ASSESSMENT_PENDING_CONFIRMATION
-        }
+    else if(UnconfirmedAllocatedCandidateRole.isAuthorized(user)) {
+      if(isConfirmationAllocationExpired(allocationDetails)) {
+        ASSESSMENT_CONFIRMATION_EXPIRED
       }
       else {
-        if(AssessmentCentreFailedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)) {
-          ASSESSMENT_FAILED
-        }
-        else {
-          if(AssessmentCentrePassedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)) {
-            ASSESSMENT_PASSED
-          }
-          else {
-            if(AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
-              ASSESSMENT_NOT_ATTENDED
-            }
-            else{
-              ASSESSMENT_STATUS_UNKNOWN
-            }
-          }
-        }
+        ASSESSMENT_PENDING_CONFIRMATION
       }
+    }
+    else if(AssessmentCentreFailedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)){
+      ASSESSMENT_FAILED
+    }
+    else if(AssessmentCentrePassedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)){
+      ASSESSMENT_PASSED
+    }
+    else if(AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
+      ASSESSMENT_NOT_ATTENDED
+    }
+    else{
+      ASSESSMENT_STATUS_UNKNOWN
     }
   }
 
@@ -204,13 +184,11 @@ object DashboardPage {
     if(AssessmentCentreFailedNotifiedRole.isAuthorized(user) || AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
       ASSESSMENT_FAILED_RETRY
     }
+    else if(AssessmentCentrePassedNotifiedRole.isAuthorized(user)) {
+      ASSESSMENT_PASSED_ON_BOARD
+    }
     else {
-      if(AssessmentCentrePassedNotifiedRole.isAuthorized(user)) {
-        ASSESSMENT_PASSED_ON_BOARD
-      }
-      else {
-        ASSESSMENT_STATUS_UNKNOWN
-      }
+      ASSESSMENT_STATUS_UNKNOWN
     }
   }
 
@@ -254,6 +232,15 @@ object DashboardPage {
     }
   }
 
-  private val ddMMMMyyyy = DateTimeFormat.forPattern("dd MMMM yyyy")
-  private val dMMMMyyyyhmma = DateTimeFormat.forPattern("d MMMM yyyy, h:mma")
 }
+
+sealed trait AssessmentStatus
+case object ASSESSMENT_BOOKED_CONFIRMED extends AssessmentStatus
+case object ASSESSMENT_CONFIRMATION_EXPIRED extends AssessmentStatus
+case object ASSESSMENT_PENDING_CONFIRMATION extends AssessmentStatus
+case object ASSESSMENT_FAILED extends AssessmentStatus
+case object ASSESSMENT_PASSED extends AssessmentStatus
+case object ASSESSMENT_NOT_ATTENDED extends AssessmentStatus
+case object ASSESSMENT_FAILED_RETRY extends AssessmentStatus
+case object ASSESSMENT_PASSED_ON_BOARD extends AssessmentStatus
+case object ASSESSMENT_STATUS_UNKNOWN extends AssessmentStatus

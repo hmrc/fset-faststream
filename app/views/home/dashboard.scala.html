@@ -1,14 +1,13 @@
 @import connectors.ExchangeObjects.OnlineTest
-@import models.page.DashboardPage
+@import helpers.DateFormatter._
 @import models.page.DashboardPage._
-@import models._
+@import models.page._
+
 @(usr: CachedData, dashboardPage: DashboardPage, onlineTest: Option[OnlineTest] = None,
   allocationDetails: Option[connectors.AllocationExchangeObjects.AllocationDetails] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import connectors.AllocationExchangeObjects._
 @import models.ApplicationData.ApplicationStatus._
-@import org.joda.time.format._
-@import org.joda.time.{DateTime, LocalDate}
 @import security.Roles._
 @import views.html.widgets.onlineTestProgress
 
@@ -109,7 +108,7 @@
                                         @allocationDetails.map { aDetails =>
                                         <p>Your assessment is booked for</p>
                                         <p>
-                                            @dashboardPage.todMMMMyyyyhmmaFormat(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
+                                            @todMMMMyyyyhmmaFormat(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
                                             <br><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
                                         </p>
                                         <p>
@@ -130,7 +129,7 @@
                                         @allocationDetails.map { aDetails =>
                                             <p>Your assessment is booked for </p>
                                             <p>
-                                                @dashboardPage.todMMMMyyyyhmmaFormat(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
+                                                @todMMMMyyyyhmmaFormat(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
                                                 <br /><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
                                             </p>
 
@@ -145,7 +144,7 @@
                                             <p>
                                                 @aDetails.expirationDate.map{ expirationDate =>
                                                 <span id="confirmByText">
-                                                                            Confirm by 11:59pm on @dashboardPage.toddMMMMyyyyFormat(expirationDate) or you'll lose your booking.<br>
+                                                                            Confirm by 11:59pm on @toddMMMMyyyyFormat(expirationDate) or you'll lose your booking.<br>
                                                                         </span>
                                                 }
 

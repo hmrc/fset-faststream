@@ -37,30 +37,30 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
   // format: OFF
   // scalastyle:off line.size.limit
   val Applications = Table(
-    ("applicationStatus",                      "step1",          "step2",         "step3",                    "step4",                  "isApplicationSubmittedAndNotWithdrawn", "isApplicationInProgressAndNotWithdrawn", "isApplicationWithdrawn", "isApplicationCreatedOrInProgress", "isUserWithNoApplication",  "isFirstStepVisible", "isSecondStepVisible", "isThirdStepVisible", "isFourthStepVisible", "fullName", "assessmentInProgressStatus", "assessmentCompletedStatus"),
-    (REGISTERED,                               ProgressInactive, ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   false,                                    false,                    false,                              true,                        "", "", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (CREATED,                                  ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   true,                                     false,                    true,                               false,                       "active", "", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (IN_PROGRESS,                              ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   true,                                     false,                    true,                               false,                       "active", "", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (SUBMITTED,                                ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (WITHDRAWN,                                ProgressActive,   ProgressActive,   ProgressActive,            ProgressInactiveDisabled, false,                                   false,                                    true,                     false,                              false,                       "active", "active", "active", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_INVITED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_STARTED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_COMPLETED,                    ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_EXPIRED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (ALLOCATION_CONFIRMED,                     ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_BOOKED_CONFIRMED, ASSESSMENT_STATUS_UNKNOWN),
-    (ALLOCATION_UNCONFIRMED,                   ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_PENDING_CONFIRMATION, ASSESSMENT_STATUS_UNKNOWN),
-    (AWAITING_ALLOCATION,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_FAILED,                       ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_FAILED_NOTIFIED,              ProgressActive,   ProgressActive,   ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                    false,                                    false,                    false,                              false,                       "active", "active", "disabled", "disabled", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (AWAITING_ONLINE_TEST_RE_EVALUATION,       ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (FAILED_TO_ATTEND,                         ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_NOT_ATTENDED, ASSESSMENT_FAILED_RETRY),
-    (ASSESSMENT_SCORES_ENTERED,                ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_BOOKED_CONFIRMED, ASSESSMENT_STATUS_UNKNOWN),
-    (ASSESSMENT_SCORES_ACCEPTED,               ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_BOOKED_CONFIRMED, ASSESSMENT_STATUS_UNKNOWN),
-    (AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_BOOKED_CONFIRMED, ASSESSMENT_STATUS_UNKNOWN),
-    (ASSESSMENT_CENTRE_PASSED,                 ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (ASSESSMENT_CENTRE_FAILED,                 ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_STATUS_UNKNOWN),
-    (ASSESSMENT_CENTRE_PASSED_NOTIFIED,        ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_PASSED_ON_BOARD),
-    (ASSESSMENT_CENTRE_FAILED_NOTIFIED,        ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active", "active", "", "", "John Biggs", ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_FAILED_RETRY)
+    ("applicationStatus",                      "step1",          "step2",         "step3",                    "step4",                  "isApplicationSubmittedAndNotWithdrawn", "isApplicationInProgressAndNotWithdrawn", "isApplicationWithdrawn", "isApplicationCreatedOrInProgress", "isUserWithNoApplication",  "isFirstStepVisible",     "isSecondStepVisible",    "isThirdStepVisible",    "isFourthStepVisible",   "fullName",      "assessmentInProgressStatus",       "assessmentCompletedStatus"),
+    (REGISTERED,                               ProgressInactive, ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   false,                                    false,                    false,                              true,                        "",                      "",                       "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (CREATED,                                  ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   true,                                     false,                    true,                               false,                       "active",                "",                       "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (IN_PROGRESS,                              ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   true,                                     false,                    true,                               false,                       "active",                "",                       "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (SUBMITTED,                                ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "",                       "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (WITHDRAWN,                                ProgressActive,   ProgressActive,   ProgressActive,            ProgressInactiveDisabled, false,                                   false,                                    true,                     false,                              false,                       "active",                "active",                 "active",                "disabled",              "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_INVITED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_STARTED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_COMPLETED,                    ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_EXPIRED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (ALLOCATION_CONFIRMED,                     ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_BOOKED_CONFIRMED,        ASSESSMENT_STATUS_UNKNOWN),
+    (ALLOCATION_UNCONFIRMED,                   ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_PENDING_CONFIRMATION,    ASSESSMENT_STATUS_UNKNOWN),
+    (AWAITING_ALLOCATION,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_FAILED,                       ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (ONLINE_TEST_FAILED_NOTIFIED,              ProgressActive,   ProgressActive,   ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "disabled",              "disabled",              "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (AWAITING_ONLINE_TEST_RE_EVALUATION,       ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (FAILED_TO_ATTEND,                         ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_NOT_ATTENDED,            ASSESSMENT_FAILED_RETRY),
+    (ASSESSMENT_SCORES_ENTERED,                ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_BOOKED_CONFIRMED,        ASSESSMENT_STATUS_UNKNOWN),
+    (ASSESSMENT_SCORES_ACCEPTED,               ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_BOOKED_CONFIRMED,        ASSESSMENT_STATUS_UNKNOWN),
+    (AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_BOOKED_CONFIRMED,        ASSESSMENT_STATUS_UNKNOWN),
+    (ASSESSMENT_CENTRE_PASSED,                 ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (ASSESSMENT_CENTRE_FAILED,                 ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_STATUS_UNKNOWN),
+    (ASSESSMENT_CENTRE_PASSED_NOTIFIED,        ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_PASSED_ON_BOARD),
+    (ASSESSMENT_CENTRE_FAILED_NOTIFIED,        ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                       "active",                "active",                 "",                      "",                      "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          ASSESSMENT_FAILED_RETRY)
   )
   // scalastyle:on line.size.limit
   // format: ON
@@ -160,9 +160,66 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
       statusesTested.length must be(23)
     }
   }
+
+  "The assessment status, when the assessment hasn't yet been confirmed" should {
+    "be expired when the candidate didn't confirm it within the given date" in {
+      DashboardPage(user(ALLOCATION_UNCONFIRMED), Some(AllocationDetails_Expired), None) must be(
+        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
+          true, false, false, false, false,
+          "active", "active", "", "", "John Biggs",
+          ASSESSMENT_CONFIRMATION_EXPIRED, ASSESSMENT_STATUS_UNKNOWN))
+    }
+    "be awaiting candidate confirmation when not expired" in {
+      DashboardPage(user(ALLOCATION_UNCONFIRMED), Some(AllocationDetails_Not_Expired), None) must be(
+        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
+          true, false, false, false, false,
+          "active", "active", "", "", "John Biggs",
+          ASSESSMENT_PENDING_CONFIRMATION, ASSESSMENT_STATUS_UNKNOWN))
+    }
+  }
+
+  "The assessment status, when the assessment test failed" should {
+    "be failed if the relative pdf report is available" in {
+      DashboardPage(user(ASSESSMENT_CENTRE_FAILED_NOTIFIED), None, Some(PdfReportAvailable)) must be(
+        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
+          true, false, false, false, false,
+          "active", "active", "", "", "John Biggs",
+          ASSESSMENT_FAILED, ASSESSMENT_FAILED_RETRY))
+    }
+    "and unknown if the report is not available" in {
+      DashboardPage(user(ASSESSMENT_CENTRE_FAILED_NOTIFIED), None, Some(PdfReportNotAvailable)) must be(
+        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
+          true, false, false, false, false,
+          "active", "active", "", "", "John Biggs",
+          ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_FAILED_RETRY))
+    }
+  }
+
+  "The assessment status, when the assessment test passed" should {
+    "be passed if the relative pdf report is available" in {
+      DashboardPage(user(ASSESSMENT_CENTRE_PASSED_NOTIFIED), None, Some(PdfReportAvailable)) must be(
+        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
+          true, false, false, false, false,
+          "active", "active", "", "", "John Biggs",
+          ASSESSMENT_PASSED, ASSESSMENT_PASSED_ON_BOARD))
+    }
+    "and unknown if the report is not available" in {
+      DashboardPage(user(ASSESSMENT_CENTRE_PASSED_NOTIFIED), None, Some(PdfReportNotAvailable)) must be(
+        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
+          true, false, false, false, false,
+          "active", "active", "", "", "John Biggs",
+          ASSESSMENT_STATUS_UNKNOWN, ASSESSMENT_PASSED_ON_BOARD))
+    }
+  }
+
 }
 
 object DashboardPageSpec {
+
+  import connectors.AllocationExchangeObjects.AllocationDetails
+  import connectors.ExchangeObjects.OnlineTest
+  import org.joda.time.{DateTime, LocalDate}
+
   def user(status: ApplicationStatus.Value) = {
     if (status == ApplicationStatus.REGISTERED) {
       RolesSpec.registeredUser(status)
@@ -199,5 +256,9 @@ object DashboardPageSpec {
   val OnlineTestFailed = SubmittedProgress.copy(onlineTest = OnlineTestProgressFailed)
   val OnlineTestInvited = SubmittedProgress.copy(onlineTest = OnlineTestProgressInvited)
   val AssessmentCentreInvited = SubmittedProgress.copy(onlineTest = OnlineTestProgressAwaitingAllocation.copy(onlineTestInvited = true))
+  private val AllocationDetails_Expired = AllocationDetails("", "", new DateTime(), Some(new LocalDate().minusDays(1)))
+  private val AllocationDetails_Not_Expired = AllocationDetails("", "", new DateTime(), Some(new LocalDate().plusDays(1)))
+  private val PdfReportAvailable = OnlineTest(new DateTime(), "", false, true)
+  private val PdfReportNotAvailable = OnlineTest(new DateTime(), "", true, false)
 
 }
