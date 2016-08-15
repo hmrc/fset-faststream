@@ -51,7 +51,7 @@ POST        /application/submit                                     controllers.
 GET         /application/success                                    controllers.SubmitApplicationController.success
 
 # Questionnaire
-GET         /questionnaire/start                                    controllers.QuestionnaireController.start
+GET         /questionnaire/start                                    controllers.QuestionnaireController.startOrContinue
 POST        /questionnaire/start                                    controllers.QuestionnaireController.submitStart
 POST        /questionnaire/continue                                 controllers.QuestionnaireController.submitContinue
 GET         /questionnaire/page/1                                   controllers.QuestionnaireController.firstPageView

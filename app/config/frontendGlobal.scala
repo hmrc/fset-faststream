@@ -62,7 +62,7 @@ object FrontendGlobal
   override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig("microservice.metrics")
 
   override def onNotAuthenticated(request: RequestHeader, lang: Lang): Option[Future[Result]] =
-    Some(Future.successful(Redirect(routes.SignInController.present)))
+    Some(Future.successful(Redirect(routes.SignInController.present())))
 
   override def onNotAuthorized(request: RequestHeader, lang: Lang): Option[Future[Result]] = {
     import models.SecurityUser._
@@ -73,8 +73,8 @@ object FrontendGlobal
         val sec = request.asInstanceOf[SecuredRequest[AnyContent]]
         Some(
           sec.identity.toUserFuture(hc(sec)).map {
-            case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present).flashing(danger("access.denied"))
-            case _ => Redirect(routes.ActivationController.present).flashing(danger("access.denied"))
+            case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
+            case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
           }
         )
       }

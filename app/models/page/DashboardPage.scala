@@ -19,7 +19,7 @@ package models.page
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.page.DashboardPage.ProgressStepVisibility
-import models.{ ApplicationData, CachedData, Progress }
+import models.{ApplicationData, CachedData, Progress}
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import security.RoleUtils
