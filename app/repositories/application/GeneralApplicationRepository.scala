@@ -62,7 +62,7 @@ trait GeneralApplicationRepository {
 
   def withdraw(applicationId: String, reason: WithdrawApplicationRequest): Future[Unit]
 
-  def review(applicationId: String): Future[Unit]
+  def preview(applicationId: String): Future[Unit]
 
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
 
@@ -165,7 +165,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
         personalDetails = getProgress("personal-details"),
         schemePreferences = getProgress("scheme-preferences"),
         assistanceDetails = getProgress("assistance-details"),
-        review = getProgress("review"),
+        preview = getProgress("preview"),
         questionnaire = questionnaire,
         submitted = getProgress("submitted"),
         withdrawn = getProgress("withdrawn"),
@@ -323,10 +323,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     }
   }
 
-  override def review(applicationId: String): Future[Unit] = {
+  override def preview(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      "progress-status.review" -> true
+      "progress-status.preview" -> true
     ))
 
     collection.update(query, applicationStatusBSON, upsert = false) map {

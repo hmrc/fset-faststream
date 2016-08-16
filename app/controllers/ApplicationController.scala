@@ -84,10 +84,10 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def review(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[ReviewRequest] { _ =>
-      appRepository.review(applicationId).map { _ =>
-        auditService.logEvent("ApplicationReviewed")
+  def preview(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[PreviewRequest] { _ =>
+      appRepository.preview(applicationId).map { _ =>
+        auditService.logEvent("ApplicationPreviewed")
         Ok
       }.recover {
         case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
