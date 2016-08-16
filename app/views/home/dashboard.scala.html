@@ -1,6 +1,6 @@
 @import connectors.ExchangeObjects.OnlineTest
 @import helpers.DateFormatter._
-@import models.page.DashboardPage._
+@import models.page.DashboardPage.Flags._
 @import models.page._
 
 @(usr: CachedData, dashboardPage: DashboardPage, onlineTest: Option[OnlineTest] = None,
@@ -45,7 +45,7 @@
                                         @renderProgressElement(showLink = PersonalDetailsRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.present(None)) {Add personal details }
                                         @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose locations and schemes }
                                         @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr), checked = ReviewRole.isAuthorized(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Tell us about any assistance needs you may have }
-                                        @renderProgressElement(showLink = ReviewRole.isAuthorized(usr), checked = (SubmitApplicationRole.isAuthorized(usr) || QuestionnaireInProgressRole.isAuthorized(usr)), "reviewStep")(routes.ReviewApplicationController.present()) { Check your application }
+                                        @renderProgressElement(showLink = ReviewRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr) || QuestionnaireInProgressRole.isAuthorized(usr), "reviewStep")(routes.ReviewApplicationController.present()) { Check your application }
                                         @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.startOrContinue()) { Fill in the diversity questions }
                                         @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = WithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.present()) { Submit }
                                     }
@@ -104,7 +104,7 @@
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
                             <h2 class="heading-medium">3. Attend an assessment centre</h2>
-                                @dashboardPage.assessmentInProgressStatus match {
+                                @dashboardPage.assessmentStageStatus match {
                                     case ASSESSMENT_BOOKED_CONFIRMED => {
                                         @allocationDetails.map { aDetails =>
                                         <p>Your assessment is booked for</p>
@@ -187,15 +187,15 @@
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
-                            @dashboardPage.assessmentCompletedStatus match {
-                                case ASSESSMENT_FAILED_RETRY => {
+                            @dashboardPage.postAssessmentStageStatus match {
+                                case POSTASSESSMENT_FAILED_APPLY_AGAIN => {
                                     <h2 class="heading-medium">4. What happens next?</h2>
                                     <p>We appreciate this may be disappointing, however the Civil Service does offer other career opportunities. You can find details at: <a href="http://www.civilservice.gov.uk/jobs">www.civilservice.gov.uk/jobs</a>.</p>
                                     <p>You'll be able to reapply for Fast Track next year, alternatively
                                         use the <a href="https://www.gov.uk/apply-apprenticeship" rel="external">find an apprenticeship</a> service to search
                                         for other apprenticeships in England.</p>
                                 }
-                                case ASSESSMENT_PASSED_ON_BOARD => {
+                                case POSTASSESSMENT_PASSED_MORE_SOON => {
                                     <h2 class="heading-medium">4. Your final results</h2>
                                     <p>We'll contact you soon to tell you about your role, scheme,
                                         department and location. Make sure to regularly check your
@@ -204,7 +204,7 @@
                                         Find out more about the on boarding process</a>
                                     </p>
                                 }
-                                case ASSESSMENT_STATUS_UNKNOWN => {
+                                case POSTASSESSMENT_STATUS_UNKNOWN => {
                                     <h2 class="heading-medium">4. Your final results</h2>
                                     <p>We aim to let you know the outcome of your assessment by October 2016.</p>
                                     <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#after-assessment" rel="external" target="_blank">
