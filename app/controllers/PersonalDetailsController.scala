@@ -38,7 +38,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient, u
   def present(start: Option[String] = None) = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
     implicit user =>
       implicit val now: LocalDate = LocalDate.now
-      applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
+      applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
         val form = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
           gd.firstName,
           gd.lastName,

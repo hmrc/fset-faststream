@@ -27,9 +27,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 trait SchemeClient {
 
-  import config.FrontendAppConfig.faststreamConfig._
-
   val http: CSRHttp
+
+  import config.FrontendAppConfig.faststreamConfig._
 
   def getSchemePreferences(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(
@@ -55,7 +55,8 @@ trait SchemeClient {
 }
 
 object SchemeClient extends SchemeClient {
-  val http = CSRHttp
+
+  override val http: CSRHttp = CSRHttp
 
   sealed class SchemePreferencesNotFound extends Exception
 

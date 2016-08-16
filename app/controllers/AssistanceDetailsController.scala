@@ -17,7 +17,6 @@
 package controllers
 
 import _root_.forms.AssistanceDetailsForm
-import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import connectors.exchange.AssistanceDetailsExchange

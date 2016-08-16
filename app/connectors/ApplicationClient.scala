@@ -44,7 +44,6 @@ trait ApplicationClient {
   import config.FrontendAppConfig.faststreamConfig._
 
   def createApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier) = {
-
     http.PUT(s"${url.host}${url.base}/application/create", CreateApplicationRequest(userId, frameworkId)).map { response =>
       response.json.as[ApplicationResponse]
     }
@@ -113,7 +112,7 @@ trait ApplicationClient {
       }
   }
 
-  def findPersonalDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+  def getPersonalDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(s"${url.host}${url.base}/personal-details/$userId/$applicationId").map { response =>
       response.json.as[GeneralDetailsExchange]
     } recover {
@@ -157,10 +156,10 @@ trait ApplicationClient {
       }
   }
 
-  def updateReview(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+  def updatePreview(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.PUT(
-      s"${url.host}${url.base}/application/review/$applicationId",
-      ReviewRequest(true)
+      s"${url.host}${url.base}/application/preview/$applicationId",
+      PreviewRequest(true)
     ).map {
         case x: HttpResponse if x.status == OK => ()
       } recover {

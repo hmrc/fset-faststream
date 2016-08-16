@@ -78,7 +78,7 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasSchemes(user)
   }
 
-  object ReviewApplicationRole extends CsrAuthorization {
+  object PreviewApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && !statusIn(user)(CREATED) &&
         hasDiversity(user) && hasEducation(user) && hasOccupation(user)
@@ -86,7 +86,7 @@ object Roles {
 
   object SubmitApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasReview(user)
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasPreview(user)
   }
 
   object InProgressRole extends CsrAuthorization {
@@ -159,7 +159,7 @@ object Roles {
     SchemesRole -> routes.SchemePreferencesController.present(),
     AssistanceDetailsRole -> routes.AssistanceDetailsController.present,
     QuestionnaireInProgressRole -> routes.QuestionnaireController.startOrContinue(),
-    ReviewApplicationRole -> routes.ReviewApplicationController.present(),
+    PreviewApplicationRole -> routes.PreviewApplicationController.present(),
     SubmitApplicationRole -> routes.SubmitApplicationController.present(),
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),
     ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),
@@ -195,6 +195,6 @@ object RoleUtils {
 
   def hasOccupation(implicit user: CachedData) = progress.occupationQuestionnaire
 
-  def hasReview(implicit user: CachedData) = progress.review
+  def hasPreview(implicit user: CachedData) = progress.preview
 
 }

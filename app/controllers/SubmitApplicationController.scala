@@ -54,7 +54,7 @@ abstract class SubmitApplicationController(applicationClient: ApplicationClient)
             data.copy(application = data.application.map(_.copy(applicationStatus = SUBMITTED))))(_ =>
             Redirect(routes.SubmitApplicationController.success()))
         }.recover {
-          case _: CannotSubmit => Redirect(routes.ReviewApplicationController.present()).flashing(danger("error.cannot.submit"))
+          case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present()).flashing(danger("error.cannot.submit"))
         }
       } else {
         Future.successful(Ok(views.html.home.submit_disabled(CachedData(user.user, Some(user.application)))))

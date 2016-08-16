@@ -137,8 +137,8 @@ qualification.Degree_CharteredEngineer.description=2:1 degree, plus either chart
 # YAML file has changed between the user loading the page, and submitting their preference (unlikely, but possible).
 location.unavailable=This location isn''t available
 
-# review
-info.cannot.review.yet = You can''t review your application before you finish all the sections
+# Preview
+info.cannot.preview.yet = You can''t preview your application before you finish all the sections
 info.application.readonly = You''ve already submitted your application, so you can''t edit it.
 info.create.application = You need to create an application first
 error.cannot.submit = There are errors in your application. Fix them first before submitting.

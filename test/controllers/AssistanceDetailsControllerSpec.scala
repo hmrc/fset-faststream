@@ -81,7 +81,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       val result = controller.submit()(Request)
 
       status(result) must be(SEE_OTHER)
-//      redirectLocation(result) must be(Some(routes.ReviewApplicationController.present().url))
+//      redirectLocation(result) must be(Some(routes.PreviewApplicationController.present().url))
       redirectLocation(result) must be(Some(routes.QuestionnaireController.startOrContinue().url))
     }
 

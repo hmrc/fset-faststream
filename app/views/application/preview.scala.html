@@ -3,7 +3,7 @@
         schemePreferences: connectors.exchange.SelectedSchemes,
         applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@import views.html.review.{assistanceDetailsViewSection, generalDetailsViewSection, schemePreferencesViewSection}
+@import views.html.application.previewapplication.{assistanceDetailsViewSection, generalDetailsViewSection, schemePreferencesViewSection, partnerGraduateProgrammesViewSection, diversityQuestionnaireViewSection}
 @import models.ApplicationData.ApplicationStatus._
 @import security.Roles._
 
@@ -30,19 +30,23 @@
             @(applicationData.applicationStatus match {
                 case SUBMITTED => "View your submitted application"
                 case WITHDRAWN => "View your withdrawn application"
-                case _ => "Check your application before you send it"
+                case _ => "Check your application"
             })
         </h1>
     </div>
 
     @generalDetailsViewSection(generalDetails)(edit_link(routes.PersonalDetailsController.present(None)))
 
-    @assistanceDetailsViewSection(assistanceDetails)(edit_link(routes.AssistanceDetailsController.present()))
-
     @schemePreferencesViewSection(schemePreferences)(edit_link(routes.SchemePreferencesController.present()))
 
+    @partnerGraduateProgrammesViewSection()
+
+    @assistanceDetailsViewSection(assistanceDetails)(edit_link(routes.AssistanceDetailsController.present()))
+
+    @diversityQuestionnaireViewSection()
+
     @appNotReadOnly {
-        @helper.form(action = routes.ReviewApplicationController.submit(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.PreviewApplicationController.submit(), 'novalidate -> "novalidate") {
             @helper.CSRF.formField
             <div>
                 <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
