@@ -18,18 +18,18 @@ package repositories
 
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
-import model.{ApplicationStatuses, EvaluationResults}
+import model.{ ApplicationStatuses, EvaluationResults }
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.persisted.AssistanceDetails
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{GeneralApplicationMongoRepository, TestDataMongoRepository}
+import repositories.application.{ GeneralApplicationMongoRepository, TestDataMongoRepository }
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 
 
 class ApplicationRepositorySpec extends MongoRepositorySpec {
@@ -322,14 +322,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val status = getApplicationStatus("app1")
       status must be (ApplicationStatuses.Withdrawn)
     }
-
-    def getApplicationStatus(appId: String) = {
-      applicationRepo.collection.find(BSONDocument("applicationId" -> "app1")).one[BSONDocument].map { docOpt =>
-        docOpt must not be empty
-        val doc = docOpt.get
-        doc.getAs[String]("applicationStatus").get
-      }.futureValue
-    }
   }
 
   "applications passed in assessment centre" should {
@@ -396,6 +388,29 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val updatedResult = applicationRepo.candidatesAwaitingAllocation(frameworkId).futureValue
       updatedResult must be (empty)
     }
+  }
+
+  "preview" should {
+    "change progress status to preview" in {
+      createApplication("app1", ApplicationStatuses.InProgress)
+
+      val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
+      applicationRepo.preview("app1").futureValue
+
+      val status = getApplicationStatus("app1")
+      status must be (ApplicationStatuses.InProgress)
+
+      val progressResponse = applicationRepo.findProgress("app1").futureValue
+      progressResponse.preview mustBe true
+    }
+  }
+
+  def getApplicationStatus(appId: String) = {
+    applicationRepo.collection.find(BSONDocument("applicationId" -> "app1")).one[BSONDocument].map { docOpt =>
+      docOpt must not be empty
+      val doc = docOpt.get
+      doc.getAs[String]("applicationStatus").get
+    }.futureValue
   }
 
   def createApplication(appId: String, appStatus: String): Unit = {
