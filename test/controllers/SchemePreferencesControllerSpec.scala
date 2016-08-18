@@ -59,7 +59,6 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
     }
 
     "populate selected schemes for the candidate" in {
-      //val selectedSchemes = SelectedSchemes(List("Finance", "Europe"), orderAgreed = true, eligible = true, alternatives = false)
       when(schemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(SchemePreferencesExchangeExamples.DefaultSelectedSchemes))
       val result = controllerUnderTest.present(fakeRequest)
