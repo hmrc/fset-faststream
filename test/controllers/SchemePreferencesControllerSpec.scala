@@ -59,7 +59,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
     }
 
     "populate selected schemes for the candidate" in {
-      val selectedSchemes = SelectedSchemes(List("Finance", "Europe"), orderAgreed = true, eligible = true, alternatives = false)
+      val selectedSchemes = SelectedSchemes(List("Finance", "Europe"), orderAgreed = true, eligible = true)
       when(schemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(selectedSchemes))
       val result = controllerUnderTest.present(fakeRequest)
@@ -77,10 +77,10 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
   "submit scheme preferences" should {
     "update scheme preferences details" in {
       val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "European", "orderAgreed" -> "true",
-        "eligible" -> "true", "alternatives" -> "false")
+        "eligible" -> "true")
       val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
         currentUserId, ProgressResponseExamples.InProgress)
-      val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true, alternatives = "false")
+      val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true)
 
       when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
@@ -95,10 +95,10 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
     "fail updating scheme preferences details" in {
       val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "European", "orderAgreed" -> "true",
-        "eligible" -> "true", "alternatives" -> "false")
+        "eligible" -> "true")
       val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
         currentUserId, ProgressResponseExamples.InProgress)
-      val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true, alternatives = "false")
+      val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true)
 
       when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new CannotUpdateSchemePreferences))

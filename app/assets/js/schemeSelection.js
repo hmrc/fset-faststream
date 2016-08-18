@@ -1,16 +1,30 @@
 $(function()
-{
+  {
     var schemePrefArray = ['Empty'],
-    firstEmptyPosition = $.inArray('Empty', schemePrefArray),
-    preferencesAs123 = ['1st', '2nd', '3rd', '4th', '5th'],
-    preferencesAsText = [
-      '1st preference',
-      '2nd preference',
-      '3rd preference',
-      '4th preference',
-      '5th preference'
-    ];
-
+      firstEmptyPosition = $.inArray('Empty', schemePrefArray),
+      preferencesAs123 = ['1st', '2nd', '3rd', '4th', '5th', '6th',
+        '7th', '8th', '9th', '10th', '11th', '12th', '13th', '14th',
+        '15th'
+      ],
+      numberOfSchemas = preferencesAs123.length,
+      preferencesAsText = [
+        '1st preference',
+        '2nd preference',
+        '3rd preference',
+        '4th preference',
+        '5th preference',
+        '6th preference',
+        '7th preference',
+        '8th preference',
+        '9th preference',
+        '10th preference',
+        '11th preference',
+        '12th preference',
+        '13th preference',
+        '14th preference',
+        '15th preference'
+      ];
+    console.log(preferencesAsText[firstEmptyPosition]);
     $('[data-schemename]').on('change', function()
       {
         var $this = $(this),
@@ -50,79 +64,69 @@ $(function()
               thisScheme + '</span>' + specialEligibility +
               '</div>'
           );
+
           $this.closest('.scheme-container').addClass(
             'selected-scheme').find('.selected-preference').text(
             preferencesAs123[arrayPositionNow]).removeClass(
             'invisible');
-        }
-        if (!$this.is(':checked'))
-        {
-          var hiddenSchemeId = "#scheme_"+arrayPosition;
-          $(hiddenSchemeId).val('');
-          schemePrefArray.splice(arrayPosition, 1, 'Empty');
-          $('#selectedPrefList').find('[data-scheme-id="' +
-            thisSchemeID + '"]').remove();
-          $this.closest('.scheme-container').removeClass(
-            'selected-scheme').find('.selected-preference').text(
-            'N/A').addClass('invisible');
-        }
-        var chosenPreferences = $('[data-schemeorder]').map(
-            function()
-            {
-              return $(this).text();
-            })
-          .get();
-        var arrayOfChosen = $.makeArray(chosenPreferences);
-        var differenceArray = [],
-          initialVal = 0;
-        $.grep(preferencesAsText, function(el)
-        {
-          if ($.inArray(el, arrayOfChosen) == -1)
-            differenceArray.push(el);
-          initialVal++;
-        })
-        if (differenceArray[0] === undefined)
-        {
-          $('#chosenLimit').removeClass('hidden');
-          $('#chooseYourPrefs').addClass('hidden');
-        }
-        else
-        {
-          $('#chosenLimit').addClass('hidden');
-          $('#chooseYourPrefs').removeClass('hidden');
-          $('#chooseNextPreference').text(differenceArray[0]);
-          if (differenceArray[0] !== "1st preference")
+      }
+      if (!$this.is(':checked'))
+      {
+        var hiddenSchemeId = "#scheme_"+arrayPosition;
+        $(hiddenSchemeId).val('');
+        schemePrefArray.splice(arrayPosition, 1, 'Empty');
+        $('#selectedPrefList').find('[data-scheme-id="' +
+          thisSchemeID + '"]').remove();
+        $this.closest('.scheme-container').removeClass(
+          'selected-scheme').find('.selected-preference').text(
+          'N/A').addClass('invisible');
+      }
+      var chosenPreferences = $('[data-schemeorder]').map(
+          function()
           {
-            $('[data-optionalappended]').removeClass('hidden');
-          }
-          else
-          {
-            $('[data-optionalappended]').addClass('hidden');
-          }
-        }
-        if ($('input[data-schemename]:checked').length == 5)
+            return $(this).text();
+          })
+        .get();
+      var arrayOfChosen = $.makeArray(chosenPreferences);
+      var differenceArray = [],
+        initialVal = 0;
+      $.grep(preferencesAsText, function(el)
+      {
+        if ($.inArray(el, arrayOfChosen) == -1)
+          differenceArray.push(el);
+        initialVal++;
+      })
+      if (differenceArray[0] === undefined)
+      {
+        $('#chosenLimit').removeClass('hidden');
+        $('#chooseYourPrefs').addClass('hidden');
+      }
+      else
+      {
+        $('#chosenLimit').addClass('hidden');
+        $('#chooseYourPrefs').removeClass('hidden');
+        $('#chooseNextPreference').text(differenceArray[0]);
+        if (differenceArray[0] !== "1st preference")
         {
-          $('input[data-schemename]:not(:checked)').attr(
-            'disabled', true).closest('.block-label').addClass(
-            'disabled');
+          $('[data-optionalappended]').removeClass('hidden');
         }
         else
         {
-          $('input[data-schemename]:not(:checked)').attr(
-            'disabled', false).closest('.block-label').removeClass(
-            'disabled');
+          $('[data-optionalappended]').addClass('hidden');
         }
-        if ($('input[data-schemename]:checked').length > 0)
-        {
-          $('[data-scheme-placeholder]').addClass(
-            'toggle-content');
-        }
-        else
-        {
-          $('[data-scheme-placeholder]').removeClass(
-            'toggle-content');
-        }
-      });
+      }
+
+      if ($('input[data-schemename]:checked').length > 0)
+      {
+        $('[data-scheme-placeholder]').addClass(
+          'toggle-content');
+      }
+      else
+      {
+        $('[data-scheme-placeholder]').removeClass(
+          'toggle-content');
+      }
+    });
 
 
       function sticky_relocate()
@@ -163,7 +167,7 @@ $(function()
       sticky_relocate();
 
       function selectSchemes(){
-        for(i = 0; i < 5; i++){
+        for(i = 0; i < numberOfSchemas; i++){
             var scheme = $('#scheme_'+i).val();
             if(scheme !== ''){
                 var sid = "#schemes_" + scheme;

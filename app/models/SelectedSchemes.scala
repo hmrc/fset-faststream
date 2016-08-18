@@ -19,7 +19,7 @@ package models
 import play.api.libs.json.Json
 
 
-case class SelectedSchemes(schemes: List[String], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
+case class SelectedSchemes(schemes: List[String], orderAgreed: Boolean, eligible: Boolean)
 
 object SelectedSchemes {
     implicit val selectedSchemesFormat = Json.format[SelectedSchemes]

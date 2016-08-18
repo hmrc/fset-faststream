@@ -17,9 +17,10 @@
 package forms
 
 import models.SelectedSchemes
+import play.api.Logger
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{Form, FormError}
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 object SelectedSchemesForm {
@@ -46,28 +47,23 @@ object SelectedSchemesForm {
     Scheme("HousesOfParliament", Degree_22, specificRequirement = false),
     Scheme("HumanResources", Degree_22, specificRequirement = false),
     Scheme("ProjectDelivery", Degree_22, specificRequirement = false),
-    Scheme("ScienceAndEngineering", Degree_CharteredEngineer, specificRequirement = true),
-    Scheme("Tax", Degree_22, specificRequirement = false)
+    Scheme("ScienceAndEngineering", Degree_CharteredEngineer, specificRequirement = true)
   )
-
-  val schemesMaxLimit = 5
 
   case class Scheme(id: String, qualification: String, specificRequirement: Boolean)
 
-  case class SchemePreferences(schemes: List[String], orderAgreed: Boolean, eligible: Boolean, alternatives: String)
+  case class SchemePreferences(schemes: List[String], orderAgreed: Boolean, eligible: Boolean)
 
   implicit def toSchemePreferences(selectedSchemes: SelectedSchemes): SchemePreferences = SchemePreferences(
     selectedSchemes.schemes,
     selectedSchemes.orderAgreed,
-    selectedSchemes.eligible,
-    selectedSchemes.alternatives.toString
+    selectedSchemes.eligible
   )
 
   implicit def toSelectedSchemes(schemePreferences: SchemePreferences): SelectedSchemes = SelectedSchemes(
     schemePreferences.schemes,
     schemePreferences.orderAgreed,
-    schemePreferences.eligible,
-    schemePreferences.alternatives.toBoolean
+    schemePreferences.eligible
   )
 
   def form = {
@@ -75,9 +71,7 @@ object SelectedSchemesForm {
       mapping(
         "schemes" -> of(schemeFormatter("schemes")),
         "orderAgreed" -> checked(Messages("orderAgreed.required")),
-        "eligible" -> checked(Messages("eligible.required")),
-        "alternatives" -> Mappings.nonEmptyTrimmedText("alternatives.required", 5)
-          .verifying(Messages("alternatives.required"), boolValue => boolValue == true.toString || boolValue == false.toString)
+        "eligible" -> checked(Messages("eligible.required"))
       )(SchemePreferences.apply)(SchemePreferences.unapply))
   }
 
@@ -85,7 +79,7 @@ object SelectedSchemesForm {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
       getSchemesByPriority(data) match {
         case selectedSchemes if selectedSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selectedSchemes if selectedSchemes.size > schemesMaxLimit => Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes if selectedSchemes.size > AllSchemes.size => Left(List(FormError(formKey, Messages("schemes.required"))))
         case selectedSchemes if getInvalidSchemes(selectedSchemes).nonEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
         case selectedSchemes => Right(selectedSchemes)
       }
