@@ -16,9 +16,6 @@
 
 package models
 
-import java.util.UUID
-
-import connectors.exchange.ProgressResponse
 import connectors.exchange.AssistanceDetailsExchange
 
 object AssistanceDetailsExchangeExamples {
