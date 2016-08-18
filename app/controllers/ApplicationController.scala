@@ -18,7 +18,7 @@ package controllers
 
 import model.ApplicationStatusOrder
 import model.Commands._
-import model.Exceptions.ApplicationNotFound
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories._
@@ -90,7 +90,7 @@ trait ApplicationController extends BaseController {
         auditService.logEvent("ApplicationPreviewed")
         Ok
       }.recover {
-        case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
+        case e: CannotUpdatePreview => NotFound(s"cannot update application with id: ${e.applicationId}")
       }
     }
   }

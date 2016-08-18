@@ -22,7 +22,7 @@ import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.ApplicationNotFound
+import model.Exceptions.{ ApplicationNotFound, CannotUpdateAssistanceDetails, CannotUpdatePreview }
 import model.PersistedObjects.ApplicationForNotification
 import model._
 import org.joda.time.format.DateTimeFormat
@@ -329,9 +329,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       "progress-status.preview" -> true
     ))
 
-    collection.update(query, applicationStatusBSON, upsert = false) map {
+    collection.update(query, applicationStatusBSON, upsert = true) map {
+      case result if result.nModified == 0 && result.n == 0 =>
+        logger.error(
+          s"""Failed to write assistance details for application: $applicationId ->
+             |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
+        throw CannotUpdatePreview(applicationId)
       case _ => ()
     }
+
   }
 
   override def overallReportNotWithdrawn(frameworkId: String): Future[List[Report]] =
