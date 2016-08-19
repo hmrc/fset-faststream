@@ -73,8 +73,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
   "submit general details" should {
     "update candidate's details" in {
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidUKAddressForm),
-        eqTo(currentEmail))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+        eqTo(ValidUKAddressForm.toExchange(currentEmail)))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       when(userManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
         eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       when(applicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -92,8 +92,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
     "fail updating the candidate when person cannot be found" in {
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidUKAddressForm),
-        eqTo(currentEmail))(any[HeaderCarrier])).thenReturn(Future.failed(new PersonalDetailsNotFound))
+      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+        eqTo(ValidUKAddressForm.toExchange(currentEmail)))(any[HeaderCarrier])).thenReturn(Future.failed(new PersonalDetailsNotFound))
 
       val result = controller.submitGeneralDetails()(Request)
 

@@ -17,10 +17,11 @@
 package models
 
 import connectors.ExchangeObjects.GeneralDetailsExchange
+import connectors.exchange.FastPassDetails
 import org.joda.time.LocalDate
 import mappings.AddressExamples._
 
 object GeneralDetailsExchangeExamples {
   val FullDetails = GeneralDetailsExchange("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), Some("1234567"))
+    FullAddress, Some("postCode"), Some("1234567"), FastPassDetails(false))
 }

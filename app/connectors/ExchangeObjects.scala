@@ -16,16 +16,16 @@
 
 package connectors
 
-import connectors.exchange.ProgressResponse
+import connectors.exchange.{ FastPassDetails, ProgressResponse }
 import mappings.Address
 import mappings.PhoneNumberMapping._
 import mappings.PostCodeMapping._
 import model.exchange.AssistanceDetailsExchange
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
-import org.joda.time.format.{DateTimeFormatterBuilder, PeriodFormatterBuilder}
-import org.joda.time.{DateTime, LocalDate, Period}
-import play.api.libs.json.{Format, Json}
+import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
+import org.joda.time.{ DateTime, LocalDate, Period }
+import play.api.libs.json.{ Format, Json }
 
 object ExchangeObjects {
 
@@ -48,7 +48,8 @@ object ExchangeObjects {
     outsideUk: Boolean,
     address: Address,
     postCode: Option[PostCode],
-    phone: Option[PhoneNumber]
+    phone: Option[PhoneNumber],
+    fastPassDetails: FastPassDetails
   )
 
   case class AddMedia(userId: UniqueIdentifier, media: String)

@@ -76,8 +76,7 @@ object SelectedSchemesForm {
         "schemes" -> of(schemeFormatter("schemes")),
         "orderAgreed" -> checked(Messages("orderAgreed.required")),
         "eligible" -> checked(Messages("eligible.required")),
-        "alternatives" -> Mappings.nonEmptyTrimmedText("alternatives.required", 5)
-          .verifying(Messages("alternatives.required"), boolValue => boolValue == true.toString || boolValue == false.toString)
+        "alternatives" -> Mappings.nonemptyBooleanText("alternatives.required")
       )(SchemePreferences.apply)(SchemePreferences.unapply))
   }
 

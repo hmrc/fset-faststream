@@ -1,27 +1,40 @@
-$(function() {
+/*
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 
-  // Variable used to track if there are any outstanding actions that webdriver should wait for during
-  // the acceptance test runs
-  window.csrActive = 0;
+
+$(function() {
 
   var isMobile = {
     Android: function() {
-      return navigator.userAgent.match(/Android/i);
+        return navigator.userAgent.match(/Android/i);
     },
     BlackBerry: function() {
-      return navigator.userAgent.match(/BlackBerry/i);
+        return navigator.userAgent.match(/BlackBerry/i);
     },
     iOS: function() {
-      return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+        return navigator.userAgent.match(/iPhone|iPad|iPod/i);
     },
     Opera: function() {
-      return navigator.userAgent.match(/Opera Mini/i);
+        return navigator.userAgent.match(/Opera Mini/i);
     },
     Windows: function() {
-      return navigator.userAgent.match(/IEMobile/i);
+        return navigator.userAgent.match(/IEMobile/i);
     },
     any: function() {
-      return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());
+        return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());
     }
   };
 
@@ -33,24 +46,13 @@ $(function() {
 
   function isAndroid() {
     var nua = navigator.userAgent,
-      isAndroid = (nua.indexOf('Mozilla/5.0') > -1 && nua.indexOf('Android ') > -1 && nua.indexOf('AppleWebKit') > -1 && nua.indexOf('Chrome') === -1);
+        isAndroid = (nua.indexOf('Mozilla/5.0') > -1 && nua.indexOf('Android ') > -1 && nua.indexOf('AppleWebKit') > -1 && nua.indexOf('Chrome') === -1);
     if (isAndroid) {
       $('html').addClass('android-browser');
     }
   }
 
   isAndroid();
-
-  // Fixes intermittent bug where a form submitted with errors sometimes takes the user back
-  // to last place on page rather than to error summary
-  if($('#validation-summary').is(':visible')) {
-    window.csrActive++;
-    setTimeout(function()
-    {
-      window.scrollTo(0, 0);
-      window.csrActive--;
-    }, 200);
-  }
 
   $('.nav-menu__trigger').on('click', function() {
     $(this).next('.nav-menu__items').toggleClass('toggle-content');
@@ -72,7 +74,7 @@ $(function() {
 
   $('.button-toggler').on('click', function() {
     var $this = $(this),
-      $target = $this.attr('data-target');
+        $target = $this.attr('data-target');
 
     $('#' + $target).toggleClass('toggle-content');
 
@@ -95,7 +97,7 @@ $(function() {
     // Add focus
     $(".block-label input").focus(function() {
       $("label[for='" + this.id + "']").addClass("add-focus");
-    }).blur(function() {
+      }).blur(function() {
       $("label").removeClass("add-focus");
     });
     // Add selected class
@@ -130,18 +132,28 @@ $(function() {
     $('input:not(:checked)').parent().removeClass('selected');
     $('input:checked').parent().addClass('selected');
 
-    if($target == undefined) {
-      $this.closest('.form-group').siblings('.toggle-content').hide().attr('aria-hidden', true);
-      $this.closest('.form-group').find('[aria-expanded]').attr('aria-expanded', false);
+    if($this.is('input[type=checkbox]')) {
+      if($this.is(':checked')) {
+        $('#' + $target).show();
+      } else {
+        $('#' + $target).hide();
+      }
     } else {
-      $('#' + $target).show();
-      $($siblingTarget).hide().attr('aria-hidden', true);
+      if($target == undefined) {
+        $this.closest('.form-group').siblings('.toggle-content').hide().attr('aria-hidden', true);
+        $this.closest('.form-group').find('[aria-expanded]').attr('aria-expanded', false);
+      } else {
+        $('#' + $target).show();
+        $($siblingTarget).hide().attr('aria-hidden', true);
 
-      if($this.closest('.form-group').hasClass('blocklabel-single')) {
+        if($this.closest('.form-group').hasClass('blocklabel-single')) {
 
-        $this.closest('.blocklabel-single-container').find('.blocklabel-content').not('#' + $target).hide();
+          $this.closest('.blocklabel-single-container').find('.blocklabel-content').not('#' + $target).hide();
+        }
       }
     }
+
+
 
     if($disTarget && !$theTargetControl.attr('disabled')) {
       $theTargetControl.attr('disabled', true);
@@ -158,7 +170,7 @@ $(function() {
 
   $('.selectWithOptionTrigger').on('change', function() {
     var optionTrigger = $(this).find('.optionTrigger'),
-      optionTarget = $('#' + optionTrigger.attr('data-optiontrigger'));
+        optionTarget = $('#' + optionTrigger.attr('data-optiontrigger'));
 
     if(optionTrigger.is(':selected')) {
       optionTarget.show();
@@ -186,8 +198,8 @@ $(function() {
 
   $('.inpage-focus').on('click', function() {
     var $this      = $(this),
-      $target    = $this.attr('href'),
-      $targetFor = $($target).attr('for');
+        $target    = $this.attr('href'),
+        $targetFor = $($target).attr('for');
 
     $('#' + $targetFor).focus();
   });
@@ -211,37 +223,37 @@ $(function() {
 
   function characterCount(that) {
     var $this         = $(that),
-      $maxLength    = $this.attr('data-val-length-max'),
-      $enteredText  = $this.val(),
-      $lineBreaks   = ($enteredText.match(/\n/g) || []).length,
-      $lengthOfText = $enteredText.length + $lineBreaks,
-      $characterCount = Math.abs($maxLength - $lengthOfText),
-      $charCountEl  = $this.closest('.form-group').find('.maxchar-count'),
-      $charTextEl   = $this.closest('.form-group').find('.maxchar-text'),
-      $thisAria     = $this.closest('.form-group').find('.aria-limit');
+        $maxLength    = $this.attr('data-val-length-max'),
+        $enteredText  = $this.val(),
+        $lineBreaks   = ($enteredText.match(/\n/g) || []).length,
+        $lengthOfText = $enteredText.length + $lineBreaks,
+        $characterCount = Math.abs($maxLength - $lengthOfText),
+        $charCountEl  = $this.closest('.form-group').find('.maxchar-count'),
+        $charTextEl   = $this.closest('.form-group').find('.maxchar-text'),
+        $thisAria     = $this.closest('.form-group').find('.aria-limit');
 
     if($maxLength) {
-      $charCountEl.text($characterCount);
+        $charCountEl.text($characterCount);
     }
 
     if($lengthOfText > $maxLength) {
-      $charCountEl.parent().addClass('has-error');
-      $charTextEl.text(' characters over the limit');
-      $thisAria.text("Character limit has been reached, you must type fewer than " + $maxLength + " characters");
-      if ($characterCount == 1) {
-        $charTextEl.text(' character over the limit');
-      } else {
+        $charCountEl.parent().addClass('has-error');
         $charTextEl.text(' characters over the limit');
-      }
+        $thisAria.text("Character limit has been reached, you must type fewer than " + $maxLength + " characters");
+        if ($characterCount == 1) {
+            $charTextEl.text(' character over the limit');
+        } else {
+            $charTextEl.text(' characters over the limit');
+        }
     } else {
-      $charCountEl.parent().removeClass('has-error');
-      $charTextEl.text(' characters remaining');
-      $thisAria.text("");
-      if ($characterCount == 1) {
-        $charTextEl.text(' character remaining');
-      } else {
+        $charCountEl.parent().removeClass('has-error');
         $charTextEl.text(' characters remaining');
-      }
+        $thisAria.text("");
+        if ($characterCount == 1) {
+            $charTextEl.text(' character remaining');
+        } else {
+            $charTextEl.text(' characters remaining');
+        }
     }
   }
 
@@ -249,7 +261,7 @@ $(function() {
 
   $('[aria-expanded]').on('click', function() {
     var $this = $(this),
-      $controls = $(this).attr('aria-controls');
+        $controls = $(this).attr('aria-controls');
 
     if(!$this.parent().hasClass('selected')) {
       if($this.is('[aria-expanded="false"]')) {
@@ -275,70 +287,64 @@ $(function() {
   //------- Select to inject content to text input
 
   $('.select-inject').on('change', function () {
-    var $this = $(this),
-      $selectedOption = $this.find('option:selected'),
-      $thisOptionText = $selectedOption.text(),
-      $theInput = $this.closest('.form-group').find('.select-injected'),
-      $selectedVal = $selectedOption.val();
+      var $this = $(this),
+          $selectedOption = $this.find('option:selected'),
+          $thisOptionText = $selectedOption.text(),
+          $theInput = $this.closest('.form-group').find('.select-injected'),
+          $selectedVal = $selectedOption.val();
 
-    $theInput.val($thisOptionText);
+      $theInput.val($thisOptionText);
 
-    $('.selfServe').each(function() {
-      if($(this).prop('id') == $selectedVal) {
-        $(this).show();
-        $('.selfServe').not($(this)).hide();
+      $('.selfServe').each(function() {
+        if($(this).prop('id') == $selectedVal) {
+          $(this).show();
+          $('.selfServe').not($(this)).hide();
+        }
+      });
+
+      if($('#' + $selectedVal).length == 0) {
+        $('.selfServe').hide();
       }
-    });
 
-    if($('#' + $selectedVal).length == 0) {
-      $('.selfServe').hide();
-    }
+      if ($selectedVal == "noSelect") {
+          $theInput.val("");
+      }
 
-    if ($selectedVal == "noSelect") {
-      $theInput.val("");
-    }
-
-    $theInput.focusout();
+      $theInput.focusout();
   });
 
   //------- Password meter
 
   if($('.new-password').length) {
     var minChars = 9,
-      upperCase = new RegExp('[A-Z]'),
-      lowerCase = new RegExp('[a-z]'),
-      numbers = new RegExp('[0-9]'),
-      passInput = $('.new-password'),
-      confirmPass = $('.confirm-password'),
-      requiresUppercase = $('#includesUppercase'),
-      requiresLowercase = $('#includesLowercase'),
-      requiresNumber = $('#includesNumber'),
-      requires9Characters = $('#includes9Characters'),
-      upperIcon = requiresUppercase.find('.the-icon'),
-      lowerIcon = requiresLowercase.find('.the-icon'),
-      numberIcon = requiresNumber.find('.the-icon'),
-      char9Icon = requires9Characters.find('.the-icon');
+        upperCase = new RegExp('[A-Z]'),
+        lowerCase = new RegExp('[a-z]'),
+        numbers = new RegExp('[0-9]'),
+        passInput = $('.new-password'),
+        confirmPass = $('.confirm-password'),
+        requiresUppercase = $('#includesUppercase'),
+        requiresLowercase = $('#includesLowercase'),
+        requiresNumber = $('#includesNumber'),
+        requires9Characters = $('#includes9Characters'),
+        upperIcon = requiresUppercase.find('.the-icon'),
+        lowerIcon = requiresLowercase.find('.the-icon'),
+        numberIcon = requiresNumber.find('.the-icon'),
+        char9Icon = requires9Characters.find('.the-icon');
 
     // passInput.after('<p class="form-hint text strength-indicator hide-nojs">Password validation: <span id="pass_meter"></span></p>');
-    confirmPass.after('<div id="matchingHint" class="invisible"><p class="form-hint">Password matching: <span id="pass_match"></span></p></div>');
+    confirmPass.after('<div id="matchingHint" class="invisible"><p class="form-hint">&nbsp;<span id="pass_match"></span></p></div>');
 
     confirmPass.on('blur', function() {
-      var currentConfirmPassword = $(this).val();
-      var originalPassword = passInput.val();
-      if(currentConfirmPassword || originalPassword) {
-        $('#matchingHint').removeClass('invisible');
-        if(currentConfirmPassword === originalPassword) {
-          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').text("Your passwords match");
-        } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').text("Your passwords don't match");
-        }
+      $('#matchingHint').removeClass('invisible');
+      if($('#pass_match').hasClass('strength-weak')) {
+        $('#errorPassword').removeClass('hidden');
       }
     });
 
     passInput.keyup(function () {
       var passVal = $(this).val(),
-        passMeter = $("#pass_meter"),
-        matchVal = confirmPass.val();
+          passMeter = $("#pass_meter"),
+          matchVal = confirmPass.val();
 
       if(passVal.match(upperCase)) {
         requiresUppercase.addClass('strength-strong');
@@ -380,15 +386,19 @@ $(function() {
         char9Icon.addClass('fa-minus');
       }
 
+      if($('#passwordRequirements').find('.fa-minus').length === 0) {
+        $('#errorPassword').addClass('hidden');
+      }
+
       if(matchVal.length >= minChars) {
         if(matchVal.length == passVal.length) {
           if(matchVal === passVal) {
-            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').text("Your passwords match");
+            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html('<i class="fa fa-check"></i>Your passwords match');
           } else {
-            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').text("Your passwords don't match");
+            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
           }
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').text("Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
         }
       }
     });
@@ -397,55 +407,38 @@ $(function() {
       $('#passwordRequirements li').each(function() {
         if(!$(this).hasClass('strength-strong')) {
           $(this).addClass('strength-weak').find('.the-icon').removeClass('fa-minus').addClass('fa-times');
+
         }
       });
+
+      if($('#passwordRequirements').find('.fa-times').length === 0) {
+        if(!$('#pass_match').hasClass('strength-weak')) {
+          $('#errorPassword').addClass('hidden');
+        }
+      } else {
+        $('#errorPassword').removeClass('hidden');
+      }
     });
 
     confirmPass.keyup(function() {
       var passVal = passInput.val(),
-        matchVal = $(this).val();
+          matchVal = $(this).val();
 
       if(matchVal.length == passVal.length) {
-        if(matchVal === passVal) {
-          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').text("Your passwords match");
+        if(matchVal === passVal && $('#passwordRequirements').find('.fa-times').length === 0) {
+          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html('<i class="fa fa-check"></i>Your passwords match');
+          $('#errorPassword').addClass('hidden');
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').text("Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
         }
-      } else if(matchVal.length !== 0 ) {
-        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').text("Your passwords don't match");
+      } else {
+        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
       }
 
     });
   }
 
-  //------- Set personal details
 
-  $('#addressManualLink').on('click', function(e) {
-    e.preventDefault();
-
-    $('#addressManualInput').removeClass('disabled');
-    $('#address\\.line1').focus();
-  });
-
-  $('#outsideUk').on('change', function() {
-
-    $('#address\\.line1').val("");
-    $('#address_line2').val("");
-    $('#address_line3').val("");
-    $('#address_line4').val("");
-    $('#postCode').val("");
-
-    if($(this).is(':checked')) {
-      $('#addressManualInput').removeClass('disabled');
-      $('#postCode').closest('.form-group').addClass('toggle-content');
-      $('#postCode').closest('.form-group').prev('.form-group').removeClass('form-group-compound');
-    } else {
-      $('#postCode').closest('.form-group').removeClass('toggle-content');
-      $('#postCode').closest('.form-group').prev('.form-group').addClass('form-group-compound');
-    }
-
-    $('#address\\.line1').focus();
-  });
 
   //------- Inline details toggle
 
@@ -465,12 +458,29 @@ $(function() {
   //   });
   // }
 
-});;$(function() {
+});;/* 
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/ 
+
+
+$(function() {
   if($('#choosePrefLocFramHeading').length ) {
     var $selectedRegion = '',
-      $selectedRegionName = '',
-      $firstSchemeVal = $('#schemePref1').attr('data-scheme'),
-      $secondSchemeVal = $('#schemePref2').attr('data-scheme');
+        $selectedRegionName = '',
+        $firstSchemeVal = $('#schemePref1').attr('data-scheme'),
+        $secondSchemeVal = $('#schemePref2').attr('data-scheme');
 
     if(!$('.map-legend-container').hasClass('disabled') && !$('#regionSelect option[selected]').length) {
       // Animate map after 2 seconds
@@ -491,7 +501,7 @@ $(function() {
     // On hover highlight the region on the map and show region name
     $('.region-container').not($selectedRegion).hover(function() {
       var $this = $(this),
-        $regionName = $this.attr('id');
+          $regionName = $this.attr('id');
 
       $('.map-legend').show().removeClass('disabled');
       $('#hoveredRegionName').text($regionName);
@@ -517,12 +527,12 @@ $(function() {
     // Clicking region will fire the region selection panel
     $('.region-container').on('click', function(e) {
       var $this = $(this),
-        regionName = $this.attr('id');
-      regionObject = availableLocationsAndSchemes[regionName];
+          regionName = $this.attr('id');
+          regionObject = availableLocationsAndSchemes[regionName];
 
       var locationsInRegion = $.map(regionObject, function(value, key) {
-        return key;
-      });
+            return key;
+          });
 
       $selectedRegion = $this;
 
@@ -530,7 +540,7 @@ $(function() {
       e.preventDefault();
 
       $('#regionSelect').html('<option value="null">-- Choose a location in ' + regionName + ' --</option>')
-        .append('<optgroup id="regionOptGroup" class="' + regionName + '" data-optregion="' + regionName + '" label="' + regionName + '"/>');
+                        .append('<optgroup id="regionOptGroup" class="' + regionName + '" data-optregion="' + regionName + '" label="' + regionName + '"/>');
 
       $.each(locationsInRegion, function(i) {
         locationName = locationsInRegion[i];
@@ -607,9 +617,9 @@ $(function() {
     $("#regionSelect").on('change', function() {
       if($(this).val() != "null"){
         var selectedLocation = $(this).val(),
-          selectedRegion = $(this).find('option:selected').parent().attr('data-optregion'),
-          schemesInLocation = availableLocationsAndSchemes[selectedRegion][selectedLocation.split(";")[1]],
-          schemeOptionsAvailable = '<option value="" class="placeholder-option">Choose a scheme</option>'
+            selectedRegion = $(this).find('option:selected').parent().attr('data-optregion'),
+            schemesInLocation = availableLocationsAndSchemes[selectedRegion][selectedLocation.split(";")[1]],
+            schemeOptionsAvailable = '<option value="" class="placeholder-option">Choose a scheme</option>'
 
         //if first option is no longer available reset both scheme options
         if($.inArray($firstSchemeVal, schemesInLocation) == -1){
@@ -660,7 +670,7 @@ $(function() {
 
     if($('#schemePref1 option[selected]').length) {
       var $selectedPref1 = $('#schemePref1').val(),
-        $selectedPref2 = $('#schemePref2').val();
+          $selectedPref2 = $('#schemePref2').val();
 
       $('#schemePref1').find('option[value="' + $selectedPref2 + '"]').attr('disabled', true);
       $('#schemePref2').find('option[value="' + $selectedPref1 + '"]').attr('disabled', true);
@@ -728,14 +738,14 @@ $(function() {
   });
 
   $('.hidesContent').on('change', function(){
-    $('.hidingContent').hide();
-    $('.hidingContent').find(":checkbox").attr('checked', false);
-    $('.hidingContent').find('select').val("");
-    $('.hidingContent').find('select').attr('disabled', false);
+      $('.hidingContent').hide();
+      $('.hidingContent').find(":checkbox").attr('checked', false);
+      $('.hidingContent').find('select').val("");
+      $('.hidingContent').find('select').attr('disabled', false);
   });
 
   $('.showsContent').on('change', function(){
-    $('.hidingContent').show()
+      $('.hidingContent').show()
   });
 
   $('.hidesOccupations').on('change', function(){
@@ -748,7 +758,24 @@ $(function() {
   $('.showsOccupations').on('change', function(){
     $('.hidingOccupations').show()
   });
-});;$(function() {
+});;/* 
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/ 
+
+
+$(function() {
 
   //-- Faking details behaviour
 

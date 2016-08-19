@@ -1,6 +1,7 @@
 @(details: Form[_root_.forms.GeneralDetailsForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
 
 @import views.html.application.personalDetails.{contactDetails, nameAndDateOfBirth}
+@import views.html.application.fastPassDetails.fastPassDetailsPanel
 @import views.html.widgets.{pageProgress, saveAndContinueButton}
 
 @main_template(title = "Personal details", pageForms = Seq(details)) {
@@ -12,6 +13,7 @@
 
         @nameAndDateOfBirth(details)
         @contactDetails(details)
+        @fastPassDetailsPanel(details)
         @saveAndContinueButton()
     }
 }

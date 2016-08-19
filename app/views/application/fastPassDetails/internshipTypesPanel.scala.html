@@ -1,0 +1,15 @@
+@(form: Form[_root_.forms.GeneralDetailsForm.Data])(implicit lang: play.api.i18n.Lang)
+
+@import helpers.CSRFieldConstructor._
+@import _root_.forms.FastPassForm
+@import views.html.widgets.checkboxGroupWithTogglePanels
+
+<div id="fastPassDetails_fastPassType_DiversityInternship-panel" class="toggle-content" aria-hidden="true">
+    <h3 class="heading-medium">Summer/Early Diversity Internship Programme</h3>
+    <fieldset>
+        @checkboxGroupWithTogglePanels(form("fastPassDetails.internshipTypes"), FastPassForm.InternshipTypes,
+        'id -> "fastPassDetails.internshipTypes") {
+            @fastPassCertificatePanel(form)
+        }
+    </fieldset>
+</div>
