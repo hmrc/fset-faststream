@@ -136,9 +136,9 @@ class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results 
     }
   }
 
-  "Review application" should {
-    "mark the application as reviewed" in new TestFixture {
-      val result = TestApplicationController.review(ApplicationId)(reviewApplicationRequest(ApplicationId)(
+  "Preview application" should {
+    "mark the application as previewed" in new TestFixture {
+      val result = TestApplicationController.preview(ApplicationId)(previewApplicationRequest(ApplicationId)(
         s"""
            |{
            |  "flag": true
@@ -146,7 +146,7 @@ class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results 
         """.stripMargin
       ))
       status(result) must be(200)
-      verify(mockAuditService).logEvent(eqTo("ApplicationReviewed"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo("ApplicationPreviewed"))(any[HeaderCarrier], any[RequestHeader])
     }
   }
 
@@ -182,9 +182,9 @@ class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results 
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    def reviewApplicationRequest(applicationId: String)(jsonString: String) = {
+    def previewApplicationRequest(applicationId: String)(jsonString: String) = {
       val json = Json.parse(jsonString)
-      FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.review(applicationId).url, FakeHeaders(), json)
+      FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.preview(applicationId).url, FakeHeaders(), json)
         .withHeaders("Content-Type" -> "application/json")
     }
   }

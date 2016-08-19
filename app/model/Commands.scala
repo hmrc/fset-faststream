@@ -62,27 +62,27 @@ object Commands {
   )
 
   case class ProgressResponse(
-    applicationId: String,
-    personalDetails: Boolean = false,
-    schemePreferences: Boolean = false,
-    assistanceDetails: Boolean = false,
-    review: Boolean = false,
-    questionnaire: List[String] = Nil,
-    submitted: Boolean = false,
-    withdrawn: Boolean = false,
-    onlineTestInvited: Boolean = false,
-    onlineTestStarted: Boolean = false,
-    onlineTestCompleted: Boolean = false,
-    onlineTestExpired: Boolean = false,
-    onlineTestAwaitingReevaluation: Boolean = false,
-    onlineTestFailed: Boolean = false,
-    onlineTestFailedNotified: Boolean = false,
-    onlineTestAwaitingAllocation: Boolean = false,
-    onlineTestAllocationConfirmed: Boolean = false,
-    onlineTestAllocationUnconfirmed: Boolean = false,
-    failedToAttend: Boolean = false,
-    assessmentScores: AssessmentScores = AssessmentScores(),
-    assessmentCentre: AssessmentCentre = AssessmentCentre()
+                               applicationId: String,
+                               personalDetails: Boolean = false,
+                               schemePreferences: Boolean = false,
+                               assistanceDetails: Boolean = false,
+                               preview: Boolean = false,
+                               questionnaire: List[String] = Nil,
+                               submitted: Boolean = false,
+                               withdrawn: Boolean = false,
+                               onlineTestInvited: Boolean = false,
+                               onlineTestStarted: Boolean = false,
+                               onlineTestCompleted: Boolean = false,
+                               onlineTestExpired: Boolean = false,
+                               onlineTestAwaitingReevaluation: Boolean = false,
+                               onlineTestFailed: Boolean = false,
+                               onlineTestFailedNotified: Boolean = false,
+                               onlineTestAwaitingAllocation: Boolean = false,
+                               onlineTestAllocationConfirmed: Boolean = false,
+                               onlineTestAllocationUnconfirmed: Boolean = false,
+                               failedToAttend: Boolean = false,
+                               assessmentScores: AssessmentScores = AssessmentScores(),
+                               assessmentCentre: AssessmentCentre = AssessmentCentre()
   )
 
   case class Report(applicationId: String, progress: Option[String], firstLocation: Option[String],
@@ -224,7 +224,7 @@ object Commands {
   case class Question(question: String, answer: Answer)
   case class Questionnaire(questions: List[Question])
 
-  case class ReviewRequest(flag: Boolean)
+  case class PreviewRequest(flag: Boolean)
 
   case class AdjustmentManagement(adjustments: Option[List[String]], otherAdjustments: Option[String],
     timeNeeded: Option[Int], timeNeededNum: Option[Int])
@@ -284,7 +284,7 @@ object Commands {
     implicit val answerFormats = Json.format[Answer]
     implicit val questionFormats = Json.format[Question]
     implicit val questionnaireFormats = Json.format[Questionnaire]
-    implicit val reviewFormats = Json.format[ReviewRequest]
+    implicit val previewFormats = Json.format[PreviewRequest]
 
     implicit val tooManyEntriesFormat = Json.format[TooManyEntries]
     implicit val noResultsReturnedFormat = Json.format[NoResultsReturned]
