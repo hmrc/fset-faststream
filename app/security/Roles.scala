@@ -157,7 +157,7 @@ object Roles {
     ApplicationStartRole -> routes.HomeController.present(),
     PersonalDetailsRole -> routes.PersonalDetailsController.present(None),
     SchemesRole -> routes.SchemePreferencesController.present(),
-    AssistanceDetailsRole -> routes.AssistanceDetailsController.present,
+    AssistanceDetailsRole -> routes.AssistanceDetailsController.present(),
     QuestionnaireInProgressRole -> routes.QuestionnaireController.startOrContinue(),
     PreviewApplicationRole -> routes.PreviewApplicationController.present(),
     SubmitApplicationRole -> routes.PreviewApplicationController.present(),
