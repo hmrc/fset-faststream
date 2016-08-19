@@ -17,21 +17,21 @@
 package connectors.testdata
 
 import model.Commands.ApplicationAssessment
-import model.Preferences
+import model.{ Preferences, SelectedSchemes }
 import play.api.libs.json.Json
 
 object ExchangeObjects {
 
   case class DataGenerationResponse(
-    generationId: Int,
-    userId: String,
-    applicationId: Option[String],
-    email: String,
-    firstName: String,
-    lastName: String,
-    onlineTestProfile: Option[OnlineTestProfileResponse] = None,
-    applicationAssessment: Option[ApplicationAssessment] = None,
-    preferences: Option[Preferences] = None
+                                     generationId: Int,
+                                     userId: String,
+                                     applicationId: Option[String],
+                                     email: String,
+                                     firstName: String,
+                                     lastName: String,
+                                     onlineTestProfile: Option[OnlineTestProfileResponse] = None,
+                                     applicationAssessment: Option[ApplicationAssessment] = None,
+                                     schemePreferences: Option[SelectedSchemes] = None
   )
 
   case class OnlineTestProfileResponse(cubiksUserId: Int, token: String, onlineTestUrl: String)

@@ -25,6 +25,7 @@ import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import model.SchemeType._
 
 object DataFaker {
   object ExchangeObjects {
@@ -38,6 +39,21 @@ object DataFaker {
         throw new DataFakingException(s"There were no items left after filtering.")
       } else {
         util.Random.shuffle(filtered).head
+      }
+    }
+
+    def randList[T](options: List[T], size:Int, cannotBe: List[T] = Nil): List[T] = {
+      if (size > 0) {
+
+        val filtered = options.filterNot(cannotBe.contains)
+        if (filtered.isEmpty) {
+          throw new DataFakingException(s"There were no items left after filtering.")
+        } else {
+          val newItem = util.Random.shuffle(filtered).head
+          newItem :: randList(options, size - 1, newItem :: cannotBe)
+        }
+      } else {
+        Nil
       }
     }
 
@@ -95,8 +111,24 @@ object DataFaker {
       }
     }
 
-    def gender = randOne(List("Male", "Female"))
-    def sexualOrientation = randOne(List("Heterosexual/straight", "Gay woman/lesbian", "Gay man", "Bisexual", "Other"))
+    def schemeTypes = randList(List(
+      CentralDepartments, Commercial, DigitalAndTechnology, DiplomaticService, European, Finance,
+      GovernmentCommunicationService, GovernmentEconomicService, GovernmentOperationalResearchService,
+      GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
+      ProjectDelivery, ScienceAndEngineering, Tax),
+      5)
+
+    def gender = randOne(List(
+      "Male",
+      "Female",
+      "Other",
+      "I don't know/prefer not to say"))
+    def sexualOrientation = randOne(List(
+      "Heterosexual/straight",
+      "Gay/lesbian",
+      "Bisexual",
+      "Other",
+      "I don't know/prefer not to say"))
     def ethnicGroup = randOne(List(
       "English/Welsh/Scottish/Northern Irish/British",
       "Irish",
@@ -115,25 +147,64 @@ object DataFaker {
       "Caribbean",
       "Other Black/African/Caribbean background",
       "Arab",
-      "Other ethnic group"
+      "Other ethnic group",
+      "I don't know/prefer not to say"
     ))
-    def age11to16School = randOne(List("Blue Bees School", "Green Goblins School", "Magenta Monkeys School", "Zany Zebras School"))
-    def age16to18School = randOne(List("Advanced Skills School", "Extremely Advanced School", "A-Level Specialist School", "16 to 18 School"))
-    def homePostcode = randOne(List("AB1 2CD", "BC11 4DE", "CD6 2EF", "DE2F 1GH"))
+    def age14to16School = randOne(List("Blue Bees School", "Green Goblins School", "Magenta Monkeys School", "Zany Zebras School"))
+    def age16to18School = randOne(List("Advanced Skills School", "Extremely Advanced School", "A-Level Specialist School", "14 to 18 School"))
+    def university = randOne(List(
+      "Oxford",
+      "Cambridge",
+      "London",
+      "I don't know/prefer not to say"))
+    def degree = randOne(List(
+      "Combined",
+      "Agriculture &amp; Related Subjects",
+      "Architecture, Building &amp; Planning",
+      "Biological Sciences",
+      "Business &amp; Administrative Studies",
+      "Creative Arts &amp; Design",
+      "Computer Science", "Education",
+      "Engineering &amp; Technology",
+      "Humanities",
+      "Languages",
+      "Law",
+      "Librarianship &amp; Information Science",
+      "Mathematical Science",
+      "Medicine &amp; Dentistry",
+      "Subjects Allied to Medicine",
+      "Physical Science",
+      "Social, Economic &amp; Political Studies",
+      "Veterinary Sciences"))
+    def homePostcode = randOne(List("AB1 2CD", "BC11 4DE", "CD6 2EF", "DE2F 1GH", "I don't know/prefer not to say"))
     def yesNo = randOne(List("Yes", "No"))
-    def employeeOrSelf = randOne(List(Some("Employee"), None))
+    def yesNoPreferNotToSay = randOne(List("Yes", "No", "I don't know/prefer not say"))
+    def employeeOrSelf = randOne(List(
+      "Employee",
+      "Self-employeed with employees",
+      "Self-employed/freelancer without employees",
+      "I don't know/prefer not to say"))
     def sizeOfPlaceOfWork = randOne(List("Small (1 - 24 employees)", "Large (over 24 employees)"))
     def parentsOccupation = randOne(List(
       "Unemployed but seeking work",
       "Unemployed",
+      "Employeed/Self-employeed",
+      "I don't know/prefer not to say"
+    ))
+    def parentsOccupationDetails = randOne(List(
+      "Traditional professional",
       "Modern professional",
-      "Clerical and intermediate",
+      "Clerical (office work) and intermediate",
       "Senior managers and administrators",
       "Technical and craft",
-      "Semi-routine manual and service",
       "Routine manual and service",
-      "Middle or junior managers",
-      "Traditional professional"
+      "Semi-routine manual and service",
+      "Middle or junior managers"
+    ))
+    def sizeParentsEmployeer = randOne(List(
+      "Small (1 to 24 employees)",
+      "Large (over 24 employees)",
+      "I don't know/prefer not to say"
     ))
 
     def getFirstname(userNumber: Int) = {
