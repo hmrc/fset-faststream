@@ -16,8 +16,8 @@
 
 package model.command
 
-import model.Address
-import model.Commands.{PhoneNumber, PostCode}
+import model.{ Address, FastPassDetails }
+import model.Commands.{ PhoneNumber, PostCode }
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
@@ -29,7 +29,8 @@ case class UpdateGeneralDetails(firstName: String,
                                 outsideUk: Boolean,
                                 address: Address,
                                 postCode: Option[PostCode],
-                                phone: PhoneNumber)
+                                phone: PhoneNumber,
+                                fastPassDetails: FastPassDetails)
 
 object UpdateGeneralDetails {
   implicit val updateGeneralDetailsFormat = Json.format[UpdateGeneralDetails]

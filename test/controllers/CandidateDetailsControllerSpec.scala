@@ -16,9 +16,9 @@
 
 package controllers
 
-import model.Exceptions.{CannotUpdateContactDetails, CannotUpdateRecord, ContactDetailsNotFound, PersonalDetailsNotFound}
+import model.Exceptions._
 import model.command.UpdateGeneralDetailsExamples._
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
@@ -61,6 +61,17 @@ class CandidateDetailsControllerSpec extends BaseControllerSpec {
       verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
     }
 
+    "return Bad Request when CannotUpdateFastPassDetails is thrown" in {
+      when(mockCandidateDetailsService.update(AppId, UserId, CandidateContactDetailsUK))
+        .thenReturn(Future.failed(CannotUpdateFastPassDetails(AppId)))
+      reset(mockAuditService)
+
+      val response = controller.updateDetails(UserId, AppId)(Request)
+
+      status(response) mustBe BAD_REQUEST
+      verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
+    }
+
     "return Bad Request when CannotUpdateRecord is thrown" in {
       when(mockCandidateDetailsService.update(AppId, UserId, CandidateContactDetailsUK))
         .thenReturn(Future.failed(CannotUpdateRecord(UserId)))
@@ -82,6 +93,12 @@ class CandidateDetailsControllerSpec extends BaseControllerSpec {
 
     "return Not Found when contact details cannot be found" in {
       when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.failed(ContactDetailsNotFound(UserId)))
+      val response = controller.find(UserId, AppId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
+    }
+
+    "return Not Found when fast pass details cannot be found" in {
+      when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.failed(FastPassDetailsNotFound(AppId)))
       val response = controller.find(UserId, AppId)(fakeRequest)
       status(response) mustBe NOT_FOUND
     }

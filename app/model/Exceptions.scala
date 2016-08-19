@@ -27,6 +27,10 @@ object Exceptions {
 
   case class CannotUpdateRecord(applicationId: String) extends Exception(applicationId)
 
+  case class CannotUpdateFastPassDetails(applicationId: String) extends Exception(applicationId)
+
+  case class FastPassDetailsNotFound(applicationId: String) extends Exception(applicationId)
+
   case class CannotUpdateContactDetails(userId: String) extends Exception(userId)
 
   case class CannotUpdateAssistanceDetails(userId: String) extends Exception(userId)

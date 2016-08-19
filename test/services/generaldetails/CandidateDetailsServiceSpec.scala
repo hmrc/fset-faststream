@@ -16,34 +16,38 @@
 
 package services.generaldetails
 
-import model.ApplicationStatus
+import model.{ ApplicationStatus, FastPassDetails }
 import model.command.UpdateGeneralDetailsExamples._
 import model.persisted.ContactDetailsExamples._
 import model.persisted.PersonalDetailsExamples._
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import repositories.FastPassDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.{AuditService, BaseServiceSpec}
+import services.{ AuditService, BaseServiceSpec }
 
 import scala.concurrent.Future
 
 class CandidateDetailsServiceSpec extends BaseServiceSpec {
-  val mockPdRepository = mock[PersonalDetailsRepository]
-  val mockCdRepository = mock[ContactDetailsRepository]
+  val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
+  val mockContactDetailsRepository = mock[ContactDetailsRepository]
+  val mockFastPassDetailsRepository = mock[FastPassDetailsRepository]
   val mockAuditService = mock[AuditService]
 
   val service = new CandidateDetailsService {
-    val pdRepository = mockPdRepository
-    val cdRepository = mockCdRepository
+    val pdRepository = mockPersonalDetailsRepository
+    val cdRepository = mockContactDetailsRepository
+    val fpdRepository = mockFastPassDetailsRepository
     val auditService = mockAuditService
   }
 
   "update candidate" should {
     "update personal and contact details" in {
-      when(mockPdRepository.update(eqTo(AppId), eqTo(UserId), eqTo(JohnDoe), any[Seq[ApplicationStatus.Value]],
+      when(mockPersonalDetailsRepository.update(eqTo(AppId), eqTo(UserId), eqTo(JohnDoe), any[Seq[ApplicationStatus.Value]],
         any[ApplicationStatus.Value])).thenReturn(Future.successful(()))
-      when(mockCdRepository.update(UserId, ContactDetailsUK)).thenReturn(emptyFuture)
+      when(mockContactDetailsRepository.update(UserId, ContactDetailsUK)).thenReturn(emptyFuture)
+      when(mockFastPassDetailsRepository.update(AppId, CandidateContactDetailsUK.fastPassDetails)).thenReturn(emptyFuture)
 
       val response = service.update(AppId, UserId, CandidateContactDetailsUK)
 
@@ -53,8 +57,9 @@ class CandidateDetailsServiceSpec extends BaseServiceSpec {
 
   "find candidate" should {
     "return personal and contact details" in {
-      when(mockPdRepository.find(AppId)).thenReturn(Future.successful(JohnDoe))
-      when(mockCdRepository.find(UserId)).thenReturn(Future.successful(ContactDetailsUK))
+      when(mockPersonalDetailsRepository.find(AppId)).thenReturn(Future.successful(JohnDoe))
+      when(mockContactDetailsRepository.find(UserId)).thenReturn(Future.successful(ContactDetailsUK))
+      when(mockFastPassDetailsRepository.find(AppId)).thenReturn(Future.successful(FastPassDetails(applicable = false)))
 
       val response = service.find(AppId, UserId).futureValue
 
