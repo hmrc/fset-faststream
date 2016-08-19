@@ -1,11 +1,11 @@
 @(generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange,
-        assistanceDetails: model.exchange.AssistanceDetailsExchange,
-        schemesAndLocations: models.frameworks.LocationAndSchemeSelection,
+        assistanceDetails: connectors.exchange.AssistanceDetailsExchange,
+        schemePreferences: connectors.exchange.SelectedSchemes,
         applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
+@import views.html.application.previewapplication.{assistanceDetailsViewSection, generalDetailsViewSection, schemePreferencesViewSection, partnerGraduateProgrammesViewSection, diversityQuestionnaireViewSection}
 @import models.ApplicationData.ApplicationStatus._
 @import security.Roles._
-@import views.html.widgets.{assistanceViewSection, generalDetailsViewSection}
 
 @appNotReadOnly(body: Html)= {
     @if(!WithdrawApplicationRole.isAuthorized(user.get) && !WithdrawnApplicationRole.isAuthorized(user.get)) {@body}
@@ -16,32 +16,37 @@
 @user.user.firstName @user.user.lastName
 }
 
-@edit_link(navigation: play.api.mvc.Call) = {
+@edit_link(id: String, navigation: play.api.mvc.Call) = {
     @if(!ApplicationData.isReadOnly(user.get.application.get.applicationStatus)) {
-        <a class="icon-with-text" href="@navigation"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+        <a id="@id" class="icon-with-text" href="@navigation"><i class="the-icon fa fa-pencil"></i><span class="the-text">
             Edit <span class="visuallyhidden editSection"></span> section</span></a>
     }
 }
 
-@main_template(title = "View your application") {
+@main_template(title = "Check your application") {
 
     <div class="text">
         <h1 class="heading-xlarge" id="checkApplicationHeading">
             @(applicationData.applicationStatus match {
                 case SUBMITTED => "View your submitted application"
                 case WITHDRAWN => "View your withdrawn application"
-                case _ => "Review your application before you continue"
+                case _ => "Check your application"
             })
         </h1>
     </div>
 
-    @generalDetailsViewSection(generalDetails)(edit_link(routes.PersonalDetailsController.present(None)))
+    @generalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", routes.PersonalDetailsController.present(None)))
 
-    @assistanceViewSection(assistanceDetails)(edit_link(routes.AssistanceDetailsController.present()))
+    @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", routes.SchemePreferencesController.present()))
 
+    @partnerGraduateProgrammesViewSection()
+
+    @assistanceDetailsViewSection(assistanceDetails)(edit_link("editAssistanceDetails", routes.AssistanceDetailsController.present()))
+
+    @diversityQuestionnaireViewSection()
 
     @appNotReadOnly {
-        @helper.form(action = routes.ReviewApplicationController.submit(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.PreviewApplicationController.submit(), 'novalidate -> "novalidate") {
             @helper.CSRF.formField
             <div>
                 <button id="submit" type="submit" value="submit" class="button">Save and continue</button>

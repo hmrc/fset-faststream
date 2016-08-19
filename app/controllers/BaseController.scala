@@ -54,7 +54,7 @@ abstract class BaseController(applicationClient: ApplicationClient) extends Fron
   }
 
   val redirectReadOnlyApplication = Future.successful {
-    Redirect(routes.ReviewApplicationController.present()).flashing(warning("info.application.readonly"))
+    Redirect(routes.PreviewApplicationController.present()).flashing(warning("info.application.readonly"))
   }
 
   def updateProgress[A](additionalChanges: CachedData => CachedData = { d => d })(onUpdate: CachedData => A)(

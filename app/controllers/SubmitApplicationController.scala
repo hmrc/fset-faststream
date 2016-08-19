@@ -16,7 +16,6 @@
 
 package controllers
 
-import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
 import helpers.NotificationType._
@@ -26,11 +25,9 @@ import security.Roles.{ SubmitApplicationRole, WithdrawApplicationRole }
 
 import scala.concurrent.Future
 
-object SubmitApplicationController extends SubmitApplicationController(ApplicationClient) {
-  val http = CSRHttp
-}
+object SubmitApplicationController extends SubmitApplicationController(ApplicationClient)
 
-abstract class SubmitApplicationController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class SubmitApplicationController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
@@ -54,7 +51,7 @@ abstract class SubmitApplicationController(applicationClient: ApplicationClient)
             data.copy(application = data.application.map(_.copy(applicationStatus = SUBMITTED))))(_ =>
             Redirect(routes.SubmitApplicationController.success()))
         }.recover {
-          case _: CannotSubmit => Redirect(routes.ReviewApplicationController.present()).flashing(danger("error.cannot.submit"))
+          case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present()).flashing(danger("error.cannot.submit"))
         }
       } else {
         Future.successful(Ok(views.html.home.submit_disabled(CachedData(user.user, Some(user.application)))))

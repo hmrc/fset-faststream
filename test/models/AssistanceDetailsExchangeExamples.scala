@@ -16,11 +16,10 @@
 
 package models
 
-import play.api.libs.json.Json
+import connectors.exchange.AssistanceDetailsExchange
 
-
-case class SelectedSchemes(schemes: List[String], orderAgreed: Boolean, eligible: Boolean, alternatives: Boolean)
-
-object SelectedSchemes {
-    implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
+object AssistanceDetailsExchangeExamples {
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetailsExchange("Yes", Some(""), Some(false), false, None, false, None)
+  val DisabilityGisAndAdjustments = AssistanceDetailsExchange("Yes", Some("disability description"), Some(true), true,
+    Some("online adjustment description xxx"), true, Some("venue adjustment description yyy"))
 }

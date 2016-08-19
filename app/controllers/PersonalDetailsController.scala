@@ -17,28 +17,24 @@
 package controllers
 
 import _root_.forms.GeneralDetailsForm
-import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.{ApplicationClient, UserManagementClient}
-import helpers.NotificationType._
-import mappings.{Address, DayMonthYear}
+import connectors.{ ApplicationClient, UserManagementClient }
+import mappings.{ Address, DayMonthYear }
 import models.ApplicationData.ApplicationStatus._
 import org.joda.time.LocalDate
 import security.Roles.PersonalDetailsRole
 
 import scala.concurrent.Future
 
-object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, UserManagementClient) {
-  val http = CSRHttp
-}
+object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, UserManagementClient)
 
-abstract class PersonalDetailsController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
+class PersonalDetailsController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
   extends BaseController(applicationClient) {
 
   def present(start: Option[String] = None) = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
     implicit user =>
       implicit val now: LocalDate = LocalDate.now
-      applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
+      applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
         val form = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
           gd.firstName,
           gd.lastName,
@@ -84,9 +80,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient, u
             ))(_ => Redirect(routes.SchemePreferencesController.present()))
           } yield {
             redirect
-          }) recover {
-            case e: PersonalDetailsNotFound => Redirect(routes.HomeController.present()).flashing(danger("account.error"))
-          }
+          })
         }
       )
   }
