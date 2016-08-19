@@ -18,7 +18,7 @@ package controllers
 
 import _root_.forms.AssistanceDetailsForm
 import connectors.ApplicationClient
-import connectors.ApplicationClient.AssistanceDetailsNotFound
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord }
 import connectors.exchange.AssistanceDetailsExchange
 import helpers.NotificationType._
 import security.Roles.AssistanceDetailsRole
@@ -49,9 +49,6 @@ class AssistanceDetailsController(applicationClient: ApplicationClient) extends 
         data => {
           applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID, sanitizeData(data)).flatMap { _ =>
             updateProgress()(_ => Redirect(routes.QuestionnaireController.startOrContinue()))
-          }.recover {
-            case e: AssistanceDetailsNotFound =>
-              Redirect(routes.HomeController.present()).flashing(danger("account.error"))
           }
         }
       )

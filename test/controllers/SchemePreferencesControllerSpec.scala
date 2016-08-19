@@ -16,14 +16,14 @@
 
 package controllers
 
-import connectors.SchemeClient.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
-import connectors.{ApplicationClient, SchemeClient}
-import models.CachedData
-import org.mockito.Matchers.{eq => eqTo, _}
+import connectors.SchemeClient.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
+import connectors.{ ApplicationClient, SchemeClient }
+import models.{ CachedData, ProgressResponseExamples, SchemePreferencesExchangeExamples }
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import _root_.forms.SelectedSchemesForm._
 import connectors.ExchangeObjects.ApplicationResponse
-import connectors.exchange.{ProgressResponseExamples, SelectedSchemes}
+import connectors.exchange.SelectedSchemes
 import models.ApplicationData.ApplicationStatus
 import models.services.UserService
 import play.api.test.Helpers._
@@ -59,9 +59,8 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
     }
 
     "populate selected schemes for the candidate" in {
-      val selectedSchemes = SelectedSchemes(List("Finance", "Europe"), orderAgreed = true, eligible = true, alternatives = false)
       when(schemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(selectedSchemes))
+        .thenReturn(Future.successful(SchemePreferencesExchangeExamples.DefaultSelectedSchemes))
       val result = controllerUnderTest.present(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
@@ -91,25 +90,6 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       val result = controllerUnderTest.submit(request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
-    }
-
-    "fail updating scheme preferences details" in {
-      val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "European", "orderAgreed" -> "true",
-        "eligible" -> "true", "alternatives" -> "false")
-      val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
-        currentUserId, ProgressResponseExamples.InProgress)
-      val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true, alternatives = "false")
-
-      when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.failed(new CannotUpdateSchemePreferences))
-      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(currentCandidate))
-      when(applicationClient.findApplication(eqTo(currentUserId), any[String])(any[HeaderCarrier]))
-        .thenReturn(Future.successful(applicationResponse))
-
-      val result = controllerUnderTest.submit(request)
-      status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))
-      flash(result).data must be (Map("danger" -> "Problem while updating your scheme preferences"))
     }
   }
 

@@ -16,16 +16,15 @@
 
 package controllers
 
-import com.github.tomakehurst.wiremock.client.WireMock.{any => _}
+import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.exchange.ProgressResponseExamples
-import connectors.{ApplicationClient, UserManagementClient}
+import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.GeneralDetailsFormExamples._
 import models.ApplicationData.ApplicationStatus
-import models.GeneralDetailsExchangeExamples
+import models.{ GeneralDetailsExchangeExamples, ProgressResponseExamples }
 import models.services.UserService
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -88,17 +87,6 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))
-    }
-
-    "fail updating the candidate when person cannot be found" in {
-      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidUKAddressForm),
-        eqTo(currentEmail))(any[HeaderCarrier])).thenReturn(Future.failed(new PersonalDetailsNotFound))
-
-      val result = controller.submitGeneralDetails()(Request)
-
-      assertPageRedirection(result, routes.HomeController.present().url)
-      flash(result).data must be (Map("danger" -> "account.error"))
     }
   }
 }

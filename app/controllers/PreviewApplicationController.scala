@@ -16,7 +16,7 @@
 
 package controllers
 
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PersonalDetailsNotFound }
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
@@ -30,13 +30,13 @@ class PreviewApplicationController(applicationClient: ApplicationClient, schemeC
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
       val personalDetailsFut = applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
-      val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
       val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
+      val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
 
       (for {
         gd <- personalDetailsFut
-        ad <- assistanceDetailsFut
         sp <- schemePreferencesFut
+        ad <- assistanceDetailsFut
       } yield {
         Ok(views.html.application.preview(gd, ad, sp, user.application))
       }).recover {

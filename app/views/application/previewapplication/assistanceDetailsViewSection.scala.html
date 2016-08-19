@@ -7,12 +7,12 @@
     </h2>
     <section>
         <h3 class="heading-small">Do you consider yourself to have a disability?</h3>
-        <p>@assistanceDetails.hasDisability</p>
+        <p id="hasDisability">@assistanceDetails.hasDisability</p>
         @if(assistanceDetails.hasDisability)  {
-            <p>@assistanceDetails.hasDisabilityDescription</p>
+            <p id="hasDisabilityDescription">@assistanceDetails.hasDisabilityDescription</p>
             @assistanceDetails.guaranteedInterview.map { gis =>
                 <h3 class="heading-small">Would you like to apply under the guaranteed interview scheme?</h3>
-                <p>
+                <p id="guaranteedInterview">
                 @{
                 if(gis) {
                     "Yes"
@@ -28,8 +28,8 @@
         <h3 class="heading-small">Will you need extra support for your online exercises?</h3>
         @assistanceDetails.needsSupportForOnlineAssessment match {
             case true => {
-                <p>Yes</p>
-                <p>@assistanceDetails.needsSupportForOnlineAssessmentDescription</p>
+                <p id="needsSupportForOnlineAssessment">Yes</p>
+                <p id="needsSupportForOnlineAssessmentDescription">@assistanceDetails.needsSupportForOnlineAssessmentDescription</p>
             }
             case false => {
                 <p>No</p>
@@ -40,8 +40,8 @@
         <h3 class="heading-small">Will you need extra support at the assessment centre?</h3>
         @assistanceDetails.needsSupportAtVenue match {
             case true => {
-                <p>Yes</p>
-                <p>@assistanceDetails.needsSupportAtVenueDescription</p>
+                <p id="needsSupportAtVenue">Yes</p>
+                <p id="needsSupportAtVenueDescription">@assistanceDetails.needsSupportAtVenueDescription</p>
             }
             case false => {
                 <p>No</p>
