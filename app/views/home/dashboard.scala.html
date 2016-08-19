@@ -9,7 +9,9 @@
 @import org.joda.time.format._
 @import org.joda.time.{DateTime, LocalDate}
 @import security.Roles._
+@import security.RoleUtils._
 @import security.QuestionnaireRoles._
+
 @import views.html.widgets.onlineTestProgress
 
 @confirmAllocationExpired = @{
@@ -91,20 +93,20 @@
                                     @withdraw(false) {
                                         @renderProgressElement(showLink = PersonalDetailsRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.present(None)) {Add personal details }
                                         @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose locations and schemes }
-                                        @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr), checked = ReviewRole.isAuthorized(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Tell us about any assistance needs you may have }
-                                        @renderProgressElement(showLink = ReviewRole.isAuthorized(usr), checked = (SubmitApplicationRole.isAuthorized(usr) || QuestionnaireInProgressRole.isAuthorized(usr)), "reviewStep")(routes.ReviewApplicationController.present()) { Check your application }
-                                        @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.startOrContinue()) { Fill in the diversity questions }
+                                        @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Tell us about any assistance needs you may have }
+                                        @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = PreviewApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.startOrContinue()) { Fill in the diversity questions }
+                                        @renderProgressElement(showLink = PreviewApplicationRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "previewStep")(routes.PreviewApplicationController.present()) { Check your application }
                                         @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = WithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.present()) { Submit }
                                     }
                                 </ul>
                             }
                             @withdraw() {
-                                <a class="" id="view-application" href="@routes.ReviewApplicationController.present()">
+                                <a class="" id="view-application" href="@routes.PreviewApplicationController.present()">
                                     View your submitted application</a>
                             }
 
                             @withdrawn() {
-                                <a class="" id="view-withdrawn-application" href="@routes.ReviewApplicationController.present()">
+                                <a class="" id="view-withdrawn-application" href="@routes.PreviewApplicationController.present()">
                                     View your withdrawn application</a>
                             }
 

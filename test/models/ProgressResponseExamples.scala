@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package connectors.exchange
+package models
 
 import java.util.UUID
 
-import models.UniqueIdentifier
+import connectors.exchange.ProgressResponse
 
 object ProgressResponseExamples {
-  val EmptyProgress = ProgressResponse(UniqueIdentifier(UUID.randomUUID().toString), false, false, false, false, Nil, false, false, false,
+  val Initial = ProgressResponse(UniqueIdentifier(UUID.randomUUID().toString), false, false, false, false, Nil, false, false, false,
     false, false, false, false, false, false, false, false, false, false)
-  val InProgress = EmptyProgress.copy(personalDetails = true)
-  val InPersonalDetails = EmptyProgress.copy(personalDetails = true)
+  val InProgress = Initial.copy(personalDetails = true)
+  val InPersonalDetails = Initial.copy(personalDetails = true)
   val InFrameworkDetails = InPersonalDetails.copy(schemePreferences = true)
   val InAssistanceDetails = InFrameworkDetails.copy(assistanceDetails = true)
-
+  val InQuestionnaire = InAssistanceDetails.copy(questionnaire = List("start_questionnaire", "diversity_questionnaire",
+    "education_questionnaire", "occupation_questionnaire"))
+  val InPreview = InQuestionnaire.copy(preview = true)
 }

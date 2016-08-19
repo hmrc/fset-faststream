@@ -20,27 +20,27 @@ import models.UniqueIdentifier
 import play.api.libs.json.Json
 
 case class ProgressResponse(
-  applicationId: UniqueIdentifier,
-  personalDetails: Boolean,
-  schemePreferences: Boolean,
-  assistanceDetails: Boolean,
-  review: Boolean,
-  questionnaire: List[String],
-  submitted: Boolean,
-  withdrawn: Boolean,
-  onlineTestInvited: Boolean,
-  onlineTestStarted: Boolean,
-  onlineTestCompleted: Boolean,
-  onlineTestExpired: Boolean,
-  onlineTestAwaitingReevaluation: Boolean,
-  onlineTestFailed: Boolean,
-  onlineTestFailedNotified: Boolean,
-  onlineTestAwaitingAllocation: Boolean,
-  onlineTestAllocationConfirmed: Boolean,
-  onlineTestAllocationUnconfirmed: Boolean,
-  failedToAttend: Boolean,
-  assessmentScores: AssessmentScores = AssessmentScores(),
-  assessmentCentre: AssessmentCentre = AssessmentCentre()
+                             applicationId: UniqueIdentifier,
+                             personalDetails: Boolean,
+                             schemePreferences: Boolean,
+                             assistanceDetails: Boolean,
+                             preview: Boolean,
+                             questionnaire: List[String],
+                             submitted: Boolean,
+                             withdrawn: Boolean,
+                             onlineTestInvited: Boolean,
+                             onlineTestStarted: Boolean,
+                             onlineTestCompleted: Boolean,
+                             onlineTestExpired: Boolean,
+                             onlineTestAwaitingReevaluation: Boolean,
+                             onlineTestFailed: Boolean,
+                             onlineTestFailedNotified: Boolean,
+                             onlineTestAwaitingAllocation: Boolean,
+                             onlineTestAllocationConfirmed: Boolean,
+                             onlineTestAllocationUnconfirmed: Boolean,
+                             failedToAttend: Boolean,
+                             assessmentScores: AssessmentScores = AssessmentScores(),
+                             assessmentCentre: AssessmentCentre = AssessmentCentre()
 )
 
 case class AssessmentScores(

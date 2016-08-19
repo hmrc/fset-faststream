@@ -17,20 +17,17 @@
 package controllers
 
 import _root_.forms.AssistanceDetailsForm
-import config.CSRHttp
 import connectors.ApplicationClient
-import connectors.ApplicationClient.AssistanceDetailsNotFound
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord }
+import connectors.exchange.AssistanceDetailsExchange
 import helpers.NotificationType._
-import model.exchange.AssistanceDetailsExchange
 import security.Roles.AssistanceDetailsRole
 
 import scala.concurrent.Future
 
-object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient) {
-  val http = CSRHttp
-}
+object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient)
 
-abstract class AssistanceDetailsController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class AssistanceDetailsController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
@@ -52,9 +49,6 @@ abstract class AssistanceDetailsController(applicationClient: ApplicationClient)
         data => {
           applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID, sanitizeData(data)).flatMap { _ =>
             updateProgress()(_ => Redirect(routes.QuestionnaireController.startOrContinue()))
-          }.recover {
-            case e: AssistanceDetailsNotFound =>
-              Redirect(routes.HomeController.present()).flashing(danger("account.error"))
           }
         }
       )

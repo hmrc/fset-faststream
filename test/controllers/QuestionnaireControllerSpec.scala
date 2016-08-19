@@ -39,8 +39,8 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
 
   "start" should {
     "load start page when the questionnaire is not started already" in {
-      val applicationReviewed = candidateWithApp.application.progress.copy(review = true)
-      val result = controllerUnderTest(applicationReviewed).startOrContinue()(fakeRequest)
+      val applicationPreviewed = candidateWithApp.application.progress.copy(preview = true)
+      val result = controllerUnderTest(applicationPreviewed).startOrContinue()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include ("We have a few more questions before you submit your application")

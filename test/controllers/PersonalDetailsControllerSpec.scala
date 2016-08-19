@@ -16,16 +16,15 @@
 
 package controllers
 
-import com.github.tomakehurst.wiremock.client.WireMock.{any => _}
+import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.exchange.ProgressResponseExamples
-import connectors.{ApplicationClient, UserManagementClient}
+import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.GeneralDetailsFormExamples._
 import models.ApplicationData.ApplicationStatus
-import models.GeneralDetailsExchangeExamples
+import models.{ GeneralDetailsExchangeExamples, ProgressResponseExamples }
 import models.services.UserService
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -49,7 +48,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
   "present" should {
     "load general details page for the new user" in {
-      when(applicationClient.findPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(applicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
       val result = controller.present()(fakeRequest)
@@ -59,7 +58,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "load general details page for the already created personal details" in {
-      when(applicationClient.findPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(applicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(GeneralDetailsExchangeExamples.FullDetails))
 
       val result = controller.present()(fakeRequest)

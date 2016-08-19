@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package model.exchange
+package connectors.exchange
 
 import forms.AssistanceDetailsForm
 import play.api.libs.json.Json

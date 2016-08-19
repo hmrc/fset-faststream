@@ -49,10 +49,7 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
             redirect <- refreshCachedUser().map(_ => Redirect(routes.AssistanceDetailsController.present()))
           } yield {
             redirect
-          }) recover {
-            case e: CannotUpdateSchemePreferences => Redirect(routes.SchemePreferencesController.present())
-              .flashing(danger("schemes.error"))
-          }
+          })
         }
     )
   }
