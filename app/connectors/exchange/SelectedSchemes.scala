@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package connectors.exchange
 
 import play.api.libs.json.Json
 

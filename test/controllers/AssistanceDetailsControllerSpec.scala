@@ -17,16 +17,15 @@
 package controllers
 
 import _root_.forms.AssistanceDetailsFormExamples
-import com.github.tomakehurst.wiremock.client.WireMock.{any => _}
+import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.ApplicationClient
-import connectors.ApplicationClient.AssistanceDetailsNotFound
-import connectors.exchange.ProgressResponseExamples
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord }
 import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
-import models.{AssistanceDetailsExchangeExamples, CachedDataExample, CachedDataWithApp, SecurityUserExamples}
+import models._
 import models.services.UserService
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -37,7 +36,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
    // This is the implicit user
    override def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
-    CachedDataExample.InFrameworkDetailsApplication.copy(userId = ActiveCandidate.user.userID))
+    CachedDataExample.InSchemePreferencesApplication.copy(userId = ActiveCandidate.user.userID))
 
   "present" should {
     "load assistance details page for the new user" in new TestFixture {
@@ -53,7 +52,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
     "load assistance details page for the already created assistance details" in new TestFixture {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments ))
+        .thenReturn(Future.successful(AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments))
 
       val result = controller.present()(fakeRequest)
 
@@ -74,28 +73,14 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InAssistanceDetails))
       val Application = currentCandidateWithApp.application
-        .copy(progress = ProgressResponseExamples.InAssistanceDetails, applicationStatus = ApplicationStatus.IN_PROGRESS)
+        .copy(progress = ProgressResponseExamples.InAssistanceDetails)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(mockUserService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
 
       val result = controller.submit()(Request)
 
       status(result) must be(SEE_OTHER)
-//      redirectLocation(result) must be(Some(routes.ReviewApplicationController.present().url))
       redirectLocation(result) must be(Some(routes.QuestionnaireController.startOrContinue().url))
-    }
-
-    "fail updating the candidate when person cannot be found" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
-      when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
-        eqTo(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsForm))(any[HeaderCarrier])).
-        thenReturn(Future.failed(new AssistanceDetailsNotFound))
-
-      val result = controller.submit()(Request)
-
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.HomeController.present().url))
-      flash(result).data must be (Map("danger" -> "account.error"))
     }
   }
 

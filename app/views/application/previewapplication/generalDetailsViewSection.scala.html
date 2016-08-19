@@ -1,9 +1,8 @@
 @(generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange)(edit: Html)
 
-
 <section class="section-border">
     <h2 class="heading-large">
-        <span class="sectionTitle">Your details</span>
+        <span class="sectionTitle">Personal details</span>
         @edit
     </h2>
     <section>
@@ -11,7 +10,7 @@
         <p id="fullName">@generalDetails.firstName @generalDetails.lastName </p>
     </section>
     <section>
-        <h3 class="heading-small">What should we call you?</h3>
+        <h3 class="heading-small">Preferred name</h3>
         <p id="preferredName">@generalDetails.preferredName</p>
     </section>
     <section>
@@ -36,5 +35,9 @@
         @if(generalDetails.phone.isEmpty) {
             <p id="phone-input3">No number provided</p>
         }
+    </section>
+    <section>
+        <h3 class="heading-small">Are you currently a civil servant or been on our internship programme?</h3>
+        <p>TODO</p>
     </section>
 </section>
