@@ -22,7 +22,7 @@ import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.ApplicationNotFound
+import model.Exceptions.{ ApplicationNotFound, CannotUpdateAssistanceDetails, CannotUpdatePreview }
 import model.PersistedObjects.ApplicationForNotification
 import model._
 import org.joda.time.format.DateTimeFormat
@@ -62,7 +62,7 @@ trait GeneralApplicationRepository {
 
   def withdraw(applicationId: String, reason: WithdrawApplicationRequest): Future[Unit]
 
-  def review(applicationId: String): Future[Unit]
+  def preview(applicationId: String): Future[Unit]
 
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
 
@@ -165,7 +165,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
         personalDetails = getProgress("personal-details"),
         schemePreferences = getProgress("scheme-preferences"),
         assistanceDetails = getProgress("assistance-details"),
-        review = getProgress("review"),
+        preview = getProgress("preview"),
         questionnaire = questionnaire,
         submitted = getProgress("submitted"),
         withdrawn = getProgress("withdrawn"),
@@ -323,15 +323,21 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     }
   }
 
-  override def review(applicationId: String): Future[Unit] = {
+  override def preview(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      "progress-status.review" -> true
+      "progress-status.preview" -> true
     ))
 
-    collection.update(query, applicationStatusBSON, upsert = false) map {
+    collection.update(query, applicationStatusBSON, upsert = true) map {
+      case result if result.nModified == 0 && result.n == 0 =>
+        logger.error(
+          s"""Failed to write assistance details for application: $applicationId ->
+             |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
+        throw CannotUpdatePreview(applicationId)
       case _ => ()
     }
+
   }
 
   override def overallReportNotWithdrawn(frameworkId: String): Future[List[Report]] =

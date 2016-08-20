@@ -73,7 +73,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = Future.successful(Unit)
 
-  override def review(applicationId: String): Future[Unit] = Future.successful(Unit)
+  override def preview(applicationId: String): Future[Unit] = Future.successful(Unit)
 
   override def findByCriteria(lastName: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] =
     Future.successful(List.empty[Candidate])

@@ -35,21 +35,23 @@ object Exceptions {
 
   case class CannotUpdateAssistanceDetails(userId: String) extends Exception(userId)
 
+  case class CannotUpdateSchemePreferences(applicationId: String) extends Exception(applicationId)
+
+  case class CannotUpdatePreview(applicationId: String) extends Exception(applicationId)
+
   case class PersonalDetailsNotFound(applicationId: String) extends Exception(applicationId)
+
+  case class ContactDetailsNotFound(userId: String) extends Exception(userId)
 
   case class SchemePreferencesNotFound(applicationId: String) extends Exception(applicationId)
 
-  case class CannotUpdateSchemePreferences(applicationId: String) extends Exception(applicationId)
+  case class AssistanceDetailsNotFound(id: String) extends Exception(id)
 
   case class ApplicationNotFound(id: String) extends Exception(id)
 
   case class PassMarkSettingsNotFound() extends Exception
 
-  case class ContactDetailsNotFound(userId: String) extends Exception(userId)
-
   case class CannotAddMedia(userId: String) extends Exception(userId)
-
-  case class AssistanceDetailsNotFound(id: String) extends Exception(id)
 
   case class TooManyEntries(msg: String) extends Exception(msg)
 
