@@ -20,6 +20,7 @@ import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, Ap
 import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
+import model.FastPassDetails
 import model.PersistedObjects.ApplicationForNotification
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
@@ -39,7 +40,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
     val applicationId = java.util.UUID.randomUUID().toString
     val applicationCreated = ApplicationResponse(applicationId, "CREATED", userId,
-      ProgressResponse(applicationId))
+      ProgressResponse(applicationId), None)
 
     inMemoryRepo += applicationId -> applicationCreated
     Future.successful(applicationCreated)
@@ -57,7 +58,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
     case _ =>
       val applicationId = "1111-1111"
       val applicationCreated = ApplicationResponse(applicationId, "CREATED", userId,
-        ProgressResponse(applicationId))
+        ProgressResponse(applicationId), None)
       Future.successful(applicationCreated)
   }
 

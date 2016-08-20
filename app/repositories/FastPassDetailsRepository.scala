@@ -29,6 +29,8 @@ import scala.concurrent.Future
 
 trait FastPassDetailsRepository {
 
+  val FastPassDetailsDocumentKey = "fastpass-details"
+
   def update(applicationId: String, fastPassDetails: FastPassDetails): Future[Unit]
 
   def find(applicationId: String): Future[FastPassDetails]
@@ -38,7 +40,6 @@ trait FastPassDetailsRepository {
 class FastPassDetailsMongoRepository(implicit mongo: () => DB) extends
   ReactiveRepository[FastPassDetails, BSONObjectID]("application", mongo, FastPassDetails.fastPassDetailsFormat,
     ReactiveMongoFormats.objectIdFormats) with FastPassDetailsRepository {
-  val FastPassDetailsDocumentKey = "fastpass-details"
 
   override def update(applicationId: String, fastPassDetails: FastPassDetails): Future[Unit] = {
 
