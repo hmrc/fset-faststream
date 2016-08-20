@@ -16,14 +16,14 @@
 
 package controllers
 
-import connectors.SchemeClient.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
+import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
 import models.{ CachedData, ProgressResponseExamples, SchemePreferencesExchangeExamples }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import _root_.forms.SelectedSchemesForm._
 import connectors.ExchangeObjects.ApplicationResponse
-import connectors.exchange.SelectedSchemes
+import connectors.exchange.FastPassDetails
 import models.ApplicationData.ApplicationStatus
 import models.services.UserService
 import play.api.test.Helpers._
@@ -78,7 +78,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "European", "orderAgreed" -> "true",
         "eligible" -> "true", "alternatives" -> "false")
       val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
-        currentUserId, ProgressResponseExamples.InProgress)
+        currentUserId, ProgressResponseExamples.InProgress, Some(false))
       val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true, alternatives = "false")
 
       when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))

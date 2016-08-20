@@ -19,11 +19,11 @@ package models.page
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.page.DashboardPage.ProgressStepVisibility
-import models.{ApplicationData, CachedData, Progress}
+import models.{ ApplicationData, CachedData, Progress }
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import security.RoleUtils
-import security.Roles.DisplayOnlineTestSectionRole
+import security.Roles.{ DisplayOnlineTestSectionRole, FastPassDetailsRole }
 
 // format: OFF
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
@@ -107,7 +107,11 @@ object DashboardPage {
 
   private def activeApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang): DashboardPage = {
     val firstStep = if (RoleUtils.activeUserWithApp(user)) ProgressActive else ProgressInactive
-    val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user)) ProgressActive else ProgressInactive
+    val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || FastPassDetailsRole.isAuthorized(user)) {
+      ProgressActive
+    } else {
+      ProgressInactive
+    }
     val isStatusOnlineTestFailedNotified = user.application.exists(_.applicationStatus == ApplicationStatus.ONLINE_TEST_FAILED_NOTIFIED)
     val thirdStep = if (isStatusOnlineTestFailedNotified) ProgressInactiveDisabled else ProgressInactive
     val fourthStep = if (isStatusOnlineTestFailedNotified) ProgressInactiveDisabled else ProgressInactive
