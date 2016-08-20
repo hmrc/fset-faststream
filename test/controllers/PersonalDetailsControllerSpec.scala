@@ -88,16 +88,5 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))
     }
-
-    "fail updating the candidate when person cannot be found" in {
-      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
-        eqTo(ValidUKAddressForm.toExchange(currentEmail)))(any[HeaderCarrier])).thenReturn(Future.failed(new PersonalDetailsNotFound))
-
-      val result = controller.submitGeneralDetails()(Request)
-
-      assertPageRedirection(result, routes.HomeController.present().url)
-      flash(result).data must be (Map("danger" -> "account.error"))
-    }
   }
 }

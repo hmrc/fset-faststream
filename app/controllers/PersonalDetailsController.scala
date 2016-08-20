@@ -89,6 +89,6 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
       )
   }
 
-  private val removePostCodeWhenOutsideUK = (generalDetails: GeneralDetailsForm.Data) =>
+  private def removePostCodeWhenOutsideUK(generalDetails: GeneralDetailsForm.Data) =
     if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(postCode = None) else generalDetails
 }
