@@ -54,11 +54,11 @@ class ApplicationStatusOrderSpec extends PlaySpec {
     }
   }
 
-  "a reviewed application" should {
-    "return reviewed" in {
+  "a previewed application" should {
+    "return previewed" in {
       val customProgress = progress.copy(withdrawn = false, submitted = false,
         questionnaire = Nil)
-      ApplicationStatusOrder.getStatus(customProgress) must be("review_completed")
+      ApplicationStatusOrder.getStatus(customProgress) must be("preview_completed")
     }
   }
 

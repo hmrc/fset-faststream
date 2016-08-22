@@ -33,7 +33,7 @@ trait InProgressPreviewStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- appRepository.review(candidateInPreviousStatus.applicationId.get)
+      _ <- appRepository.preview(candidateInPreviousStatus.applicationId.get)
     } yield {
       candidateInPreviousStatus
     }
