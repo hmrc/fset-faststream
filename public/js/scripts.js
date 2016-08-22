@@ -17,6 +17,10 @@
 
 $(function() {
 
+  // Variable used to track if there are any outstanding actions that webdriver should wait for during
+  // the acceptance test runs
+  window.csrActive = 0;
+
   var isMobile = {
     Android: function() {
         return navigator.userAgent.match(/Android/i);
@@ -53,6 +57,17 @@ $(function() {
   }
 
   isAndroid();
+
+  // Fixes intermittent bug where a form submitted with errors sometimes takes the user back
+  // to last place on page rather than to error summary
+  if($('#validation-summary').is(':visible')) {
+     window.csrActive++;
+     setTimeout(function()
+     {
+       window.scrollTo(0, 0);
+       window.csrActive--;
+     }, 200);
+  }
 
   $('.nav-menu__trigger').on('click', function() {
     $(this).next('.nav-menu__items').toggleClass('toggle-content');
