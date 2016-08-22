@@ -21,7 +21,6 @@ import model._
 import model.persisted.{ContactDetails, PersonalDetails }
 import org.joda.time.LocalDate
 import repositories._
-import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -32,11 +31,13 @@ object InProgressPersonalDetailsStatusGenerator extends InProgressPersonalDetail
   override val previousStatusGenerator = CreatedStatusGenerator
   override val pdRepository = faststreamPersonalDetailsRepository
   override val cdRepository = faststreamContactDetailsRepository
+  override val fpdRepository = fastPassDetailsRepository
 }
 
 trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
+  val fpdRepository: FastPassDetailsRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
@@ -50,7 +51,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
     def getContactDetails(candidateInformation: DataGenerationResponse) = {
       ContactDetails(
-        false,
+        outsideUk = false,
         Address("123, Fake street"),
         Some("AB1 2CD"),
         candidateInformation.email,
@@ -63,6 +64,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       _ <- pdRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
         getPersonalDetails(candidateInPreviousStatus), List(model.ApplicationStatus.CREATED), model.ApplicationStatus.IN_PROGRESS)
       _ <- cdRepository.update(candidateInPreviousStatus.userId, getContactDetails(candidateInPreviousStatus))
+      _ <- fpdRepository.update(candidateInPreviousStatus.applicationId.get, FastPassDetails(applicable = false))
     } yield {
       candidateInPreviousStatus
     }
