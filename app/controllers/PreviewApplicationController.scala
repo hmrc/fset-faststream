@@ -16,49 +16,41 @@
 
 package controllers
 
-import config.CSRHttp
-import connectors.ApplicationClient.{AssistanceDetailsNotFound, PersonalDetailsNotFound}
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.{ApplicationClient, SchemeClient}
+import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
-import security.QuestionnaireRoles._
-import models.frameworks.LocationAndSchemeSelection
-import security.Roles.ReviewRole
+import security.Roles.PreviewApplicationRole
 
-object ReviewApplicationController extends ReviewApplicationController(ApplicationClient) {
-  val http = CSRHttp
-}
+object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, SchemeClient)
 
-abstract class ReviewApplicationController(applicationClient: ApplicationClient) extends BaseController(applicationClient) with SchemeClient {
+class PreviewApplicationController(applicationClient: ApplicationClient, schemeClient: SchemeClient) extends
+  BaseController(applicationClient) {
 
-  def present = CSRSecureAppAction(ReviewRole) { implicit request =>
+  def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
-      val personalDetailsFut = applicationClient.findPersonalDetails(user.user.userID, user.application.applicationId)
+      val personalDetailsFut = applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
+      val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
       val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
 
       (for {
         gd <- personalDetailsFut
+        sp <- schemePreferencesFut
         ad <- assistanceDetailsFut
       } yield {
-        Ok(views.html.application.review(gd, ad, LocationAndSchemeSelection.empty, user.application))
+        Ok(views.html.application.preview(gd, ad, sp, user.application))
       }).recover {
         case e @ (_: PersonalDetailsNotFound | _: AssistanceDetailsNotFound | _: SchemePreferencesNotFound) =>
-          Redirect(routes.HomeController.present()).flashing(warning("info.cannot.review.yet"))
+          Redirect(routes.HomeController.present()).flashing(warning("info.cannot.preview.yet"))
       }
   }
 
-  def submit = CSRSecureAppAction(ReviewRole) { implicit request =>
+  def submit = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
-      applicationClient.updateReview(user.application.applicationId).flatMap { _ =>
+      applicationClient.updatePreview(user.application.applicationId).flatMap { _ =>
         updateProgress() { usr =>
-          if (QuestionnaireInProgressRole.isAuthorized(usr)) {
-            Redirect(routes.QuestionnaireController.startOrContinue())
-          } else {
             Redirect(routes.SubmitApplicationController.present())
-          }
         }
       }
-
   }
-
 }
