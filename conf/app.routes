@@ -4,6 +4,12 @@
 POST        /personal-details/:userId/:applicationId                     controllers.CandidateDetailsController.updateDetails(userId: String, applicationId: String)
 GET         /personal-details/:userId/:applicationId                     controllers.CandidateDetailsController.find(userId: String, applicationId: String)
 
+GET         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.find(applicationId: String)
+PUT         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.update(applicationId: String)
+
+GET         /partner-graduate-programmes/:applicationId                  controllers.PartnerGraduateProgrammesController.find(applicationId: String)
+PUT         /partner-graduate-programmes/:applicationId                  controllers.PartnerGraduateProgrammesController.update(applicationId: String)
+
 PUT         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.update(userId: String, applicationId: String)
 GET         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.find(userId: String, applicationId: String)
 
@@ -17,9 +23,6 @@ PUT         /application/withdraw/:applicationId                         control
 PUT         /application/confirm/adjustment/:applicationId               controllers.ApplicationController.confirmAdjustment(applicationId:String)
 
 PUT         /media/create                                                controllers.MediaController.addMedia()
-
-GET         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.find(applicationId: String)
-PUT         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.update(applicationId: String)
 
 PUT         /pass-mark-settings/create                                   controllers.OnlineTestPassMarkSettingsController.createPassMarkSettings
 GET         /pass-mark-settings/getLatestVersion                         controllers.OnlineTestPassMarkSettingsController.getLatestVersion

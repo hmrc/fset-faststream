@@ -20,6 +20,7 @@ object ProgressStatuses {
   val RegisteredProgress = "registered"
   val PersonalDetailsCompletedProgress = "personal_details_completed"
   val SchemePreferencesCompletedProgress = "scheme_preferences_completed"
+  val PartnerGraduateProgrammesCompletedProgress = "partner_graduate_programmes_completed"
   val AssistanceDetailsCompletedProgress = "assistance_details_completed"
   val PreviewCompletedProgress = "preview_completed"
   val StartDiversityQuestionnaireProgress = "start_diversity_questionnaire"
