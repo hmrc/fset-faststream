@@ -71,6 +71,10 @@ error.postcode.invalid = You''ve entered an invalid postcode
 error.phone.required = Add a phone number in case we need to contact you
 error.phoneNumber.format = You''ve entered an invalid phone number
 
+#partner graduate programmes
+error.interested.required = Tell us if you are interested in any partner programme
+error.partnerGraduateProgrammes.chooseone = You must choose at least one partner programme
+
 #assistance
 error.hasDisability.required=Tell us if you consider yourself to have a disability
 error.hasDisabilityDescription.required=

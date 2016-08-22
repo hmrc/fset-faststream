@@ -24,6 +24,7 @@ import scala.language.implicitConversions
 case class Progress(
                      personalDetails: Boolean,
                      schemePreferences: Boolean,
+                     partnerGraduateProgrammes: Boolean,
                      assistanceDetails: Boolean,
                      preview: Boolean,
                      startedQuestionnaire: Boolean,
@@ -64,6 +65,7 @@ object Progress {
     Progress(
       personalDetails = progressResponse.personalDetails,
       schemePreferences = progressResponse.schemePreferences,
+      partnerGraduateProgrammes = progressResponse.partnerGraduateProgrammes,
       assistanceDetails = progressResponse.assistanceDetails,
       preview = progressResponse.preview,
       startedQuestionnaire = progressResponse.questionnaire.contains("start_questionnaire"),
@@ -74,16 +76,16 @@ object Progress {
       withdrawn = progressResponse.withdrawn,
 
       onlineTest = OnlineTestProgress(
-        onlineTestInvited = progressResponse.onlineTestInvited,
-        onlineTestStarted = progressResponse.onlineTestStarted,
-        onlineTestCompleted = progressResponse.onlineTestCompleted,
-        onlineTestExpired = progressResponse.onlineTestExpired,
-        onlineTestAwaitingReevaluation = progressResponse.onlineTestAwaitingReevaluation,
-        onlineTestFailed = progressResponse.onlineTestFailed,
-        onlineTestFailedNotified = progressResponse.onlineTestFailedNotified,
-        onlineTestAwaitingAllocation = progressResponse.onlineTestAwaitingAllocation,
-        onlineTestAllocationConfirmed = progressResponse.onlineTestAllocationConfirmed,
-        onlineTestAllocationUnconfirmed = progressResponse.onlineTestAllocationUnconfirmed
+        onlineTestInvited = progressResponse.onlineTest.onlineTestInvited,
+        onlineTestStarted = progressResponse.onlineTest.onlineTestStarted,
+        onlineTestCompleted = progressResponse.onlineTest.onlineTestCompleted,
+        onlineTestExpired = progressResponse.onlineTest.onlineTestExpired,
+        onlineTestAwaitingReevaluation = progressResponse.onlineTest.onlineTestAwaitingReevaluation,
+        onlineTestFailed = progressResponse.onlineTest.onlineTestFailed,
+        onlineTestFailedNotified = progressResponse.onlineTest.onlineTestFailedNotified,
+        onlineTestAwaitingAllocation = progressResponse.onlineTest.onlineTestAwaitingAllocation,
+        onlineTestAllocationConfirmed = progressResponse.onlineTest.onlineTestAllocationConfirmed,
+        onlineTestAllocationUnconfirmed = progressResponse.onlineTest.onlineTestAllocationUnconfirmed
       ),
 
       failedToAttend = progressResponse.failedToAttend,

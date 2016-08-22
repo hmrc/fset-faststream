@@ -128,7 +128,7 @@ object DashboardPageSpec {
     templateCachedData.copy(application = updatedApplication)
   }
 
-  val EmptyProgress = Progress(false, false, false, false, false, false, false, false, false, false,
+  val EmptyProgress = Progress(false, false, false, false, false, false, false, false, false, false, false,
     OnlineTestProgress(false, false, false, false, false, false, false, false, false, false),
     false, AssessmentScores(false, false), AssessmentCentre(false, false))
 

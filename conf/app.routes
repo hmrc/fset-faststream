@@ -38,8 +38,12 @@ POST        /application/confirm-allocation                         controllers.
 GET         /application/details                                    controllers.PersonalDetailsController.present(start: Option[String])
 POST        /application/details                                    controllers.PersonalDetailsController.submitGeneralDetails
 
+GET         /application/partner-graduate-programmes                controllers.PartnerGraduateProgrammesController.present
+POST        /application/partner-graduate-programmes                controllers.PartnerGraduateProgrammesController.submit
+
 GET         /application/schemes                                    controllers.SchemePreferencesController.present
 POST        /application/schemes                                    controllers.SchemePreferencesController.submit
+
 
 GET         /application/assistance-details                         controllers.AssistanceDetailsController.present
 POST        /application/assistance-details                         controllers.AssistanceDetailsController.submit
