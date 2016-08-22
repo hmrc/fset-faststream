@@ -20,7 +20,7 @@ import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -29,7 +29,9 @@ import scala.concurrent.Future
 
 trait PersonalDetailsRepository {
   def update(appId: String, userId: String, personalDetails: PersonalDetails,
-             sourceStatuses: Seq[ApplicationStatus.Value], targetStatus: ApplicationStatus.Value): Future[Unit]
+             requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit]
+
+  def updateWithoutStatusChange(appid: String, userId: String, personalDetails: PersonalDetails): Future[Unit]
 
   def find(appId: String): Future[PersonalDetails]
 }
@@ -48,6 +50,20 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
 
     val personalDetailsBSON = BSONDocument("$set" -> BSONDocument(
       "applicationStatus" -> newApplicationStatus,
+      "progress-status.personal-details" -> true,
+      PersonalDetailsCollection -> personalDetails
+    ))
+
+    collection.update(query, personalDetailsBSON, upsert = false) map (_ => ())
+  }
+
+  def updateWithoutStatusChange(appid: String, userId: String, personalDetails: PersonalDetails): Future[Unit] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> appid, "userId" -> userId),
+      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN))
+    ))
+
+    val personalDetailsBSON = BSONDocument("$set" -> BSONDocument(
       "progress-status.personal-details" -> true,
       PersonalDetailsCollection -> personalDetails
     ))
