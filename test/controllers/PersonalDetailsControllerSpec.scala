@@ -73,7 +73,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "update candidate's details" in {
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidUKAddressForm),
-        eqTo(currentEmail))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+        eqTo(currentEmail), eqTo(true))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       when(userManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
         eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       when(applicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -83,7 +83,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
 
-      val result = controller.submitGeneralDetails()(Request)
+      val result = controller.submitGeneralDetailsAndContinue()(Request)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))

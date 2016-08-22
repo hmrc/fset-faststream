@@ -19,10 +19,14 @@ package controllers
 import _root_.forms.GeneralDetailsForm
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
+import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.ApplicationData.ApplicationStatus._
+import models.CachedDataWithApp
 import org.joda.time.LocalDate
-import security.Roles.PersonalDetailsRole
+import play.api.mvc.{ Request, Result }
+import security.Roles.{ EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -31,58 +35,74 @@ object PersonalDetailsController extends PersonalDetailsController(ApplicationCl
 class PersonalDetailsController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
   extends BaseController(applicationClient) {
 
-  def present(start: Option[String] = None) = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
+  def presentAndContinue = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
-      implicit val now: LocalDate = LocalDate.now
-      applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
-        val form = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
-          gd.firstName,
-          gd.lastName,
-          gd.preferredName,
-          gd.dateOfBirth,
-          Some(gd.outsideUk),
-          gd.address,
-          gd.postCode,
-          gd.phone
-        ))
-        Ok(views.html.application.generalDetails(form))
-
-      }.recover {
-        case e: PersonalDetailsNotFound =>
-          val formFromUser = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
-            user.user.firstName,
-            user.user.lastName,
-            user.user.firstName,
-            DayMonthYear.emptyDate,
-            outsideUk = None,
-            address = Address.EmptyAddress,
-            postCode = None,
-            phone = None
-          ))
-          Ok(views.html.application.generalDetails(formFromUser))
-      }
+      personalDetails(continue = true)
   }
 
-  def submitGeneralDetails = CSRSecureAppAction(PersonalDetailsRole) { implicit request =>
+  def present = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
-      implicit val now: LocalDate = LocalDate.now
-      GeneralDetailsForm.form.bindFromRequest.fold(
-        errorForm => {
-          Future.successful(Ok(views.html.application.generalDetails(errorForm)))
-        },
-        gd => {
-          (for {
-            _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID,
-              removePostCodeWhenOutsideUK(gd), user.user.email)
-            _ <- userManagementClient.updateDetails(user.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
-            redirect <- updateProgress(data => data.copy(user = user.user.copy(firstName = gd.firstName, lastName = gd.lastName,
-              preferredName = Some(gd.preferredName)), application = data.application.map(_.copy(applicationStatus = IN_PROGRESS))
-            ))(_ => Redirect(routes.SchemePreferencesController.present()))
-          } yield {
-            redirect
-          })
-        }
-      )
+      personalDetails(continue = false)
+  }
+
+  private def personalDetails(continue: Boolean)(implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Result] = {
+    implicit val now: LocalDate = LocalDate.now
+    applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
+      val form = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
+        gd.firstName,
+        gd.lastName,
+        gd.preferredName,
+        gd.dateOfBirth,
+        Some(gd.outsideUk),
+        gd.address,
+        gd.postCode,
+        gd.phone
+      ))
+      Ok(views.html.application.generalDetails(form, continue))
+
+    }.recover {
+      case e: PersonalDetailsNotFound =>
+        val formFromUser = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
+          user.user.firstName,
+          user.user.lastName,
+          user.user.firstName,
+          DayMonthYear.emptyDate,
+          outsideUk = None,
+          address = Address.EmptyAddress,
+          postCode = None,
+          phone = None
+        ))
+        Ok(views.html.application.generalDetails(formFromUser, continue))
+    }
+  }
+
+  def submitGeneralDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
+    implicit user =>
+      submit(updateStatus = true, Redirect(routes.SchemePreferencesController.present()))
+  }
+
+  def submitGeneralDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
+    implicit user =>
+      submit(updateStatus = false, Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")))
+  }
+
+  private def submit(updateStatus: Boolean, redirectOnSuccess: Result)(
+    implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
+    implicit val now: LocalDate = LocalDate.now
+    GeneralDetailsForm.form.bindFromRequest.fold(
+      errorForm => Future.successful(Ok(views.html.application.generalDetails(errorForm, updateStatus))),
+      gd => for {
+        _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID,
+          removePostCodeWhenOutsideUK(gd), user.user.email, updateStatus)
+        _ <- userManagementClient.updateDetails(user.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
+        redirect <- updateProgress(data => data.copy(user = user.user.copy(firstName = gd.firstName, lastName = gd.lastName,
+          preferredName = Some(gd.preferredName)), application =
+          if (updateStatus) data.application.map(_.copy(applicationStatus = IN_PROGRESS)) else data.application
+        ))(_ => redirectOnSuccess)
+      } yield {
+        redirect
+      }
+    )
   }
 
   private def removePostCodeWhenOutsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
