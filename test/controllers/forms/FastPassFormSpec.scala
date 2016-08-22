@@ -27,18 +27,21 @@ class FastPassFormSpec extends PlaySpec {
       val form = fastPassForm.bind(Map("applicable" -> "false"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
+      form.value.get mustBe Data("false")
     }
 
     "be valid when fast pass is applicable and fast pass type is CivilServant" in {
       val form = fastPassForm.bind(Map("applicable" -> "true", "fastPassType" -> "CivilServant"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
+      form.value.get mustBe Data("true", Some("CivilServant"))
     }
 
     "be valid when fast pass is applicable, fast pass type is DiversityInternship and internship type is " in {
       val form = fastPassForm.bind(Map("applicable" -> "true", "fastPassType" -> "DiversityInternship", "internshipTypes[0]" -> "EDIP"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
+      form.value.get mustBe Data("true", Some("DiversityInternship"), Some(Seq("EDIP")))
     }
 
     "be valid when fast pass is applicable, fast pass type is DiversityInternship, internship type is SDIPCurrentYear and " +
@@ -47,6 +50,7 @@ class FastPassFormSpec extends PlaySpec {
         "internshipTypes[0]" -> "SDIPCurrentYear", "fastPassReceived" -> "false"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
+      form.value.get mustBe Data("true", Some("DiversityInternship"), Some(Seq("SDIPCurrentYear")), Some(false))
     }
 
     "be valid when fast pass is applicable, fast pass type is DiversityInternship, internship type is SDIPCurrentYear, " +
@@ -55,6 +59,7 @@ class FastPassFormSpec extends PlaySpec {
         "internshipTypes[0]" -> "SDIPCurrentYear", "fastPassReceived" -> "true", "certificateNumber" -> "1234567"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
+      form.value.get mustBe Data("true", Some("DiversityInternship"), Some(Seq("SDIPCurrentYear")), Some(true), Some("1234567"))
     }
   }
 
