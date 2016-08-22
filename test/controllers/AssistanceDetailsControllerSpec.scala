@@ -65,7 +65,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
   }
 
   "submit assistance details" should {
-    "update candidate's details" in new TestFixture {
+    "update assistance details and redirect to questionnaire if questionnaire is not completed" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
       when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsForm))(any[HeaderCarrier])).thenReturn(Future.successful(()))
@@ -81,6 +81,31 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.QuestionnaireController.startOrContinue().url))
+    }
+
+    "update assistance details and redirect to preview if questionnaire is completed" in new TestFixture {
+      class TestableAssistanceDetailsControllerWithUserInQuestionnaire extends TestableAssistanceDetailsController
+         {
+        override val CandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
+          CachedDataExample.InQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
+      }
+      override def controller = new TestableAssistanceDetailsControllerWithUserInQuestionnaire
+
+      val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
+      when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+        eqTo(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsForm))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+
+      when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(ProgressResponseExamples.InQuestionnaire))
+      val Application = currentCandidateWithApp.application
+        .copy(progress = ProgressResponseExamples.InQuestionnaire)
+      val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
+      when(mockUserService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
+
+      val result = controller.submit()(Request)
+
+      status(result) must be(SEE_OTHER)
+      redirectLocation(result) must be(Some(routes.PreviewApplicationController.present().url))
     }
   }
 
