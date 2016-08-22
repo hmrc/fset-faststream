@@ -35,16 +35,21 @@ object FastPassForm {
   val SDIPCurrentYear = "SDIPCurrentYear"
 
   val FastPassTypes = Seq(
-    CivilServant -> "I'm currently a civil servant",
-    CivilServantViaFastTrack -> "I'm currently a civil servant via the Fast Track",
-    DiversityInternship -> "I've completed SDIP or EDIP"
+    CivilServant -> Messages("fastPassType.CivilServant"),
+    CivilServantViaFastTrack -> Messages("fastPassType.CivilServantViaFastTrack"),
+    DiversityInternship -> Messages("fastPassType.DiversityInternship")
   )
 
   val InternshipTypes = Seq(
-    EDIP -> "Early Diversity Internship Programme",
-    SDIPPreviousYear -> "Summer Diversity Internship Programme (Previous years)",
-    SDIPCurrentYear -> "Summer Diversity Internship Programme 2016 (This year)"
+    EDIP -> Messages("internshipType.EDIP"),
+    SDIPPreviousYear -> Messages("internshipType.SDIPPreviousYear"),
+    SDIPCurrentYear -> Messages("internshipType.SDIPCurrentYear")
   )
+
+  val fastPassTypeRequiredMsg = Messages("error.fastPassType.required")
+  val internshipTypeRequiredMsg = Messages("error.internshipTypes.required")
+  val fastPassReceivedRequiredMsg = Messages("error.fastPassReceived.required")
+  val certificateNumberRequiredMsg = Messages("error.certificateNumber.required")
 
   val formQualifier = "fastPassDetails"
   val applicable = "applicable"
@@ -78,7 +83,7 @@ object FastPassForm {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       implicit val keyQualifier = getKeyQualifier(key)
       bindOptionalParam(data.isApplicable, data.isValidFastPassTypeSelected,
-        Messages("error.fastPassType.required"))(key, data.getFastPassType)
+        fastPassTypeRequiredMsg)(key, data.getFastPassType)
     }
 
     def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
@@ -89,7 +94,7 @@ object FastPassForm {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[Seq[String]]] = {
       implicit val keyQualifier = getKeyQualifier(key)
       bindOptionalParam(data.isDiversityInternshipSelected, data.isValidInternshipTypesSelected,
-        Messages("error.internshipTypes.required"))(key, data.getInternshipTypes)
+        internshipTypeRequiredMsg)(key, data.getInternshipTypes)
     }
 
     def unbind(key: String, value: Option[Seq[String]]): Map[String, String] = {
@@ -105,7 +110,7 @@ object FastPassForm {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[Boolean]] = {
       implicit val keyQualifier = getKeyQualifier(key)
       bindOptionalParam(data.isSDIPCurrentYearSelected, data.isFastPassReceivedValid,
-        Messages("error.fastPassReceived.required"))(key, data.getFastPassReceived.toBoolean)
+        fastPassReceivedRequiredMsg)(key, data.getFastPassReceived.toBoolean)
     }
 
     def unbind(key: String, value: Option[Boolean]): Map[String, String] = optionalParamToMap(key, value)
@@ -116,13 +121,13 @@ object FastPassForm {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       implicit val keyQualifier = getKeyQualifier(key)
       bindOptionalParam(data.isFastPassReceived, data.isCertificateNumberValid,
-        Messages("error.certificateNumber.required")) (key, data.getCertificateNumber)
+        certificateNumberRequiredMsg) (key, data.getCertificateNumber)
     }
 
     def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
   }
 
-  private def bindOptionalParam[T](dependencyCheck: => Boolean, validityCheck: => Boolean, errMsg: => String)
+  private def bindOptionalParam[T](dependencyCheck: Boolean, validityCheck: Boolean, errMsg: String)
                                   (key: String, value: => T):Either[Seq[FormError], Option[T]] =
     (dependencyCheck, validityCheck) match {
       case (true, false) => Left(List(FormError(key, errMsg)))

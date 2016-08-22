@@ -77,6 +77,12 @@ error.fastPassType.required = You must choose whether you are a civil servant or
 error.internshipTypes.required = You must choose a diversity internship programme
 error.fastPassReceived.required = Select whether or not you have received a fast pass
 error.certificateNumber.required = Enter your 7-digit certificate number
+fastPassType.CivilServant = I''m currently a civil servant
+fastPassType.CivilServantViaFastTrack = I''m currently a civil servant via the Fast Track
+fastPassType.DiversityInternship = I''ve completed SDIP or EDIP
+internshipType.EDIP = Early Diversity Internship Programme
+internshipType.SDIPPreviousYear = Summer Diversity Internship Programme (Previous years)
+internshipType.SDIPCurrentYear = Summer Diversity Internship Programme 2016 (This year)
 
 #assistance
 error.hasDisability.required=Tell us if you consider yourself to have a disability
