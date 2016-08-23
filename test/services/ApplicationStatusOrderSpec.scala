@@ -17,9 +17,8 @@
 package services
 
 import model.ApplicationStatusOrder
-import model.command.{ OnlineTestProgressResponse, ProgressResponse }
+import model.command.{ OnlineTestProgressResponse, ProgressResponse, ProgressResponseExamples }
 import org.scalatestplus.play.PlaySpec
-import model.ProgressResponseExamples
 
 class ApplicationStatusOrderSpec extends PlaySpec {
 

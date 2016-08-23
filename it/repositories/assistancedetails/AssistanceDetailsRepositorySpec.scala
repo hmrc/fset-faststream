@@ -1,7 +1,7 @@
 package repositories.assistancedetails
 
 import model.Exceptions.AssistanceDetailsNotFound
-import persisted.AssistanceDetailsExamples
+import model.persisted.AssistanceDetailsExamples
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import testkit.MongoRepositorySpec
@@ -17,7 +17,7 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
 
     "create new assistance details if they do not exist" in {
       val result = (for {
-        _ <- insert(BSONDocument(collectionName -> minimumApplicationBSON(applicationId(1), userId(1))))
+        _ <- insert(minimumApplicationBSON(applicationId(1), userId(1)))
         _ <- repository.update(userId(1), applicationId(1), AssistanceDetailsExamples.DisabilityGisAndAdjustments)
         ad <- repository.find(userId(1))
       } yield ad).futureValue
@@ -27,7 +27,7 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
 
     "update assistance details when they exist and find them successfully" in {
       val result = (for {
-        _ <- insert(BSONDocument(collectionName -> applicationBSONWithFullAssistanceDetails(applicationId(3), userId(3))))
+        _ <- insert(applicationBSONWithFullAssistanceDetails(applicationId(3), userId(3)))
         _ <- repository.update(userId(3), applicationId(3), AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments )
         ad <- repository.find(userId(3))
       } yield ad).futureValue
@@ -42,7 +42,6 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
       result mustBe AssistanceDetailsNotFound(userId(4))
     }
   }
-
 
   private def insert(doc: BSONDocument) = repository.collection.insert(doc)
 

@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package model
+package model.command
 
 import java.util.UUID
-
-import model.command.ProgressResponse
-import model.command.OnlineTestProgressResponse
-
 
 object ProgressResponseExamples {
   val Initial = ProgressResponse(UUID.randomUUID().toString, false, false, false, false, false, Nil, false, false,

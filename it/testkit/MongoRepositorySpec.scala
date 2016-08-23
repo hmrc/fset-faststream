@@ -60,6 +60,7 @@ trait MongoRepositorySpec extends PlaySpec with Inside with Inspectors with Scal
       super.withFixture(test)
     }
   }
+
 }
 
 trait IndexesReader {

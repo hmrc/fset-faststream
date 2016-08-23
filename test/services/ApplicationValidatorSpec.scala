@@ -17,11 +17,11 @@
 package services
 
 import model.PersistedObjects.PersonalDetails
-import model.{ApplicationValidator, LocationPreference, Preferences}
+import model.persisted.AssistanceDetailsExamples
+import model.{ ApplicationValidator, LocationPreference, Preferences }
 import org.joda.time.LocalDate
 import org.scalatestplus.play.PlaySpec
-import persisted.AssistanceDetailsExamples
-import repositories.FrameworkRepository.{CandidateHighestQualification, Framework, Location, Region}
+import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
 
 class ApplicationValidatorSpec extends PlaySpec {
 

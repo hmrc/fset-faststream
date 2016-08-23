@@ -16,12 +16,10 @@
 
 package services.assistancedetails
 
-import config.TestFixtureBase
 import model.command.AssistanceDetailsExchangeExamples
-import org.mockito.Matchers.{eq => eqTo}
+import model.persisted.AssistanceDetailsExamples
+import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
-import persisted.AssistanceDetailsExamples
-import repositories._
 import repositories.assistancedetails.AssistanceDetailsRepository
 import services.BaseServiceSpec
 
