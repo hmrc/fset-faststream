@@ -4,7 +4,7 @@
 @import views.html.widgets.{ pageProgress, saveAndContinueButton, radioBoxHorizontal, inputCheckboxGroup }
 @import helpers.CSRFieldConstructor._
 
-@main_template(title = "Disability and health conditions", pageForms = Seq(form)) {
+@main_template(title = "Partner graduate programmes", pageForms = Seq(form)) {
     @pageProgress(3, 8)
     <div class="text">
         <h1 class="heading-xlarge" id="assistanceDetailsHeading">Partner Graduate Programmes</h1>
@@ -29,9 +29,7 @@
 
                         <legend class="form-label">Choose any programmes you're interested in</legend>
                         <p class="text">We'll let them know your details so they can contact you</p>
-                        @inputCheckboxGroup(form("partnerGraduateProgrammes"), models.PartnerGraduateProgrammesTypes.seq,
-                            '_label -> "Select from the list of disabilities"
-                        )
+                        @inputCheckboxGroup(form("partnerGraduateProgrammes"), models.PartnerGraduateProgrammesTypes.seq)
                     </div>
                 </div>
             </fieldset>
