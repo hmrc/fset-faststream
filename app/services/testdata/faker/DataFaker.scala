@@ -115,7 +115,7 @@ object DataFaker {
       CentralDepartments, Commercial, DigitalAndTechnology, DiplomaticService, European, Finance,
       GovernmentCommunicationService, GovernmentEconomicService, GovernmentOperationalResearchService,
       GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
-      ProjectDelivery, ScienceAndEngineering, Tax),
+      ProjectDelivery, ScienceAndEngineering),
       5)
 
     def gender = randOne(List(
