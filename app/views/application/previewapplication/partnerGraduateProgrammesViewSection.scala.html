@@ -1,10 +1,24 @@
-@()
+@(partnerGraduateProgrammesExchange: connectors.exchange.PartnerGraduateProgrammesExchange)(edit: Html)
 
 <section class="section-border">
     <h2 class="heading-large">
         <span class="sectionTitle">Partner graduate programmes</span>
+        @edit
     </h2>
     <section>
         <h3 class="heading-small">Are you interested in a partner programme?</h3>
+        @partnerGraduateProgrammesExchange.interested match {
+            case true => {
+                <p id="interested">Yes</p>
+                <ul id="partnerGraduatesProgrammesList">
+                    @partnerGraduateProgrammesExchange.partnerGraduateProgrammes.map(_.map { programme => {
+                    <li>{programme}</li>
+                }})
+                </ul>
+            }
+            case false => {
+                <p>No</p>
+            }
+        }
     </section>
 </section>
