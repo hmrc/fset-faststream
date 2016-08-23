@@ -24,7 +24,7 @@ $(function()
         '14th preference',
         '15th preference'
       ];
-    console.log(preferencesAsText[firstEmptyPosition]);
+
     $('[data-schemename]').on('change', function()
       {
         var $this = $(this),

@@ -30,6 +30,20 @@ class SelectedSchemesFormSpec extends PlaySpec {
        form.hasGlobalErrors mustBe false
     }
 
+    "be valid when multiple schemes are selected" in {
+      val form = selectedSchemesForm.bind(Map(
+        "scheme_0" -> "Finance",
+        "scheme_1" -> "CentralDepartments",
+        "scheme_2" -> "Commercial",
+        "scheme_3" -> "DigitalAndTechnology",
+        "scheme_4" -> "DiplomaticService",
+        "scheme_5" -> "GovernmentOperationalResearchService",
+        "orderAgreed" -> "true",
+        "eligible" -> "true"))
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
+    }
+
     "be invalid when schemes are not supplied" in {
       val form = selectedSchemesForm.bind(Map("orderAgreed" -> "true",
         "eligible" -> "true"))
