@@ -35,18 +35,25 @@ object PersonalDetailsController extends PersonalDetailsController(ApplicationCl
 class PersonalDetailsController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
   extends BaseController(applicationClient) {
 
+  private sealed trait OnSuccess
+  private case object ContinueToNextStepInJourney extends OnSuccess
+  private case object RedirectToTheDashboard extends OnSuccess
+
   def presentAndContinue = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
-      personalDetails(continue = true)
+      personalDetails(afterSubmission = ContinueToNextStepInJourney)
   }
 
   def present = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
-      personalDetails(continue = false)
+      personalDetails(afterSubmission = RedirectToTheDashboard)
   }
 
-  private def personalDetails(continue: Boolean)(implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Result] = {
+  private def personalDetails(afterSubmission: OnSuccess)
+                             (implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Result] = {
     implicit val now: LocalDate = LocalDate.now
+    val continueToTheNextStep = continuetoTheNextStep(afterSubmission)
+
     applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
       val form = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
         gd.firstName,
@@ -58,7 +65,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
         gd.postCode,
         gd.phone
       ))
-      Ok(views.html.application.generalDetails(form, continue))
+      Ok(views.html.application.generalDetails(form, continueToTheNextStep))
 
     }.recover {
       case e: PersonalDetailsNotFound =>
@@ -72,32 +79,38 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
           postCode = None,
           phone = None
         ))
-        Ok(views.html.application.generalDetails(formFromUser, continue))
+        Ok(views.html.application.generalDetails(formFromUser, continueToTheNextStep))
     }
   }
 
   def submitGeneralDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
     implicit user =>
-      submit(updateStatus = true, Redirect(routes.SchemePreferencesController.present()))
+      submit(ContinueToNextStepInJourney, Redirect(routes.SchemePreferencesController.present()))
   }
 
   def submitGeneralDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
-      submit(updateStatus = false, Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")))
+      submit(RedirectToTheDashboard, Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")))
   }
 
-  private def submit(updateStatus: Boolean, redirectOnSuccess: Result)(
+  private def continuetoTheNextStep(onSuccess: OnSuccess) = onSuccess match {
+    case ContinueToNextStepInJourney => true
+    case RedirectToTheDashboard => false
+  }
+
+  private def submit(onSuccess: OnSuccess, redirectOnSuccess: Result)(
     implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
     implicit val now: LocalDate = LocalDate.now
+
     GeneralDetailsForm.form.bindFromRequest.fold(
-      errorForm => Future.successful(Ok(views.html.application.generalDetails(errorForm, updateStatus))),
+      errorForm => Future.successful(Ok(views.html.application.generalDetails(errorForm, continuetoTheNextStep(onSuccess)))),
       gd => for {
         _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID,
-          removePostCodeWhenOutsideUK(gd), user.user.email, updateStatus)
+          removePostCodeWhenOutsideUK(gd), user.user.email, continuetoTheNextStep(onSuccess))
         _ <- userManagementClient.updateDetails(user.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
         redirect <- updateProgress(data => data.copy(user = user.user.copy(firstName = gd.firstName, lastName = gd.lastName,
           preferredName = Some(gd.preferredName)), application =
-          if (updateStatus) data.application.map(_.copy(applicationStatus = IN_PROGRESS)) else data.application
+          if (continuetoTheNextStep(onSuccess)) data.application.map(_.copy(applicationStatus = IN_PROGRESS)) else data.application
         ))(_ => redirectOnSuccess)
       } yield {
         redirect

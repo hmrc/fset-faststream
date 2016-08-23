@@ -22,7 +22,7 @@ import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.GeneralDetailsFormExamples._
 import models.ApplicationData.ApplicationStatus
-import models.{ GeneralDetailsExchangeExamples, ProgressResponseExamples }
+import models.{ CachedData, GeneralDetailsExchangeExamples, ProgressResponseExamples }
 import models.services.UserService
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -46,15 +46,16 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
   def controller = new TestablePersonalDetailsController
 
-  "present" should {
-    "load general details page for the new user" in {
+  "present and continue" should {
+    "load general details page for the new user and generate submit link for continue the journey" in {
       when(applicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
-      val result = controller.present()(fakeRequest)
+      val result = controller.presentAndContinue()(fakeRequest)
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
+      content must include(routes.PersonalDetailsController.submitGeneralDetailsAndContinue().url)
     }
 
     "load general details page for the already created personal details" in {
@@ -69,24 +70,55 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     }
   }
 
+  "present" should {
+    "load general details page for the new user and generate return to dashboard link" in {
+      when(applicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new PersonalDetailsNotFound))
+
+      val result = controller.presentAndContinue()(fakeRequest)
+      assertPageTitle(result, "Personal details")
+      val content = contentAsString(result)
+      content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
+      content must include(routes.PersonalDetailsController.submitGeneralDetails().url)
+    }
+  }
+
   "submit general details" should {
-    "update candidate's details" in {
-      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidUKAddressForm),
-        eqTo(currentEmail), eqTo(true))(any[HeaderCarrier])).thenReturn(Future.successful(()))
-      when(userManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
-        eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+    when(userManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
+      eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+
+    "update candidate's details and return to scheme preferences" in {
       when(applicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InProgress))
       val Application = currentCandidateWithApp.application
         .copy(progress = ProgressResponseExamples.InProgress, applicationStatus = ApplicationStatus.IN_PROGRESS)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-
+      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidUKAddressForm),
+        eqTo(currentEmail), updateStatus = eqTo(true))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitGeneralDetailsAndContinue()(Request)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))
+    }
+
+    "update candidate's details and return to dashboard page" in {
+      when(userManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
+        eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+      when(applicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(ProgressResponseExamples.Submitted))
+      val Application = currentCandidateWithApp.application
+        .copy(progress = ProgressResponseExamples.Submitted, applicationStatus = ApplicationStatus.SUBMITTED)
+      val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
+      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
+      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidUKAddressForm),
+        eqTo(currentEmail), updateStatus = eqTo(false))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
+      val result = controller.submitGeneralDetails()(Request)
+
+      status(result) must be(SEE_OTHER)
+      redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
   }
 }
