@@ -64,6 +64,30 @@ class FastPassFormSpec extends PlaySpec {
   }
 
   "FastPass form" should {
+    "be valid and must discard fast pass type" in {
+      val form = fastPassForm.bind(Map("applicable" -> "false", "fastPassType" -> "CivilServant"))
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
+      form.value.get mustBe Data("false")
+    }
+
+    "be valid and must discard internship type" in {
+      val form = fastPassForm.bind(Map("applicable" -> "true", "fastPassType" -> "CivilServant", "internshipTypes[0]" -> "EDIP"))
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
+      form.value.get mustBe Data("true", Some("CivilServant"))
+    }
+
+    "be valid and must discard certificate number" in {
+      val form = fastPassForm.bind(Map("applicable" -> "true", "fastPassType" -> "DiversityInternship",
+        "internshipTypes[0]" -> "SDIPCurrentYear", "fastPassReceived" -> "false", "certificateNumber" -> "1234567"))
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
+      form.value.get mustBe Data("true", Some("DiversityInternship"), Some(Seq("SDIPCurrentYear")), Some(false))
+    }
+  }
+
+  "FastPass form" should {
     "be invalid when fast pass is applicable and fast pass type is not supplied" in {
       val form = fastPassForm.bind(Map("applicable" -> "true"))
       form.hasErrors mustBe true
