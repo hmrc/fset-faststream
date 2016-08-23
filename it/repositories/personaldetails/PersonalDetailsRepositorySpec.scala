@@ -34,6 +34,16 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
 
       actualException mustBe PersonalDetailsNotFound(AppId)
     }
+
+    "modify the details and find the personal details successfully without changing application status" in {
+      val personalDetails = (for {
+        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> SUBMITTED))
+        _ <- repository.updateWithoutStatusChange(AppId, UserId, JohnDoe)
+        pd <- repository.find(AppId)
+      } yield pd).futureValue
+
+      personalDetails mustBe JohnDoe
+    }
   }
 
   "find candidate" should {
