@@ -45,6 +45,26 @@
 
     @diversityQuestionnaireViewSection()
 
+    @if(ApplicationData.isReadOnly(user.get.application.get.applicationStatus)) {
+        <section class="section-border">
+            <div class="form-group">
+                <a href="@routes.HomeController.present" class="button">Return to home</a>
+            </div>
+        </section>
+    }
+
+    @if(WithdrawComponent.isAuthorized(user.get) && ApplicationData.isReadOnly(user.get.application.get.applicationStatus)) {
+        <section>
+            <h2 class="heading-large">
+                <span class="sectionTitle">Withdraw application</span>
+            </h2>
+            <section>
+                <p>If you don't want to be considered for the Fast Stream, you can withdraw your application.</p>
+                <a id="withdraw-app" href="@routes.HomeController.presentWithDraw()">Withdraw from the Fast Stream</a>
+            </section>
+        </section>
+    }
+
     @appNotReadOnly {
         @helper.form(action = routes.PreviewApplicationController.submit(), 'novalidate -> "novalidate") {
             @helper.CSRF.formField
