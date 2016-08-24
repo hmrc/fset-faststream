@@ -20,6 +20,10 @@
         @helper.CSRF.formField
         <h1 class="heading-xlarge" id="personalDetailsHeading">Choose your schemes</h1>
 
+        <div class="panel-indent">
+            <p>Select the schemes you'd like to work in</p>
+        </div>
+
         <section class="grid-wrapper scheme-wrapper">
             <div class="scheme-input-container">
             @schemesCheckboxGroup(form("schemes"), SelectedSchemesForm.AllSchemes,
