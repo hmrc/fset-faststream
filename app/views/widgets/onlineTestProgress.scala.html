@@ -1,5 +1,5 @@
 @import connectors.ExchangeObjects.OnlineTest
-@import security.Roles.FastPassDetailsRole
+@import security.Roles.FastPassReceivedRole
 @(usr: CachedData, onlineTest: Option[OnlineTest] = None,
         applicationStatus: models.ApplicationData.ApplicationStatus.ApplicationStatus,
         allocationDetails: Option[connectors.AllocationExchangeObjects.AllocationDetails])(implicit request: Request[_])
@@ -7,9 +7,9 @@
 @import models.ApplicationData.ApplicationStatus._
 
 @applicationStatus match {
-    case _ if FastPassDetailsRole.isAuthorized(usr) => {
+    case _ if FastPassReceivedRole.isAuthorized(usr) => {
             <p>We need to check and verify your certificate number before
-                you can progress as a fast pass candidate.</p>
+                you can progress as a Fast Pass candidate.</p>
     }
     case REGISTERED | CREATED | IN_PROGRESS | WITHDRAWN => {
             <p>Once you've submitted your application and completed the diversity questions, you'll be invited to take the online tests. Once you've been invited, you'll have 7 days to complete the tests.</p>

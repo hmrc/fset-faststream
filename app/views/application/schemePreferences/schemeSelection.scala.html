@@ -20,10 +20,6 @@
         @helper.CSRF.formField
         <h1 class="heading-xlarge" id="personalDetailsHeading">Choose your schemes</h1>
 
-        <section class="text panel-indent">
-            <p>From 1 up to 5 preferences</p>
-        </section>
-
         <section class="grid-wrapper scheme-wrapper">
             <div class="scheme-input-container">
             @schemesCheckboxGroup(form("schemes"), SelectedSchemesForm.AllSchemes,
@@ -32,11 +28,10 @@
             )
             </div>
             <div class="scheme-info-container hide-nojs">
-                <div id="sticky-anchor" style="height: 0px;"></div>
+                <div id="sticky-anchor"></div>
                 <div class="scheme-info-panel">
-                    <p class="bold-small" id="chooseYourPrefs">Choose your <span id="chooseNextPreference">1st preference</span>
-                        <span class="hidden" data-optionalappended=""><br> (optional)</span></p>
-                    <p class="bold-small hidden" id="chosenLimit">You've chosen 5 preferences</p>
+                    <p class="bold-small" id="chooseYourPrefs">Choose your <span id="chooseNextPreference">1st preference</span>                <span class="hidden" data-optionalappended><br> (optional)</span></p>
+                    <p class="bold-small hidden" id="chosenLimit">You've selected 15 preferences</p>
                 </div>
             </div>
         </section>
@@ -48,7 +43,7 @@
                     <p>Your schemes will appear here as you select them from the list</p>
                 </div>
             </div>
-            @for(i <- 0 until SelectedSchemesForm.schemesMaxLimit) {
+            @for(i <- 0 until SelectedSchemesForm.AllSchemes.size) {
                 <input type="hidden" id="scheme_@i" name="scheme_@i" value='@selectedSchemes(i).getOrElse("")' />
             }
             <ol id="selectedPrefList" class="list-text">
@@ -65,19 +60,11 @@
                 noMessage = "If you're not happy with the order of your preferences, change the order now before you continue.")
         </section>
         <section class="text">
-                @yesNoQuestion(form("eligible"), question = "Are you eligible for your chosen schemes?",
-                noMessage = "You can only apply for a scheme you're eligible for. Check you're eligible for the scheme and then choose your preferred scheme.")
+            @yesNoQuestion(form("eligible"), question = "Are you eligible for your chosen schemes?",
+            noMessage = "You can only apply for a scheme you're eligible for. Check you're eligible for the scheme and then choose your preferred scheme.",
+            description = Some("""Make sure you're <a href="https://www.gov.uk/guidance/civil-service-fast-stream-graduate-schemes">eligible</a> for your chosen schemes."""))
         </section>
-        <section class="text">
-            <fieldset>
-                <legend class="form-label">Would you consider other schemes?</legend>
-                <p>If we don't offer you a place on one of your chosen schemes, we may
-                    suggest other schemes on the Fast Stream.</p>
-                <div class="form-group no-btm-margin">
-                    @radioBox(form("alternatives"), options = Seq("true" -> "Yes", "false" -> "No"))
-                </div>
-            </fieldset>
-        </section>
+
         <div class="form-group no-btm-margin">
             <button id="schemeSaveBtn" type="submit" value="submit" class="button">Save and continue</button>
         </div>

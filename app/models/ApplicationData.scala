@@ -27,7 +27,7 @@ case class ApplicationData(
   userId: UniqueIdentifier,
   applicationStatus: ApplicationStatus,
   progress: Progress,
-  fastPassApplicable: Option[Boolean]
+  fastPassReceived: Option[Boolean]
 )
 
 object ApplicationData {
@@ -59,7 +59,7 @@ object ApplicationData {
 
   implicit def fromAppRespToAppData(resp: ApplicationResponse): ApplicationData =
     new ApplicationData(resp.applicationId, resp.userId, ApplicationStatus.withName(resp.applicationStatus),
-      resp.progressResponse, resp.fastPassApplicable)
+      resp.progressResponse, resp.fastPassReceived)
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
 }

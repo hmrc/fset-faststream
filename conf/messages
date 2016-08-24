@@ -72,17 +72,17 @@ error.phone.required = Add a phone number in case we need to contact you
 error.phoneNumber.format = You''ve entered an invalid phone number
 
 #fastpass details
-error.applicable.required = Tell us if you''re currently a civil servant or have been on either the SDIP (Summer Diversity Internship Programme) or the EDIP (Early Diversity Internship Programme).
-error.fastPassType.required = Tell us which of these is correct.
+error.applicable.required = Tell us if you''re currently a civil servant or been on an internship
+error.fastPassType.required = Tell us whether you''ve been part of the Civil Service or on an internship
 error.internshipTypes.required = Tell us your diversity internship programme
-error.fastPassReceived.required = Tell us if you have received a fast pass
+error.fastPassReceived.required = Tell us if you have received a Fast Pass
 error.certificateNumber.required = Enter your 7-digit certificate number
 fastPassType.CivilServant = I''m currently a civil servant
 fastPassType.CivilServantViaFastTrack = I''m currently a civil servant via the Fast Track
 fastPassType.DiversityInternship = I''ve completed SDIP or EDIP
 internshipType.EDIP = Early Diversity Internship Programme
-internshipType.SDIPPreviousYear = Summer Diversity Internship Programme (Previous years)
-internshipType.SDIPCurrentYear = Summer Diversity Internship Programme 2016 (This year)
+internshipType.SDIPPreviousYear = Summer Diversity Internship Programme (previous years)
+internshipType.SDIPCurrentYear = Summer Diversity Internship Programme 2016 (this year)
 
 #assistance
 error.hasDisability.required=Tell us if you consider yourself to have a disability

@@ -68,9 +68,9 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
   }
 
-  object FastPassDetailsRole extends CsrAuthorization {
+  object FastPassReceivedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(SUBMITTED) && user.application.flatMap(_.fastPassApplicable).getOrElse(false)
+      activeUserWithApp(user) && statusIn(user)(SUBMITTED) && user.application.flatMap(_.fastPassReceived).getOrElse(false)
   }
 
   object SchemesRole extends CsrAuthorization {

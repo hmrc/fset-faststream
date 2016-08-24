@@ -55,7 +55,7 @@ object ExchangeObjects {
   case class AddMedia(userId: UniqueIdentifier, media: String)
 
   case class ApplicationResponse(applicationId: UniqueIdentifier, applicationStatus: String,
-    userId: UniqueIdentifier, progressResponse: ProgressResponse, fastPassApplicable: Option[Boolean])
+    userId: UniqueIdentifier, progressResponse: ProgressResponse, fastPassReceived: Option[Boolean])
 
   case class PersonalDetailsAdded(applicationId: UniqueIdentifier, userId: String)
 

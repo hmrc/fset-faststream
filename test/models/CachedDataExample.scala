@@ -34,7 +34,7 @@ object CachedDataExample {
     UniqueIdentifier(UUID.randomUUID.toString),
     ApplicationStatus.CREATED,
     ProgressExamples.InitialProgress,
-    None
+    Some(false)
   )
 
   val InPersonalDetailsApplication = CreatedApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,

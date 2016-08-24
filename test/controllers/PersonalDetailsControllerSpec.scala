@@ -55,6 +55,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
+      content must include(s"""<input name="fastPassDetails.applicable" type="radio" id="fastPassDetails_applicable-yes"""")
     }
 
     "load general details page for the already created personal details" in {
@@ -66,6 +67,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${GeneralDetailsExchangeExamples.FullDetails.preferredName}"""")
+      content must include(s"""<input name="fastPassDetails.applicable" type="radio" id="fastPassDetails_applicable-yes"""")
     }
   }
 

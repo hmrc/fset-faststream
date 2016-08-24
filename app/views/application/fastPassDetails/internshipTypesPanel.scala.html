@@ -8,7 +8,8 @@
     <h3 class="heading-medium">Summer/Early Diversity Internship Programme</h3>
     <fieldset>
         @checkboxGroupWithTogglePanels(form("fastPassDetails.internshipTypes"), FastPassForm.InternshipTypes,
-        'id -> "fastPassDetails.internshipTypes") {
+        'id -> "fastPassDetails.internshipTypes",
+        '_label -> "Which internship programme did you do?") {
             @fastPassCertificatePanel(form)
         }
     </fieldset>
