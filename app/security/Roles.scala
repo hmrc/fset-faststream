@@ -68,11 +68,6 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
   }
 
-  object FastPassReceivedRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(SUBMITTED) && user.application.flatMap(_.fastPassReceived).getOrElse(false)
-  }
-
   object EditPersonalDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && !statusIn(user)(WITHDRAWN)
@@ -206,5 +201,7 @@ object RoleUtils {
   def hasOccupation(implicit user: CachedData) = progress.occupationQuestionnaire
 
   def hasPreview(implicit user: CachedData) = progress.preview
+
+  def hasReceivedFastPass(implicit user: CachedData) = user.application.flatMap(_.fastPassReceived).getOrElse(false)
 
 }

@@ -23,7 +23,7 @@ import models.{ ApplicationData, CachedData, Progress }
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import security.RoleUtils
-import security.Roles.{ DisplayOnlineTestSectionRole, FastPassReceivedRole }
+import security.Roles.DisplayOnlineTestSectionRole
 
 // format: OFF
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
@@ -107,7 +107,7 @@ object DashboardPage {
 
   private def activeApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang): DashboardPage = {
     val firstStep = if (RoleUtils.activeUserWithApp(user)) ProgressActive else ProgressInactive
-    val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || FastPassReceivedRole.isAuthorized(user)) {
+    val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || RoleUtils.hasReceivedFastPass(user)) {
       ProgressActive
     } else {
       ProgressInactive

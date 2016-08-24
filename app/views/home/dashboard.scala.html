@@ -153,7 +153,7 @@
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
                             <h2 class="heading-medium">3. Attend an assessment centre</h2>
-                                @if(FastPassReceivedRole.isAuthorized(usr)) {
+                                @if(hasReceivedFastPass(usr)) {
                                         <p id="fastPassParagraph">Once we've verified your certificate number, you'll be invited
                                             to attend an assessment centre.</p>
                                         <p><a href="https://www.gov.uk/guidance/civil-service-fast-stream-how-to-apply#analytical-fast-stream-assessment"
