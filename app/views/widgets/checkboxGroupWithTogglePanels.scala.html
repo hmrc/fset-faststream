@@ -1,13 +1,8 @@
 
 @import helpers.CSRSkinnyFieldConstructor._
+@import Helpers._
 
 @(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(togglePanels:Html)
-
-@createId(id:String, v:(String,String))=@{id + "_"+v._1.replace(" ", "_").replace("/", "_").replace("'","_")}
-
-@formatId(id:String, v:(String,String)) = @{
-    createId(id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_"), v)
-}
 
 @helper.input(field, args:_*) { (id, name, value, htmlArgs) =>
     <fieldset>
