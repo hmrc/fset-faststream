@@ -25,6 +25,7 @@ import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.PersistedObjects.ApplicationForNotification
 import model._
+import model.command.{ AssessmentCentre, AssessmentScores, OnlineTestProgressResponse, ProgressResponse }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, JsNumber, JsObject }
@@ -163,22 +164,24 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       ProgressResponse(
         applicationId,
         personalDetails = getProgress("personal-details"),
+        partnerGraduateProgrammes = getProgress("partner-graduate-programmes"),
         schemePreferences = getProgress("scheme-preferences"),
         assistanceDetails = getProgress("assistance-details"),
         preview = getProgress("preview"),
         questionnaire = questionnaire,
         submitted = getProgress("submitted"),
         withdrawn = getProgress("withdrawn"),
-        onlineTestInvited = getProgress("online_test_invited"),
-        onlineTestStarted = getProgress("online_test_started"),
-        onlineTestCompleted = getProgress("online_test_completed"),
-        onlineTestExpired = getProgress("online_test_expired"),
-        onlineTestAwaitingReevaluation = getProgress("awaiting_online_test_re_evaluation"),
-        onlineTestFailed = getProgress("online_test_failed"),
-        onlineTestFailedNotified = getProgress("online_test_failed_notified"),
-        onlineTestAwaitingAllocation = getProgress("awaiting_online_test_allocation"),
-        onlineTestAllocationConfirmed = getProgress("allocation_confirmed"),
-        onlineTestAllocationUnconfirmed = getProgress("allocation_unconfirmed"),
+        onlineTest = OnlineTestProgressResponse(onlineTestInvited = getProgress("online_test_invited"),
+          onlineTestStarted = getProgress("online_test_started"),
+          onlineTestCompleted = getProgress("online_test_completed"),
+          onlineTestExpired = getProgress("online_test_expired"),
+          onlineTestAwaitingReevaluation = getProgress("awaiting_online_test_re_evaluation"),
+          onlineTestFailed = getProgress("online_test_failed"),
+          onlineTestFailedNotified = getProgress("online_test_failed_notified"),
+          onlineTestAwaitingAllocation = getProgress("awaiting_online_test_allocation"),
+          onlineTestAllocationConfirmed = getProgress("allocation_confirmed"),
+          onlineTestAllocationUnconfirmed = getProgress("allocation_unconfirmed")
+          ),
         failedToAttend = getProgress("failed_to_attend"),
         assessmentScores = AssessmentScores(getProgress("assessment_scores_entered"), getProgress("assessment_scores_accepted")),
         assessmentCentre = AssessmentCentre(

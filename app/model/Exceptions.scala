@@ -33,9 +33,11 @@ object Exceptions {
 
   case class CannotUpdateContactDetails(userId: String) extends Exception(userId)
 
-  case class CannotUpdateAssistanceDetails(userId: String) extends Exception(userId)
-
   case class CannotUpdateSchemePreferences(applicationId: String) extends Exception(applicationId)
+
+  case class CannotUpdatePartnerGraduateProgrammes(applicationId: String) extends Exception(applicationId)
+
+  case class CannotUpdateAssistanceDetails(userId: String) extends Exception(userId)
 
   case class CannotUpdatePreview(applicationId: String) extends Exception(applicationId)
 
@@ -44,6 +46,8 @@ object Exceptions {
   case class ContactDetailsNotFound(userId: String) extends Exception(userId)
 
   case class SchemePreferencesNotFound(applicationId: String) extends Exception(applicationId)
+
+  case class PartnerGraduateProgrammesNotFound(applicationId: String) extends Exception(applicationId)
 
   case class AssistanceDetailsNotFound(id: String) extends Exception(id)
 
