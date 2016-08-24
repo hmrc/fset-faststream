@@ -81,6 +81,10 @@ internshipType.EDIP = Early Diversity Internship Programme
 internshipType.SDIPPreviousYear = Summer Diversity Internship Programme (previous years)
 internshipType.SDIPCurrentYear = Summer Diversity Internship Programme 2016 (this year)
 
+#partner graduate programmes
+error.interested.required = Tell us if you are interested in any partner programme
+error.partnerGraduateProgrammes.chooseone = You must choose at least one partner programme
+
 #assistance
 error.hasDisability.required=Tell us if you consider yourself to have a disability
 error.hasDisabilityDescription.required=
@@ -202,4 +206,3 @@ global.error.pageNotFound404.message=The page you were looking for could not be 
 global.error.InternalServerError500.title=Service unavailable - 500
 global.error.InternalServerError500.heading=Service unavailable
 global.error.InternalServerError500.message=Something went wrong, try again in a few minutes.
-

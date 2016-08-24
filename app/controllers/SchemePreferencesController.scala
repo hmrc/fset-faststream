@@ -46,7 +46,7 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
         selectedSchemes => {
           (for {
             _ <- schemeClient.updateSchemePreferences(selectedSchemes)(user.application.applicationId)
-            redirect <- refreshCachedUser().map(_ => Redirect(routes.AssistanceDetailsController.present()))
+            redirect <- refreshCachedUser().map(_ => Redirect(routes.PartnerGraduateProgrammesController.present()))
           } yield {
             redirect
           })

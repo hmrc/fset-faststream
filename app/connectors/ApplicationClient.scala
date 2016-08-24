@@ -20,8 +20,10 @@ import config.CSRHttp
 import connectors.AllocationExchangeObjects._
 import connectors.ExchangeObjects._
 import connectors.exchange.ProgressResponse
-import forms.AssistanceDetailsForm
+import forms.{ AssistanceDetailsForm, GeneralDetailsForm, PartnerGraduateProgrammesForm }
+import mappings.PostCodeMapping
 import connectors.exchange.AssistanceDetailsExchange._
+import connectors.exchange.PartnerGraduateProgrammesExchange._
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
 import play.api.Play.current
@@ -104,6 +106,29 @@ trait ApplicationClient {
       case e: NotFoundException => throw new PersonalDetailsNotFound()
     }
   }
+
+  def updatePartnerGraduateProgrammes(applicationId: UniqueIdentifier, data: PartnerGraduateProgrammesForm.Data)(
+    implicit
+    hc: HeaderCarrier
+  ) = {
+    http.PUT(
+      s"${url.host}${url.base}/partner-graduate-programmes/$applicationId",
+      data.exchange
+    ).map {
+      case x: HttpResponse if x.status == CREATED => ()
+    } recover {
+      case _: BadRequestException => throw new CannotUpdateRecord()
+    }
+  }
+
+  def getPartnerGraduateProgrammes(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
+    http.GET(s"${url.host}${url.base}/partner-graduate-programmes/$applicationId").map { response =>
+      response.json.as[connectors.exchange.PartnerGraduateProgrammesExchange]
+    } recover {
+      case _: NotFoundException => throw new PartnerGraduateProgrammesNotFound()
+    }
+  }
+
 
   def updateAssistanceDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, data: AssistanceDetailsForm.Data)(
     implicit
@@ -222,6 +247,8 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class PersonalDetailsNotFound extends Exception
 
   sealed class AssistanceDetailsNotFound extends Exception
+
+  sealed class PartnerGraduateProgrammesNotFound extends Exception
 
   sealed class ApplicationNotFound extends Exception
 

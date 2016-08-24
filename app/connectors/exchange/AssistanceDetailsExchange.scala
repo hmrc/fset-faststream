@@ -31,7 +31,7 @@ case class AssistanceDetailsExchange(hasDisability: String,
 object AssistanceDetailsExchange {
   implicit val assistanceDetailsExchangeFormat = Json.format[AssistanceDetailsExchange]
 
-  implicit class assistanceDetailsFormtoRequest(data: AssistanceDetailsForm.Data) {
+  implicit class assistanceDetailsFormToRequest(data: AssistanceDetailsForm.Data) {
     def exchange = AssistanceDetailsExchange(
       data.hasDisability,
       data.hasDisabilityDescription,

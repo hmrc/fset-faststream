@@ -18,9 +18,10 @@ package controllers
 
 import _root_.forms.AssistanceDetailsForm
 import connectors.ApplicationClient
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord }
+import connectors.ApplicationClient.AssistanceDetailsNotFound
 import connectors.exchange.AssistanceDetailsExchange
-import helpers.NotificationType._
+import models.CachedData
+import security.RoleUtils
 import security.Roles.AssistanceDetailsRole
 
 import scala.concurrent.Future
@@ -31,7 +32,6 @@ class AssistanceDetailsController(applicationClient: ApplicationClient) extends 
 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
-
       applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId).map { ad =>
         val form = AssistanceDetailsForm.form.fill(assistanceDetailsExchange2Data(ad))
         Ok(views.html.application.assistanceDetails(form))
@@ -42,13 +42,18 @@ class AssistanceDetailsController(applicationClient: ApplicationClient) extends 
 
   def submit = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
-
       AssistanceDetailsForm.form.bindFromRequest.fold(
         invalidForm =>
           Future.successful(Ok(views.html.application.assistanceDetails(invalidForm))),
         data => {
           applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID, sanitizeData(data)).flatMap { _ =>
-            updateProgress()(_ => Redirect(routes.QuestionnaireController.startOrContinue()))
+            updateProgress()(_ => {
+              if (RoleUtils.hasOccupation(CachedData(user.user, Some(user.application)))) {
+                Redirect(routes.PreviewApplicationController.present())
+              } else {
+                Redirect(routes.QuestionnaireController.startOrContinue())
+              }
+            })
           }
         }
       )
