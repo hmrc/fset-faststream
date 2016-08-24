@@ -25,7 +25,7 @@ class FastPassDetailsRepositorySpec extends MongoRepositorySpec {
       fastPassDetails mustBe civilServant
     }
 
-    "return exception when application does not exist" in {
+    "return exception when fast pass details does not exist" in {
       val exception = (for {
         _ <- repository.update(AppId, civilServant)
         fpDetails <- repository.find(AppId)

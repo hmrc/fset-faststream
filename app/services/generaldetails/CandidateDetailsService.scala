@@ -17,7 +17,7 @@
 package services.generaldetails
 
 import model.ApplicationStatus._
-import model.command.UpdateGeneralDetails
+import model.command.GeneralDetailsExchange
 import model.persisted.{ ContactDetails, PersonalDetails }
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
@@ -40,7 +40,7 @@ trait CandidateDetailsService {
   val fpdRepository: FastPassDetailsRepository
   val auditService: AuditService
 
-  def update(applicationId: String, userId: String, candidateDetails: UpdateGeneralDetails): Future[Unit] = {
+  def update(applicationId: String, userId: String, candidateDetails: GeneralDetailsExchange): Future[Unit] = {
     val personalDetails = PersonalDetails(candidateDetails.firstName, candidateDetails.lastName, candidateDetails.preferredName,
       candidateDetails.dateOfBirth)
     val contactDetails = ContactDetails(candidateDetails.outsideUk, candidateDetails.address, candidateDetails.postCode,
@@ -62,7 +62,7 @@ trait CandidateDetailsService {
     } yield {}
   }
 
-  def find(applicationId: String, userId: String): Future[UpdateGeneralDetails] = {
+  def find(applicationId: String, userId: String): Future[GeneralDetailsExchange] = {
     val personalDetailsFut = pdRepository.find(applicationId)
     val contactDetailsFut = cdRepository.find(userId)
     val fastPassDetailsFut = fpdRepository.find(applicationId)
@@ -71,7 +71,7 @@ trait CandidateDetailsService {
       personalDetails <- personalDetailsFut
       contactDetails <- contactDetailsFut
       fastPassDetails <- fastPassDetailsFut
-    } yield UpdateGeneralDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
+    } yield GeneralDetailsExchange(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
       contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
       contactDetails.phone, fastPassDetails)
   }

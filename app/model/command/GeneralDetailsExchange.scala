@@ -21,18 +21,18 @@ import model.Commands.{ PhoneNumber, PostCode }
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
-case class UpdateGeneralDetails(firstName: String,
-                                lastName: String,
-                                preferredName: String,
-                                email: String,
-                                dateOfBirth: LocalDate,
-                                outsideUk: Boolean,
-                                address: Address,
-                                postCode: Option[PostCode],
-                                phone: PhoneNumber,
-                                fastPassDetails: FastPassDetails,
-                                updateApplicationStatus: Option[Boolean] = None)
+case class GeneralDetailsExchange(firstName: String,
+                                  lastName: String,
+                                  preferredName: String,
+                                  email: String,
+                                  dateOfBirth: LocalDate,
+                                  outsideUk: Boolean,
+                                  address: Address,
+                                  postCode: Option[PostCode],
+                                  phone: PhoneNumber,
+                                  fastPassDetails: FastPassDetails,
+                                  updateApplicationStatus: Option[Boolean] = None)
 
-object UpdateGeneralDetails {
-  implicit val updateGeneralDetailsFormat = Json.format[UpdateGeneralDetails]
+object GeneralDetailsExchange {
+  implicit val updateGeneralDetailsFormat = Json.format[GeneralDetailsExchange]
 }
