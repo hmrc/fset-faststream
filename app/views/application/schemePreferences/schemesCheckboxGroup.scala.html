@@ -7,11 +7,16 @@
     id + "_" + scheme.id.replace(" ", "_").replace("/", "_").replace("'", "_")
 }
 
+@isCandidateCivilServant = @{
+//    TODO: Change this one Civil Servant feuture is merged
+    true
+}
+
 @helper.input(field, args.map { x => if(x._1 == '_label) '_name -> x._2 else x }: _*) { (id, name, value, htmlArgs) =>
         <div class="inner-block-padr" id="@id">
             <ul class="schemes-list">
             @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
-                @options.map { case scheme@Scheme(schemeId, qualification, specific) =>
+                @options.map { case scheme@Scheme(schemeId, qualification, specific, hasEligibilityForCivilServants) =>
                 <li class="scheme-container">
                     <span class="selected-preference invisible">N/A</span>
                     <label class="block-label block-label-slim" for="@createId(id, scheme)">
@@ -22,7 +27,7 @@
                         @Messages("scheme."+schemeId+".description")
                     </label>
                     <span class="alwayshidden" data-scheme-req
-                          @if(specific){data-spec-scheme}>
+                          @if(specific){data-spec-scheme} @if(isCandidateCivilServant && hasEligibilityForCivilServants){data-civil-servant-scheme}>
                         @Messages("qualification."+qualification+".description")
                         @if(specific){
                             <a class="font-xsmall inl-block"
