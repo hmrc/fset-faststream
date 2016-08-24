@@ -47,7 +47,8 @@ trait CandidateDetailsService {
 
     val updatePersonalDetailsFut = candidateDetails.updateApplicationStatus match {
       case Some(true) => pdRepository.update(applicationId, userId, personalDetails, List(CREATED, IN_PROGRESS), IN_PROGRESS)
-      case _ => pdRepository.updateWithoutStatusChange(applicationId, userId, personalDetails)
+      case Some(false) => pdRepository.updateWithoutStatusChange(applicationId, userId, personalDetails)
+      case None => throw new IllegalArgumentException("Update application status must be set for update operation")
     }
 
     val contactDetailsFut = cdRepository.update(userId, contactDetails)
