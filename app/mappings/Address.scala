@@ -22,14 +22,15 @@ import play.api.data.Forms._
 case class Address(line1: String, line2: Option[String], line3: Option[String], line4: Option[String])
 
 object Address {
+  private val MaxLineLength = 100
 
   val EmptyAddress: Address = Address("", None, None, None)
 
   def address = mapping(
-    "line1" -> nonEmptyTrimmedText("error.address.required", 1024),
-    "line2" -> optional(nonEmptyTrimmedText("error.address.required", 1024)),
-    "line3" -> optional(nonEmptyTrimmedText("error.address.required", 1024)),
-    "line4" -> optional(nonEmptyTrimmedText("error.address.required", 1024))
+    "line1" -> nonEmptyTrimmedText("error.address.required", MaxLineLength),
+    "line2" -> optional(nonEmptyTrimmedText("error.address.required", MaxLineLength)),
+    "line3" -> optional(nonEmptyTrimmedText("error.address.required", MaxLineLength)),
+    "line4" -> optional(nonEmptyTrimmedText("error.address.required", MaxLineLength))
   )(Address.apply)(Address.unapply)
 
 }
