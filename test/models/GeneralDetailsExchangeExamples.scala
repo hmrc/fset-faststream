@@ -23,5 +23,5 @@ import mappings.AddressExamples._
 
 object GeneralDetailsExchangeExamples {
   val FullDetails = GeneralDetailsExchange("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), Some("1234567"), FastPassDetails(false))
+    FullAddress, Some("postCode"), Some("1234567"), FastPassDetails(false), None)
 }

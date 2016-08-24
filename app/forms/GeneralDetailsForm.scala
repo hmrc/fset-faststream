@@ -82,7 +82,7 @@ object GeneralDetailsForm {
       case _ => true
     }
 
-    def toExchange(email: String) = GeneralDetailsExchange(
+    def toExchange(email: String, updateApplicationStatus: Option[Boolean]) = GeneralDetailsExchange(
       firstName,
       lastName,
       preferredName,
@@ -92,7 +92,8 @@ object GeneralDetailsForm {
       address,
       postCode.map(p => PostCodeMapping.formatPostcode(p)),
       phone,
-      fastPassDetails
+      fastPassDetails,
+      updateApplicationStatus
     )
   }
 

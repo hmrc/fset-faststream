@@ -49,7 +49,8 @@ object ExchangeObjects {
     address: Address,
     postCode: Option[PostCode],
     phone: Option[PhoneNumber],
-    fastPassDetails: FastPassDetails
+    fastPassDetails: FastPassDetails,
+    updateApplicationStatus: Option[Boolean]
   )
 
   case class AddMedia(userId: UniqueIdentifier, media: String)

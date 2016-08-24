@@ -63,7 +63,7 @@ object Roles {
       user.user.isActive && user.application.isEmpty
   }
 
-  object PersonalDetailsRole extends CsrAuthorization {
+  object EditPersonalDetailsAndContinueRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
   }
@@ -71,6 +71,11 @@ object Roles {
   object FastPassReceivedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(SUBMITTED) && user.application.flatMap(_.fastPassReceived).getOrElse(false)
+  }
+
+  object EditPersonalDetailsRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && !statusIn(user)(WITHDRAWN)
   }
 
   object SchemesRole extends CsrAuthorization {
@@ -160,7 +165,7 @@ object Roles {
 
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
     ApplicationStartRole -> routes.HomeController.present(),
-    PersonalDetailsRole -> routes.PersonalDetailsController.present(None),
+    EditPersonalDetailsAndContinueRole -> routes.PersonalDetailsController.presentAndContinue(),
     SchemesRole -> routes.SchemePreferencesController.present(),
     AssistanceDetailsRole -> routes.AssistanceDetailsController.present(),
     QuestionnaireInProgressRole -> routes.QuestionnaireController.startOrContinue(),
