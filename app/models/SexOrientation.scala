@@ -20,8 +20,8 @@ object SexOrientation {
   val list = List(
     ("straight", "Heterosexual/straight", false),
     ("gay", "Gay/lesbian", false),
-    ("other", "Other", true),
     ("bisexual", "Bisexual", false),
+    ("other", "Other", true),
     ("preferNotSay","I don't know/prefer not to say",false)
   )
 }
