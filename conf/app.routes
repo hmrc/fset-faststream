@@ -35,8 +35,10 @@ GET         /application/withdraw                                   controllers.
 POST        /application/withdraw                                   controllers.HomeController.withdraw
 POST        /application/confirm-allocation                         controllers.HomeController.confirmAlloc
 
-GET         /application/details                                    controllers.PersonalDetailsController.present(start: Option[String])
+GET         /application/details                                    controllers.PersonalDetailsController.present
 POST        /application/details                                    controllers.PersonalDetailsController.submitGeneralDetails
+GET         /application/details/continue                           controllers.PersonalDetailsController.presentAndContinue
+POST        /application/details/continue                           controllers.PersonalDetailsController.submitGeneralDetailsAndContinue
 
 GET         /application/partner-graduate-programmes                controllers.PartnerGraduateProgrammesController.present
 POST        /application/partner-graduate-programmes                controllers.PartnerGraduateProgrammesController.submit

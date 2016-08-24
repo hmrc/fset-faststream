@@ -37,7 +37,7 @@
         </h1>
     </div>
 
-    @generalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", routes.PersonalDetailsController.present(None)))
+    @generalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", routes.PersonalDetailsController.presentAndContinue()))
 
     @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", routes.SchemePreferencesController.present()))
 
