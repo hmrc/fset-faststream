@@ -29,7 +29,8 @@ case class UpdateGeneralDetails(firstName: String,
                                 outsideUk: Boolean,
                                 address: Address,
                                 postCode: Option[PostCode],
-                                phone: PhoneNumber)
+                                phone: PhoneNumber,
+                                updateApplicationStatus: Option[Boolean] = None)
 
 object UpdateGeneralDetails {
   implicit val updateGeneralDetailsFormat = Json.format[UpdateGeneralDetails]

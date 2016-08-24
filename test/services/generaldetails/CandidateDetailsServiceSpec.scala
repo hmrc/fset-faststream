@@ -40,14 +40,19 @@ class CandidateDetailsServiceSpec extends BaseServiceSpec {
   }
 
   "update candidate" should {
+    when(mockPdRepository.update(eqTo(AppId), eqTo(UserId), eqTo(JohnDoe), any[Seq[ApplicationStatus.Value]],
+      any[ApplicationStatus.Value])).thenReturn(Future.successful(()))
+    when(mockCdRepository.update(UserId, ContactDetailsUK)).thenReturn(emptyFuture)
     "update personal and contact details" in {
-      when(mockPdRepository.update(eqTo(AppId), eqTo(UserId), eqTo(JohnDoe), any[Seq[ApplicationStatus.Value]],
-        any[ApplicationStatus.Value])).thenReturn(Future.successful(()))
-      when(mockCdRepository.update(UserId, ContactDetailsUK)).thenReturn(emptyFuture)
-
       val response = service.update(AppId, UserId, CandidateContactDetailsUK)
 
       assertNoExceptions(response)
+    }
+
+    "throw an exception when updateApplicationStatus is not set" in {
+      intercept[IllegalArgumentException] {
+        service.update(AppId, UserId, CandidateContactDetailsUK.copy(updateApplicationStatus = None))
+      }
     }
   }
 
@@ -58,7 +63,7 @@ class CandidateDetailsServiceSpec extends BaseServiceSpec {
 
       val response = service.find(AppId, UserId).futureValue
 
-      response mustBe CandidateContactDetailsUK
+      response mustBe CandidateContactDetailsUK.copy(updateApplicationStatus = None)
     }
   }
 }
