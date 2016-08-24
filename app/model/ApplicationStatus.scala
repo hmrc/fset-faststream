@@ -16,13 +16,12 @@
 
 package model
 
-import model.persisted.GeneralDetailsStatuses
-import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
-import reactivemongo.bson.{BSON, BSONHandler, BSONString, Macros}
+import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
-
-object ApplicationStatus extends Enumeration with GeneralDetailsStatuses {
+object ApplicationStatus extends Enumeration {
   type ApplicationStatus = Value
+  val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED = Value
 
   implicit val applicationStatusFormat = new Format[ApplicationStatus] {
     def reads(json: JsValue) = JsSuccess(ApplicationStatus.withName(json.as[String]))
