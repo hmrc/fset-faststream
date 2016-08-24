@@ -13,7 +13,7 @@
             @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
                 @options.map { case scheme@Scheme(schemeId, qualification, specific) =>
                 <li class="scheme-container">
-                    <span class="selected-preference invisible"></span>
+                    <span class="selected-preference invisible">N/A</span>
                     <label class="block-label block-label-slim" for="@createId(id, scheme)">
                         <input type="checkbox" id="@createId(id, scheme)" name="@{name + "[]"
                         }" value="@schemeId" @if(values.contains(schemeId)) {

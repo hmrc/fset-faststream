@@ -1,4 +1,4 @@
-@(field: play.api.data.Field, question: String, noMessage: String)
+@(field: play.api.data.Field, question: String, noMessage: String, description: Option[String] = None)
 
 @import helpers.CSRSkinnyFieldConstructor._
 
@@ -10,6 +10,9 @@
 @helper.input(field, '_class -> "inline") { (id, name, value, _) =>
     <fieldset>
         <legend class="form-label">@question</legend>
+        @if(description.isDefined) {
+            <p>@Html(description.get)</p>
+        }
         <div class="form-group">
             <label for="@id-yes" class="block-label">
                 <input name="@name" type="radio" id="@id-yes" value="true" @selectRadio(value, "yes")>Yes
