@@ -30,4 +30,5 @@ object ProgressResponseExamples {
   val InQuestionnaire = InAssistanceDetails.copy(questionnaire = List("start_questionnaire", "diversity_questionnaire",
     "education_questionnaire", "occupation_questionnaire"))
   val InPreview = InQuestionnaire.copy(preview = true)
+  val Submitted = Initial.copy(submitted = true)
 }

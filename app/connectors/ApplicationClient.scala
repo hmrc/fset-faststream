@@ -87,10 +87,8 @@ trait ApplicationClient {
     }
   }
 
-  def updateGeneralDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, data: GeneralDetailsForm.Data, email: String)(
-    implicit
-    hc: HeaderCarrier
-  ) = {
+  def updateGeneralDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, data: GeneralDetailsForm.Data, email: String,
+                           updateStatus: Boolean)(implicit hc: HeaderCarrier) = {
 
     http.POST(
       s"${url.host}${url.base}/personal-details/$userId/$applicationId",
@@ -103,7 +101,8 @@ trait ApplicationClient {
         data.outsideUk.getOrElse(false),
         data.address,
         data.postCode.map(p => PostCodeMapping.formatPostcode(p)),
-        data.phone
+        data.phone,
+        Some(updateStatus)
       )
     ).map {
         case x: HttpResponse if x.status == CREATED => ()
