@@ -19,5 +19,5 @@ package models
 import connectors.exchange.SelectedSchemes
 
 object SchemePreferencesExchangeExamples {
-  val DefaultSelectedSchemes = SelectedSchemes(List("Finance", "Europe"), orderAgreed = true, eligible = true, alternatives = false)
+  val DefaultSelectedSchemes = SelectedSchemes(List("Finance", "Europe"), orderAgreed = true, eligible = true)
 }
