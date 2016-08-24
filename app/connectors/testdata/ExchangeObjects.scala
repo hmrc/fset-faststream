@@ -17,28 +17,33 @@
 package connectors.testdata
 
 import model.Commands.ApplicationAssessment
+import model.persisted.{ ContactDetails, PersonalDetails }
 import model.{ Preferences, SelectedSchemes }
 import play.api.libs.json.Json
 
 object ExchangeObjects {
 
-  case class DataGenerationResponse(
-                                     generationId: Int,
-                                     userId: String,
-                                     applicationId: Option[String],
-                                     email: String,
-                                     firstName: String,
-                                     lastName: String,
-                                     onlineTestProfile: Option[OnlineTestProfileResponse] = None,
-                                     applicationAssessment: Option[ApplicationAssessment] = None,
-                                     schemePreferences: Option[SelectedSchemes] = None
-  )
+  case class DataGenerationResponse(generationId: Int,
+                                    userId: String,
+                                    applicationId: Option[String],
+                                    email: String,
+                                    firstName: String,
+                                    lastName: String,
+                                    personalDetails: Option[PersonalDetails] = None,
+                                    contactDetails: Option[ContactDetails] = None,
+                                    onlineTestProfile: Option[OnlineTestProfileResponse] = None,
+                                    applicationAssessment: Option[ApplicationAssessment] = None,
+                                    schemePreferences: Option[SelectedSchemes] = None
+                                   )
 
   case class OnlineTestProfileResponse(cubiksUserId: Int, token: String, onlineTestUrl: String)
 
   object Implicits {
+
     import model.Commands.Implicits._
+
     implicit val onlineTestProfileResponseFormat = Json.format[OnlineTestProfileResponse]
     implicit val dataGenerationResponseFormat = Json.format[DataGenerationResponse]
   }
+
 }

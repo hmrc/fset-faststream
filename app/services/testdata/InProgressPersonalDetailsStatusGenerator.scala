@@ -18,7 +18,7 @@ package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model._
-import model.persisted.{ContactDetails, PersonalDetails }
+import model.persisted.{ ContactDetails, PersonalDetails }
 import org.joda.time.LocalDate
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
@@ -61,12 +61,14 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+      pd = getPersonalDetails(candidateInPreviousStatus)
+      cd = getContactDetails(candidateInPreviousStatus)
       _ <- pdRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
-        getPersonalDetails(candidateInPreviousStatus), List(model.ApplicationStatus.CREATED), model.ApplicationStatus.IN_PROGRESS)
-      _ <- cdRepository.update(candidateInPreviousStatus.userId, getContactDetails(candidateInPreviousStatus))
+        pd, List(model.ApplicationStatus.CREATED), model.ApplicationStatus.IN_PROGRESS)
+      _ <- cdRepository.update(candidateInPreviousStatus.userId, cd)
       _ <- fpdRepository.update(candidateInPreviousStatus.applicationId.get, FastPassDetails(applicable = false))
     } yield {
-      candidateInPreviousStatus
+      candidateInPreviousStatus.copy(personalDetails = Some(pd), contactDetails = Some(cd))
     }
   }
 }

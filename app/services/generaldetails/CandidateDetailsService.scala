@@ -46,8 +46,12 @@ trait CandidateDetailsService {
     val contactDetails = ContactDetails(candidateDetails.outsideUk, candidateDetails.address, candidateDetails.postCode,
       candidateDetails.email, candidateDetails.phone)
 
-    val updatePersonalDetailsFut = pdRepository.update(applicationId, userId, personalDetails,
-      sourceStatuses = List(CREATED, IN_PROGRESS), targetStatus = IN_PROGRESS)
+    val updatePersonalDetailsFut = candidateDetails.updateApplicationStatus match {
+      case Some(true) => pdRepository.update(applicationId, userId, personalDetails, List(CREATED, IN_PROGRESS), IN_PROGRESS)
+      case Some(false) => pdRepository.updateWithoutStatusChange(applicationId, userId, personalDetails)
+      case None => throw new IllegalArgumentException("Update application status must be set for update operation")
+    }
+
     val contactDetailsFut = cdRepository.update(userId, contactDetails)
     val fastPassDetailsFut = fpdRepository.update(applicationId, candidateDetails.fastPassDetails)
 

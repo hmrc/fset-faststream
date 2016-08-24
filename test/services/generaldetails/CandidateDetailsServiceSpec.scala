@@ -53,6 +53,12 @@ class CandidateDetailsServiceSpec extends BaseServiceSpec {
 
       assertNoExceptions(response)
     }
+
+    "throw an exception when updateApplicationStatus is not set" in {
+      intercept[IllegalArgumentException] {
+        service.update(AppId, UserId, CandidateContactDetailsUK.copy(updateApplicationStatus = None))
+      }
+    }
   }
 
   "find candidate" should {
@@ -63,7 +69,7 @@ class CandidateDetailsServiceSpec extends BaseServiceSpec {
 
       val response = service.find(AppId, UserId).futureValue
 
-      response mustBe CandidateContactDetailsUK
+      response mustBe CandidateContactDetailsUK.copy(updateApplicationStatus = None)
     }
   }
 }

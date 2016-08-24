@@ -30,7 +30,8 @@ case class UpdateGeneralDetails(firstName: String,
                                 address: Address,
                                 postCode: Option[PostCode],
                                 phone: PhoneNumber,
-                                fastPassDetails: FastPassDetails)
+                                fastPassDetails: FastPassDetails,
+                                updateApplicationStatus: Option[Boolean] = None)
 
 object UpdateGeneralDetails {
   implicit val updateGeneralDetailsFormat = Json.format[UpdateGeneralDetails]
