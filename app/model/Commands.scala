@@ -215,7 +215,7 @@ object Commands {
   )
 
   case class ApplicationResponse(applicationId: String, applicationStatus: String, userId: String, progressResponse: ProgressResponse,
-                                 fastPassApplicable: Option[Boolean])
+                                 fastPassReceived: Option[Boolean])
 
   case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: DateTime)
 
