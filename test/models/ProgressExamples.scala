@@ -19,7 +19,7 @@ package models
 import connectors.exchange.{ AssessmentCentre, AssessmentScores }
 
 object ProgressExamples {
-  val InitialProgress = Progress(false, false, false, false, false, false, false, false, false, false,
+  val InitialProgress = Progress(false, false, false, false, false, false, false, false, false, false, false,
     OnlineTestProgress(false, false, false, false, false, false, false, false, false, false),
     false,
     AssessmentScores(false, false),
@@ -27,8 +27,10 @@ object ProgressExamples {
   )
   val PersonalDetailsProgress = InitialProgress.copy(personalDetails = true)
   val SchemePreferencesProgress = PersonalDetailsProgress.copy(schemePreferences = true)
-  val AssistanceDetailsProgress = SchemePreferencesProgress.copy(assistanceDetails = true)
+  val PartnerGraduateProgrammesProgress = SchemePreferencesProgress.copy(partnerGraduateProgrammes = true)
+  val AssistanceDetailsProgress = PartnerGraduateProgrammesProgress.copy(assistanceDetails = true)
   val QuestionnaireProgress = AssistanceDetailsProgress.copy(startedQuestionnaire = true, diversityQuestionnaire = true,
     educationQuestionnaire = true ,occupationQuestionnaire = true)
   val PreviewProgress = QuestionnaireProgress.copy(preview = true)
+  val SubmitProgress = PreviewProgress.copy(submitted = true)
 }

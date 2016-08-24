@@ -39,7 +39,8 @@ object CachedDataExample {
   val InPersonalDetailsApplication = CreatedApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,
     progress = ProgressExamples.PersonalDetailsProgress)
   val InSchemePreferencesApplication = InPersonalDetailsApplication.copy(progress = ProgressExamples.SchemePreferencesProgress)
-  val InAssistanceDetailsApplication = InSchemePreferencesApplication.copy(progress = ProgressExamples.AssistanceDetailsProgress)
+  val inPartnerGraduateProgrammesApplication = InSchemePreferencesApplication.copy(progress = ProgressExamples.PartnerGraduateProgrammesProgress)
+  val InAssistanceDetailsApplication = inPartnerGraduateProgrammesApplication.copy(progress = ProgressExamples.AssistanceDetailsProgress)
   val InQuestionnaireApplication = InAssistanceDetailsApplication.copy(progress = ProgressExamples.QuestionnaireProgress)
   val InPreviewApplication = InQuestionnaireApplication.copy(progress = ProgressExamples.PreviewProgress)
 

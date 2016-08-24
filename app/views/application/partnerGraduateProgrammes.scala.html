@@ -1,0 +1,39 @@
+@(form: Form[_root_.forms.PartnerGraduateProgrammesForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import views.html.application.assistancedetails.{ hasDisability, needsSupportOnlineAssessments, needsSupportAtVenue }
+@import views.html.widgets.{ pageProgress, saveAndContinueButton, radioBoxHorizontal, inputCheckboxGroup }
+@import helpers.CSRFieldConstructor._
+
+@main_template(title = "Partner graduate programmes", pageForms = Seq(form)) {
+    @pageProgress(3, 8)
+    <div class="text">
+        <h1 class="heading-xlarge" id="assistanceDetailsHeading">Partner Graduate Programmes</h1>
+    </div>
+    <div class="text">
+        <p>If you're successfully accepted on to the Fast Stream, you can defer
+            your place to complete a programme with one of our partners.</p>
+        <p>You can find out more <a href="https://www.gov.uk/guidance/civil-service-fast-stream-deferred-entry-options" target="_blank" rel="external">about our partner programmes</a>.</p>
+    </div>
+    @helper.form(action = routes.PartnerGraduateProgrammesController.submit(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        <section>
+            <fieldset class="form-group">
+                <legend class="form-label">Are you interested in a partner programme?</legend>
+                <p class="form-hint">
+                    This includes the assessment centre and any other additional face to face interviews</p>
+                @radioBoxHorizontal(form("interested"), options = List(("yes", "Yes", true), ("no", "No", false)),
+                    optionTrigger = "interested-describe")
+                <div id="interested-describe" class="toggle-content" aria-hidden="true">
+                    <div class="form-group">
+
+
+                        <legend class="form-label">Choose any programmes you're interested in</legend>
+                        <p class="text">We'll let them know your details so they can contact you</p>
+                        @inputCheckboxGroup(form("partnerGraduateProgrammes"), models.PartnerGraduateProgrammesTypes.seq)
+                    </div>
+                </div>
+            </fieldset>
+        </section>
+        @saveAndContinueButton()
+    }
+}
