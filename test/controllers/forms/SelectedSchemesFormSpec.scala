@@ -25,25 +25,28 @@ class SelectedSchemesFormSpec extends PlaySpec {
   "Selected Schemes form" should {
     "be valid when required values are supplied" in {
        val form = selectedSchemesForm.bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "true",
-         "eligible" -> "true", "alternatives" -> "false"))
+         "eligible" -> "true"))
        form.hasErrors mustBe false
        form.hasGlobalErrors mustBe false
     }
 
-    "be invalid when schemes are not supplied" in {
-      val form = selectedSchemesForm.bind(Map("orderAgreed" -> "true",
-        "eligible" -> "true", "alternatives" -> "true"))
-      form.hasErrors mustBe true
+    "be valid when multiple schemes are selected" in {
+      val form = selectedSchemesForm.bind(Map(
+        "scheme_0" -> "Finance",
+        "scheme_1" -> "CentralDepartments",
+        "scheme_2" -> "Commercial",
+        "scheme_3" -> "DigitalAndTechnology",
+        "scheme_4" -> "DiplomaticService",
+        "scheme_5" -> "GovernmentOperationalResearchService",
+        "orderAgreed" -> "true",
+        "eligible" -> "true"))
+      form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
     }
 
-    "be invalid when more than 5 schemes are supplied" in {
-      val form = selectedSchemesForm.bind(Map(
-        "scheme_0" -> "Finance", "scheme_1" -> "CentralDepartments", "scheme_2" -> "Commercial",
-        "scheme_3" -> "DigitalAndTechnology", "scheme_4" -> "DiplomaticService",
-        "scheme_5" -> "GovernmentOperationalResearchService",
-        "orderAgreed" -> "true",
-        "eligible" -> "true", "alternatives" -> "false"))
+    "be invalid when schemes are not supplied" in {
+      val form = selectedSchemesForm.bind(Map("orderAgreed" -> "true",
+        "eligible" -> "true"))
       form.hasErrors mustBe true
       form.hasGlobalErrors mustBe false
     }
@@ -52,30 +55,21 @@ class SelectedSchemesFormSpec extends PlaySpec {
       val form = selectedSchemesForm.bind(Map(
         "scheme_0" -> "InvalidScheme",
         "orderAgreed" -> "true",
-        "eligible" -> "true", "alternatives" -> "false"))
-      form.hasErrors mustBe true
-      form.hasGlobalErrors mustBe false
-    }
-
-    "be invalid when non boolean string is supplied for alternatives" in {
-      val form = selectedSchemesForm.bind(Map(
-        "scheme_0" -> "Finance",
-        "orderAgreed" -> "true",
-        "eligible" -> "true", "alternatives" -> "non-boolean"))
+        "eligible" -> "true"))
       form.hasErrors mustBe true
       form.hasGlobalErrors mustBe false
     }
 
     "be invalid when scheme order is not agreed by the candidate" in {
       val form = selectedSchemesForm.bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "false",
-        "eligible" -> "true", "alternatives" -> "true"))
+        "eligible" -> "true"))
       form.hasErrors mustBe true
       form.hasGlobalErrors mustBe false
     }
 
     "be invalid when eligibility criteria is not met by the candidate for selected scheme" in {
       val form = selectedSchemesForm.bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "true",
-        "eligible" -> "false", "alternatives" -> "true"))
+        "eligible" -> "false"))
       form.hasErrors mustBe true
       form.hasGlobalErrors mustBe false
     }
