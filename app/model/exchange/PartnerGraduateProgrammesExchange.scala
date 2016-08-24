@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.exchange
 
-import model.persisted.AssistanceDetails
+import play.api.libs.json.Json
 
-object AssistanceDetailsExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, false, None)
-  val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("disability description"), Some(true), true,
-    Some("online adjustment description"), true, Some("venue adjustment description"))
+case class PartnerGraduateProgrammesExchange(interested: Boolean,
+                                             partnerGraduateProgrammes: Option[List[String]])
 
+object PartnerGraduateProgrammesExchange {
+  implicit val partnerGraduateProgrammesExchangeFormat = Json.format[PartnerGraduateProgrammesExchange]
 }

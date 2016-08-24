@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.command
 
-import model.persisted.AssistanceDetails
+import model.exchange.PartnerGraduateProgrammesExchange
 
-object AssistanceDetailsExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, false, None)
-  val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("disability description"), Some(true), true,
-    Some("online adjustment description"), true, Some("venue adjustment description"))
-
+object PartnerGraduateProgrammesExchangeExamples {
+  val InterestedNotAll = PartnerGraduateProgrammesExchange(true, Some(List("Entrepreneur First", "Frontline")))
+  val NoInterested = PartnerGraduateProgrammesExchange(false, None)
 }

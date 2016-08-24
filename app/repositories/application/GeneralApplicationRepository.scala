@@ -25,6 +25,7 @@ import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdateAssistanceDetails, CannotUpdatePreview }
 import model.PersistedObjects.ApplicationForNotification
 import model._
+import model.command.{ AssessmentCentre, AssessmentScores, OnlineTestProgressResponse, ProgressResponse }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Logger
@@ -99,7 +100,7 @@ trait GeneralApplicationRepository {
   def nextAssessmentCentrePassedOrFailedApplication(): Future[Option[ApplicationForNotification]]
 
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,
-    evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: String): Future[Unit]
+                                    evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: String): Future[Unit]
 
 }
 
@@ -139,6 +140,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     Candidate(userId, applicationId, None, firstName, lastName, dateOfBirth, None, None)
   }
+
   def find(applicationIds: List[String]): Future[List[Candidate]] = {
 
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
@@ -163,22 +165,24 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       ProgressResponse(
         applicationId,
         personalDetails = getProgress("personal-details"),
+        partnerGraduateProgrammes = getProgress("partner-graduate-programmes"),
         schemePreferences = getProgress("scheme-preferences"),
         assistanceDetails = getProgress("assistance-details"),
         preview = getProgress("preview"),
         questionnaire = questionnaire,
         submitted = getProgress("submitted"),
         withdrawn = getProgress("withdrawn"),
-        onlineTestInvited = getProgress("online_test_invited"),
-        onlineTestStarted = getProgress("online_test_started"),
-        onlineTestCompleted = getProgress("online_test_completed"),
-        onlineTestExpired = getProgress("online_test_expired"),
-        onlineTestAwaitingReevaluation = getProgress("awaiting_online_test_re_evaluation"),
-        onlineTestFailed = getProgress("online_test_failed"),
-        onlineTestFailedNotified = getProgress("online_test_failed_notified"),
-        onlineTestAwaitingAllocation = getProgress("awaiting_online_test_allocation"),
-        onlineTestAllocationConfirmed = getProgress("allocation_confirmed"),
-        onlineTestAllocationUnconfirmed = getProgress("allocation_unconfirmed"),
+        onlineTest = OnlineTestProgressResponse(onlineTestInvited = getProgress("online_test_invited"),
+          onlineTestStarted = getProgress("online_test_started"),
+          onlineTestCompleted = getProgress("online_test_completed"),
+          onlineTestExpired = getProgress("online_test_expired"),
+          onlineTestAwaitingReevaluation = getProgress("awaiting_online_test_re_evaluation"),
+          onlineTestFailed = getProgress("online_test_failed"),
+          onlineTestFailedNotified = getProgress("online_test_failed_notified"),
+          onlineTestAwaitingAllocation = getProgress("awaiting_online_test_allocation"),
+          onlineTestAllocationConfirmed = getProgress("allocation_confirmed"),
+          onlineTestAllocationUnconfirmed = getProgress("allocation_unconfirmed")
+          ),
         failedToAttend = getProgress("failed_to_attend"),
         assessmentScores = AssessmentScores(getProgress("assessment_scores_entered"), getProgress("assessment_scores_accepted")),
         assessmentCentre = AssessmentCentre(
@@ -254,7 +258,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   override def findApplicationsForAssessmentAllocation(locations: List[String], start: Int,
-    end: Int): Future[ApplicationForAssessmentAllocationResult] = {
+                                                       end: Int): Future[ApplicationForAssessmentAllocationResult] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> "AWAITING_ALLOCATION"),
       BSONDocument("framework-preferences.firstLocation.location" -> BSONDocument("$in" -> locations))
@@ -281,8 +285,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
               bsonDocToApplicationsForAssessmentAllocation(doc)
             }
           }.flatMap { result =>
-            Future.successful(ApplicationForAssessmentAllocationResult(result, count))
-          }
+          Future.successful(ApplicationForAssessmentAllocationResult(result, count))
+        }
       }
     }
   }
@@ -333,7 +337,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       case result if result.nModified == 0 && result.n == 0 =>
         logger.error(
           s"""Failed to write assistance details for application: $applicationId ->
-             |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
+              |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
         throw CannotUpdatePreview(applicationId)
       case _ => ()
     }
@@ -456,6 +460,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       }
     }
   }
+
   // scalstyle:on method.length
 
   override def applicationsPassedInAssessmentCentre(frameworkId: String): Future[List[ApplicationPreferencesWithTestResults]] =
@@ -544,6 +549,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       }
     }
   }
+
   // scalstyle:on method.length
 
   private def overallReportWithPersonalDetails(query: BSONDocument): Future[List[ReportWithPersonalDetails]] = {
@@ -798,11 +804,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   private def reportQueryWithProjections[A](
-    query: BSONDocument,
-    prj: BSONDocument,
-    upTo: Int = Int.MaxValue,
-    stopOnError: Boolean = true
-  )(implicit reader: Format[A]): Future[List[A]] =
+                                             query: BSONDocument,
+                                             prj: BSONDocument,
+                                             upTo: Int = Int.MaxValue,
+                                             stopOnError: Boolean = true
+                                           )(implicit reader: Format[A]): Future[List[A]] =
     collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
 
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
@@ -943,7 +949,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,
-    evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: String): Future[Unit] = {
+                                    evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: String): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
       BSONDocument(
@@ -980,14 +986,17 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     case Some(r) => BSONDocument(schemeName -> r.toString)
     case _ => BSONDocument.empty
   }
+
   private def booleanToBSON(schemeName: String, result: Option[Boolean]): BSONDocument = result match {
     case Some(r) => BSONDocument(schemeName -> r)
     case _ => BSONDocument.empty
   }
+
   private def averageToBSON(name: String, result: Option[CompetencyAverageResult]): BSONDocument = result match {
     case Some(r) => BSONDocument(name -> r)
     case _ => BSONDocument.empty
   }
+
   private def perSchemeToBSON(name: String, result: Option[List[PerSchemeEvaluation]]): BSONDocument = result match {
     case Some(m) =>
       val schemes = m.map(x => BSONDocument(x.schemeName -> x.result.toString))

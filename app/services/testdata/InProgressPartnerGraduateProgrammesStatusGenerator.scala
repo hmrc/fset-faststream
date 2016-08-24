@@ -17,36 +17,29 @@
 package services.testdata
 
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
-import model.persisted.{ AssistanceDetails }
+import model.persisted.{ AssistanceDetails, PartnerGraduateProgrammes }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
+import repositories.partnergraduateprogrammes.PartnerGraduateProgrammesRepository
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object InProgressAssistanceDetailsStatusGenerator extends InProgressAssistanceDetailsStatusGenerator {
-  override val previousStatusGenerator = InProgressPartnerGraduateProgrammesStatusGenerator
-  override val adRepository = faststreamAssistanceDetailsRepository
+object InProgressPartnerGraduateProgrammesStatusGenerator extends InProgressPartnerGraduateProgrammesStatusGenerator {
+  override val previousStatusGenerator = InProgressSchemePreferencesStatusGenerator
+  override val pgpRepository = faststreamPartnerGraduateProgrammesRepository
 }
 
-trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
-  val adRepository: AssistanceDetailsRepository
+trait InProgressPartnerGraduateProgrammesStatusGenerator extends ConstructiveGenerator {
+  val pgpRepository: PartnerGraduateProgrammesRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
-    def getAssistanceDetails(gis: Boolean) = {
-      if (gis) {
-        AssistanceDetails("Yes", Some("disability"), Some(true), true, Some("adjustment online"), true, Some("adjustment at venue"))
-      } else {
-        AssistanceDetails("Yes", Some("disability"), Some(false), true, Some("adjustment online"), true, Some("adjustment at venue"))
-      }
-    }
-
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- adRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
-        getAssistanceDetails(generatorConfig.setGis))
+      _ <- pgpRepository.update(candidateInPreviousStatus.applicationId.get, PartnerGraduateProgrammes(true,
+        Some(List("Entrepreneur First", "Police Now"))))
     } yield {
       candidateInPreviousStatus
     }

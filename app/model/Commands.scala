@@ -29,6 +29,7 @@ import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
 
 import scala.language.implicitConversions
+import model.command.{ AssessmentCentre, ProgressResponse }
 
 //scalastyle:off
 object Commands {
@@ -47,43 +48,6 @@ object Commands {
 
   type PostCode = String
   type PhoneNumber = String
-
-  case class AssessmentScores(
-    entered: Boolean = false,
-    accepted: Boolean = false
-  )
-
-  case class AssessmentCentre(
-    awaitingReevaluation: Boolean = false,
-    passed: Boolean = false,
-    failed: Boolean = false,
-    passedNotified: Boolean = false,
-    failedNotified: Boolean = false
-  )
-
-  case class ProgressResponse(
-                               applicationId: String,
-                               personalDetails: Boolean = false,
-                               schemePreferences: Boolean = false,
-                               assistanceDetails: Boolean = false,
-                               preview: Boolean = false,
-                               questionnaire: List[String] = Nil,
-                               submitted: Boolean = false,
-                               withdrawn: Boolean = false,
-                               onlineTestInvited: Boolean = false,
-                               onlineTestStarted: Boolean = false,
-                               onlineTestCompleted: Boolean = false,
-                               onlineTestExpired: Boolean = false,
-                               onlineTestAwaitingReevaluation: Boolean = false,
-                               onlineTestFailed: Boolean = false,
-                               onlineTestFailedNotified: Boolean = false,
-                               onlineTestAwaitingAllocation: Boolean = false,
-                               onlineTestAllocationConfirmed: Boolean = false,
-                               onlineTestAllocationUnconfirmed: Boolean = false,
-                               failedToAttend: Boolean = false,
-                               assessmentScores: AssessmentScores = AssessmentScores(),
-                               assessmentCentre: AssessmentCentre = AssessmentCentre()
-  )
 
   case class Report(applicationId: String, progress: Option[String], firstLocation: Option[String],
     firstLocationFirstScheme: Option[String], firstLocationSecondScheme: Option[String], secondLocation: Option[String],
@@ -272,9 +236,6 @@ object Commands {
     implicit val mediaFormats = Json.format[AddMedia]
 
     implicit val addressFormat = Json.format[Address]
-    implicit val assessmentScoresFormat = Json.format[AssessmentScores]
-    implicit val assessmentCentresFormat = Json.format[AssessmentCentre]
-    implicit val progressFormat = Json.format[ProgressResponse]
     implicit val applicationAddedFormat = Json.format[ApplicationResponse]
     implicit val passMarkSettingsCreateResponseFormat = Json.format[PassMarkSettingsCreateResponse]
     implicit val personalDetailsAddedFormat = Json.format[PersonalDetailsAdded]

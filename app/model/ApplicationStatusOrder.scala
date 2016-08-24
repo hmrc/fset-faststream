@@ -16,7 +16,7 @@
 
 package model
 
-import model.Commands.ProgressResponse
+import model.command.ProgressResponse
 import model.ProgressStatuses._
 
 object ApplicationStatusOrder {
@@ -56,23 +56,24 @@ object ApplicationStatusOrder {
   def statusMaps(progress: ProgressResponse) = Seq(
     (progress.personalDetails, 10, PersonalDetailsCompletedProgress),
     (progress.schemePreferences, 20, SchemePreferencesCompletedProgress),
+    (progress.partnerGraduateProgrammes, 25, PartnerGraduateProgrammesCompletedProgress),
     (progress.assistanceDetails, 30, AssistanceDetailsCompletedProgress),
-    (progress.preview, 40, PreviewCompletedProgress),
-    (progress.questionnaire.contains("start_questionnaire"), 50, StartDiversityQuestionnaireProgress),
-    (progress.questionnaire.contains("diversity_questionnaire"), 60, DiversityQuestionsCompletedProgress),
-    (progress.questionnaire.contains("education_questionnaire"), 70, EducationQuestionsCompletedProgress),
-    (progress.questionnaire.contains("occupation_questionnaire"), 80, OccupationQuestionsCompletedProgress),
+    (progress.questionnaire.contains("start_questionnaire"), 40, StartDiversityQuestionnaireProgress),
+    (progress.questionnaire.contains("diversity_questionnaire"), 50, DiversityQuestionsCompletedProgress),
+    (progress.questionnaire.contains("education_questionnaire"), 60, EducationQuestionsCompletedProgress),
+    (progress.questionnaire.contains("occupation_questionnaire"), 70, OccupationQuestionsCompletedProgress),
+    (progress.preview, 80, PreviewCompletedProgress),
     (progress.submitted, 90, SubmittedProgress),
-    (progress.onlineTestInvited, 100, OnlineTestInvitedProgress),
-    (progress.onlineTestStarted, 110, OnlineTestStartedProgress),
-    (progress.onlineTestCompleted, 120, OnlineTestCompletedProgress),
-    (progress.onlineTestExpired, 130, OnlineTestExpiredProgress),
-    (progress.onlineTestAwaitingReevaluation, 140, AwaitingOnlineTestReevaluationProgress),
-    (progress.onlineTestFailed, 150, OnlineTestFailedProgress),
-    (progress.onlineTestFailedNotified, 160, OnlineTestFailedNotifiedProgress),
-    (progress.onlineTestAwaitingAllocation, 170, AwaitingOnlineTestAllocationProgress),
-    (progress.onlineTestAllocationUnconfirmed, 180, AllocationUnconfirmedProgress),
-    (progress.onlineTestAllocationConfirmed, 190, AllocationConfirmedProgress),
+    (progress.onlineTest.onlineTestInvited, 100, OnlineTestInvitedProgress),
+    (progress.onlineTest.onlineTestStarted, 110, OnlineTestStartedProgress),
+    (progress.onlineTest.onlineTestCompleted, 120, OnlineTestCompletedProgress),
+    (progress.onlineTest.onlineTestExpired, 130, OnlineTestExpiredProgress),
+    (progress.onlineTest.onlineTestAwaitingReevaluation, 140, AwaitingOnlineTestReevaluationProgress),
+    (progress.onlineTest.onlineTestFailed, 150, OnlineTestFailedProgress),
+    (progress.onlineTest.onlineTestFailedNotified, 160, OnlineTestFailedNotifiedProgress),
+    (progress.onlineTest.onlineTestAwaitingAllocation, 170, AwaitingOnlineTestAllocationProgress),
+    (progress.onlineTest.onlineTestAllocationUnconfirmed, 180, AllocationUnconfirmedProgress),
+    (progress.onlineTest.onlineTestAllocationConfirmed, 190, AllocationConfirmedProgress),
     (progress.assessmentScores.entered, 200, AssessmentScoresEnteredProgress),
     (progress.failedToAttend, 210, FailedToAttendProgress),
     (progress.assessmentScores.accepted, 220, AssessmentScoresAcceptedProgress),

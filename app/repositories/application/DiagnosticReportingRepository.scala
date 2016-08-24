@@ -16,7 +16,8 @@
 
 package repositories.application
 
-import model.Commands.{ CreateApplicationRequest, ProgressResponse }
+import model.Commands.{ CreateApplicationRequest }
+import model.command.ProgressResponse
 import model.Exceptions.NotFoundException
 import model.PersistedObjects.{ ApplicationProgressStatus, ApplicationProgressStatuses, ApplicationUser }
 import model.{ ApplicationStatusOrder, Commands }

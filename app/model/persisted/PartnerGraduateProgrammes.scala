@@ -16,11 +16,12 @@
 
 package model.persisted
 
-import model.persisted.AssistanceDetails
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-object AssistanceDetailsExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, false, None)
-  val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("disability description"), Some(true), true,
-    Some("online adjustment description"), true, Some("venue adjustment description"))
+case class PartnerGraduateProgrammes(interested: Boolean, partnerGraduateProgrammes: Option[List[String]])
 
+object PartnerGraduateProgrammes {
+  implicit val partnerGraduateProgrammesFormat = Json.format[PartnerGraduateProgrammes]
+  implicit val partnerGraduateProgrammesHandler = Macros.handler[PartnerGraduateProgrammes]
 }
