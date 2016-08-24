@@ -164,7 +164,7 @@ object DashboardPage {
     WithdrawnApplicationRole.isAuthorized(user)
 
   private def isApplicationCreatedOrInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    PersonalDetailsRole.isAuthorized(user)
+    EditPersonalDetailsAndContinueRole.isAuthorized(user)
 
   private def isUserWithNoApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     ApplicationStartRole.isAuthorized(user)

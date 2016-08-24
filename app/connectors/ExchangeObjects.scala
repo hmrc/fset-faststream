@@ -48,7 +48,8 @@ object ExchangeObjects {
     outsideUk: Boolean,
     address: Address,
     postCode: Option[PostCode],
-    phone: Option[PhoneNumber]
+    phone: Option[PhoneNumber],
+    updateApplicationStatus: Option[Boolean]
   )
 
   case class AddMedia(userId: UniqueIdentifier, media: String)

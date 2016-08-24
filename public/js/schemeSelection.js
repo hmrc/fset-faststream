@@ -60,9 +60,9 @@ $(function()
               '<li class="med-btm-margin scheme-prefcontainer" data-scheme-id="' +
               thisSchemeID + '"><span data-schemeorder>' +
               preferencesAsText[arrayPositionNow] +
-              '</span><div class="width-all-1-1"><span class="bold-small" data-schemenameinlist>' +
+              '</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
               thisScheme + '</span>' + specialEligibility +
-              '</div>'
+              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove</a></div>'
           );
 
           $this.closest('.scheme-container').addClass(
@@ -129,42 +129,22 @@ $(function()
     });
 
 
-      function sticky_relocate()
-      {
-        if ($('.global-header__title').css('font-size') !== '16px')
-        {
-          var window_top = $(window).scrollTop(),
-            div_top = $('#sticky-anchor').offset().top,
-            li_top = $('.schemes-list li:last-child .block-label').offset()
-            .top,
-            li_bottom = li_top + $(
-              '.schemes-list li:last-child .block-label').outerHeight(),
-            el_height = $('.scheme-info-panel').outerHeight(),
-            bottomThreshold = window_top + el_height + 5;
-          if (window_top > div_top)
-          {
-            $('.scheme-info-panel').addClass('fixed-panel');
-            $('#sticky-anchor').height(el_height);
-            if (li_bottom <= bottomThreshold)
-            {
-              $('.scheme-info-panel').removeClass('fixed-panel').addClass(
-                'bottom-panel').css('bottom', '12px');
-            }
-            else
-            {
-              $('.scheme-info-panel').removeClass('bottom-panel').addClass(
-                'fixed-panel').removeAttr('style');
-            }
-          }
-          else
-          {
-            $('.scheme-info-panel').removeClass('fixed-panel');
-            $('#sticky-anchor').height(0);
-          }
-        }
-      }
-      $(window).scroll(sticky_relocate);
-      sticky_relocate();
+    $('#selectedPrefList').on('click', '.scheme-remove', function(e) {
+      var thisScheme = $(this).closest('.scheme-prefcontainer').attr('data-scheme-id'),
+        schemesAfter = $(this).closest('.scheme-prefcontainer').nextAll();
+
+      e.preventDefault();
+
+      $('#' + thisScheme).trigger('click').attr('checked', false).closest('label').removeClass('selected');
+
+
+      schemesAfter.each(function () {
+        var schemeID = $(this).attr('data-scheme-id');
+
+        $('#' + schemeID).trigger('click');
+        $('#' + schemeID).trigger('click');
+      });
+    });
 
       function selectSchemes(){
         for(i = 0; i < numberOfSchemas; i++){

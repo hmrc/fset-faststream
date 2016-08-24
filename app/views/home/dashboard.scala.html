@@ -44,7 +44,7 @@
                                         <li><i class='fa fa-check the-icon'></i>Your application has been submitted</li>
                                     }
                                     @if(dashboardPage.isApplicationInProgressAndNotWithdrawn) {
-                                        @renderProgressElement(showLink = PersonalDetailsRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.present(None)) {Add personal details }
+                                        @renderProgressElement(showLink = EditPersonalDetailsAndContinueRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.presentAndContinue()) {Add personal details }
                                         @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose locations and schemes }
                                         @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Tell us about any assistance needs you may have }
                                         @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = PreviewApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.startOrContinue()) { Fill in the diversity questions }
@@ -54,8 +54,8 @@
                                 </ul>
                             }
                             @if(dashboardPage.isApplicationSubmittedAndNotWithdrawn) {
-                                <a class="" id="view-application" href="@routes.PreviewApplicationController.present()">
-                                    View your submitted application</a>
+                                <p><a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a></p>
+                                <p><a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a></p>
                             }
 
                             @if(dashboardPage.isApplicationWithdrawn) {
