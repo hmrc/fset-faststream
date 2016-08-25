@@ -19,6 +19,8 @@
             @for(position <- 0 to selectedSchemes.schemes.size - 1) {
                 <li>
                     <h3 class="bold-small">@getOrder(position + 1) preference</h3>
+                    <p> @selectedSchemes</p>
+                    <p> @selectedSchemes.schemes</p>
                     <p id="schemePreferenceChoice@{position+1}"> @selectedSchemes.schemes(position)</p>
                 </li>
             }
