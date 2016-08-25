@@ -19,5 +19,5 @@ package model.persisted
 import model.AddressExamples._
 
 object ContactDetailsExamples {
-  val ContactDetailsUK = ContactDetails(outsideUk = false, FullAddress, Some("A1 B23"), "johndoe@test.com", "1234567890")
+  val ContactDetailsUK = ContactDetails(outsideUk = false, FullAddress, Some("A1 B23"), None, "johndoe@test.com", "1234567890")
 }

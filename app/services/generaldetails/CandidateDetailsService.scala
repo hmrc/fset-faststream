@@ -43,7 +43,7 @@ trait CandidateDetailsService {
     val personalDetails = PersonalDetails(candidateDetails.firstName, candidateDetails.lastName, candidateDetails.preferredName,
       candidateDetails.dateOfBirth)
     val contactDetails = ContactDetails(candidateDetails.outsideUk, candidateDetails.address, candidateDetails.postCode,
-      candidateDetails.email, candidateDetails.phone)
+      candidateDetails.country, candidateDetails.email, candidateDetails.phone)
 
     val updatePersonalDetailsFut = candidateDetails.updateApplicationStatus match {
       case Some(true) => pdRepository.update(applicationId, userId, personalDetails, List(CREATED, IN_PROGRESS), IN_PROGRESS)
@@ -67,7 +67,7 @@ trait CandidateDetailsService {
       pd <- personalDetailsFut
       cd <- contactDetailsFut
     } yield UpdateGeneralDetails(pd.firstName, pd.lastName, pd.preferredName, cd.email, pd.dateOfBirth,
-      cd.outsideUk, cd.address, cd.postCode, cd.phone)
+      cd.outsideUk, cd.address, cd.postCode, cd.country, cd.phone)
   }
 
 }

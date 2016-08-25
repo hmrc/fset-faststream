@@ -29,6 +29,7 @@ case class UpdateGeneralDetails(firstName: String,
                                 outsideUk: Boolean,
                                 address: Address,
                                 postCode: Option[PostCode],
+                                country: Option[String],
                                 phone: PhoneNumber,
                                 updateApplicationStatus: Option[Boolean] = None)
 

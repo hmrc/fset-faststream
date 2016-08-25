@@ -52,6 +52,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         false,
         Address("123, Fake street"),
         Some("AB1 2CD"),
+        None,
         candidateInformation.email,
         "07770 774 914"
       )
