@@ -31,11 +31,13 @@ object InProgressPersonalDetailsStatusGenerator extends InProgressPersonalDetail
   override val previousStatusGenerator = CreatedStatusGenerator
   override val pdRepository = faststreamPersonalDetailsRepository
   override val cdRepository = faststreamContactDetailsRepository
+  override val fpdRepository = fastPassDetailsRepository
 }
 
 trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
+  val fpdRepository: FastPassDetailsRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
@@ -49,7 +51,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
     def getContactDetails(candidateInformation: DataGenerationResponse) = {
       ContactDetails(
-        false,
+        outsideUk = false,
         Address("123, Fake street"),
         Some("AB1 2CD"),
         candidateInformation.email,
@@ -64,6 +66,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       _ <- pdRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
         pd, List(model.ApplicationStatus.CREATED), model.ApplicationStatus.IN_PROGRESS)
       _ <- cdRepository.update(candidateInPreviousStatus.userId, cd)
+      _ <- fpdRepository.update(candidateInPreviousStatus.applicationId.get, FastPassDetails(applicable = false))
     } yield {
       candidateInPreviousStatus.copy(personalDetails = Some(pd), contactDetails = Some(cd))
     }

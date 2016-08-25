@@ -62,11 +62,25 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       )
 
     }
+
+    "Find user by id" in {
+      val userId = "fastPassUser"
+      val appId = "fastPassApp"
+      val frameworkId = "FastStream-2016"
+      createApplicationWithAllFields(userId, appId, frameworkId)
+
+      val applicationResponse = repository.findByUserId(userId, frameworkId).futureValue
+
+      applicationResponse.userId mustBe  userId
+      applicationResponse.applicationId mustBe  appId
+      applicationResponse.fastPassReceived.get mustBe true
+    }
   }
 
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String) = {
+  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String, appStatus: String = "") = {
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
+      "applicationStatus" -> appStatus,
       "userId" -> userId,
       "frameworkId" -> frameworkId,
       "framework-preferences" -> BSONDocument(
@@ -89,6 +103,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       "personal-details" -> BSONDocument(
         "aLevel" -> true,
         "stemLevel" -> true
+      ),
+      "fastpass-details" -> BSONDocument(
+        "applicable" -> true,
+        "fastPassReceived" -> true
       ),
       "assistance-details" -> BSONDocument(
         "needsAssistance" -> "No",
