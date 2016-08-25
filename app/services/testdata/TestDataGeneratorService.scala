@@ -17,6 +17,7 @@
 package services.testdata
 
 import connectors.AuthProviderClient
+import connectors.AuthProviderClient.UserRole
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import play.api.Play.current
 import play.modules.reactivemongo.ReactiveMongoPlugin
@@ -39,14 +40,15 @@ trait TestDataGeneratorService {
       removeAllUsers <- AuthProviderClient.removeAllUsers()
       makeAdminUser1 <- RegisteredStatusGenerator.createUser(
         1,
-        "test_service_manager_1@mailinator.com", "CSR Test", "Service Manager", AuthProviderClient.ServiceManagerRole
+        "test_service_manager_1@mailinator.com", "CSR Test", "Service Manager", AuthProviderClient.TechnicalAdminRole
       )
     } yield {
       ()
     }
   }
 
-  def createAdminUsers(numberToGenerate: Int)(implicit hc: HeaderCarrier): Future[List[DataGenerationResponse]] = {
+  def createAdminUsers(numberToGenerate: Int, emailPrefix: String,
+                       role: UserRole)(implicit hc: HeaderCarrier): Future[List[DataGenerationResponse]] = {
     Future.successful {
       val parNumbers = (1 to numberToGenerate).par
       parNumbers.tasksupport = new ForkJoinTaskSupport(
@@ -55,7 +57,7 @@ trait TestDataGeneratorService {
       parNumbers.map { candidateGenerationId =>
         val fut = RegisteredStatusGenerator.createUser(
           candidateGenerationId,
-          s"test_service_manager_$candidateGenerationId@mailinator.com", "CSR Test", "Service Manager", AuthProviderClient.ServiceManagerRole
+          s"test_service_manager_$emailPrefix$candidateGenerationId@mailinator.com", "CSR Test", "Service Manager", role
         )
         Await.result(fut, 5 seconds)
       }.toList
@@ -63,18 +65,19 @@ trait TestDataGeneratorService {
   }
 
   def createCandidatesInSpecificStatus(
-    numberToGenerate: Int,
-    generatorForStatus: BaseGenerator,
-    generatorConfig: GeneratorConfig
-  )(implicit hc: HeaderCarrier): Future[List[DataGenerationResponse]] = {
+                                        numberToGenerate: Int,
+                                        generatorForStatus: BaseGenerator,
+                                        generatorConfig: GeneratorConfig
+                                      )(implicit hc: HeaderCarrier): Future[List[DataGenerationResponse]] = {
     Future.successful {
       val parNumbers = (1 to numberToGenerate).par
       parNumbers.tasksupport = new ForkJoinTaskSupport(
         new scala.concurrent.forkjoin.ForkJoinPool(2)
       )
-      parNumbers.map { candidateGenerationId =>
-        val fut = generatorForStatus.generate(candidateGenerationId, generatorConfig)
-        Await.result(fut, 5 seconds)
+      parNumbers.map {
+        candidateGenerationId =>
+          val fut = generatorForStatus.generate(candidateGenerationId, generatorConfig)
+          Await.result(fut, 5 seconds)
       }.toList
     }
   }
