@@ -68,7 +68,7 @@ object GeneralDetailsFormExamples {
     "address.line4" -> ValidUKAddressForm.address.line4.getOrElse(""),
     "postCode" -> ValidUKAddressForm.postCode.getOrElse(""),
     "phone" -> ValidUKAddressForm.phone.map(_.toString).getOrElse(""),
-    "fastPassDetails.applicable" -> ValidUKAddressForm.fastPassDetails.applicable
+    "fastPassDetails.applicable" -> ValidUKAddressForm.fastPassDetails.applicable.toString
   )
 
 
