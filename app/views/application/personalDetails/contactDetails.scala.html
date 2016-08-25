@@ -55,6 +55,12 @@
             'class -> "form-control form-control-large",
             '_class -> (if(isOutsideUk) "toggle-content" else ""),
             '_showConstraints -> false)(helpers.CSRFieldConstructor.myFields, lang)
+        @helper.inputText(form("country"),
+            '_label -> "Country",
+            'autocorrect -> "off",
+            'class -> "form-control",
+            '_class -> (if(!isOutsideUk) "toggle-content" else ""),
+            '_showConstraints -> false)(helpers.CSRFieldConstructor.myFields, lang)
     </div>
 
     @helper.inputText(form("phone"),

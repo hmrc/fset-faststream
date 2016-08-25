@@ -64,6 +64,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
         Some(gd.outsideUk),
         gd.address,
         gd.postCode,
+        gd.country,
         gd.phone,
         gd.fastPassDetails
       ))
@@ -79,6 +80,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
           outsideUk = None,
           address = Address.EmptyAddress,
           postCode = None,
+          country = None,
           phone = None,
           fastPassDetails = EmptyFastPassDetails
         ))
@@ -124,5 +126,8 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
   }
 
   private def removePostCodeWhenOutsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
+    if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(postCode = None) else generalDetails
+
+  private def removeCountryWhenInsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
     if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(postCode = None) else generalDetails
 }

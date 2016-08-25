@@ -35,7 +35,7 @@ class GeneralDetailsFormSpec extends PlaySpec {
       form.errors.map(_.key) must be(OutsideUKMandatoryFields)
     }
 
-    "be successful for outside UK address without post code" in {
+    "be successful for outside UK address without post code, but with country" in {
       val form = personalDetailsForm.bind(ValidOutsideUKDetails)
 
       form.hasErrors must be(false)
