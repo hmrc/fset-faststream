@@ -130,7 +130,6 @@ scheme.HousesOfParliament.description=Houses of Parliament
 scheme.HumanResources.description=Human Resources
 scheme.ProjectDelivery.description=Project Delivery
 scheme.ScienceAndEngineering.description=Science and Engineering
-scheme.Tax.description=Tax
 
 scheme.GovernmentEconomicService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility
 scheme.GovernmentOperationalResearchService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-operational-research-service#eligibility
