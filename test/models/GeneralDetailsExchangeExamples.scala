@@ -16,7 +16,7 @@
 
 package models
 
-import connectors.exchange.GeneralDetailsExchange
+import connectors.ExchangeObjects.GeneralDetailsExchange
 import connectors.exchange.FastPassDetails
 import org.joda.time.LocalDate
 import mappings.AddressExamples._
