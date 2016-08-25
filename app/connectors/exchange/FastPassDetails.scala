@@ -18,12 +18,13 @@ package connectors.exchange
 
 import forms.FastPassForm._
 import play.api.libs.json.Json
+import language.implicitConversions
 
-case class FastPassDetails(applicable:Boolean,
-                           fastPassType:Option[String] = None,
-                           internshipTypes:Option[Seq[String]] = None,
-                           fastPassReceived:Option[Boolean] = None,
-                           certificateNumber:Option[String] = None)
+case class FastPassDetails(applicable: Boolean,
+                           fastPassType: Option[String] = None,
+                           internshipTypes: Option[Seq[String]] = None,
+                           fastPassReceived: Option[Boolean] = None,
+                           certificateNumber: Option[String] = None)
 
 object FastPassDetails {
 

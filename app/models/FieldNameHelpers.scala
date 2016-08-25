@@ -17,7 +17,7 @@
 package models
 
 
-object Helpers {
+object FieldNameHelpers {
 
   def createId(id: String, v: (String, String)) = id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_")
 

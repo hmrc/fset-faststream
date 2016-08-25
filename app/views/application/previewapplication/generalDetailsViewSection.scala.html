@@ -15,11 +15,11 @@
 }
 
 @getFastPassTypeDescription(fastPassType: String) = @{
-    FastPassForm.FastPassTypes.find(_._1 == fastPassType).map(_._2).getOrElse("")
+    FastPassForm.FastPassTypes.toMap.getOrElse(fastPassType, "")
 }
 
 @getInternshipTypeDescription(internshipType: String) = @{
-    FastPassForm.InternshipTypes.find(_._1 == internshipType).map(_._2).getOrElse("")
+    FastPassForm.InternshipTypes.toMap.getOrElse(internshipType, "")
 }
 
 <section class="section-border">

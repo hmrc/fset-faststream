@@ -102,18 +102,18 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
   }
 
   private def submit(onSuccess: OnSuccess, redirectOnSuccess: Result)(
-    implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
+    implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
     implicit val now: LocalDate = LocalDate.now
 
     GeneralDetailsForm.form.bindFromRequest.fold(
       errorForm => Future.successful(Ok(views.html.application.generalDetails(errorForm, continuetoTheNextStep(onSuccess)))),
       gd => for {
-        _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID,
-          removePostCodeWhenOutsideUK(gd).toExchange(user.user.email, Some(continuetoTheNextStep(onSuccess))))
-        _ <- userManagementClient.updateDetails(user.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
+        _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
+          removePostCodeWhenOutsideUK(gd).toExchange(cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
+        _ <- userManagementClient.updateDetails(cachedData.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
         redirect <- updateProgress(data => {
           val applicationCopy = data.application.map(_.copy(fastPassReceived = gd.fastPassDetails.fastPassReceived))
-          data.copy(user = user.user.copy(firstName = gd.firstName, lastName = gd.lastName,
+          data.copy(user = cachedData.user.copy(firstName = gd.firstName, lastName = gd.lastName,
             preferredName = Some(gd.preferredName)), application =
             if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)
         })(_ => redirectOnSuccess)
