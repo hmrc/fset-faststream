@@ -16,8 +16,10 @@
 
 package models
 
+import scala.collection.immutable.ListMap
+
 object Ethnicity {
-  val map = Map(
+  val map = ListMap(
     "White" -> List(
       ("English/Welsh/Scottish/Northern Irish/British", false),
       ("Irish", false),

@@ -18,17 +18,18 @@ package models
 
 import java.util.UUID
 
-import connectors.exchange.ProgressResponse
+import connectors.exchange.{ OnlineTestProgressResponse, ProgressResponse }
 
 object ProgressResponseExamples {
-  val Initial = ProgressResponse(UniqueIdentifier(UUID.randomUUID().toString), false, false, false, false, Nil, false, false, false,
-    false, false, false, false, false, false, false, false, false, false)
+  val Initial = ProgressResponse(UUID.randomUUID().toString, false, false, false, false, false, Nil, false, false,
+    OnlineTestProgressResponse(false, false, false, false, false, false, false, false, false, false), false)
   val InProgress = Initial.copy(personalDetails = true)
   val InPersonalDetails = Initial.copy(personalDetails = true)
-  val InFrameworkDetails = InPersonalDetails.copy(schemePreferences = true)
-  val InAssistanceDetails = InFrameworkDetails.copy(assistanceDetails = true)
+  val InSchemePreferencesDetails = InPersonalDetails.copy(schemePreferences = true)
+  val InPartnerGraduateProgrammes = InSchemePreferencesDetails.copy(partnerGraduateProgrammes = true)
+  val InAssistanceDetails = InPartnerGraduateProgrammes.copy(assistanceDetails = true)
   val InQuestionnaire = InAssistanceDetails.copy(questionnaire = List("start_questionnaire", "diversity_questionnaire",
     "education_questionnaire", "occupation_questionnaire"))
   val InPreview = InQuestionnaire.copy(preview = true)
-  val Submitted = Initial.copy(submitted = true)
+  val Submitted = InPreview.copy(submitted = true)
 }

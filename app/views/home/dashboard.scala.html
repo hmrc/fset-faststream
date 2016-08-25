@@ -45,7 +45,8 @@
                                     }
                                     @if(dashboardPage.isApplicationInProgressAndNotWithdrawn) {
                                         @renderProgressElement(showLink = EditPersonalDetailsAndContinueRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.presentAndContinue()) {Add personal details }
-                                        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose locations and schemes }
+                                        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = PartnerGraduateProgrammesRole.isAuthorized(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose locations and schemes }
+                                        @renderProgressElement(showLink = PartnerGraduateProgrammesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "partnerGraduateProgrammesStep")(routes.PartnerGraduateProgrammesController.present()) { Partner graduate programmes }
                                         @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Tell us about any assistance needs you may have }
                                         @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = PreviewApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.startOrContinue()) { Fill in the diversity questions }
                                         @renderProgressElement(showLink = PreviewApplicationRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "previewStep")(routes.PreviewApplicationController.present()) { Check your application }
@@ -107,6 +108,12 @@
                         <div class="inner-block-padr">
                             <h2 class="heading-medium">3. Attend an assessment centre</h2>
                                 @dashboardPage.assessmentStageStatus match {
+                                    case ASSESSMENT_FAST_PASS_CERTIFICATE => {
+                                        <p id="fastPassParagraph">Once we've verified your certificate number, you'll be invited
+                                            to attend an assessment centre.</p>
+                                        <p><a href="https://www.gov.uk/guidance/civil-service-fast-stream-how-to-apply#analytical-fast-stream-assessment"
+                                            rel="external" target="_blank">Find out more about the assessment day</a></p>
+                                    }
                                     case ASSESSMENT_BOOKED_CONFIRMED => {
                                         @allocationDetails.map { aDetails =>
                                         <p>Your assessment is booked for</p>

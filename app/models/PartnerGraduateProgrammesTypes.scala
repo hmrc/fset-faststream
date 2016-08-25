@@ -16,12 +16,14 @@
 
 package models
 
-import connectors.ExchangeObjects.GeneralDetailsExchange
-import connectors.exchange.FastPassDetails
-import org.joda.time.LocalDate
-import mappings.AddressExamples._
-
-object GeneralDetailsExchangeExamples {
-  val FullDetails = GeneralDetailsExchange("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), Some("1234567"), FastPassDetails(false), None)
+object PartnerGraduateProgrammesTypes {
+  val seq = Seq(
+    ("Entrepreneur First", "Entrepreneur First"),
+    ("Frontline", "Frontline"),
+    ("Lead First", "Lead First"),
+    ("Police Now", "Police Now"),
+    ("TeachFirst", "TeachFirst"),
+    ("Think Ahead", "Think Ahead"),
+    ("Year Here", "Year Here")
+  )
 }

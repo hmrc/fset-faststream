@@ -17,12 +17,12 @@
 package models.page
 
 import connectors.{ AllocationExchangeObjects, ExchangeObjects }
-import models._
-import models.page.DashboardPage.Flags._
+import models.page.DashboardPage.Flags.{ ProgressInactive, _ }
+import models.{ CachedData, Progress }
 import org.joda.time.LocalDate
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
-import security.RoleUtils
+import security.RoleUtils._
 import security.Roles._
 
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
@@ -83,6 +83,8 @@ object DashboardPage {
     case object ProgressInactiveDisabled extends ProgressStepVisibility
 
     sealed trait AssessmentStageStatus
+
+    case object ASSESSMENT_FAST_PASS_CERTIFICATE extends AssessmentStageStatus
 
     case object ASSESSMENT_BOOKED_CONFIRMED extends AssessmentStageStatus
 
@@ -176,10 +178,12 @@ object DashboardPage {
   }
 
   private def getAssessmentInProgressStatus(user: CachedData,
-                              allocationDetails: Option[AllocationExchangeObjects.AllocationDetails],
-                              test: Option[ExchangeObjects.OnlineTest])
-                             (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
-    if (ConfirmedAllocatedCandidateRole.isAuthorized(user)) {
+                                            allocationDetails: Option[AllocationExchangeObjects.AllocationDetails],
+                                            test: Option[ExchangeObjects.OnlineTest])
+                                           (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
+    if(hasReceivedFastPass(user)) {
+      ASSESSMENT_FAST_PASS_CERTIFICATE
+    } else if (ConfirmedAllocatedCandidateRole.isAuthorized(user)) {
       ASSESSMENT_BOOKED_CONFIRMED
     } else if (UnconfirmedAllocatedCandidateRole.isAuthorized(user)) {
       if (isConfirmationAllocationExpired(allocationDetails)) {
@@ -230,8 +234,12 @@ object DashboardPage {
     def activeUserVisibility(user: CachedData) = {
       val isStatusOnlineTestFailedNotified = user.application.exists(_.applicationStatus == ApplicationStatus.ONLINE_TEST_FAILED_NOTIFIED)
 
-      val firstStep = if (RoleUtils.activeUserWithApp(user)) { ProgressActive } else { ProgressInactive }
-      val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user)) { ProgressActive } else { ProgressInactive }
+      val firstStep = if (activeUserWithApp(user)) { ProgressActive } else { ProgressInactive }
+      val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || hasReceivedFastPass(user)) {
+        ProgressActive
+      } else {
+        ProgressInactive
+      }
       val thirdStep = if (isStatusOnlineTestFailedNotified) { ProgressInactiveDisabled } else { ProgressInactive }
       val fourthStep = if (isStatusOnlineTestFailedNotified) { ProgressInactiveDisabled } else { ProgressInactive }
 

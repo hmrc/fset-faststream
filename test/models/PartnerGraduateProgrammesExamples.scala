@@ -16,12 +16,9 @@
 
 package models
 
-import connectors.ExchangeObjects.GeneralDetailsExchange
-import connectors.exchange.FastPassDetails
-import org.joda.time.LocalDate
-import mappings.AddressExamples._
+import connectors.exchange.PartnerGraduateProgrammesExchange
 
-object GeneralDetailsExchangeExamples {
-  val FullDetails = GeneralDetailsExchange("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), Some("1234567"), FastPassDetails(false), None)
+object PartnerGraduateProgrammesExchangeExamples {
+  val InterestedNotAll = PartnerGraduateProgrammesExchange(true, Some(List("Entrepreneur First", "Frontline")))
+  val NoInterested = PartnerGraduateProgrammesExchange(false, None)
 }

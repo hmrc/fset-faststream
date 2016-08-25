@@ -1,5 +1,27 @@
 @(generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange)(edit: Html)
 
+@import _root_.forms.FastPassForm
+
+
+@displayFastPassSection(id:String, display:Boolean, heading: String, text: => String) = @{
+    if(display){
+        <h3 class="heading-small">{heading}</h3>
+        <p id={id}>{text}</p>
+    }
+}
+
+@getYesOrNo(value:Boolean) = @{
+    if(value) "Yes" else "No"
+}
+
+@getFastPassTypeDescription(fastPassType: String) = @{
+    FastPassForm.FastPassTypes.toMap.getOrElse(fastPassType, "")
+}
+
+@getInternshipTypeDescription(internshipType: String) = @{
+    FastPassForm.InternshipTypes.toMap.getOrElse(internshipType, "")
+}
+
 <section class="section-border">
     <h2 class="heading-large">
         <span class="sectionTitle">Personal details</span>
@@ -36,8 +58,21 @@
             <p id="phone-input3">No number provided</p>
         }
     </section>
-    <section>
-        <h3 class="heading-small">Are you currently a civil servant or been on our internship programme?</h3>
-        <p>TODO</p>
-    </section>
+
+    @displayFastPassSection("fastPassApplicable", true, "Are you currently a civil servant or been on our internship programme?",
+        getYesOrNo(generalDetails.fastPassDetails.applicable))
+    @displayFastPassSection("fastPassType", generalDetails.fastPassDetails.fastPassType.isDefined, "Which of these applies?",
+        getFastPassTypeDescription(generalDetails.fastPassDetails.fastPassType.get))
+    @if(generalDetails.fastPassDetails.internshipTypes.isDefined){
+        <section id="internshipTypes">
+            <h3 class="heading-small">Which internship programme did you do?</h3>
+            @for(internshipType <- generalDetails.fastPassDetails.internshipTypes.get){
+                <p>@getInternshipTypeDescription(internshipType)</p>
+            }
+        </section>
+    }
+    @displayFastPassSection("fastPassReceived", generalDetails.fastPassDetails.fastPassReceived.isDefined, "Did you receive a Fast Pass?",
+        getYesOrNo(generalDetails.fastPassDetails.fastPassReceived.get))
+    @displayFastPassSection("certificateNumber", generalDetails.fastPassDetails.certificateNumber.isDefined, "Fast Pass certificate number",
+        generalDetails.fastPassDetails.certificateNumber.get)
 </section>

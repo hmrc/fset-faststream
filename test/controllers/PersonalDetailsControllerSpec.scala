@@ -55,6 +55,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
+      content must include(s"""<input name="fastPassDetails.applicable" type="radio" id="fastPassDetails_applicable-yes"""")
       content must include(routes.PersonalDetailsController.submitGeneralDetailsAndContinue().url)
     }
 
@@ -67,6 +68,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${GeneralDetailsExchangeExamples.FullDetails.preferredName}"""")
+      content must include(s"""<input name="fastPassDetails.applicable" type="radio" id="fastPassDetails_applicable-yes"""")
     }
   }
 
@@ -94,8 +96,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
         .copy(progress = ProgressResponseExamples.InProgress, applicationStatus = ApplicationStatus.IN_PROGRESS)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidUKAddressForm),
-        eqTo(currentEmail), updateStatus = eqTo(true))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+        eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitGeneralDetailsAndContinue()(Request)
 
@@ -112,8 +114,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
         .copy(progress = ProgressResponseExamples.Submitted, applicationStatus = ApplicationStatus.SUBMITTED)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId), eqTo(ValidUKAddressForm),
-        eqTo(currentEmail), updateStatus = eqTo(false))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+        eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(false))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitGeneralDetails()(Request)
 

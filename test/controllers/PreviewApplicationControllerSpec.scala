@@ -17,10 +17,11 @@
 package controllers
 
 import _root_.forms.AssistanceDetailsFormExamples
+import models.PartnerGraduateProgrammesExchangeExamples
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.{ ApplicationClient, SchemeClient }
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord, PersonalDetailsNotFound }
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
@@ -46,6 +47,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include("<title>Check your application")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
+      content must include(s"""<p id="fastPassApplicable">No</p>""")
     }
 
     "redirect to home page with error when personal details cannot be found" in new TestFixture {
@@ -59,6 +61,14 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     "redirect to home page with error when scheme preferences cannot be found" in new TestFixture {
       when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new SchemePreferencesNotFound))
+      val result = controller.present()(fakeRequest)
+      status(result) must be(SEE_OTHER)
+      redirectLocation(result) must be(Some(routes.HomeController.present().url))
+    }
+
+    "redirect to home page with error when partner graduate programmes cannot be found" in new TestFixture {
+      when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new PartnerGraduateProgrammesNotFound))
       val result = controller.present()(fakeRequest)
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
@@ -104,6 +114,8 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       .thenReturn(Future.successful(SchemePreferencesExchangeExamples.DefaultSelectedSchemes))
     when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments))
+    when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      .thenReturn(Future.successful(PartnerGraduateProgrammesExchangeExamples.InterestedNotAll))
 
     class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient,
       mockSchemeClient)

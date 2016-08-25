@@ -1,6 +1,8 @@
-@(generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange,
-        assistanceDetails: connectors.exchange.AssistanceDetailsExchange,
+@(
+        generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange,
         schemePreferences: connectors.exchange.SelectedSchemes,
+        partnerGraduateProgrammes: connectors.exchange.PartnerGraduateProgrammesExchange,
+        assistanceDetails: connectors.exchange.AssistanceDetailsExchange,
         applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import views.html.application.previewapplication.{assistanceDetailsViewSection, generalDetailsViewSection, schemePreferencesViewSection, partnerGraduateProgrammesViewSection, diversityQuestionnaireViewSection}
@@ -39,7 +41,7 @@
 
     @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", routes.SchemePreferencesController.present()))
 
-    @partnerGraduateProgrammesViewSection()
+    @partnerGraduateProgrammesViewSection(partnerGraduateProgrammes)(edit_link("editPartnerGraduateProgrammes", routes.PartnerGraduateProgrammesController.present()))
 
     @assistanceDetailsViewSection(assistanceDetails)(edit_link("editAssistanceDetails", routes.AssistanceDetailsController.present()))
 

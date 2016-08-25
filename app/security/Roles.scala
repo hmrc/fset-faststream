@@ -83,9 +83,14 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasPersonalDetails(user)
   }
 
-  object AssistanceDetailsRole extends CsrAuthorization {
+  object PartnerGraduateProgrammesRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasSchemes(user)
+  }
+
+  object AssistanceDetailsRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasPartnerGraduateProgrammes(user)
   }
 
   object PreviewApplicationRole extends CsrAuthorization {
@@ -195,6 +200,8 @@ object RoleUtils {
 
   def hasSchemes(implicit user: CachedData) = progress.schemePreferences
 
+  def hasPartnerGraduateProgrammes(implicit user: CachedData) = progress.partnerGraduateProgrammes
+
   def hasAssistanceDetails(implicit user: CachedData) = user.application.isDefined && progress.assistanceDetails
 
   def hasStartedQuest(implicit user: CachedData) = progress.startedQuestionnaire
@@ -206,5 +213,8 @@ object RoleUtils {
   def hasOccupation(implicit user: CachedData) = progress.occupationQuestionnaire
 
   def hasPreview(implicit user: CachedData) = progress.preview
+
+  def hasReceivedFastPass(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  activeUserWithApp(user) && statusIn(user)(SUBMITTED) && user.application.flatMap(_.fastPassReceived).getOrElse(false)
 
 }
