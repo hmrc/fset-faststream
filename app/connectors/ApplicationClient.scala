@@ -26,7 +26,6 @@ import connectors.exchange.AssistanceDetailsExchange._
 import connectors.exchange.PartnerGraduateProgrammesExchange._
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
-import org.joda.time.LocalDate
 import play.api.Play.current
 import play.api.http.Status._
 import play.api.libs.iteratee.Iteratee
@@ -88,23 +87,11 @@ trait ApplicationClient {
     }
   }
 
-  def updateGeneralDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, data: GeneralDetailsForm.Data, email: String,
-                           updateStatus: Boolean)(implicit hc: HeaderCarrier) = {
-
+  def updateGeneralDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, generalDetails: GeneralDetailsExchange)
+                          (implicit hc: HeaderCarrier) = {
     http.POST(
       s"${url.host}${url.base}/personal-details/$userId/$applicationId",
-      GeneralDetailsExchange(
-        data.firstName,
-        data.lastName,
-        data.preferredName,
-        email,
-        LocalDate.parse(s"${data.dateOfBirth.year}-${data.dateOfBirth.month}-${data.dateOfBirth.day}"),
-        data.outsideUk.getOrElse(false),
-        data.address,
-        data.postCode.map(p => PostCodeMapping.formatPostcode(p)),
-        data.phone,
-        Some(updateStatus)
-      )
+      generalDetails
     ).map {
         case x: HttpResponse if x.status == CREATED => ()
       } recover {

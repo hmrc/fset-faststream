@@ -130,16 +130,24 @@ $(function() {
     $('input:not(:checked)').parent().removeClass('selected');
     $('input:checked').parent().addClass('selected');
 
-    if($target == undefined) {
-      $this.closest('.form-group').siblings('.toggle-content').hide().attr('aria-hidden', true);
-      $this.closest('.form-group').find('[aria-expanded]').attr('aria-expanded', false);
+    if($this.is('input[type=checkbox]')) {
+      if($this.is(':checked')) {
+        $('#' + $target).show();
+      } else {
+        $('#' + $target).hide();
+      }
     } else {
-      $('#' + $target).show();
-      $($siblingTarget).hide().attr('aria-hidden', true);
+      if($target == undefined) {
+        $this.closest('.form-group').siblings('.toggle-content').hide().attr('aria-hidden', true);
+        $this.closest('.form-group').find('[aria-expanded]').attr('aria-expanded', false);
+      } else {
+        $('#' + $target).show();
+        $($siblingTarget).hide().attr('aria-hidden', true);
 
-      if($this.closest('.form-group').hasClass('blocklabel-single')) {
+        if($this.closest('.form-group').hasClass('blocklabel-single')) {
 
-        $this.closest('.blocklabel-single-container').find('.blocklabel-content').not('#' + $target).hide();
+          $this.closest('.blocklabel-single-container').find('.blocklabel-content').not('#' + $target).hide();
+        }
       }
     }
 

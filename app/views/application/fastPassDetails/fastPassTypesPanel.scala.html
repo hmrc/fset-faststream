@@ -1,0 +1,14 @@
+@(form: Form[_root_.forms.GeneralDetailsForm.Data])(implicit lang: play.api.i18n.Lang)
+
+@import _root_.forms.FastPassForm
+@import views.html.widgets.radioGroupWithTogglePanels
+
+<div id="fastPassDetails_applicable-panel-yes" class="toggle-content">
+    @radioGroupWithTogglePanels(form("fastPassDetails.fastPassType"), FastPassForm.FastPassTypes,
+        'id -> "fastPassDetails.fastPassType",
+        '_label -> "Which of these applies?") {
+        @civilServantsContent()
+        @fastTrackContent()
+        @internshipTypesPanel(form)
+    }
+</div>

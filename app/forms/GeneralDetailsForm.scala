@@ -16,14 +16,15 @@
 
 package forms
 
+import connectors.ExchangeObjects.GeneralDetailsExchange
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
-import mappings.PostCodeMapping.{PostCode, validPostcode}
-import mappings.{Address, DayMonthYear, PhoneNumberMapping}
+import mappings.PostCodeMapping.{ PostCode, validPostcode }
+import mappings.{ Address, DayMonthYear, PhoneNumberMapping, PostCodeMapping }
 import org.joda.time.LocalDate
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{Form, FormError}
+import play.api.data.{ Form, FormError }
 
 object GeneralDetailsForm {
   private val MinAge = 16
@@ -57,7 +58,8 @@ object GeneralDetailsForm {
         "outsideUk" -> optional(checked("error.address.required")),
         "address" -> Address.address,
         "postCode" -> optional(text.verifying(validPostcode)),
-        "phone" -> of(phoneNumberFormatter)
+        "phone" -> of(phoneNumberFormatter),
+        FastPassForm.formQualifier -> FastPassForm.form.mapping
       )(Data.apply)(Data.unapply).verifying("error.postcode.required", d =>
         !d.insideUk || d.postCode.isDefined
       )
@@ -71,11 +73,28 @@ object GeneralDetailsForm {
                   outsideUk: Option[Boolean],
                   address: Address,
                   postCode: Option[PostCode],
-                  phone: Option[PhoneNumber]) {
+                  phone: Option[PhoneNumber],
+                  fastPassDetails: FastPassForm.Data
+                 ) {
+
     def insideUk = outsideUk match {
       case Some(true) => false
       case _ => true
     }
+
+    def toExchange(email: String, updateApplicationStatus: Option[Boolean]) = GeneralDetailsExchange(
+      firstName,
+      lastName,
+      preferredName,
+      email,
+      LocalDate.parse(s"${dateOfBirth.year}-${dateOfBirth.month}-${dateOfBirth.day}"),
+      outsideUk.getOrElse(false),
+      address,
+      postCode.map(p => PostCodeMapping.formatPostcode(p)),
+      phone,
+      fastPassDetails,
+      updateApplicationStatus
+    )
   }
 
 }

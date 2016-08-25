@@ -16,8 +16,9 @@
 
 package forms
 
-import mappings.{AddressExamples, DayMonthYear}
-import org.joda.time.{DateTime, LocalDate}
+import connectors.exchange.FastPassDetails
+import mappings.{ AddressExamples, DayMonthYear }
+import org.joda.time.{ DateTime, LocalDate }
 
 object GeneralDetailsFormExamples {
   val ValidOutsideUKDetails = Map[String, String](
@@ -29,7 +30,8 @@ object GeneralDetailsFormExamples {
     "dateOfBirth.year" -> "1990",
     "address.line1" -> "Line 1",
     "outsideUk" -> "true",
-    "phone" -> "123456789"
+    "phone" -> "123456789",
+    "fastPassDetails.applicable" -> "false"
   )
 
   val InvalidUKAddressWithoutPostCode = ValidOutsideUKDetails - "outsideUk"
@@ -46,11 +48,12 @@ object GeneralDetailsFormExamples {
     "dateOfBirth.month",
     "dateOfBirth.year",
     "address.line1",
-    "phone"
+    "phone",
+    "fastPassDetails.applicable"
   )
 
   val ValidUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
-    outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), Some("1234567890"))
+    outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), Some("1234567890"), FastPassDetails(applicable = false))
 
   val ValidFormUrlEncodedBody = Seq(
     "firstName" -> ValidUKAddressForm.firstName,
@@ -64,7 +67,8 @@ object GeneralDetailsFormExamples {
     "address.line3" -> ValidUKAddressForm.address.line3.getOrElse(""),
     "address.line4" -> ValidUKAddressForm.address.line4.getOrElse(""),
     "postCode" -> ValidUKAddressForm.postCode.getOrElse(""),
-    "phone" -> ValidUKAddressForm.phone.map(_.toString).getOrElse("")
+    "phone" -> ValidUKAddressForm.phone.map(_.toString).getOrElse(""),
+    "fastPassDetails.applicable" -> ValidUKAddressForm.fastPassDetails.applicable.toString
   )
 
 

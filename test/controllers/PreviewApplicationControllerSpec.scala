@@ -47,6 +47,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include("<title>Check your application")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
+      content must include(s"""<p id="fastPassApplicable">No</p>""")
     }
 
     "redirect to home page with error when personal details cannot be found" in new TestFixture {

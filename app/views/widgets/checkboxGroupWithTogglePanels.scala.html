@@ -1,0 +1,25 @@
+
+@import helpers.CSRSkinnyFieldConstructor._
+@import FieldNameHelpers._
+
+@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(togglePanels:Html)
+
+@helper.input(field, args:_*) { (id, name, value, htmlArgs) =>
+    <fieldset>
+        <legend class="form-label">@args.map(x => if(x._1 == '_label) x._2 )</legend>
+        <div class="form-group">
+            @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
+            @options.map { v =>
+                <div>
+                    <label data-target="@formatId(id,v)-panel" for="@formatId(id,v)" class="block-label">
+                        <input type="checkbox" id="@formatId(id,v)" aria-controls="@formatId(id,v)-panel" aria-expanded="false"
+                               name="@{name + "[]"}" value="@v._1" @if(values.contains(v._1)){checked="checked"} @toHtmlArgs(htmlArgs)/>
+                        @v._2
+                    </label>
+                </div>
+            }
+        }
+        </div>
+    </fieldset>
+}
+@togglePanels
