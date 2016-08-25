@@ -59,7 +59,7 @@
         }
     </section>
 
-    @displayFastPassSection("fastPassApplicable", true, "Are you currently a civil servant or been on our internship programme?",
+    @displayFastPassSection("fastPassApplicable", true, "Are you a civil servant or been on a diversity internship or the Fast Track?",
         getYesOrNo(generalDetails.fastPassDetails.applicable))
     @displayFastPassSection("fastPassType", generalDetails.fastPassDetails.fastPassType.isDefined, "Which of these applies?",
         getFastPassTypeDescription(generalDetails.fastPassDetails.fastPassType.get))
