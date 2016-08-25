@@ -106,7 +106,8 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
     implicit val now: LocalDate = LocalDate.now
 
     GeneralDetailsForm.form.bindFromRequest.fold(
-      errorForm => Future.successful(Ok(views.html.application.generalDetails(errorForm, continuetoTheNextStep(onSuccess)))),
+      errorForm => Future.successful(Ok(views.html.application.generalDetails(GeneralDetailsForm.
+        form.bind(errorForm.data.cleanupFastPassFields()), continuetoTheNextStep(onSuccess)))),
       gd => for {
         _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
           removePostCodeWhenOutsideUK(gd).toExchange(cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
