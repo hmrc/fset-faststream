@@ -5,7 +5,7 @@ import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFoun
 import model.SelectedSchemesExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepository}
+import repositories.application.{GeneralApplicationMongoRepository}
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 

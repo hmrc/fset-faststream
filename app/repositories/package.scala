@@ -46,6 +46,7 @@ package object repositories {
   lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
   lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository()
   lazy val schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
+  lazy val fastPassDetailsRepository = new FastPassDetailsMongoRepository()
   lazy val faststreamPartnerGraduateProgrammesRepository = new partnergraduateprogrammes.PartnerGraduateProgrammesMongoRepository()
   lazy val faststreamAssistanceDetailsRepository = new assistancedetails.AssistanceDetailsMongoRepository()
 

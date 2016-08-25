@@ -22,13 +22,12 @@ import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ ApplicationNotFound, CannotUpdateAssistanceDetails, CannotUpdatePreview }
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.PersistedObjects.ApplicationForNotification
 import model._
 import model.command.{ AssessmentCentre, AssessmentScores, OnlineTestProgressResponse, ProgressResponse }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -124,7 +123,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, createdStatus, userId, p)
+        ApplicationResponse(applicationId, createdStatus, userId, p, None)
       }
     }
   }
@@ -213,8 +212,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[String]("applicationStatus").get
+        val fastPassReceived = document.getAs[FastPassDetails]("fastpass-details").flatMap(_.fastPassReceived)
         findProgress(applicationId).map { (p: ProgressResponse) =>
-          ApplicationResponse(applicationId, applicationStatus, userId, p)
+          ApplicationResponse(applicationId, applicationStatus, userId, p, fastPassReceived)
         }
       case None => throw new ApplicationNotFound(userId)
     }

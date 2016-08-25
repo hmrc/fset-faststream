@@ -16,10 +16,9 @@
 
 package services.generaldetails
 
-import model.Address
 import model.ApplicationStatus._
-import model.command.UpdateGeneralDetails
-import model.persisted.{ContactDetails, PersonalDetails}
+import model.command.GeneralDetailsExchange
+import model.persisted.{ ContactDetails, PersonalDetails }
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
@@ -31,15 +30,17 @@ import scala.concurrent.Future
 object CandidateDetailsService extends CandidateDetailsService {
   val pdRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
+  val fpdRepository = fastPassDetailsRepository
   val auditService = AuditService
 }
 
 trait CandidateDetailsService {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
+  val fpdRepository: FastPassDetailsRepository
   val auditService: AuditService
 
-  def update(applicationId: String, userId: String, candidateDetails: UpdateGeneralDetails): Future[Unit] = {
+  def update(applicationId: String, userId: String, candidateDetails: GeneralDetailsExchange): Future[Unit] = {
     val personalDetails = PersonalDetails(candidateDetails.firstName, candidateDetails.lastName, candidateDetails.preferredName,
       candidateDetails.dateOfBirth)
     val contactDetails = ContactDetails(candidateDetails.outsideUk, candidateDetails.address, candidateDetails.postCode,
@@ -52,22 +53,27 @@ trait CandidateDetailsService {
     }
 
     val contactDetailsFut = cdRepository.update(userId, contactDetails)
+    val fastPassDetailsFut = fpdRepository.update(applicationId, candidateDetails.fastPassDetails)
 
     for {
       _ <- updatePersonalDetailsFut
       _ <- contactDetailsFut
+      _ <- fastPassDetailsFut
     } yield {}
   }
 
-  def find(applicationId: String, userId: String): Future[UpdateGeneralDetails] = {
+  def find(applicationId: String, userId: String): Future[GeneralDetailsExchange] = {
     val personalDetailsFut = pdRepository.find(applicationId)
     val contactDetailsFut = cdRepository.find(userId)
+    val fastPassDetailsFut = fpdRepository.find(applicationId)
 
     for {
-      pd <- personalDetailsFut
-      cd <- contactDetailsFut
-    } yield UpdateGeneralDetails(pd.firstName, pd.lastName, pd.preferredName, cd.email, pd.dateOfBirth,
-      cd.outsideUk, cd.address, cd.postCode, cd.country, cd.phone)
+      personalDetails <- personalDetailsFut
+      contactDetails <- contactDetailsFut
+      fastPassDetails <- fastPassDetailsFut
+    } yield GeneralDetailsExchange(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
+      contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
+      contactDetails.country, contactDetails.phone, fastPassDetails)
   }
 
 }

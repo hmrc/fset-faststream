@@ -16,8 +16,8 @@
 
 package controllers
 
-import model.Exceptions.{CannotUpdateContactDetails, CannotUpdateRecord, ContactDetailsNotFound, PersonalDetailsNotFound}
-import model.command.UpdateGeneralDetails
+import model.Exceptions._
+import model.command.GeneralDetailsExchange
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
@@ -38,13 +38,14 @@ trait CandidateDetailsController extends BaseController {
   val auditService: AuditService
 
   def updateDetails(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[UpdateGeneralDetails] { req =>
+    withJsonBody[GeneralDetailsExchange] { req =>
       candidateDetailsService.update(applicationId, userId, req) map { _ =>
         auditService.logEvent(PersonalDetailsSavedEvent)
         Created
       } recover {
         case e: CannotUpdateContactDetails => BadRequest(s"cannot update contact details for user: ${e.userId}")
         case e: CannotUpdateRecord => BadRequest(s"cannot update personal details record with applicationId: ${e.applicationId}")
+        case e: CannotUpdateFastPassDetails => BadRequest(s"cannot update fast pass details record with applicationId: ${e.applicationId}")
       }
     }
   }
@@ -56,6 +57,8 @@ trait CandidateDetailsController extends BaseController {
       case e: ContactDetailsNotFound => NotFound(s"Cannot find contact details for userId: ${e.userId}")
       case e: PersonalDetailsNotFound =>
         NotFound(s"Cannot find personal details for applicationId: ${e.applicationId}")
+      case e: FastPassDetailsNotFound =>
+        NotFound(s"Cannot find fast pass details for applicationId: ${e.applicationId}")
     }
   }
 }

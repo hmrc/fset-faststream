@@ -178,7 +178,8 @@ object Commands {
     phoneAndEmail: PhoneAndEmail
   )
 
-  case class ApplicationResponse(applicationId: String, applicationStatus: String, userId: String, progressResponse: ProgressResponse)
+  case class ApplicationResponse(applicationId: String, applicationStatus: String, userId: String, progressResponse: ProgressResponse,
+                                 fastPassReceived: Option[Boolean])
 
   case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: DateTime)
 
