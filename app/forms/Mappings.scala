@@ -152,4 +152,9 @@ object Mappings {
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
 
+  def nonemptyBooleanText(emptyErrorKey: String) = {
+    nonEmptyTrimmedText(emptyErrorKey, 5)
+      .verifying(emptyErrorKey, paramVal => paramVal == true.toString || paramVal == false.toString)
+  }
+
 }

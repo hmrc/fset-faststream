@@ -154,76 +154,83 @@
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
                             <h2 class="heading-medium">3. Attend an assessment centre</h2>
-                                @if(ConfirmedAllocatedCandidateRole.isAuthorized(usr)) {
-                                    @allocationDetails.map { aDetails =>
-                                        <p>Your assessment is booked for</p>
-                                        <p>
-                                            @dateTime(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
-                                            <br><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
-                                        </p>
-                                        <p>
-                                            If you're unable to attend, <a href="@routes.ApplicationController.helpdesk()" class="">let us know</a>.
-                                        </p>
-                                        <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#assessment-day" rel="external" target="_blank">
-                                            Find out more about the assessment day</a></p>
-                                    }
+                                @if(hasReceivedFastPass(usr)) {
+                                        <p id="fastPassParagraph">Once we've verified your certificate number, you'll be invited
+                                            to attend an assessment centre.</p>
+                                        <p><a href="https://www.gov.uk/guidance/civil-service-fast-stream-how-to-apply#analytical-fast-stream-assessment"
+                                              rel="external" target="_blank">Find out more about the assessment day</a></p>
                                 } else {
-                                    @if(UnconfirmedAllocatedCandidateRole.isAuthorized(usr)){
+                                    @if(ConfirmedAllocatedCandidateRole.isAuthorized(usr)) {
                                         @allocationDetails.map { aDetails =>
-                                            @if(confirmAllocationExpired) {
-                                                <p>
-                                                    <i class="fa fa-exclamation-triangle"></i>You failed to confirm your assessment centre in time.</p>
-                                                <p>
-                                                    <a href="@routes.ApplicationController.helpdesk()">Contact us</a> to discuss your options if you're still interested in attending an assessment centre.
-                                                </p>
-                                            } else {
-                                                <p>Your assessment is booked for </p>
-                                                <p>
-                                                    @dateTime(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
-                                                    <br /><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
-                                                </p>
-
-                                                    @helper.form(controllers.routes.HomeController.confirmAlloc) {
-                                                        @helper.CSRF.formField
-                                                        <div id="attendQuestion">
-                                                            <p class="small-btm-margin">Can you attend on this date and time?</p>
-                                                            <button type="submit" class="button" id="canAttendBtn">I can attend</button>
-                                                        </div>
-                                                    }
-
-                                                <p>
-                                                    @aDetails.expirationDate.map{ expirationDate =>
-                                                        <span id="confirmByText">
-                                                            Confirm by 11:59pm on @date(expirationDate) or you'll lose your booking.<br>
-                                                        </span>
-                                                    }
-
-                                                    If you're unable to attend, <a href="@routes.ApplicationController.helpdesk()" class="">let us know</a>.
-                                                </p>
-                                                <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#assessment-day" rel="external" target="_blank">
-                                                    Find out more about the assessment day</a></p>
-                                            }
+                                            <p>Your assessment is booked for</p>
+                                            <p>
+                                                @dateTime(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
+                                                <br><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
+                                            </p>
+                                            <p>
+                                                If you're unable to attend, <a href="@routes.ApplicationController.helpdesk()" class="">let us know</a>.
+                                            </p>
+                                            <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#assessment-day" rel="external" target="_blank">
+                                                Find out more about the assessment day</a></p>
                                         }
                                     } else {
-                                        @if(AssessmentCentreFailedNotifiedRole.isAuthorized(usr)  && onlineTest.exists(_.pdfReportAvailable)) {
-                                            <p>Thank you for attending the Fast Track assessment centre.</p>
-                                            <p>Unfortunately on this occasion you didn't reach the pass mark for the Fast Track scheme and we won't be taking your application further.</p>
-                                            <p>From December 2016, after we&#39;ve finished allocating placements, we can give you feedback on your performance at the assessment centre. Please contact us if you&#39;d like feedback.</p>
-                                            <p>Thank you for your interest in the Fast Track programme and we wish you every success for the future.</p>
-                                        } else {
-                                            @if(AssessmentCentrePassedNotifiedRole.isAuthorized(usr) && onlineTest.exists(_.pdfReportAvailable)) {
-                                                <p><i class="fa fa-check the-icon"></i>Congratulations! We&#39;re pleased to let you know you&#39;ve successfully passed the Fast Track assessment.</p>
-                                                <p>We&#39;ll match you to a role and then we&#39;ll be in touch to confirm your allocated department and location.</p>
-                                                <p>We&#39;ll also ask you to give us the information we need to complete a preappointment security check. Your offer depends upon successful completion of the checks. If you give information you know is false, or you withhold any relevant information, your application may be rejected. Or, if you&#39;ve already been appointed, you may be dismissed.</p>
-                                                <p>From December 2016, after we&#39;ve finished allocating placements, we can give you feedback on your performance at the assessment centre. Please contact us if you&#39;d like feedback.</p>
-                                                <p>We recommend you don&#39;t resign from any employment until you&#39;ve received a formal offer of appointment. If you withdraw your application, it won&#39;t be possible to re-instate your application at a later date.</p>
-                                            } else {
-                                                @if(AssessmentCentreFailedToAttendRole.isAuthorized(usr)) {
-                                                    <p>You did not attend your assessment. <a href="@routes.ApplicationController.helpdesk()">Contact us</a> to discuss your options if you're still interested in applying.</p>
+                                        @if(UnconfirmedAllocatedCandidateRole.isAuthorized(usr)){
+                                            @allocationDetails.map { aDetails =>
+                                                @if(confirmAllocationExpired) {
+                                                    <p>
+                                                        <i class="fa fa-exclamation-triangle"></i>You failed to confirm your assessment centre in time.</p>
+                                                    <p>
+                                                        <a href="@routes.ApplicationController.helpdesk()">Contact us</a> to discuss your options if you're still interested in attending an assessment centre.
+                                                    </p>
                                                 } else {
-                                                    <p>If you pass the online tests, you'll be invited to attend an assessment centre.</p>
+                                                    <p>Your assessment is booked for </p>
+                                                    <p>
+                                                        @dateTime(aDetails.attendanceDateTime) at @aDetails.location @aDetails.venueDescription
+                                                        <br /><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
+                                                    </p>
+
+                                                        @helper.form(controllers.routes.HomeController.confirmAlloc) {
+                                                            @helper.CSRF.formField
+                                                            <div id="attendQuestion">
+                                                                <p class="small-btm-margin">Can you attend on this date and time?</p>
+                                                                <button type="submit" class="button" id="canAttendBtn">I can attend</button>
+                                                            </div>
+                                                        }
+
+                                                    <p>
+                                                        @aDetails.expirationDate.map{ expirationDate =>
+                                                            <span id="confirmByText">
+                                                                Confirm by 11:59pm on @date(expirationDate) or you'll lose your booking.<br>
+                                                            </span>
+                                                        }
+
+                                                        If you're unable to attend, <a href="@routes.ApplicationController.helpdesk()" class="">let us know</a>.
+                                                    </p>
                                                     <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#assessment-day" rel="external" target="_blank">
                                                         Find out more about the assessment day</a></p>
+                                                }
+                                            }
+                                        } else {
+                                            @if(AssessmentCentreFailedNotifiedRole.isAuthorized(usr)  && onlineTest.exists(_.pdfReportAvailable)) {
+                                                <p>Thank you for attending the Fast Track assessment centre.</p>
+                                                <p>Unfortunately on this occasion you didn't reach the pass mark for the Fast Track scheme and we won't be taking your application further.</p>
+                                                <p>From December 2016, after we&#39;ve finished allocating placements, we can give you feedback on your performance at the assessment centre. Please contact us if you&#39;d like feedback.</p>
+                                                <p>Thank you for your interest in the Fast Track programme and we wish you every success for the future.</p>
+                                            } else {
+                                                @if(AssessmentCentrePassedNotifiedRole.isAuthorized(usr) && onlineTest.exists(_.pdfReportAvailable)) {
+                                                    <p><i class="fa fa-check the-icon"></i>Congratulations! We&#39;re pleased to let you know you&#39;ve successfully passed the Fast Track assessment.</p>
+                                                    <p>We&#39;ll match you to a role and then we&#39;ll be in touch to confirm your allocated department and location.</p>
+                                                    <p>We&#39;ll also ask you to give us the information we need to complete a preappointment security check. Your offer depends upon successful completion of the checks. If you give information you know is false, or you withhold any relevant information, your application may be rejected. Or, if you&#39;ve already been appointed, you may be dismissed.</p>
+                                                    <p>From December 2016, after we&#39;ve finished allocating placements, we can give you feedback on your performance at the assessment centre. Please contact us if you&#39;d like feedback.</p>
+                                                    <p>We recommend you don&#39;t resign from any employment until you&#39;ve received a formal offer of appointment. If you withdraw your application, it won&#39;t be possible to re-instate your application at a later date.</p>
+                                                } else {
+                                                    @if(AssessmentCentreFailedToAttendRole.isAuthorized(usr)) {
+                                                        <p>You did not attend your assessment. <a href="@routes.ApplicationController.helpdesk()">Contact us</a> to discuss your options if you're still interested in applying.</p>
+                                                    } else {
+                                                        <p>If you pass the online tests, you'll be invited to attend an assessment centre.</p>
+                                                        <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#assessment-day" rel="external" target="_blank">
+                                                            Find out more about the assessment day</a></p>
+                                                    }
                                                 }
                                             }
                                         }
