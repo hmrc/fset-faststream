@@ -19,6 +19,7 @@ package controllers.testdata
 import java.io.File
 
 import com.typesafe.config.ConfigFactory
+import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
 import model.EvaluationResults.Result
 import model.ApplicationStatuses
@@ -45,8 +46,8 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  def createAdminUsers(numberToGenerate: Int) = Action.async { implicit request =>
-    TestDataGeneratorService.createAdminUsers(numberToGenerate).map { candidates =>
+  def createAdminUsers(numberToGenerate: Int, emailPrefix: String, role: String) = Action.async { implicit request =>
+        TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }

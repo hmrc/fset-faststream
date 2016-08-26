@@ -17,7 +17,7 @@
 package connectors
 
 import config.WSHttp
-import connectors.AuthProviderClient.{ ErrorRetrievingReportException, TokenEmailPairInvalidException, TokenExpiredException }
+import connectors.AuthProviderClient.{ ErrorRetrievingReportException, TokenEmailPairInvalidException, TokenExpiredException, UserRoleDoesNotExist }
 import connectors.ExchangeObjects.Implicits._
 import connectors.ExchangeObjects.{ ActivateEmailRequest, AddUserRequest, Candidate, UserResponse }
 import model.Exceptions.{ ConnectorException, EmailTakenException }
@@ -31,6 +31,7 @@ object AuthProviderClient extends AuthProviderClient {
   sealed class ErrorRetrievingReportException(message: String) extends Exception(message)
   sealed class TokenExpiredException() extends Exception
   sealed class TokenEmailPairInvalidException() extends Exception
+  sealed class UserRoleDoesNotExist(message: String) extends Exception(message)
 }
 
 trait AuthProviderClient {
@@ -38,7 +39,15 @@ trait AuthProviderClient {
 
   case object CandidateRole extends UserRole("candidate")
 
-  case object ServiceManagerRole extends UserRole("service-manager")
+  case object FaststreamTeamRole extends UserRole("faststream-team")
+  case object ServiceSupportRole extends UserRole("service-support")
+  case object ServiceAdminRole extends UserRole("service-admin")
+  case object SuperAdminRole extends UserRole("super-admin")
+  case object TechnicalAdminRole extends UserRole("tech-admin")
+
+  val allRoles = List(FaststreamTeamRole, ServiceSupportRole, ServiceAdminRole, SuperAdminRole, TechnicalAdminRole)
+
+  def getRole(roleName: String) = allRoles.find(_.name == roleName).getOrElse(throw new UserRoleDoesNotExist(s"No such role: $roleName"))
 
   private val ServiceName = "faststream"
 
