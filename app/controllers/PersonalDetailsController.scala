@@ -130,5 +130,5 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
     if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(postCode = None) else generalDetails
 
   private def removeCountryWhenInsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
-    if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(postCode = None) else generalDetails
+    if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(country = None) else generalDetails
 }
