@@ -112,7 +112,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
         form.bind(errorForm.data.cleanupFastPassFields()), continuetoTheNextStep(onSuccess)))),
       gd => for {
         _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
-          removePostCodeWhenOutsideUK(gd).toExchange(cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
+          removeCountryWhenInsideUK(removePostCodeWhenOutsideUK(gd)).toExchange(cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
         _ <- userManagementClient.updateDetails(cachedData.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
         redirect <- updateProgress(data => {
           val applicationCopy = data.application.map(_.copy(fastPassReceived = gd.fastPassDetails.fastPassReceived))
