@@ -42,6 +42,7 @@ private object Versions {
   val hmrctest      = "1.4.0"
   val scalatestplus = "1.2.0"
   val silhouette    = "2.0.2"
+  val playWhitelist = "1.1.0"
 }
 
 private object AppDependencies {
@@ -56,6 +57,7 @@ private object AppDependencies {
     "uk.gov.hmrc"               %% "play-json-logger"         % jsonLogger,
     "uk.gov.hmrc"               %% "play-health"              % playHealth,
     "uk.gov.hmrc"               %% "url-builder"              % urlBuilder,
+    "uk.gov.hmrc"               %% "play-whitelist-filter"    % playWhitelist,
     "org.apache.httpcomponents" %  "httpclient"               % httpclient,
     "com.mohiva"                %% "play-silhouette"          % silhouette
   )
