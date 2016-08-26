@@ -139,7 +139,7 @@ package object repositories {
       val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
       val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
 
-      Candidate(userId, applicationId, None, firstName, lastName, dateOfBirth, None, None)
+      Candidate(userId, applicationId, None, firstName, lastName, dateOfBirth, None, None, None)
     }
 
     def write(psDoc: Candidate) = BSONDocument() // this should not be used ever

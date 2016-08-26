@@ -700,6 +700,7 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
             Some("Marley"),
             None,
             None,
+            None,
             None
           )
         )
@@ -721,6 +722,7 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
             Some("Marley"),
             None,
             None,
+            None,
             None
           ),
           Candidate(
@@ -729,6 +731,7 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
             None,
             Some("Michael"),
             Some("Jackson"),
+            None,
             None,
             None,
             None
@@ -754,6 +757,7 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
             None,
             Some("Michael"),
             Some("Jackson"),
+            None,
             None,
             None,
             None

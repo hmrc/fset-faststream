@@ -44,7 +44,7 @@ trait CandidateDetailsService {
     val personalDetails = PersonalDetails(candidateDetails.firstName, candidateDetails.lastName, candidateDetails.preferredName,
       candidateDetails.dateOfBirth)
     val contactDetails = ContactDetails(candidateDetails.outsideUk, candidateDetails.address, candidateDetails.postCode,
-      candidateDetails.email, candidateDetails.phone)
+      candidateDetails.country, candidateDetails.email, candidateDetails.phone)
 
     val updatePersonalDetailsFut = candidateDetails.updateApplicationStatus match {
       case Some(true) => pdRepository.update(applicationId, userId, personalDetails, List(CREATED, IN_PROGRESS), IN_PROGRESS)
@@ -73,7 +73,7 @@ trait CandidateDetailsService {
       fastPassDetails <- fastPassDetailsFut
     } yield GeneralDetailsExchange(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
       contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
-      contactDetails.phone, fastPassDetails)
+      contactDetails.country, contactDetails.phone, fastPassDetails)
   }
 
 }

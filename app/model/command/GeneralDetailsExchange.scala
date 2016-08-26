@@ -29,6 +29,7 @@ case class GeneralDetailsExchange(firstName: String,
                                   outsideUk: Boolean,
                                   address: Address,
                                   postCode: Option[PostCode],
+                                  country: Option[String],
                                   phone: PhoneNumber,
                                   fastPassDetails: FastPassDetails,
                                   updateApplicationStatus: Option[Boolean] = None)

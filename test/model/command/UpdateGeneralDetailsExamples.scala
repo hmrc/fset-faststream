@@ -22,5 +22,5 @@ import model.FastPassDetails
 
 object UpdateGeneralDetailsExamples {
   val CandidateContactDetailsUK = GeneralDetailsExchange("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
-    outsideUk = false, FullAddress, Some("A1 B23"), "1234567890", FastPassDetails(applicable = false), Some(true))
+    outsideUk = false, FullAddress, Some("A1 B23"), None, "1234567890", FastPassDetails(applicable = false), Some(true))
 }
