@@ -18,11 +18,14 @@ package mappings
 
 import forms.Mappings.nonEmptyTrimmedText
 import play.api.data.Forms._
+import play.api.libs.json.{ Format, Json }
 
 case class Address(line1: String, line2: Option[String], line3: Option[String], line4: Option[String])
 
 object Address {
   private val MaxLineLength = 100
+
+  implicit val addressFormat: Format[Address] = Json.format[Address]
 
   val EmptyAddress: Address = Address("", None, None, None)
 

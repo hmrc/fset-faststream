@@ -15,11 +15,11 @@
 }
 
 @getFastPassTypeDescription(fastPassType: String) = @{
-    FastPassForm.FastPassTypes.find(_._1 == fastPassType).map(_._2).getOrElse("")
+    FastPassForm.FastPassTypes.toMap.getOrElse(fastPassType, "")
 }
 
 @getInternshipTypeDescription(internshipType: String) = @{
-    FastPassForm.InternshipTypes.find(_._1 == internshipType).map(_._2).getOrElse("")
+    FastPassForm.InternshipTypes.toMap.getOrElse(internshipType, "")
 }
 
 <section class="section-border">
@@ -47,6 +47,7 @@
             <li id="address3">@generalDetails.address.line3.getOrElse("")</li>
             <li id="address4">@generalDetails.address.line4.getOrElse("")</li>
             <li id="postCode">@generalDetails.postCode</li>
+            <li id="postCode">@generalDetails.country</li>
         </ul>
     </section>
     <section>
@@ -59,7 +60,7 @@
         }
     </section>
 
-    @displayFastPassSection("fastPassApplicable", true, "Are you currently a civil servant or been on our internship programme?",
+    @displayFastPassSection("fastPassApplicable", true, "Are you a civil servant or been on a diversity internship or the Fast Track?",
         getYesOrNo(generalDetails.fastPassDetails.applicable))
     @displayFastPassSection("fastPassType", generalDetails.fastPassDetails.fastPassType.isDefined, "Which of these applies?",
         getFastPassTypeDescription(generalDetails.fastPassDetails.fastPassType.get))

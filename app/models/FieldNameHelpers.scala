@@ -16,12 +16,12 @@
 
 package models
 
-import connectors.ExchangeObjects.GeneralDetailsExchange
-import connectors.exchange.FastPassDetails
-import org.joda.time.LocalDate
-import mappings.AddressExamples._
 
-object GeneralDetailsExchangeExamples {
-  val FullDetails = GeneralDetailsExchange("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), None, Some("1234567"), FastPassDetails(false), None)
+object FieldNameHelpers {
+
+  def createId(id: String, v: (String, String)) = id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_")
+
+  def formatId(id:String, v:(String,String)) =
+    createId(id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_"), v)
+
 }

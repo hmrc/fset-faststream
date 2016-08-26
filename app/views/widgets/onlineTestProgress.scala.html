@@ -7,10 +7,6 @@
 @import models.ApplicationData.ApplicationStatus._
 
 @applicationStatus match {
-    case _ if RoleUtils.hasReceivedFastPass(usr) => {
-            <p>We need to check and verify your certificate number before
-                you can progress as a Fast Pass candidate.</p>
-    }
     case REGISTERED | CREATED | IN_PROGRESS | WITHDRAWN => {
             <p>Once you've submitted your application and completed the diversity questions, you'll be invited to take the online tests. Once you've been invited, you'll have 7 days to complete the tests.</p>
             <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-tests" rel="external" target="_blank">
@@ -132,6 +128,11 @@
                 <p><a href="@routes.OnlineTestController.downloadPDFReport()">View your online test feedback (Less than 100kb)</a></p>
             }
         }
+    }
+
+    case _ if RoleUtils.hasReceivedFastPass(usr) => {
+        <p>We need to check and verify your certificate number before
+            you can progress as a Fast Pass candidate.</p>
     }
 
     case _ if(allocationDetails.isDefined) => {

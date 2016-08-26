@@ -64,6 +64,7 @@ questionnaire.completed = You''ve now completed this part of the application and
 error.address.required = Enter the first line of your address
 error.postcode.required = Enter your postcode
 error.postcode.invalid = You''ve entered an invalid postcode
+error.country.required = Enter your country
 
 error.phone.required = Add a phone number in case we need to contact you
 error.phoneNumber.format = You''ve entered an invalid phone number
@@ -130,7 +131,6 @@ scheme.HousesOfParliament.description=Houses of Parliament
 scheme.HumanResources.description=Human Resources
 scheme.ProjectDelivery.description=Project Delivery
 scheme.ScienceAndEngineering.description=Science and Engineering
-scheme.Tax.description=Tax
 
 scheme.GovernmentEconomicService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility
 scheme.GovernmentOperationalResearchService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-operational-research-service#eligibility

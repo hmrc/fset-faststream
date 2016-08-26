@@ -64,6 +64,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
         Some(gd.outsideUk),
         gd.address,
         gd.postCode,
+        gd.country,
         gd.phone,
         gd.fastPassDetails
       ))
@@ -79,6 +80,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
           outsideUk = None,
           address = Address.EmptyAddress,
           postCode = None,
+          country = None,
           phone = None,
           fastPassDetails = EmptyFastPassDetails
         ))
@@ -102,19 +104,22 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
   }
 
   private def submit(onSuccess: OnSuccess, redirectOnSuccess: Result)(
-    implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
+    implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
     implicit val now: LocalDate = LocalDate.now
 
     GeneralDetailsForm.form.bindFromRequest.fold(
-      errorForm => Future.successful(Ok(views.html.application.generalDetails(errorForm, continuetoTheNextStep(onSuccess)))),
+      errorForm => Future.successful(Ok(views.html.application.generalDetails(GeneralDetailsForm.
+        form.bind(errorForm.data.cleanupFastPassFields()), continuetoTheNextStep(onSuccess)))),
       gd => for {
-        _ <- applicationClient.updateGeneralDetails(user.application.applicationId, user.user.userID,
-          removePostCodeWhenOutsideUK(gd).toExchange(user.user.email, Some(continuetoTheNextStep(onSuccess))))
-        _ <- userManagementClient.updateDetails(user.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
-        redirect <- updateProgress(data => data.copy(user = user.user.copy(firstName = gd.firstName, lastName = gd.lastName,
-          preferredName = Some(gd.preferredName)), application =
-          if (continuetoTheNextStep(onSuccess)) data.application.map(_.copy(applicationStatus = IN_PROGRESS)) else data.application
-        ))(_ => redirectOnSuccess)
+        _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
+          removeCountryWhenInsideUK(removePostCodeWhenOutsideUK(gd)).toExchange(cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
+        _ <- userManagementClient.updateDetails(cachedData.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
+        redirect <- updateProgress(data => {
+          val applicationCopy = data.application.map(_.copy(fastPassReceived = gd.fastPassDetails.fastPassReceived))
+          data.copy(user = cachedData.user.copy(firstName = gd.firstName, lastName = gd.lastName,
+            preferredName = Some(gd.preferredName)), application =
+            if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)
+        })(_ => redirectOnSuccess)
       } yield {
         redirect
       }
@@ -123,4 +128,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
 
   private def removePostCodeWhenOutsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
     if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(postCode = None) else generalDetails
+
+  private def removeCountryWhenInsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
+    if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(country = None) else generalDetails
 }

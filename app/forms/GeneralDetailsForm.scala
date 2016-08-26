@@ -58,10 +58,13 @@ object GeneralDetailsForm {
         "outsideUk" -> optional(checked("error.address.required")),
         "address" -> Address.address,
         "postCode" -> optional(text.verifying(validPostcode)),
+        "country" -> optionalTrimmedText(100),
         "phone" -> of(phoneNumberFormatter),
         FastPassForm.formQualifier -> FastPassForm.form.mapping
       )(Data.apply)(Data.unapply).verifying("error.postcode.required", d =>
         !d.insideUk || d.postCode.isDefined
+      ).verifying("error.country.required", d =>
+        d.insideUk || d.country.isDefined
       )
     )
   }
@@ -73,6 +76,7 @@ object GeneralDetailsForm {
                   outsideUk: Option[Boolean],
                   address: Address,
                   postCode: Option[PostCode],
+                  country: Option[String],
                   phone: Option[PhoneNumber],
                   fastPassDetails: FastPassForm.Data
                  ) {
@@ -91,6 +95,7 @@ object GeneralDetailsForm {
       outsideUk.getOrElse(false),
       address,
       postCode.map(p => PostCodeMapping.formatPostcode(p)),
+      country,
       phone,
       fastPassDetails,
       updateApplicationStatus
