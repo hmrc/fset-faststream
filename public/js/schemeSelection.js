@@ -65,9 +65,11 @@ $(function()
               '<li class="med-btm-margin scheme-prefcontainer" data-scheme-id="' +
               thisSchemeID + '"><span data-schemeorder>' +
               preferencesAsText[arrayPositionNow] +
-              '</span><div class="width-all-1-1"><span class="bold-small" data-schemenameinlist>' +
+              '</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
               thisScheme +
-              '</span><p>You\'re eligible as a current civil servant</p></div>'
+              '</span><p>You\'re eligible as a current civil servant</p>' +
+              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove</a>' +
+              '</div>'
             );
           }
           else
@@ -78,7 +80,8 @@ $(function()
               preferencesAsText[arrayPositionNow] +
               '</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
               thisScheme + '</span>' + specialEligibility +
-              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove</a></div>'
+              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove</a>' +
+              '</div>'
             );
           }
 
