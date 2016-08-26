@@ -71,7 +71,7 @@ trait AuthProviderClient {
     }
 
   def removeAllUsers()(implicit hc: HeaderCarrier): Future[Unit] =
-    WSHttp.GET(s"$url/test-commands/remove-all").map { response =>
+    WSHttp.GET(s"$url/test-commands/remove-all?service=$ServiceName").map { response =>
       if (response.status == OK) {
         ()
       } else {
