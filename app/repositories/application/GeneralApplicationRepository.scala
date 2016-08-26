@@ -212,11 +212,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[String]("applicationStatus").get
-        val fastPassReceived = document.getAs[FastPassDetails]("fastpass-details").flatMap(_.fastPassReceived)
+        val fastPassReceived = document.getAs[FastPassDetails]("fastpass-details")
         findProgress(applicationId).map { (p: ProgressResponse) =>
           ApplicationResponse(applicationId, applicationStatus, userId, p, fastPassReceived)
         }
-      case None => throw new ApplicationNotFound(userId)
+      case None => throw ApplicationNotFound(userId)
     }
     resp.flatMap(identity)
   }
