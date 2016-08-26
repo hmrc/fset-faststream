@@ -39,24 +39,24 @@ object ExchangeObjects {
 
   case class WithdrawApplicationRequest(reason: String, otherReason: Option[String], withdrawer: String)
 
-  case class GeneralDetailsExchange(
-    firstName: String,
-    lastName: String,
-    preferredName: String,
-    email: String,
-    dateOfBirth: LocalDate,
-    outsideUk: Boolean,
-    address: Address,
-    postCode: Option[PostCode],
-    phone: Option[PhoneNumber],
-    fastPassDetails: FastPassDetails,
-    updateApplicationStatus: Option[Boolean]
-  )
+  case class GeneralDetailsExchange(firstName: String,
+                                    lastName: String,
+                                    preferredName: String,
+                                    email: String,
+                                    dateOfBirth: LocalDate,
+                                    outsideUk: Boolean,
+                                    address: Address,
+                                    postCode: Option[PostCode],
+                                    country: Option[String],
+                                    phone: Option[PhoneNumber],
+                                    fastPassDetails: FastPassDetails,
+                                    updateApplicationStatus: Option[Boolean]
+                                   )
 
   case class AddMedia(userId: UniqueIdentifier, media: String)
 
   case class ApplicationResponse(applicationId: UniqueIdentifier, applicationStatus: String,
-    userId: UniqueIdentifier, progressResponse: ProgressResponse, fastPassReceived: Option[Boolean])
+                                 userId: UniqueIdentifier, progressResponse: ProgressResponse, fastPassReceived: Option[Boolean])
 
   case class PersonalDetailsAdded(applicationId: UniqueIdentifier, userId: String)
 
@@ -73,8 +73,8 @@ object ExchangeObjects {
 
   case class FindUserRequest(email: String)
 
-  case class UserResponse(firstName: String, lastName: String, preferredName: Option[String],
-    isActive: Boolean, userId: UniqueIdentifier, email: String, lockStatus: String, role: String, service: String = "faststream")
+  case class UserResponse(firstName: String, lastName: String, preferredName: Option[String], isActive: Boolean,
+                          userId: UniqueIdentifier, email: String, lockStatus: String, role: String, service: String = "faststream")
 
   case class ActivateEmailRequest(email: String, token: String, service: String)
 

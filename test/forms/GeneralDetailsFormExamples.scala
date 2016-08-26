@@ -30,6 +30,7 @@ object GeneralDetailsFormExamples {
     "dateOfBirth.year" -> "1990",
     "address.line1" -> "Line 1",
     "outsideUk" -> "true",
+    "country" -> "France",
     "phone" -> "123456789",
     "fastPassDetails.applicable" -> "false"
   )
@@ -53,7 +54,7 @@ object GeneralDetailsFormExamples {
   )
 
   val ValidUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
-    outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), Some("1234567890"), FastPassDetails(applicable = false))
+    outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), None, Some("1234567890"), FastPassDetails(applicable = false))
 
   val ValidFormUrlEncodedBody = Seq(
     "firstName" -> ValidUKAddressForm.firstName,

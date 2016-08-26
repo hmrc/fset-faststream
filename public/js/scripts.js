@@ -442,17 +442,17 @@ $(function() {
     $('#address_line3').val("");
     $('#address_line4').val("");
     $('#postCode').val("");
+    $('#country').val("");
 
     if($(this).is(':checked')) {
       $('#addressManualInput').removeClass('disabled');
       $('#postCode').closest('.form-group').addClass('toggle-content');
-      $('#postCode').closest('.form-group').prev('.form-group').removeClass('form-group-compound');
+      $('#country').closest('.form-group').removeClass('toggle-content');
+      $('#address\\.line1').focus();
     } else {
       $('#postCode').closest('.form-group').removeClass('toggle-content');
-      $('#postCode').closest('.form-group').prev('.form-group').addClass('form-group-compound');
+      $('#country').closest('.form-group').addClass('toggle-content');
     }
-
-    $('#address\\.line1').focus();
   });
 
   //------- Inline details toggle
