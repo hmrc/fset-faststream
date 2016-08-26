@@ -18,6 +18,7 @@ package repositories.application
 
 import factories.UUIDFactory
 import model.Commands.Report
+import model.FastPassDetails
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
@@ -73,7 +74,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       applicationResponse.userId mustBe  userId
       applicationResponse.applicationId mustBe  appId
-      applicationResponse.fastPassReceived.get mustBe true
+      applicationResponse.fastPassDetails.get mustBe FastPassDetails(applicable = true, None, None,
+        fastPassReceived = Some(true), certificateNumber = None)
     }
   }
 
