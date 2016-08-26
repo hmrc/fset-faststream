@@ -210,6 +210,10 @@ object RoleUtils {
   def hasPreview(implicit user: CachedData) = progress.preview
 
   def hasReceivedFastPass(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-  activeUserWithApp(user) && statusIn(user)(SUBMITTED) && user.application.flatMap(_.fastPassReceived).getOrElse(false)
+  activeUserWithApp(user) && statusIn(user)(SUBMITTED) &&
+    user.application
+      .flatMap(_.fastPassDetails)
+      .flatMap(_.fastPassReceived)
+      .getOrElse(false)
 
 }

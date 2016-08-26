@@ -1,15 +1,10 @@
 @import helpers.CSRSkinnyFieldConstructor._
 @import _root_.forms.SelectedSchemesForm.Scheme
 
-@(field: play.api.data.Field, options: Seq[Scheme], args: (Symbol, Any)*)
+@(isCandidateCivilServant: Boolean, field: play.api.data.Field, options: Seq[Scheme], args: (Symbol, Any)*)
 
 @createId(id: String, scheme: Scheme) = @{
     id + "_" + scheme.id.replace(" ", "_").replace("/", "_").replace("'", "_")
-}
-
-@isCandidateCivilServant = @{
-//    TODO: Change this one Civil Servant feuture is merged
-    true
 }
 
 @helper.input(field, args.map { x => if(x._1 == '_label) '_name -> x._2 else x }: _*) { (id, name, value, htmlArgs) =>

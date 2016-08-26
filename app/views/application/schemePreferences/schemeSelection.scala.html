@@ -1,4 +1,4 @@
-@(form: Form[_root_.forms.SelectedSchemesForm.SchemePreferences])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
+@(isCandidateCivilServant: Boolean, form: Form[_root_.forms.SelectedSchemesForm.SchemePreferences])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
 
 @import _root_.forms.SelectedSchemesForm
 @import _root_.forms.SelectedSchemesForm.Scheme
@@ -26,17 +26,10 @@
 
         <section class="grid-wrapper scheme-wrapper">
             <div class="scheme-input-container">
-            @schemesCheckboxGroup(form("schemes"), SelectedSchemesForm.AllSchemes,
+            @schemesCheckboxGroup(isCandidateCivilServant, form("schemes"), SelectedSchemesForm.AllSchemes,
                 '_label -> "",
                 '_class -> ""
             )
-            </div>
-            <div class="scheme-info-container hide-nojs">
-                <div id="sticky-anchor"></div>
-                <div class="scheme-info-panel">
-                    <p class="bold-small" id="chooseYourPrefs">Choose your <span id="chooseNextPreference">1st preference</span>                <span class="hidden" data-optionalappended><br> (optional)</span></p>
-                    <p class="bold-small hidden" id="chosenLimit">You've selected 15 preferences</p>
-                </div>
             </div>
         </section>
 

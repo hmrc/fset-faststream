@@ -122,15 +122,6 @@ $(function()
       {
         $('#chosenLimit').addClass('hidden');
         $('#chooseYourPrefs').removeClass('hidden');
-        $('#chooseNextPreference').text(differenceArray[0]);
-        if (differenceArray[0] !== "1st preference")
-        {
-          $('[data-optionalappended]').removeClass('hidden');
-        }
-        else
-        {
-          $('[data-optionalappended]').addClass('hidden');
-        }
       }
 
       if ($('input[data-schemename]:checked').length > 0)
