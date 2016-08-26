@@ -17,18 +17,18 @@
 package models
 
 import connectors.ExchangeObjects.ApplicationResponse
+import connectors.exchange.FastPassDetails
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import play.api.libs.json._
 
 import scala.language.implicitConversions
 
-case class ApplicationData(
-  applicationId: UniqueIdentifier,
-  userId: UniqueIdentifier,
-  applicationStatus: ApplicationStatus,
-  progress: Progress,
-  fastPassReceived: Option[Boolean]
-)
+case class ApplicationData(applicationId: UniqueIdentifier,
+                           userId: UniqueIdentifier,
+                           applicationStatus: ApplicationStatus,
+                           progress: Progress,
+                           fastPassDetails: Option[FastPassDetails]
+                          )
 
 object ApplicationData {
 
@@ -46,6 +46,7 @@ object ApplicationData {
 
     implicit val applicationStatusFormat = new Format[ApplicationStatus] {
       def reads(json: JsValue) = JsSuccess(ApplicationStatus.withName(json.as[String]))
+
       def writes(myEnum: ApplicationStatus) = JsString(myEnum.toString)
     }
   }
@@ -59,7 +60,7 @@ object ApplicationData {
 
   implicit def fromAppRespToAppData(resp: ApplicationResponse): ApplicationData =
     new ApplicationData(resp.applicationId, resp.userId, ApplicationStatus.withName(resp.applicationStatus),
-      resp.progressResponse, resp.fastPassReceived)
+      resp.progressResponse, resp.fastPassDetails)
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
 }

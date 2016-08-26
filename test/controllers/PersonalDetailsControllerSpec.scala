@@ -21,6 +21,7 @@ import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.GeneralDetailsFormExamples._
+import connectors.exchange.FastPassDetailsExamples
 import models.ApplicationData.ApplicationStatus
 import models.{ CachedData, GeneralDetailsExchangeExamples, ProgressResponseExamples }
 import models.services.UserService
@@ -93,9 +94,10 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(applicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InProgress))
       val Application = currentCandidateWithApp.application
-        .copy(progress = ProgressResponseExamples.InProgress, applicationStatus = ApplicationStatus.IN_PROGRESS)
+        .copy(progress = ProgressResponseExamples.InProgress, applicationStatus = ApplicationStatus.IN_PROGRESS,
+          fastPassDetails = Some(FastPassDetailsExamples.CivilServantFastPass))
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
-      when(userService.save(eqTo(UpdatedCandidate))(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
+      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
       when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)

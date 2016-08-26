@@ -17,9 +17,9 @@
 package controllers
 
 import _root_.forms.SelectedSchemesForm._
-import connectors.SchemeClient.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
-import connectors.{ApplicationClient, SchemeClient}
-import helpers.NotificationType._
+import connectors.SchemeClient.SchemePreferencesNotFound
+import connectors.exchange.FastPassDetails
+import connectors.{ ApplicationClient, SchemeClient }
 import security.Roles.SchemesRole
 
 import scala.concurrent.Future
@@ -29,11 +29,12 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
+      val civilServant = isCivilServant(user.application.fastPassDetails)
       schemeClient.getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
-        Ok(views.html.application.schemePreferences.schemeSelection(form.fill(selectedSchemes)))
+        Ok(views.html.application.schemePreferences.schemeSelection(civilServant, form.fill(selectedSchemes)))
       }.recover {
         case e: SchemePreferencesNotFound =>
-          Ok(views.html.application.schemePreferences.schemeSelection(form))
+          Ok(views.html.application.schemePreferences.schemeSelection(civilServant, form))
       }
   }
 
@@ -41,17 +42,24 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
     implicit user =>
       form.bindFromRequest.fold(
         invalidForm => {
-          Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(invalidForm)))
+          val civilServant = isCivilServant(user.application.fastPassDetails)
+          Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(civilServant, invalidForm)))
         },
         selectedSchemes => {
-          (for {
+          user.application
+          for {
             _ <- schemeClient.updateSchemePreferences(selectedSchemes)(user.application.applicationId)
             redirect <- refreshCachedUser().map(_ => Redirect(routes.PartnerGraduateProgrammesController.present()))
           } yield {
             redirect
-          })
+          }
         }
     )
+  }
+
+  private def isCivilServant(fastPassDetails: Option[FastPassDetails]) = {
+    val fp = fastPassDetails flatMap (_.fastPassType)
+    fp.contains("CivilServant") || fp.contains("CivilServantViaFastTrack")
   }
 }
 

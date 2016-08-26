@@ -115,7 +115,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
           toExchange(gd, cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
         _ <- userManagementClient.updateDetails(cachedData.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
         redirect <- updateProgress(data => {
-          val applicationCopy = data.application.map(_.copy(fastPassReceived = gd.fastPassDetails.fastPassReceived))
+          val applicationCopy = data.application.map(_.copy(fastPassDetails = Some(gd.fastPassDetails)))
           data.copy(user = cachedData.user.copy(firstName = gd.firstName, lastName = gd.lastName,
             preferredName = Some(gd.preferredName)), application =
             if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)

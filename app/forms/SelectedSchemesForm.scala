@@ -32,24 +32,26 @@ object SelectedSchemesForm {
   val Degree_CharteredEngineer = "Degree_CharteredEngineer"
 
   val AllSchemes = Seq(
-    Scheme("CentralDepartments", Degree_22, specificRequirement = false),
-    Scheme("Commercial", Degree_22, specificRequirement = false),
-    Scheme("DigitalAndTechnology", Degree_21, specificRequirement = false),
-    Scheme("DiplomaticService", Degree_22, specificRequirement = false),
-    Scheme("European", Degree_22, specificRequirement = false),
-    Scheme("Finance", Degree_21, specificRequirement = false),
-    Scheme("GovernmentCommunicationService", Degree_21, specificRequirement = false),
-    Scheme("GovernmentEconomicService", Degree_Economics, specificRequirement = true),
-    Scheme("GovernmentOperationalResearchService", Degree_Numerate, specificRequirement = true),
-    Scheme("GovernmentSocialResearchService", Degree_SocialScience, specificRequirement = true),
-    Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement = true),
-    Scheme("HousesOfParliament", Degree_22, specificRequirement = false),
-    Scheme("HumanResources", Degree_22, specificRequirement = false),
-    Scheme("ProjectDelivery", Degree_22, specificRequirement = false),
-    Scheme("ScienceAndEngineering", Degree_CharteredEngineer, specificRequirement = true)
+    Scheme("CentralDepartments", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("Commercial", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("DigitalAndTechnology", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("DiplomaticService", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("European", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("Finance", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("GovernmentCommunicationService", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("GovernmentEconomicService", Degree_Economics, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("GovernmentOperationalResearchService", Degree_Numerate, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("GovernmentSocialResearchService", Degree_SocialScience, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("HousesOfParliament", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("HumanResources", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("ProjectDelivery", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("ScienceAndEngineering", Degree_CharteredEngineer, specificRequirement = true, eligibilityForCivilServant = true)
   )
 
-  case class Scheme(id: String, qualification: String, specificRequirement: Boolean)
+  val AllSchemesMap = AllSchemes groupBy(_.id) mapValues (_.head)
+
+  case class Scheme(id: String, qualification: String, specificRequirement: Boolean, eligibilityForCivilServant: Boolean)
 
   case class SchemePreferences(schemes: List[String], orderAgreed: Boolean, eligible: Boolean)
 
