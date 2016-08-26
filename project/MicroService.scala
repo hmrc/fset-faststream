@@ -39,7 +39,6 @@ trait MicroService {
   lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
   lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
-  val hmrcRepoHost = java.lang.System.getProperty("hmrc.repo.host", "https://nexus-dev.tax.service.gov.uk")
 
   lazy val microservice = Project(appName, file("."))
     .enablePlugins(Seq(play.PlayScala) ++ plugins : _*)
