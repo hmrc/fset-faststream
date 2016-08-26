@@ -34,10 +34,6 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
                          isApplicationWithdrawn: Boolean,
                          isApplicationCreatedOrInProgress: Boolean,
                          isUserWithNoApplication: Boolean,
-                         isFirstStepVisible: String,
-                         isSecondStepVisible: String,
-                         isThirdStepVisible: String,
-                         isFourthStepVisible: String,
                          fullName: String,
                          assessmentStageStatus: AssessmentStageStatus,
                          postAssessmentStageStatus: PostAssessmentStageStatus
@@ -62,14 +58,16 @@ object DashboardPage {
       isApplicationWithdrawn(user),
       isApplicationCreatedOrInProgress(user),
       isUserWithNoApplication(user),
-      stepVisibility(firstStepVisibility),
-      stepVisibility(secondStepVisibility),
-      stepVisibility(thirdStepVisibility),
-      stepVisibility(fourthStepVisibility),
       user.user.firstName + " " + user.user.lastName,
       getAssessmentInProgressStatus(user, allocationDetails, test),
       getPostAssessmentStatus(user, allocationDetails, test)
     )
+  }
+
+  def activateByStep(step: ProgressStepVisibility): String = step match {
+    case ProgressActive => "active"
+    case ProgressInactiveDisabled => "disabled"
+    case _ => ""
   }
 
   object Flags {
@@ -170,12 +168,6 @@ object DashboardPage {
 
   private def isUserWithNoApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     ApplicationStartRole.isAuthorized(user)
-
-  private def stepVisibility(step: ProgressStepVisibility): String = step match {
-    case ProgressActive => "active"
-    case ProgressInactiveDisabled => "disabled"
-    case _ => ""
-  }
 
   private def getAssessmentInProgressStatus(user: CachedData,
                                             allocationDetails: Option[AllocationExchangeObjects.AllocationDetails],

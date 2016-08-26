@@ -1,19 +1,17 @@
+@import connectors.AllocationExchangeObjects._
 @import connectors.ExchangeObjects.OnlineTest
 @import helpers.DateFormatter._
+@import models.ApplicationData.ApplicationStatus._
+@import models.page.DashboardPage.activateByStep
 @import models.page.DashboardPage.Flags._
 @import models.page._
+@import security.QuestionnaireRoles._
+@import security.Roles._
+@import security.RoleUtils._
+@import views.html.widgets.onlineTestProgress
 
 @(usr: CachedData, dashboardPage: DashboardPage, onlineTest: Option[OnlineTest] = None,
   allocationDetails: Option[connectors.AllocationExchangeObjects.AllocationDetails] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
-
-@import connectors.AllocationExchangeObjects._
-@import models.ApplicationData.ApplicationStatus._
-@import security.Roles._
-@import security.RoleUtils._
-@import security.QuestionnaireRoles._
-
-@import views.html.widgets.onlineTestProgress
-
 
 @renderProgressElement(showLink: Boolean, checked: Boolean, id: String)(link: Call)(body: Html) = {
     <li id="@id"><i id="@id-icon" class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
@@ -32,7 +30,7 @@
     </div>
     <section class="section-border">
         <ol class="step-by-step-coloured" id="sixSteps">
-            <li class="first-step @dashboardPage.isFirstStepVisible)">
+            <li class="first-step @activateByStep(dashboardPage.firstStepVisibility)">
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
@@ -81,7 +79,7 @@
                 </div>
             </li>
 
-            <li class="second-step @dashboardPage.isSecondStepVisible">
+            <li class="second-step @activateByStep(dashboardPage.secondStepVisibility)">
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
@@ -102,7 +100,7 @@
                 </div>
             </li>
 
-            <li class="third-step @dashboardPage.isThirdStepVisible">
+            <li class="third-step @activateByStep(dashboardPage.thirdStepVisibility)">
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
@@ -192,7 +190,7 @@
                     </div>
                 </div>
             </li>
-            <li class="fourth-step @dashboardPage.isFourthStepVisible">
+            <li class="fourth-step @activateByStep(dashboardPage.fourthStepVisibility)">
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
