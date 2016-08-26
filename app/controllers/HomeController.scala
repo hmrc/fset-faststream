@@ -50,7 +50,7 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
           refreshCachedUser().map { updatedData =>
             // The application must exist if the user is invited
             implicit val appOpt = Some(updatedData)
-            val dashboardPage = DashboardPage.fromUser(updatedData)
+            val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(onlineTest))
 
             Ok(views.html.home.dashboard(updatedData, dashboardPage, Some(onlineTest), allocationDetails))
           }
@@ -63,7 +63,7 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
           val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled || applicationSubmitted
 
           if (isDashboardEnabled) {
-            val dashboardPage = DashboardPage.fromUser(user)
+            val dashboardPage = DashboardPage(user, None, None)
             Ok(views.html.home.dashboard(user, dashboardPage, None, None))
           } else {
             Ok(views.html.home.submit_disabled(user))

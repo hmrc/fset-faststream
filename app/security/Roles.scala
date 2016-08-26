@@ -68,6 +68,11 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
   }
 
+  object CreatedOrInProgressRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
+  }
+
   object EditPersonalDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && !statusIn(user)(WITHDRAWN)
