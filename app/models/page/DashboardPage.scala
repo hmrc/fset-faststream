@@ -16,111 +16,243 @@
 
 package models.page
 
-import models.ApplicationData.ApplicationStatus
-import models.ApplicationData.ApplicationStatus.ApplicationStatus
-import models.page.DashboardPage.ProgressStepVisibility
-import models.{ ApplicationData, CachedData, Progress }
+import connectors.{ AllocationExchangeObjects, ExchangeObjects }
+import models.page.DashboardPage.Flags.{ ProgressInactive, _ }
+import models.{ CachedData, Progress }
+import org.joda.time.LocalDate
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
-import security.RoleUtils
-import security.Roles.DisplayOnlineTestSectionRole
+import security.RoleUtils._
+import security.Roles._
 
-// format: OFF
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
                          secondStepVisibility: ProgressStepVisibility,
                          thirdStepVisibility: ProgressStepVisibility,
-                         fourthStepVisibility: ProgressStepVisibility)
-
-// format: ON
+                         fourthStepVisibility: ProgressStepVisibility,
+                         isApplicationSubmittedAndNotWithdrawn: Boolean,
+                         isApplicationInProgressAndNotWithdrawn: Boolean,
+                         isApplicationWithdrawn: Boolean,
+                         isApplicationCreatedOrInProgress: Boolean,
+                         isUserWithNoApplication: Boolean,
+                         fullName: String,
+                         assessmentStageStatus: AssessmentStageStatus,
+                         postAssessmentStageStatus: PostAssessmentStageStatus
+                        )
 
 object DashboardPage {
 
-  sealed trait ProgressStepVisibility
-  case object ProgressActive extends ProgressStepVisibility
-  case object ProgressInactive extends ProgressStepVisibility
-  case object ProgressInactiveDisabled extends ProgressStepVisibility
+  import connectors.AllocationExchangeObjects.AllocationDetails
+  import models.ApplicationData.ApplicationStatus
+  import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  sealed trait Step {
-    def isReached(p: Progress): Boolean
+  def apply(user: CachedData, allocationDetails: Option[AllocationExchangeObjects.AllocationDetails], test: Option[ExchangeObjects.OnlineTest])
+           (implicit request: RequestHeader, lang: Lang): DashboardPage = {
+    val (firstStepVisibility, secondStepVisibility, thirdStepVisibility, fourthStepVisibility) = visibilityForUser(user)
+    DashboardPage(
+      firstStepVisibility,
+      secondStepVisibility,
+      thirdStepVisibility,
+      fourthStepVisibility,
+      isApplicationSubmittedAndNotWithdrawn(user),
+      isApplicationInProgressAndNotWithdrawn(user),
+      isApplicationWithdrawn(user),
+      isApplicationCreatedOrInProgress(user),
+      isUserWithNoApplication(user),
+      user.user.firstName + " " + user.user.lastName,
+      getAssessmentInProgressStatus(user, allocationDetails, test),
+      getPostAssessmentStatus(user, allocationDetails, test)
+    )
   }
-  case object Step1 extends Step {
-    // Step 1 is always reached
-    def isReached(p: Progress): Boolean = true
+
+  def activateByStep(step: ProgressStepVisibility): String = step match {
+    case ProgressActive => "active"
+    case ProgressInactiveDisabled => "disabled"
+    case _ => ""
   }
-  case object Step2 extends Step {
-    def isReached(p: Progress): Boolean = {
-      val ot = p.onlineTest
-      List(p.submitted, ot.onlineTestInvited, ot.onlineTestStarted, ot.onlineTestCompleted, ot.onlineTestExpired,
-        ot.onlineTestFailed, ot.onlineTestFailedNotified).contains(true)
+
+  object Flags {
+
+    sealed trait ProgressStepVisibility
+
+    case object ProgressActive extends ProgressStepVisibility
+
+    case object ProgressInactive extends ProgressStepVisibility
+
+    case object ProgressInactiveDisabled extends ProgressStepVisibility
+
+    sealed trait AssessmentStageStatus
+
+    case object ASSESSMENT_FAST_PASS_CERTIFICATE extends AssessmentStageStatus
+
+    case object ASSESSMENT_BOOKED_CONFIRMED extends AssessmentStageStatus
+
+    case object ASSESSMENT_CONFIRMATION_EXPIRED extends AssessmentStageStatus
+
+    case object ASSESSMENT_PENDING_CONFIRMATION extends AssessmentStageStatus
+
+    case object ASSESSMENT_FAILED extends AssessmentStageStatus
+
+    case object ASSESSMENT_PASSED extends AssessmentStageStatus
+
+    case object ASSESSMENT_NOT_ATTENDED extends AssessmentStageStatus
+
+    case object ASSESSMENT_STATUS_UNKNOWN extends AssessmentStageStatus
+
+    sealed trait PostAssessmentStageStatus
+
+    case object POSTASSESSMENT_PASSED_MORE_SOON extends PostAssessmentStageStatus
+
+    case object POSTASSESSMENT_FAILED_APPLY_AGAIN extends PostAssessmentStageStatus
+
+    case object POSTASSESSMENT_STATUS_UNKNOWN extends PostAssessmentStageStatus
+
+    sealed trait Step {
+      def isReached(p: Progress): Boolean
     }
-  }
 
-  case object Step3 extends Step {
-    def isReached(p: Progress): Boolean = {
-      val ot = p.onlineTest
-      List(ot.onlineTestAwaitingAllocation, ot.onlineTestAllocationConfirmed, ot.onlineTestAllocationUnconfirmed,
-        p.failedToAttend,
-        p.assessmentScores.entered, p.assessmentScores.accepted).contains(true)
+    case object Step1 extends Step {
+      // Step 1 is always reached
+      def isReached(p: Progress): Boolean = true
     }
-  }
-  case object Step4 extends Step {
-    def isReached(p: Progress): Boolean =
-      List(p.assessmentCentre.awaitingReevaluation, p.assessmentCentre.passed, p.assessmentCentre.failed).contains(true)
-  }
 
-  object Step {
-    def determineStep(progress: Option[Progress]): Step = {
-      val step = progress.map { p =>
-        val latestStep: Step = if (Step4.isReached(p)) {
-          Step4
-        } else if (Step3.isReached(p)) {
-          Step3
-        } else if (Step2.isReached(p)) {
-          Step2
-        } else {
-          Step1
-        }
-
-        latestStep
+    case object Step2 extends Step {
+      def isReached(p: Progress): Boolean = {
+        val ot = p.onlineTest
+        List(p.submitted, ot.onlineTestInvited, ot.onlineTestStarted, ot.onlineTestCompleted, ot.onlineTestExpired,
+          ot.onlineTestFailed, ot.onlineTestFailedNotified).contains(true)
       }
+    }
 
-      step.getOrElse(Step1)
+    case object Step3 extends Step {
+      def isReached(p: Progress): Boolean = {
+        val ot = p.onlineTest
+        List(ot.onlineTestAwaitingAllocation, ot.onlineTestAllocationConfirmed, ot.onlineTestAllocationUnconfirmed,
+          p.failedToAttend, p.assessmentScores.entered, p.assessmentScores.accepted).contains(true)
+      }
+    }
+
+    case object Step4 extends Step {
+      def isReached(p: Progress): Boolean =
+        List(p.assessmentCentre.awaitingReevaluation, p.assessmentCentre.passed, p.assessmentCentre.failed).contains(true)
+    }
+
+    object Step {
+      def determineStep(progress: Option[Progress]): Step = {
+        val step = progress.map { p =>
+          if (Step4.isReached(p)) {
+            Step4
+          } else if (Step3.isReached(p)) {
+            Step3
+          } else if (Step2.isReached(p)) {
+            Step2
+          } else {
+            Step1
+          }
+        }
+        step.getOrElse(Step1)
+      }
     }
   }
 
-  def fromUser(user: CachedData)(implicit request: RequestHeader, lang: Lang): DashboardPage = status(user) match {
-    case Some(ApplicationStatus.WITHDRAWN) => withdrawn(user)
-    case _ => activeApplication(user)
-  }
+  private def isApplicationSubmittedAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    WithdrawApplicationRole.isAuthorized(user)
 
-  private def withdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) = {
-    val progress = user.application.map(_.progress)
-    val latestStepBeforeWithdrawn = Step.determineStep(progress)
+  private def isApplicationInProgressAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    CreatedOrInProgressRole.isAuthorized(user)
 
-    latestStepBeforeWithdrawn match {
-      case Step1 => DashboardPage(ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled)
-      case Step2 => DashboardPage(ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled)
-      case Step3 => DashboardPage(ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled)
-      case Step4 => DashboardPage(ProgressActive, ProgressActive, ProgressActive, ProgressInactiveDisabled)
-    }
-  }
+  private def isApplicationWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    WithdrawnApplicationRole.isAuthorized(user)
 
-  private def activeApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang): DashboardPage = {
-    val firstStep = if (RoleUtils.activeUserWithApp(user)) ProgressActive else ProgressInactive
-    val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || RoleUtils.hasReceivedFastPass(user)) {
-      ProgressActive
+  private def isApplicationCreatedOrInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    EditPersonalDetailsAndContinueRole.isAuthorized(user)
+
+  private def isUserWithNoApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    ApplicationStartRole.isAuthorized(user)
+
+  private def getAssessmentInProgressStatus(user: CachedData,
+                                            allocationDetails: Option[AllocationExchangeObjects.AllocationDetails],
+                                            test: Option[ExchangeObjects.OnlineTest])
+                                           (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
+    if(hasReceivedFastPass(user)) {
+      ASSESSMENT_FAST_PASS_CERTIFICATE
+    } else if (ConfirmedAllocatedCandidateRole.isAuthorized(user)) {
+      ASSESSMENT_BOOKED_CONFIRMED
+    } else if (UnconfirmedAllocatedCandidateRole.isAuthorized(user)) {
+      if (isConfirmationAllocationExpired(allocationDetails)) {
+        ASSESSMENT_CONFIRMATION_EXPIRED
+      } else {
+        ASSESSMENT_PENDING_CONFIRMATION
+      }
+    } else if (AssessmentCentreFailedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)) {
+      ASSESSMENT_FAILED
+    } else if (AssessmentCentrePassedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)) {
+      ASSESSMENT_PASSED
+    } else if (AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
+      ASSESSMENT_NOT_ATTENDED
     } else {
-      ProgressInactive
+      ASSESSMENT_STATUS_UNKNOWN
     }
-    val isStatusOnlineTestFailedNotified = user.application.exists(_.applicationStatus == ApplicationStatus.ONLINE_TEST_FAILED_NOTIFIED)
-    val thirdStep = if (isStatusOnlineTestFailedNotified) ProgressInactiveDisabled else ProgressInactive
-    val fourthStep = if (isStatusOnlineTestFailedNotified) ProgressInactiveDisabled else ProgressInactive
-
-    DashboardPage(firstStep, secondStep, thirdStep, fourthStep)
   }
 
-  private def isApplicationInStatus(application: Option[ApplicationData], status: ApplicationStatus) =
-    application.exists(_.applicationStatus == status)
+  private def getPostAssessmentStatus(user: CachedData,
+                                            allocationDetails: Option[AllocationExchangeObjects.AllocationDetails],
+                                            test: Option[ExchangeObjects.OnlineTest])
+                                           (implicit request: RequestHeader, lang: Lang): PostAssessmentStageStatus = {
+    if (AssessmentCentreFailedNotifiedRole.isAuthorized(user) || AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
+      POSTASSESSMENT_FAILED_APPLY_AGAIN
+    } else if (AssessmentCentrePassedNotifiedRole.isAuthorized(user)) {
+      POSTASSESSMENT_PASSED_MORE_SOON
+    } else {
+      POSTASSESSMENT_STATUS_UNKNOWN
+    }
+  }
 
-  private def status(user: CachedData)(implicit request: RequestHeader, lang: Lang) = user.application.map(_.applicationStatus)
+  // scalastyle:off cyclomatic.complexity
+  private def visibilityForUser(user: CachedData)(implicit request: RequestHeader, lang: Lang):
+  (ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility) = {
+
+    def withdrawnUserVisibility(user: CachedData) = {
+      val progress = user.application.map(_.progress)
+      val latestStepBeforeWithdrawn = Step.determineStep(progress)
+
+      latestStepBeforeWithdrawn match {
+        case Step1 => (ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled)
+        case Step2 => (ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled)
+        case Step3 => (ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled)
+        case Step4 => (ProgressActive, ProgressActive, ProgressActive, ProgressInactiveDisabled)
+      }
+    }
+
+    def activeUserVisibility(user: CachedData) = {
+      val isStatusOnlineTestFailedNotified = user.application.exists(_.applicationStatus == ApplicationStatus.ONLINE_TEST_FAILED_NOTIFIED)
+
+      val firstStep = if (activeUserWithApp(user)) { ProgressActive } else { ProgressInactive }
+      val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || hasReceivedFastPass(user)) {
+        ProgressActive
+      } else {
+        ProgressInactive
+      }
+      val thirdStep = if (isStatusOnlineTestFailedNotified) { ProgressInactiveDisabled } else { ProgressInactive }
+      val fourthStep = if (isStatusOnlineTestFailedNotified) { ProgressInactiveDisabled } else { ProgressInactive }
+
+      (firstStep, secondStep, thirdStep, fourthStep)
+    }
+
+    status(user) match {
+      case Some(ApplicationStatus.WITHDRAWN) => withdrawnUserVisibility(user)
+      case _ => activeUserVisibility(user)
+    }
+  }
+  // scalastyle:on cyclomatic.complexity
+
+  private def status(user: CachedData)(implicit request: RequestHeader, lang: Lang): Option[ApplicationStatus] =
+    user.application.map(_.applicationStatus)
+
+  private def isConfirmationAllocationExpired(allocationDetails: Option[AllocationExchangeObjects.AllocationDetails]): Boolean =
+    allocationDetails match {
+      case Some(AllocationDetails(_, _, _, Some(expirationDate))) if LocalDate.now().isAfter(expirationDate) => true
+      case _ => false
+    }
+
 }
+

@@ -23,7 +23,8 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import _root_.forms.SelectedSchemesForm._
 import connectors.ExchangeObjects.ApplicationResponse
-import connectors.exchange.FastPassDetails
+import connectors.exchange.{ FastPassDetails }
+import connectors.exchange.FastPassDetailsExamples._
 import models.ApplicationData.ApplicationStatus
 import models.services.UserService
 import play.api.test.Helpers._
@@ -78,7 +79,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "European", "orderAgreed" -> "true",
         "eligible" -> "true")
       val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
-        currentUserId, ProgressResponseExamples.InProgress, Some(false))
+        currentUserId, ProgressResponseExamples.InProgress, Some(CivilServantFastPass))
       val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true)
 
       when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))

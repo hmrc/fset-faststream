@@ -1,7 +1,7 @@
 @import helpers.CSRSkinnyFieldConstructor._
 @import _root_.forms.SelectedSchemesForm.Scheme
 
-@(field: play.api.data.Field, options: Seq[Scheme], args: (Symbol, Any)*)
+@(isCandidateCivilServant: Boolean, field: play.api.data.Field, options: Seq[Scheme], args: (Symbol, Any)*)
 
 @createId(id: String, scheme: Scheme) = @{
     id + "_" + scheme.id.replace(" ", "_").replace("/", "_").replace("'", "_")
@@ -11,7 +11,7 @@
         <div class="inner-block-padr" id="@id">
             <ul class="schemes-list">
             @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
-                @options.map { case scheme@Scheme(schemeId, qualification, specific) =>
+                @options.map { case scheme@Scheme(schemeId, qualification, specific, hasEligibilityForCivilServants) =>
                 <li class="scheme-container">
                     <span class="selected-preference invisible">N/A</span>
                     <label class="block-label block-label-slim" for="@createId(id, scheme)">
@@ -22,7 +22,7 @@
                         @Messages("scheme."+schemeId+".description")
                     </label>
                     <span class="alwayshidden" data-scheme-req
-                          @if(specific){data-spec-scheme}>
+                          @if(specific){data-spec-scheme} @if(isCandidateCivilServant && hasEligibilityForCivilServants){data-civil-servant-scheme}>
                         @Messages("qualification."+qualification+".description")
                         @if(specific){
                             <a class="font-xsmall inl-block"

@@ -33,6 +33,9 @@ $(function()
         thisSchemeValue = $this.attr('value'),
         schemeReq = $this.closest('.scheme-container').find(
             '[data-scheme-req]').html(),
+        isCivilServant = $this.closest('.scheme-container').find(
+            '[data-civil-servant-scheme]').length,
+        civilServant = isCivilServant > 0,
         isSpecial = $this.closest('.scheme-container').find(
             '[data-spec-scheme]').length,
         specialEligibility = isSpecial == 0 ?
@@ -56,14 +59,31 @@ $(function()
             schemePrefArray);
           var hiddenSchemeId = "#scheme_"+arrayPositionNow;
           $(hiddenSchemeId).val(thisSchemeValue);
-          $('#selectedPrefList li').eq(arrayPositionNow).after(
+          if (civilServant === true)
+          {
+            $('#selectedPrefList li').eq(arrayPositionNow).after(
+              '<li class="med-btm-margin scheme-prefcontainer" data-scheme-id="' +
+              thisSchemeID + '"><span data-schemeorder>' +
+              preferencesAsText[arrayPositionNow] +
+              '</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
+              thisScheme +
+              '</span><p>You\'re eligible as a current civil servant</p>' +
+              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove</a>' +
+              '</div>'
+            );
+          }
+          else
+          {
+            $('#selectedPrefList li').eq(arrayPositionNow).after(
               '<li class="med-btm-margin scheme-prefcontainer" data-scheme-id="' +
               thisSchemeID + '"><span data-schemeorder>' +
               preferencesAsText[arrayPositionNow] +
               '</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
               thisScheme + '</span>' + specialEligibility +
-              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove</a></div>'
-          );
+              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove</a>' +
+              '</div>'
+            );
+          }
 
           $this.closest('.scheme-container').addClass(
             'selected-scheme').find('.selected-preference').text(
@@ -105,15 +125,6 @@ $(function()
       {
         $('#chosenLimit').addClass('hidden');
         $('#chooseYourPrefs').removeClass('hidden');
-        $('#chooseNextPreference').text(differenceArray[0]);
-        if (differenceArray[0] !== "1st preference")
-        {
-          $('[data-optionalappended]').removeClass('hidden');
-        }
-        else
-        {
-          $('[data-optionalappended]').addClass('hidden');
-        }
       }
 
       if ($('input[data-schemename]:checked').length > 0)
