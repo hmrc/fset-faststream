@@ -20,6 +20,7 @@ import _root_.forms.SelectedSchemesForm._
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.FastPassDetails
 import connectors.{ ApplicationClient, SchemeClient }
+import _root_.forms.FastPassForm
 import security.Roles.SchemesRole
 
 import scala.concurrent.Future
@@ -59,7 +60,7 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
 
   private def isCivilServant(fastPassDetails: Option[FastPassDetails]) = {
     val fp = fastPassDetails flatMap (_.fastPassType)
-    fp.contains("CivilServant") || fp.contains("CivilServantViaFastTrack")
+    fp.contains(FastPassForm.CivilServant) || fp.contains(FastPassForm.CivilServantViaFastTrack)
   }
 }
 
