@@ -34,7 +34,7 @@ import scala.concurrent.Future
 object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, UserManagementClient)
 
 class PersonalDetailsController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
-  extends BaseController(applicationClient) {
+  extends BaseController(applicationClient) with GeneralDetailsToExchangeConverter {
 
   private sealed trait OnSuccess
   private case object ContinueToNextStepInJourney extends OnSuccess
@@ -112,7 +112,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
         form.bind(errorForm.data.cleanupFastPassFields()), continuetoTheNextStep(onSuccess)))),
       gd => for {
         _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
-          removeCountryWhenInsideUK(removePostCodeWhenOutsideUK(gd)).toExchange(cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
+          toExchange(gd, cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
         _ <- userManagementClient.updateDetails(cachedData.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
         redirect <- updateProgress(data => {
           val applicationCopy = data.application.map(_.copy(fastPassReceived = gd.fastPassDetails.fastPassReceived))
@@ -126,9 +126,15 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
     )
   }
 
-  private def removePostCodeWhenOutsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
-    if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(postCode = None) else generalDetails
+}
 
-  private def removeCountryWhenInsideUK(generalDetails: GeneralDetailsForm.Data): GeneralDetailsForm.Data =
-    if (generalDetails.outsideUk.getOrElse(false)) generalDetails.copy(country = None) else generalDetails
+trait GeneralDetailsToExchangeConverter {
+
+  def toExchange(generalDetails: GeneralDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean]) = {
+    val gd = generalDetails.insideUk match {
+      case true => generalDetails.copy(country = None)
+      case false => generalDetails.copy(postCode = None)
+    }
+    gd.toExchange(email, updateApplicationStatus)
+  }
 }
