@@ -19,7 +19,8 @@ package security
 import com.mohiva.play.silhouette.api.{LoginEvent, LoginInfo}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import connectors.ApplicationClient.ApplicationNotFound
-import connectors.{ApplicationClient, ExchangeObjects}
+import connectors.ApplicationClient
+import connectors.exchange.FrameworkId
 import controllers.{BaseController, routes}
 import forms.SignInForm
 import forms.SignInForm.Data
@@ -52,7 +53,7 @@ trait SignInService {
         result
       }
 
-      applicationClient.findApplication(user.userID, ExchangeObjects.frameworkId).map { appData =>
+      applicationClient.findApplication(user.userID, FrameworkId).map { appData =>
         signIn(Some(appData))
       } recover {
         case e: ApplicationNotFound => signIn(None)

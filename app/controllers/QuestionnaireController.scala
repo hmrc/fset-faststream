@@ -18,7 +18,7 @@ package controllers
 
 import _root_.forms.{ QuestionnaireDiversityInfoForm, QuestionnaireEducationInfoForm, QuestionnaireOccupationInfoForm }
 import connectors.ApplicationClient
-import connectors.ExchangeObjects.Questionnaire
+import connectors.exchange.Questionnaire
 import models.CachedDataWithApp
 import play.api.mvc.{ Request, RequestHeader, Result }
 import security.QuestionnaireRoles._

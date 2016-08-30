@@ -18,7 +18,7 @@ package models
 
 import java.util.UUID
 
-import connectors.exchange.{AssessmentCentre, AssessmentScores}
+import connectors.exchange.{ AssessmentCentre, AssessmentScores, ProgressExamples }
 import models.ApplicationData.ApplicationStatus
 
 object CachedDataExample {

@@ -47,7 +47,6 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
           Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(civilServant, invalidForm)))
         },
         selectedSchemes => {
-          user.application
           for {
             _ <- schemeClient.updateSchemePreferences(selectedSchemes)(user.application.applicationId)
             redirect <- refreshCachedUser().map(_ => Redirect(routes.PartnerGraduateProgrammesController.present()))

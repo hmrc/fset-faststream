@@ -21,13 +21,13 @@ import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.GeneralDetailsFormExamples._
-import connectors.exchange.FastPassDetailsExamples
+import connectors.exchange.{ FastPassDetailsExamples, GeneralDetailsExamples }
 import models.ApplicationData.ApplicationStatus
-import models.{ CachedData, GeneralDetailsExchangeExamples, ProgressResponseExamples }
-import models.services.UserService
+import models.{ CachedData, ProgressResponseExamples }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
+import security.UserService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -62,13 +62,13 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
     "load general details page for the already created personal details" in {
       when(applicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(GeneralDetailsExchangeExamples.FullDetails))
+        .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
 
       val result = controller.present()(fakeRequest)
 
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
-      content must include(s"""name="preferredName" value="${GeneralDetailsExchangeExamples.FullDetails.preferredName}"""")
+      content must include(s"""name="preferredName" value="${GeneralDetailsExamples.FullDetails.preferredName}"""")
       content must include(s"""<input name="fastPassDetails.applicable" type="radio" id="fastPassDetails_applicable-yes"""")
     }
   }

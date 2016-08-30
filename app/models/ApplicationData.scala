@@ -16,7 +16,7 @@
 
 package models
 
-import connectors.ExchangeObjects.ApplicationResponse
+import connectors.exchange.ApplicationResponse
 import connectors.exchange.FastPassDetails
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import play.api.libs.json._

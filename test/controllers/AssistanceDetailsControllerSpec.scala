@@ -21,13 +21,14 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord }
+import connectors.exchange.AssistanceDetailsExchangeExamples
 import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
 import models._
-import models.services.UserService
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
+import security.UserService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

@@ -19,8 +19,9 @@ package controllers
 import java.time.LocalDateTime
 
 import config.FaststreamFrontendConfig
+import connectors.ApplicationClient
 import connectors.ApplicationClient.ApplicationNotFound
-import connectors.{ ApplicationClient, ExchangeObjects }
+import connectors.exchange.FrameworkId
 import helpers.NotificationType._
 import models.{ CachedData, CachedDataWithApp }
 import play.api.mvc.Request
@@ -71,7 +72,7 @@ abstract class BaseController(applicationClient: ApplicationClient) extends Fron
     }
 
   def refreshCachedUser()(implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[CachedData] =
-    applicationClient.findApplication(user.user.userID, ExchangeObjects.frameworkId).flatMap { appData =>
+    applicationClient.findApplication(user.user.userID, FrameworkId).flatMap { appData =>
       val cd = CachedData(user.user, Some(appData))
       env.userService.save(cd)
     } recover {

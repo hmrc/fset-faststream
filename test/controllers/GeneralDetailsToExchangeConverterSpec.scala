@@ -17,7 +17,7 @@
 package controllers
 
 import _root_.forms.GeneralDetailsFormExamples._
-import connectors.ExchangeObjects.GeneralDetailsExchange
+import connectors.exchange.GeneralDetails
 import org.scalatestplus.play.PlaySpec
 
 class GeneralDetailsToExchangeConverterSpec extends PlaySpec {
@@ -27,7 +27,7 @@ class GeneralDetailsToExchangeConverterSpec extends PlaySpec {
     "convert uk address, and remove country" in {
       val result = converter.toExchange(ValidUKAddressForm.copy(country = Some("France")), "email@email.com", Some(true))
 
-      result mustBe GeneralDetailsExchange(
+      result mustBe GeneralDetails(
         ValidUKAddressForm.firstName,
         ValidUKAddressForm.lastName,
         ValidUKAddressForm.preferredName,
@@ -46,7 +46,7 @@ class GeneralDetailsToExchangeConverterSpec extends PlaySpec {
     "convert non uk address, and remove post code" in {
       val result = converter.toExchange(ValidNonUKAddressForm.copy(postCode = Some("1A 2BC")), "email@email.com", Some(true))
 
-      result mustBe GeneralDetailsExchange(
+      result mustBe GeneralDetails(
         ValidNonUKAddressForm.firstName,
         ValidNonUKAddressForm.lastName,
         ValidNonUKAddressForm.preferredName,

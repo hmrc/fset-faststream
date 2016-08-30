@@ -18,7 +18,7 @@ package security
 
 import com.mohiva.play.silhouette.api.Provider
 import com.mohiva.play.silhouette.api.util.Credentials
-import connectors.ExchangeObjects.Implicits._
+import connectors.exchange.Implicits._
 import connectors.UserManagementClient
 import connectors.UserManagementClient.{ AccountLockedOutException, InvalidCredentialsException, InvalidRoleException }
 import models.CachedUser

@@ -17,7 +17,7 @@
 package connectors
 
 import config.CSRHttp
-import connectors.ExchangeObjects._
+import connectors.exchange._
 import connectors.UserManagementClient._
 import models.UniqueIdentifier
 import uk.gov.hmrc.play.http.{ HeaderCarrier, _ }
