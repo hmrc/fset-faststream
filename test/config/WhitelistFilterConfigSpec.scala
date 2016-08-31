@@ -45,27 +45,33 @@ class WhitelistFilterConfigSpec extends PlaySpec with OneAppPerTest {
 
   "ProductionFrontendGlobal" must {
     "let requests passing" when {
-      "coming from an IP in the white list" in {
+      "coming from an IP in the white list must work as normal" in {
         val request = FakeRequest(GET, "/fset-fast-stream/signup").withHeaders("True-Client-IP" -> "11.22.33.44")
         val Some(result) = route(app, request)
 
         status(result) mustBe (OK)
       }
 
-      "coming from a IP NOT in the white-list and not with a white-listed path " in {
+      "coming from a IP NOT in the white-list and not with a white-listed path must be redirected" in {
         val request = FakeRequest(GET, "/fset-fast-stream/signup").withHeaders("True-Client-IP" -> "93.00.33.33")
         val Some(result) = route(app, request)
 
-        // Because of the redirect to the landing page
         status(result) mustBe (SEE_OTHER)
         redirectLocation(result) mustBe Some("https://www.tax.service.gov.uk/outage-fset-faststream/index.html")
       }
 
-      "coming from an IP NOT in the white-list, but with a white-listed path" in {
+      "coming from an IP NOT in the white-list, but with a white-listed path must work as normal" in {
         val request = FakeRequest(GET, "/ping/ping").withHeaders("True-Client-IP" -> "93.00.33.33")
         val Some(result) = route(app, request)
 
         status(result) mustBe (OK)
+      }
+
+      "coming without an IP header must fail" in {
+        val request = FakeRequest(GET, "/fset-fast-stream/signup")
+        val Some(result) = route(app, request)
+
+        status(result) mustBe (NOT_IMPLEMENTED)
       }
     }
   }
