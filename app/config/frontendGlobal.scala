@@ -40,7 +40,7 @@ import uk.gov.hmrc.play.http.logging.filters.FrontendLoggingFilter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object FrontendGlobal
+abstract class FrontendGlobal
   extends DefaultFrontendGlobal with SecuredSettings {
 
   import FrontendAppConfig.feedbackUrl
@@ -106,4 +106,10 @@ object AuditFilter extends FrontendAuditFilter with RunMode with AppName {
   override lazy val auditConnector = FrontendAuditConnector
 
   override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
+}
+
+object FrontendGlobal extends FrontendGlobal
+
+object ProductionFrontendGlobal extends FrontendGlobal {
+  override def filters = WhitelistFilter +: super.filters
 }
