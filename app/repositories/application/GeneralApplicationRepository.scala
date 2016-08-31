@@ -135,9 +135,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val psRoot = doc.getAs[BSONDocument]("personal-details")
     val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
     val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
+    val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
     val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
 
-    Candidate(userId, applicationId, None, firstName, lastName, dateOfBirth, None, None, None)
+    Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
   }
 
   def find(applicationIds: List[String]): Future[List[Candidate]] = {
@@ -228,9 +229,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     collection.find(query).one[BSONDocument].map(_.map(docToCandidate))
   }
 
-  def findByCriteria(lastName: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] = {
+  def findByCriteria(lastNameOpt: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] = {
 
-    val query = BSONDocument("personal-details.lastName" -> lastName, "personal-details.dateOfBirth" -> dateOfBirth)
+    val query = BSONDocument(
+      "personal-details.lastName" -> lastNameOpt.map { lastName => BSONRegex("^" + lastName + "$", "i") },
+      "personal-details.dateOfBirth" -> dateOfBirth
+    )
 
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map(docToCandidate))
   }

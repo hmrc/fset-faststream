@@ -83,7 +83,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
   override def findByPostCode(postCode: String) = {
 
-    val query = BSONDocument("contact-details.postCode" -> postCode)
+    val query = BSONDocument("contact-details.postCode" -> BSONRegex("^" + postCode + "$", "i"))
 
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
       val id = doc.getAs[String]("userId").get

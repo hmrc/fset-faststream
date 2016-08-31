@@ -42,7 +42,7 @@ trait SearchForApplicantsController extends BaseController {
   val psRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
 
-  val MAX_RESULTS = 10
+  val MAX_RESULTS = 25
 
   def findById(userId: String, frameworkId: String) = Action.async { implicit request =>
 
@@ -50,17 +50,17 @@ trait SearchForApplicantsController extends BaseController {
       psRepository.find(application.applicationId).flatMap { pd =>
         cdRepository.find(userId).map { cd =>
           Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.dateOfBirth), Some(cd.address), Some(cd.postCode), None)))
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), Some(cd.postCode), None)))
         }.recover {
           case e: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.dateOfBirth), None, None, None)))
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), None, None, None)))
         }
       }.recover {
         case e: PersonalDetailsNotFound =>
-          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, None, None, None, None, None, None)))
+          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, None, None, None, None, None, None, None)))
       }
     }.recover {
-      case e: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None)))
+      case e: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None, None)))
     }
   }
 

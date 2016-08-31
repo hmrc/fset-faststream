@@ -23,6 +23,7 @@ import org.joda.time.LocalDate
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
+import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -53,7 +54,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       ContactDetails(
         outsideUk = false,
         Address("123, Fake street"),
-        Some("AB1 2CD"),
+        Some(s"${Random.upperLetter}${Random.upperLetter}1 2${Random.upperLetter}${Random.upperLetter}"),
         None,
         candidateInformation.email,
         "07770 774 914"
