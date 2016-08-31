@@ -16,8 +16,8 @@
 
 package models.page
 
-import connectors.{ AllocationExchangeObjects, ExchangeObjects }
-import models.page.DashboardPage.Flags.{ ProgressInactive, _ }
+import connectors.exchange.OnlineTest
+import models.page.DashboardPage.Flags._
 import models.{ CachedData, Progress }
 import org.joda.time.LocalDate
 import play.api.i18n.Lang
@@ -41,11 +41,11 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
 
 object DashboardPage {
 
-  import connectors.AllocationExchangeObjects.AllocationDetails
+  import connectors.exchange.AllocationDetails
   import models.ApplicationData.ApplicationStatus
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  def apply(user: CachedData, allocationDetails: Option[AllocationExchangeObjects.AllocationDetails], test: Option[ExchangeObjects.OnlineTest])
+  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], test: Option[OnlineTest])
            (implicit request: RequestHeader, lang: Lang): DashboardPage = {
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility, fourthStepVisibility) = visibilityForUser(user)
     DashboardPage(
@@ -170,8 +170,8 @@ object DashboardPage {
     ApplicationStartRole.isAuthorized(user)
 
   private def getAssessmentInProgressStatus(user: CachedData,
-                                            allocationDetails: Option[AllocationExchangeObjects.AllocationDetails],
-                                            test: Option[ExchangeObjects.OnlineTest])
+                                            allocationDetails: Option[AllocationDetails],
+                                            test: Option[OnlineTest])
                                            (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
     if(hasReceivedFastPass(user)) {
       ASSESSMENT_FAST_PASS_CERTIFICATE
@@ -195,8 +195,8 @@ object DashboardPage {
   }
 
   private def getPostAssessmentStatus(user: CachedData,
-                                            allocationDetails: Option[AllocationExchangeObjects.AllocationDetails],
-                                            test: Option[ExchangeObjects.OnlineTest])
+                                      allocationDetails: Option[AllocationDetails],
+                                      test: Option[OnlineTest])
                                            (implicit request: RequestHeader, lang: Lang): PostAssessmentStageStatus = {
     if (AssessmentCentreFailedNotifiedRole.isAuthorized(user) || AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
       POSTASSESSMENT_FAILED_APPLY_AGAIN
@@ -248,7 +248,7 @@ object DashboardPage {
   private def status(user: CachedData)(implicit request: RequestHeader, lang: Lang): Option[ApplicationStatus] =
     user.application.map(_.applicationStatus)
 
-  private def isConfirmationAllocationExpired(allocationDetails: Option[AllocationExchangeObjects.AllocationDetails]): Boolean =
+  private def isConfirmationAllocationExpired(allocationDetails: Option[AllocationDetails]): Boolean =
     allocationDetails match {
       case Some(AllocationDetails(_, _, _, Some(expirationDate))) if LocalDate.now().isAfter(expirationDate) => true
       case _ => false

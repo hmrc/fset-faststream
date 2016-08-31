@@ -19,8 +19,8 @@ package controllers
 import _root_.forms.WithdrawApplicationForm
 import config.CSRHttp
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.ExchangeObjects.WithdrawApplicationRequest
-import connectors.{ ApplicationClient, ExchangeObjects }
+import connectors.exchange.{FrameworkId, WithdrawApplicationRequest }
+import connectors.ApplicationClient
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.DashboardPage
@@ -80,7 +80,7 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
   val create = CSRSecureAction(ApplicationStartRole) { implicit request =>
     implicit user =>
       for {
-        response <- applicationClient.createApplication(user.user.userID, ExchangeObjects.frameworkId)
+        response <- applicationClient.createApplication(user.user.userID, FrameworkId)
         _ <- env.userService.save(user.copy(application = Some(response)))
         if faststreamConfig.applicationsSubmitEnabled
       } yield {

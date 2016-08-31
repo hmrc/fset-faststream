@@ -1,8 +1,8 @@
-@import connectors.ExchangeObjects.OnlineTest
+@import connectors.exchange.{ AllocationDetails, OnlineTest }
 @import security.RoleUtils
 @(usr: CachedData, onlineTest: Option[OnlineTest] = None,
         applicationStatus: models.ApplicationData.ApplicationStatus.ApplicationStatus,
-        allocationDetails: Option[connectors.AllocationExchangeObjects.AllocationDetails])(implicit request: Request[_])
+        allocationDetails: Option[AllocationDetails])(implicit request: Request[_])
 
 @import models.ApplicationData.ApplicationStatus._
 

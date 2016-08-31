@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package models
+package connectors.exchange
 
-import connectors.ExchangeObjects.GeneralDetailsExchange
-import connectors.exchange.FastPassDetails
-import org.joda.time.LocalDate
-import mappings.AddressExamples._
-
-object GeneralDetailsExchangeExamples {
-  val FullDetails = GeneralDetailsExchange("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), None, Some("1234567"), FastPassDetails(false), None)
+object PartnerGraduateProgrammesExamples {
+  val InterestedNotAll = PartnerGraduateProgrammes(true, Some(List("Entrepreneur First", "Frontline")))
+  val NoInterested = PartnerGraduateProgrammes(false, None)
 }

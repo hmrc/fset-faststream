@@ -18,16 +18,15 @@ package controllers
 
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
-import models.{ CachedData, ProgressResponseExamples, SchemePreferencesExchangeExamples }
+import models.{ CachedData, ProgressResponseExamples }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import _root_.forms.SelectedSchemesForm._
-import connectors.ExchangeObjects.ApplicationResponse
-import connectors.exchange.{ FastPassDetails }
+import connectors.exchange.{ ApplicationResponse, FastPassDetails, SchemePreferencesExamples }
 import connectors.exchange.FastPassDetailsExamples._
 import models.ApplicationData.ApplicationStatus
-import models.services.UserService
 import play.api.test.Helpers._
+import security.UserService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -61,7 +60,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
     "populate selected schemes for the candidate" in {
       when(schemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(SchemePreferencesExchangeExamples.DefaultSelectedSchemes))
+        .thenReturn(Future.successful(SchemePreferencesExamples.DefaultSelectedSchemes))
       val result = controllerUnderTest.present(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)

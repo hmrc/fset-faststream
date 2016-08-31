@@ -20,7 +20,7 @@ import _root_.forms.SignUpForm
 import com.mohiva.play.silhouette.api.SignUpEvent
 import config.CSRHttp
 import connectors.ApplicationClient
-import connectors.ExchangeObjects.Implicits._
+import connectors.exchange.Implicits._
 import connectors.UserManagementClient.EmailTakenException
 import helpers.NotificationType._
 import models.SecurityUser

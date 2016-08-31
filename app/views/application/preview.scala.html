@@ -1,8 +1,8 @@
 @(
-        generalDetails: connectors.ExchangeObjects.GeneralDetailsExchange,
+        generalDetails: connectors.exchange.GeneralDetails,
         schemePreferences: connectors.exchange.SelectedSchemes,
-        partnerGraduateProgrammes: connectors.exchange.PartnerGraduateProgrammesExchange,
-        assistanceDetails: connectors.exchange.AssistanceDetailsExchange,
+        partnerGraduateProgrammes: connectors.exchange.PartnerGraduateProgrammes,
+        assistanceDetails: connectors.exchange.AssistanceDetails,
         applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import views.html.application.previewapplication.{assistanceDetailsViewSection, generalDetailsViewSection, schemePreferencesViewSection, partnerGraduateProgrammesViewSection, diversityQuestionnaireViewSection}

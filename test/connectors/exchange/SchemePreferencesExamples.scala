@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package models
+package connectors.exchange
 
-import connectors.exchange.SelectedSchemes
-
-object SchemePreferencesExchangeExamples {
+object SchemePreferencesExamples {
   val DefaultSelectedSchemes = SelectedSchemes(List("Finance", "Europe"), orderAgreed = true, eligible = true)
 }

@@ -20,19 +20,19 @@ import forms.AssistanceDetailsForm
 import play.api.libs.json.Json
 
 
-case class AssistanceDetailsExchange(hasDisability: String,
-                                     hasDisabilityDescription: Option[String],
-                                     guaranteedInterview: Option[Boolean],
-                                     needsSupportForOnlineAssessment: Boolean,
-                                     needsSupportForOnlineAssessmentDescription: Option[String],
-                                     needsSupportAtVenue: Boolean,
-                                     needsSupportAtVenueDescription: Option[String])
+case class AssistanceDetails(hasDisability: String,
+                             hasDisabilityDescription: Option[String],
+                             guaranteedInterview: Option[Boolean],
+                             needsSupportForOnlineAssessment: Boolean,
+                             needsSupportForOnlineAssessmentDescription: Option[String],
+                             needsSupportAtVenue: Boolean,
+                             needsSupportAtVenueDescription: Option[String])
 
-object AssistanceDetailsExchange {
-  implicit val assistanceDetailsExchangeFormat = Json.format[AssistanceDetailsExchange]
+object AssistanceDetails {
+  implicit val assistanceDetailsFormat = Json.format[AssistanceDetails]
 
   implicit class assistanceDetailsFormToRequest(data: AssistanceDetailsForm.Data) {
-    def exchange = AssistanceDetailsExchange(
+    def exchange = AssistanceDetails(
       data.hasDisability,
       data.hasDisabilityDescription,
       data.guaranteedInterview.map {

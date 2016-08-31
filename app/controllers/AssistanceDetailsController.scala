@@ -19,7 +19,7 @@ package controllers
 import _root_.forms.AssistanceDetailsForm
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
-import connectors.exchange.AssistanceDetailsExchange
+import connectors.exchange.AssistanceDetails
 import models.CachedData
 import security.RoleUtils
 import security.Roles.AssistanceDetailsRole
@@ -59,7 +59,7 @@ class AssistanceDetailsController(applicationClient: ApplicationClient) extends 
       )
   }
 
-  private def assistanceDetailsExchange2Data(ad: AssistanceDetailsExchange) = {
+  private def assistanceDetailsExchange2Data(ad: AssistanceDetails) = {
     AssistanceDetailsForm.Data(
       ad.hasDisability,
       ad.hasDisabilityDescription,

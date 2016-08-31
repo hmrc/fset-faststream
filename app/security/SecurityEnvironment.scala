@@ -20,7 +20,6 @@ import com.mohiva.play.silhouette.api.Environment
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import connectors.UserManagementClient
 import models.SecurityUser
-import models.services.UserService
 
 trait SecurityEnvironment extends Environment[SecurityUser, SessionAuthenticator] with UserManagementClient {
 

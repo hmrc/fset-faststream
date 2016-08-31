@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package models.services
+package connectors.exchange
 
-import com.mohiva.play.silhouette.api.services.IdentityService
-import models.{ CachedData, SecurityUser }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import mappings.AddressExamples._
+import org.joda.time.LocalDate
 
-import scala.concurrent.Future
-
-trait UserService extends IdentityService[SecurityUser] {
-
-  def save(user: CachedData)(implicit hc: HeaderCarrier): Future[CachedData]
+object GeneralDetailsExamples {
+  val FullDetails = GeneralDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
+    FullAddress, Some("postCode"), None, Some("1234567"), FastPassDetails(false), None)
 }

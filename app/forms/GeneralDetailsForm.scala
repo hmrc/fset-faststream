@@ -16,7 +16,7 @@
 
 package forms
 
-import connectors.ExchangeObjects.GeneralDetailsExchange
+import connectors.exchange.GeneralDetails
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping.{ PostCode, validPostcode }
@@ -86,7 +86,7 @@ object GeneralDetailsForm {
       case _ => true
     }
 
-    def toExchange(email: String, updateApplicationStatus: Option[Boolean]) = GeneralDetailsExchange(
+    def toExchange(email: String, updateApplicationStatus: Option[Boolean]) = GeneralDetails(
       firstName,
       lastName,
       preferredName,

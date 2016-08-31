@@ -16,7 +16,7 @@
 
 package forms
 
-import connectors.ExchangeObjects.{ Answer, Question, Questionnaire }
+import connectors.exchange.{ Answer, Question, Questionnaire }
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }

@@ -21,12 +21,13 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
+import connectors.exchange.PartnerGraduateProgrammesExamples
 import models.SecurityUserExamples._
 import models._
-import models.services.UserService
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
+import security.UserService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -51,7 +52,7 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
 
     "load partner graduate programmes page for the already created partner graduate programmes" in new TestFixture {
       when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(PartnerGraduateProgrammesExchangeExamples.InterestedNotAll))
+        .thenReturn(Future.successful(PartnerGraduateProgrammesExamples.InterestedNotAll))
 
       val result = controller.present()(fakeRequest)
 

@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package models
+package connectors.exchange
 
-import connectors.exchange.PartnerGraduateProgrammesExchange
+import forms.PartnerGraduateProgrammesForm
+import play.api.libs.json.Json
 
-object PartnerGraduateProgrammesExchangeExamples {
-  val InterestedNotAll = PartnerGraduateProgrammesExchange(true, Some(List("Entrepreneur First", "Frontline")))
-  val NoInterested = PartnerGraduateProgrammesExchange(false, None)
+case class PartnerGraduateProgrammes(interested: Boolean,
+                                     partnerGraduateProgrammes: Option[List[String]])
+
+object PartnerGraduateProgrammes {
+  implicit val partnerGraduateProgrammesExchangeFormat = Json.format[PartnerGraduateProgrammes]
+
+  implicit class partnerGraduateProgrammesFormatRequest(data: PartnerGraduateProgrammesForm.Data) {
+    def exchange = PartnerGraduateProgrammes(
+      data.interested == "Yes",
+      data.partnerGraduateProgrammes
+    )
+  }
 }
