@@ -29,6 +29,7 @@ object ExchangeObjects {
                                     email: String,
                                     firstName: String,
                                     lastName: String,
+                                    preferredName: String,
                                     personalDetails: Option[PersonalDetails] = None,
                                     contactDetails: Option[ContactDetails] = None,
                                     onlineTestProfile: Option[OnlineTestProfileResponse] = None,

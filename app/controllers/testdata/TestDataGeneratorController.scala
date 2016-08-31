@@ -68,18 +68,24 @@ trait TestDataGeneratorController extends BaseController {
 
   // scalastyle:off parameter.number
   def createCandidatesInStatus(status: String, numberToGenerate: Int,
-    emailPrefix: String,
-    setGis: Boolean,
-    region: Option[String],
-    loc1scheme1EvaluationResult: Option[String],
-    loc1scheme2EvaluationResult: Option[String],
-    previousStatus: Option[String] = None,
-    confirmedAllocation: Boolean) = Action.async { implicit request =>
+                               emailPrefix: String,
+                               setGis: Boolean,
+                               firstName: Option[String],
+                               lastName: Option[String],
+                               preferredName: Option[String],
+                               region: Option[String],
+                               loc1scheme1EvaluationResult: Option[String],
+                               loc1scheme2EvaluationResult: Option[String],
+                               previousStatus: Option[String] = None,
+                               confirmedAllocation: Boolean) = Action.async { implicit request =>
 
     val initialConfig = GeneratorConfig(
       emailPrefix = emailPrefix,
       setGis = setGis,
       cubiksUrl = cubiksUrlFromConfig,
+      firstName = firstName,
+      lastName = lastName,
+      preferredName = preferredName,
       region = region,
       loc1scheme1Passmark = loc1scheme1EvaluationResult.map(Result(_)),
       loc1scheme2Passmark = loc1scheme2EvaluationResult.map(Result(_)),
