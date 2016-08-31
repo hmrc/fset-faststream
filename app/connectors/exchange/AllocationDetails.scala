@@ -16,19 +16,11 @@
 
 package connectors.exchange
 
-import forms.PartnerGraduateProgrammesForm
-import play.api.libs.json.Json
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.{ Format, Json }
 
-case class PartnerGraduateProgrammesExchange(interested: Boolean,
-                                             partnerGraduateProgrammes: Option[List[String]])
+case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: DateTime, expirationDate: Option[LocalDate])
 
-object PartnerGraduateProgrammesExchange {
-  implicit val partnerGraduateProgrammesExchangeFormat = Json.format[PartnerGraduateProgrammesExchange]
-
-  implicit class partnerGraduateProgrammesFormtoRequest(data: PartnerGraduateProgrammesForm.Data) {
-    def exchange = PartnerGraduateProgrammesExchange(
-      data.interested == "Yes",
-      data.partnerGraduateProgrammes
-    )
-  }
+object AllocationDetails {
+    implicit val allocationDetailsFormats: Format[AllocationDetails] = Json.format[AllocationDetails]
 }

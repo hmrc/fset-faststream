@@ -16,10 +16,6 @@
 
 package forms
 
-import mappings.{AddressExamples, DayMonthYear}
-import connectors.exchange.AssistanceDetailsExchange
-import org.joda.time.{DateTime, LocalDate}
-
 object AssistanceDetailsFormExamples {
   val DisabilityGisAndAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Epilepsy"), Some("Yes"), "Yes", Some("Some adjustment"),
     "Yes", Some("Some other adjustements"))

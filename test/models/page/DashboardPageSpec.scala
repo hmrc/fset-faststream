@@ -213,8 +213,8 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
 
 object DashboardPageSpec {
 
-  import connectors.AllocationExchangeObjects.AllocationDetails
-  import connectors.ExchangeObjects.OnlineTest
+  import connectors.exchange.AllocationDetails
+  import connectors.exchange.OnlineTest
   import org.joda.time.{DateTime, LocalDate}
 
   def user(status: ApplicationStatus.Value) = {

@@ -20,7 +20,7 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.util.Credentials
 import config.CSRHttp
-import connectors.ExchangeObjects.UserResponse
+import connectors.exchange.UserResponse
 import connectors.UserManagementClient._
 import connectors.UserManagementClient.InvalidRoleException
 import controllers.BaseSpec

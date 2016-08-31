@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package models
+package security
 
-import connectors.exchange.AssistanceDetailsExchange
+import com.mohiva.play.silhouette.api.services.IdentityService
+import models.{ CachedData, SecurityUser }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-object AssistanceDetailsExchangeExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetailsExchange("Yes", Some(""), Some(false), false, None, false, None)
-  val DisabilityGisAndAdjustments = AssistanceDetailsExchange("Yes", Some("disability description"), Some(true), true,
-    Some("online adjustment description xxx"), true, Some("venue adjustment description yyy"))
+import scala.concurrent.Future
+
+trait UserService extends IdentityService[SecurityUser] {
+
+  def save(user: CachedData)(implicit hc: HeaderCarrier): Future[CachedData]
 }

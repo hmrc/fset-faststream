@@ -19,8 +19,7 @@ package controllers
 import _root_.forms.PartnerGraduateProgrammesForm
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
-import connectors.exchange.PartnerGraduateProgrammesExchange
-import forms.AssistanceDetailsForm
+import connectors.exchange.PartnerGraduateProgrammes
 import security.Roles.PartnerGraduateProgrammesRole
 
 import scala.concurrent.Future
@@ -53,7 +52,7 @@ class PartnerGraduateProgrammesController(applicationClient: ApplicationClient) 
       )
   }
 
-  private def partnersGraduateProgrammesExchange2Data(pgp: PartnerGraduateProgrammesExchange) =
+  private def partnersGraduateProgrammesExchange2Data(pgp: PartnerGraduateProgrammes) =
     PartnerGraduateProgrammesForm.Data(if (pgp.interested) "Yes" else "No", pgp.partnerGraduateProgrammes)
 
   private def sanitizeData(data: PartnerGraduateProgrammesForm.Data) = {

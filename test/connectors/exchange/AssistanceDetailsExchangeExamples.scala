@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package connectors
+package connectors.exchange
 
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ Format, Json }
-
-object AllocationExchangeObjects {
-  case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: DateTime, expirationDate: Option[LocalDate])
-
-  object Implicits {
-    implicit val allocationDetailsFormats: Format[AllocationDetails] = Json.format[AllocationDetails]
-  }
-
+object AssistanceDetailsExchangeExamples {
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, false, None)
+  val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("disability description"), Some(true), true,
+    Some("online adjustment description xxx"), true, Some("venue adjustment description yyy"))
 }

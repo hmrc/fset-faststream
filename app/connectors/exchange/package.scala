@@ -16,20 +16,18 @@
 
 package connectors
 
-import connectors.exchange.{ FastPassDetails, ProgressResponse }
 import mappings.Address
 import mappings.PhoneNumberMapping._
 import mappings.PostCodeMapping._
-import connectors.exchange.AssistanceDetailsExchange
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
-import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
-import org.joda.time.{ DateTime, LocalDate, Period }
-import play.api.libs.json.{ Format, Json }
+import org.joda.time.format.{DateTimeFormatterBuilder, PeriodFormatterBuilder}
+import org.joda.time.{DateTime, LocalDate, Period}
+import play.api.libs.json.{Format, Json}
 
-object ExchangeObjects {
+package object exchange {
 
-  val frameworkId = "FastStream-2016"
+  val FrameworkId = "FastStream-2016"
 
   type LoginInfo = String
 
@@ -39,18 +37,18 @@ object ExchangeObjects {
 
   case class WithdrawApplicationRequest(reason: String, otherReason: Option[String], withdrawer: String)
 
-  case class GeneralDetailsExchange(firstName: String,
-                                    lastName: String,
-                                    preferredName: String,
-                                    email: String,
-                                    dateOfBirth: LocalDate,
-                                    outsideUk: Boolean,
-                                    address: Address,
-                                    postCode: Option[PostCode],
-                                    country: Option[String],
-                                    phone: Option[PhoneNumber],
-                                    fastPassDetails: FastPassDetails,
-                                    updateApplicationStatus: Option[Boolean]
+  case class GeneralDetails(firstName: String,
+                            lastName: String,
+                            preferredName: String,
+                            email: String,
+                            dateOfBirth: LocalDate,
+                            outsideUk: Boolean,
+                            address: Address,
+                            postCode: Option[PostCode],
+                            country: Option[String],
+                            phone: Option[PhoneNumber],
+                            fastPassDetails: FastPassDetails,
+                            updateApplicationStatus: Option[Boolean]
                                    )
 
   case class AddMedia(userId: UniqueIdentifier, media: String)
@@ -175,8 +173,8 @@ object ExchangeObjects {
     /** Requests serialization */
     implicit val createApplicationRequestFormats: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
     implicit val withdrawApplicationRequestFormats: Format[WithdrawApplicationRequest] = Json.format[WithdrawApplicationRequest]
-    implicit val updatePersonalDetailsRequestFormats: Format[GeneralDetailsExchange] = Json.format[GeneralDetailsExchange]
-    implicit val updateassistanceDetailsRequestFormats: Format[AssistanceDetailsExchange] = Json.format[AssistanceDetailsExchange]
+    implicit val updatePersonalDetailsRequestFormats: Format[GeneralDetails] = Json.format[GeneralDetails]
+    implicit val updateAssistanceDetailsRequestFormats: Format[AssistanceDetails] = Json.format[AssistanceDetails]
 
     implicit val sendPasswordCodeRequestFormats = Json.format[SendPasswordCodeRequest]
     implicit val resetPasswordRequestFormats = Json.format[ResetPasswordRequest]

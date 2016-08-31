@@ -17,19 +17,19 @@
 package controllers
 
 import _root_.forms.AssistanceDetailsFormExamples
-import models.PartnerGraduateProgrammesExchangeExamples
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.{ ApplicationClient, SchemeClient }
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
+import connectors.exchange.{ AssistanceDetailsExchangeExamples, GeneralDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
 import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
 import models._
-import models.services.UserService
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
+import security.UserService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -109,13 +109,13 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     val mockUserService = mock[UserService]
 
     when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(GeneralDetailsExchangeExamples.FullDetails))
+      .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
     when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(SchemePreferencesExchangeExamples.DefaultSelectedSchemes))
+      .thenReturn(Future.successful(SchemePreferencesExamples.DefaultSelectedSchemes))
     when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments))
     when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(PartnerGraduateProgrammesExchangeExamples.InterestedNotAll))
+      .thenReturn(Future.successful(PartnerGraduateProgrammesExamples.InterestedNotAll))
 
     class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient,
       mockSchemeClient)

@@ -1,5 +1,4 @@
-@import connectors.AllocationExchangeObjects._
-@import connectors.ExchangeObjects.OnlineTest
+@import connectors.exchange.{AllocationDetails, OnlineTest}
 @import helpers.DateFormatter._
 @import models.ApplicationData.ApplicationStatus._
 @import models.page.DashboardPage.activateByStep
@@ -11,7 +10,7 @@
 @import views.html.widgets.onlineTestProgress
 
 @(usr: CachedData, dashboardPage: DashboardPage, onlineTest: Option[OnlineTest] = None,
-  allocationDetails: Option[connectors.AllocationExchangeObjects.AllocationDetails] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+  allocationDetails: Option[AllocationDetails] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @renderProgressElement(showLink: Boolean, checked: Boolean, id: String)(link: Call)(body: Html) = {
     <li id="@id"><i id="@id-icon" class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models.services
+package security
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import config.CSRCache

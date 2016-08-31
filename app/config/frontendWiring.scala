@@ -22,12 +22,11 @@ import com.mohiva.play.silhouette.api.EventBus
 import com.mohiva.play.silhouette.api.util.Clock
 import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticatorService, SessionAuthenticatorSettings }
 import com.mohiva.play.silhouette.impl.util.DefaultFingerprintGenerator
-import models.services.UserCacheService
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.ws.WS
 import play.api.mvc.Call
-import security.CsrCredentialsProvider
+import security.{ CsrCredentialsProvider, UserCacheService }
 import uk.gov.hmrc.http.cache.client.SessionCache
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector

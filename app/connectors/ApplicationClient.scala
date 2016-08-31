@@ -17,13 +17,10 @@
 package connectors
 
 import config.CSRHttp
-import connectors.AllocationExchangeObjects._
-import connectors.ExchangeObjects._
-import connectors.exchange.ProgressResponse
-import forms.{ AssistanceDetailsForm, GeneralDetailsForm, PartnerGraduateProgrammesForm }
-import mappings.PostCodeMapping
-import connectors.exchange.AssistanceDetailsExchange._
-import connectors.exchange.PartnerGraduateProgrammesExchange._
+import connectors.exchange.AssistanceDetails._
+import connectors.exchange.PartnerGraduateProgrammes._
+import connectors.exchange._
+import forms.{ AssistanceDetailsForm, PartnerGraduateProgrammesForm }
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
 import play.api.Play.current
@@ -40,8 +37,8 @@ trait ApplicationClient {
   val http: CSRHttp
 
   import ApplicationClient._
-  import ExchangeObjects.Implicits._
   import config.FrontendAppConfig.faststreamConfig._
+  import exchange.Implicits._
 
   def createApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier) = {
     http.PUT(s"${url.host}${url.base}/application/create", CreateApplicationRequest(userId, frameworkId)).map { response =>
@@ -87,7 +84,7 @@ trait ApplicationClient {
     }
   }
 
-  def updateGeneralDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, generalDetails: GeneralDetailsExchange)
+  def updateGeneralDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, generalDetails: GeneralDetails)
                           (implicit hc: HeaderCarrier) = {
     http.POST(
       s"${url.host}${url.base}/personal-details/$userId/$applicationId",
@@ -101,7 +98,7 @@ trait ApplicationClient {
 
   def getPersonalDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(s"${url.host}${url.base}/personal-details/$userId/$applicationId").map { response =>
-      response.json.as[GeneralDetailsExchange]
+      response.json.as[GeneralDetails]
     } recover {
       case e: NotFoundException => throw new PersonalDetailsNotFound()
     }
@@ -123,7 +120,7 @@ trait ApplicationClient {
 
   def getPartnerGraduateProgrammes(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(s"${url.host}${url.base}/partner-graduate-programmes/$applicationId").map { response =>
-      response.json.as[connectors.exchange.PartnerGraduateProgrammesExchange]
+      response.json.as[connectors.exchange.PartnerGraduateProgrammes]
     } recover {
       case _: NotFoundException => throw new PartnerGraduateProgrammesNotFound()
     }
@@ -146,7 +143,7 @@ trait ApplicationClient {
 
   def getAssistanceDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(s"${url.host}${url.base}/assistance-details/$userId/$applicationId").map { response =>
-      response.json.as[connectors.exchange.AssistanceDetailsExchange]
+      response.json.as[connectors.exchange.AssistanceDetails]
     } recover {
       case _: NotFoundException => throw new AssistanceDetailsNotFound()
     }
@@ -179,7 +176,7 @@ trait ApplicationClient {
 
   def getTestAssessment(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[OnlineTest] = {
     http.GET(s"${url.host}${url.base}/online-test/candidate/$userId").map { response =>
-      response.json.as[ExchangeObjects.OnlineTest]
+      response.json.as[OnlineTest]
     } recover {
       case _: NotFoundException => throw new OnlineTestNotFound()
     }
@@ -195,9 +192,8 @@ trait ApplicationClient {
   }
 
   def getAllocationDetails(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[AllocationDetails]] = {
-    import AllocationExchangeObjects.Implicits._
     http.GET(s"${url.host}${url.base}/allocation-status/$appId").map { response =>
-      Some(response.json.as[AllocationExchangeObjects.AllocationDetails])
+      Some(response.json.as[AllocationDetails])
     } recover {
       case _: NotFoundException => None
     }
