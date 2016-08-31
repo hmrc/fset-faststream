@@ -44,7 +44,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       PersonalDetails(
         candidateInformation.firstName,
         candidateInformation.lastName,
-        "Pref" + candidateInformation.firstName,
+        candidateInformation.preferredName,
         new LocalDate(1981, 5, 21)
       )
     }

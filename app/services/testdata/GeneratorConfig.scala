@@ -19,6 +19,7 @@ package services.testdata
 import model.EvaluationResults.Result
 import play.api.Play
 
-case class GeneratorConfig(emailPrefix: String, setGis: Boolean = false, cubiksUrl: String, region: Option[String],
-                           loc1scheme1Passmark: Option[Result], loc1scheme2Passmark: Option[Result],
-                           previousStatus: Option[String], confirmedAllocation: Boolean = true)
+case class GeneratorConfig(emailPrefix: String, setGis: Boolean = false, cubiksUrl: String, firstName: Option[String],
+                           lastName: Option[String], preferredName: Option[String], region: Option[String],
+                           loc1scheme1Passmark: Option[Result], loc1scheme2Passmark: Option[Result], previousStatus: Option[String],
+                           confirmedAllocation: Boolean = true)
