@@ -69,12 +69,12 @@ class GeneralDetailsFormSpec extends PlaySpec {
       assertValidDateOfBirth(LocalDate.parse("1996-2-29"))
     }
 
-    s"be valid given a 'date of birth' exactly 16 years ago" in {
-      assertValidDateOfBirth(now.minusYears(16))
+    "be valid given a 'date of birth' exactly 16 years ago" in {
+      assertValidDateOfBirth(ageReference.minusYears(16))
     }
 
-    s"be valid given a 'date of birth' over 16 years ago" in {
-      assertValidDateOfBirth(now.minusYears(16).minusDays(1))
+    "be valid given a 'date of birth' over 16 years ago" in {
+      assertValidDateOfBirth(ageReference.minusYears(16).minusDays(1))
     }
 
     "be invalid given a 'date of birth' with non-integer values" in {
@@ -106,7 +106,7 @@ class GeneralDetailsFormSpec extends PlaySpec {
     }
 
     s"be invalid given a 'date of birth' less than 16 years ago" in {
-      assertInvalidDateOfBirth(now.minusYears(16).plusDays(1))
+      assertInvalidDateOfBirth(ageReference.minusYears(16).plusDays(1))
     }
 
     "be invalid given a 'date of birth' in the future" in {
@@ -167,5 +167,6 @@ class GeneralDetailsFormSpec extends PlaySpec {
       ("dateOfBirth.month" -> month) +
       ("dateOfBirth.year" -> year))
   }
-  
+
+  def ageReference(implicit now: LocalDate) = new LocalDate(now.getYear, 8, 31)
 }
