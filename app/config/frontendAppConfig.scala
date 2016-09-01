@@ -18,9 +18,11 @@ package config
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Base64
 
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+import play.api.Play
 import play.api.Play.{ configuration, current }
 import uk.gov.hmrc.play.config.ServicesConfig
 
@@ -80,4 +82,12 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
     blockNewAccountsDate = configuration.getString("application.blockNewAccountsDate"),
     blockApplicationsDate = configuration.getString("application.blockApplicationsDate")
   )
+
+  // Whitelist Configuration
+  private def whitelistConfig(key: String): Seq[String] = Some(
+    new String(Base64.getDecoder().decode(Play.configuration.getString(key).getOrElse("")), "UTF-8")
+  ).map(_.split(",")).getOrElse(Array.empty).toSeq
+
+  lazy val whitelist = whitelistConfig("whitelist")
+  lazy val whitelistExcluded = whitelistConfig("whitelistExcludedCalls")
 }

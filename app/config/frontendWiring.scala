@@ -16,6 +16,8 @@
 
 package config
 
+import java.util.Base64
+
 import com.mohiva.play.silhouette.api.EventBus
 import com.mohiva.play.silhouette.api.util.Clock
 import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticatorService, SessionAuthenticatorSettings }
@@ -23,12 +25,14 @@ import com.mohiva.play.silhouette.impl.util.DefaultFingerprintGenerator
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.ws.WS
+import play.api.mvc.Call
 import security.{ CsrCredentialsProvider, UserCacheService }
 import uk.gov.hmrc.http.cache.client.SessionCache
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.config.{ AppName, ServicesConfig }
+import uk.gov.hmrc.play.config.{ AppName, RunMode, ServicesConfig }
 import uk.gov.hmrc.play.http.ws._
+import uk.gov.hmrc.whitelist.AkamaiWhitelistFilter
 
 object FrontendAuditConnector extends AuditConnector {
   override lazy val auditingConfig = LoadAuditingConfig("auditing")
@@ -82,4 +86,23 @@ object SecurityEnvironmentImpl extends security.SecurityEnvironment {
 
   override def providers = Map(credentialsProvider.id -> credentialsProvider)
   val http: CSRHttp = CSRHttp
+}
+
+object WhitelistFilter extends AkamaiWhitelistFilter with RunMode {
+
+  // Whitelist Configuration
+  private def whitelistConfig(key: String):Seq[String] =
+  Some(new String(Base64.getDecoder().decode(Play.configuration.getString(key).getOrElse("")), "UTF-8"))
+    .map(_.split(",")).getOrElse(Array.empty).toSeq
+
+  // List of IP addresses
+  override def whitelist: Seq[String] = whitelistConfig("whitelist")
+
+  // Es. /ping/ping,/admin/details
+  override def excludedPaths: Seq[Call] = whitelistConfig("whitelistExcludedCalls").map {
+    path => Call("GET", path)
+  }
+
+  override def destination: Call = Call("GET", "https://www.tax.service.gov.uk/outage-fset-faststream/index.html")
+
 }

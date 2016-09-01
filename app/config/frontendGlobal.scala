@@ -28,7 +28,7 @@ import net.ceedubs.ficus.Ficus._
 import play.api.i18n.Lang
 import play.api.mvc.Results._
 import play.api.mvc.{ RequestHeader, Result, _ }
-import play.api.{ Application, Configuration, Play }
+import play.api._
 import play.twirl.api.Html
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.play.audit.filters.FrontendAuditFilter
@@ -40,7 +40,7 @@ import uk.gov.hmrc.play.http.logging.filters.FrontendLoggingFilter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object FrontendGlobal
+abstract class DevelopmentFrontendGlobal
   extends DefaultFrontendGlobal with SecuredSettings {
 
   import FrontendAppConfig.feedbackUrl
@@ -106,4 +106,15 @@ object AuditFilter extends FrontendAuditFilter with RunMode with AppName {
   override lazy val auditConnector = FrontendAuditConnector
 
   override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
+}
+
+object DevelopmentFrontendGlobal extends DevelopmentFrontendGlobal {
+  override def onStart(app: Application) = {
+    if (app.mode == Mode.Prod) Logger.warn("WHITE-LISTING DISABLED: Loading Development Frontend Global")
+    super.onStart(app)
+  }
+}
+
+object ProductionFrontendGlobal extends DevelopmentFrontendGlobal {
+  override def filters = WhitelistFilter +: super.filters
 }
