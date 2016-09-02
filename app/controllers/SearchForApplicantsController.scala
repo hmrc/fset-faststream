@@ -67,10 +67,10 @@ trait SearchForApplicantsController extends BaseController {
   def findByCriteria = Action.async(parse.json) { implicit request =>
     withJsonBody[SearchCandidate] {
 
-      case SearchCandidate(None, None, Some(postCode)) =>
+      case SearchCandidate(None, None, None, Some(postCode)) =>
         searchByPostCode(postCode)
-      case SearchCandidate(lastName, dateOfBirth, postCode) =>
-        searchByLastNameOrDobAndFilterPostCode(lastName, dateOfBirth, postCode)
+      case SearchCandidate(firstOrPreferredName, lastName, dateOfBirth, postCode) =>
+        searchByFirstPreferredLastNamesOrDobAndFilterPostCode(firstOrPreferredName, lastName, dateOfBirth, postCode)
     }
   }
 
@@ -88,8 +88,11 @@ trait SearchForApplicantsController extends BaseController {
     )
   }
 
-  private def searchByLastNameOrDobAndFilterPostCode(lastName: Option[String], dateOfBirth: Option[LocalDate], postCode: Option[String]) = {
-    appRepository.findByCriteria(lastName, dateOfBirth) flatMap { candidateList =>
+  private def searchByFirstPreferredLastNamesOrDobAndFilterPostCode(firstOrPreferredName: Option[String],
+                                                                    lastName: Option[String],
+                                                                    dateOfBirth: Option[LocalDate],
+                                                                    postCode: Option[String]) = {
+    appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth) flatMap { candidateList =>
       val answer = Future.sequence(candidateList.map { candidate =>
         cdRepository.find(candidate.userId).map { cd =>
           candidate.copy(address = Some(cd.address), postCode = Some(cd.postCode))

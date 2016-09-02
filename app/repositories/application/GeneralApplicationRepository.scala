@@ -28,6 +28,7 @@ import model._
 import model.command.{ AssessmentCentre, AssessmentScores, OnlineTestProgressResponse, ProgressResponse }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
+import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -52,7 +53,7 @@ trait GeneralApplicationRepository {
 
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
 
-  def findByCriteria(lastName: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]]
+  def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]]
 
   def findApplicationIdsByLocation(location: String): Future[List[String]]
 
@@ -229,12 +230,21 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     collection.find(query).one[BSONDocument].map(_.map(docToCandidate))
   }
 
-  def findByCriteria(lastNameOpt: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] = {
-
-    val query = BSONDocument(
-      "personal-details.lastName" -> lastNameOpt.map { lastName => BSONRegex("^" + lastName + "$", "i") },
-      "personal-details.dateOfBirth" -> dateOfBirth
-    )
+  def findByCriteria(firstOrPreferredNameOpt: Option[String],
+                     lastNameOpt: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] = {
+    
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument("personal-details.firstName" -> firstOrPreferredNameOpt.map {
+          firstName => BSONRegex("^" + firstName + "$", "i")
+        }),
+        BSONDocument("personal-details.preferredName" -> firstOrPreferredNameOpt.map {
+          preferredName => BSONRegex("^" + preferredName + "$", "i") }
+        )
+      )),
+      BSONDocument("personal-details.lastName" -> lastNameOpt.map { lastName => BSONRegex("^" + lastName + "$", "i") }),
+      BSONDocument("personal-details.dateOfBirth" -> dateOfBirth)
+    ))
 
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map(docToCandidate))
   }
