@@ -218,5 +218,9 @@ object DataFaker {
       val lastName = randOne(Lastnames.list)
       s"$lastName$userNumber"
     }
+
+    def postCode: String = {
+      s"${Random.upperLetter}${Random.upperLetter}1 2${Random.upperLetter}${Random.upperLetter}"
+    }
   }
 }

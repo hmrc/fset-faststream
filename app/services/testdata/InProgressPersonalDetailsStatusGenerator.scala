@@ -16,10 +16,15 @@
 
 package services.testdata
 
+import java.text.DateFormat
+import java.text.spi.DateFormatProvider
+import java.util.Locale
+
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model._
 import model.persisted.{ ContactDetails, PersonalDetails }
 import org.joda.time.LocalDate
+import org.joda.time.format.DateTimeFormat
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
@@ -42,11 +47,12 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
+
       PersonalDetails(
         candidateInformation.firstName,
         candidateInformation.lastName,
         candidateInformation.preferredName,
-        new LocalDate(1981, 5, 21)
+        generatorConfig.dob.getOrElse(new LocalDate(1981, 5, 21))
       )
     }
 
@@ -54,7 +60,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       ContactDetails(
         outsideUk = false,
         Address("123, Fake street"),
-        Some(s"${Random.upperLetter}${Random.upperLetter}1 2${Random.upperLetter}${Random.upperLetter}"),
+        generatorConfig.postCode.orElse(Some(Random.postCode)),
         None,
         candidateInformation.email,
         "07770 774 914"
