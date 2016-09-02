@@ -16,15 +16,10 @@
 
 package services.testdata
 
-import java.text.DateFormat
-import java.text.spi.DateFormatProvider
-import java.util.Locale
-
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model._
 import model.persisted.{ ContactDetails, PersonalDetails }
 import org.joda.time.LocalDate
-import org.joda.time.format.DateTimeFormat
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
@@ -47,7 +42,6 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
-
       PersonalDetails(
         candidateInformation.firstName,
         candidateInformation.lastName,

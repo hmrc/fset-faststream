@@ -26,7 +26,6 @@ import model.EvaluationResults.Result
 import model.ApplicationStatuses
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
 import play.api.Play
 import play.api.data.validation.{ Constraint, Invalid, Valid, ValidationError }
 import play.api.libs.json.Json
@@ -107,7 +106,7 @@ trait TestDataGeneratorController extends BaseController {
         case _ => confirmedAllocation
       },
       dob = dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),
-      postCode = postCode.map ( pc => validatePostcode(pc) )
+      postCode = postCode.map(pc => validatePostcode(pc))
     )
     // scalastyle:on
 
