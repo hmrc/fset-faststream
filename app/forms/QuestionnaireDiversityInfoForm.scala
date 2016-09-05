@@ -44,15 +44,15 @@ object QuestionnaireDiversityInfoForm {
   )
 
   case class Data(
-    gender: String,
-    otherGender: Option[String],
-    sexOrientation: String,
-    otherSexOrientation: Option[String],
-    ethnicity: Option[String],
-    otherEthnicity: Option[String],
-    preferNotSayEthnicity: Option[Boolean]
-  ) {
-    def toQuestionnaire: Questionnaire = Questionnaire(List(
+                   gender: String,
+                   otherGender: Option[String],
+                   sexOrientation: String,
+                   otherSexOrientation: Option[String],
+                   ethnicity: Option[String],
+                   otherEthnicity: Option[String],
+                   preferNotSayEthnicity: Option[Boolean]
+                 ) {
+    def exchange: Questionnaire = Questionnaire(List(
       Question(Messages("gender.question"), Answer(Some(gender), otherGender, None)),
       Question(Messages("sexOrientation.question"), Answer(Some(sexOrientation), otherSexOrientation, None)),
       Question(Messages("ethnicity.question"), Answer(ethnicity, otherEthnicity, preferNotSayEthnicity))
@@ -67,4 +67,5 @@ object QuestionnaireDiversityInfoForm {
         )))
     }
   }
+
 }

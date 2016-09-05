@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
-import _root_.forms.GeneralDetailsFormExamples._
+import controllers.forms.GeneralDetailsFormExamples._
 import connectors.exchange.{ FastPassDetailsExamples, GeneralDetailsExamples }
 import models.ApplicationData.ApplicationStatus
 import models.{ CachedData, ProgressResponseExamples }

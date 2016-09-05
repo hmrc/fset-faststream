@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package models.view.questionnaire
 
 // scalastyle:off line.size.limit
 object Occupations {

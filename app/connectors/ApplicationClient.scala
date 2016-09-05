@@ -19,6 +19,7 @@ package connectors
 import config.CSRHttp
 import connectors.exchange.AssistanceDetails._
 import connectors.exchange.PartnerGraduateProgrammes._
+import connectors.exchange.Questionnaire._
 import connectors.exchange._
 import forms.{ AssistanceDetailsForm, PartnerGraduateProgrammesForm }
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
@@ -104,13 +105,13 @@ trait ApplicationClient {
     }
   }
 
-  def updatePartnerGraduateProgrammes(applicationId: UniqueIdentifier, data: PartnerGraduateProgrammesForm.Data)(
+  def updatePartnerGraduateProgrammes(applicationId: UniqueIdentifier, pgp: PartnerGraduateProgrammes)(
     implicit
     hc: HeaderCarrier
   ) = {
     http.PUT(
       s"${url.host}${url.base}/partner-graduate-programmes/$applicationId",
-      data.exchange
+      pgp
     ).map {
       case x: HttpResponse if x.status == CREATED => ()
     } recover {
@@ -126,15 +127,11 @@ trait ApplicationClient {
     }
   }
 
-
-  def updateAssistanceDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, data: AssistanceDetailsForm.Data)(
+  def updateAssistanceDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, assistanceDetails: AssistanceDetails)(
     implicit
     hc: HeaderCarrier
   ) = {
-    http.PUT(
-      s"${url.host}${url.base}/assistance-details/$userId/$applicationId",
-      data.exchange
-    ).map {
+    http.PUT(s"${url.host}${url.base}/assistance-details/$userId/$applicationId", assistanceDetails).map {
       case x: HttpResponse if x.status == CREATED => ()
     } recover {
       case _: BadRequestException => throw new CannotUpdateRecord()
@@ -153,10 +150,7 @@ trait ApplicationClient {
     implicit
     hc: HeaderCarrier
   ) = {
-    http.PUT(
-      s"${url.host}${url.base}/questionnaire/$applicationId/$sectionId",
-      questionnaire
-    ).map {
+    http.PUT(s"${url.host}${url.base}/questionnaire/$applicationId/$sectionId", questionnaire).map {
         case x: HttpResponse if x.status == ACCEPTED => ()
       } recover {
         case _: BadRequestException => throw new CannotUpdateRecord()

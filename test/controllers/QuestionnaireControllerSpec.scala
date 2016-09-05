@@ -40,7 +40,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
   "start" should {
     "load start page when the questionnaire is not started already" in {
       val applicationPreviewed = candidateWithApp.application.progress.copy(preview = true)
-      val result = controllerUnderTest(applicationPreviewed).startOrContinue()(fakeRequest)
+      val result = controllerUnderTest(applicationPreviewed).presentStartOrContinue()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include ("We have a few more questions before you submit your application")
@@ -48,7 +48,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
 
     "load continue questionnaire page when the questionnaire is started already" in {
       val questionnaireStarted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireStarted).startOrContinue()(fakeRequest)
+      val result = controllerUnderTest(questionnaireStarted).presentStartOrContinue()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include ("Page 1 of the diversity questionnaire")
@@ -57,7 +57,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
     "redirect to home page when the questionnaire is completed already" in {
       val questionnaireCompleted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
         educationQuestionnaire = true, occupationQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireCompleted).startOrContinue()(fakeRequest)
+      val result = controllerUnderTest(questionnaireCompleted).presentStartOrContinue()(fakeRequest)
       assertHomePageRedirect(result)
     }
   }
@@ -65,7 +65,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
   "firstPageView" should {
     "load first page when not filled in already" in {
       val questionnaireStarted = candidateWithApp.application.progress.copy(startedQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireStarted).firstPageView()(fakeRequest)
+      val result = controllerUnderTest(questionnaireStarted).presentFirstPage()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include ("About you")
@@ -73,14 +73,14 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
 
     "redirect to continue questionnaire page, when the first page is completed already" in {
       val diversityQuestCompleted = candidateWithApp.application.progress.copy(startedQuestionnaire = true, diversityQuestionnaire = true)
-      val result = controllerUnderTest(diversityQuestCompleted).firstPageView()(fakeRequest)
+      val result = controllerUnderTest(diversityQuestCompleted).presentFirstPage()(fakeRequest)
       assertQuestionnaireContinueRedirect(result)
     }
 
     "redirect to home page, when the questionnaire is completed already" in {
       val questionnaireCompleted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
         educationQuestionnaire = true, occupationQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireCompleted).firstPageView()(fakeRequest)
+      val result = controllerUnderTest(questionnaireCompleted).presentFirstPage()(fakeRequest)
       assertHomePageRedirect(result)
     }
   }
@@ -88,7 +88,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
   "secondPageView" should {
     "load second page when not filled in already" in {
       val diversityQuestCompleted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true)
-      val result = controllerUnderTest(diversityQuestCompleted).secondPageView()(fakeRequest)
+      val result = controllerUnderTest(diversityQuestCompleted).presentSecondPage()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include ("Diversity questions")
@@ -96,14 +96,14 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
 
     "redirect to continue questionnaire page, when the second page is completed already" in {
       val educationQuestCompleted = candidateWithApp.application.progress.copy(educationQuestionnaire = true)
-      val result = controllerUnderTest(educationQuestCompleted).secondPageView()(fakeRequest)
+      val result = controllerUnderTest(educationQuestCompleted).presentSecondPage()(fakeRequest)
       assertQuestionnaireContinueRedirect(result)
     }
 
     "redirect to home page, when the questionnaire is completed already" in {
       val questionnaireCompleted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
         educationQuestionnaire = true, occupationQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireCompleted).secondPageView()(fakeRequest)
+      val result = controllerUnderTest(questionnaireCompleted).presentSecondPage()(fakeRequest)
       assertHomePageRedirect(result)
     }
   }
@@ -111,7 +111,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
   "thirdPageView" should {
     "load third page when not filled in already" in {
       val educationQuestCompleted = candidateWithApp.application.progress.copy(educationQuestionnaire = true)
-      val result = controllerUnderTest(educationQuestCompleted).thirdPageView()(fakeRequest)
+      val result = controllerUnderTest(educationQuestCompleted).presentThirdPage()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include ("About your parents")
@@ -119,14 +119,14 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
 
     "redirect to continue questionnaire page, when the third page is completed already" in {
       val occupationQuestCompleted = candidateWithApp.application.progress.copy(occupationQuestionnaire = true)
-      val result = controllerUnderTest(occupationQuestCompleted).thirdPageView()(fakeRequest)
+      val result = controllerUnderTest(occupationQuestCompleted).presentThirdPage()(fakeRequest)
       assertQuestionnaireContinueRedirect(result)
     }
 
     "redirect to home page, when the questionnaire is completed already" in {
       val questionnaireCompleted = candidateWithApp.application.progress.copy(diversityQuestionnaire = true,
         educationQuestionnaire = true, occupationQuestionnaire = true)
-      val result = controllerUnderTest(questionnaireCompleted).thirdPageView()(fakeRequest)
+      val result = controllerUnderTest(questionnaireCompleted).presentThirdPage()(fakeRequest)
       assertHomePageRedirect(result)
     }
   }
@@ -139,7 +139,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
 
   private def assertQuestionnaireContinueRedirect(result:Future[Result]): Unit = {
     status(result) mustBe SEE_OTHER
-    redirectLocation(result) must be(Some(routes.QuestionnaireController.startOrContinue().url))
+    redirectLocation(result) must be(Some(routes.QuestionnaireController.presentStartOrContinue().url))
     flash(result).data mustBe Map("danger" -> errorContent)
   }
 

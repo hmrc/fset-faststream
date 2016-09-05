@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package models
+package models.view.questionnaire
 
-object SimpleAnswerOptions {
+object Gender {
   val list = List(
-    ("yes", "Yes", false),
-    ("no", "No", false),
-    ("unknown", "I don't know/prefer not to say", false)
+    ("male", "Male", false),
+    ("female", "Female", false),
+    ("other", "Other", true),
+    ("preferNotSay","I don't know/prefer not to say",false)
   )
 }

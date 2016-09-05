@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package forms
+package controllers.forms
 
-import forms.GeneralDetailsFormExamples._
+import forms.GeneralDetailsForm
+import controllers.forms.GeneralDetailsFormExamples._
 import org.joda.time.LocalDate
 import org.scalatestplus.play.PlaySpec
 
 class GeneralDetailsFormSpec extends PlaySpec {
   implicit val now = LocalDate.now
 
-  import GeneralDetailsForm.{form => personalDetailsForm}
+  import GeneralDetailsForm.{ form => personalDetailsForm }
 
   "Personal Details form" should {
     "be invalid for missing mandatory fields" in {

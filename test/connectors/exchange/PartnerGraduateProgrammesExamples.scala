@@ -17,6 +17,6 @@
 package connectors.exchange
 
 object PartnerGraduateProgrammesExamples {
-  val InterestedNotAll = PartnerGraduateProgrammes(true, Some(List("Entrepreneur First", "Frontline")))
+  val InterestedNotAll = PartnerGraduateProgrammes(true, Some(List("Entrepreneur First", "Frontline", "Think Ahead")))
   val NoInterested = PartnerGraduateProgrammes(false, None)
 }

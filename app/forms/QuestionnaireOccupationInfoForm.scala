@@ -27,10 +27,10 @@ object QuestionnaireOccupationInfoForm {
   val employedDependentFormatter = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val check = data.get("employedParent")
-      val value = data.get(key).filterNot( _.isEmpty )
+      val value = data.get(key).filterNot(_.isEmpty)
 
       (check, value) match {
-        case (Some("Employed"), Some(v))  => Right(value)
+        case (Some("Employed"), Some(v)) => Right(value)
         case (Some("Employed"), None) => Left(List(FormError(key, Messages(s"error.required.$key"))))
         case _ => Right(None)
       }
@@ -51,14 +51,14 @@ object QuestionnaireOccupationInfoForm {
   )
 
   case class Data(
-    parentsDegree: String,
-    employedParent: String,
-    parentsOccupation: Option[String],
-    employee: Option[String],
-    organizationSize: Option[String],
-    supervise: Option[String]
-  ) {
-    def toQuestionnaire: Questionnaire = {
+                   parentsDegree: String,
+                   employedParent: String,
+                   parentsOccupation: Option[String],
+                   employee: Option[String],
+                   organizationSize: Option[String],
+                   supervise: Option[String]
+                 ) {
+    def exchange: Questionnaire = {
       val occupation = if (employedParent == "Employed") parentsOccupation else Some(employedParent)
 
       Questionnaire(List(
@@ -70,4 +70,5 @@ object QuestionnaireOccupationInfoForm {
       ))
     }
   }
+
 }

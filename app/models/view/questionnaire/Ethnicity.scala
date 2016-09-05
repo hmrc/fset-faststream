@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package models
+package models.view.questionnaire
 
 import scala.collection.immutable.ListMap
 
+/**
+  * Created by miguelgil_garcia on 02/09/2016.
+  */
 object Ethnicity {
   val map = ListMap(
     "White" -> List(

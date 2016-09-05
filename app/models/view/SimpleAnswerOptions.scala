@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package models
+package models.view
 
-object OrganizationSize {
+object SimpleAnswerOptions {
   val list = List(
-    ("small", "Small (1 - 24 employees)", false),
-    ("large", "Large (over 24 employees)", false),
+    ("yes", "Yes", false),
+    ("no", "No", false),
     ("unknown", "I don't know/prefer not to say", false)
   )
 }

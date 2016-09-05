@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package models
+package models.view.questionnaire
 
-object Gender {
+/**
+  * Created by miguelgil_garcia on 02/09/2016.
+  */
+object SexOrientation {
   val list = List(
-    ("male", "Male", false),
-    ("female", "Female", false),
+    ("straight", "Heterosexual/straight", false),
+    ("gay", "Gay/lesbian", false),
+    ("bisexual", "Bisexual", false),
     ("other", "Other", true),
     ("preferNotSay","I don't know/prefer not to say",false)
   )

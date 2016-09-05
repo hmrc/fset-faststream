@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package forms
+package controllers.forms
 
 import connectors.exchange.FastPassDetails
+import forms.GeneralDetailsForm
 import mappings.{ AddressExamples, DayMonthYear }
 import org.joda.time.{ DateTime, LocalDate }
 

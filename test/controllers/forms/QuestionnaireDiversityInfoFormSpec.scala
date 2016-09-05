@@ -42,7 +42,7 @@ class QuestionnaireDiversityInfoFormSpec extends BaseSpec {
     }
 
     "transform properly to a question list" in new Fixture {
-      val questionList = validFormData.toQuestionnaire.questions
+      val questionList = validFormData.exchange.questions
       questionList.size must be(3)
       questionList(0).answer.answer must be(Some("Male"))
       questionList(1).answer.otherDetails must be(Some("details"))

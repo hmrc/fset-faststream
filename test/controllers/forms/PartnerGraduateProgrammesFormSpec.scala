@@ -17,7 +17,8 @@
 package controllers.forms
 
 import forms.PartnerGraduateProgrammesForm.Data
-import forms.{ PartnerGraduateProgrammesForm, PartnerGraduateProgrammesFormExamples }
+import forms.PartnerGraduateProgrammesForm
+import controllers.forms.PartnerGraduateProgrammesFormExamples._
 import org.scalatestplus.play.PlaySpec
 import play.api.data.Form
 
@@ -25,7 +26,7 @@ class PartnerGraduateProgrammesFormSpec extends PlaySpec {
 
   "the partner graduate programmes form" should {
     "be valid when the user selects no in the interested" in new Fixture {
-      val (data, form) = noInterested
+      val (data, form) = NoInterested
       form.get must be(data)
     }
 
@@ -37,35 +38,18 @@ class PartnerGraduateProgrammesFormSpec extends PlaySpec {
     "be invalid when user is interested but no programme is selected" in new Fixture {
       assertFormError(Seq(
         "error.partnerGraduateProgrammes.chooseone"
-      ), PartnerGraduateProgrammesFormExamples.InterestedButNoProgrammeSelected)
+      ), PartnerGraduateProgrammesFormExamples.InterestedButNoProgrammeSelectedMap)
     }
   }
 
   trait Fixture {
 
-    val noInterested = {
-      val data = Data("No", None)
-      (data, PartnerGraduateProgrammesForm.form.fill(data))
-    }
+    val NoInterested = (NoInterestedForm, PartnerGraduateProgrammesForm.form.fill(NoInterestedForm))
 
-    val InterestedNotAll = {
-      val data = Data("No", Some(List("Frontline", "Think Ahead", "TeachFirst")))
-      (data, PartnerGraduateProgrammesForm.form.fill(data))
-    }
+    val InterestedNotAll = (InterestedNotAllForm, PartnerGraduateProgrammesForm.form.fill(InterestedNotAllForm))
 
-    val interestedButNotProgrammesSelected = {
-      val data = Data("Yes", None)
-      (data, PartnerGraduateProgrammesForm.form.fill(data))
-    }
-
-    def form(
-            interested: String = "No",
-            partnerGraduateProgrammes: Option[List[String]] = None
-            ) = {
-
-      val data = Data(interested, partnerGraduateProgrammes)
-      (data, PartnerGraduateProgrammesForm.form.fill(data))
-    }
+    val InterestedButNotProgrammesSelected = (InterestedButNoProgrammeSelectedForm,
+      PartnerGraduateProgrammesForm.form.fill(InterestedButNoProgrammeSelectedForm))
 
     def assertFormError(expectedError: Seq[String], invalidFormValues: Map[String, String]) = {
       val invalidForm: Form[Data] = PartnerGraduateProgrammesForm.form.bind(invalidFormValues)

@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package forms
+package controllers.forms
+
+import forms.AssistanceDetailsForm
 
 object AssistanceDetailsFormExamples {
   val DisabilityGisAndAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Epilepsy"), Some("Yes"), "Yes", Some("Some adjustment"),
     "Yes", Some("Some other adjustements"))
 
-  val DisabilityGisAndAdjustments = Map[String, String](
+  val NoDisabilitiesForm = AssistanceDetailsForm.Data("No", None, None, "No", None, "No", None)
+
+  val NoAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("No"), "No", None, "No", None)
+
+  val FullForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("Yes"), "Yes", Some("Some adjustments online"), "Yes",
+    Some("Some adjustments at venue"))
+
+
+  val DisabilityGisAndAdjustmentsMap = Map[String, String](
     "hasDisability" -> "Yes",
     "hasDisabilityDescription" -> "Epilepsy",
     "guaranteedInterview" -> "Yes",

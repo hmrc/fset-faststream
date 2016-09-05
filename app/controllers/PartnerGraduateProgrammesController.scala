@@ -30,8 +30,8 @@ class PartnerGraduateProgrammesController(applicationClient: ApplicationClient) 
 
   def present = CSRSecureAppAction(PartnerGraduateProgrammesRole) { implicit request =>
     implicit user =>
-      applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map { ad =>
-        val form = PartnerGraduateProgrammesForm.form.fill(partnersGraduateProgrammesExchange2Data(ad))
+      applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map { pgp =>
+        val form = PartnerGraduateProgrammesForm.form.fill(PartnerGraduateProgrammesForm.Data(pgp))
         Ok(views.html.application.partnerGraduateProgrammes(form))
       }.recover {
         case e: PartnerGraduateProgrammesNotFound =>
@@ -45,20 +45,11 @@ class PartnerGraduateProgrammesController(applicationClient: ApplicationClient) 
         invalidForm =>
           Future.successful(Ok(views.html.application.partnerGraduateProgrammes(invalidForm))),
         data => {
-          applicationClient.updatePartnerGraduateProgrammes(user.application.applicationId, sanitizeData(data)).flatMap { _ =>
+          applicationClient.updatePartnerGraduateProgrammes(user.application.applicationId, data.sanitizeData.exchange).flatMap { _ =>
             updateProgress()(_ => Redirect(routes.AssistanceDetailsController.present()))
           }
         }
       )
   }
 
-  private def partnersGraduateProgrammesExchange2Data(pgp: PartnerGraduateProgrammes) =
-    PartnerGraduateProgrammesForm.Data(if (pgp.interested) "Yes" else "No", pgp.partnerGraduateProgrammes)
-
-  private def sanitizeData(data: PartnerGraduateProgrammesForm.Data) = {
-    PartnerGraduateProgrammesForm.Data(
-      data.interested,
-      if (data.interested=="Yes") data.partnerGraduateProgrammes else None
-    )
-  }
 }

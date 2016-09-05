@@ -173,7 +173,7 @@ object Roles {
     EditPersonalDetailsAndContinueRole -> routes.PersonalDetailsController.presentAndContinue(),
     SchemesRole -> routes.SchemePreferencesController.present(),
     AssistanceDetailsRole -> routes.AssistanceDetailsController.present(),
-    QuestionnaireInProgressRole -> routes.QuestionnaireController.startOrContinue(),
+    QuestionnaireInProgressRole -> routes.QuestionnaireController.presentStartOrContinue(),
     PreviewApplicationRole -> routes.PreviewApplicationController.present(),
     SubmitApplicationRole -> routes.PreviewApplicationController.present(),
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),
