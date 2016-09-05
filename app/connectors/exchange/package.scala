@@ -51,7 +51,7 @@ package object exchange {
                             updateApplicationStatus: Option[Boolean]
                                    )
 
-  case class AddMedia(userId: UniqueIdentifier, media: String)
+  case class AddReferral(userId: UniqueIdentifier, media: String)
 
   case class ApplicationResponse(applicationId: UniqueIdentifier, applicationStatus: String,
                                  userId: UniqueIdentifier, progressResponse: ProgressResponse, fastPassDetails: Option[FastPassDetails])
@@ -146,7 +146,7 @@ package object exchange {
 
     implicit val emailWrapperFormats = Json.format[EmailWrapper]
     implicit val addressFormats = Json.format[Address]
-    implicit val mediaFormats = Json.format[AddMedia]
+    implicit val referralFormats = Json.format[AddReferral]
 
     implicit val userFormats = Json.format[UserResponse]
 
