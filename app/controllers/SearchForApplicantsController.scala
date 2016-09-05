@@ -91,7 +91,13 @@ trait SearchForApplicantsController extends BaseController {
                                                                     lastName: Option[String],
                                                                     dateOfBirth: Option[LocalDate],
                                                                     postCode: Option[String]) = {
-    appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth) flatMap { candidateList =>
+
+    // If postcode
+    // select from contact details where postcode=post code (case insensitive)
+    // Find by criteria with additional parameter for only matching application IDs (giant mongo OR statement, OR IN)
+    // Profit
+
+    appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, onlyApplicationIds) flatMap { candidateList =>
       val answer = Future.sequence(candidateList.map { candidate =>
         cdRepository.find(candidate.userId).map { cd =>
           candidate.copy(address = Some(cd.address), postCode = Some(cd.postCode))
