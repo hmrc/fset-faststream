@@ -66,7 +66,6 @@ trait SearchForApplicantsController extends BaseController {
 
   def findByCriteria = Action.async(parse.json) { implicit request =>
     withJsonBody[SearchCandidate] {
-
       case SearchCandidate(None, None, None, Some(postCode)) =>
         searchByPostCode(postCode)
       case SearchCandidate(firstOrPreferredName, lastName, dateOfBirth, postCode) =>

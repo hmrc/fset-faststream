@@ -77,7 +77,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def preview(applicationId: String): Future[Unit] = Future.successful(Unit)
 
-  override def findByCriteria(lastName: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] =
+  override def findByCriteria(firstOrPreferredName: Option[String],
+                              lastName: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] =
     Future.successful(List.empty[Candidate])
 
   override def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]] = {

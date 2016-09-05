@@ -232,7 +232,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   def findByCriteria(firstOrPreferredNameOpt: Option[String],
                      lastNameOpt: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] = {
-    
+
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("$or" -> BSONArray(
         BSONDocument("personal-details.firstName" -> firstOrPreferredNameOpt.map {
