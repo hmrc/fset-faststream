@@ -141,6 +141,22 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       applicationResponse.size mustBe 0
     }
+
+    "filter by provided user Ids" in {
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      val matchResponse = repository.findByCriteria(
+        None, None, None, List("userId")
+      ).futureValue
+
+      matchResponse.size mustBe 1
+
+       val noMatchResponse = repository.findByCriteria(
+        None, None, None, List("unknownUser")
+      ).futureValue
+
+      noMatchResponse.size mustBe 0
+    }
+
   }
 
   val testCandidate = Map(

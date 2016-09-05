@@ -23,6 +23,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,6 +33,7 @@ object SearchForApplicantsController extends SearchForApplicantsController {
   val appRepository = applicationRepository
   val psRepository = personalDetailsRepository
   val cdRepository = contactDetailsRepository
+  val searchForApplicantService = SearchForApplicantService
 }
 
 trait SearchForApplicantsController extends BaseController {
@@ -41,6 +43,7 @@ trait SearchForApplicantsController extends BaseController {
   val appRepository: GeneralApplicationRepository
   val psRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
+  val searchForApplicantService: SearchForApplicantService
 
   val MAX_RESULTS = 25
 
@@ -65,55 +68,11 @@ trait SearchForApplicantsController extends BaseController {
   }
 
   def findByCriteria = Action.async(parse.json) { implicit request =>
-    withJsonBody[SearchCandidate] {
-      case SearchCandidate(None, None, None, Some(postCode)) =>
-        searchByPostCode(postCode)
-      case SearchCandidate(firstOrPreferredName, lastName, dateOfBirth, postCode) =>
-        searchByFirstPreferredLastNamesOrDobAndFilterPostCode(firstOrPreferredName, lastName, dateOfBirth, postCode)
+    withJsonBody[SearchCandidate] { searchCandidate =>
+      createResult(searchForApplicantService.findByCriteria(searchCandidate))
     }
   }
 
-  private def searchByPostCode(postCode: String) = {
-    createResult(
-      cdRepository.findByPostCode(postCode).flatMap { cdList =>
-        Future.sequence(cdList.map { cd =>
-          appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
-            candidate.copy(address = Some(cd.address), postCode = Some(cd.postCode))
-          }).recover {
-            case e: ContactDetailsNotFound => None
-          }
-        })
-      }.map(_.flatten)
-    )
-  }
-
-  private def searchByFirstPreferredLastNamesOrDobAndFilterPostCode(firstOrPreferredName: Option[String],
-                                                                    lastName: Option[String],
-                                                                    dateOfBirth: Option[LocalDate],
-                                                                    postCode: Option[String]) = {
-
-    // If postcode
-    // select from contact details where postcode=post code (case insensitive)
-    // Find by criteria with additional parameter for only matching application IDs (giant mongo OR statement, OR IN)
-    // Profit
-
-    appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, onlyApplicationIds) flatMap { candidateList =>
-      val answer = Future.sequence(candidateList.map { candidate =>
-        cdRepository.find(candidate.userId).map { cd =>
-          candidate.copy(address = Some(cd.address), postCode = Some(cd.postCode))
-        }.recover {
-          case e: ContactDetailsNotFound => candidate
-        }
-      })
-
-      postCode match {
-        case Some(pc) =>
-          val result = answer.map(lst => lst.filter(c => c.postCode.map(_ == pc).getOrElse(true)))
-          createResult(result)
-        case None => createResult(answer)
-      }
-    }
-  }
 
   private def createResult(answer: Future[List[Candidate]]) = answer.map {
     case lst if lst.size > MAX_RESULTS => EntityTooLarge

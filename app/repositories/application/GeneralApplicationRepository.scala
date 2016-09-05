@@ -53,7 +53,8 @@ trait GeneralApplicationRepository {
 
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
 
-  def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]]
+  def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
+    dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
 
   def findApplicationIdsByLocation(location: String): Future[List[String]]
 
@@ -231,9 +232,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   def findByCriteria(firstOrPreferredNameOpt: Option[String],
-                     lastNameOpt: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] = {
+    lastNameOpt: Option[String],
+    dateOfBirth: Option[LocalDate],
+    userIds: List[String] = List.empty
+  ): Future[List[Candidate]] = {
 
-    val query = BSONDocument("$and" -> BSONArray(
+    val innerQuery = BSONArray(
       BSONDocument("$or" -> BSONArray(
         BSONDocument("personal-details.firstName" -> firstOrPreferredNameOpt.map {
           firstName => BSONRegex("^" + firstName + "$", "i")
@@ -244,7 +248,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       )),
       BSONDocument("personal-details.lastName" -> lastNameOpt.map { lastName => BSONRegex("^" + lastName + "$", "i") }),
       BSONDocument("personal-details.dateOfBirth" -> dateOfBirth)
-    ))
+    )
+
+    val fullQuery = if (userIds.isEmpty) {
+      innerQuery
+    } else {
+      innerQuery ++ BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+    }
+
+    val query = BSONDocument("$and" -> fullQuery)
 
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map(docToCandidate))
   }
