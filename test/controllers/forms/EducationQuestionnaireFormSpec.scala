@@ -17,10 +17,10 @@
 package controllers.forms
 
 import controllers.BaseSpec
-import controllers.forms.QuestionnaireEducationInfoFormExamples._
-import forms.QuestionnaireEducationInfoForm
+import controllers.forms.EducationQuestionnaireFormExamples._
+import forms.EducationQuestionnaireForm
 
-class QuestionnaireEducationFormSpec extends BaseSpec {
+class EducationQuestionnaireFormSpec extends BaseSpec {
 
   "the education form" should {
     "be valid when all values are correct" in new Fixture {
@@ -125,30 +125,30 @@ class QuestionnaireEducationFormSpec extends BaseSpec {
     }
 
     "sanitize data should respect values when liveInUKBetween14and18 is Yes" in new Fixture {
-      QuestionnaireEducationInfoFormExamples.FullValidForm.sanitizeData must be (QuestionnaireEducationInfoFormExamples.FullValidForm)
+      EducationQuestionnaireFormExamples.FullValidForm.sanitizeData must be (EducationQuestionnaireFormExamples.FullValidForm)
     }
 
     "sanitize data should sanitize values when liveInUKBetween14and18 is No" in new Fixture {
-      QuestionnaireEducationInfoFormExamples.NoUkFullInvalidForm.sanitizeData must be (QuestionnaireEducationInfoFormExamples.NoUkLivedValidForm)
+      EducationQuestionnaireFormExamples.NoUkFullInvalidForm.sanitizeData must be (EducationQuestionnaireFormExamples.NoUkLivedValidForm)
     }
   }
 
   trait Fixture {
 
-    val FullValid = (QuestionnaireEducationInfoFormExamples.FullValidForm, QuestionnaireEducationInfoForm.form.fill(
-      QuestionnaireEducationInfoFormExamples.FullValidForm))
+    val FullValid = (EducationQuestionnaireFormExamples.FullValidForm, EducationQuestionnaireForm.form.fill(
+      EducationQuestionnaireFormExamples.FullValidForm))
 
-    val AllPreferNotToSayValid = (QuestionnaireEducationInfoFormExamples.AllPreferNotToSayValidForm, QuestionnaireEducationInfoForm.form.fill(
-      QuestionnaireEducationInfoFormExamples.AllPreferNotToSayValidForm))
+    val AllPreferNotToSayValid = (EducationQuestionnaireFormExamples.AllPreferNotToSayValidForm, EducationQuestionnaireForm.form.fill(
+      EducationQuestionnaireFormExamples.AllPreferNotToSayValidForm))
 
-    val NoUkLivedValid = (QuestionnaireEducationInfoFormExamples.NoUkLivedValidForm, QuestionnaireEducationInfoForm.form.fill(
-      QuestionnaireEducationInfoFormExamples.NoUkLivedValidForm))
+    val NoUkLivedValid = (EducationQuestionnaireFormExamples.NoUkLivedValidForm, EducationQuestionnaireForm.form.fill(
+      EducationQuestionnaireFormExamples.NoUkLivedValidForm))
 
     def assertFieldRequired(formMap: Map[String, String], expectedError: String, fieldKey: String*) =
       assertFormError(expectedError, formMap ++ fieldKey.map(k => k -> ""))
 
     def assertFormError(expectedKey: String, invalidFormValues: Map[String, String]) = {
-      val invalidForm = QuestionnaireEducationInfoForm.form.bind(invalidFormValues)
+      val invalidForm = EducationQuestionnaireForm.form.bind(invalidFormValues)
       invalidForm.hasErrors mustBe true
       invalidForm.errors.map(_.key) mustBe Seq(expectedKey)
     }

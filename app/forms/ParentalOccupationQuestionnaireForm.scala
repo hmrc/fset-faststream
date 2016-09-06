@@ -22,7 +22,7 @@ import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
-object QuestionnaireOccupationInfoForm {
+object ParentalOccupationQuestionnaireForm {
 
   val employedDependentFormatter = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {

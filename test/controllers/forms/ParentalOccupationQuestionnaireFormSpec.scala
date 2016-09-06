@@ -17,9 +17,9 @@
 package controllers.forms
 
 import controllers.BaseSpec
-import forms.QuestionnaireOccupationInfoForm.{ Data, form }
+import forms.ParentalOccupationQuestionnaireForm.{ Data, form }
 
-class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
+class ParentalOccupationQuestionnaireFormSpec extends BaseSpec {
 
   "the occupation form" should {
 

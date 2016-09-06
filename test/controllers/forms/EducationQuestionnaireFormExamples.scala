@@ -16,11 +16,11 @@
 
 package controllers.forms
 
-import forms.QuestionnaireEducationInfoForm
+import forms.EducationQuestionnaireForm
 
-object QuestionnaireEducationInfoFormExamples {
+object EducationQuestionnaireFormExamples {
 
-  val FullValidForm = QuestionnaireEducationInfoForm.Data(
+  val FullValidForm = EducationQuestionnaireForm.Data(
     "Yes",
     Some("AAA 111"),
     None,
@@ -34,7 +34,7 @@ object QuestionnaireEducationInfoFormExamples {
     Some("(3)"),
     None)
 
-  val AllPreferNotToSayValidForm = QuestionnaireEducationInfoForm.Data(
+  val AllPreferNotToSayValidForm = EducationQuestionnaireForm.Data(
     "Yes",
     None,
     Some(true),
@@ -48,7 +48,7 @@ object QuestionnaireEducationInfoFormExamples {
     None,
     Some(true))
 
-  val NoUkLivedValidForm = QuestionnaireEducationInfoForm.Data(
+  val NoUkLivedValidForm = EducationQuestionnaireForm.Data(
     "No",
     None,
     None,
@@ -63,7 +63,7 @@ object QuestionnaireEducationInfoFormExamples {
     None)
 
 
-  val NoUkFullInvalidForm = QuestionnaireEducationInfoForm.Data(
+  val NoUkFullInvalidForm = EducationQuestionnaireForm.Data(
     "No",
     Some("AAA 111"),
     None,

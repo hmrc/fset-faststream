@@ -16,7 +16,7 @@
 
 package controllers
 
-import _root_.forms.{ QuestionnaireDiversityInfoForm, QuestionnaireEducationInfoForm, QuestionnaireOccupationInfoForm }
+import _root_.forms.{ DiversityQuestionnaireForm, EducationQuestionnaireForm, ParentalOccupationQuestionnaireForm }
 import connectors.ApplicationClient
 import connectors.exchange.Questionnaire
 import helpers.NotificationType._
@@ -40,7 +40,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
       Future.successful {
         (PreviewApplicationRole.isAuthorized(user), QuestionnaireNotStartedRole.isAuthorized(user)) match {
           case (true, _) => Redirect(routes.HomeController.present()).flashing(QuestionnaireCompletedBanner)
-          case (_, true) => Ok(views.html.questionnaire.intro(QuestionnaireDiversityInfoForm.acceptanceForm))
+          case (_, true) => Ok(views.html.questionnaire.intro(DiversityQuestionnaireForm.acceptanceForm))
           case _ => Ok(views.html.questionnaire.continue())
         }
       }
@@ -49,26 +49,26 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
   def presentFirstPage = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
     implicit user =>
       presentPageIfNotFilledInPreviously(DiversityQuestionnaireCompletedRole,
-        Ok(views.html.questionnaire.firstpage(QuestionnaireDiversityInfoForm.form)))
+        Ok(views.html.questionnaire.firstpage(DiversityQuestionnaireForm.form)))
   }
 
   def presentSecondPage = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
       presentPageIfNotFilledInPreviously(EducationQuestionnaireCompletedRole,
-        Ok(views.html.questionnaire.secondpage(QuestionnaireEducationInfoForm.form)))
+        Ok(views.html.questionnaire.secondpage(EducationQuestionnaireForm.form)))
   }
 
-  def presentThirdPage = CSRSecureAppAction(OccupationQuestionnaireRole) { implicit request =>
+  def presentThirdPage = CSRSecureAppAction(ParentalOccupationQuestionnaireRole) { implicit request =>
     implicit user =>
-      presentPageIfNotFilledInPreviously(OccupationQuestionnaireCompletedRole,
-        Ok(views.html.questionnaire.thirdpage(QuestionnaireOccupationInfoForm.form)))
+      presentPageIfNotFilledInPreviously(ParentalOccupationQuestionnaireCompletedRole,
+        Ok(views.html.questionnaire.thirdpage(ParentalOccupationQuestionnaireForm.form)))
   }
 
   def submitStart = CSRSecureAppAction(StartOrContinueQuestionnaireRole) { implicit request =>
     implicit user =>
       SubmitApplicationRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.HomeController.present()).flashing(QuestionnaireCompletedBanner))
-        case false => QuestionnaireDiversityInfoForm.acceptanceForm.bindFromRequest.fold(
+        case false => DiversityQuestionnaireForm.acceptanceForm.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.intro(errorForm)))
           },
@@ -86,7 +86,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
         case false =>
           Future.successful {
             (DiversityQuestionnaireCompletedRole.isAuthorized(user), EducationQuestionnaireCompletedRole.isAuthorized(user),
-              OccupationQuestionnaireCompletedRole.isAuthorized(user)) match {
+              ParentalOccupationQuestionnaireCompletedRole.isAuthorized(user)) match {
               case (_, _, true) => Redirect(routes.SubmitApplicationController.present())
               case (_, true, _) => Redirect(routes.QuestionnaireController.presentThirdPage())
               case (true, _, _) => Redirect(routes.QuestionnaireController.presentSecondPage())
@@ -100,7 +100,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
     implicit user =>
       DiversityQuestionnaireCompletedRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(QuestionnaireCompletedBanner))
-        case false => QuestionnaireDiversityInfoForm.form.bindFromRequest.fold(
+        case false => DiversityQuestionnaireForm.form.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.firstpage(errorForm)))
           },
@@ -115,7 +115,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
     implicit user =>
       EducationQuestionnaireCompletedRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(QuestionnaireCompletedBanner))
-        case false => QuestionnaireEducationInfoForm.form.bindFromRequest.fold(
+        case false => EducationQuestionnaireForm.form.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.secondpage(errorForm)))
           },
@@ -127,11 +127,11 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
       }
   }
 
-  def submitThirdPage = CSRSecureAppAction(OccupationQuestionnaireRole) { implicit request =>
+  def submitThirdPage = CSRSecureAppAction(ParentalOccupationQuestionnaireRole) { implicit request =>
     implicit user =>
-      OccupationQuestionnaireCompletedRole.isAuthorized(user) match {
+      ParentalOccupationQuestionnaireCompletedRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(QuestionnaireCompletedBanner))
-        case false => QuestionnaireOccupationInfoForm.form.bindFromRequest.fold(
+        case false => ParentalOccupationQuestionnaireForm.form.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.thirdpage(errorForm)))
           },

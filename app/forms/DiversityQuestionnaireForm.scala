@@ -21,7 +21,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.Messages
 
-object QuestionnaireDiversityInfoForm {
+object DiversityQuestionnaireForm {
 
   val form = Form(
     mapping(

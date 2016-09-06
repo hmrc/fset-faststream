@@ -1,5 +1,5 @@
 @import models.view.questionnaire.{ Ethnicity, Gender, SexOrientation }
-@(questionnaireForm: Form[_root_.forms.QuestionnaireDiversityInfoForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(questionnaireForm: Form[_root_.forms.DiversityQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.{checkbox, radioBoxVertical, select_guard_multi, pageProgress}
