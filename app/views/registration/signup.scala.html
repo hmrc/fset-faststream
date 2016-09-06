@@ -2,7 +2,7 @@
         implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, faststreamConfig: FaststreamConfig)
 
 @import helpers.CSRFieldConstructor._
-@import views.html.widgets.{checkbox, yesNoQuestion}
+@import views.html.widgets.{checkbox, yesNoQuestion, select_guard}
 
 @main_template(title = "Create your account", pageForms = Seq(signUpForm), notification = notification) {
     <h1 class="heading-xlarge">Create your account</h1>
@@ -98,7 +98,21 @@
             @yesNoQuestion(signUpForm("eligible"), question = "Are you eligible to apply?",
                 noMessage = "You must be eligible to apply for the Civil Service Fast Stream")
         </section>
-
+        <section>
+            <h2 class="heading-large">How did you hear about us?</h2>
+            <div data-optional>
+                @select_guard(signUpForm("campaignReferrer"), models.CampaignReferrers.list,
+                "hearAboutUsDetail", "-- Select one --") {
+                Select how you heard about us (optional)
+                }
+            </div>
+            <div class="form-group toggle-content" id="hearAboutUsDetail" data-requiredifshown data-optional>
+                @helper.inputText(signUpForm("campaignOther"),
+                '_label -> "Provide more information (optional)",
+                'class -> "form-control",
+                '_showConstraints -> false)
+            </div>
+        </section>
         <section>
             <h2 class="heading-large">Terms and conditions</h2>
             <div class="form-group">

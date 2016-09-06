@@ -18,14 +18,17 @@ package models
 
 object CampaignReferrers {
   val list = List(
-    ("National apprenticeship service", false),
-    ("notgoingtouni.co.uk", false),
-    ("Social media(Twitter/Facebook)", false),
-    ("Teachers/careers advisors", false),
-    ("Parent/friends/family", false),
-    ("Current apprentice/current civil servant", false),
-    ("Careers fair", true),
-    ("Google", false),
+    ("GOV.UK or Civil Service Jobs", false),
+    ("Recruitment website", false),
+    ("Social Media (Facebook, Twitter or Instagram)", false),
+    ("Fast Stream website (including scheme sites)", false),
+    ("News article or online search (Google)", false),
+    ("Friend in the Fast Stream", false),
+    ("Friend or family in the Civil Service", true),
+    ("Friend or family outside of the Civil Service", false),
+    ("Careers fair (University or graduate)", false),
+    ("University careers service (or jobs flyers)", false),
+    ("University event (Guest lecture or skills session)", false),
     ("Other", true)
   )
 }

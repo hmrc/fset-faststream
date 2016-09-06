@@ -62,11 +62,11 @@ trait ApplicationClient {
     }
   }
 
-  def addMedia(userId: UniqueIdentifier, media: String)(implicit hc: HeaderCarrier) = {
-    http.PUT(s"${url.host}${url.base}/media/create", AddMedia(userId, media)).map {
+  def addReferral(userId: UniqueIdentifier, referral: String)(implicit hc: HeaderCarrier) = {
+    http.PUT(s"${url.host}${url.base}/media/create", AddReferral(userId, referral)).map {
       case x: HttpResponse if x.status == CREATED => ()
     } recover {
-      case _: BadRequestException => throw new CannotAddMedia()
+      case _: BadRequestException => throw new CannotAddReferral()
     }
   }
 
@@ -90,10 +90,10 @@ trait ApplicationClient {
       s"${url.host}${url.base}/personal-details/$userId/$applicationId",
       generalDetails
     ).map {
-        case x: HttpResponse if x.status == CREATED => ()
-      } recover {
-        case _: BadRequestException => throw new CannotUpdateRecord()
-      }
+      case x: HttpResponse if x.status == CREATED => ()
+    } recover {
+      case _: BadRequestException => throw new CannotUpdateRecord()
+    }
   }
 
   def getPersonalDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
@@ -157,10 +157,10 @@ trait ApplicationClient {
       s"${url.host}${url.base}/questionnaire/$applicationId/$sectionId",
       questionnaire
     ).map {
-        case x: HttpResponse if x.status == ACCEPTED => ()
-      } recover {
-        case _: BadRequestException => throw new CannotUpdateRecord()
-      }
+      case x: HttpResponse if x.status == ACCEPTED => ()
+    } recover {
+      case _: BadRequestException => throw new CannotUpdateRecord()
+    }
   }
 
   def updatePreview(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
@@ -168,10 +168,10 @@ trait ApplicationClient {
       s"${url.host}${url.base}/application/preview/$applicationId",
       PreviewRequest(true)
     ).map {
-        case x: HttpResponse if x.status == OK => ()
-      } recover {
-        case _: BadRequestException => throw new CannotUpdateRecord()
-      }
+      case x: HttpResponse if x.status == OK => ()
+    } recover {
+      case _: BadRequestException => throw new CannotUpdateRecord()
+    }
   }
 
   def getTestAssessment(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[OnlineTest] = {
@@ -230,6 +230,7 @@ trait TestDataClient {
   }
 
   sealed class TestDataGeneratorException(message: String) extends Exception(message)
+
 }
 
 object ApplicationClient extends ApplicationClient with TestDataClient {
@@ -248,11 +249,12 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
 
   sealed class ApplicationNotFound extends Exception
 
-  sealed class CannotAddMedia extends Exception
+  sealed class CannotAddReferral extends Exception
 
   sealed class CannotWithdraw extends Exception
 
   sealed class OnlineTestNotFound extends Exception
 
   sealed class PdfReportNotFoundException extends Exception
+
 }
