@@ -51,7 +51,7 @@ trait SearchForApplicantService {
   private def searchByPostCode(postCode: String) = {
     cdRepository.findByPostCode(postCode).flatMap { cdList =>
       Future.sequence(cdList.map { cd =>
-        appRepository.findCandidateByUserId(cd.userId).map( _.map { candidate =>
+        appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
           candidate.copy(address = Some(cd.address), postCode = Some(cd.postCode))
         }).recover {
           case e: ContactDetailsNotFound => None
@@ -61,30 +61,24 @@ trait SearchForApplicantService {
   }
 
   private def searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName: Option[String],
-    lastName: Option[String],
-    dateOfBirth: Option[LocalDate],
-    postCode: Option[String]
-  ) = {
+                                                     lastName: Option[String],
+                                                     dateOfBirth: Option[LocalDate],
+                                                     postCodeOpt: Option[String]
+                                                    ) = {
 
-    val contactDetailsFromPostCode = if (postCode.isDefined) {
-      cdRepository.findByPostCode(postCode.get)
-    } else { Future(List.empty) }
+    val contactDetailsFromPostCode = postCodeOpt.map(cdRepository.findByPostCode).getOrElse(Future(List.empty))
 
     for {
       contactDetails <- contactDetailsFromPostCode
-      candidates <- appRepository.findByCriteria(firstOrPreferredName,lastName, dateOfBirth,
-        contactDetails.map(_.userId))
+      candidates <- appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, contactDetails.map(_.userId))
+      contactDetailsOfCandidates <- cdRepository.findByUserIds(candidates.map(_.userId))
+    } yield for {
+      candidate <- candidates
+      contactDetailMap = contactDetailsOfCandidates.map(x => x.userId -> x)(collection.breakOut): Map[String, ContactDetailsWithId]
     } yield {
-      if (postCode.isDefined) {
-        for {
-          candidate <- candidates
-          contactDetailMap = contactDetails.map(x => x.userId -> x)(collection.breakOut): Map[String, ContactDetailsWithId]
-        } yield {
-          candidate.copy(address = Some(contactDetailMap(candidate.userId).address),
-            postCode = Some(contactDetailMap(candidate.userId).postCode)
-          )
-        }
-      } else { candidates }
+      candidate.copy(address = Some(contactDetailMap(candidate.userId).address),
+        postCode = Some(contactDetailMap(candidate.userId).postCode)
+      )
     }
   }
 }
