@@ -81,6 +81,8 @@ object SignUpForm {
       "email_confirm" -> of(emailConfirm),
       passwordField -> of(passwordFormatter),
       confirmPasswordField -> nonEmptyTrimmedText("error.confirmpwd", passwordMaxLength),
+      "campaignReferrer" -> Mappings.optionalTrimmedText(64),
+      "campaignOther" -> Mappings.optionalTrimmedText(256),
       "agree" -> checked(Messages("agree.accept")),
       "eligible" -> checked(Messages("agree.eligible"))
     )(Data.apply)(Data.unapply)
@@ -92,6 +94,8 @@ object SignUpForm {
                   confirmEmail: String,
                   password: String,
                   confirmpwd: String,
+                  campaignReferrer: Option[String],
+                  campaignOther: Option[String],
                   agree: Boolean,
                   eligibility: Boolean)
 

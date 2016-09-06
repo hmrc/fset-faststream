@@ -20,8 +20,8 @@ import _root_.forms.SignUpForm
 import com.mohiva.play.silhouette.api.SignUpEvent
 import config.CSRHttp
 import connectors.ApplicationClient
-import connectors.exchange.Implicits._
 import connectors.UserManagementClient.EmailTakenException
+import connectors.exchange.Implicits._
 import helpers.NotificationType._
 import models.SecurityUser
 import security.SignInService
@@ -50,13 +50,15 @@ abstract class SignUpController(val applicationClient: ApplicationClient) extend
         invalidForm => Future.successful(Ok(views.html.registration.signup(invalidForm))),
         data => {
           env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
-            signInUser(
-              u.toCached,
-              redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
-              env = env
-            ).map { r =>
-              env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString), request, request2lang))
-              r
+            applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
+              signInUser(
+                u.toCached,
+                redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
+                env = env
+              ).map { r =>
+                env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString), request, request2lang))
+                r
+              }
             }
           }.recover {
             case e: EmailTakenException =>
@@ -64,5 +66,13 @@ abstract class SignUpController(val applicationClient: ApplicationClient) extend
           }
         }
       )
+  }
+
+  private def extractMediaReferrer(data: SignUpForm.Data): String = {
+    if (data.campaignReferrer.contains("Other")) {
+      data.campaignOther.getOrElse("")
+    } else {
+      data.campaignReferrer.getOrElse("")
+    }
   }
 }

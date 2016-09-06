@@ -103,10 +103,12 @@ case class SignupFormGenerator(firstName: String = "name",
                                confirmEmail: String = "test@email.com",
                                password: String = "aA1234567",
                                confirm: String = "aA1234567",
+                               campaignReferrer: Option[String] = Some("Recruitment website"),
+                               campaignOther: Option[String] = None,
                                agree: Boolean = true,
                                eligible: Boolean = true) {
 
-  private val data = Data(firstName, lastName, email, confirmEmail, password, confirm, agree, eligible)
+  private val data = Data(firstName, lastName, email, confirmEmail, password, confirm, campaignReferrer, campaignOther, agree, eligible)
 
   private val validFormData = Map(
     "firstName" -> data.firstName,
@@ -115,6 +117,7 @@ case class SignupFormGenerator(firstName: String = "name",
     "email_confirm" -> data.confirmEmail,
     "password" -> data.password,
     "confirmpwd" -> data.confirmpwd,
+    "campaignReferrer" -> data.campaignReferrer.get,
     "agree" -> data.agree.toString,
     "eligible" -> data.eligibility.toString
   )
