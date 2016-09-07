@@ -69,6 +69,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
       "applicationId1", "No", DateTime.now)), 1))
   }
 
+  override def findStatus(applicationId: String): Future[ApplicationStatusDetails] = Future.successful(ApplicationStatusDetails(""))
+
   override def submit(applicationId: String): Future[Unit] = Future.successful(Unit)
 
   override def withdraw(applicationId: String, reason: WithdrawApplicationRequest): Future[Unit] = Future.successful(Unit)

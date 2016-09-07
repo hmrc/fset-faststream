@@ -16,7 +16,6 @@
 
 package controllers
 
-import model.ApplicationStatusOrder
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import play.api.libs.json.Json
@@ -60,8 +59,8 @@ trait ApplicationController extends BaseController {
   }
 
   def applicationStatus(applicationId: String) = Action.async { implicit request =>
-    appRepository.findProgress(applicationId).map { result =>
-      Ok(Json.toJson(ApplicationStatusOrder.getStatus(result)))
+    appRepository.findStatus(applicationId).map { result =>
+      Ok(Json.toJson(result))
     }.recover {
       case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
     }

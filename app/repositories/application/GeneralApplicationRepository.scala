@@ -16,16 +16,18 @@
 
 package repositories.application
 
-import java.util.UUID
+import java.util.{ Calendar, Date, UUID }
 
+import model.ApplicationStatus.ApplicationStatus
 import model.ApplicationStatusOrder._
+import model.ApplicationStatuses._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.PersistedObjects.ApplicationForNotification
 import model._
-import model.command.{ AssessmentCentre, AssessmentScores, OnlineTestProgressResponse, ProgressResponse }
+import model.command._
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, JsNumber, JsObject }
@@ -47,6 +49,8 @@ trait GeneralApplicationRepository {
   def find(applicationIds: List[String]): Future[List[Candidate]]
 
   def findProgress(applicationId: String): Future[ProgressResponse]
+
+  def findStatus(applicationId: String): Future[ApplicationStatusDetails]
 
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
 
@@ -108,22 +112,19 @@ trait GeneralApplicationRepository {
 class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats,
-    ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection {
+    ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments {
 
   override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
-    val createdStatus = "CREATED"
-
     val applicationBSON = BSONDocument(
       "applicationId" -> applicationId,
       "userId" -> userId,
       "frameworkId" -> frameworkId,
-      "applicationStatus" -> createdStatus
+      "applicationStatus" -> Created
     )
-
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, createdStatus, userId, p, None)
+        ApplicationResponse(applicationId, Created, userId, p, None)
       }
     }
   }
@@ -181,7 +182,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
           onlineTestAwaitingAllocation = getProgress("awaiting_online_test_allocation"),
           onlineTestAllocationConfirmed = getProgress("allocation_confirmed"),
           onlineTestAllocationUnconfirmed = getProgress("allocation_unconfirmed")
-          ),
+        ),
         failedToAttend = getProgress("failed_to_attend"),
         assessmentScores = AssessmentScores(getProgress("assessment_scores_entered"), getProgress("assessment_scores_accepted")),
         assessmentCentre = AssessmentCentre(
@@ -202,6 +203,20 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) => findProgress(document, applicationId)
       case None => ProgressResponse(applicationId)
+    }
+  }
+
+  def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("applicationStatus" -> 1, "progress-status-dates" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(document) => {
+        val status = document.getAs[String]("applicationStatus").getOrElse("")
+        val statusDate = document.getAs[BSONDocument]("progress-status-dates").flatMap(_.getAs[LocalDate](status.toLowerCase))
+        ApplicationStatusDetails(status, statusDate)
+      }
+      case None => throw ApplicationNotFound(applicationId)
     }
   }
 
@@ -277,7 +292,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
           "assistance-details.needsAdjustment" -> 1,
           "online-tests.invitationDate" -> 1
         )
-        val sort = new JsObject(Seq("online-tests.invitationDate" -> JsNumber(1)))
+        val sort = JsObject(Seq("online-tests.invitationDate" -> JsNumber(1)))
 
         collection.find(query, projection).sort(sort).options(QueryOpts(skipN = start)).cursor[BSONDocument]().collect[List](end - start + 1).
           map { docList =>
@@ -293,47 +308,37 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   override def submit(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      "applicationStatus" -> "SUBMITTED",
-      "progress-status.submitted" -> true
-    ))
-
-    collection.update(query, applicationStatusBSON, upsert = false) map {
-      case _ => ()
-    }
+    val updateBSON = BSONDocument("$set" -> applicationStatusBSON(Submitted))
+    collection.update(query, updateBSON, upsert = false) map { _ => }
   }
 
   override def withdraw(applicationId: String, reason: WithdrawApplicationRequest): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      "withdraw" -> reason,
-      "applicationStatus" -> "WITHDRAWN",
-      "progress-status.withdrawn" -> true
-    ))
-
-    collection.update(query, applicationStatusBSON, upsert = false) map {
-      case _ => ()
-    }
+    val applicationBSON = BSONDocument("$set" -> BSONDocument(
+        "withdraw" -> reason
+      ).add(
+        applicationStatusBSON(Withdrawn)
+      )
+    )
+    collection.update(query, applicationBSON, upsert = false) map { _ => }
   }
 
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
+    val progressStatusBSON = BSONDocument("$set" -> BSONDocument(
       s"progress-status.questionnaire.$sectionKey" -> true
     ))
 
-    collection.update(query, applicationStatusBSON, upsert = false) map {
-      case _ => ()
-    }
+    collection.update(query, progressStatusBSON, upsert = false) map { _ => }
   }
 
   override def preview(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
+    val progressStatusBSON = BSONDocument("$set" -> BSONDocument(
       "progress-status.preview" -> true
     ))
 
-    collection.update(query, applicationStatusBSON, upsert = true) map {
+    collection.update(query, progressStatusBSON, upsert = true) map {
       case result if result.nModified == 0 && result.n == 0 =>
         logger.error(
           s"""Failed to write assistance details for application: $applicationId ->
@@ -835,9 +840,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       "assistance-details.adjustments-confirmed" -> true
     ).add(verbalAdjustment).add(numericalAdjustment).add(otherAdjustments))
 
-    collection.update(query, adjustmentsConfirmationBSON, upsert = false) map {
-      case _ => ()
-    }
+    collection.update(query, adjustmentsConfirmationBSON, upsert = false) map { _ => }
   }
 
   def rejectAdjustment(applicationId: String): Future[Unit] = {
@@ -849,9 +852,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       "assistance-details.needsAdjustment" -> "No"
     ))
 
-    collection.update(query, adjustmentRejection, upsert = false) map {
-      case _ => ()
-    }
+    collection.update(query, adjustmentRejection, upsert = false) map { _ => }
   }
 
   def gisByApplication(applicationId: String): Future[Boolean] = {
@@ -884,16 +885,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   def updateStatus(applicationId: String, status: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val lowercaseStatus = status.toLowerCase
-    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      "applicationStatus" -> status,
-      s"progress-status.$lowercaseStatus" -> true,
-      s"progress-status-dates.$lowercaseStatus" -> LocalDate.now()
-    ))
-
-    collection.update(query, applicationStatusBSON, upsert = false) map {
-      case _ => ()
-    }
+    collection.update(query, BSONDocument("$set" -> applicationStatusBSON(status))) map { _ => }
   }
 
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]] = {
@@ -977,9 +969,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
           .add(perSchemeToBSON("schemes-evaluation", evaluationResult.schemesEvaluation))
       ))
 
-    collection.update(query, passMarkEvaluation, upsert = false) map {
-      case _ => ()
-    }
+    collection.update(query, passMarkEvaluation, upsert = false) map { _ => }
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {
