@@ -76,8 +76,12 @@ trait SearchForApplicantService {
       candidate <- candidates
       contactDetailMap = contactDetailsOfCandidates.map(x => x.userId -> x)(collection.breakOut): Map[String, ContactDetailsWithId]
     } yield {
-      candidate.copy(address = Some(contactDetailMap(candidate.userId).address),
-        postCode = Some(contactDetailMap(candidate.userId).postCode)
+      val candidateContactDetails = contactDetailMap(candidate.userId)
+
+      candidate.copy(
+        email = Some(candidateContactDetails.email),
+        address = Some(candidateContactDetails.address),
+        postCode = Some(candidateContactDetails.postCode)
       )
     }
   }
