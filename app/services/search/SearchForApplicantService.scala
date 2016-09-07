@@ -16,12 +16,14 @@
 
 package services.search
 
+import connectors.AuthProviderClient
 import model.Commands.{ Candidate, SearchCandidate }
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
 import model.PersistedObjects.ContactDetailsWithId
 import org.joda.time.LocalDate
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,6 +32,7 @@ object SearchForApplicantService extends SearchForApplicantService {
   val appRepository = applicationRepository
   val psRepository = personalDetailsRepository
   val cdRepository = contactDetailsRepository
+  val authProviderClient = AuthProviderClient
 }
 
 trait SearchForApplicantService {
@@ -37,16 +40,16 @@ trait SearchForApplicantService {
   val appRepository: GeneralApplicationRepository
   val psRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
+  val authProviderClient: AuthProviderClient
 
-  def findByCriteria(searchCandidate: SearchCandidate): Future[List[Candidate]] = searchCandidate match {
+  def findByCriteria(searchCandidate: SearchCandidate)(implicit hc: HeaderCarrier): Future[List[Candidate]] = searchCandidate match {
     case SearchCandidate(None, None, None, Some(postCode)) => searchByPostCode(postCode)
 
     case SearchCandidate(firstOrPreferredName, lastName, dateOfBirth, postCode) =>
       searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName, lastName, dateOfBirth, postCode)
 
-    case _ => Future(List.empty)
+    case _ => Future.successful(Nil)
   }
-
 
   private def searchByPostCode(postCode: String) = {
     cdRepository.findByPostCode(postCode).flatMap { cdList =>
@@ -64,24 +67,57 @@ trait SearchForApplicantService {
                                                      lastName: Option[String],
                                                      dateOfBirth: Option[LocalDate],
                                                      postCodeOpt: Option[String]
-                                                    ) = {
-
-    val contactDetailsFromPostCode = postCodeOpt.map(cdRepository.findByPostCode).getOrElse(Future(List.empty))
-
+                                                    )(implicit hc: HeaderCarrier) = {
     for {
-      contactDetails <- contactDetailsFromPostCode
-      candidates <- appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, contactDetails.map(_.userId))
+      contactDetailsFromPostcode <- postCodeOpt.map(cdRepository.findByPostCode).getOrElse(Future.successful(List.empty))
+      candidates <- appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, contactDetailsFromPostcode.map(_.userId))
+      authProviderResults <- searchAuthProviderByFirstAndLastName(firstOrPreferredName, lastName)
+      combinedCandidates = candidates ++ authProviderResults.filter(
+        authProviderCandidate => !candidates.exists(_.userId == authProviderCandidate.userId)
+      )
       contactDetailsOfCandidates <- cdRepository.findByUserIds(candidates.map(_.userId))
     } yield for {
-      candidate <- candidates
+      candidate <- combinedCandidates
       contactDetailMap = contactDetailsOfCandidates.map(x => x.userId -> x)(collection.breakOut): Map[String, ContactDetailsWithId]
     } yield {
-      val candidateContactDetails = contactDetailMap(candidate.userId)
+      contactDetailMap.get(candidate.userId).map { candidateContactDetails =>
+        candidate.copy(
+          email = Some(candidateContactDetails.email),
+          address = Some(candidateContactDetails.address),
+          postCode = Some(candidateContactDetails.postCode)
+        )
+      }.getOrElse(candidate)
+    }
+  }
 
-      candidate.copy(
-        email = Some(candidateContactDetails.email),
-        address = Some(candidateContactDetails.address),
-        postCode = Some(candidateContactDetails.postCode)
+  private def searchAuthProviderByFirstAndLastName(firstNameOpt: Option[String],
+                                                   lastNameOpt: Option[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
+
+    val firstNameResultsFut = firstNameOpt.map {
+      firstName => authProviderClient.findByFirstName(firstName, List("candidate"))
+    }.getOrElse(Future.successful(List.empty))
+
+    val lastNameResultsFut = lastNameOpt.map {
+      lastName => authProviderClient.findByLastName(lastName, List("candidate"))
+    }.getOrElse(Future.successful(List.empty))
+
+    for {
+      firstNameResults <- firstNameResultsFut
+      lastNameResults <- lastNameResultsFut
+    } yield {
+      (firstNameResults ++ lastNameResults).distinct.map(exchangeCandidate =>
+        Candidate(
+          exchangeCandidate.userId,
+          None,
+          Some(exchangeCandidate.email),
+          Some(exchangeCandidate.firstName),
+          Some(exchangeCandidate.lastName),
+          exchangeCandidate.preferredName,
+          None,
+          None,
+          None,
+          None
+        )
       )
     }
   }

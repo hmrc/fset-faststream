@@ -16,6 +16,7 @@
 
 package services.search
 
+import connectors.AuthProviderClient
 import model.Address
 import model.Commands.{ Candidate, SearchCandidate }
 import model.PersistedObjects.ContactDetailsWithId
@@ -25,6 +26,7 @@ import repositories.application.{ GeneralApplicationRepository, PersonalDetailsR
 import services.BaseServiceSpec
 import org.mockito.Mockito._
 import org.mockito.Matchers._
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,29 +36,48 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec {
   val appRepositoryMock = mock[GeneralApplicationRepository]
   val psRepositoryMock = mock[PersonalDetailsRepository]
   val cdRepositoryMock = mock[ContactDetailsRepository]
+  val authProviderClientMock = mock[AuthProviderClient]
 
   val searchForApplicantService = new SearchForApplicantService {
     override val appRepository = appRepositoryMock
     override val psRepository = psRepositoryMock
     override val cdRepository = cdRepositoryMock
+    override val authProviderClient = authProviderClientMock
   }
+
+  implicit val headerCarrier = new HeaderCarrier()
 
   "find by criteria" should {
     "filter by post code" in {
       val testAddress = Address(line1 = "1 Test Street", line2 = None, line3 = None, line4 = None)
+      val testEmail = "test@test.com"
+
       when(cdRepositoryMock.findByPostCode(any[String])).thenReturn(
-        Future(List(ContactDetailsWithId(userId = "123", postCode = "QQ1 1QQ", address = testAddress, email = "",
+        Future.successful(List(ContactDetailsWithId(userId = "123", postCode = "QQ1 1QQ", address = testAddress, email = testEmail,
           phone = None)))
+      )
+
+      when(cdRepositoryMock.findByUserIds(any[List[String]])).thenReturn(
+        Future.successful(List(ContactDetailsWithId(userId = "123", postCode = "QQ1 1QQ", address = testAddress, email = testEmail,
+          phone = None)))
+      )
+
+      when(authProviderClientMock.findByFirstName(any[String], any[List[String]])(any[HeaderCarrier])).thenReturn(
+        Future.successful(Nil)
+      )
+
+      when(authProviderClientMock.findByLastName(any[String], any[List[String]])(any[HeaderCarrier])).thenReturn(
+        Future.successful(Nil)
       )
 
       when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
         any[Option[LocalDate]], any[List[String]])
-      ).thenReturn(Future(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None, None, None, None))))
+      ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None, None, None, None))))
 
       val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = Some("Leia"),
         lastName = Some("Amadala"), dateOfBirth = None, postCode = Some("QQ1 1QQ"))).futureValue
 
-      val expected = Candidate("123", None, None, Some("Leia"), Some("Amadala"),
+      val expected = Candidate("123", None, Some(testEmail), Some("Leia"), Some("Amadala"),
         None, None, Some(testAddress), Some("QQ1 1QQ"), None
       )
 
