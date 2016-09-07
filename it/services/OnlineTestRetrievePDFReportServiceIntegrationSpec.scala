@@ -20,9 +20,10 @@ import _root_.services.onlinetesting.OnlineTestRetrievePDFReportService
 import config.MicroserviceAppConfig._
 import connectors.CubiksGatewayClient
 import model.OnlineTestCommands._
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
+import org.scalatest.time.{ Seconds, Span }
 import play.api.test.WithApplication
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.DefaultDB
@@ -44,6 +45,8 @@ class OnlineTestRetrievePDFReportServiceIntegrationSpec extends IntegrationSpec 
   }
 
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(15, Seconds)))
 
   "Online test retrieve pdf report service" should {
     "retrieve online test pdf report and audit 'OnlineTestPDFReportSaved' " in new TestFixture {
