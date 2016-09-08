@@ -18,7 +18,8 @@ package controllers
 
 import _root_.forms.{ DiversityQuestionnaireForm, EducationQuestionnaireForm, ParentalOccupationQuestionnaireForm }
 import connectors.ApplicationClient
-import connectors.exchange.Questionnaire
+import connectors.exchange.{ FastPassDetails, Questionnaire }
+import forms.FastPassForm
 import helpers.NotificationType._
 import models.CachedDataWithApp
 import play.api.mvc.{ Request, RequestHeader, Result }
@@ -55,7 +56,8 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
   def presentSecondPage = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
       presentPageIfNotFilledInPreviously(EducationQuestionnaireCompletedRole,
-        Ok(views.html.questionnaire.secondpage(EducationQuestionnaireForm.form)))
+        Ok(views.html.questionnaire.secondpage(EducationQuestionnaireForm.form,
+          if (isCivilServant(user.application.fastPassDetails)) "Yes" else "No")))
   }
 
   def presentThirdPage = CSRSecureAppAction(ParentalOccupationQuestionnaireRole) { implicit request =>
@@ -113,14 +115,16 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
 
   def submitSecondPage = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
+      val isCivilServantString = if (isCivilServant(user.application.fastPassDetails)) "Yes" else "No"
       EducationQuestionnaireCompletedRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(QuestionnaireCompletedBanner))
         case false => EducationQuestionnaireForm.form.bindFromRequest.fold(
           errorForm => {
-            Future.successful(Ok(views.html.questionnaire.secondpage(errorForm)))
+            Future.successful(Ok(views.html.questionnaire.secondpage(errorForm, isCivilServantString)))
+
           },
           data => {
-            submitQuestionnaire(data.sanitizeData.exchange, "education_questionnaire")(
+            submitQuestionnaire(data.sanitizeData.exchange(isCivilServantString), "education_questionnaire")(
               Redirect(routes.QuestionnaireController.presentThirdPage()))
           }
         )
@@ -162,5 +166,8 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
     }
   }
 
-
+  private def isCivilServant(fastPassDetails: Option[FastPassDetails]) = {
+    val fp = fastPassDetails flatMap (_.fastPassType)
+    fp.contains(FastPassForm.CivilServant) || fp.contains(FastPassForm.CivilServantViaFastTrack)
+  }
 }

@@ -5,11 +5,11 @@
 
 <section>
     @selectValueDifferentFromDisplayedText(questionnaireForm("universityDegreeCategory"),
-        models.view.questionnaire.UniversityDegreeCategories.seq.toList)(
+        models.view.questionnaire.UniversityDegreeCategory.seq.toList)(
         "-- Select one --") {
         @Messages("universityDegreeCategory.question")
     }
-    <div data-optional>
+    <div class="form-group">
     @checkbox(questionnaireForm("preferNotSay_universityDegreeCategory"), Some("universityDegreeCategory")) {
         I don't know/prefer not to say
     }

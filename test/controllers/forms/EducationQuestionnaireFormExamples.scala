@@ -29,7 +29,8 @@ object EducationQuestionnaireFormExamples {
     Some("my school at 17"),
     None,
     Some("No"),
-    Some("University"),
+    Some("Yes"),
+    Some("1"),
     None,
     Some("(3)"),
     None)
@@ -43,12 +44,13 @@ object EducationQuestionnaireFormExamples {
     None,
     Some(true),
     Some("I don't know/prefer not to say"),
+    Some("Yes"),
     None,
     Some(true),
     None,
     Some(true))
 
-  val NoUkLivedValidForm = EducationQuestionnaireForm.Data(
+  val NoUkLivedAndNoCivilServantValidForm = EducationQuestionnaireForm.Data(
     "No",
     None,
     None,
@@ -57,13 +59,43 @@ object EducationQuestionnaireFormExamples {
     None,
     None,
     None,
-    Some("University"),
+    None,
+    None,
+    None,
+    None,
+    None)
+
+  val NoUkValidForm = EducationQuestionnaireForm.Data(
+    "No",
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    Some("Yes"),
+    Some("1"),
     None,
     Some("(3)"),
     None)
 
+  val NoCivilServantValidForm = EducationQuestionnaireForm.Data(
+    "Yes",
+    Some("AAA 111"),
+    None,
+    Some("my school at 15"),
+    None,
+    Some("my school at 17"),
+    None,
+    Some("No"),
+    None,
+    None,
+    None,
+    None,
+    None)
 
-  val NoUkFullInvalidForm = EducationQuestionnaireForm.Data(
+  val NoUkAndNoHaveDegreeFullInvalidForm = EducationQuestionnaireForm.Data(
     "No",
     Some("AAA 111"),
     None,
@@ -72,7 +104,8 @@ object EducationQuestionnaireFormExamples {
     Some("my school at 17"),
     None,
     Some("No"),
-    Some("University"),
+    Some("No"),
+    Some("1"),
     None,
     Some("(3)"),
     None)
@@ -80,45 +113,41 @@ object EducationQuestionnaireFormExamples {
   val FullValidFormMap = Map(
     "liveInUKBetween14and18" -> "Yes",
     "postcodeQ" -> "AAA 111",
-    "preferNotSayPostcode" -> "",
     "schoolName14to16" -> "my school at 15",
-    "preferNotSaySchoolName14to16" -> "",
     "schoolName16to18" -> "my school at 17",
-    "preferNotSaySchoolName16to18" -> "",
     "freeSchoolMeals" -> "No",
-    "university" -> "University",
-    "preferNotSay_university" -> "",
-    "universityDegreeCategory" -> "(3)",
-    "preferNotSayUniversityDegreeCategory" -> ""
+    "haveDegree" -> "Yes",
+    "university" -> "1",
+    "universityDegreeCategory" -> "(3)"//,
   )
 
   val AllPreferNotToSayFormMap = Map(
     "liveInUKBetween14and18" -> "Yes",
-    "postcodeQ" -> "",
     "preferNotSayPostcode" -> "Yes",
-    "schoolName14to16" -> "",
-    "preferNotSaySchoolName14to16" -> "Yes",
-    "schoolName16to18" -> "",
-    "preferNotSaySchoolName16to18" -> "Yes",
+    "preferNotSaySchoolName14to16" -> "true",
+    "preferNotSaySchoolName16to18" -> "true",
     "freeSchoolMeals" -> "I don't know/prefer not to say",
-    "university" -> "",
-    "preferNotSay_university" -> "Yes",
-    "universityDegreeCategory" -> "",
-    "preferNotSayUniversityDegreeCategory" -> "Yes"
+    "haveDegree" -> "Yes",
+    "preferNotSay_university" -> "true",
+    "preferNotSayUniversityDegreeCategory" -> "true"
+  )
+
+  val NoUkLivedAndNoCivilServantValidFormMap = Map(
+    "liveInUKBetween14and18" -> "No"
   )
 
   val NoUkLivedValidFormMap = Map(
     "liveInUKBetween14and18" -> "No",
-    "postcodeQ" -> "",
-    "preferNotSayPostcode" -> "",
-    "schoolName14to16" -> "",
-    "preferNotSaySchoolName14to16" -> "",
-    "schoolName16to18" -> "",
-    "preferNotSaySchoolName16to18" -> "",
-    "freeSchoolMeals" -> "No",
-    "university" -> "University",
-    "preferNotSay_university" -> "",
-    "universityDegreeCategory" -> "(3)",
-    "preferNotSayUniversityDegreeCategory" -> ""
+    "haveDegree" -> "Yes",
+    "university" -> "1",
+    "universityDegreeCategory" -> "(E)"
+  )
+
+  val NoCivilServantValidFormMap = Map(
+    "liveInUKBetween14and18" -> "Yes",
+    "postcodeQ" -> "AAA 111",
+    "schoolName14to16" -> "school1",
+    "schoolName16to18" -> "school2",
+    "freeSchoolMeals" -> "Yes"
   )
 }

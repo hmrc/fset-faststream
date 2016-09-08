@@ -36,11 +36,13 @@ object EducationQuestionnaireForm {
         "schoolName16to18", "preferNotSay_schoolName14to16", Some(256))),
       "preferNotSay_schoolName16to18" -> optional(checked(Messages("error.required.schoolName16to18"))),
       "freeSchoolMeals" -> of(requiredFormatterWithMaxLengthCheck("liveInUKBetween14and18", "freeSchoolMeals", Some(256))),
-
-      "university" -> of(Mappings.fieldWithCheckBox(256)),
-      "preferNotSay_university" -> optional(checked(Messages("error.required.university"))),
-      "universityDegreeCategory" -> of(Mappings.fieldWithCheckBox(256)),
-      "preferNotSay_universityDegreeCategory" -> optional(checked(Messages("error.required.university")))
+      "haveDegree" -> of(requiredFormatterWithMaxLengthCheck("isCandidateCivilServant", "haveDegree", Some(31))),
+      "university" -> of(requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay("haveDegree",
+        "university", "preferNotSay_university", Some(256))),
+      "preferNotSay_university" -> optional(checked(Messages("error.university.required"))),
+      "universityDegreeCategory" -> of(requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay("haveDegree",
+        "universityDegreeCategory", "preferNotSay_universityDegreeCategory", Some(256))),
+      "preferNotSay_universityDegreeCategory" -> optional(checked(Messages("error.universityDegreeCategory.required")))
     )(Data.apply)(Data.unapply)
   )
 
@@ -54,6 +56,7 @@ object EducationQuestionnaireForm {
                    preferNotSaySchoolName16to18: Option[Boolean],
                    freeSchoolMeals: Option[String],
 
+                   haveDegree: Option[String],
                    university: Option[String],
                    preferNotSayUniversity: Option[Boolean],
                    universityDegreeCategory: Option[String],
@@ -61,7 +64,7 @@ object EducationQuestionnaireForm {
                  ) {
 
 
-    def exchange: Questionnaire = {
+    def exchange(isCandidateCivilServant: String): Questionnaire = {
       def getAnswer(field: Option[String], preferNotToSayField: Option[Boolean]) = {
         preferNotToSayField match {
           case Some(true) => Answer(None, None, Some(true))
@@ -74,7 +77,7 @@ object EducationQuestionnaireForm {
         case _ => Answer(freeSchoolMeals, None, None)
       }
 
-      def getOptionalList() = {
+      def getOptionalSchoolList() = {
         (if (liveInUKBetween14and18 == "Yes") {
           List(Question(Messages("postcode.question"), getAnswer(postcode, preferNotSayPostcode)),
             Question(Messages("schoolName14to16.question"), getAnswer(schoolName14to16, preferNotSaySchoolName14to16)),
@@ -85,13 +88,27 @@ object EducationQuestionnaireForm {
         })
       }
 
+      def getOptionalUniversityList(isCandidateCivilServant: String): List[Question] = {
+        (if (isCandidateCivilServant == "Yes") {
+          if (haveDegree == Some("Yes")) {
+            List(
+              Question(Messages("haveDegree.question"), getAnswer(haveDegree, None)),
+              Question(Messages("university.question"), getAnswer(university, preferNotSayUniversity)),
+              Question(Messages("universityDegreeCategory.question"), getAnswer(universityDegreeCategory,
+                preferNotSayUniversityDegreeCategory))
+            )
+          } else {
+            List(Question(Messages("haveDegree.question"), getAnswer(haveDegree, None)))
+          }
+        } else {
+          List.empty
+        })
+      }
+
       Questionnaire(
         List(Question(Messages("liveInUKBetween14and18.question"), Answer(Some(liveInUKBetween14and18), None, None))) ++
-          getOptionalList() ++
-          List(
-            Question(Messages("university.question"), getAnswer(university, preferNotSayUniversity)),
-            Question(Messages("universityDegreeCategory.question"), getAnswer(universityDegreeCategory, preferNotSayUniversityDegreeCategory))
-          )
+          getOptionalSchoolList() ++
+          getOptionalUniversityList(isCandidateCivilServant)
       )
     }
 
@@ -101,6 +118,10 @@ object EducationQuestionnaireForm {
       * This is a kind of backend partial clearing form functionality.
       */
     def sanitizeData = {
+      sanitizeLiveInUK.sanitizeUniversity
+    }
+
+    private def sanitizeLiveInUK = {
       if (liveInUKBetween14and18 == "Yes") {
         this
       } else {
@@ -112,6 +133,18 @@ object EducationQuestionnaireForm {
           schoolName16to18 = None,
           preferNotSaySchoolName16to18 = None,
           freeSchoolMeals = None)
+      }
+    }
+
+    private def sanitizeUniversity = {
+      if (haveDegree == Some("Yes")) {
+        this
+      } else {
+        this.copy(
+          university = None,
+          preferNotSayUniversity = None,
+          universityDegreeCategory = None,
+          preferNotSayUniversityDegreeCategory = None)
       }
     }
   }

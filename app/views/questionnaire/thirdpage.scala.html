@@ -1,5 +1,5 @@
 @import models.view.SimpleAnswerOptions
-@import models.view.questionnaire.{ Employee, Occupations, OrganizationSize }
+@import models.view.questionnaire.{ Employee, Occupation, OrganizationSize }
 @(questionnaireForm: Form[_root_.forms.ParentalOccupationQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import views.html.widgets.{pageProgress, radioBoxHorizontal, radioBoxVertical, radioBoxOccupation, radioBoxOccupationFirst}
@@ -38,7 +38,7 @@
                 <fieldset class="hidingOccupations initiallyHidden" data-requiredifshown data-optional>
                     <legend class="form-label">@Messages("parentsOccupation.question")</legend>
 
-                    @radioBoxOccupation(questionnaireForm("parentsOccupation"), models.view.questionnaire.Occupations.seq)
+                    @radioBoxOccupation(questionnaireForm("parentsOccupation"), models.view.questionnaire.Occupation.seq)
                 </fieldset>
         </section>
 

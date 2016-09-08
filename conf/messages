@@ -171,8 +171,9 @@ error.postcodeQ.required = You must tell us what was your postcode when you were
 error.schoolName14to16.required = You must tell us what was the name of your school when you were aged 14 to 16, or choose ''prefer not to say''
 error.schoolName16to18.required = You must tell us what was the name of your school when you were aged 16 to 18, or choose ''prefer not to say''
 error.freeSchoolMeals.required = You must tell us if you were at any time eligible for free school meals, or choose ''prefer not to say''
-error.required.university = You must tell us what is the name of the university you received your degree from, or choose ''prefer not to say''
-error.required.universityDegreeCategory = You must tell us which category best describes your degree, or choose ''prefer not to say''
+error.haveDegree.required = You must tell us if you have a degree
+error.university.required = You must tell us what is the name of the university you received your degree from, or choose ''prefer not to say''
+error.universityDegreeCategory.required = You must tell us which category best describes your degree, or choose ''prefer not to say''
 
 # Parental Questionnaire error messages
 error.required.parentsDegree = You must tell us if your parent/guardian has a degree, or choose ''prefer not to say''
@@ -193,6 +194,7 @@ schoolName14to16.question = Aged 14 to 16 what was the name of your school?
 schoolName16to18.question = Aged 16 to 18 what was the name of your school or college?
 sixthForm.question = Between the ages of 16 to 18, in which school did you spend most of your education?
 freeSchoolMeals.question = Were you at any time eligible for free school meals?
+haveDegree.question = Do you have a degree?
 university.question = What is the name of the university you received your degree from?
 universityDegreeCategory.question = Which category best describes your degree?
 

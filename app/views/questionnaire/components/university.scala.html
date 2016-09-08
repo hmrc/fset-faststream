@@ -1,16 +1,13 @@
 @(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit lang: play.api.i18n.Lang)
 
-@import views.html.widgets.checkbox
+@import views.html.widgets.{ checkbox, selectValueDifferentFromDisplayedText }
 
 <section>
-    <div class="form-group form-group-compound">
-        <label class="form-label" for="university">@Messages("university.question")</label>
-        <span class="form-hint text">Or enter your current university if you haven't finished yet</span>
-        @helper.inputText(questionnaireForm("university"),
-            '_label -> "",
-            'class -> "form-control",
-            '_showConstraints -> false)
-    </div>
+    @selectValueDifferentFromDisplayedText(questionnaireForm("university"),
+        models.view.questionnaire.University.seq.toList)(
+        "-- Select one --") {
+        @Messages("university.question")
+    }
     <div class="form-group">
     @checkbox(questionnaireForm("preferNotSay_university"), Some("university")) {
         I don't know/prefer not to say
