@@ -31,6 +31,7 @@ object ExchangeObjects {
                                     lastName: String,
                                     preferredName: String,
                                     personalDetails: Option[PersonalDetails] = None,
+                                    isCivilServant: Option[Boolean] = None,
                                     contactDetails: Option[ContactDetails] = None,
                                     onlineTestProfile: Option[OnlineTestProfileResponse] = None,
                                     applicationAssessment: Option[ApplicationAssessment] = None,
