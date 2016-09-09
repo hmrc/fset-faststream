@@ -36,6 +36,7 @@ object EducationQuestionnaireForm {
         "schoolName16to18", "preferNotSay_schoolName14to16", Some(256))),
       "preferNotSay_schoolName16to18" -> optional(checked(Messages("error.required.schoolName16to18"))),
       "freeSchoolMeals" -> of(requiredFormatterWithMaxLengthCheck("liveInUKBetween14and18", "freeSchoolMeals", Some(256))),
+      "isCandidateCivilServant" -> Mappings.nonEmptyTrimmedText("error.isCandidateCivilServant.required", 31),
       "haveDegree" -> of(requiredFormatterWithMaxLengthCheck("isCandidateCivilServant", "haveDegree", Some(31))),
       "university" -> of(requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay("haveDegree",
         "university", "preferNotSay_university", Some(256))),
@@ -56,6 +57,7 @@ object EducationQuestionnaireForm {
                    preferNotSaySchoolName16to18: Option[Boolean],
                    freeSchoolMeals: Option[String],
 
+                   isCandidateCivilServant: String,
                    haveDegree: Option[String],
                    university: Option[String],
                    preferNotSayUniversity: Option[Boolean],
@@ -64,7 +66,7 @@ object EducationQuestionnaireForm {
                  ) {
 
 
-    def exchange(isCandidateCivilServant: String): Questionnaire = {
+    def exchange(): Questionnaire = {
       def getAnswer(field: Option[String], preferNotToSayField: Option[Boolean]) = {
         preferNotToSayField match {
           case Some(true) => Answer(None, None, Some(true))

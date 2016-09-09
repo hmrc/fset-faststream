@@ -104,7 +104,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     */
 
     "transform form when is a civil servant with all valid fields to a question list" in new Fixture {
-      val questionList = FullValidForm.exchange("Yes").questions
+      val questionList = FullValidForm.exchange.questions
       questionList.size must be(8)
       questionList(0).answer.answer must be(Some("Yes"))
       questionList(0).answer.unknown must be(None)
@@ -125,7 +125,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     }
 
     "transform form when is a civil servant with all Possible fields with prefer not to say" in new Fixture {
-      val questionList = AllPreferNotToSayValidForm.exchange("Yes").questions
+      val questionList = AllPreferNotToSayValidForm.exchange.questions
       questionList.size must be(8)
       questionList(0).answer.answer must be(Some("Yes"))
       questionList(0).answer.unknown must be(None)
@@ -146,14 +146,14 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     }
 
     "transform form with no uk and no civil servant valid fields to a question list" in new Fixture {
-      val questionList = NoUkLivedAndNoCivilServantValidForm.exchange("No").questions
+      val questionList = NoUkLivedAndNoCivilServantValidForm.exchange.questions
       questionList.size must be(1)
       questionList(0).answer.answer must be(Some("No"))
       questionList(0).answer.unknown must be(None)
     }
 
     "transform form when is a civil servant and no uk lived with all valid fields to a question list" in new Fixture {
-      val questionList = NoUkValidForm.exchange("Yes").questions
+      val questionList = NoUkValidForm.exchange.questions
       questionList.size must be(4)
       questionList(0).answer.answer must be(Some("No"))
       questionList(0).answer.unknown must be(None)
@@ -166,7 +166,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     }
 
     "transform form when is not a civil servant with all valid fields to a question list" in new Fixture {
-      val questionList = NoCivilServantValidForm.exchange("No").questions
+      val questionList = NoCivilServantValidForm.exchange.questions
       questionList.size must be(5)
       questionList(0).answer.answer must be(Some("Yes"))
       questionList(0).answer.unknown must be(None)

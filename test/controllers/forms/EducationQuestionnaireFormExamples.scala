@@ -29,6 +29,7 @@ object EducationQuestionnaireFormExamples {
     Some("my school at 17"),
     None,
     Some("No"),
+    "Yes",
     Some("Yes"),
     Some("1"),
     None,
@@ -44,6 +45,7 @@ object EducationQuestionnaireFormExamples {
     None,
     Some(true),
     Some("I don't know/prefer not to say"),
+    "Yes",
     Some("Yes"),
     None,
     Some(true),
@@ -59,6 +61,7 @@ object EducationQuestionnaireFormExamples {
     None,
     None,
     None,
+    "No",
     None,
     None,
     None,
@@ -74,6 +77,7 @@ object EducationQuestionnaireFormExamples {
     None,
     None,
     None,
+    "Yes",
     Some("Yes"),
     Some("1"),
     None,
@@ -89,6 +93,7 @@ object EducationQuestionnaireFormExamples {
     Some("my school at 17"),
     None,
     Some("No"),
+    "No",
     None,
     None,
     None,
@@ -104,6 +109,7 @@ object EducationQuestionnaireFormExamples {
     Some("my school at 17"),
     None,
     Some("No"),
+    "Yes",
     Some("No"),
     Some("1"),
     None,
@@ -116,9 +122,10 @@ object EducationQuestionnaireFormExamples {
     "schoolName14to16" -> "my school at 15",
     "schoolName16to18" -> "my school at 17",
     "freeSchoolMeals" -> "No",
+    "isCandidateCivilServant" -> "Yes",
     "haveDegree" -> "Yes",
     "university" -> "1",
-    "universityDegreeCategory" -> "(3)"//,
+    "universityDegreeCategory" -> "(3)" //,
   )
 
   val AllPreferNotToSayFormMap = Map(
@@ -127,17 +134,20 @@ object EducationQuestionnaireFormExamples {
     "preferNotSaySchoolName14to16" -> "true",
     "preferNotSaySchoolName16to18" -> "true",
     "freeSchoolMeals" -> "I don't know/prefer not to say",
+    "isCandidateCivilServant" -> "Yes",
     "haveDegree" -> "Yes",
     "preferNotSay_university" -> "true",
     "preferNotSayUniversityDegreeCategory" -> "true"
   )
 
   val NoUkLivedAndNoCivilServantValidFormMap = Map(
-    "liveInUKBetween14and18" -> "No"
+    "liveInUKBetween14and18" -> "No",
+    "isCandidateCivilServant" -> "No"
   )
 
   val NoUkLivedValidFormMap = Map(
     "liveInUKBetween14and18" -> "No",
+    "isCandidateCivilServant" -> "Yes",
     "haveDegree" -> "Yes",
     "university" -> "1",
     "universityDegreeCategory" -> "(E)"
@@ -148,6 +158,7 @@ object EducationQuestionnaireFormExamples {
     "postcodeQ" -> "AAA 111",
     "schoolName14to16" -> "school1",
     "schoolName16to18" -> "school2",
-    "freeSchoolMeals" -> "Yes"
+    "freeSchoolMeals" -> "Yes",
+    "isCandidateCivilServant" -> "No"
   )
 }

@@ -33,7 +33,8 @@
         </fieldset>
 
         <fieldset>
-            @if(isCandidateCivilServant) {
+            <input type="hidden" id="isCandidateCivilServant" name="isCandidateCivilServant" value="@isCandidateCivilServant">
+            @if(isCandidateCivilServant=="Yes") {
                 <legend class="form-label text">@Messages("haveDegree.question")</legend>
                 @radioBoxHorizontal(questionnaireForm("haveDegree"), options = List(("yes", "Yes", true), ("no", "No", false)),
                     optionTrigger = "haveDegree-panel")

@@ -166,7 +166,7 @@ error.required.sexOrientation = You must tell us your sexual orientation or choo
 error.required.ethnicity = You must tell us your ethnic group or choose ''prefer not to say''
 
 # Education Questionnaire error messages:
-error.liveInUKBetween14and18.required = You must tell us if you lived in the UK between the ages of 14 and 18?
+error.liveInUKBetween14and18.required = You must tell us if you lived in the UK between the ages of 14 and 18
 error.postcodeQ.required = You must tell us what was your postcode when you were between the ages of 14 and 18, or choose ''prefer not to say''
 error.schoolName14to16.required = You must tell us what was the name of your school when you were aged 14 to 16, or choose ''prefer not to say''
 error.schoolName16to18.required = You must tell us what was the name of your school when you were aged 16 to 18, or choose ''prefer not to say''

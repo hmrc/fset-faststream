@@ -124,7 +124,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
 
           },
           data => {
-            submitQuestionnaire(data.sanitizeData.exchange(isCivilServantString), "education_questionnaire")(
+            submitQuestionnaire(data.sanitizeData.exchange, "education_questionnaire")(
               Redirect(routes.QuestionnaireController.presentThirdPage()))
           }
         )
