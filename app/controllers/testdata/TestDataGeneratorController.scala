@@ -38,7 +38,7 @@ import scala.concurrent.Future
 
 object TestDataGeneratorController extends TestDataGeneratorController {
 
-  sealed case class InvalidPostCodeFormatException(message: String) extends Exception(message)
+  case class InvalidPostCodeFormatException(message: String) extends Exception(message)
 
 }
 
