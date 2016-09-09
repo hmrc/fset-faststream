@@ -20,7 +20,7 @@ import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
 import services.search.SearchForApplicantService
@@ -47,7 +47,7 @@ trait SearchForApplicantsController extends BaseController {
 
   val MAX_RESULTS = 25
 
-  def findById(userId: String, frameworkId: String) = Action.async { implicit request =>
+  def findById(userId: String, frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
 
     appRepository.findByUserId(userId, frameworkId).flatMap { application =>
       psRepository.find(application.applicationId).flatMap { pd =>
