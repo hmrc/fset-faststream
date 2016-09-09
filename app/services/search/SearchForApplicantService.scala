@@ -51,7 +51,7 @@ trait SearchForApplicantService {
     case _ => Future.successful(Nil)
   }
 
-  private def searchByPostCode(postCode: String) = {
+  private def searchByPostCode(postCode: String): Future[List[Candidate]] = {
     cdRepository.findByPostCode(postCode).flatMap { cdList =>
       Future.sequence(cdList.map { cd =>
         appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
@@ -67,7 +67,7 @@ trait SearchForApplicantService {
                                                      lastName: Option[String],
                                                      dateOfBirth: Option[LocalDate],
                                                      postCodeOpt: Option[String]
-                                                    )(implicit hc: HeaderCarrier) = {
+                                                    )(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
     for {
       contactDetailsFromPostcode <- postCodeOpt.map(cdRepository.findByPostCode).getOrElse(Future.successful(List.empty))
       candidates <- appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, contactDetailsFromPostcode.map(_.userId))
