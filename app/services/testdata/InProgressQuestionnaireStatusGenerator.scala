@@ -17,10 +17,8 @@
 package services.testdata
 
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
-import model.persisted.{ AssistanceDetails }
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.assistancedetails.AssistanceDetailsRepository
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -44,6 +42,59 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(PersistedQuestion("What was your home postcode when you were 14?",
           PersistedAnswer(Some(Random.homePostcode), None, None)))
+      } else {
+        None
+      }
+    }
+
+    def getSchoolName14to16Answer = {
+      if (didYouLiveInUkBetween14and18Answer == "Yes") {
+        Some(PersistedQuestion("Aged 14 to 16 what was the name of your school?",
+          PersistedAnswer(Some(Random.age14to16School), None, None)))
+      } else {
+        None
+      }
+    }
+
+    def getSchoolName16to18Answer = {
+      if (didYouLiveInUkBetween14and18Answer == "Yes") {
+        Some(PersistedQuestion("Aged 16 to 18 what was the name of your school?",
+          PersistedAnswer(Some(Random.age16to18School), None, None)))
+      } else {
+        None
+      }
+    }
+
+    def getFreeSchoolMealsAnswer = {
+      if (didYouLiveInUkBetween14and18Answer == "Yes") {
+        Some(PersistedQuestion("Were you at any time eligible for free school meals?",
+          PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
+      } else {
+        None
+      }
+    }
+
+    def getHaveDegreeAnswer = {
+      if (generatorConfig.isCivilServant.contains(true)) {
+        generatorConfig.hasDegree.map { hasDegree => PersistedQuestion("Do you have a degree?",
+          PersistedAnswer(Some((if (hasDegree) { "Yes" } else {"No"})), None, None))
+        }
+      } else { None }
+    }
+
+    def getUniversityAnswer = {
+      if (generatorConfig.hasDegree.contains(true)) {
+        Some(PersistedQuestion("What is the name of the university you received your degree from?",
+          PersistedAnswer(Some(Random.university._1), None, None)))
+      } else {
+        None
+      }
+    }
+
+    def getUniversityDegreeCategoryAnswer = {
+      if (generatorConfig.hasDegree.contains(true)) {
+        Some(PersistedQuestion("Which category best describes your degree?",
+          PersistedAnswer(Some(Random.degreeCategory._1), None, None)))
       } else {
         None
       }
@@ -95,16 +146,12 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       Some(PersistedQuestion("Did you live in the UK between the ages of 14 and 18?", PersistedAnswer(
         Some(didYouLiveInUkBetween14and18Answer), None, None))),
       getWhatWasYourHomePostCodeWhenYouWere14,
-      Some(PersistedQuestion("Aged 14 to 16 what was the name of your school?",
-        PersistedAnswer(Some(Random.age14to16School), None, None))),
-      Some(PersistedQuestion("Aged 16 to 18 what was the name of your school or college?",
-        PersistedAnswer(Some(Random.age16to18School), None, None))),
-      Some(PersistedQuestion("Were you at any time eligible for free school meals?",
-        PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None))),
-      Some(PersistedQuestion("What is the name of the university you received your degree from?",
-        PersistedAnswer(Some(Random.university), None, None))),
-      Some(PersistedQuestion("Which category best describes your degree?",
-        PersistedAnswer(Some(Random.degree), None, None))),
+      getSchoolName14to16Answer,
+      getSchoolName16to18Answer,
+      getFreeSchoolMealsAnswer,
+      getHaveDegreeAnswer,
+      getUniversityAnswer,
+      getUniversityDegreeCategoryAnswer,
       Some(PersistedQuestion("Do you have a parent or guardian that has completed a university degree course or equivalent?",
         PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None))),
       Some(PersistedQuestion("When you were 14, was your highest-earning parent or guardian?",
@@ -127,5 +174,6 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       candidateInPreviousStatus
     }
   }
+
   // scalastyle:on method.length
 }

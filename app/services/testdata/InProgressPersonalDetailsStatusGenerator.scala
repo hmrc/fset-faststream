@@ -61,7 +61,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
     }
 
     def getFastPassDetails(candidateInformation: DataGenerationResponse) = {
-      if (generatorConfig.isCivilServant == Some("Yes")) {
+      if (generatorConfig.isCivilServant.contains(true)) {
         FastPassDetails(true, Some(FastPassType.CivilServant), None, Some(true), Some("123ABC"))
       } else {
         FastPassDetails(applicable = false)
