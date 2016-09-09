@@ -28,6 +28,7 @@ import model._
 import model.command.{ AssessmentCentre, AssessmentScores, OnlineTestProgressResponse, ProgressResponse }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
+import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -52,7 +53,8 @@ trait GeneralApplicationRepository {
 
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
 
-  def findByCriteria(lastName: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]]
+  def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
+    dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
 
   def findApplicationIdsByLocation(location: String): Future[List[String]]
 
@@ -135,9 +137,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val psRoot = doc.getAs[BSONDocument]("personal-details")
     val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
     val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
+    val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
     val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
 
-    Candidate(userId, applicationId, None, firstName, lastName, dateOfBirth, None, None, None)
+    Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
   }
 
   def find(applicationIds: List[String]): Future[List[Candidate]] = {
@@ -228,9 +231,32 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     collection.find(query).one[BSONDocument].map(_.map(docToCandidate))
   }
 
-  def findByCriteria(lastName: Option[String], dateOfBirth: Option[LocalDate]): Future[List[Candidate]] = {
+  def findByCriteria(firstOrPreferredNameOpt: Option[String],
+    lastNameOpt: Option[String],
+    dateOfBirth: Option[LocalDate],
+    userIds: List[String] = List.empty
+  ): Future[List[Candidate]] = {
 
-    val query = BSONDocument("personal-details.lastName" -> lastName, "personal-details.dateOfBirth" -> dateOfBirth)
+    val innerQuery = BSONArray(
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument("personal-details.firstName" -> firstOrPreferredNameOpt.map {
+          firstName => BSONRegex("^" + firstName + "$", "i")
+        }),
+        BSONDocument("personal-details.preferredName" -> firstOrPreferredNameOpt.map {
+          preferredName => BSONRegex("^" + preferredName + "$", "i") }
+        )
+      )),
+      BSONDocument("personal-details.lastName" -> lastNameOpt.map { lastName => BSONRegex("^" + lastName + "$", "i") }),
+      BSONDocument("personal-details.dateOfBirth" -> dateOfBirth)
+    )
+
+    val fullQuery = if (userIds.isEmpty) {
+      innerQuery
+    } else {
+      innerQuery ++ BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+    }
+
+    val query = BSONDocument("$and" -> fullQuery)
 
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map(docToCandidate))
   }

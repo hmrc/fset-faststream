@@ -57,6 +57,8 @@ object DataFaker {
       }
     }
 
+    def upperLetter: Char = randOne(('A' to 'Z').toList)
+
     def bool: Boolean = randOne(List(true, false))
 
     def passmark: Result = randOne(List(EvaluationResults.Green, EvaluationResults.Amber, EvaluationResults.Red))
@@ -219,6 +221,10 @@ object DataFaker {
     def getLastname(userNumber: Int) = {
       val lastName = randOne(Lastnames.list)
       s"$lastName$userNumber"
+    }
+
+    def postCode: String = {
+      s"${Random.upperLetter}${Random.upperLetter}1 2${Random.upperLetter}${Random.upperLetter}"
     }
   }
 }
