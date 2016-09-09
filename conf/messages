@@ -192,7 +192,6 @@ liveInUKBetween14and18.question = Did you live in the UK between the ages of 14 
 postcode.question = What was your home postcode when you were 14?
 schoolName14to16.question = Aged 14 to 16 what was the name of your school?
 schoolName16to18.question = Aged 16 to 18 what was the name of your school or college?
-sixthForm.question = Between the ages of 16 to 18, in which school did you spend most of your education?
 freeSchoolMeals.question = Were you at any time eligible for free school meals?
 haveDegree.question = Do you have a degree?
 university.question = What is the name of the university you received your degree from?
