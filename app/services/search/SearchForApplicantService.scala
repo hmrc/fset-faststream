@@ -47,8 +47,6 @@ trait SearchForApplicantService {
 
     case SearchCandidate(firstOrPreferredName, lastName, dateOfBirth, postCode) =>
       searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName, lastName, dateOfBirth, postCode)
-
-    case _ => Future.successful(Nil)
   }
 
   private def searchByPostCode(postCode: String): Future[List[Candidate]] = {
