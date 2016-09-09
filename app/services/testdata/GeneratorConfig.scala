@@ -23,4 +23,5 @@ import play.api.Play
 case class GeneratorConfig(emailPrefix: String, setGis: Boolean = false, cubiksUrl: String, firstName: Option[String],
                            lastName: Option[String], preferredName: Option[String], region: Option[String],
                            loc1scheme1Passmark: Option[Result], loc1scheme2Passmark: Option[Result], previousStatus: Option[String],
-                           confirmedAllocation: Boolean = true, dob: Option[LocalDate], postCode: Option[String])
+                           confirmedAllocation: Boolean = true, dob: Option[LocalDate], postCode: Option[String],
+                           country: Option[String])
