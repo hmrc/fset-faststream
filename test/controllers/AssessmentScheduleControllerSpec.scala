@@ -142,8 +142,8 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
            |            {
            |                "applicationId": "appid-1",
            |                "confirmed": true,
-           |                "firstName": "Bob",
-           |                "lastName": "Marley",
+           |                "firstName": "Jonathon",
+           |                "lastName": "Smith",
            |                "userId": "userid-1"
            |            },
            |            null
@@ -229,8 +229,8 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
       val expectedJson =
         s"""
            |[{
-           |    "firstName": "Bob",
-           |    "lastName": "Marley",
+           |    "firstName": "Jonathon",
+           |    "lastName": "Smith",
            |    "preferredName": "preferredName1",
            |    "email": "email1@mailinator.com",
            |    "phone": "11111111",
@@ -259,8 +259,8 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
       val expectedJson =
         s"""
            |[{
-           |    "firstName": "Bob",
-           |    "lastName": "Marley",
+           |    "firstName": "Jonathon",
+           |    "lastName": "Smith",
            |    "preferredName": "preferredName1",
            |    "email": "email1@mailinator.com",
            |    "phone": "11111111",
@@ -271,7 +271,7 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
            |},
            |{
            |    "firstName": "Michael",
-           |    "lastName": "Jackson",
+           |    "lastName": "Smith",
            |    "preferredName": "preferredName2",
            |    "email": "email2@mailinator.com",
            |    "phone": "22222222",
@@ -316,7 +316,7 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
            |[
            |{
            |    "firstName": "Michael",
-           |    "lastName": "Jackson",
+           |    "lastName": "Smith",
            |    "preferredName": "preferredName2",
            |    "email": "email2@mailinator.com",
            |    "phone": "22222222",
@@ -696,8 +696,9 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
             "userid-1",
             Some("appid-1"),
             None,
-            Some("Bob"),
-            Some("Marley"),
+            Some("Jonathon"),
+            Some("Smith"),
+            Some("John"),
             None,
             None,
             None,
@@ -718,8 +719,9 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
             "userid-1",
             Some("appid-1"),
             None,
-            Some("Bob"),
-            Some("Marley"),
+            Some("Jonathon"),
+            Some("Smith"),
+            Some("John"),
             None,
             None,
             None,
@@ -730,7 +732,8 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
             Some("appid-2"),
             None,
             Some("Michael"),
-            Some("Jackson"),
+            Some("Smith"),
+            Some("Mike"),
             None,
             None,
             None,
@@ -756,7 +759,8 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
             Some("appid-2"),
             None,
             Some("Michael"),
-            Some("Jackson"),
+            Some("Smith"),
+            Some("Mike"),
             None,
             None,
             None,
