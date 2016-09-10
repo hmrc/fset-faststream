@@ -41,6 +41,8 @@ trait ContactDetailsRepository {
 
   def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]]
 
+  def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]]
+
   def findAll: Future[List[ContactDetailsWithId]]
 }
 
@@ -58,7 +60,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     collection.update(BSONDocument("userId" -> userId), contactDetailsBson, upsert = true) map {
       case lastError if lastError.nModified == 0 && lastError.n == 0 =>
         logger.error(s"""Failed to write contact details for user: $userId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}""")
-        throw new CannotUpdateContactDetails(userId)
+        throw CannotUpdateContactDetails(userId)
       case _ => ()
     }
   }
@@ -77,13 +79,28 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
         val email = root.getAs[String]("email").getOrElse("")
         ContactDetails(address, postCode, email, phone)
       }
-      case None => throw new ContactDetailsNotFound(userId)
+      case None => throw ContactDetailsNotFound(userId)
     }
   }
 
-  override def findByPostCode(postCode: String) = {
+  override def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]] = {
 
     val query = BSONDocument("contact-details.postCode" -> postCode)
+
+    collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+      val id = doc.getAs[String]("userId").get
+      val root = doc.getAs[BSONDocument]("contact-details").get
+      val address = root.getAs[Address]("address").get
+      val postCode = root.getAs[PostCode]("postCode").get
+      val phone = root.getAs[PhoneNumber]("phone")
+      val email = root.getAs[String]("email").get
+
+      ContactDetailsWithId(id, address, postCode, email, phone)
+    })
+  }
+
+  override def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]] = {
+    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
 
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
