@@ -24,20 +24,18 @@ object MicroServiceBuild extends Build with MicroService {
 
 private object Versions {
 
-  val microserviceBootstrapVersion  = "4.2.0"
-  val scalaz                        = "7.1.4"
+  val microserviceBootstrapVersion  = "4.4.0"
   val ficus                         = "1.1.2"
-  val shapeless                     = "2.2.5"
   val playHealthVersion             = "1.1.0"
-  val playConfigVersion             = "2.0.1"
+  val playConfigVersion             = "2.1.0"
   val hmrcScheduler                 = "3.0.0"
-  val hmrcTestVersion               = "1.4.0"
+  val hmrcTestVersion               = "1.8.0"
   val playReactivemongoVersion      = "4.8.0"
   val playJsonLogger                = "2.1.1"
   val guice                         = "4.0.0"
 
   val scalatest                     = "2.2.6"
-  val pegdown                       = "1.5.0"
+  val pegdown                       = "1.6.0"
   val mockito                       = "1.10.19"
   val scalatestplus                 = "1.2.0"
   val specs2                        = "3.6.5"
@@ -59,9 +57,7 @@ private object AppDependencies {
     "org.webjars" % "bootstrap" % "3.1.1",
     "org.webjars" % "jquery" % "1.11.0",
     "net.codingwell" %% "scala-guice" % guice,
-    "org.scalaz" %% "scalaz-core" % scalaz,
     "net.ceedubs" %% "ficus" % ficus,
-    "com.chuusai" %% "shapeless" % shapeless,
     "org.yaml" % "snakeyaml" % "1.16",
     "com.jsuereth" %% "scala-arm" % "1.4",
     "de.leanovate.play-mockws" %% "play-mockws" % "2.3.2" % "test",
