@@ -59,7 +59,6 @@ package object repositories {
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculatorTrait {})
   lazy val onlineTestRepository = new OnlineTestMongoRepository(DateTimeFactory)
-  lazy val onlineTestPDFReportRepository = new OnlineTestPDFReportMongoRepository()
   lazy val testReportRepository = new TestReportMongoRepository()
   lazy val diversityReportRepository = new ReportingMongoRepository()
   lazy val passMarkSettingsRepository = new PassMarkSettingsMongoRepository()
@@ -89,9 +88,7 @@ package object repositories {
       ("session", Ascending), ("slot", Ascending)), unique = true)),
     applicationAssessmentRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
-    applicationAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
-
-    onlineTestPDFReportRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true))
+    applicationAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true))
   )), 20 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {

@@ -34,7 +34,7 @@ object StatusGeneratorFactory {
       case ApplicationStatuses.Submitted => SubmittedStatusGenerator
       case ApplicationStatuses.OnlineTestInvited => OnlineTestInvitedStatusGenerator
       case ApplicationStatuses.OnlineTestStarted => OnlineTestStartedStatusGenerator
-      case ApplicationStatuses.OnlineTestCompleted => OnlineTestCompletedWithPDFReportStatusGenerator
+      case ApplicationStatuses.OnlineTestCompleted => OnlineTestCompletedStatusGenerator
       case ApplicationStatuses.OnlineTestExpired => OnlineTestExpiredStatusGenerator
       case ApplicationStatuses.AwaitingOnlineTestReevaluation => AwaitingOnlineTestReevaluationStatusGenerator
       case ApplicationStatuses.OnlineTestFailed => OnlineTestFailedStatusGenerator

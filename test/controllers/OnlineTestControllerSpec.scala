@@ -33,7 +33,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.{ ContactDetailsRepository, OnlineTestPDFReportRepository }
+import repositories.ContactDetailsRepository
 import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 import testkit.MockitoImplicits.OngoingStubbingExtensionUnit
 import testkit.MockitoSugar
@@ -90,7 +90,6 @@ class OnlineTestControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "successfully reset the online test status" in new TestFixture {
       val appId = "appId"
-      when(onlineTestPDFReportRepoMock.remove(appId)).thenReturn(Future.successful(()))
 
       val result = TestOnlineTestController2.resetOnlineTests(appId)(createResetOnlineTestRequest(appId)).run
 
@@ -119,23 +118,6 @@ class OnlineTestControllerSpec extends PlaySpec with Results with MockitoSugar {
 
   }
 
-  "Get PDF Report" should {
-    "return a valid report if one exists" in new TestFixture {
-      val result = TestOnlineTestController.getPDFReport(hasPDFReportApplicationId)(FakeRequest())
-
-      status(result) must be(OK)
-      headers(result).get("Content-Type").get must equal("application/pdf")
-      headers(result).get("Content-Disposition").get must startWith("attachment;")
-      headers(result).get("Content-Disposition").get must include("""filename="report-""")
-      contentAsBytes(result) must equal(testPDFContents)
-    }
-
-    "return not found if one does not exist" in new TestFixture {
-      val result = TestOnlineTestController.getPDFReport(hasNoPDFReportApplicationId)(FakeRequest())
-
-      status(result) must be(NOT_FOUND)
-    }
-  }
 
   trait TestFixture extends TestFixtureBase {
 
@@ -148,17 +130,8 @@ class OnlineTestControllerSpec extends PlaySpec with Results with MockitoSugar {
     val onlineTestExtensionServiceMock = mock[OnlineTestExtensionService]
     when(onlineTestExtensionServiceMock.extendExpiryTime(any(), any())).thenReturnAsync()
 
-    val onlineTestPDFReportRepoMock = mock[OnlineTestPDFReportRepository]
     val cubiksGatewayClientMock = mock[CubiksGatewayClient]
     val emailClientMock = mock[EmailClient]
-
-    when(onlineTestPDFReportRepoMock.hasReport(any())).thenReturn(Future.successful(true))
-    when(onlineTestPDFReportRepoMock.get(hasPDFReportApplicationId)).thenReturn(Future.successful(
-      Some(testPDFContents)
-    ))
-    when(onlineTestPDFReportRepoMock.get(hasNoPDFReportApplicationId)).thenReturn(Future.successful(
-      None
-    ))
 
     when(emailClientMock.sendOnlineTestInvitation(any(), any(), any())(any())).thenReturn(
       Future.successful(())
@@ -171,7 +144,6 @@ class OnlineTestControllerSpec extends PlaySpec with Results with MockitoSugar {
       val appRepository = DocumentRootInMemoryRepository
       val cdRepository: ContactDetailsRepository = ContactDetailsInMemoryRepository
       val otRepository = OnlineTestInMemoryRepository
-      val otprRepository = onlineTestPDFReportRepoMock
       val trRepository = TestReportInMemoryRepository
       val cubiksGatewayClient = cubiksGatewayClientMock
       val tokenFactory = UUIDFactory
@@ -201,7 +173,6 @@ class OnlineTestControllerSpec extends PlaySpec with Results with MockitoSugar {
       override val onlineRepository = OnlineTestInMemoryRepository
       override val onlineTestingService = OnlineTestServiceMock
       override val onlineTestExtensionService = onlineTestExtensionServiceMock
-      override val onlineTestPDFReportRepo = onlineTestPDFReportRepoMock
     }
 
     object TestOnlineTestController2 extends OnlineTestController {
@@ -222,7 +193,6 @@ class OnlineTestControllerSpec extends PlaySpec with Results with MockitoSugar {
         }
       }
       override val onlineTestExtensionService = onlineTestExtensionServiceMock
-      override val onlineTestPDFReportRepo = onlineTestPDFReportRepoMock
     }
 
     def createOnlineTestRequest(userId: String) = {

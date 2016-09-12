@@ -25,7 +25,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AwaitingOnlineTestReevaluationStatusGenerator extends AwaitingOnlineTestReevaluationStatusGenerator {
-  override val previousStatusGenerator = OnlineTestCompletedWithPDFReportStatusGenerator
+  override val previousStatusGenerator = OnlineTestCompletedStatusGenerator
   override val otRepository = onlineTestRepository
 }
 

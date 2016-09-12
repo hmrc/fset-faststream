@@ -40,7 +40,6 @@ object OnlineTestService extends OnlineTestService {
   val appRepository = applicationRepository
   val cdRepository = contactDetailsRepository
   val otRepository = onlineTestRepository
-  val otprRepository = onlineTestPDFReportRepository
   val trRepository = testReportRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
@@ -118,7 +117,8 @@ trait OnlineTestService {
         invitation.authenticateUrl,
         invitationDate,
         expirationDate,
-        invitation.participantScheduleId
+        invitation.participantScheduleId,
+        scheduleId
       )
     }
 

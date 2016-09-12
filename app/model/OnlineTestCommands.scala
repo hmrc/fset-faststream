@@ -24,7 +24,7 @@ import play.api.libs.json.Json
 
 object OnlineTestCommands {
   case class OnlineTestProfile(cubiksUserId: Int, token: String, onlineTestUrl: String,
-    invitationDate: DateTime, expirationDate: DateTime, participantScheduleId: Int)
+    invitationDate: DateTime, expirationDate: DateTime, participantScheduleId: Int, scheduleId: Int)
 
   case class OnlineTestApplication(applicationId: String, applicationStatus: String, userId: String,
     guaranteedInterview: Boolean, needsAdjustments: Boolean, preferredName: String,

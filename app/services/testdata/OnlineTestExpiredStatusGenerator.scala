@@ -47,7 +47,8 @@ trait OnlineTestExpiredStatusGenerator extends ConstructiveGenerator {
       onlineTestUrl = generatorConfig.cubiksUrl,
       invitationDate = DateTime.now().minusDays(7),
       expirationDate = DateTime.now(),
-      participantScheduleId = 149245
+      participantScheduleId = 149245,
+      scheduleId = 12345
     )
 
     for {

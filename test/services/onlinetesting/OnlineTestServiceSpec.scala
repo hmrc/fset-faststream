@@ -34,7 +34,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
-import repositories.{ContactDetailsRepository, OnlineTestPDFReportRepository, TestReportRepository}
+import repositories.{ContactDetailsRepository, TestReportRepository}
 import services.AuditService
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -121,7 +121,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val InvitationDate = DateTime.parse("2016-05-11")
   val ExpirationDate = InvitationDate.plusDays(7)
   val onlineTestProfile = OnlineTestProfile(CubiksUserId, Token, AuthenticateUrl, InvitationDate, ExpirationDate,
-    standardScheduleIdMock.head)
+    standardScheduleIdMock.head, standardScheduleIdMock.head)
 
   val Postcode = "WC2B 4"
   val EmailContactDetails = "emailfjjfjdf@mailinator.com"
@@ -166,9 +166,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           None,
           None
         ))
-      ))
-      when(otprRepositoryMock.hasReport("valid-applicationid")).thenReturn(Future.successful(
-        false
       ))
 
       val result = onlineTestService.getOnlineTest("valid-userid").futureValue
@@ -256,7 +253,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
         when(otRepositoryMock.storeOnlineTestProfileAndUpdateStatusToInvite(ApplicationId, onlineTestProfile))
           .thenReturn(Future.failed(new Exception))
-        when(otprRepositoryMock.remove(ApplicationId)).thenReturn(Future.successful(()))
         when(trRepositoryMock.remove(ApplicationId)).thenReturn(Future.successful(()))
 
         val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
@@ -283,7 +279,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       )).thenReturn(Future.successful(()))
       when(otRepositoryMock.storeOnlineTestProfileAndUpdateStatusToInvite(any[String], any[OnlineTestProfile]))
         .thenReturn(Future.successful(()))
-      when(otprRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
       when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
 
       val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
@@ -367,7 +362,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val otRepositoryMock = mock[OnlineTestRepository]
-    val otprRepositoryMock = mock[OnlineTestPDFReportRepository]
     val trRepositoryMock = mock[TestReportRepository]
     val cubiksGatewayClientMock = mock[CubiksGatewayClient]
     val emailClientMock = mock[CSREmailClient]
@@ -382,7 +376,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val otRepository = otRepositoryMock
-      val otprRepository = otprRepositoryMock
       val trRepository = trRepositoryMock
       val cubiksGatewayClient = cubiksGatewayClientMock
       val emailClient = emailClientMock

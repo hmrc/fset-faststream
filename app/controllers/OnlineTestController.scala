@@ -48,7 +48,6 @@ object OnlineTestController extends OnlineTestController {
   override val onlineRepository: OnlineTestRepository = onlineTestRepository
   override val onlineTestingService: OnlineTestService = OnlineTestService
   override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
-  override val onlineTestPDFReportRepo: OnlineTestPDFReportRepository = onlineTestPDFReportRepository
 }
 
 trait OnlineTestController extends BaseController {
@@ -56,7 +55,6 @@ trait OnlineTestController extends BaseController {
   val onlineRepository: OnlineTestRepository
   val onlineTestingService: OnlineTestService
   val onlineTestExtensionService: OnlineTestExtensionService
-  val onlineTestPDFReportRepo: OnlineTestPDFReportRepository
 
   import Commands.Implicits._
 
@@ -108,16 +106,6 @@ trait OnlineTestController extends BaseController {
           }
         case _ => Future.successful(NotFound)
       }
-    }
-  }
-
-  def getPDFReport(applicationId: String) = Action.async { implicit request =>
-    onlineTestPDFReportRepo.get(applicationId).map {
-      case Some(report) => {
-        Ok(report).as("application/pdf")
-          .withHeaders(("Content-Disposition", s"""attachment;filename="report-$applicationId.pdf""""))
-      }
-      case _ => NotFound
     }
   }
 

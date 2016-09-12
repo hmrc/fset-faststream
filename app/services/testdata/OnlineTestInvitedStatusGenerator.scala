@@ -43,7 +43,8 @@ trait OnlineTestInvitedStatusGenerator extends ConstructiveGenerator {
       onlineTestUrl = generatorConfig.cubiksUrl,
       invitationDate = DateTime.now(),
       expirationDate = DateTime.now().plusDays(7),
-      participantScheduleId = 149245
+      participantScheduleId = 149245,
+      scheduleId = 12345
     )
 
     for {

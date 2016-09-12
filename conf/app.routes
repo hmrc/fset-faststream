@@ -68,7 +68,6 @@ POST        /online-test/candidate/:userId/status                        control
 POST        /online-test/complete/:token                                 controllers.OnlineTestController.completeTests(token: String)
 POST        /online-test/reset/:appId                                    controllers.OnlineTestController.resetOnlineTests(appId: String)
 POST        /online-test/extend/:appId                                   controllers.OnlineTestController.extendOnlineTests(appId: String)
-GET         /online-test/pdf-report/:applicationId                       controllers.OnlineTestController.getPDFReport(applicationId: String)
 
 GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
 PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)
