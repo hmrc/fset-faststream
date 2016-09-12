@@ -188,8 +188,8 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     val NoUkLivedAndNoCivilServantValid = (EducationQuestionnaireFormExamples.NoUkLivedAndNoCivilServantValidForm,
       EducationQuestionnaireForm.form.fill(EducationQuestionnaireFormExamples.NoUkLivedAndNoCivilServantValidForm))
 
-    def assertFieldRequired(formMap: Map[String, String], expectedError: String, fieldKey: String*) =
-      assertFormError(expectedError, formMap ++ fieldKey.map(k => k -> ""))
+    def assertFieldRequired(formMap: Map[String, String], expectedKeyInError: String, fieldKey: String*) =
+      assertFormError(expectedKeyInError, formMap ++ fieldKey.map(k => k -> ""))
 
     def assertFormError(expectedKey: String, invalidFormValues: Map[String, String]) = {
       val invalidForm = EducationQuestionnaireForm.form.bind(invalidFormValues)
