@@ -46,7 +46,7 @@ package object forms {
   def requiredFormatterWithMaxLengthCheck(requiredKey: String, key: String, maxLength: Option[Int]) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val requiredField: Option[String] = if (data.isEmpty) None else data.get(requiredKey)
-      val keyField: Option[String] = if (data.isEmpty) None else data.get(key)
+      val keyField: Option[String] = if (data.isEmpty) None else data.get(key).map(_.trim)
 
       (requiredField, keyField) match {
         case (Some("Yes"), None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
@@ -66,7 +66,7 @@ package object forms {
                                                                    maxLength: Option[Int]) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val requiredField: Option[String] = if (data.isEmpty) None else data.get(requiredKey)
-      val keyField: Option[String] = if (data.isEmpty) None else data.get(key)
+      val keyField: Option[String] = if (data.isEmpty) None else data.get(key).map(_.trim)
       val keyPreferNotToSayField: Option[String] = if (data.isEmpty) None else data.get(keyPreferNotToSay)
 
       (requiredField, keyField, keyPreferNotToSayField) match {
