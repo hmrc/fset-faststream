@@ -70,7 +70,6 @@ POST        /questionnaire/page/3                                   controllers.
 # Online Test
 POST        /online-tests/start                                     controllers.OnlineTestController.startTests
 GET         /online-tests/complete/:token                           controllers.OnlineTestController.complete(token: UniqueIdentifier)
-GET         /online-tests/pdf-report/download                       controllers.OnlineTestController.downloadPDFReport
 
 # Assets controller
 GET         /assets/*file                                           controllers.Assets.versioned(path="/public", file: Asset)

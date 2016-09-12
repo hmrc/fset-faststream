@@ -182,15 +182,6 @@ trait ApplicationClient {
     }
   }
 
-  def getPDFReport(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Array[Byte]] = {
-    http.wS.url(s"${url.host}${url.base}/online-test/pdf-report/$applicationId").get(resp =>
-      if (resp.status == 200) {
-        Iteratee.consume[Array[Byte]]()
-      } else {
-        throw new PdfReportNotFoundException()
-      }).flatMap { it => it.run }
-  }
-
   def getAllocationDetails(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[AllocationDetails]] = {
     http.GET(s"${url.host}${url.base}/allocation-status/$appId").map { response =>
       Some(response.json.as[AllocationDetails])

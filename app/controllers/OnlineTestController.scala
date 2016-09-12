@@ -63,14 +63,6 @@ abstract class OnlineTestController(applicationClient: ApplicationClient) extend
       }
   }
 
-  def downloadPDFReport = CSRSecureAppAction(DisplayOnlineTestSectionRole) { implicit request =>
-    implicit user =>
-      applicationClient.getPDFReport(user.application.applicationId).map { pdfBinary =>
-        Ok(pdfBinary).as("application/pdf")
-          .withHeaders(("Content-Disposition", s"""attachment;filename="report-${user.application.applicationId}.pdf" """))
-      }
-  }
-
   def complete(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTests(token).map { _ =>

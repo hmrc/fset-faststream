@@ -23,13 +23,11 @@
             }.</p>
         <p>The tests will consist of</p>
             <ol class="list-number">
-                <li>Competency questionnaire (untimed)</li>
-                <li>Verbal reasoning exercise (6 minutes) *</li>
-                <li>Numerical reasoning exercise (6 minutes) *</li>
                 <li>Situational judgement questionnaire (untimed)</li>
+                <li>Behavioural questionnaire (untimed)</li>
             </ol>
             <div class="panel-indent text">
-                <p>* Note: if you've applied under the guaranteed interview scheme (GIS), you don't need to do the verbal or numerical reasoning exercises.</p>
+                <p>* Note: if you've applied under the guaranteed interview scheme (GIS), you don't need to do the behavioural questionnaire.</p>
             </div>
             <div class="hide-tablet panel-indent">
                 <p><i class="fa fa-exclamation-triangle"></i>The online tests
@@ -92,12 +90,6 @@
                 use the <a href="https://www.gov.uk/apply-apprenticeship" rel="external">find an apprenticeship</a> service to search for other apprenticeships in England.
             </p>
 
-            @onlineTest.map { test =>
-                @if(test.pdfReportAvailable) {
-                    <p><a href="@routes.OnlineTestController.downloadPDFReport()">View your online test feedback (Less than 100kb)</a></p>
-                }
-            }
-
             <p><a href="@routes.ApplicationController.helpdesk()">Contact us</a> if you believe there has been a mistake.</p>
     }
 
@@ -123,11 +115,6 @@
     case ASSESSMENT_CENTRE_PASSED_NOTIFIED | ASSESSMENT_CENTRE_FAILED_NOTIFIED if onlineTest.exists(_.pdfReportAvailable) => {
         <p><i class="fa fa-check the-icon"></i>Congratulations – we've assessed your test results and you've passed the online tests.</p>
 
-        @onlineTest.map { test =>
-            @if(test.pdfReportAvailable) {
-                <p><a href="@routes.OnlineTestController.downloadPDFReport()">View your online test feedback (Less than 100kb)</a></p>
-            }
-        }
     }
 
     case _ if RoleUtils.hasReceivedFastPass(usr) => {
