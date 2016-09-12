@@ -109,8 +109,6 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
     configuration.underlying.as[DiversityMonitoringJobConfig]("scheduling.diversity-monitoring-job")
   lazy val retrieveResultsJobConfig =
     configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-results-job")
-  lazy val retrieveOnlineTestPDFReportJobConfig =
-    configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-pdf-report-job")
   lazy val evaluateCandidateScoreJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.evaluate-candidate-score-job")
   lazy val confirmAttendanceReminderJobConfig =
