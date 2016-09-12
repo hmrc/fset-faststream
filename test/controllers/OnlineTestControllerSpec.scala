@@ -180,7 +180,7 @@ class OnlineTestControllerSpec extends PlaySpec with Results with MockitoSugar {
       val auditService = mockAuditService
       val gatewayConfig = CubiksGatewayConfig(
         "",
-        CubiksGatewaysScheduleIds(0, 0),
+        CubiksGatewaysScheduleIds(List(0, 0), List(0)),
         CubiksGatewayVerbalAndNumericalAssessment(1, 33, 1, 6, 12, 2, 6, 12),
         CubiksGatewayStandardAssessment(31, 32),
         CubiksGatewayStandardAssessment(41, 42),

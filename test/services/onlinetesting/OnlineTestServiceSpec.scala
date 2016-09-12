@@ -54,8 +54,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   val emailDomainMock = "mydomain.com"
   val onlineTestCompletedUrlMock = "http://localhost:8000/fset-fast-stream/online-tests/complete/"
-  val gisScheduledIdMock = 11111
-  val standardScheduleIdMock = 22222
+  val gisScheduledIdMock = List(11111)
+  val standardScheduleIdMock = List(33333, 22222)
 
   val testGatewayConfig = CubiksGatewayConfig(
     "",
@@ -104,18 +104,15 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val CubiksUserId = 2222
   val registration = Registration(CubiksUserId)
 
-  val ScheduleId = standardScheduleIdMock
+  val ScheduleId = standardScheduleIdMock.head
 
-  val inviteApplicant = InviteApplicant(ScheduleId, CubiksUserId,
-    onlineTestCompletedUrlMock + Token, None, None)
-  val inviteApplicantGisWithNoTimeAdjustments = InviteApplicant(ScheduleId, CubiksUserId,
-    onlineTestCompletedUrlMock + Token, None, None)
-  val inviteApplicantNoGisWithNoTimeAdjustments = InviteApplicant(ScheduleId, CubiksUserId,
-    onlineTestCompletedUrlMock + Token, None, None)
+  val inviteApplicant = InviteApplicant(ScheduleId, CubiksUserId, None)
+  val inviteApplicantGisWithNoTimeAdjustments = InviteApplicant(ScheduleId, CubiksUserId, None)
+  val inviteApplicantNoGisWithNoTimeAdjustments = InviteApplicant(ScheduleId, CubiksUserId , None)
   val timeAdjustmentsForInviteApplicant = TimeAdjustments(VerbalAndNumericalAssessmentId, VerbalSectionId, NumericalSectionId,
     7, 7)
   val inviteApplicantNoGisWithTimeAdjustments = InviteApplicant(ScheduleId, CubiksUserId,
-    onlineTestCompletedUrlMock + Token, None, Some(timeAdjustmentsForInviteApplicant))
+    Some(timeAdjustmentsForInviteApplicant))
   val AccessCode = "fdkfdfj"
   val LogonUrl = "http://localhost/logonUrl"
   val AuthenticateUrl = "http://localhost/authenticate"
@@ -124,7 +121,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val InvitationDate = DateTime.parse("2016-05-11")
   val ExpirationDate = InvitationDate.plusDays(7)
   val onlineTestProfile = OnlineTestProfile(CubiksUserId, Token, AuthenticateUrl, InvitationDate, ExpirationDate,
-    standardScheduleIdMock)
+    standardScheduleIdMock.head)
 
   val Postcode = "WC2B 4"
   val EmailContactDetails = "emailfjjfjdf@mailinator.com"
@@ -190,7 +187,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])(any[HeaderCarrier])).
         thenReturn(Future.failed(new ConnectorException(ErrorMessage)))
 
-      val result = onlineTestService.registerAndInviteApplicant(applicationForOnlineTestingWithNoTimeAdjustments)
+      val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
       result.failed.futureValue mustBe a[ConnectorException]
 
       verify(auditServiceMock, times(0)).logEventNoRequest(any[String], any[Map[String, String]])
@@ -202,11 +199,11 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         Future.failed(new ConnectorException(ErrorMessage))
       )
 
-      val result = onlineTestService.registerAndInviteApplicant(applicationForOnlineTestingWithNoTimeAdjustments)
+      val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
       result.failed.futureValue mustBe a[ConnectorException]
 
-      verify(auditServiceMock).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-      verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
     }
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest' " +
       "if there is an exception retrieving the contact details" in new OnlineTest {
@@ -217,18 +214,18 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         when(cdRepositoryMock.find(UserId))
           .thenReturn(Future.failed(new Exception))
 
-        val result = onlineTestService.registerAndInviteApplicant(applicationForOnlineTestingWithNoTimeAdjustments)
+        val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
         result.failed.futureValue mustBe an[Exception]
 
-        verify(auditServiceMock).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-        verify(auditServiceMock).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
-        verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
+        verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+        verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+        verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
       }
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest'" +
       " if there is an exception sending the invitation email" in new OnlineTest {
-        when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
+        when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(registration))
-        when(cubiksGatewayClientMock.inviteApplicant(eqTo(inviteApplicant))(any[HeaderCarrier]))
+        when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(invitation))
         when(cdRepositoryMock.find(UserId))
           .thenReturn(Future.successful(contactDetails))
@@ -236,19 +233,19 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           any[HeaderCarrier]
         )).thenReturn(Future.failed(new Exception))
 
-        val result = onlineTestService.registerAndInviteApplicant(applicationForOnlineTestingWithNoTimeAdjustments)
+        val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
         result.failed.futureValue mustBe an[Exception]
 
-        verify(auditServiceMock).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-        verify(auditServiceMock).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
-        verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
+        verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+        verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+        verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
       }
     "fail, audit 'UserRegisteredForOnlineTest', audit 'UserInvitedToOnlineTest'" +
       ", send invitation email to user" +
       "if there is an exception storing the status and the online profile data to database" in new OnlineTest {
         when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
           .thenReturn(Future.successful(registration))
-        when(cubiksGatewayClientMock.inviteApplicant(eqTo(inviteApplicant))(any[HeaderCarrier]))
+        when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(invitation))
         when(otRepositoryMock.storeOnlineTestProfileAndUpdateStatusToInvite(ApplicationId, onlineTestProfile))
           .thenReturn(Future.successful(()))
@@ -256,49 +253,50 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
           any[HeaderCarrier]
         )).thenReturn(Future.successful(()))
+
         when(otRepositoryMock.storeOnlineTestProfileAndUpdateStatusToInvite(ApplicationId, onlineTestProfile))
           .thenReturn(Future.failed(new Exception))
         when(otprRepositoryMock.remove(ApplicationId)).thenReturn(Future.successful(()))
         when(trRepositoryMock.remove(ApplicationId)).thenReturn(Future.successful(()))
 
-        val result = onlineTestService.registerAndInviteApplicant(applicationForOnlineTestingWithNoTimeAdjustments)
+        val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
         result.failed.futureValue mustBe an[Exception]
 
-        verify(emailClientMock).sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
+        verify(emailClientMock, times(2)).sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
           any[HeaderCarrier]
         )
-        verify(auditServiceMock).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-        verify(auditServiceMock).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
-        verify(auditServiceMock).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
-        verify(auditServiceMock, times(3)).logEventNoRequest(any[String], any[Map[String, String]])
+        verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+        verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+        verify(auditServiceMock, times(2)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+        verify(auditServiceMock, times(6)).logEventNoRequest(any[String], any[Map[String, String]])
       }
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
       when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(eqTo(inviteApplicant))(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
         .thenReturn(Future.successful(invitation))
-      when(otRepositoryMock.storeOnlineTestProfileAndUpdateStatusToInvite(ApplicationId, onlineTestProfile))
+      when(otRepositoryMock.storeOnlineTestProfileAndUpdateStatusToInvite(any[String], any[OnlineTestProfile]))
         .thenReturn(Future.successful(()))
-      when(cdRepositoryMock.find(UserId)).thenReturn(Future.successful(contactDetails))
+      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
         any[HeaderCarrier]
       )).thenReturn(Future.successful(()))
-      when(otRepositoryMock.storeOnlineTestProfileAndUpdateStatusToInvite(ApplicationId, onlineTestProfile))
+      when(otRepositoryMock.storeOnlineTestProfileAndUpdateStatusToInvite(any[String], any[OnlineTestProfile]))
         .thenReturn(Future.successful(()))
-      when(otprRepositoryMock.remove(ApplicationId)).thenReturn(Future.successful(()))
-      when(trRepositoryMock.remove(ApplicationId)).thenReturn(Future.successful(()))
+      when(otprRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
+      when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
 
-      val result = onlineTestService.registerAndInviteApplicant(applicationForOnlineTestingWithNoTimeAdjustments)
+      val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
       result.futureValue mustBe (())
 
-      verify(emailClientMock).sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
+      verify(emailClientMock, times(2)).sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
         any[HeaderCarrier]
       )
-      verify(auditServiceMock).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-      verify(auditServiceMock).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
-      verify(auditServiceMock).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
-      verify(auditServiceMock).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
-      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+      verify(auditServiceMock, times(2)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(2)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
+      verify(auditServiceMock, times(8)).logEventNoRequest(any[String], any[Map[String, String]])
     }
   }
 
@@ -343,22 +341,22 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   "build invite application" should {
     "return an InviteApplication with no time adjustments if gis and application has no time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithNoTimeAdjustments, Token, CubiksUserId,
+      onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithNoTimeAdjustments, CubiksUserId,
         ScheduleId) must be(inviteApplicantGisWithNoTimeAdjustments)
     }
 
     "return an InviteApplication with no time adjustments if gis and application has time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithTimeAdjustments, Token, CubiksUserId,
+      onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithTimeAdjustments, CubiksUserId,
         ScheduleId) must be(inviteApplicantGisWithNoTimeAdjustments)
     }
 
     "return an InviteApplication with no time adjustments if no gis and application has no time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingWithNoTimeAdjustments, Token, CubiksUserId,
+      onlineTestService.buildInviteApplication(applicationForOnlineTestingWithNoTimeAdjustments, CubiksUserId,
         ScheduleId) must be(inviteApplicantNoGisWithNoTimeAdjustments)
     }
 
     "return an InviteApplication with time adjustments if no gis and application has time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingWithTimeAdjustments, Token, CubiksUserId,
+      onlineTestService.buildInviteApplication(applicationForOnlineTestingWithTimeAdjustments, CubiksUserId,
         ScheduleId) must be(inviteApplicantNoGisWithTimeAdjustments)
     }
   }

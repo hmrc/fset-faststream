@@ -56,7 +56,7 @@ case class CubiksGatewayConfig(url: String, scheduleIds: CubiksGatewaysScheduleI
   situationalAssessment: CubiksGatewayStandardAssessment,
   reportConfig: ReportConfig, candidateAppUrl: String, emailDomain: String)
 
-case class CubiksGatewaysScheduleIds(standard: Int, gis: Int)
+case class CubiksGatewaysScheduleIds(standard: List[Int], gis: List[Int])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int

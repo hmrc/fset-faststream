@@ -57,7 +57,6 @@ trait OnlineTestService {
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
   val otRepository: OnlineTestRepository
-  val otprRepository: OnlineTestPDFReportRepository
   val trRepository: TestReportRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val emailClient: EmailClient
@@ -80,7 +79,6 @@ trait OnlineTestService {
     for {
       onlineTestDetails <- otRepository.getOnlineTestDetails(userId)
       candidate <- appRepository.findCandidateByUserId(userId)
-      hasReport <- otprRepository.hasReport(candidate.get.applicationId.get)
     } yield {
       OnlineTest(
         onlineTestDetails.inviteDate,
@@ -88,34 +86,39 @@ trait OnlineTestService {
         onlineTestDetails.onlineTestLink,
         onlineTestDetails.cubiksEmailAddress,
         onlineTestDetails.isOnlineTestEnabled,
-        hasReport
+        false
       )
     }
   }
 
-  def registerAndInviteApplicant(application: OnlineTestApplication): Future[Unit] = {
+  def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
+    Future.sequence(getScheduleIdForApplication(application).map { scheduleId =>
+      registerAndInviteApplicant(application, scheduleId)
+    }).map(_ => ())
+  }
+
+  private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int): Future[Unit] = {
+    val (invitationDate, expirationDate) = onlineTestDates
     val token = tokenFactory.generateUUID()
 
     val invitationProcess = for {
       userId <- registerApplicant(application, token)
-      invitation <- inviteApplicant(application, token, userId)
-      (invitationDate, expirationDate) = onlineTestDates
-      _ <- trRepository.remove(application.applicationId)
-      _ <- otprRepository.remove(application.applicationId)
+      invitation <- inviteApplicant(application, userId, scheduleId)
       emailAddress <- candidateEmailAddress(application)
+      _ <- trRepository.remove(application.applicationId)
       _ <- emailInviteToApplicant(application, emailAddress, invitationDate)
-    } yield OnlineTestProfile(
-      invitation.userId,
-      token,
-      invitation.authenticateUrl,
-      invitationDate,
-      expirationDate,
-      invitation.participantScheduleId
-    )
+    } yield {
+      OnlineTestProfile(invitation.userId,
+        token,
+        invitation.authenticateUrl,
+        invitationDate,
+        expirationDate,
+        invitation.participantScheduleId
+      )
+    }
 
-    invitationProcess.flatMap(
-      markAsCompleted(application)
-    )
+    invitationProcess.flatMap(markAsCompleted(application))
+
   }
 
   def nextApplicationReadyForReportRetrieving: Future[Option[OnlineTestApplicationWithCubiksUser]] = {
@@ -164,7 +167,7 @@ trait OnlineTestService {
     }
   }
 
-  private def registerApplicant(application: OnlineTestApplication, token: String): Future[Int] = {
+  def registerApplicant(application: OnlineTestApplication, token: String): Future[Int] = {
     val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
     val registerApplicant = RegisterApplicant(preferredName, "", token + "@" + gatewayConfig.emailDomain)
     cubiksGatewayClient.registerApplicant(registerApplicant).map { registration =>
@@ -173,9 +176,9 @@ trait OnlineTestService {
     }
   }
 
-  private def inviteApplicant(application: OnlineTestApplication, token: String, userId: Int): Future[Invitation] = {
-    val scheduleId = getScheduleIdForApplication(application)
-    val inviteApplicant = buildInviteApplication(application, token, userId, scheduleId)
+  private def inviteApplicant(application: OnlineTestApplication, userId: Int, scheduleId: Int): Future[Invitation] = {
+
+    val inviteApplicant = buildInviteApplication(application, userId, scheduleId)
     cubiksGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
       audit("UserInvitedToOnlineTest", application.userId)
       invitation
@@ -216,7 +219,7 @@ trait OnlineTestService {
 
   private def calculateExpireDate(invitationDate: DateTime) = invitationDate.plusDays(7)
 
-  private[services] def getScheduleIdForApplication(application: OnlineTestApplication) = {
+  private def getScheduleIdForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
       gatewayConfig.scheduleIds.gis
     } else {
@@ -252,13 +255,12 @@ trait OnlineTestService {
     math.min(adjustedValue, maximum).toInt
   }
 
-  private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
-    val onlineTestCompletedUrl = gatewayConfig.candidateAppUrl + "/fset-fast-stream/online-tests/complete/" + token
+  private[services] def buildInviteApplication(application: OnlineTestApplication, userId: Int, scheduleId: Int) = {
     if (application.guaranteedInterview) {
-      InviteApplicant(scheduleId, userId, onlineTestCompletedUrl, None, None)
+      InviteApplicant(scheduleId, userId, None)
     } else {
       val timeAdjustments = getTimeAdjustments(application)
-      InviteApplicant(scheduleId, userId, onlineTestCompletedUrl, None, timeAdjustments)
+      InviteApplicant(scheduleId, userId, timeAdjustments)
     }
   }
 

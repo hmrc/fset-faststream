@@ -92,7 +92,7 @@ trait OnlineTestController extends BaseController {
 
     onlineRepository.getOnlineTestApplication(appId).flatMap {
       case Some(onlineTestApp) =>
-        onlineTestingService.registerAndInviteApplicant(onlineTestApp).map { _ =>
+        onlineTestingService.registerAndInviteForTestGroup(onlineTestApp).map { _ =>
           Ok
         }
       case _ => Future.successful(NotFound)
