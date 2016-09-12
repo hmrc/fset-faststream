@@ -86,27 +86,32 @@ trait OnlineTestService {
         onlineTestDetails.onlineTestLink,
         onlineTestDetails.cubiksEmailAddress,
         onlineTestDetails.isOnlineTestEnabled,
-        false
+        pdfReportAvailable = false
       )
     }
   }
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
-    Future.sequence(getScheduleIdForApplication(application).map { scheduleId =>
-      registerAndInviteApplicant(application, scheduleId)
+    val (invitationDate, expirationDate) = onlineTestDates
+    val result = Future.sequence(getScheduleIdForApplication(application).map { scheduleId =>
+      registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
     }).map(_ => ())
+
+    result.flatMap { _ =>
+      candidateEmailAddress(application).flatMap { emailAddress =>
+        emailInviteToApplicant(application, emailAddress, invitationDate)
+      }
+    }
   }
 
-  private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int): Future[Unit] = {
-    val (invitationDate, expirationDate) = onlineTestDates
+  private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int,
+    invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = {
     val token = tokenFactory.generateUUID()
 
     val invitationProcess = for {
       userId <- registerApplicant(application, token)
       invitation <- inviteApplicant(application, userId, scheduleId)
-      emailAddress <- candidateEmailAddress(application)
       _ <- trRepository.remove(application.applicationId)
-      _ <- emailInviteToApplicant(application, emailAddress, invitationDate)
     } yield {
       OnlineTestProfile(invitation.userId,
         token,
