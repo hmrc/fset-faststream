@@ -57,7 +57,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
     implicit user =>
       presentPageIfNotFilledInPreviously(EducationQuestionnaireCompletedRole,
         Ok(views.html.questionnaire.secondpage(EducationQuestionnaireForm.form,
-          if (isCivilServant(user.application.fastPassDetails)) "Yes" else "No")))
+          if (user.application.fastPassDetails.exists(_.isCivilServant())) "Yes" else "No")))
   }
 
   def presentThirdPage = CSRSecureAppAction(ParentalOccupationQuestionnaireRole) { implicit request =>
@@ -115,7 +115,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
 
   def submitSecondPage = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
-      val isCivilServantString = if (user.application.fastPassDetails.isCivilServant()) "Yes" else "No"
+      val isCivilServantString = if (user.application.fastPassDetails.exists(_.isCivilServant())) "Yes" else "No"
       EducationQuestionnaireCompletedRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(QuestionnaireCompletedBanner))
         case false => EducationQuestionnaireForm.form.bindFromRequest.fold(

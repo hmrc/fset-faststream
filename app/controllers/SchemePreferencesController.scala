@@ -30,7 +30,7 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
-      val civilServant = user.application.fastPassDetails.isCivilServant()
+      val civilServant = user.application.fastPassDetails.exists(_.isCivilServant())
       schemeClient.getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
         Ok(views.html.application.schemePreferences.schemeSelection(civilServant, form.fill(selectedSchemes)))
       }.recover {
@@ -43,7 +43,7 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
     implicit user =>
       form.bindFromRequest.fold(
         invalidForm => {
-          val civilServant = user.application.fastPassDetails.isCivilServant()
+          val civilServant = user.application.fastPassDetails.exists(_.isCivilServant())
           Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(civilServant, invalidForm)))
         },
         selectedSchemes => {

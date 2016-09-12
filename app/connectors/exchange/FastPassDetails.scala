@@ -30,6 +30,7 @@ case class FastPassDetails(applicable: Boolean,
   def isCivilServant() = {
     fastPassType.map {fpt => fpt == FastPassForm.CivilServant || fpt == FastPassForm.CivilServantViaFastTrack}.getOrElse(false)
   }
+
 }
 
 object FastPassDetails {
