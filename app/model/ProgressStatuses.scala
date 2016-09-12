@@ -53,12 +53,12 @@ object ProgressStatuses {
   object ProgressStatus {
     implicit val progressStatusFormat = new Format[ProgressStatus] {
       def reads(json: JsValue) = JsSuccess(nameToProgressStatus(json.as[String]))
-      def writes(myEnum: ProgressStatus) = JsString(myEnum.toString)
+      def writes(progressStatusName: ProgressStatus) = JsString(progressStatusName.toString)
     }
 
     implicit object BSONEnumHandler extends BSONHandler[BSONString, ProgressStatus] {
       def read(doc: BSONString) = nameToProgressStatus(doc.value)
-      def write(stats: ProgressStatus) = BSON.write(stats.toString)
+      def write(progressStatusName: ProgressStatus) = BSON.write(progressStatusName.toString)
     }
   }
 
