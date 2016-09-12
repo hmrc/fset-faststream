@@ -115,7 +115,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
 
   def submitSecondPage = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
-      val isCivilServantString = if (isCivilServant(user.application.fastPassDetails)) "Yes" else "No"
+      val isCivilServantString = if (user.application.fastPassDetails.isCivilServant()) "Yes" else "No"
       EducationQuestionnaireCompletedRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(QuestionnaireCompletedBanner))
         case false => EducationQuestionnaireForm.form.bindFromRequest.fold(
@@ -164,10 +164,5 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
     applicationClient.updateQuestionnaire(user.application.applicationId, sectionId, data).flatMap { _ =>
       updateProgress()(_ => onSuccess)
     }
-  }
-
-  private def isCivilServant(fastPassDetails: Option[FastPassDetails]) = {
-    val fp = fastPassDetails flatMap (_.fastPassType)
-    fp.contains(FastPassForm.CivilServant) || fp.contains(FastPassForm.CivilServantViaFastTrack)
   }
 }

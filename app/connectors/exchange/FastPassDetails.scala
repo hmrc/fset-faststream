@@ -16,15 +16,21 @@
 
 package connectors.exchange
 
+import forms.FastPassForm
 import forms.FastPassForm._
 import play.api.libs.json.Json
+
 import language.implicitConversions
 
 case class FastPassDetails(applicable: Boolean,
                            fastPassType: Option[String] = None,
                            internshipTypes: Option[Seq[String]] = None,
                            fastPassReceived: Option[Boolean] = None,
-                           certificateNumber: Option[String] = None)
+                           certificateNumber: Option[String] = None) {
+  def isCivilServant() = {
+    fastPassType.map {fpt => fpt == FastPassForm.CivilServant || fpt == FastPassForm.CivilServantViaFastTrack}.getOrElse(false)
+  }
+}
 
 object FastPassDetails {
 
@@ -45,5 +51,4 @@ object FastPassDetails {
     data.fastPassReceived,
     data.certificateNumber
   )
-
 }
