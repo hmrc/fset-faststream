@@ -45,8 +45,8 @@ package object forms {
 
   def requiredFormatterWithMaxLengthCheck(requiredKey: String, key: String, maxLength: Option[Int]) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      val requiredField: Option[String] = data.get(requiredKey)
-      val keyField: Option[String] = data.get(key)
+      val requiredField: Option[String] = if (data.isEmpty) None else data.get(requiredKey)
+      val keyField: Option[String] = if (data.isEmpty) None else data.get(key)
 
       (requiredField, keyField) match {
         case (Some("Yes"), None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
@@ -59,14 +59,15 @@ package object forms {
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
 
+  // scalastyle:off cyclomatic.complexity
   def requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay(requiredKey: String,
                                                                    key: String,
                                                                    keyPreferNotToSay: String,
                                                                    maxLength: Option[Int]) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      val requiredField: Option[String] = data.get(requiredKey)
-      val keyField: Option[String] = data.get(key)
-      val keyPreferNotToSayField: Option[String] = data.get(keyPreferNotToSay)
+      val requiredField: Option[String] = if (data.isEmpty) None else data.get(requiredKey)
+      val keyField: Option[String] = if (data.isEmpty) None else data.get(key)
+      val keyPreferNotToSayField: Option[String] = if (data.isEmpty) None else data.get(keyPreferNotToSay)
 
       (requiredField, keyField, keyPreferNotToSayField) match {
         case (Some("Yes"), None, None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
@@ -80,5 +81,6 @@ package object forms {
 
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
+  // scalastyle:on
 
 }

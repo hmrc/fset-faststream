@@ -33,7 +33,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
       form.get must be(data)
     }
 
-    "be valid when no lived in UK" in new Fixture {
+    "be valid when not lived in UK" in new Fixture {
       val (data, form) = NoUkValid
       form.get must be(data)
     }
@@ -43,12 +43,12 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
       form.get must be(data)
     }
 
-    "be valid when no lived in UK And civil servant in UK" in new Fixture {
+    "be valid when not lived in UK And civil servant in UK" in new Fixture {
       val (data, form) = NoUkLivedAndNoCivilServantValid
       form.get must be(data)
     }
 
-    "fail when all values are correct but no lived in UK" in new Fixture {
+    "fail when all values are correct but not lived in UK" in new Fixture {
       assertFieldRequired(FullValidFormMap, "liveInUKBetween14and18", "liveInUKBetween14and18")
     }
 
@@ -76,7 +76,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
       assertFieldRequired(FullValidFormMap, "universityDegreeCategory", "universityDegreeCategory")
     }
 
-    "fail when all values are correct and no lived in UK but no university" in new Fixture {
+    "fail when all values are correct and not lived in UK but no university" in new Fixture {
       assertFieldRequired(NoUkLivedValidFormMap, "university", "university")
     }
 
