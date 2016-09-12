@@ -17,6 +17,8 @@
 package model
 
 import model.ApplicationStatus.ApplicationStatus
+import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object ProgressStatuses {
   val RegisteredProgress = "registered"
@@ -31,6 +33,9 @@ object ProgressStatuses {
   val OccupationQuestionsCompletedProgress = "occupation_questions_completed"
   val SubmittedProgress = "submitted"
   val WithdrawnProgress = "withdrawn"
+  val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
+  val OnlineTestFailedProgress = "online_test_failed"
+  val OnlineTestFailedNotifiedProgress = "online_test_failed_notified"
   val AwaitingOnlineTestAllocationProgress = "awaiting_online_test_allocation"
   val AllocationConfirmedProgress = "allocation_confirmed"
   val AllocationUnconfirmedProgress = "allocation_unconfirmed"
@@ -45,9 +50,37 @@ object ProgressStatuses {
 
   sealed abstract class ProgressStatus(applicationStatus: ApplicationStatus)
 
-  case object PHASE1_TEST_INVITED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
-  case object PHASE1_TEST_STARTED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
-  case object PHASE1_TEST_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
-  case object PHASE1_TEST_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
-  case object PHASE1_TEST_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
+  object ProgressStatus {
+    implicit val progressStatusFormat = new Format[ProgressStatus] {
+      def reads(json: JsValue) = JsSuccess(nameToProgressStatus(json.as[String]))
+      def writes(myEnum: ProgressStatus) = JsString(myEnum.toString)
+    }
+
+    implicit object BSONEnumHandler extends BSONHandler[BSONString, ProgressStatus] {
+      def read(doc: BSONString) = nameToProgressStatus(doc.value)
+      def write(stats: ProgressStatus) = BSON.write(stats.toString)
+    }
+  }
+
+  case object PHASE1_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+  case object PHASE1_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+  case object PHASE1_TESTS_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+  case object PHASE1_TESTS_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+  case object PHASE1_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+  val nameToProgressStatus = List(
+    PHASE1_TESTS_INVITED,
+    PHASE1_TESTS_STARTED,
+    PHASE1_TESTS_COMPLETED,
+    PHASE1_TESTS_EXPIRED,
+    PHASE1_TESTS_RESULTS_RECEIVED
+  ).map { value =>
+    value.toString -> value
+  }.toMap
+
 }
+

@@ -32,13 +32,14 @@ object StatusGeneratorFactory {
       case "IN_PROGRESS_QUESTIONNAIRE" => InProgressQuestionnaireStatusGenerator
       case "IN_PROGRESS_PREVIEW" => InProgressPreviewStatusGenerator
       case ApplicationStatuses.Submitted => SubmittedStatusGenerator
-      case ApplicationStatuses.OnlineTestInvited => OnlineTestInvitedStatusGenerator
-      case ApplicationStatuses.OnlineTestStarted => OnlineTestStartedStatusGenerator
-      case ApplicationStatuses.OnlineTestCompleted => OnlineTestCompletedWithPDFReportStatusGenerator
-      case ApplicationStatuses.OnlineTestExpired => OnlineTestExpiredStatusGenerator
-      case ApplicationStatuses.AwaitingOnlineTestReevaluation => AwaitingOnlineTestReevaluationStatusGenerator
-      case ApplicationStatuses.OnlineTestFailed => OnlineTestFailedStatusGenerator
-      case ApplicationStatuses.OnlineTestFailedNotified => OnlineTestFailedNotifiedStatusGenerator
+        // TODO: in faststream
+      // case ApplicationStatuses.OnlineTestInvited => OnlineTestInvitedStatusGenerator
+      // case ApplicationStatuses.OnlineTestStarted => OnlineTestStartedStatusGenerator
+      // case ApplicationStatuses.OnlineTestCompleted => OnlineTestCompletedWithPDFReportStatusGenerator
+      // case ApplicationStatuses.OnlineTestExpired => OnlineTestExpiredStatusGenerator
+      // case ApplicationStatuses.AwaitingOnlineTestReevaluation => AwaitingOnlineTestReevaluationStatusGenerator
+      //case ApplicationStatuses.OnlineTestFailed => OnlineTestFailedStatusGenerator
+      //case ApplicationStatuses.OnlineTestFailedNotified => OnlineTestFailedNotifiedStatusGenerator
       case ApplicationStatuses.AwaitingAllocation => AwaitingAllocationStatusGenerator
       case ApplicationStatuses.AllocationConfirmed => AllocationStatusGenerator
       case ApplicationStatuses.AllocationUnconfirmed => AllocationStatusGenerator

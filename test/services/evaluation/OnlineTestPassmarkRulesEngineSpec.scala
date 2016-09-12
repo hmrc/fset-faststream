@@ -25,6 +25,7 @@ import model.{ApplicationStatuses, Schemes}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 
+/* TODO: in faststream
 class OnlineTestPassmarkRulesEngineSpec extends PlaySpec {
   //scalastyle:off
   val PassmarkSettings = Settings(
@@ -341,3 +342,4 @@ class OnlineTestPassmarkRulesEngineSpec extends PlaySpec {
   private def noTScore: Option[TestResult] = Some(TestResult("", "", None, None, None, None))
   private def t(failThreshold: Double, passThreshold: Double) = SchemeThreshold(failThreshold, passThreshold)
 }
+*/

@@ -34,7 +34,8 @@ trait OnlineTestStartedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      updateStatus <- otRepository.updateStatus(candidateInPreviousStatus.userId, ApplicationStatuses.OnlineTestStarted)
+      // TODO: in faststream
+      // updateStatus <- otRepository.updateStatus(candidateInPreviousStatus.userId, ApplicationStatuses.OnlineTestStarted)
     } yield {
       candidateInPreviousStatus
     }
