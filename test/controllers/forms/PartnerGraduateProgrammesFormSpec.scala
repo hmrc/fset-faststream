@@ -26,7 +26,7 @@ class PartnerGraduateProgrammesFormSpec extends PlaySpec {
 
   "the partner graduate programmes form" should {
     "be valid when the user selects no in the interested" in new Fixture {
-      val (data, form) = NoInterested
+      val (data, form) = NotInterested
       form.get must be(data)
     }
 
@@ -44,7 +44,7 @@ class PartnerGraduateProgrammesFormSpec extends PlaySpec {
 
   trait Fixture {
 
-    val NoInterested = (NoInterestedForm, PartnerGraduateProgrammesForm.form.fill(NoInterestedForm))
+    val NotInterested = (NotInterestedForm, PartnerGraduateProgrammesForm.form.fill(NotInterestedForm))
 
     val InterestedNotAll = (InterestedNotAllForm, PartnerGraduateProgrammesForm.form.fill(InterestedNotAllForm))
 

@@ -21,7 +21,7 @@ import forms.PartnerGraduateProgrammesForm
 object PartnerGraduateProgrammesFormExamples {
   val InterestedNotAllForm = PartnerGraduateProgrammesForm.Data("Yes",
     Some(List("Entrepreneur First", "Frontline", "Think Ahead")))
-  val NoInterestedForm = PartnerGraduateProgrammesForm.Data("No", None)
+  val NotInterestedForm = PartnerGraduateProgrammesForm.Data("No", None)
   val InterestedButNoProgrammeSelectedForm = PartnerGraduateProgrammesForm.Data("Yes", None)
 
   val InterestedNotAllMap = Map[String, String](
