@@ -22,12 +22,11 @@ import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
-import model.EvaluationResults.Result
 import model.ApplicationStatuses
+import model.EvaluationResults.Result
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
-import play.api.data.validation.{ Constraint, Invalid, Valid, ValidationError }
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.testdata._
@@ -55,7 +54,7 @@ trait TestDataGeneratorController extends BaseController {
   }
 
   def createAdminUsers(numberToGenerate: Int, emailPrefix: String, role: String) = Action.async { implicit request =>
-        TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
+    TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }
@@ -81,13 +80,15 @@ trait TestDataGeneratorController extends BaseController {
                                firstName: Option[String],
                                lastName: Option[String],
                                preferredName: Option[String],
+                               isCivilServant: Option[Boolean],
+                               hasDegree: Option[Boolean],
                                region: Option[String],
                                loc1scheme1EvaluationResult: Option[String],
                                loc1scheme2EvaluationResult: Option[String],
                                previousStatus: Option[String] = None,
                                confirmedAllocation: Boolean,
-    dateOfBirth: Option[String] = None,
-    postCode: Option[String]) = Action.async { implicit request =>
+                               dateOfBirth: Option[String] = None,
+                               postCode: Option[String]) = Action.async { implicit request =>
 
     val initialConfig = GeneratorConfig(
       emailPrefix = emailPrefix,
@@ -96,6 +97,8 @@ trait TestDataGeneratorController extends BaseController {
       firstName = firstName,
       lastName = lastName,
       preferredName = preferredName,
+      isCivilServant = isCivilServant,
+      hasDegree = hasDegree,
       region = region,
       loc1scheme1Passmark = loc1scheme1EvaluationResult.map(Result(_)),
       loc1scheme2Passmark = loc1scheme2EvaluationResult.map(Result(_)),
@@ -120,7 +123,8 @@ trait TestDataGeneratorController extends BaseController {
   private def validatePostcode(postcode: String) = {
     // putting this on multiple lines won't make this regex any clearer
     // scalastyle:off line.size.limit
-    val postcodePattern = """^(?i)(GIR 0AA)|((([A-Z][0-9][0-9]?)|(([A-Z][A-HJ-Y][0-9][0-9]?)|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) ?[0-9][A-Z]{2})$""".r
+    val postcodePattern =
+      """^(?i)(GIR 0AA)|((([A-Z][0-9][0-9]?)|(([A-Z][A-HJ-Y][0-9][0-9]?)|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) ?[0-9][A-Z]{2})$""".r
     // scalastyle:on line.size.limit
 
     postcodePattern.pattern.matcher(postcode).matches match {

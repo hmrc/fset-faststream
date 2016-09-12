@@ -61,14 +61,23 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       )
     }
 
+    def getFastPassDetails(candidateInformation: DataGenerationResponse) = {
+      if (generatorConfig.isCivilServant.contains(true)) {
+        FastPassDetails(true, Some(FastPassType.CivilServant), None, None, None)
+      } else {
+        FastPassDetails(applicable = false)
+      }
+    }
+
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       pd = getPersonalDetails(candidateInPreviousStatus)
       cd = getContactDetails(candidateInPreviousStatus)
+      fpd = getFastPassDetails(candidateInPreviousStatus)
       _ <- pdRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
         pd, List(model.ApplicationStatus.CREATED), model.ApplicationStatus.IN_PROGRESS)
       _ <- cdRepository.update(candidateInPreviousStatus.userId, cd)
-      _ <- fpdRepository.update(candidateInPreviousStatus.applicationId.get, FastPassDetails(applicable = false))
+      _ <- fpdRepository.update(candidateInPreviousStatus.applicationId.get, fpd)
     } yield {
       candidateInPreviousStatus.copy(personalDetails = Some(pd), contactDetails = Some(cd))
     }
