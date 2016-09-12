@@ -58,11 +58,11 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def applicationStatus(applicationId: String) = Action.async { implicit request =>
+  def findApplicationStatusDetails(applicationId: String) = Action.async { implicit request =>
     appRepository.findStatus(applicationId).map { result =>
       Ok(Json.toJson(result))
     }.recover {
-      case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
+      case e: ApplicationNotFound => NotFound(s"cannot retrieve applications status details for application: ${e.id}")
     }
   }
 
