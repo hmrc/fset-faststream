@@ -16,6 +16,8 @@
 
 package model
 
+import model.ApplicationStatus.ApplicationStatus
+
 object ProgressStatuses {
   val RegisteredProgress = "registered"
   val PersonalDetailsCompletedProgress = "personal_details_completed"
@@ -29,13 +31,6 @@ object ProgressStatuses {
   val OccupationQuestionsCompletedProgress = "occupation_questions_completed"
   val SubmittedProgress = "submitted"
   val WithdrawnProgress = "withdrawn"
-  val OnlineTestInvitedProgress = "online_test_invited"
-  val OnlineTestStartedProgress = "online_test_started"
-  val OnlineTestCompletedProgress = "online_test_completed"
-  val OnlineTestExpiredProgress = "online_test_expired"
-  val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
-  val OnlineTestFailedProgress = "online_test_failed"
-  val OnlineTestFailedNotifiedProgress = "online_test_failed_notified"
   val AwaitingOnlineTestAllocationProgress = "awaiting_online_test_allocation"
   val AllocationConfirmedProgress = "allocation_confirmed"
   val AllocationUnconfirmedProgress = "allocation_unconfirmed"
@@ -47,4 +42,12 @@ object ProgressStatuses {
   val AssessmentCentreFailedProgress = ApplicationStatuses.AssessmentCentreFailed.toLowerCase()
   val AssessmentCentrePassedNotifiedProgress = ApplicationStatuses.AssessmentCentrePassedNotified.toLowerCase()
   val AssessmentCentreFailedNotifiedProgress = ApplicationStatuses.AssessmentCentreFailedNotified.toLowerCase()
+
+  sealed abstract class ProgressStatus(applicationStatus: ApplicationStatus)
+
+  case object PHASE1_TEST_INVITED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
+  case object PHASE1_TEST_STARTED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
+  case object PHASE1_TEST_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
+  case object PHASE1_TEST_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
+  case object PHASE1_TEST_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE1_TESTING)
 }

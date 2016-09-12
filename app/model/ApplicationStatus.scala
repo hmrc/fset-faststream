@@ -22,6 +22,7 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 object ApplicationStatus extends Enumeration {
   type ApplicationStatus = Value
   val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED = Value
+  val PHASE1_TESTING = Value
 
   implicit val applicationStatusFormat = new Format[ApplicationStatus] {
     def reads(json: JsValue) = JsSuccess(ApplicationStatus.withName(json.as[String]))
