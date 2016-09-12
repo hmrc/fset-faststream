@@ -62,10 +62,11 @@ class OnlineTestFailureServiceImpl(
       audit("FailedOnlineTestNotificationEmailed", failedTest, Some(emailAddress))
     }
 
-  override def commitNotifiedStatus(failedTest: ApplicationForNotification): Future[Unit] =
+  override def commitNotifiedStatus(failedTest: ApplicationForNotification): Future[Unit] = {
     otRepository.updateStatus(failedTest.userId, ApplicationStatuses.OnlineTestFailedNotified).map { _ =>
       audit("FailedOnlineTest", failedTest)
     }
+  }
 
   private def candidateEmailAddress(userId: String): Future[String] =
     cdRepository.find(userId).map(_.email)
