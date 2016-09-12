@@ -21,8 +21,11 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
-import model.EvaluationResults.Result
+import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
 import model.ApplicationStatuses
+import model.EvaluationResults.Result
+import org.joda.time.LocalDate
+import org.joda.time.format.DateTimeFormat
 import play.api.Play
 import play.api.libs.json.Json
 import play.api.mvc.Action
@@ -32,7 +35,11 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object TestDataGeneratorController extends TestDataGeneratorController
+object TestDataGeneratorController extends TestDataGeneratorController {
+
+  case class InvalidPostCodeFormatException(message: String) extends Exception(message)
+
+}
 
 trait TestDataGeneratorController extends BaseController {
 
@@ -47,7 +54,7 @@ trait TestDataGeneratorController extends BaseController {
   }
 
   def createAdminUsers(numberToGenerate: Int, emailPrefix: String, role: String) = Action.async { implicit request =>
-        TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
+    TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }
@@ -73,11 +80,15 @@ trait TestDataGeneratorController extends BaseController {
                                firstName: Option[String],
                                lastName: Option[String],
                                preferredName: Option[String],
+                               isCivilServant: Option[Boolean],
+                               hasDegree: Option[Boolean],
                                region: Option[String],
                                loc1scheme1EvaluationResult: Option[String],
                                loc1scheme2EvaluationResult: Option[String],
                                previousStatus: Option[String] = None,
-                               confirmedAllocation: Boolean) = Action.async { implicit request =>
+                               confirmedAllocation: Boolean,
+                               dateOfBirth: Option[String] = None,
+                               postCode: Option[String]) = Action.async { implicit request =>
 
     val initialConfig = GeneratorConfig(
       emailPrefix = emailPrefix,
@@ -86,6 +97,8 @@ trait TestDataGeneratorController extends BaseController {
       firstName = firstName,
       lastName = lastName,
       preferredName = preferredName,
+      isCivilServant = isCivilServant,
+      hasDegree = hasDegree,
       region = region,
       loc1scheme1Passmark = loc1scheme1EvaluationResult.map(Result(_)),
       loc1scheme2Passmark = loc1scheme2EvaluationResult.map(Result(_)),
@@ -94,13 +107,30 @@ trait TestDataGeneratorController extends BaseController {
         case ApplicationStatuses.AllocationUnconfirmed => false
         case ApplicationStatuses.AllocationConfirmed => true
         case _ => confirmedAllocation
-      }
+      },
+      dob = dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),
+      postCode = postCode.map(pc => validatePostcode(pc))
     )
     // scalastyle:on
 
     TestDataGeneratorService.createCandidatesInSpecificStatus(numberToGenerate, StatusGeneratorFactory.getGenerator(status),
       initialConfig).map { candidates =>
       Ok(Json.toJson(candidates))
+    }
+  }
+
+
+  private def validatePostcode(postcode: String) = {
+    // putting this on multiple lines won't make this regex any clearer
+    // scalastyle:off line.size.limit
+    val postcodePattern =
+      """^(?i)(GIR 0AA)|((([A-Z][0-9][0-9]?)|(([A-Z][A-HJ-Y][0-9][0-9]?)|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) ?[0-9][A-Z]{2})$""".r
+    // scalastyle:on line.size.limit
+
+    postcodePattern.pattern.matcher(postcode).matches match {
+      case true => postcode
+      case false if postcode.isEmpty => throw InvalidPostCodeFormatException(s"Postcode $postcode is empty")
+      case false => throw InvalidPostCodeFormatException(s"Postcode $postcode is in an invalid format")
     }
   }
 }

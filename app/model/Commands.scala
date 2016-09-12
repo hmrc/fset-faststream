@@ -194,10 +194,11 @@ object Commands {
   case class AdjustmentManagement(adjustments: Option[List[String]], otherAdjustments: Option[String],
     timeNeeded: Option[Int], timeNeededNum: Option[Int])
 
-  case class SearchCandidate(lastName: Option[String], dateOfBirth: Option[LocalDate], postCode: Option[PostCode])
+  case class SearchCandidate(firstOrPreferredName: Option[String], lastName: Option[String], dateOfBirth: Option[LocalDate], postCode: Option[PostCode])
 
   case class Candidate(userId: String, applicationId: Option[String], email: Option[String], firstName: Option[String], lastName: Option[String],
-    dateOfBirth: Option[LocalDate], address: Option[Address], postCode: Option[PostCode], country: Option[String])
+                       preferredName: Option[String], dateOfBirth: Option[LocalDate], address: Option[Address], postCode: Option[PostCode],
+                       country: Option[String])
 
   case class ApplicationAssessment(applicationId: String, venue: String, date: LocalDate, session: String, slot: Int, confirmed: Boolean) {
     val assessmentDateTime = {

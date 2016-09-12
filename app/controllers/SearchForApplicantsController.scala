@@ -20,9 +20,10 @@ import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,6 +33,7 @@ object SearchForApplicantsController extends SearchForApplicantsController {
   val appRepository = applicationRepository
   val psRepository = personalDetailsRepository
   val cdRepository = contactDetailsRepository
+  val searchForApplicantService = SearchForApplicantService
 }
 
 trait SearchForApplicantsController extends BaseController {
@@ -41,71 +43,36 @@ trait SearchForApplicantsController extends BaseController {
   val appRepository: GeneralApplicationRepository
   val psRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
+  val searchForApplicantService: SearchForApplicantService
 
-  val MAX_RESULTS = 10
+  val MAX_RESULTS = 25
 
-  def findById(userId: String, frameworkId: String) = Action.async { implicit request =>
+  def findById(userId: String, frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
 
     appRepository.findByUserId(userId, frameworkId).flatMap { application =>
       psRepository.find(application.applicationId).flatMap { pd =>
         cdRepository.find(userId).map { cd =>
           Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.dateOfBirth), Some(cd.address), Some(cd.postCode), None)))
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), Some(cd.postCode), None)))
         }.recover {
           case e: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.dateOfBirth), None, None, None)))
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), None, None, None)))
         }
       }.recover {
         case e: PersonalDetailsNotFound =>
-          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, None, None, None, None, None, None)))
+          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, None, None, None, None, None, None, None)))
       }
     }.recover {
-      case e: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None)))
+      case e: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None, None)))
     }
   }
 
   def findByCriteria = Action.async(parse.json) { implicit request =>
-    withJsonBody[SearchCandidate] {
-
-      case SearchCandidate(None, None, Some(postCode)) =>
-        searchByPostCode(postCode)
-      case SearchCandidate(lastName, dateOfBirth, postCode) =>
-        searchByLastNameOrDobAndFilterPostCode(lastName, dateOfBirth, postCode)
+    withJsonBody[SearchCandidate] { searchCandidate =>
+      createResult(searchForApplicantService.findByCriteria(searchCandidate))
     }
   }
 
-  private def searchByPostCode(postCode: String) = {
-    createResult(
-      cdRepository.findByPostCode(postCode).flatMap { cdList =>
-        Future.sequence(cdList.map { cd =>
-          appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
-            candidate.copy(address = Some(cd.address), postCode = Some(cd.postCode))
-          }).recover {
-            case e: ContactDetailsNotFound => None
-          }
-        })
-      }.map(_.flatten)
-    )
-  }
-
-  private def searchByLastNameOrDobAndFilterPostCode(lastName: Option[String], dateOfBirth: Option[LocalDate], postCode: Option[String]) = {
-    appRepository.findByCriteria(lastName, dateOfBirth) flatMap { candidateList =>
-      val answer = Future.sequence(candidateList.map { candidate =>
-        cdRepository.find(candidate.userId).map { cd =>
-          candidate.copy(address = Some(cd.address), postCode = Some(cd.postCode))
-        }.recover {
-          case e: ContactDetailsNotFound => candidate
-        }
-      })
-
-      postCode match {
-        case Some(pc) =>
-          val result = answer.map(lst => lst.filter(c => c.postCode.map(_ == pc).getOrElse(true)))
-          createResult(result)
-        case None => createResult(answer)
-      }
-    }
-  }
 
   private def createResult(answer: Future[List[Candidate]]) = answer.map {
     case lst if lst.size > MAX_RESULTS => EntityTooLarge

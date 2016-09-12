@@ -47,7 +47,7 @@ class AuthProviderClientSpec extends PlaySpec with MockitoSugar with ScalaFuture
 
       invalidStrings.foreach { invalidString =>
         import AuthProviderClient._
-        intercept[UserRoleDoesNotExist] {
+        intercept[UserRoleDoesNotExistException] {
           AuthProviderClient.getRole(invalidString)
         }
       }

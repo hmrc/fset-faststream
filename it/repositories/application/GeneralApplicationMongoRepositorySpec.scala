@@ -17,8 +17,9 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model.Commands.Report
+import model.Commands.{ Candidate, Report }
 import model.FastPassDetails
+import org.joda.time.LocalDate
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
@@ -79,6 +80,92 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "Find by criteria" should {
+    "find by first name" in {
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+
+      val applicationResponse = repository.findByCriteria(
+        Some(testCandidate("firstName")), None, None
+      ).futureValue
+
+      applicationResponse.size mustBe 1
+      applicationResponse.head.applicationId mustBe Some("appId123")
+    }
+
+    "find by preferred name" in {
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+
+      val applicationResponse = repository.findByCriteria(
+        Some(testCandidate("preferredName")), None, None
+      ).futureValue
+
+      applicationResponse.size mustBe 1
+      applicationResponse.head.applicationId mustBe Some("appId123")
+    }
+
+    "find by lastname" in {
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+
+      val applicationResponse = repository.findByCriteria(
+        None, Some(testCandidate("lastName")), None
+      ).futureValue
+
+      applicationResponse.size mustBe 1
+      applicationResponse.head.applicationId mustBe Some("appId123")
+    }
+
+    "find date of birth" in {
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+
+      val dobParts = testCandidate("dateOfBirth").split("-").map(_.toInt)
+      val (dobYear, dobMonth, dobDay) = (dobParts.head, dobParts(1), dobParts(2))
+
+      val applicationResponse = repository.findByCriteria(
+        None, None, Some(new LocalDate(
+          dobYear,
+          dobMonth,
+          dobDay
+        ))
+      ).futureValue
+
+      applicationResponse.size mustBe 1
+      applicationResponse.head.applicationId mustBe Some("appId123")
+    }
+
+    "Return an empty candidate list when there are no results" in {
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+
+      val applicationResponse = repository.findByCriteria(
+        Some("UnknownFirstName"), None, None
+      ).futureValue
+
+      applicationResponse.size mustBe 0
+    }
+
+    "filter by provided user Ids" in {
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      val matchResponse = repository.findByCriteria(
+        None, None, None, List("userId")
+      ).futureValue
+
+      matchResponse.size mustBe 1
+
+       val noMatchResponse = repository.findByCriteria(
+        None, None, None, List("unknownUser")
+      ).futureValue
+
+      noMatchResponse.size mustBe 0
+    }
+
+  }
+
+  val testCandidate = Map(
+    "firstName" -> "George",
+    "lastName" -> "Jetson",
+    "preferredName" -> "Georgy",
+    "dateOfBirth" -> "1986-05-01"
+  )
+
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String, appStatus: String = "") = {
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
@@ -103,6 +190,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         )
       ),
       "personal-details" -> BSONDocument(
+        "firstName" -> s"${testCandidate("firstName")}",
+        "lastName" -> s"${testCandidate("lastName")}",
+        "preferredName" -> s"${testCandidate("preferredName")}",
+        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}",
         "aLevel" -> true,
         "stemLevel" -> true
       ),

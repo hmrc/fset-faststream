@@ -57,6 +57,8 @@ object DataFaker {
       }
     }
 
+    def upperLetter: Char = randOne(('A' to 'Z').toList)
+
     def bool: Boolean = randOne(List(true, false))
 
     def passmark: Result = randOne(List(EvaluationResults.Green, EvaluationResults.Amber, EvaluationResults.Red))
@@ -153,29 +155,33 @@ object DataFaker {
     def age14to16School = randOne(List("Blue Bees School", "Green Goblins School", "Magenta Monkeys School", "Zany Zebras School"))
     def age16to18School = randOne(List("Advanced Skills School", "Extremely Advanced School", "A-Level Specialist School", "14 to 18 School"))
     def university = randOne(List(
-      "Oxford",
-      "Cambridge",
-      "London",
-      "I don't know/prefer not to say"))
-    def degree = randOne(List(
-      "Combined",
-      "Agriculture &amp; Related Subjects",
-      "Architecture, Building &amp; Planning",
-      "Biological Sciences",
-      "Business &amp; Administrative Studies",
-      "Creative Arts &amp; Design",
-      "Computer Science", "Education",
-      "Engineering &amp; Technology",
-      "Humanities",
-      "Languages",
-      "Law",
-      "Librarianship &amp; Information Science",
-      "Mathematical Science",
-      "Medicine &amp; Dentistry",
-      "Subjects Allied to Medicine",
-      "Physical Science",
-      "Social, Economic &amp; Political Studies",
-      "Veterinary Sciences"))
+      ("Aberdeen", "1"),
+      ("Abertay Dundee", "2"),
+      ("Aberystwyth", "3"),
+      ("Anglia Ruskin University", "4"),
+      ("Aston University", "5"),
+      ("Bangor", "6"),
+      ("Others (UK) including Colleges and Institutions of Higher Education", "107")))
+    def degreeCategory = randOne(List(
+      ("Combined", "(J)"),
+      ("Agriculture & Related Subjects", "(5)"),
+      ("Architecture, Building & Planning", "(A)"),
+      ("Biological Sciences", "(3)"),
+      ("Business & Administrative Studies", "(D)"),
+      ("Creative Arts & Design", "(H)"),
+      ("Computer Science", "(8)"),
+      ("Education", "(I)"),
+      ("Engineering & Technology", "(9)"),
+      ("Humanities", "(G)"),
+      ("Languages", "(F)"),
+      ("Law", "(C)"),
+      ("Librarianship & Information Science", "(E)"),
+      ("Mathematical Science", "(7)"),
+      ("Medicine & Dentistry", "(1)"),
+      ("Subjects Allied to Medicine", "(2)"),
+      ("Physical Science", "(6)"),
+      ("Social, Economic & Political Studies", "(B)"),
+      ("Veterinary Sciences", "(4)")))
     def homePostcode = randOne(List("AB1 2CD", "BC11 4DE", "CD6 2EF", "DE2F 1GH", "I don't know/prefer not to say"))
     def yesNo = randOne(List("Yes", "No"))
     def yesNoPreferNotToSay = randOne(List("Yes", "No", "I don't know/prefer not say"))
@@ -215,6 +221,10 @@ object DataFaker {
     def getLastname(userNumber: Int) = {
       val lastName = randOne(Lastnames.list)
       s"$lastName$userNumber"
+    }
+
+    def postCode: String = {
+      s"${Random.upperLetter}${Random.upperLetter}1 2${Random.upperLetter}${Random.upperLetter}"
     }
   }
 }

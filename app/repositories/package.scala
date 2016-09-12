@@ -134,9 +134,10 @@ package object repositories {
       val psRoot = doc.getAs[BSONDocument]("personal-details")
       val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
       val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
+      val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
       val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
 
-      Candidate(userId, applicationId, None, firstName, lastName, dateOfBirth, None, None, None)
+      Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
     }
 
     def write(psDoc: Candidate) = BSONDocument() // this should not be used ever

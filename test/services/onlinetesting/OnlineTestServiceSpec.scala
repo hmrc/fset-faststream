@@ -161,6 +161,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           None,
           Some("Bruce"),
           Some("Wayne"),
+          Some("Batman"),
           None,
           None,
           None,
