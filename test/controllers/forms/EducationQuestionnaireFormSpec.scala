@@ -83,25 +83,6 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     "fail when all values are correct and no civil servant but no school" in new Fixture {
       assertFieldRequired(NoCivilServantValidFormMap, "schoolName14to16", "schoolName14to16")
     }
-    /*
-    "fail when all values are correct but no haveDegree" in new Fixture {
-      assertFieldRequired(FullValidFormMap, "haveDegree", "haveDegree")
-    }
-*/
-
-
-
-
-    // TODO
-/*
-    "fail when liveInUKBetween14and18 is No and university field is missing" in new Fixture {
-      assertFieldRequired(NoUkLivedAndNoCivilServantValidFormMap, "university", "university")
-    }
-
-    "fail when liveInUKBetween14and18 is No and universityDegreeCategory field is missing" in new Fixture {
-      assertFieldRequired(NoUkLivedAndNoCivilServantValidFormMap, "universityDegreeCategory", "universityDegreeCategory")
-    }
-    */
 
     "transform form when is a civil servant with all valid fields to a question list" in new Fixture {
       val questionList = FullValidForm.exchange.questions
