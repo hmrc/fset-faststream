@@ -18,6 +18,7 @@ package model
 
 // TODO: The next step is to refactor the whole application so everything references this object for statuses.
 // These are all possible statuses
+@deprecated("Use the ApplicationStatus class for statuses, this class will be removed eventually.", "01 September 2016")
 object ApplicationStatuses {
   val Created = "CREATED"
   val Withdrawn = "WITHDRAWN"
