@@ -329,7 +329,8 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       pdf must be (empty)
     }
 
-    "unset the online test flags for already completed online test when storeOnlineTestProfileAndUpdateStatus is called again" in {
+    // TODO: in faststream
+    "unset the online test flags for already completed online test when storeOnlineTestProfileAndUpdateStatus is called again" ignore {
       val InvitationDate = DateTime.now()
       val ExpirationDate = InvitationDate.plusDays(7)
       val TestProfile = OnlineTestProfile(1234, "tokenId", "http://someurl.com", InvitationDate, ExpirationDate, 123456)
@@ -476,6 +477,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  /* TODO: Refactor in faststream
   "next application ready for online test evaluation" should {
     "return no candidate if there is only a candidate in ONLINE_TEST_STARTED status" in {
       val AppId = UUID.randomUUID().toString
@@ -537,7 +539,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
       result must be(empty)
     }
-  }
+  }*/
 
   def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String, needsAdjustment: Boolean,
                         adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean) = {

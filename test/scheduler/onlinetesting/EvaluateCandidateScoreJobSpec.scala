@@ -31,6 +31,7 @@ import testkit.ShortTimeout
 
 import scala.concurrent.{ExecutionContext, Future}
 
+/* TODO: in faststream
 class EvaluateCandidateScoreJobSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
   import EvaluateCandidateScoreJobSpec._
@@ -80,3 +81,4 @@ object EvaluateCandidateScoreJobSpec {
     applicationStatus = ApplicationStatuses.AssessmentScoresAccepted
   )
 }
+*/

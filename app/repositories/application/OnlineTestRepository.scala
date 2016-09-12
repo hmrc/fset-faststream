@@ -167,9 +167,9 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument("applicationId" -> applicationId)
 
     val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
-      s"progress-status.$OnlineTestStartedProgress" -> "",
-      s"progress-status.$OnlineTestCompletedProgress" -> "",
-      s"progress-status.$OnlineTestExpiredProgress" -> "",
+      s"progress-status.$PHASE1_TESTS_INVITED" -> "",
+      s"progress-status.$PHASE1_TESTS_COMPLETED" -> "",
+      s"progress-status.$PHASE1_TESTS_EXPIRED" -> "",
       s"progress-status.$AwaitingOnlineTestReevaluationProgress" -> "",
       s"progress-status.$OnlineTestFailedProgress" -> "",
       s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
