@@ -16,11 +16,11 @@
 
 package security
 
-import controllers.routes
+import controllers.{ PartnerGraduateProgrammesController, routes }
 import models.ApplicationData.ApplicationStatus._
-import models.{CachedData, CachedDataWithApp, Progress}
+import models.{ CachedData, CachedDataWithApp, Progress }
 import play.api.i18n.Lang
-import play.api.mvc.{Call, RequestHeader}
+import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -172,8 +172,9 @@ object Roles {
     ApplicationStartRole -> routes.HomeController.present(),
     EditPersonalDetailsAndContinueRole -> routes.PersonalDetailsController.presentAndContinue(),
     SchemesRole -> routes.SchemePreferencesController.present(),
+    PartnerGraduateProgrammesRole -> routes.PartnerGraduateProgrammesController.present(),
     AssistanceDetailsRole -> routes.AssistanceDetailsController.present(),
-    QuestionnaireInProgressRole -> routes.QuestionnaireController.startOrContinue(),
+    QuestionnaireInProgressRole -> routes.QuestionnaireController.presentStartOrContinue(),
     PreviewApplicationRole -> routes.PreviewApplicationController.present(),
     SubmitApplicationRole -> routes.PreviewApplicationController.present(),
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),

@@ -54,7 +54,7 @@ object QuestionnaireRoles {
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasDiversity(user)
   }
 
-  object OccupationQuestionnaireRole extends CsrAuthorization {
+  object ParentalOccupationQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasEducation(user)
   }
@@ -69,7 +69,7 @@ object QuestionnaireRoles {
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasEducation(user)
   }
 
-  object OccupationQuestionnaireCompletedRole extends CsrAuthorization {
+  object ParentalOccupationQuestionnaireCompletedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasOccupation(user)
   }

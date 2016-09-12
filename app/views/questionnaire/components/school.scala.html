@@ -1,0 +1,44 @@
+@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit lang: play.api.i18n.Lang)
+
+@import views.html.widgets.{ checkbox, radioBox }
+
+<h2 class="heading-medium">School</h2>
+<div class="panel-indent text">
+    <p>This data helps us compare the average performance of certain schools
+        and colleges to the national average.</p>
+</div>
+<section>
+    <div class="form-group form-group-compound">
+        <legend class="form-label text" for="schoolName14to16">@Messages("schoolName14to16.question")</legend>
+        @helper.inputText(questionnaireForm("schoolName14to16"),
+            '_label -> "",
+            'class -> "form-control",
+            '_showConstraints -> false)
+    </div>
+    <div class="form-group">
+    @checkbox(questionnaireForm("preferNotSay_schoolName14to16"), Some("schoolName14to16")) {
+        I don't know/prefer not to say
+    }
+    </div>
+</section>
+<section>
+    <div class="form-group form-group-compound">
+        <legend class="form-label text" for="schoolName16to18">@Messages("schoolName16to18.question")</legend>
+        @helper.inputText(questionnaireForm("schoolName16to18"),
+            '_label -> "",
+            'class -> "form-control",
+            '_showConstraints -> false)
+    </div>
+    <div class="form-group">
+    @checkbox(questionnaireForm("preferNotSay_schoolName16to18"), Some("schoolName16to18")) {
+        I don't know/prefer not to say
+    }
+    </div>
+</section>
+<section>
+    <div class="text">
+        <legend class="form-label text" for="schoolMeals-ques">@Messages("freeSchoolMeals.question")</legend>
+        @radioBox(questionnaireForm("freeSchoolMeals"), options = Seq("Yes" -> "Yes", "No" -> "No",
+            "Unknown/prefer not to say" -> "I don't know/prefer not to say"))
+    </div>
+</section>

@@ -30,27 +30,4 @@ case class AssistanceDetails(hasDisability: String,
 
 object AssistanceDetails {
   implicit val assistanceDetailsFormat = Json.format[AssistanceDetails]
-
-  implicit class assistanceDetailsFormToRequest(data: AssistanceDetailsForm.Data) {
-    def exchange = AssistanceDetails(
-      data.hasDisability,
-      data.hasDisabilityDescription,
-      data.guaranteedInterview.map {
-        case "Yes" => true
-        case "No" => false
-        case _ => false},
-      data.needsSupportForOnlineAssessment match {
-        case "Yes" => true
-        case "No" => false
-        case _ => false
-      },
-      data.needsSupportForOnlineAssessmentDescription,
-      data.needsSupportAtVenue match {
-        case "Yes" => true
-        case "No" => false
-        case _ => false
-      },
-      data.needsSupportAtVenueDescription
-    )
-  }
 }

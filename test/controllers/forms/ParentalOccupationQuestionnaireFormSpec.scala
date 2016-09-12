@@ -17,9 +17,9 @@
 package controllers.forms
 
 import controllers.BaseSpec
-import forms.QuestionnaireOccupationInfoForm.{ Data, form }
+import forms.ParentalOccupationQuestionnaireForm.{ Data, form }
 
-class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
+class ParentalOccupationQuestionnaireFormSpec extends BaseSpec {
 
   "the occupation form" should {
 
@@ -54,7 +54,7 @@ class QuestionnaireOccupationInfoFormSpec extends BaseSpec {
     }
 
     "transform properly to a question list" in new Fixture {
-      val questionList = validFormData.toQuestionnaire.questions
+      val questionList = validFormData.exchange.questions
       questionList.size must be(5)
       questionList(0).answer.answer must be(Some("Yes"))
       questionList(1).answer.answer must be(Some("Some occupation"))

@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package models
+package connectors.exchange
 
-/**
- * Created by holgersteinhauer on 16/12/2015.
- */
-object AdjustmentTypes {
-  val seq = Seq(
-    ("time extension", "Time extension, eg 25% or 30%"),
-    ("coloured paper", "Coloured paper"),
-    ("braille test paper", "Braille test paper"),
-    ("room alone", "Room alone"),
-    ("rest breaks", "Rest breaks"),
-    ("reader/assistant", "Reader/assistant"),
-    ("stand up and move around", "Stand up and move around"),
-    ("other", "Other")
-  )
+import play.api.libs.json.Json
+
+case class Answer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
+
+case class Question(question: String, answer: Answer)
+
+case class Questionnaire(questions: List[Question])
+
+object Answer {
+  implicit val answerFormats = Json.format[Answer]
+}
+
+object Question {
+  implicit val questionFormats = Json.format[Question]
+}
+
+object Questionnaire {
+  implicit val questionnaireFormats = Json.format[Questionnaire]
 }

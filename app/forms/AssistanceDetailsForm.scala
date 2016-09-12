@@ -16,28 +16,11 @@
 
 package forms
 
+import connectors.exchange.AssistanceDetails
+import play.api.data.Form
 import play.api.data.Forms._
-import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError }
-import play.api.i18n.Messages
 
 object AssistanceDetailsForm {
-
-  def requiredFormatterWithMaxLengthCheck(requiredKey: String, key: String, maxLength: Option[Int]) = new Formatter[Option[String]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      val requiredField: Option[String] = data.get(requiredKey)
-      val keyField: Option[String] = data.get(key)
-
-      (requiredField, keyField) match {
-        case (Some("Yes"), None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
-        case (Some("Yes"), Some("")) => Left(List(FormError(key, Messages(s"error.$key.required"))))
-        case _ => if (maxLength.isDefined && keyField.isDefined && keyField.get.size > maxLength.get) {
-          Left(List(FormError(key, Messages(s"error.$key.maxLength")))) } else { Right(keyField) }
-      }
-    }
-
-    override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
-  }
 
   val form = Form(
     mapping(
@@ -60,7 +43,66 @@ object AssistanceDetailsForm {
                    needsSupportForOnlineAssessment: String,
                    needsSupportForOnlineAssessmentDescription: Option[String],
                    needsSupportAtVenue: String,
-                   needsSupportAtVenueDescription: Option[String]
-  )
+                   needsSupportAtVenueDescription: Option[String]) {
 
+    def exchange: AssistanceDetails = {
+      AssistanceDetails(
+        hasDisability,
+        hasDisabilityDescription,
+        guaranteedInterview.map {
+          case "Yes" => true
+          case "No" => false
+          case _ => false
+        },
+        needsSupportForOnlineAssessment match {
+          case "Yes" => true
+          case "No" => false
+          case _ => false
+        },
+        needsSupportForOnlineAssessmentDescription,
+        needsSupportAtVenue match {
+          case "Yes" => true
+          case "No" => false
+          case _ => false
+        },
+        needsSupportAtVenueDescription
+      )
+    }
+
+    def sanitizeData: AssistanceDetailsForm.Data = {
+      AssistanceDetailsForm.Data(
+        hasDisability,
+        if (hasDisability == "Yes") hasDisabilityDescription else None,
+        if (hasDisability == "Yes") guaranteedInterview else None,
+        needsSupportForOnlineAssessment,
+        if (needsSupportForOnlineAssessment == "Yes") needsSupportForOnlineAssessmentDescription else None,
+        needsSupportAtVenue,
+        if (needsSupportAtVenue == "Yes") needsSupportAtVenueDescription else None)
+    }
+  }
+
+  object Data{
+    def apply(ad: AssistanceDetails): Data = {
+      AssistanceDetailsForm.Data(
+        ad.hasDisability,
+        ad.hasDisabilityDescription,
+        ad.guaranteedInterview.map {
+          case true => "Yes"
+          case false => "No"
+        },
+        ad.needsSupportForOnlineAssessment match {
+          case true => "Yes"
+          case false => "No"
+        },
+        ad.needsSupportForOnlineAssessmentDescription,
+        ad.needsSupportAtVenue match {
+          case true => "Yes"
+          case false => "No"
+        },
+        ad.needsSupportAtVenueDescription
+      )
+    }
+
+
+  }
 }

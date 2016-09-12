@@ -16,12 +16,12 @@
 
 package controllers
 
-import _root_.forms.PartnerGraduateProgrammesFormExamples
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
 import connectors.exchange.PartnerGraduateProgrammesExamples
+import controllers.forms.PartnerGraduateProgrammesFormExamples
 import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -68,7 +68,7 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
     "update partner graduate programmes and redirect to assistance details" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody(PartnerGraduateProgrammesFormExamples.InterestedNotAllFormUrlEncodedBody: _*)
       when(mockApplicationClient.updatePartnerGraduateProgrammes(eqTo(currentApplicationId),
-        eqTo(PartnerGraduateProgrammesFormExamples.InterestedNotAllForm))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+        eqTo(PartnerGraduateProgrammesExamples.InterestedNotAll))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InPartnerGraduateProgrammes))
       val Application = currentCandidateWithApp.application

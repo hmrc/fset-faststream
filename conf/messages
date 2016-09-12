@@ -161,15 +161,21 @@ last.attempt = Your account will be locked after another unsuccessful attempt to
 locked.account = You''ve made too many unsuccessful attempts to sign in and your account is now locked
 
 # Questionnaire error messages:
-
 error.required.gender = You must tell us your gender identity or choose ''prefer not to say''
 error.required.sexOrientation = You must tell us your sexual orientation or choose ''prefer not to say''
 error.required.ethnicity = You must tell us your ethnic group or choose ''prefer not to say''
-error.required.schoolName = What was your school between ages 11 to 16?
-error.required.sixthForm = What was your school between ages 16  to 18?
-error.required.postcodeQ = What was your postcode when you were 14?
-error.required.freeSchoolMeals = Were you eligible for free school meals?
-error.required.university = Did your parent(s) or guardian(s) complete university?
+
+# Education Questionnaire error messages:
+error.liveInUKBetween14and18.required = You must tell us if you lived in the UK between the ages of 14 and 18
+error.postcodeQ.required = You must tell us what was your postcode when you were between the ages of 14 and 18, or choose ''prefer not to say''
+error.schoolName14to16.required = You must tell us what was the name of your school when you were aged 14 to 16, or choose ''prefer not to say''
+error.schoolName16to18.required = You must tell us what was the name of your school when you were aged 16 to 18, or choose ''prefer not to say''
+error.freeSchoolMeals.required = You must tell us if you were at any time eligible for free school meals, or choose ''prefer not to say''
+error.haveDegree.required = You must tell us if you have a degree
+error.university.required = You must tell us what is the name of the university you received your degree from, or choose ''prefer not to say''
+error.universityDegreeCategory.required = You must tell us which category best describes your degree, or choose ''prefer not to say''
+
+# Parental Questionnaire error messages
 error.required.parentsDegree = You must tell us if your parent/guardian has a degree, or choose ''prefer not to say''
 error.required.employmentStatus = You must tell us the employment status of your highest-earning parent/guardian, or choose ''prefer not to say''
 error.required.parentsOccupation = You must tell us what type of work your highest-earning parent/guardian did
@@ -182,11 +188,15 @@ error.required.acceptance = Confirm you understand that the information you give
 gender.question = What is your gender identity?
 sexOrientation.question = What is your sexual orientation?
 ethnicity.question = What is your ethnic group?
-schoolName.question = Between the ages of 11 to 16, in which school did you spend most of your education?
-sixthForm.question = Between the ages of 16 to 18, in which school did you spend most of your education?
+liveInUKBetween14and18.question = Did you live in the UK between the ages of 14 and 18?
 postcode.question = What was your home postcode when you were 14?
-freeSchoolMeals.question = During your school years, were you at any time eligible for free school meals?
-university.question = Did any of your parent(s) or guardian(s) complete a university degree course or equivalent?
+schoolName14to16.question = Aged 14 to 16 what was the name of your school?
+schoolName16to18.question = Aged 16 to 18 what was the name of your school or college?
+freeSchoolMeals.question = Were you at any time eligible for free school meals?
+haveDegree.question = Do you have a degree?
+university.question = What is the name of the university you received your degree from?
+universityDegreeCategory.question = Which category best describes your degree?
+
 employedParent.question = When you were 14, was your highest earning parent / guardian?
 parentsOccupation.question = When you were 14, what kind of work did your highest-earning parent or guardian do?
 parentsDegree.question = Do you have a parent or guardian that has completed a university degree course or equivalent?
