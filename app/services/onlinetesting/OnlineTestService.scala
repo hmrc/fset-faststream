@@ -22,6 +22,7 @@ import connectors.ExchangeObjects._
 import connectors.{CSREmailClient, CubiksGatewayClient, EmailClient}
 import controllers.OnlineTest
 import factories.{DateTimeFactory, UUIDFactory}
+import model.{ApplicationStatus, ApplicationStatuses}
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
 import org.joda.time.DateTime
@@ -198,7 +199,7 @@ trait OnlineTestService {
   private def markAsCompleted(application: OnlineTestApplication)
     (onlineTestProfile: OnlineTestProfile): Future[Unit] = for {
     _ <- otRepository.storeOnlineTestProfile(application.applicationId, onlineTestProfile)
-    _ <- appRepository.setOnlineTestStatusInvited(application.applicationId)
+    _ <- appRepository.setOnlineTestStatus(application.applicationId, "ONLINE_TESTS_INVITED")
   } yield {
       audit("OnlineTestInvitationProcessComplete", application.userId)
       audit("OnlineTestStatusSetToInvited", application.userId)

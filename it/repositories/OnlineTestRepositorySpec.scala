@@ -38,99 +38,125 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
   def onlineTestRepo = new OnlineTestMongoRepository(DateTimeFactory)
 
-  "Next application ready for online testing" should {
 
-    "return no application if htere is only one and it is a fast pass candidate" in{
-      createApplication("appId", "userId", "frameworkId", "IN_PROGRESS", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
-      )
 
-      val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
+  "Get online test" should {
+    "throw an exception if there is no test for the specific user id" in {
+      val result = onlineTestRepo.getOnlineTestDetails("userId").failed.futureValue
 
-      result must be (None)
+      result mustBe an[NotFoundException]
     }
 
-    "return no application if there is only one application without adjustment needed but not submitted" in {
+    "return an online test for the specific user id" in {
+      val date = new DateTime("2016-03-08T13:04:29.643Z")
+      createOnlineTest("userId", "status", "token", Some("http://www.someurl.com"),
+        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)))
 
-      createApplication("appId", "userId", "frameworkId", "IN_PROGRESS", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
+      val result = onlineTestRepo.getOnlineTestDetails("userId").futureValue
 
-      val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
-
-      result must be (None)
-    }
-
-    "return no application if there is only one application with adjustment needed and not confirmed" in {
-      createApplication("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = true, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-
-      val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
-
-      result must be (None)
-    }
-
-    "return one application if there is one submitted application without adjustment needed" in {
-      createApplication("appId", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-
-      val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
-
-      result.isDefined must be (true)
-      result.get.userId must be ("userId1")
-      result.get.applicationStatus must be ("SUBMITTED")
-      result.get.needsAdjustments must be (false)
-      result.get.timeAdjustments.isEmpty must be (true)
-    }
-
-
-    "return one application if there is one submitted application with no time adjustment needed and confirmed" in {
-      createApplication("appId", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = true, adjustmentsConfirmed = true,
-        timeExtensionAdjustments = false)
-
-      val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
-
-      result.isDefined must be (true)
-      result.get.userId must be ("userId1")
-      result.get.applicationStatus must be ("SUBMITTED")
-      result.get.needsAdjustments must be (true)
-      result.get.timeAdjustments.isEmpty must be (true)
-    }
-
-    "return one application if there is one submitted application with time adjustment needed and confirmed" in {
-      createApplication("appId", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = true, adjustmentsConfirmed = true,
-        timeExtensionAdjustments = true)
-
-      val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
-
-      result.isDefined must be (true)
-      result.get.userId must be ("userId1")
-      result.get.applicationStatus must be ("SUBMITTED")
-      result.get.needsAdjustments must be (true)
-      result.get.timeAdjustments.isDefined must be (true)
-      result.get.timeAdjustments.get.verbalTimeAdjustmentPercentage must be (9)
-      result.get.timeAdjustments.get.numericalTimeAdjustmentPercentage must be (11)
-    }
-
-    "return a random application from a choice of multiple submitted applications without adjustment needed" in {
-      createApplication("appId1", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-      createApplication("appId2", "userId2", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-      createApplication("appId3", "userId3", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-
-      val userIds = (1 to 25).map { _ =>
-        val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
-        result.get.userId
-      }
-
-      userIds must contain("userId1")
-      userIds must contain("userId2")
-      userIds must contain("userId3")
+      result.expireDate.toDate must be (new DateTime("2016-03-15T13:04:29.643Z").toDate)
+      result.onlineTestLink must be("http://www.someurl.com")
+      result.isOnlineTestEnabled must be(true)
     }
   }
 
-  "Getting the next application for expiry" should {
+
+  "Store online test profile" should {
+    "update online test profile and set the status to ONLINE_TEST_INVITED" in {
+      val date = new DateTime("2016-03-08T13:04:29.643Z")
+      val appIdWithUserId = createOnlineTest("userId", "SUBMITTED", "token", Some("http://www.someurl.com"),
+        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)), xmlReportSaved = Some(true), pdfReportSaved = Some(true))
+
+      val TestProfile = OnlineTestProfile(
+        1234,
+        "tokenId",
+        "http://someurl.com",
+        invitationDate = date,
+        expirationDate = date.plusDays(7),
+        123456,
+        567879
+      )
+      onlineTestRepo.storeOnlineTestProfile(appIdWithUserId.applicationId, TestProfile).futureValue
+
+      val result = onlineTestRepo.getOnlineTestDetails(appIdWithUserId.userId).futureValue
+      // The expireDate has +7 days, as the method get from the repo adds 7 days
+      result.expireDate.toDate must be(new DateTime("2016-03-15T13:04:29.643Z").toDate)
+      result.inviteDate.toDate must be(date.toDate)
+      result.isOnlineTestEnabled must be(true)
+      result.onlineTestLink must be("http://someurl.com")
+
+      val query = BSONDocument("applicationId" -> appIdWithUserId.applicationId)
+      val (xml, pdf) = helperRepo.collection.find(query).one[BSONDocument].map { docOpt =>
+        val root = docOpt.get.getAs[BSONDocument]("online-tests").get
+        (root.getAs[Boolean]("xmlReportSaved"),
+          root.getAs[Boolean]("pdfReportSaved"))
+      }.futureValue
+
+      xml must be (empty)
+      pdf must be (empty)
+    }
+
+    // TODO: in faststream
+    "unset the online test flags for already completed online test when storeOnlineTestProfileAndUpdateStatus is called again" ignore {
+      val InvitationDate = DateTime.now()
+      val ExpirationDate = InvitationDate.plusDays(7)
+      val TestProfile = OnlineTestProfile(1234, "tokenId", "http://someurl.com", InvitationDate, ExpirationDate, 123456, 67890)
+      helperRepo.collection.insert(BSONDocument(
+        "applicationId" -> "appId",
+        "applicationStatus" -> "ONLINE_TEST_FAILED_NOTIFIED",
+        "progress-status" -> BSONDocument(
+          "online_test_started" -> true,
+          "online_test_completed" -> true,
+          "online_test_expired" -> true,
+          "awaiting_online_test_re_evaluation" -> true,
+          "online_test_failed" -> true,
+          "online_test_failed_notified" -> true,
+          "awaiting_online_test_allocation" -> true
+        ),
+        "online-tests" -> BSONDocument(
+          "cubiksUserId" -> 1111,
+          "token" -> "previousToken",
+          "onlineTestUrl" -> "previousOnlineTestUrl",
+          "invitationDate" -> DateTime.now().minusDays(10),
+          "expiratinDate" -> DateTime.now().minusDays(3),
+          "participantScheduleId" -> "previousScheduleId",
+          "xmlReportSaved" -> true,
+          "pdfReportSaved" -> true
+        ),
+        "passmarkEvaluation" -> "notEmpty"
+      )).futureValue
+
+      onlineTestRepo.storeOnlineTestProfile("appId", TestProfile).futureValue
+
+      val query = BSONDocument("applicationId" -> "appId")
+      helperRepo.collection.find(query).one[BSONDocument].map {
+        case Some(doc) =>
+          doc.getAs[String]("applicationStatus") must be(Some("ONLINE_TEST_INVITED"))
+
+          val progressStatus = doc.getAs[BSONDocument]("progress-status").get
+          val allProgressStatuses = progressStatus.elements.map(_._1).toList
+          allProgressStatuses must be(List("online_test_invited"))
+
+          val onlineTests = doc.getAs[BSONDocument]("online-tests").get
+          onlineTests.getAs[Int]("cubiksUserId") must be(Some(1234))
+          onlineTests.getAs[String]("token") must be(Some("tokenId"))
+          onlineTests.getAs[String]("onlineTestUrl") must be(Some("http://someurl.com"))
+          onlineTests.getAs[DateTime]("invitationDate").get must be(InvitationDate.withZone(DateTimeZone.UTC))
+          onlineTests.getAs[DateTime]("expirationDate").get must be(ExpirationDate.withZone(DateTimeZone.UTC))
+          onlineTests.getAs[Int]("participantScheduleId") must be(Some(123456))
+          onlineTests.getAs[Boolean]("xmlReportSaved") must be(empty)
+          onlineTests.getAs[Boolean]("pdfReportSaved") must be(empty)
+
+          doc.getAs[BSONDocument]("passmarkEvaluation") must be (empty)
+
+        case None => fail("Application should have been already created and cannot be empty")
+      }.futureValue
+    }
+  }
+
+  /* TODO: Refactor in faststream
+
+   "Getting the next application for expiry" should {
     "return one application if there is one expired un-started test" in {
       val appIdWithUserId = createOnlineTest("ONLINE_TEST_INVITED", expirationDate = DateTime.now().minusMinutes(1))
 
@@ -208,7 +234,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  "Getting the next application for failure notification" should {
+    "Getting the next application for failure notification" should {
     "return one application if there is one failed test and pdf report has been saved" in {
       val appIdWithUserId = createOnlineTest("ONLINE_TEST_FAILED", xmlReportSaved=Some(true), pdfReportSaved = Some(true))
 
@@ -253,223 +279,6 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  "Get online test" should {
-    "throw an exception if there is no test for the specific user id" in {
-      val result = onlineTestRepo.getOnlineTestDetails("userId").failed.futureValue
-
-      result mustBe an[NotFoundException]
-    }
-
-    "return an online test for the specific user id" in {
-      val date = new DateTime("2016-03-08T13:04:29.643Z")
-      createOnlineTest("userId", "status", "token", Some("http://www.someurl.com"),
-        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)))
-
-      val result = onlineTestRepo.getOnlineTestDetails("userId").futureValue
-
-      result.expireDate.toDate must be (new DateTime("2016-03-15T13:04:29.643Z").toDate)
-      result.onlineTestLink must be("http://www.someurl.com")
-      result.isOnlineTestEnabled must be(true)
-    }
-  }
-
-  "Update status" should {
-    "update status for the specific user id" in {
-      createApplication("appId", "userId", "frameworkId", "SUBMITTED",
-        needsAdjustment = true, adjustmentsConfirmed = false, timeExtensionAdjustments =  true)
-
-      onlineTestRepo.updateStatus("userId", "ONLINE_TEST_INVITED").futureValue
-
-      val result = helperRepo.findByUserId("userId", "frameworkId").futureValue
-
-      result.applicationStatus must be("ONLINE_TEST_INVITED")
-    }
-
-    "fail when updating status but application doesn't exist" in {
-      val result = onlineTestRepo.updateStatus("userId", "ONLINE_TEST_INVITED").failed.futureValue
-
-      result mustBe an[NotFoundException]
-    }
-  }
-
-  "Consume token" should {
-    "update status to ONLINE_TEST_COMPLETED" in {
-      val date = new DateTime("2016-03-08T13:04:29.643Z")
-      createOnlineTest("userId", "SUBMITTED", "token", Some("http://www.someurl.com"),
-        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)))
-
-      onlineTestRepo.consumeToken("token").futureValue
-
-      val result = helperRepo.findByUserId("userId", "frameworkId").futureValue
-      result.applicationStatus must be("ONLINE_TEST_COMPLETED")
-    }
-  }
-
-  "Store online test profile" should {
-    "update online test profile and set the status to ONLINE_TEST_INVITED" in {
-      val date = new DateTime("2016-03-08T13:04:29.643Z")
-      val appIdWithUserId = createOnlineTest("userId", "SUBMITTED", "token", Some("http://www.someurl.com"),
-        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)), xmlReportSaved = Some(true), pdfReportSaved = Some(true))
-
-      val TestProfile = OnlineTestProfile(
-        1234,
-        "tokenId",
-        "http://someurl.com",
-        invitationDate = date,
-        expirationDate = date.plusDays(7),
-        123456
-      )
-      onlineTestRepo.storeOnlineTestProfileAndUpdateStatusToInvite(appIdWithUserId.applicationId, TestProfile).futureValue
-
-      val result = onlineTestRepo.getOnlineTestDetails(appIdWithUserId.userId).futureValue
-      // The expireDate has +7 days, as the method get from the repo adds 7 days
-      result.expireDate.toDate must be(new DateTime("2016-03-15T13:04:29.643Z").toDate)
-      result.inviteDate.toDate must be(date.toDate)
-      result.isOnlineTestEnabled must be(true)
-      result.onlineTestLink must be("http://someurl.com")
-
-      val query = BSONDocument("applicationId" -> appIdWithUserId.applicationId)
-      val (xml, pdf) = helperRepo.collection.find(query).one[BSONDocument].map { docOpt =>
-        val root = docOpt.get.getAs[BSONDocument]("online-tests").get
-        (root.getAs[Boolean]("xmlReportSaved"),
-          root.getAs[Boolean]("pdfReportSaved"))
-      }.futureValue
-
-      xml must be (empty)
-      pdf must be (empty)
-    }
-
-    // TODO: in faststream
-    "unset the online test flags for already completed online test when storeOnlineTestProfileAndUpdateStatus is called again" ignore {
-      val InvitationDate = DateTime.now()
-      val ExpirationDate = InvitationDate.plusDays(7)
-      val TestProfile = OnlineTestProfile(1234, "tokenId", "http://someurl.com", InvitationDate, ExpirationDate, 123456)
-      helperRepo.collection.insert(BSONDocument(
-        "applicationId" -> "appId",
-        "applicationStatus" -> "ONLINE_TEST_FAILED_NOTIFIED",
-        "progress-status" -> BSONDocument(
-          "online_test_started" -> true,
-          "online_test_completed" -> true,
-          "online_test_expired" -> true,
-          "awaiting_online_test_re_evaluation" -> true,
-          "online_test_failed" -> true,
-          "online_test_failed_notified" -> true,
-          "awaiting_online_test_allocation" -> true
-        ),
-        "online-tests" -> BSONDocument(
-          "cubiksUserId" -> 1111,
-          "token" -> "previousToken",
-          "onlineTestUrl" -> "previousOnlineTestUrl",
-          "invitationDate" -> DateTime.now().minusDays(10),
-          "expiratinDate" -> DateTime.now().minusDays(3),
-          "participantScheduleId" -> "previousScheduleId",
-          "xmlReportSaved" -> true,
-          "pdfReportSaved" -> true
-        ),
-        "passmarkEvaluation" -> "notEmpty"
-      )).futureValue
-
-      onlineTestRepo.storeOnlineTestProfileAndUpdateStatusToInvite("appId", TestProfile).futureValue
-
-      val query = BSONDocument("applicationId" -> "appId")
-      helperRepo.collection.find(query).one[BSONDocument].map {
-        case Some(doc) =>
-          doc.getAs[String]("applicationStatus") must be(Some("ONLINE_TEST_INVITED"))
-
-          val progressStatus = doc.getAs[BSONDocument]("progress-status").get
-          val allProgressStatuses = progressStatus.elements.map(_._1).toList
-          allProgressStatuses must be(List("online_test_invited"))
-
-          val onlineTests = doc.getAs[BSONDocument]("online-tests").get
-          onlineTests.getAs[Int]("cubiksUserId") must be(Some(1234))
-          onlineTests.getAs[String]("token") must be(Some("tokenId"))
-          onlineTests.getAs[String]("onlineTestUrl") must be(Some("http://someurl.com"))
-          onlineTests.getAs[DateTime]("invitationDate").get must be(InvitationDate.withZone(DateTimeZone.UTC))
-          onlineTests.getAs[DateTime]("expirationDate").get must be(ExpirationDate.withZone(DateTimeZone.UTC))
-          onlineTests.getAs[Int]("participantScheduleId") must be(Some(123456))
-          onlineTests.getAs[Boolean]("xmlReportSaved") must be(empty)
-          onlineTests.getAs[Boolean]("pdfReportSaved") must be(empty)
-
-          doc.getAs[BSONDocument]("passmarkEvaluation") must be (empty)
-
-        case None => fail("Application should have been already created and cannot be empty")
-      }.futureValue
-    }
-  }
-
-  "Next application ready for report retrieving" should {
-    "return None when there is no application with the status ONLINE_TEST_COMPLETED" in {
-      createOnlineTest("userId1", "ONLINE_TEST_INVITED", expirationDate = DateTime.now())
-      val result = onlineTestRepo.nextApplicationReadyForReportRetriving.futureValue
-      result must be(None)
-    }
-
-    "return an application with a cubiksUserId" in {
-      val date = DateTime.now()
-      val appIdWithUserId = createOnlineTest(UUID.randomUUID().toString, "ONLINE_TEST_COMPLETED", "token", Some("http://www.someurl.com"),
-        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)), Some(123))
-
-      val result = onlineTestRepo.nextApplicationReadyForReportRetriving.futureValue
-
-      result.get must be(OnlineTestApplicationWithCubiksUser(appIdWithUserId.applicationId, appIdWithUserId.userId, 123))
-    }
-
-    "return None when the application has a flag XmlReportSaved set to true" in {
-      val date = DateTime.now()
-      createOnlineTest("userId", "ONLINE_TEST_COMPLETED", "token", Some("http://www.someurl.com"),
-        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)), Some(123), Some(true))
-
-      val result = onlineTestRepo.nextApplicationReadyForReportRetriving.futureValue
-
-      result must be(None)
-    }
-  }
-
-  "Next application ready for pdf report retrieving" should {
-    "return None when the application has not an xml report saved" in {
-      val date = DateTime.now()
-      createOnlineTest("userId", "ONLINE_TEST_COMPLETED", "token", Some("http://www.someurl.com"),
-        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)), Some(123), xmlReportSaved = Some(false))
-
-      val result = onlineTestRepo.nextApplicationReadyForPDFReportRetrieving.futureValue
-      result must be(None)
-    }
-
-    "return None when the application has an xml report saved and pdf report has been saved already" in {
-      val date = DateTime.now()
-      createOnlineTest("userId", "ONLINE_TEST_COMPLETED", "token", Some("http://www.someurl.com"),
-        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)), Some(123), xmlReportSaved = Some(true),
-        pdfReportSaved = Some(true))
-
-      val result = onlineTestRepo.nextApplicationReadyForPDFReportRetrieving.futureValue
-
-      result must be(None)
-    }
-
-    "return an application with a cubiksUserId when the application has an xml report saved and pdf report saved flag is not present" in {
-      val date = DateTime.now()
-      val appIdWithUserId = createOnlineTest(UUID.randomUUID().toString, appStatus = "ONLINE_TEST_COMPLETED",
-        "token", Some("http://www.someurl.com"),
-        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)), Some(123), xmlReportSaved = Some(true),
-        pdfReportSaved = None)
-
-      val result = onlineTestRepo.nextApplicationReadyForPDFReportRetrieving.futureValue
-
-      result.get must be(OnlineTestApplicationWithCubiksUser(appIdWithUserId.applicationId, appIdWithUserId.userId, 123))
-    }
-
-    "return an application with a cubiksUserId when the application has an xml report saved and pdf report saved flag is false" in {
-      val date = DateTime.now()
-      val appIdWithUserId = createOnlineTest(UUID.randomUUID().toString, "ONLINE_TEST_COMPLETED", "token", Some("http://www.someurl.com"),
-        invitationDate = Some(date), expirationDate = Some(date.plusDays(7)), Some(123), xmlReportSaved = Some(true),
-        pdfReportSaved = Some(false))
-
-      val result = onlineTestRepo.nextApplicationReadyForPDFReportRetrieving.futureValue
-
-      result.get must be(OnlineTestApplicationWithCubiksUser(appIdWithUserId.applicationId, appIdWithUserId.userId, 123))
-    }
-  }
-
   "removing a candidate's allocation status" should {
     "remove the status, and status flags" in {
       val appIdWithUserId = createOnlineTest(UUID.randomUUID().toString, ApplicationStatuses.AllocationConfirmed)
@@ -487,7 +296,6 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  /* TODO: Refactor in faststream
   "next application ready for online test evaluation" should {
     "return no candidate if there is only a candidate in ONLINE_TEST_STARTED status" in {
       val AppId = UUID.randomUUID().toString

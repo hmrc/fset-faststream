@@ -83,7 +83,13 @@ trait OnlineTestController extends BaseController {
    * @return
    */
   def completeTests(token: String) = Action.async { implicit request =>
-      applicationRepository.setOnlineTestStatusComplete(token).map(_ => Ok)
+    // TODO FIX ME - get appId from online test repo by token
+    //for {
+    //  appId <- onlineRepository.findByToken(token)
+    //  _ <- applicationRepository.setOnlineTestStatus(appId, "ONLINE_TESTS_COMPLETE")
+    //} yield Ok
+
+    Future.successful(Ok)
   }
 
   def resetOnlineTests(appId: String) = Action.async { implicit request =>

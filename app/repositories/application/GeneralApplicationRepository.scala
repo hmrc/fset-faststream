@@ -115,9 +115,8 @@ trait GeneralApplicationRepository {
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
-  def setOnlineTestStatusInvited(applicationId: String): Future[Unit]
+  def setOnlineTestStatus(applicationId: String, status: String): Future[Unit]
 
-  def setOnlineTestStatusComplete(applicationId: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -1049,7 +1048,16 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
   }
 
-  override def setOnlineTestStatusInvited(applicationId: String): Future[Unit] = {
+  override def setOnlineTestStatus(appId: String, status: String): Future[Unit] = status match {
+    case "ONLINE_TEST_INVITED" => setOnlineTestStatusInvited(appId)
+    case _ => {
+      val query = BSONDocument("applicationId" -> appId)
+      val applicationStatusBSON = applicationStatus("ONLINE_TEST_COMPLETED")
+      collection.update(query, applicationStatusBSON, upsert = false).map { _ => () }
+    }
+  }
+
+  private def setOnlineTestStatusInvited(applicationId: String): Future[Unit] = {
     import model.ProgressStatuses._
 
     val query = BSONDocument("applicationId" -> applicationId)
@@ -1072,16 +1080,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       case _ => ()
     }
   }
-
-  override def setOnlineTestStatusComplete(token: String): Future[Unit] = {
-    val query = BSONDocument("online-tests.token" -> token)
-
-    val applicationStatusBSON = applicationStatus("ONLINE_TEST_COMPLETED")
-
-    collection.update(query, applicationStatusBSON, upsert = false).map { _ => () }
-  }
-
-
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {
     case Some(r) => BSONDocument(schemeName -> r.toString)

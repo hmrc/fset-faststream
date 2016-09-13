@@ -201,7 +201,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(otRepositoryMock.storeOnlineTestProfile(any[String], any[OnlineTestProfile]))
         .thenReturn(Future.successful(()))
       when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-      when(appRepositoryMock.setOnlineTestStatusInvited(any[String])).thenReturn(Future.successful())
+      when(appRepositoryMock.setOnlineTestStatus(any[String], any[String])).thenReturn(Future.successful())
 
       val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingGisWithNoTimeAdjustments)
       result.futureValue mustBe (())
@@ -232,7 +232,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(otRepositoryMock.storeOnlineTestProfile(any[String], any[OnlineTestProfile]))
         .thenReturn(Future.successful(()))
       when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-      when(appRepositoryMock.setOnlineTestStatusInvited(any[String])).thenReturn(Future.successful())
+      when(appRepositoryMock.setOnlineTestStatus(any[String], any[String])).thenReturn(Future.successful())
 
       val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
       result.futureValue mustBe (())
@@ -347,7 +347,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(otRepositoryMock.storeOnlineTestProfile(any[String], any[OnlineTestProfile]))
         .thenReturn(Future.successful(()))
       when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-      when(appRepositoryMock.setOnlineTestStatusInvited(any[String])).thenReturn(Future.successful())
+      when(appRepositoryMock.setOnlineTestStatus(any[String], any[String])).thenReturn(Future.successful())
 
       val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
       result.futureValue mustBe (())
