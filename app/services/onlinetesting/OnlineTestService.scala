@@ -98,7 +98,7 @@ trait OnlineTestService {
 
     result.flatMap { _ =>
       candidateEmailAddress(application).flatMap { emailAddress =>
-        emailInviteToApplicant(application, emailAddress, invitationDate)
+        emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
       }
     }
   }
@@ -190,8 +190,8 @@ trait OnlineTestService {
     }
   }
 
-  private def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String, invitationDate: DateTime): Future[Unit] = {
-    val expirationDate = calculateExpireDate(invitationDate)
+  private def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
+    invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
       audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))
@@ -222,13 +222,15 @@ trait OnlineTestService {
     )
   }
 
-  private def calculateExpireDate(invitationDate: DateTime) = invitationDate.plusDays(7)
+  private def calculateExpireDate(invitationDate: DateTime) = {
+    invitationDate.plusDays(gatewayConfig.onlineTestConfig.expiryTimeInDays)
+  }
 
   private def getScheduleIdForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
-      gatewayConfig.scheduleIds.gis
+      gatewayConfig.onlineTestConfig.scheduleIds.gis
     } else {
-      gatewayConfig.scheduleIds.standard
+      gatewayConfig.onlineTestConfig.scheduleIds.standard
     }
   }
 
