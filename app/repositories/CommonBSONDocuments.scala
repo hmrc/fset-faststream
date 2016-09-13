@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package model.command
+package repositories
 
 import org.joda.time.LocalDate
-import model.AddressExamples._
-import model.FastPassDetails
+import reactivemongo.bson.BSONDocument
 
-object UpdateGeneralDetailsExamples {
-  val CandidateContactDetailsUK = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
-    outsideUk = false, FullAddress, Some("A1 B23"), None, "1234567890", FastPassDetails(applicable = false), Some(true))
+
+trait CommonBSONDocuments {
+
+  def applicationStatusBSON(status: String)(implicit progressStatus: String = status.toLowerCase) = {
+    BSONDocument(
+      "applicationStatus" -> status,
+      s"progress-status.$progressStatus" -> true,
+      s"progress-status-dates.$progressStatus" -> LocalDate.now()
+    )
+  }
+
 }

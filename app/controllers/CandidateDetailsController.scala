@@ -17,7 +17,7 @@
 package controllers
 
 import model.Exceptions._
-import model.command.GeneralDetailsExchange
+import model.command.GeneralDetails
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
@@ -38,7 +38,7 @@ trait CandidateDetailsController extends BaseController {
   val auditService: AuditService
 
   def updateDetails(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[GeneralDetailsExchange] { req =>
+    withJsonBody[GeneralDetails] { req =>
       candidateDetailsService.update(applicationId, userId, req) map { _ =>
         auditService.logEvent(PersonalDetailsSavedEvent)
         Created

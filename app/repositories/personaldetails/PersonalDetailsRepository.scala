@@ -21,6 +21,7 @@ import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import repositories.CommonBSONDocuments
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -38,7 +39,7 @@ trait PersonalDetailsRepository {
 
 class PersonalDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[PersonalDetails, BSONObjectID]("application", mongo, PersonalDetails.personalDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository {
+    ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments {
   val PersonalDetailsCollection = "personal-details"
 
   def update(applicationId: String, userId: String, personalDetails: PersonalDetails,
@@ -48,11 +49,14 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> requiredStatuses))
     ))
 
-    val personalDetailsBSON = BSONDocument("$set" -> BSONDocument(
-      "applicationStatus" -> newApplicationStatus,
-      "progress-status.personal-details" -> true,
-      PersonalDetailsCollection -> personalDetails
-    ))
+    val personalDetailsBSON = BSONDocument("$set" ->
+      BSONDocument(
+        "progress-status.personal-details" -> true,
+        PersonalDetailsCollection -> personalDetails
+      ).add(
+        applicationStatusBSON(newApplicationStatus.toString)
+      )
+    )
 
     collection.update(query, personalDetailsBSON, upsert = false) map (_ => ())
   }
