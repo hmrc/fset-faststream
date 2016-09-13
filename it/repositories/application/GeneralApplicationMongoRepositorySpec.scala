@@ -17,13 +17,15 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model.Commands.{ Candidate, Report }
+import model.Commands.{Candidate, Report}
 import model.FastPassDetails
-import org.joda.time.LocalDate
+import org.joda.time.{DateTime, LocalDate}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
+
+import scala.concurrent.Future
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -220,4 +222,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       "frameworkId" -> frameworkId
     )).futureValue
   }
+
+
 }

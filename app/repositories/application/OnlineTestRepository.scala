@@ -36,71 +36,37 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait OnlineTestRepository {
-  def nextApplicationPendingExpiry: Future[Option[ExpiringOnlineTest]]
+  //def nextApplicationPendingExpiry: Future[Option[ExpiringOnlineTest]]
 
-  def nextApplicationPendingFailure: Future[Option[ApplicationForNotification]]
+  //def nextApplicationPendingFailure: Future[Option[ApplicationForNotification]]
 
-  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
-
-  def nextApplicationReadyForReportRetriving: Future[Option[OnlineTestApplicationWithCubiksUser]]
-
-  def nextApplicationReadyForPDFReportRetrieving(): Future[Option[OnlineTestApplicationWithCubiksUser]]
+  //def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
   def getOnlineTestDetails(userId: String): Future[OnlineTestDetails]
 
-  def updateStatus(userId: String, status: String): Future[Unit]
+  //def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit]
 
-  def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit]
-
-  def consumeToken(token: String): Future[Unit]
-
-  def storeOnlineTestProfileAndUpdateStatusToInvite(applicationId: String, onlineTestProfile: OnlineTestProfile): Future[Unit]
+  def storeOnlineTestProfile(applicationId: String, onlineTestProfile: OnlineTestProfile): Future[Unit]
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
-  def updateXMLReportSaved(applicationId: String): Future[Unit]
+  //def updateXMLReportSaved(applicationId: String): Future[Unit]
 
-  def updatePDFReportSaved(applicationId: String): Future[Unit]
+  //def nextApplicationPassMarkProcessing(currentVersion: String): Future[Option[ApplicationIdWithUserIdAndStatus]]
 
-  def nextApplicationPassMarkProcessing(currentVersion: String): Future[Option[ApplicationIdWithUserIdAndStatus]]
+  //def savePassMarkScore(applicationId: String, version: String, p: RuleCategoryResult, applicationStatus: String): Future[Unit]
 
-  def savePassMarkScore(applicationId: String, version: String, p: RuleCategoryResult, applicationStatus: String): Future[Unit]
+  //def savePassMarkScoreWithoutApplicationStatusUpdate(applicationId: String, version: String, p: RuleCategoryResult): Future[Unit]
 
-  def savePassMarkScoreWithoutApplicationStatusUpdate(applicationId: String, version: String, p: RuleCategoryResult): Future[Unit]
+  //def removeCandidateAllocationStatus(applicationId: String): Future[Unit]
 
-  def removeCandidateAllocationStatus(applicationId: String): Future[Unit]
-
-  def saveCandidateAllocationStatus(applicationId: String, applicationStatus: String, expireDate: Option[LocalDate]): Future[Unit]
+  //def saveCandidateAllocationStatus(applicationId: String, applicationStatus: String, expireDate: Option[LocalDate]): Future[Unit]
 }
 
 class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[OnlineTestDetails, BSONObjectID]("application", mongo,
     Commands.Implicits.onlineTestDetailsFormat, ReactiveMongoFormats.objectIdFormats) with OnlineTestRepository with RandomSelection {
 
-  private def applicationStatus(status: String): BSONDocument = {
-
-    val flag = status match {
-      case "ONLINE_TEST_INVITED" => "online_test_invited"
-      case "ONLINE_TEST_STARTED" => "online_test_started"
-      case "ONLINE_TEST_COMPLETED" => "online_test_completed"
-      case "ONLINE_TEST_EXPIRED" => "online_test_expired"
-      case "ONLINE_TEST_FAILED" => "online_test_failed"
-      case "ONLINE_TEST_FAILED_NOTIFIED" => "online_test_failed_notified"
-    }
-
-    if (flag == "online_test_completed") {
-      BSONDocument("$set" -> BSONDocument(
-        s"progress-status.$flag" -> true,
-        "applicationStatus" -> status,
-        "online-tests.completionDate" -> DateTime.now
-      ))
-    } else {
-      BSONDocument("$set" -> BSONDocument(
-        s"progress-status.$flag" -> true,
-        "applicationStatus" -> status
-      ))
-    }
-  }
 
   override def getOnlineTestDetails(userId: String): Future[OnlineTestDetails] = {
 
@@ -121,18 +87,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
   }
 
-  override def updateStatus(userId: String, status: String) = {
-    val query = BSONDocument("userId" -> userId)
-    val applicationStatusBSON = applicationStatus(status)
-
-    collection.update(query, applicationStatusBSON, upsert = false) map {
-      case r if r.n == 0 => throw new NotFoundException(s"updateStatus didn't update anything for userId:$userId")
-      case r if r.n > 1 => throw new UnexpectedException(s"updateStatus somehow updated more than one record for userId:$userId")
-      case _ =>
-    }
-  }
-
-  override def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit] = {
+/*  override def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit] = {
     val queryUser = BSONDocument("userId" -> userId)
     val queryUserExpired = BSONDocument("userId" -> userId, "applicationStatus" -> "ONLINE_TEST_EXPIRED")
     val newExpiryTime = BSONDocument("$set" -> BSONDocument(
@@ -151,41 +106,23 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       if (status.n == 0) throw new NotFoundException(s"updateStatus didn't update anything for userId:$userId")
       if (status.n > 1) throw new UnexpectedException(s"updateStatus somehow updated more than one record for userId:$userId")
     }
-  }
+  }*/
 
-  override def consumeToken(token: String) = {
-    val query = BSONDocument("online-tests.token" -> token)
 
-    val applicationStatusBSON = applicationStatus("ONLINE_TEST_COMPLETED")
 
-    collection.update(query, applicationStatusBSON, upsert = false).map { _ => () }
-  }
-
-  override def storeOnlineTestProfileAndUpdateStatusToInvite(applicationId: String, onlineTestProfile: OnlineTestProfile) = {
-    import model.ProgressStatuses._
+  override def storeOnlineTestProfile(applicationId: String, onlineTestProfile: OnlineTestProfile) = {
 
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_INVITED" -> "",
-      s"progress-status.$PHASE1_TESTS_COMPLETED" -> "",
-      s"progress-status.$PHASE1_TESTS_EXPIRED" -> "",
-      s"progress-status.$AwaitingOnlineTestReevaluationProgress" -> "",
-      s"progress-status.$OnlineTestFailedProgress" -> "",
-      s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
-      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> "",
-      s"online-tests.xmlReportSaved" -> "",
-      s"online-tests.pdfReportSaved" -> "",
-      s"passmarkEvaluation" -> ""
-    )) ++ BSONDocument("$set" -> BSONDocument(
-      "progress-status.online_test_invited" -> true,
-      "applicationStatus" -> "ONLINE_TEST_INVITED",
-      "online-tests.cubiksUserId" -> onlineTestProfile.cubiksUserId,
-      "online-tests.token" -> onlineTestProfile.token,
-      "online-tests.onlineTestUrl" -> onlineTestProfile.onlineTestUrl,
-      "online-tests.invitationDate" -> onlineTestProfile.invitationDate,
-      "online-tests.expirationDate" -> onlineTestProfile.expirationDate,
-      "online-tests.participantScheduleId" -> onlineTestProfile.participantScheduleId
+    val applicationStatusBSON = BSONDocument("$push" -> BSONDocument(
+      "scheduldId" -> onlineTestProfile.scheduleId,
+      "usedForResutls" -> true,
+      "cubiksUserId" -> onlineTestProfile.cubiksUserId,
+      "token" -> onlineTestProfile.token,
+      "onlineTestUrl" -> onlineTestProfile.onlineTestUrl,
+      "invitationDate" -> onlineTestProfile.invitationDate,
+      "expirationDate" -> onlineTestProfile.expirationDate,
+      "participantScheduleId" -> onlineTestProfile.participantScheduleId
     ))
 
     collection.update(query, applicationStatusBSON, upsert = false) map {
@@ -193,7 +130,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
   }
 
-  def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
+  override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument(
       "applicationId" -> appId
     )
@@ -201,6 +138,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       _.map(bsonDocToOnlineTestApplication)
     }
   }
+  /*
 
   def nextApplicationPendingExpiry: Future[Option[ExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
@@ -222,40 +160,10 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       BSONDocument("online-tests.pdfReportSaved" -> true)
     ))
     selectRandom(query).map(_.map(bsonDocToApplicationForNotification))
-  }
+  }*/
 
-  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> "SUBMITTED"),
-      BSONDocument("fastpass-details.applicable" -> false),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument("assistance-details.needsAdjustment" -> "No"),
-        BSONDocument("$and" -> BSONArray(
-          BSONDocument("assistance-details.needsAdjustment" -> "Yes"),
-          BSONDocument("assistance-details.adjustments-confirmed" -> true)
-        ))
-      ))
-    ))
-    selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
-  }
 
-  def nextApplicationReadyForReportRetriving: Future[Option[OnlineTestApplicationWithCubiksUser]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> "ONLINE_TEST_COMPLETED"),
-      BSONDocument("online-tests.xmlReportSaved" ->
-        BSONDocument("$ne" -> true))
-    ))
 
-    selectRandom(query).map(_.map(bsonDocToOnlineTestApplicationForReportRetrieving))
-  }
-
-  override def nextApplicationReadyForPDFReportRetrieving(): Future[Option[OnlineTestApplicationWithCubiksUser]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("online-tests.pdfReportSaved" -> BSONDocument("$ne" -> true)),
-      BSONDocument("online-tests.xmlReportSaved" -> BSONDocument("$eq" -> true))
-    ))
-    selectRandom(query).map(_.map(bsonDocToOnlineTestApplicationForReportRetrieving))
-  }
 
   private def bsonDocToExpiringOnlineTest(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
@@ -274,54 +182,10 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ApplicationForNotification(applicationId, userId, preferredName, applicationStatus)
   }
 
-  private def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val applicationStatus = doc.getAs[String]("applicationStatus").get
-    val userId = doc.getAs[String]("userId").get
 
-    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
-    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
 
-    val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
-    val guaranteedInterview = assistanceDetailsRoot.getAs[String]("guaranteedInterview").contains("Yes")
-    val needsAdjustment = assistanceDetailsRoot.getAs[String]("needsAdjustment").contains("Yes")
-
-    if (needsAdjustment) {
-      val typeOfAdjustmentsRoot = assistanceDetailsRoot.getAs[BSONArray]("typeOfAdjustments").get
-      val timeExtension = typeOfAdjustmentsRoot.values.contains(BSONString("time extension"))
-      if (timeExtension) {
-        val verbalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("verbalTimeAdjustmentPercentage").get
-        val numericalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("numericalTimeAdjustmentPercentage").get
-        val timeAdjustments = TimeAdjustmentsOnlineTestApplication(verbalTimeAdjustmentPercentage, numericalTimeAdjustmentPercentage)
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
-          Some(timeAdjustments))
-      } else {
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName, None)
-      }
-    } else {
-      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName, None)
-    }
-
-  }
-
-  private def bsonDocToOnlineTestApplicationForReportRetrieving(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val userId = doc.getAs[String]("userId").get
-    def errorMsg(attr: String) = s"Error retrieving $attr for user with applicationId:$applicationId ${doc.toString()}"
-    val onlineTests = doc.getAs[BSONDocument]("online-tests")
-      .getOrElse(throw new Exception(errorMsg("online-tests")))
-    val cubiksUserId = onlineTests.getAs[Int]("cubiksUserId")
-      .getOrElse(throw new Exception(errorMsg("cubiksUserId")))
-
-    OnlineTestApplicationWithCubiksUser(applicationId, userId, cubiksUserId)
-  }
-
-  def updateXMLReportSaved(applicationId: String): Future[Unit] = {
+/*  def updateXMLReportSaved(applicationId: String): Future[Unit] = {
     updateFlag(applicationId, "online-tests.xmlReportSaved", true)
-  }
-
-  def updatePDFReportSaved(applicationId: String): Future[Unit] = {
-    updateFlag(applicationId, "online-tests.pdfReportSaved", true)
   }
 
   private def updateFlag(applicationId: String, flag: String, value: Boolean): Future[Unit] = {
@@ -336,8 +200,8 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       if (status.n == 0) throw new NotFoundException(s"updateStatus didn't update anything for applicationId:$applicationId")
       if (status.n > 1) throw new UnexpectedException(s"updateStatus updated more than one record for applicationId:$applicationId")
     }
-  }
-
+  }*/
+/*
   def nextApplicationPassMarkProcessing(currentVersion: String): Future[Option[ApplicationIdWithUserIdAndStatus]] = {
     val query =
       BSONDocument("$or" ->
@@ -481,5 +345,5 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   private def checkUpdateWriteResult(writeResult: UpdateWriteResult): Unit = {
     writeResult.errmsg.map(msg => throw new UnexpectedException(s"Database update failed: $msg"))
-  }
+  }*/
 }

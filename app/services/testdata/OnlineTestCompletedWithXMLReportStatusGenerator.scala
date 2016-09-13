@@ -38,7 +38,8 @@ trait OnlineTestCompletedWithXMLReportStatusGenerator extends ConstructiveGenera
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- trRepository.saveOnlineTestReport(generateCandidateTestReport(candidateInPreviousStatus.applicationId.get, generatorConfig.setGis))
-      _ <- otRepository.updateXMLReportSaved(candidateInPreviousStatus.applicationId.get)
+      // TODO FAST STREAM FIX ME
+      //_ <- otRepository.updateXMLReportSaved(candidateInPreviousStatus.applicationId.get)
     } yield {
       candidateInPreviousStatus
     }

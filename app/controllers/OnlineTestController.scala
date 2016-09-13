@@ -21,8 +21,8 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
-import repositories.application.OnlineTestRepository
-import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
+import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import services.onlinetesting.{OnlineTestExtensionService, OnlineTestService}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,6 +45,7 @@ case class OnlineTestExtension(extraDays: Int)
 case class UserIdWrapper(userId: String)
 
 object OnlineTestController extends OnlineTestController {
+  override val applicationRepository: GeneralApplicationRepository = applicationRepository
   override val onlineRepository: OnlineTestRepository = onlineTestRepository
   override val onlineTestingService: OnlineTestService = OnlineTestService
   override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
@@ -52,6 +53,7 @@ object OnlineTestController extends OnlineTestController {
 
 trait OnlineTestController extends BaseController {
 
+  val applicationRepository: GeneralApplicationRepository
   val onlineRepository: OnlineTestRepository
   val onlineTestingService: OnlineTestService
   val onlineTestExtensionService: OnlineTestExtensionService
@@ -66,11 +68,9 @@ trait OnlineTestController extends BaseController {
     }
   }
 
-  def onlineTestStatusUpdate(userId: String) = Action.async(parse.json) { implicit request =>
+  def onlineTestStatusUpdate(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestStatus] { onlineTestStatus =>
-      onlineRepository.updateStatus(userId, onlineTestStatus.status).map { _ =>
-        Ok
-      }
+      applicationRepository.updateStatus(applicationId, onlineTestStatus.status).map(_ => Ok)
     }
   }
 
@@ -83,7 +83,7 @@ trait OnlineTestController extends BaseController {
    * @return
    */
   def completeTests(token: String) = Action.async { implicit request =>
-    onlineRepository.consumeToken(token).map(_ => Ok)
+      applicationRepository.setOnlineTestStatusComplete(token).map(_ => Ok)
   }
 
   def resetOnlineTests(appId: String) = Action.async { implicit request =>

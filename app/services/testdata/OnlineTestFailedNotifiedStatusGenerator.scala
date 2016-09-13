@@ -35,7 +35,8 @@ trait OnlineTestFailedNotifiedStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.updateStatus(candidateInPreviousStatus.userId, ApplicationStatuses.OnlineTestFailedNotified)
+      // TODO FAST STREAM FIX ME
+      //_ <- otRepository.updateStatus(candidateInPreviousStatus.userId, ApplicationStatuses.OnlineTestFailedNotified)
     } yield {
       candidateInPreviousStatus
     }

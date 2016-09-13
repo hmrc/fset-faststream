@@ -19,19 +19,20 @@ package repositories.application
 import java.util.UUID
 
 import model.ApplicationStatusOrder._
-import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
+import model.AssessmentScheduleCommands.{ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult}
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
+import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
+import model.OnlineTestCommands.{OnlineTestApplication, TimeAdjustmentsOnlineTestApplication}
 import model.PersistedObjects.ApplicationForNotification
 import model._
-import model.command.{ AssessmentCentre, AssessmentScores, OnlineTestProgressResponse, ProgressResponse }
+import model.command.{AssessmentCentre, AssessmentScores, OnlineTestProgressResponse, ProgressResponse}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
 import play.api.Logger
-import play.api.libs.json.{ Format, JsNumber, JsObject }
-import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, _ }
+import play.api.libs.json.{Format, JsNumber, JsObject}
+import reactivemongo.api.{DB, QueryOpts, ReadPreference}
+import reactivemongo.bson.{BSONDocument, _}
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -41,6 +42,11 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+// TODO FAST STREAM
+// This is far too large an interface - we should look at splitting up based on
+// functional concerns.
+
+// scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
 
   def create(userId: String, frameworkId: String): Future[ApplicationResponse]
@@ -103,6 +109,11 @@ trait GeneralApplicationRepository {
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,
                                     evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: String): Future[Unit]
 
+  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
+
+  def setOnlineTestStatusInvited(applicationId: String): Future[Unit]
+
+  def setOnlineTestStatusComplete(applicationId: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -1007,6 +1018,80 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       case _ => ()
     }
   }
+
+  // TODO: get rid of this, it feels wrong and we should also be using the App Status case objects.
+  private def applicationStatus(status: String): BSONDocument = {
+    val flag = status match {
+      case "ONLINE_TEST_INVITED" => "online_test_invited"
+      case "ONLINE_TEST_STARTED" => "online_test_started"
+      case "ONLINE_TEST_COMPLETED" => "online_test_completed"
+      case "ONLINE_TEST_EXPIRED" => "online_test_expired"
+      case "ONLINE_TEST_FAILED" => "online_test_failed"
+      case "ONLINE_TEST_FAILED_NOTIFIED" => "online_test_failed_notified"
+    }
+
+    if (flag == "online_test_completed") {
+      BSONDocument("$set" -> BSONDocument(
+        s"progressstatus.$flag" -> true,
+        "applicationStatus" -> status,
+        "onlinetests.completionDate" -> DateTime.now
+      ))
+    } else {
+      BSONDocument("$set" -> BSONDocument(
+        s"progressstatus.$flag" -> true,
+        "applicationStatus" -> status
+      ))
+    }
+  }
+
+  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> "SUBMITTED"),
+      BSONDocument("fastpass-details.applicable" -> false),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument("assistance-details.needsAdjustment" -> "No"),
+        BSONDocument("$and" -> BSONArray(
+          BSONDocument("assistance-details.needsAdjustment" -> "Yes"),
+          BSONDocument("assistance-details.adjustments-confirmed" -> true)
+        ))
+      ))
+    ))
+    selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
+  }
+
+  override def setOnlineTestStatusInvited(applicationId: String): Future[Unit] = {
+    import model.ProgressStatuses._
+
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
+      s"progress-status.$PHASE1_TESTS_INVITED" -> "",
+      s"progress-status.$PHASE1_TESTS_COMPLETED" -> "",
+      s"progress-status.$PHASE1_TESTS_EXPIRED" -> "",
+      s"progress-status.$AwaitingOnlineTestReevaluationProgress" -> "",
+      s"progress-status.$OnlineTestFailedProgress" -> "",
+      s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
+      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> "",
+      s"passmarkEvaluation" -> ""
+    )) ++ BSONDocument("$set" -> BSONDocument(
+      "progress-status.online_test_invited" -> true,
+      "applicationStatus" -> "ONLINE_TEST_INVITED"
+    ))
+
+    collection.update(query, applicationStatusBSON, upsert = false) map {
+      case _ => ()
+    }
+  }
+
+  override def setOnlineTestStatusComplete(token: String): Future[Unit] = {
+    val query = BSONDocument("online-tests.token" -> token)
+
+    val applicationStatusBSON = applicationStatus("ONLINE_TEST_COMPLETED")
+
+    collection.update(query, applicationStatusBSON, upsert = false).map { _ => () }
+  }
+
+
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {
     case Some(r) => BSONDocument(schemeName -> r.toString)

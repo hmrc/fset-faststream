@@ -50,8 +50,9 @@ trait AwaitingAllocationStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.savePassMarkScore(candidateInPreviousStatus.applicationId.get, UUID.randomUUID().toString,
-        getEvaluationResult(candidateInPreviousStatus), ApplicationStatuses.AwaitingAllocation)
+      // TODO FAST STREAM FIX ME
+      //_ <- otRepository.savePassMarkScore(candidateInPreviousStatus.applicationId.get, UUID.randomUUID().toString,
+      //  getEvaluationResult(candidateInPreviousStatus), ApplicationStatuses.AwaitingAllocation)
     } yield {
       candidateInPreviousStatus
     }

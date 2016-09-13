@@ -30,7 +30,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object ExpireOnlineTestJob extends ExpireOnlineTestJob {
   val service = new OnlineTestExpiryServiceImpl(
-    onlineTestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
+    applicationRepository, onlineTestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
   )
 }
 

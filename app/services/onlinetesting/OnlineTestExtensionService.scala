@@ -39,7 +39,7 @@ class OnlineTestExtensionServiceImpl(
     for {
       expiryDate <- getExpiryDate(userId)
       newExpiryDate = calculateNewExpiryDate(expiryDate, extraDays)
-      _ <- otRepository.updateExpiryTime(userId, newExpiryDate)
+      // TODO FAST STREAM FIX ME _ <- otRepository.updateExpiryTime(userId, newExpiryDate)
     } yield ()
   }
 

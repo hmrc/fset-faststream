@@ -33,6 +33,7 @@ object DocumentRootInMemoryRepository extends DocumentRootInMemoryRepository
 /**
  * @deprecated Please use Mockito
  */
+// scalastyle:off number.of.methods
 class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def find(applicationIds: List[String]): Future[List[Candidate]] = ???
@@ -147,4 +148,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String, evaluationResult: AssessmentRuleCategoryResult,
     newApplicationStatus: String): Future[Unit] = ???
+
+  def nextApplicationReadyForOnlineTesting: scala.concurrent.Future[Option[model.OnlineTestCommands.OnlineTestApplication]] = ???
+  def setOnlineTestStatusComplete(applicationId: String): scala.concurrent.Future[Unit] = ???
+  def setOnlineTestStatusInvited(applicationId: String): scala.concurrent.Future[Unit] = ???
 }

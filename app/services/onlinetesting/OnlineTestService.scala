@@ -71,7 +71,7 @@ trait OnlineTestService {
   ).map(a => ReportNorm(a.assessmentId, a.normId)).toList
 
   def nextApplicationReadyForOnlineTesting() = {
-    otRepository.nextApplicationReadyForOnlineTesting
+    appRepository.nextApplicationReadyForOnlineTesting
   }
 
   def getOnlineTest(userId: String): Future[OnlineTest] = {
@@ -126,10 +126,6 @@ trait OnlineTestService {
 
   }
 
-  def nextApplicationReadyForReportRetrieving: Future[Option[OnlineTestApplicationWithCubiksUser]] = {
-    otRepository.nextApplicationReadyForReportRetriving
-  }
-
   def retrieveTestResult(application: OnlineTestApplicationWithCubiksUser, waitSecs: Option[Int]): Future[Unit] = {
     val request = OnlineTestApplicationForReportRetrieving(application.cubiksUserId, gatewayConfig.reportConfig.localeCode,
       gatewayConfig.reportConfig.xmlReportId, norms)
@@ -149,13 +145,14 @@ trait OnlineTestService {
           cubiksGatewayClient.downloadXmlReport(reportId) flatMap { results: Map[String, TestResult] =>
             val cr = toCandidateTestReport(application.applicationId, results)
             if (gatewayConfig.reportConfig.suppressValidation || cr.isValid(gis)) {
-
-              trRepository.saveOnlineTestReport(cr).flatMap { _ =>
-                otRepository.updateXMLReportSaved(application.applicationId) map { _ =>
-                  Logger.info(s"Report has been saved for applicationId: ${application.applicationId}")
-                  audit("OnlineTestXmlReportSaved", application.userId)
-                }
-              }
+              // TODO FAST STREAM FIX ME
+              Future.successful(Unit)
+              //trRepository.saveOnlineTestReport(cr).flatMap { _ =>
+              //  otRepository.updateXMLReportSaved(application.applicationId) map { _ =>
+              //    Logger.info(s"Report has been saved for applicationId: ${application.applicationId}")
+              //    audit("OnlineTestXmlReportSaved", application.userId)
+              //  }
+              //}
             } else {
               val cubiksUserId = application.cubiksUserId
               val applicationId = application.applicationId
@@ -198,10 +195,14 @@ trait OnlineTestService {
     }
   }
 
-  private def markAsCompleted(application: OnlineTestApplication)(onlineTestProfile: OnlineTestProfile): Future[Unit] =
-    otRepository.storeOnlineTestProfileAndUpdateStatusToInvite(application.applicationId, onlineTestProfile).map { _ =>
+  private def markAsCompleted(application: OnlineTestApplication)
+    (onlineTestProfile: OnlineTestProfile): Future[Unit] = for {
+    _ <- otRepository.storeOnlineTestProfile(application.applicationId, onlineTestProfile)
+    _ <- appRepository.setOnlineTestStatusInvited(application.applicationId)
+  } yield {
       audit("OnlineTestInvitationProcessComplete", application.userId)
-    }
+      audit("OnlineTestStatusSetToInvited", application.userId)
+  }
 
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
     cdRepository.find(application.userId).map(_.email)

@@ -19,6 +19,7 @@ import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, C
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
+import model.OnlineTestCommands.{OnlineTestApplication, TimeAdjustmentsOnlineTestApplication}
 import model.PassmarkPersistedObjects._
 import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
 import model.persisted.AssistanceDetails
@@ -73,9 +74,7 @@ package object repositories {
   Await.result(Future.sequence(List(
     applicationRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true)),
     applicationRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true)),
-    onlineTestRepository.collection.indexesManager.create(Index(Seq(("online-tests.token", Ascending)), unique = false)),
-    onlineTestRepository.collection.indexesManager.create(Index(Seq(("applicationStatus", Ascending)), unique = false)),
-    onlineTestRepository.collection.indexesManager.create(Index(Seq(("online-tests.invitationDate", Ascending)), unique = false)),
+    onlineTestRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
     contactDetailsRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
     faststreamContactDetailsRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
@@ -89,6 +88,7 @@ package object repositories {
     applicationAssessmentRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
     applicationAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true))
+
   )), 20 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
@@ -185,4 +185,35 @@ package object repositories {
   implicit val competencyAverageResultHandler: BSONHandler[BSONDocument, CompetencyAverageResult] =
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
+
+  def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
+    val applicationId = doc.getAs[String]("applicationId").get
+    val applicationStatus = doc.getAs[String]("applicationStatus").get
+    val userId = doc.getAs[String]("userId").get
+
+    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
+    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
+
+    val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
+    val guaranteedInterview = assistanceDetailsRoot.getAs[String]("guaranteedInterview").contains("Yes")
+    val needsAdjustment = assistanceDetailsRoot.getAs[String]("needsAdjustment").contains("Yes")
+
+    if (needsAdjustment) {
+      val typeOfAdjustmentsRoot = assistanceDetailsRoot.getAs[BSONArray]("typeOfAdjustments").get
+      val timeExtension = typeOfAdjustmentsRoot.values.contains(BSONString("time extension"))
+      if (timeExtension) {
+        val verbalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("verbalTimeAdjustmentPercentage").get
+        val numericalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("numericalTimeAdjustmentPercentage").get
+        val timeAdjustments = TimeAdjustmentsOnlineTestApplication(verbalTimeAdjustmentPercentage, numericalTimeAdjustmentPercentage)
+        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+          Some(timeAdjustments))
+      } else {
+        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName, None)
+      }
+    } else {
+      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName, None)
+    }
+
+  }
+
 }
