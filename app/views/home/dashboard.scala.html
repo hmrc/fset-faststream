@@ -140,6 +140,7 @@
                                                 <br /><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
                                             </p>
 
+                                            @* TODO: Remove or fix when assessment stories will be implemented
                                             @helper.form(controllers.routes.HomeController.confirmAlloc) {
                                             @helper.CSRF.formField
                                             <div id="attendQuestion">
@@ -147,6 +148,7 @@
                                                 <button type="submit" class="button" id="canAttendBtn">I can attend</button>
                                             </div>
                                             }
+                                            *@
 
                                             <p>
                                                 @aDetails.expirationDate.map{ expirationDate =>
