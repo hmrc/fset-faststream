@@ -114,7 +114,7 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
       )
   }
 
-  val confirmAlloc = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
+  def confirmAlloc = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
     implicit user =>
 
       applicationClient.confirmAllocation(user.application.get.applicationId).map { _ =>
