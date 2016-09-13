@@ -227,6 +227,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> "SUBMITTED"),
+      BSONDocument("fastpass-details.applicable" -> false),
       BSONDocument("$or" -> BSONArray(
         BSONDocument("assistance-details.needsAdjustment" -> "No"),
         BSONDocument("$and" -> BSONArray(

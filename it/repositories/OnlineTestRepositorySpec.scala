@@ -40,6 +40,16 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
   "Next application ready for online testing" should {
 
+    "return no application if htere is only one and it is a fast pass candidate" in{
+      createApplication("appId", "userId", "frameworkId", "IN_PROGRESS", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
+      )
+
+      val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
+
+      result must be (None)
+    }
+
     "return no application if there is only one application without adjustment needed but not submitted" in {
 
       createApplication("appId", "userId", "frameworkId", "IN_PROGRESS", needsAdjustment = false, adjustmentsConfirmed = false,
@@ -541,14 +551,17 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }*/
 
-  def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String, needsAdjustment: Boolean,
-                        adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean) = {
+  def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String,
+    needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean,
+    fastPassApplicable: Boolean = false) = {
+
     helperRepo.collection.insert(BSONDocument(
       "userId" -> userId,
       "frameworkId" -> frameworkId,
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
       "personal-details" -> BSONDocument("preferredName" -> "Test Preferred Name"),
+      "fastpass-details.applicable" -> fastPassApplicable,
       "assistance-details" -> createAsistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments)
     )).futureValue
   }
