@@ -18,15 +18,12 @@ package model
 
 // TODO: The next step is to refactor the whole application so everything references this object for statuses.
 // These are all possible statuses
+@deprecated("Use the ApplicationStatus class for statuses, this class will be removed eventually.", "01 September 2016")
 object ApplicationStatuses {
   val Created = "CREATED"
   val Withdrawn = "WITHDRAWN"
   val InProgress = "IN_PROGRESS"
   val Submitted = "SUBMITTED"
-  val OnlineTestInvited = "ONLINE_TEST_INVITED"
-  val OnlineTestStarted = "ONLINE_TEST_STARTED"
-  val OnlineTestExpired = "ONLINE_TEST_EXPIRED"
-  val OnlineTestCompleted = "ONLINE_TEST_COMPLETED"
   val OnlineTestFailed = "ONLINE_TEST_FAILED"
   val OnlineTestFailedNotified = "ONLINE_TEST_FAILED_NOTIFIED"
   val AwaitingOnlineTestReevaluation = "AWAITING_ONLINE_TEST_RE_EVALUATION"

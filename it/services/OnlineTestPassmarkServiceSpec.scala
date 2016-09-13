@@ -57,6 +57,7 @@ class OnlineTestPassmarkServiceSpec extends IntegrationSpec with MockitoSugar {
     }
   }
 
+  /* TODO: Refactor in faststream
   "Online Test Passmark Service" should {
     "for each test in the path evaluate scores" in new WithApplication {
       implicit object DateTimeValueReader extends ValueReader[DateTime] {
@@ -157,5 +158,5 @@ class OnlineTestPassmarkServiceSpec extends IntegrationSpec with MockitoSugar {
 
   def toStr(r: Result): String = r.getClass.getSimpleName.split("\\$").head
   def toStr(r: Option[Result]): Option[String] = r.map(toStr)
-
+  */
 }
