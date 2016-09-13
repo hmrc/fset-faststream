@@ -70,6 +70,10 @@ POST        /online-test/reset/:appId                                    control
 POST        /online-test/extend/:appId                                   controllers.OnlineTestController.extendOnlineTests(appId: String)
 GET         /online-test/pdf-report/:applicationId                       controllers.OnlineTestController.getPDFReport(applicationId: String)
 
+PUT         /online-exercise/:assessmentId/start                         controllers.OnlineExercisesController.startAssessment(assessmentId: String)
+PUT         /online-exercise/:assessmentId/complete                      controllers.OnlineExercisesController.completeAssessment(assessmentId: String)
+PUT         /online-exercise/:assessmentId/results-ready                 controllers.OnlineExercisesController.markResultsReady(assessmentId: String)
+
 GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
 PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)
 PUT         /test-scores/accept/application/:applicationId               controllers.CandidateScoresController.acceptCandidateScoresAndFeedback(applicationId: String)
