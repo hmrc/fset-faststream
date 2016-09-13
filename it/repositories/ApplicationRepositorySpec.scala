@@ -16,12 +16,14 @@
 
 package repositories
 
+import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
-import model.{ ApplicationStatuses, EvaluationResults }
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.persisted.AssistanceDetails
+import model.{ ApplicationStatuses, EvaluationResults }
+import org.joda.time.LocalDate
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ GeneralApplicationMongoRepository, TestDataMongoRepository }
@@ -29,7 +31,7 @@ import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Await
 
 
 class ApplicationRepositorySpec extends MongoRepositorySpec {
@@ -100,6 +102,32 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       result.size must be(1)
       result.head.applicationId.get must be(appResponse.applicationId)
       result.head.userId must be("userId1")
+    }
+  }
+
+  "Submit application" should {
+    "capture the submission date and change the application status to submitted" in {
+      val applicationStatus = (for {
+        app <- applicationRepo.create("userId1", frameworkId)
+        _ <- applicationRepo.submit(app.applicationId)
+        appStatus <- applicationRepo.findStatus(app.applicationId)
+      } yield appStatus).futureValue
+
+      applicationStatus.status mustBe SUBMITTED.toString
+      applicationStatus.statusDate mustBe Some(LocalDate.now)
+    }
+  }
+
+  "Withdrawn application" should {
+    "capture the withdrawn date and change the application status to withdrawn" in {
+      val applicationStatus = (for {
+        app <- applicationRepo.create("userId1", frameworkId)
+        _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplicationRequest("test", None, "test"))
+        appStatus <- applicationRepo.findStatus(app.applicationId)
+      } yield appStatus).futureValue
+
+      applicationStatus.status mustBe WITHDRAWN.toString
+      applicationStatus.statusDate mustBe Some(LocalDate.now)
     }
   }
 

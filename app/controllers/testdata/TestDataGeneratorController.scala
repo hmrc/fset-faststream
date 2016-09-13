@@ -88,8 +88,8 @@ trait TestDataGeneratorController extends BaseController {
                                previousStatus: Option[String] = None,
                                confirmedAllocation: Boolean,
                                dateOfBirth: Option[String] = None,
-                               postCode: Option[String]) = Action.async { implicit request =>
-
+                               postCode: Option[String],
+                               country: Option[String]) = Action.async { implicit request =>
     val initialConfig = GeneratorConfig(
       emailPrefix = emailPrefix,
       setGis = setGis,
@@ -109,7 +109,8 @@ trait TestDataGeneratorController extends BaseController {
         case _ => confirmedAllocation
       },
       dob = dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),
-      postCode = postCode.map(pc => validatePostcode(pc))
+      postCode = postCode.map(pc => validatePostcode(pc)),
+      country = country
     )
     // scalastyle:on
 

@@ -54,8 +54,8 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       ContactDetails(
         outsideUk = false,
         Address("123, Fake street"),
-        generatorConfig.postCode.orElse(Some(Random.postCode)),
-        None,
+        if (generatorConfig.country.isEmpty) { generatorConfig.postCode.orElse(Some(Random.postCode)) } else { None },
+        generatorConfig.country,
         candidateInformation.email,
         "07770 774 914"
       )

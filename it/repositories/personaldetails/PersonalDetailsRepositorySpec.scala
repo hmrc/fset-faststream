@@ -2,10 +2,13 @@ package repositories.personaldetails
 
 import model.ApplicationStatus._
 import model.Exceptions.PersonalDetailsNotFound
+import model.persisted.PersonalDetailsExamples._
+import org.joda.time.LocalDate
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
+import repositories.application.GeneralApplicationMongoRepository
+import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
-import model.persisted.PersonalDetailsExamples._
 
 class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
@@ -13,6 +16,7 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
   override val collectionName = "application"
 
   def repository = new PersonalDetailsMongoRepository
+  def appRepository = new GeneralApplicationMongoRepository(GBTimeZoneService)
 
   "update candidate" should {
     "modify the details and find the personal details successfully" in {
@@ -22,7 +26,11 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
         pd <- repository.find(AppId)
       } yield pd).futureValue
 
+      val applicationStatus = appRepository.findStatus(AppId).futureValue
+
       personalDetails mustBe JohnDoe
+      applicationStatus.status mustBe IN_PROGRESS.toString
+      applicationStatus.statusDate mustBe Some(LocalDate.now)
     }
 
     "do not update the application in different status than required" in {

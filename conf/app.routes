@@ -15,7 +15,7 @@ GET         /assistance-details/:userId/:applicationId                   control
 
 PUT         /application/create                                          controllers.ApplicationController.createApplication
 GET         /application/progress/:applicationId                         controllers.ApplicationController.applicationProgress(applicationId: String)
-GET         /application/status/:applicationId                           controllers.ApplicationController.applicationStatus(applicationId: String)
+GET         /application/status/:applicationId                           controllers.ApplicationController.findApplicationStatusDetails(applicationId: String)
 GET         /application/find/user/:userId/framework/:frameworkId        controllers.ApplicationController.findApplication(userId: String, frameworkId: String)
 PUT         /application/preview/:applicationId                          controllers.ApplicationController.preview(applicationId: String)
 PUT         /application/submit/:userId/:applicationId                   controllers.SubmitApplicationController.submitApplication(userId: String, applicationId: String)

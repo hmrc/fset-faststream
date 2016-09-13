@@ -17,10 +17,11 @@
 package model.command
 
 import org.joda.time.LocalDate
-import model.AddressExamples._
-import model.FastPassDetails
+import play.api.libs.json.Json
 
-object UpdateGeneralDetailsExamples {
-  val CandidateContactDetailsUK = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
-    outsideUk = false, FullAddress, Some("A1 B23"), None, "1234567890", FastPassDetails(applicable = false), Some(true))
+
+case class ApplicationStatusDetails(status: String, statusDate: Option[LocalDate] = None)
+
+object ApplicationStatusDetails {
+  implicit val applicationStatusDetailsFormat = Json.format[ApplicationStatusDetails]
 }
