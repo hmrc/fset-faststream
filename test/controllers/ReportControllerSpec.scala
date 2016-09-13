@@ -55,9 +55,9 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
         override val cdRepository = new ContactDetailsInMemoryRepository {
           override def findAll: Future[List[ContactDetailsWithId]] =
             Future.successful(List(
-              ContactDetailsWithId("1", Address("First Line", None, None, None), "HP18 9DN", "joe@bloggs.com", None),
-              ContactDetailsWithId("2", Address("First Line", None, None, None), "HP18 9DN", "joe@bloggs.com", None),
-              ContactDetailsWithId("3", Address("First Line", None, None, None), "HP18 9DN", "joe@bloggs.com", None)
+              ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None),
+              ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None),
+              ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None)
             ))
         }
         override val authProviderClient: AuthProviderClient = authProviderClientMock
@@ -130,7 +130,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
           override def findAll: Future[List[ContactDetailsWithId]] = {
             Future.successful(ContactDetailsWithId(
               "user1",
-              Address("First Line", None, None, None), "HP18 9DN", "joe@bloggs.com", Some("123456789")
+              Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", Some("123456789")
             ) :: Nil)
           }
         }
@@ -436,7 +436,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     def newContactDetails = ContactDetailsWithId(
       userId,
       Address(rnd("Line 1"), None, None, None),
-      rnd("PostCode"),
+      Some(rnd("PostCode")),
       rnd("Email"),
       someRnd("Phone")
     )
@@ -533,7 +533,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     def newContactDetails(id: String) = ContactDetailsWithId(
       id,
       Address(rnd("Line 1"), None, None, None),
-      rnd("PostCode"),
+      Some(rnd("PostCode")),
       rnd("Email"),
       someRnd("Phone")
     )

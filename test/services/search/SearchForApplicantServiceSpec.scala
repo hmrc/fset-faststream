@@ -53,12 +53,12 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec {
       val testEmail = "test@test.com"
 
       when(cdRepositoryMock.findByPostCode(any[String])).thenReturn(
-        Future.successful(List(ContactDetailsWithId(userId = "123", postCode = "QQ1 1QQ", address = testAddress, email = testEmail,
+        Future.successful(List(ContactDetailsWithId(userId = "123", postCode = Some("QQ1 1QQ"), address = testAddress, email = testEmail,
           phone = None)))
       )
 
       when(cdRepositoryMock.findByUserIds(any[List[String]])).thenReturn(
-        Future.successful(List(ContactDetailsWithId(userId = "123", postCode = "QQ1 1QQ", address = testAddress, email = testEmail,
+        Future.successful(List(ContactDetailsWithId(userId = "123", postCode = Some("QQ1 1QQ"), address = testAddress, email = testEmail,
           phone = None)))
       )
 

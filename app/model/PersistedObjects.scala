@@ -48,7 +48,7 @@ object PersistedObjects {
   case class ContactDetailsWithId(
     userId: String,
     address: Address,
-    postCode: PostCode,
+    postCode: Option[PostCode],
     email: String,
     phone: Option[PhoneNumber]
   )

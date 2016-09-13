@@ -91,7 +91,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val address = root.getAs[Address]("address").get
-      val postCode = root.getAs[PostCode]("postCode").get
+      val postCode = root.getAs[PostCode]("postCode")
       val phone = root.getAs[PhoneNumber]("phone")
       val email = root.getAs[String]("email").get
 
@@ -106,7 +106,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val address = root.getAs[Address]("address").get
-      val postCode = root.getAs[PostCode]("postCode").get
+      val postCode = root.getAs[PostCode]("postCode")
       val phone = root.getAs[PhoneNumber]("phone")
       val email = root.getAs[String]("email").get
 
@@ -121,7 +121,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val address = root.getAs[Address]("address").get
-      val postCode = root.getAs[PostCode]("postCode").get
+      val postCode = root.getAs[PostCode]("postCode")
       val phone = root.getAs[PhoneNumber]("phone")
       val email = root.getAs[String]("email").get
 

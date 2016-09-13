@@ -53,7 +53,7 @@ trait SearchForApplicantService {
     cdRepository.findByPostCode(postCode).flatMap { cdList =>
       Future.sequence(cdList.map { cd =>
         appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
-          candidate.copy(address = Some(cd.address), postCode = Some(cd.postCode))
+          candidate.copy(address = Some(cd.address), postCode = cd.postCode)
         }).recover {
           case e: ContactDetailsNotFound => None
         }
@@ -82,7 +82,7 @@ trait SearchForApplicantService {
         candidate.copy(
           email = Some(candidateContactDetails.email),
           address = Some(candidateContactDetails.address),
-          postCode = Some(candidateContactDetails.postCode)
+          postCode = candidateContactDetails.postCode
         )
       }.getOrElse(candidate)
     }
