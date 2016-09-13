@@ -13,5 +13,3 @@
 ->         /                          prod.Routes
 
 
-GET        /fset-fast-stream/test-data-generator/ping       controllers.testdata.TestDataGeneratorRedirectController.ping
-GET        /fset-fast-stream/test-data-generator/*path      controllers.testdata.TestDataGeneratorRedirectController.generateTestData(path: String)
