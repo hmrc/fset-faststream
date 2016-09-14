@@ -49,7 +49,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         appId, Some("registered"), Some("Location1"), Some("Commercial"), Some("Digital and technology"),
         Some("Location2"), Some("Business"), Some("Finance"),
         Some("Yes"), Some("Yes"), Some("Yes"), Some("Yes"),
-        Some("No"), Some("No"), Some("No"),
+        None, Some("No"), None,
         Some("this candidate has changed the email")
       ))
     }
@@ -78,8 +78,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       applicationResponse.userId mustBe  userId
       applicationResponse.applicationId mustBe  appId
-      applicationResponse.fastPassDetails.get mustBe FastPassDetails(applicable = true, None, None,
-        fastPassReceived = Some(true), certificateNumber = None)
+      applicationResponse.fastPassDetails.get mustBe FastPassDetails(applicable = false, None, None,
+        fastPassReceived = Some(false), certificateNumber = None)
     }
   }
 
@@ -164,25 +164,17 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Update status" should {
     "update status for the specific user id" in {
-      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED")
-
-      repository.updateStatus("userId", "ONLINE_TEST_INVITED").futureValue
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED")
+      repository.setOnlineTestStatus("appId", "ONLINE_TEST_INVITED").futureValue
 
       val result = repository.findByUserId("userId", "frameworkId").futureValue
 
       result.applicationStatus must be("ONLINE_TEST_INVITED")
     }
 
-    "fail when updating status but application doesn't exist" in {
-      val result = repository.updateStatus("userId", "ONLINE_TEST_INVITED").failed.futureValue
-
-      result mustBe an[NotFoundException]
-    }
-
     "update status to ONLINE_TEST_COMPLETED" in {
-      val date = new DateTime("2016-03-08T13:04:29.643Z")
-
-      repository.setOnlineTestStatus("user123", "ONLINE_TEST_COMPLETED").futureValue
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED")
+      repository.setOnlineTestStatus("appId", "ONLINE_TEST_COMPLETED").futureValue
 
       val result = repository.findByUserId("userId", "frameworkId").futureValue
       result.applicationStatus must be("ONLINE_TEST_COMPLETED")
@@ -190,9 +182,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   }
 
   "Next application ready for online testing" should {
-
     "return no application if htere is only one and it is a fast pass candidate" in{
-      createApplicationWithAllFields("appId", "userId", "frameworkId", "IN_PROGRESS", needsAdjustment = false,
+      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
       )
 
@@ -201,83 +192,15 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       result must be (None)
     }
 
-    "return no application if there is only one application without adjustment needed but not submitted" in {
-
-      createApplicationWithAllFields("appId", "userId", "frameworkId", "IN_PROGRESS", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result must be (None)
-    }
-
-    "return no application if there is only one application with adjustment needed and not confirmed" in {
-      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = true, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
+    "return one application if there is only one and it is not a fast pass candidate" in{
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false
+      )
 
       val result = repository.nextApplicationReadyForOnlineTesting.futureValue
 
-      result must be (None)
-    }
-
-    "return one application if there is one submitted application without adjustment needed" in {
-      createApplicationWithAllFields("appId", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result.isDefined must be (true)
-      result.get.userId must be ("userId1")
-      result.get.applicationStatus must be ("SUBMITTED")
-      result.get.needsAdjustments must be (false)
-      result.get.timeAdjustments.isEmpty must be (true)
-    }
-
-
-    "return one application if there is one submitted application with no time adjustment needed and confirmed" in {
-      createApplicationWithAllFields("appId", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = true, adjustmentsConfirmed = true,
-        timeExtensionAdjustments = false)
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result.isDefined must be (true)
-      result.get.userId must be ("userId1")
-      result.get.applicationStatus must be ("SUBMITTED")
-      result.get.needsAdjustments must be (true)
-      result.get.timeAdjustments.isEmpty must be (true)
-    }
-
-    "return one application if there is one submitted application with time adjustment needed and confirmed" in {
-      createApplicationWithAllFields("appId", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = true, adjustmentsConfirmed = true,
-        timeExtensionAdjustments = true)
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result.isDefined must be (true)
-      result.get.userId must be ("userId1")
-      result.get.applicationStatus must be ("SUBMITTED")
-      result.get.needsAdjustments must be (true)
-      result.get.timeAdjustments.isDefined must be (true)
-      result.get.timeAdjustments.get.verbalTimeAdjustmentPercentage must be (9)
-      result.get.timeAdjustments.get.numericalTimeAdjustmentPercentage must be (11)
-    }
-
-    "return a random application from a choice of multiple submitted applications without adjustment needed" in {
-      createApplicationWithAllFields("appId1", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-      createApplicationWithAllFields("appId2", "userId2", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-      createApplicationWithAllFields("appId3", "userId3", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
-        timeExtensionAdjustments = false)
-
-      val userIds = (1 to 25).map { _ =>
-        val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-        result.get.userId
-      }
-
-      userIds must contain("userId1")
-      userIds must contain("userId2")
-      userIds must contain("userId3")
+      result.get.applicationId mustBe "appId"
+      result.get.userId mustBe "userId"
     }
   }
 
