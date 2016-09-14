@@ -16,20 +16,27 @@
 
 package controllers
 
-import model.exchange.Phase1TestResultReady
+import play.api.libs.json.JsValue
 import play.api.mvc.Action
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import play.api.Logger
+import repositories._
+import repositories.application.OnlineTestRepository
+
 import scala.concurrent.Future
 
 object Phase1TestGroupController extends Phase1TestGroupController {
-
+  override val phase1TestRepository = onlineTestRepository
 }
 
 trait Phase1TestGroupController extends BaseController {
 
-  def getStatus(applicationId: String) = Action.async(parse.json) { implicit request =>
+  val phase1TestRepository: OnlineTestRepository
 
-    Future.successful(Ok)
+  def getStatus(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    for {
+      phase1TestGroupOpt <- phase1TestRepository.getPhase1TestProfile(applicationId)
+    } yield {
+      phase1TestGroupOpt.map { Ok(_) }.getOrElse(NotFound)
+    }
   }
 }
