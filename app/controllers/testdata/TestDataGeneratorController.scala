@@ -76,7 +76,7 @@ trait TestDataGeneratorController extends BaseController {
   // scalastyle:off parameter.number
   // scalastyle:off method.length
   def createCandidatesInStatus(applicationStatus: String,
-                               progressStatus: String,
+                               progressStatus: Option[String],
                                numberToGenerate: Int,
                                emailPrefix: String,
                                setGis: Boolean,
@@ -88,12 +88,12 @@ trait TestDataGeneratorController extends BaseController {
                                region: Option[String],
                                loc1scheme1EvaluationResult: Option[String],
                                loc1scheme2EvaluationResult: Option[String],
-                               previousStatus: Option[String] = None,
+                               previousStatus: Option[String],
                                confirmedAllocation: Boolean,
-                               dateOfBirth: Option[String] = None,
+                               dateOfBirth: Option[String],
                                postCode: Option[String],
                                country: Option[String],
-                               phase1StartTime: Option[String] = None,
+                               phase1StartTime: Option[String],
                                phase1ExpiryTime: Option[String]) = Action.async { implicit request =>
     val initialConfig = GeneratorConfig(
       emailPrefix = emailPrefix,
@@ -122,7 +122,7 @@ trait TestDataGeneratorController extends BaseController {
 
     TestDataGeneratorService.createCandidatesInSpecificStatus(
       numberToGenerate,
-      StatusGeneratorFactory.getGenerator(applicationStatus, ProgressStatuses.nameToProgressStatus(progressStatus)),
+      StatusGeneratorFactory.getGenerator(applicationStatus, progressStatus.map(ProgressStatuses.nameToProgressStatus)),
       initialConfig
     ).map { candidates =>
       Ok(Json.toJson(candidates))

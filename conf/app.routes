@@ -73,6 +73,8 @@ PUT         /phase1-test/:assessmentId/start                             control
 PUT         /phase1-test/:assessmentId/complete                          controllers.Phase1TestsController.completeAssessment(assessmentId: String)
 PUT         /phase1-test/:assessmentId/results-ready                     controllers.Phase1TestsController.markResultsReady(assessmentId: String)
 
+GET         /phase1-test-group/:applicationId                            controllers.Phase1TestGroupController.getStatus(applicationId: String)
+
 GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
 PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)
 PUT         /test-scores/accept/application/:applicationId               controllers.CandidateScoresController.acceptCandidateScoresAndFeedback(applicationId: String)

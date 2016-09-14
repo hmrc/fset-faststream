@@ -22,9 +22,13 @@ import model.ProgressStatuses.{ PHASE1_TESTS_STARTED, ProgressStatus }
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
-  def getGenerator(applicationStatus: String, progressStatus: ProgressStatus) = {
+  def getGenerator(applicationStatus: String, progressStatus: Option[ProgressStatus]) = {
+
+    // Legacy until all application statuses are migrated
+    val phase1TestsAppStatus = ApplicationStatus.PHASE1_TESTS.toString
+
     (applicationStatus, progressStatus) match {
-      case (appStatus, _) => appStatus match {
+      case (appStatus, None) => appStatus match {
         case "REGISTERED" => RegisteredStatusGenerator
         case ApplicationStatuses.Created => CreatedStatusGenerator
         case "IN_PROGRESS_PERSONAL_DETAILS" => InProgressPersonalDetailsStatusGenerator
@@ -53,7 +57,7 @@ object StatusGeneratorFactory {
         case ApplicationStatuses.AssessmentCentreFailedNotified => AssessmentCentreFailedNotifiedStatusGenerator
         case ApplicationStatuses.Withdrawn => WithdrawnStatusGenerator
       }
-      case (ApplicationStatus.PHASE1_TESTS.toString, PHASE1_TESTS_STARTED) => Phase1TestsStartedStatusGenerator
+      case (phase1TestsAppStatus, Some(PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
       case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
     }
   }
