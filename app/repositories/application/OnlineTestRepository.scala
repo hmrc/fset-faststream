@@ -109,7 +109,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
     )
 
-    collection.insert(phase1TestProfile) map ( _ => () )
+    collection.insert(doc) map ( _ => () )
   }
 
   /*
