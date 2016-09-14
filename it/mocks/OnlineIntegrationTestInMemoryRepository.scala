@@ -42,7 +42,7 @@ class OnlineIntegrationTestInMemoryRepository extends OnlineTestRepository {
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] =
     Future.successful(Some(OnlineTestApplication("appId", "appStatus", "userId", false, false, "Test Preferred Name", None)))
 
-  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfileglo = ???
+  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = ???
 
   def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit] = ???
 
