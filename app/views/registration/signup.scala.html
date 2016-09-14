@@ -49,8 +49,8 @@
         <section class="section-border">
             <h2 class="heading-large">Set your password</h2>
             <div class="form-group">
-                <label for="password" class="form-label">Create password</label>
-
+                <label for="password" class="form-label" id="firstPassLabel">Create password</label>
+                <span class="visuallyhidden" id="hiddenPasswordRequirements">Must have: uppercase letters, lowercase letters, a number, and at least 9 characters</span>
                 <div class="form-hint text">
                     <p class="no-btm-margin">Must have:</p>
                     <ul id="passwordRequirements" class="list-withicons list-text">
@@ -79,6 +79,9 @@
                             </p>
                         </div>
                     </div>
+                </div>
+                <div class="panel-danger hidden" id="errorPassword">
+                  <p role="alert">There is a problem with your password</p>
                 </div>
             </div>
         </section>
