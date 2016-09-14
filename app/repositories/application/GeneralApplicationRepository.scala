@@ -1036,15 +1036,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> "SUBMITTED"),
-      BSONDocument("fastpass-details.applicable" -> false),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument("assistance-details.needsAdjustment" -> "No"),
-        BSONDocument("$and" -> BSONArray(
-          BSONDocument("assistance-details.needsAdjustment" -> "Yes"),
-          BSONDocument("assistance-details.adjustments-confirmed" -> true)
-        ))
-      ))
+      BSONDocument("fastpass-details.applicable" -> false)
     ))
+
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
   }
 
@@ -1052,8 +1046,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     case "ONLINE_TEST_INVITED" => setOnlineTestStatusInvited(appId)
     case _ => {
       val query = BSONDocument("applicationId" -> appId)
-      val applicationStatusBSON = applicationStatus("ONLINE_TEST_COMPLETED")
-      collection.update(query, applicationStatusBSON, upsert = false).map { _ => () }
+      val applicationStatusBSON = applicationStatus(status)
+      collection.update(query, applicationStatusBSON, upsert = false).map { _ =>  }
     }
   }
 
@@ -1076,9 +1070,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       "applicationStatus" -> "ONLINE_TEST_INVITED"
     ))
 
-    collection.update(query, applicationStatusBSON, upsert = false) map {
-      case _ => ()
-    }
+    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {
