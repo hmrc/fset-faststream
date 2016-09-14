@@ -23,5 +23,5 @@ case class Phase1TestResultReady(reportId: String,
                                  reportLinkURL: String)
 
 case object Phase1TestResultReady {
-  implicit val phase1TestResultReady = Json.format[Phase1TestResultReady]
+  implicit val phase1TestResultReadyFormat = Json.format[Phase1TestResultReady]
 }
