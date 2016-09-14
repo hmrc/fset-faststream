@@ -16,17 +16,17 @@
 
 package controllers
 
-import model.exchange.OnlineTestReportReady
+import model.exchange.Phase1TestResultReady
 import play.api.mvc.Action
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.Logger
 import scala.concurrent.Future
 
-object OnlineExercisesController extends OnlineExercisesController {
+object Phase1TestsController extends Phase1TestsController {
 
 }
 
-trait OnlineExercisesController extends BaseController {
+trait Phase1TestsController extends BaseController {
 
   def startAssessment(assessmentId: String) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $assessmentId started")
@@ -39,8 +39,8 @@ trait OnlineExercisesController extends BaseController {
   }
 
   def markResultsReady(assessmentId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[OnlineTestReportReady] { onlineTestReportReady =>
-      Logger.info(s"Assessment $assessmentId has report [$onlineTestReportReady] ready to download")
+    withJsonBody[Phase1TestResultReady] { phase1TestResultReady =>
+      Logger.info(s"Assessment $assessmentId has report [$phase1TestResultReady] ready to download")
       Future.successful(Ok)
     }
   }
