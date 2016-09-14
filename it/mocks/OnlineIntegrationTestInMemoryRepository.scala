@@ -18,7 +18,7 @@ package mocks
 
 import controllers.OnlineTestDetails
 import model.EvaluationResults._
-import model.OnlineTestCommands.{OnlineTestApplication, OnlineTestApplicationWithCubiksUser, OnlineTestProfile}
+import model.OnlineTestCommands.{OnlineTestApplication, OnlineTestApplicationWithCubiksUser, Phase1TestProfile}
 import model.PersistedObjects.{ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest}
 import org.joda.time.{DateTime, LocalDate}
 import repositories.application.OnlineTestRepository
@@ -42,7 +42,7 @@ class OnlineIntegrationTestInMemoryRepository extends OnlineTestRepository {
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] =
     Future.successful(Some(OnlineTestApplication("appId", "appStatus", "userId", false, false, "Test Preferred Name", None)))
 
-  def getOnlineTestDetails(userId: String): Future[OnlineTestDetails] = Future.successful {
+  def getPhase1TestProfile(userId: String): Future[OnlineTestDetails] = Future.successful {
     val date = DateTime.now
     OnlineTestDetails(date, date.plusDays(4), "http://www.google.co.uk", "123@test.com", true)
   }
@@ -53,7 +53,7 @@ class OnlineIntegrationTestInMemoryRepository extends OnlineTestRepository {
 
   def consumeToken(token: String): Future[Unit] = Future.successful(Unit)
 
-  def storeOnlineTestProfileAndUpdateStatusToInvite(applicationId: String, onlineTestProfile: OnlineTestProfile): Future[Unit] =
+  def storeOnlineTestProfileAndUpdateStatusToInvite(applicationId: String, onlineTestProfile: Phase1TestProfile): Future[Unit] =
     Future.successful(Unit)
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = Future.successful(None)

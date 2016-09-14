@@ -19,7 +19,7 @@ package mocks.application
 import controllers.OnlineTestDetails
 import model.EvaluationResults._
 import model.OnlineTestCommands
-import model.OnlineTestCommands.{OnlineTestApplication, OnlineTestApplicationWithCubiksUser, OnlineTestProfile}
+import model.OnlineTestCommands.{OnlineTestApplication, OnlineTestApplicationWithCubiksUser, Phase1TestProfile}
 import model.PersistedObjects.{ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest}
 import org.joda.time.{DateTime, LocalDate}
 import repositories.application.OnlineTestRepository
@@ -41,10 +41,7 @@ class OnlineTestInMemoryRepository extends OnlineTestRepository {
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] =
     Future.successful(Some(OnlineTestApplication("appId", "appStatus", "userId", false, false, "Test Preferred Name", None)))
 
-  def getOnlineTestDetails(userId: String): Future[OnlineTestDetails] = Future.successful {
-    val date = DateTime.now
-    OnlineTestDetails(date, date.plusDays(4), "http://www.google.co.uk", "123@test.com", isOnlineTestEnabled = true)
-  }
+  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = Future.successful(None)
 
   def updateStatus(userId: String, status: String): Future[Unit] = Future.successful(Unit)
 
@@ -52,7 +49,7 @@ class OnlineTestInMemoryRepository extends OnlineTestRepository {
 
   def consumeToken(token: String): Future[Unit] = Future.successful(Unit)
 
-  def storeOnlineTestProfileAndUpdateStatusToInvite(applicationId: String, onlineTestProfile: OnlineTestProfile): Future[Unit] =
+  def storeOnlineTestProfileAndUpdateStatusToInvite(applicationId: String, onlineTestProfile: Phase1TestProfile): Future[Unit] =
     Future.successful(Unit)
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = Future.successful(None)
@@ -70,7 +67,7 @@ class OnlineTestInMemoryRepository extends OnlineTestRepository {
   def saveCandidateAllocationStatus(applicationId: String, applicationStatus: String, expireDate: Option[LocalDate]): Future[Unit] =
     Future.successful(())
 
-  def storeOnlineTestProfile(applicationId: String, onlineTestProfile: OnlineTestCommands.OnlineTestProfile): Future[Unit] = ???
+  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit] = ???
 
   def removeOnlineTestEvaluationAndReports(applicationId: String): Future[Unit] = ???
 

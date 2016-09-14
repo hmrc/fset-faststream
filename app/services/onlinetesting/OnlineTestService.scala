@@ -75,29 +75,24 @@ trait OnlineTestService {
     appRepository.nextApplicationReadyForOnlineTesting
   }
 
-  def getOnlineTest(userId: String): Future[OnlineTest] = {
-    for {
-      onlineTestDetails <- otRepository.getOnlineTestDetails(userId)
-      candidate <- appRepository.findCandidateByUserId(userId)
-    } yield {
-      OnlineTest(
-        onlineTestDetails.inviteDate,
-        onlineTestDetails.expireDate,
-        onlineTestDetails.onlineTestLink,
-        onlineTestDetails.cubiksEmailAddress,
-        onlineTestDetails.isOnlineTestEnabled,
-        pdfReportAvailable = false
-      )
+  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = {
+    appRepository.findCandidateByUserId(userId).flatMap {
+      case Some(candidate) if candidate.applicationId.isDefined =>
+        otRepository.getPhase1TestProfile(candidate.applicationId.get)
+      case None => Future.successful(None)
+      case _ => Future.successful(None)
     }
   }
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
     val (invitationDate, expirationDate) = onlineTestDates
-    val result = Future.sequence(getScheduleIdForApplication(application).map { scheduleId =>
+    val registerAndInviteProcess = Future.sequence(getScheduleIdForApplication(application).map { scheduleId =>
       registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
-    }).map(_ => ())
+    }).map { phase1Tests =>
+      markAsCompleted(application)(Phase1TestProfile(expirationDate = expirationDate, tests = phase1Tests))
+    }
 
-    result.flatMap { _ =>
+    registerAndInviteProcess.flatMap { _ =>
       candidateEmailAddress(application).flatMap { emailAddress =>
         emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
       }
@@ -105,25 +100,24 @@ trait OnlineTestService {
   }
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int,
-    invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = {
-    val token = tokenFactory.generateUUID()
+    invitationDate: DateTime, expirationDate: DateTime): Future[Phase1Test] = {
+    val authToken = tokenFactory.generateUUID()
 
-    val invitationProcess = for {
-      userId <- registerApplicant(application, token)
+    for {
+      userId <- registerApplicant(application, authToken)
       invitation <- inviteApplicant(application, userId, scheduleId)
       _ <- trRepository.remove(application.applicationId)
     } yield {
-      OnlineTestProfile(invitation.userId,
-        token,
-        invitation.authenticateUrl,
-        invitationDate,
-        expirationDate,
-        invitation.participantScheduleId,
-        scheduleId
+      Phase1Test(scheduleId = scheduleId,
+        usedForResults = true,
+        cubiksUserId = invitation.userId,
+        token = authToken,
+        invitationDate = invitationDate,
+        participantScheduleId = invitation.participantScheduleId,
+        testUrl = invitation.logonUrl
       )
     }
 
-    invitationProcess.flatMap(markAsCompleted(application))
 
   }
 
@@ -197,8 +191,8 @@ trait OnlineTestService {
   }
 
   private def markAsCompleted(application: OnlineTestApplication)
-    (onlineTestProfile: OnlineTestProfile): Future[Unit] = for {
-    _ <- otRepository.storeOnlineTestProfile(application.applicationId, onlineTestProfile)
+    (onlineTestProfile: Phase1TestProfile): Future[Unit] = for {
+    _ <- otRepository.insertPhase1TestProfile(application.applicationId, onlineTestProfile)
     _ <- appRepository.setOnlineTestStatus(application.applicationId, "ONLINE_TESTS_INVITED")
   } yield {
       audit("OnlineTestInvitationProcessComplete", application.userId)

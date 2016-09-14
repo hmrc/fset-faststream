@@ -21,7 +21,7 @@ import java.util.UUID
 import factories.DateTimeFactory
 import model.ApplicationStatuses
 import model.Exceptions.NotFoundException
-import model.OnlineTestCommands.{OnlineTestApplicationWithCubiksUser, OnlineTestProfile}
+import model.OnlineTestCommands.{OnlineTestApplicationWithCubiksUser, Phase1TestProfile}
 import model.PersistedObjects.{ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest}
 import org.joda.time.{DateTime, DateTimeZone}
 import reactivemongo.bson.{BSONArray, BSONDocument}
@@ -42,7 +42,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
   "Get online test" should {
     "throw an exception if there is no test for the specific user id" in {
-      val result = onlineTestRepo.getOnlineTestDetails("userId").failed.futureValue
+      val result = onlineTestRepo.getPhase1TestProfile("userId").failed.futureValue
 
       result mustBe an[NotFoundException]
     }
@@ -52,7 +52,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       createOnlineTest("userId", "status", "token", Some("http://www.someurl.com"),
         invitationDate = Some(date), expirationDate = Some(date.plusDays(7)))
 
-      val result = onlineTestRepo.getOnlineTestDetails("userId").futureValue
+      val result = onlineTestRepo.getPhase1TestProfile("userId").futureValue
 
       result.expireDate.toDate must be (new DateTime("2016-03-15T13:04:29.643Z").toDate)
       result.onlineTestLink must be("http://www.someurl.com")
@@ -67,7 +67,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       val appIdWithUserId = createOnlineTest("userId", "SUBMITTED", "token", Some("http://www.someurl.com"),
         invitationDate = Some(date), expirationDate = Some(date.plusDays(7)), xmlReportSaved = Some(true), pdfReportSaved = Some(true))
 
-      val TestProfile = OnlineTestProfile(
+      val TestProfile = Phase1TestProfile(
         1234,
         "tokenId",
         "http://someurl.com",
@@ -76,9 +76,9 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         123456,
         567879
       )
-      onlineTestRepo.storeOnlineTestProfile(appIdWithUserId.applicationId, TestProfile).futureValue
+      onlineTestRepo.insertPhase1TestProfile(appIdWithUserId.applicationId, TestProfile).futureValue
 
-      val result = onlineTestRepo.getOnlineTestDetails(appIdWithUserId.userId).futureValue
+      val result = onlineTestRepo.getPhase1TestProfile(appIdWithUserId.userId).futureValue
       // The expireDate has +7 days, as the method get from the repo adds 7 days
       result.expireDate.toDate must be(new DateTime("2016-03-15T13:04:29.643Z").toDate)
       result.inviteDate.toDate must be(date.toDate)
@@ -100,7 +100,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     "unset the online test flags for already completed online test when storeOnlineTestProfileAndUpdateStatus is called again" ignore {
       val InvitationDate = DateTime.now()
       val ExpirationDate = InvitationDate.plusDays(7)
-      val TestProfile = OnlineTestProfile(1234, "tokenId", "http://someurl.com", InvitationDate, ExpirationDate, 123456, 67890)
+      val TestProfile = Phase1TestProfile(1234, "tokenId", "http://someurl.com", InvitationDate, ExpirationDate, 123456, 67890)
       helperRepo.collection.insert(BSONDocument(
         "applicationId" -> "appId",
         "applicationStatus" -> "ONLINE_TEST_FAILED_NOTIFIED",
@@ -126,7 +126,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         "passmarkEvaluation" -> "notEmpty"
       )).futureValue
 
-      onlineTestRepo.storeOnlineTestProfile("appId", TestProfile).futureValue
+      onlineTestRepo.insertPhase1TestProfile("appId", TestProfile).futureValue
 
       val query = BSONDocument("applicationId" -> "appId")
       helperRepo.collection.find(query).one[BSONDocument].map {

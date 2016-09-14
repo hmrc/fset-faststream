@@ -17,6 +17,7 @@
 package controllers
 
 import model.Commands
+import model.OnlineTestCommands.Implicits._
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -61,8 +62,10 @@ trait OnlineTestController extends BaseController {
   import Commands.Implicits._
 
   def getOnlineTest(userId: String) = Action.async { implicit request =>
-    onlineTestingService.getOnlineTest(userId).map { onlineTest =>
-      Ok(Json.toJson(onlineTest))
+
+    onlineTestingService.getPhase1TestProfile(userId).map {
+      case Some(phase1TestProfile) => Ok(Json.toJson(phase1TestProfile))
+      case None => NotFound
     } recover {
       case e => NotFound
     }
@@ -94,25 +97,29 @@ trait OnlineTestController extends BaseController {
 
   def resetOnlineTests(appId: String) = Action.async { implicit request =>
 
-    onlineRepository.getOnlineTestApplication(appId).flatMap {
-      case Some(onlineTestApp) =>
-        onlineTestingService.registerAndInviteForTestGroup(onlineTestApp).map { _ =>
-          Ok
-        }
-      case _ => Future.successful(NotFound)
-    }
+    // TODO FAST STREAM FIX ME
+    Future.successful(Ok)
+    //onlineRepository.getOnlineTestApplication(appId).flatMap {
+    //  case Some(onlineTestApp) =>
+    //    onlineTestingService.registerAndInviteForTestGroup(onlineTestApp).map { _ =>
+    //      Ok
+    //    }
+    //  case _ => Future.successful(NotFound)
+    //}
   }
 
   def extendOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[OnlineTestExtension] { extension =>
-      onlineRepository.getOnlineTestApplication(appId).flatMap {
-        case Some(onlineTestApp) =>
-          onlineTestExtensionService.extendExpiryTime(onlineTestApp, extension.extraDays).map { _ =>
-            Ok
-          }
-        case _ => Future.successful(NotFound)
-      }
-    }
+    // TODO FAST STREAM FIX ME
+    Future.successful(Ok)
+    //withJsonBody[OnlineTestExtension] { extension =>
+    //  onlineRepository.getOnlineTestApplication(appId).flatMap {
+    //    case Some(onlineTestApp) =>
+    //      onlineTestExtensionService.extendExpiryTime(onlineTestApp, extension.extraDays).map { _ =>
+    //        Ok
+    //      }
+    //    case _ => Future.successful(NotFound)
+    //  }
+    //}
   }
 
 }

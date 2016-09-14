@@ -20,7 +20,7 @@ import java.util.UUID
 
 import connectors.testdata.ExchangeObjects.OnlineTestProfileResponse
 import model.ApplicationStatuses
-import model.OnlineTestCommands.OnlineTestProfile
+import model.OnlineTestCommands.Phase1TestProfile
 import org.joda.time.DateTime
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }

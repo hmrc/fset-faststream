@@ -21,7 +21,8 @@ import controllers.OnlineTestDetails
 import factories.DateTimeFactory
 import model.EvaluationResults._
 import model.Exceptions.{ NotFoundException, UnexpectedException }
-import model.OnlineTestCommands._
+import model.OnlineTestCommands.Phase1TestProfile
+import model.OnlineTestCommands.Implicits._
 import model.PersistedObjects.{ ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest }
 import model.{ ApplicationStatuses, Commands }
 import org.joda.time.{ DateTime, LocalDate }
@@ -42,13 +43,13 @@ trait OnlineTestRepository {
 
   //def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
-  def getOnlineTestDetails(userId: String): Future[OnlineTestDetails]
+  def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
 
   //def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit]
 
-  def storeOnlineTestProfile(applicationId: String, onlineTestProfile: OnlineTestProfile): Future[Unit]
+  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
-  def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
+  //def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
   //def updateXMLReportSaved(applicationId: String): Future[Unit]
 
@@ -68,22 +69,14 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     Commands.Implicits.onlineTestDetailsFormat, ReactiveMongoFormats.objectIdFormats) with OnlineTestRepository with RandomSelection {
 
 
-  override def getOnlineTestDetails(userId: String): Future[OnlineTestDetails] = {
+  override def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]] = {
 
-    val query = BSONDocument("userId" -> userId)
-    val projection = BSONDocument("online-tests" -> 1, "_id" -> 0)
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("testGroups.PHASE1" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument]("online-tests").isDefined => {
-        val root = document.getAs[BSONDocument]("online-tests").get
-        val onlineTestUrl = root.getAs[String]("onlineTestUrl").get
-        val token = root.getAs[String]("token").get
-        val invitationDate = root.getAs[DateTime]("invitationDate").get
-        val expirationDate = root.getAs[DateTime]("expirationDate").get
-
-        OnlineTestDetails(invitationDate, expirationDate, onlineTestUrl, s"$token@${cubiksGatewayConfig.emailDomain}", true)
-      }
-      case _ => throw new NotFoundException()
+      case Some(doc) => Some(Phase1TestProfile.phase1TestProfileHandler.read(doc))
+      case _ => None
     }
   }
 
@@ -110,26 +103,16 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
 
 
-  override def storeOnlineTestProfile(applicationId: String, onlineTestProfile: OnlineTestProfile) = {
+  override def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
 
-    val query = BSONDocument("applicationId" -> applicationId)
+    val doc = BSONDocument("applicationId" -> applicationId,
+      "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
+    )
 
-    val applicationStatusBSON = BSONDocument("$push" -> BSONDocument(
-      "scheduldId" -> onlineTestProfile.scheduleId,
-      "usedForResutls" -> true,
-      "cubiksUserId" -> onlineTestProfile.cubiksUserId,
-      "token" -> onlineTestProfile.token,
-      "onlineTestUrl" -> onlineTestProfile.onlineTestUrl,
-      "invitationDate" -> onlineTestProfile.invitationDate,
-      "expirationDate" -> onlineTestProfile.expirationDate,
-      "participantScheduleId" -> onlineTestProfile.participantScheduleId
-    ))
-
-    collection.update(query, applicationStatusBSON, upsert = false) map {
-      case _ => ()
-    }
+    collection.insert(phase1TestProfile) map ( _ => () )
   }
 
+  /*
   override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument(
       "applicationId" -> appId
@@ -138,7 +121,6 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       _.map(bsonDocToOnlineTestApplication)
     }
   }
-  /*
 
   def nextApplicationPendingExpiry: Future[Option[ExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
