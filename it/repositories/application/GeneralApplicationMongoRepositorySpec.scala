@@ -17,13 +17,16 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model.Commands.{ Candidate, Report }
+import model.Commands.{Candidate, Report}
+import model.Exceptions.NotFoundException
 import model.FastPassDetails
-import org.joda.time.LocalDate
-import reactivemongo.bson.BSONDocument
+import org.joda.time.{DateTime, LocalDate}
+import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
+
+import scala.concurrent.Future
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -159,6 +162,125 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   }
 
+  "Update status" should {
+    "update status for the specific user id" in {
+      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED")
+
+      repository.updateStatus("userId", "ONLINE_TEST_INVITED").futureValue
+
+      val result = repository.findByUserId("userId", "frameworkId").futureValue
+
+      result.applicationStatus must be("ONLINE_TEST_INVITED")
+    }
+
+    "fail when updating status but application doesn't exist" in {
+      val result = repository.updateStatus("userId", "ONLINE_TEST_INVITED").failed.futureValue
+
+      result mustBe an[NotFoundException]
+    }
+
+    "update status to ONLINE_TEST_COMPLETED" in {
+      val date = new DateTime("2016-03-08T13:04:29.643Z")
+
+      repository.setOnlineTestStatus("user123", "ONLINE_TEST_COMPLETED").futureValue
+
+      val result = repository.findByUserId("userId", "frameworkId").futureValue
+      result.applicationStatus must be("ONLINE_TEST_COMPLETED")
+    }
+  }
+
+  "Next application ready for online testing" should {
+
+    "return no application if htere is only one and it is a fast pass candidate" in{
+      createApplicationWithAllFields("appId", "userId", "frameworkId", "IN_PROGRESS", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
+      )
+
+      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
+
+      result must be (None)
+    }
+
+    "return no application if there is only one application without adjustment needed but not submitted" in {
+
+      createApplicationWithAllFields("appId", "userId", "frameworkId", "IN_PROGRESS", needsAdjustment = false, adjustmentsConfirmed = false,
+        timeExtensionAdjustments = false)
+
+      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
+
+      result must be (None)
+    }
+
+    "return no application if there is only one application with adjustment needed and not confirmed" in {
+      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = true, adjustmentsConfirmed = false,
+        timeExtensionAdjustments = false)
+
+      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
+
+      result must be (None)
+    }
+
+    "return one application if there is one submitted application without adjustment needed" in {
+      createApplicationWithAllFields("appId", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
+        timeExtensionAdjustments = false)
+
+      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
+
+      result.isDefined must be (true)
+      result.get.userId must be ("userId1")
+      result.get.applicationStatus must be ("SUBMITTED")
+      result.get.needsAdjustments must be (false)
+      result.get.timeAdjustments.isEmpty must be (true)
+    }
+
+
+    "return one application if there is one submitted application with no time adjustment needed and confirmed" in {
+      createApplicationWithAllFields("appId", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = true, adjustmentsConfirmed = true,
+        timeExtensionAdjustments = false)
+
+      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
+
+      result.isDefined must be (true)
+      result.get.userId must be ("userId1")
+      result.get.applicationStatus must be ("SUBMITTED")
+      result.get.needsAdjustments must be (true)
+      result.get.timeAdjustments.isEmpty must be (true)
+    }
+
+    "return one application if there is one submitted application with time adjustment needed and confirmed" in {
+      createApplicationWithAllFields("appId", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = true, adjustmentsConfirmed = true,
+        timeExtensionAdjustments = true)
+
+      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
+
+      result.isDefined must be (true)
+      result.get.userId must be ("userId1")
+      result.get.applicationStatus must be ("SUBMITTED")
+      result.get.needsAdjustments must be (true)
+      result.get.timeAdjustments.isDefined must be (true)
+      result.get.timeAdjustments.get.verbalTimeAdjustmentPercentage must be (9)
+      result.get.timeAdjustments.get.numericalTimeAdjustmentPercentage must be (11)
+    }
+
+    "return a random application from a choice of multiple submitted applications without adjustment needed" in {
+      createApplicationWithAllFields("appId1", "userId1", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
+        timeExtensionAdjustments = false)
+      createApplicationWithAllFields("appId2", "userId2", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
+        timeExtensionAdjustments = false)
+      createApplicationWithAllFields("appId3", "userId3", "frameworkId1", "SUBMITTED", needsAdjustment = false, adjustmentsConfirmed = false,
+        timeExtensionAdjustments = false)
+
+      val userIds = (1 to 25).map { _ =>
+        val result = repository.nextApplicationReadyForOnlineTesting.futureValue
+        result.get.userId
+      }
+
+      userIds must contain("userId1")
+      userIds must contain("userId2")
+      userIds must contain("userId3")
+    }
+  }
+
   val testCandidate = Map(
     "firstName" -> "George",
     "lastName" -> "Jetson",
@@ -166,7 +288,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "dateOfBirth" -> "1986-05-01"
   )
 
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String, appStatus: String = "") = {
+  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
+    appStatus: String = "", needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
+    timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false) = {
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -198,19 +322,48 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         "stemLevel" -> true
       ),
       "fastpass-details" -> BSONDocument(
-        "applicable" -> true,
-        "fastPassReceived" -> true
+        "applicable" -> fastPassApplicable,
+        "fastPassReceived" -> fastPassApplicable
       ),
-      "assistance-details" -> BSONDocument(
-        "needsAssistance" -> "No",
-        "needsAdjustment" -> "No",
-        "guaranteedInterview" -> "No"
-      ),
+      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> BSONDocument(
         "registered" -> "true"
       )
     )).futureValue
+  }
+
+  private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
+    timeExtensionAdjustments:Boolean) = {
+    if (needsAdjustment) {
+      if (adjustmentsConfirmed) {
+        if (timeExtensionAdjustments) {
+          BSONDocument(
+            "needsAdjustment" -> "Yes",
+            "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
+            "adjustments-confirmed" -> true,
+            "verbalTimeAdjustmentPercentage" -> 9,
+            "numericalTimeAdjustmentPercentage" -> 11
+          )
+        } else {
+          BSONDocument(
+            "needsAdjustment" -> "Yes",
+            "typeOfAdjustments" -> BSONArray("room alone"),
+            "adjustments-confirmed" -> true
+          )
+        }
+      } else {
+        BSONDocument(
+          "needsAdjustment" -> "Yes",
+          "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
+          "adjustments-confirmed" -> false
+        )
+      }
+    } else {
+      BSONDocument(
+        "needsAdjustment" -> "No"
+      )
+    }
   }
 
   def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
@@ -220,4 +373,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       "frameworkId" -> frameworkId
     )).futureValue
   }
+
+
 }

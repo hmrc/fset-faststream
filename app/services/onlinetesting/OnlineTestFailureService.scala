@@ -21,11 +21,11 @@ import model.ApplicationStatuses
 import model.PersistedObjects.ApplicationForNotification
 import play.api.Logger
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 trait OnlineTestFailureService {
   def processNextFailedTest(): Future[Unit]
@@ -35,6 +35,7 @@ trait OnlineTestFailureService {
 }
 
 class OnlineTestFailureServiceImpl(
+  appRepository: GeneralApplicationRepository,
   otRepository: OnlineTestRepository,
   cdRepository: ContactDetailsRepository,
   emailClient: EmailClient,
@@ -44,11 +45,14 @@ class OnlineTestFailureServiceImpl(
 
   private implicit def headerCarrier = newHeaderCarrier
 
-  override def processNextFailedTest(): Future[Unit] =
-    otRepository.nextApplicationPendingFailure.flatMap {
-      case Some(failedTest) => processFailedTest(failedTest)
-      case None => Future.successful(())
-    }
+  override def processNextFailedTest(): Future[Unit] = {
+    //TODO FAST STREAM FIX ME
+    Future.successful(Unit)
+    //otRepository.nextApplicationPendingFailure.flatMap {
+    //  case Some(failedTest) => processFailedTest(failedTest)
+    //  case None => Future.successful(())
+    //}
+  }
 
   override def processFailedTest(failedTest: ApplicationForNotification): Future[Unit] =
     for {
@@ -63,7 +67,7 @@ class OnlineTestFailureServiceImpl(
     }
 
   override def commitNotifiedStatus(failedTest: ApplicationForNotification): Future[Unit] = {
-    otRepository.updateStatus(failedTest.userId, ApplicationStatuses.OnlineTestFailedNotified).map { _ =>
+    appRepository.updateStatus(failedTest.userId, ApplicationStatuses.OnlineTestFailedNotified).map { _ =>
       audit("FailedOnlineTest", failedTest)
     }
   }

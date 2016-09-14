@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AwaitingAllocationStatusGenerator extends AwaitingAllocationStatusGenerator {
-  override val previousStatusGenerator = OnlineTestCompletedWithPDFReportStatusGenerator
+  override val previousStatusGenerator = OnlineTestCompletedStatusGenerator
   override val otRepository = onlineTestRepository
 }
 
@@ -50,8 +50,9 @@ trait AwaitingAllocationStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.savePassMarkScore(candidateInPreviousStatus.applicationId.get, UUID.randomUUID().toString,
-        getEvaluationResult(candidateInPreviousStatus), ApplicationStatuses.AwaitingAllocation)
+      // TODO FAST STREAM FIX ME
+      //_ <- otRepository.savePassMarkScore(candidateInPreviousStatus.applicationId.get, UUID.randomUUID().toString,
+      //  getEvaluationResult(candidateInPreviousStatus), ApplicationStatuses.AwaitingAllocation)
     } yield {
       candidateInPreviousStatus
     }

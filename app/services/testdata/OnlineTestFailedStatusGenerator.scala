@@ -24,7 +24,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object OnlineTestFailedStatusGenerator extends OnlineTestFailedStatusGenerator {
-  override val previousStatusGenerator = OnlineTestCompletedWithPDFReportStatusGenerator
+  override val previousStatusGenerator = OnlineTestCompletedStatusGenerator
   override val otRepository = onlineTestRepository
 }
 
@@ -34,7 +34,8 @@ trait OnlineTestFailedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.updateStatus(candidateInPreviousStatus.userId, ApplicationStatuses.OnlineTestFailed)
+      // TODO FAST STREAM FIX ME
+      //_ <- otRepository.updateStatus(candidateInPreviousStatus.userId, ApplicationStatuses.OnlineTestFailed)
     } yield {
       candidateInPreviousStatus
     }

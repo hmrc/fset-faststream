@@ -39,12 +39,15 @@ class OnlineTestExtensionServiceImpl(
     for {
       expiryDate <- getExpiryDate(userId)
       newExpiryDate = calculateNewExpiryDate(expiryDate, extraDays)
-      _ <- otRepository.updateExpiryTime(userId, newExpiryDate)
+      // TODO FAST STREAM FIX ME _ <- otRepository.updateExpiryTime(userId, newExpiryDate)
     } yield ()
   }
 
-  private def getExpiryDate(userId: String): Future[DateTime] =
-    otRepository.getOnlineTestDetails(userId).map(_.expireDate)
+  private def getExpiryDate(userId: String): Future[DateTime] = {
+    // TODO FAST STREAM FIX ME
+    Future.successful(DateTime.now())
+    //otRepository.getPhase1TestProfile(userId).map(_.expireDate)
+  }
 
   private def calculateNewExpiryDate(expiryDate: DateTime, extraDays: Int): DateTime =
     max(dateTime.nowLocalTimeZone, expiryDate).plusDays(extraDays)

@@ -76,11 +76,13 @@ trait ApplicationAssessmentService {
         "applicationId" -> applicationId
       ))
 
-      otRepository.removeCandidateAllocationStatus(applicationId).map { _ =>
-        auditService.logEventNoRequest("ApplicationDeallocated", Map(
-          "applicationId" -> applicationId
-        ))
-      }
+      // TODO FAST STREAM FIX ME
+      //otRepository.removeCandidateAllocationStatus(applicationId).map { _ =>
+      //  auditService.logEventNoRequest("ApplicationDeallocated", Map(
+      //    "applicationId" -> applicationId
+      //  ))
+      //}
+      Future.successful()
     }
   }
 

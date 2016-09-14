@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// TODO FIX ME!!! Once Cubiks callbacks are implemented
 package scheduler.onlinetesting
 
 import config.WaitingScheduledJobConfig
@@ -30,11 +31,12 @@ trait RetrieveResultsJob extends SingleInstanceScheduledJob with RetrieveResults
   val onlineTestingService: OnlineTestService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    onlineTestingService.nextApplicationReadyForReportRetrieving.flatMap { reportOpt =>
-      reportOpt.map { appWithUser =>
-        onlineTestingService.retrieveTestResult(appWithUser, conf.waitSecs)
-      }.getOrElse(Future.successful(()))
-    }
+    Future.successful(Unit)
+    //onlineTestingService.nextApplicationReadyForReportRetrieving.flatMap { reportOpt =>
+    //  reportOpt.map { appWithUser =>
+    //    onlineTestingService.retrieveTestResult(appWithUser, conf.waitSecs)
+    //  }.getOrElse(Future.successful(()))
+    //}
   }
 }
 

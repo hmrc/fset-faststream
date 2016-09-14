@@ -96,7 +96,6 @@ class OnlineTestServiceIntegrationSpec extends IntegrationSpec with MockitoSugar
     val appRepository = applicationRepository
     val cdRepository = contactDetailsRepository
     val otRepository = onlineTestRepository
-    val otprRepository = onlineTestPDFReportRepository
     val trRepository = testReportRepository
     val cubiksGatewayClient = gatewayClientMock
     val cubiksSanitizer = CubiksSanitizer
@@ -111,7 +110,6 @@ class OnlineTestServiceIntegrationSpec extends IntegrationSpec with MockitoSugar
     val appRepository = applicationRepository
     val cdRepository = contactDetailsRepository
     val otRepository = onlineTestRepository
-    val otprRepository = onlineTestPDFReportRepository
     val trRepository = testReportRepository
     val cubiksGatewayClient = gatewayFailingClientMock
     val cubiksSanitizer = CubiksSanitizer

@@ -49,20 +49,22 @@ trait OnlineTestPassmarkService {
   def nextCandidateScoreReadyForEvaluation: Future[Option[CandidateScoresWithPreferencesAndPassmarkSettings]] = {
     passMarkSettingsService.tryGetLatestVersion().flatMap {
       case Some(settings) =>
-        oRepository.nextApplicationPassMarkProcessing(settings.version).flatMap {
-          case Some(ApplicationIdWithUserIdAndStatus(appId, _, appStatus)) =>
-            for {
-              reportOpt <- trRepository.getReportByApplicationId(appId)
-              pOpt <- fpRepository.tryGetPreferences(appId)
-            } yield {
-              for {
-                r <- reportOpt
-                p <- pOpt
-              } yield CandidateScoresWithPreferencesAndPassmarkSettings(settings, p, r, appStatus)
-            }
-          case _ =>
-            Future.successful(None)
-        }
+        //TODO FAST STREAM FIX ME
+        Future.successful(None)
+        //oRepository.nextApplicationPassMarkProcessing(settings.version).flatMap {
+        //  case Some(ApplicationIdWithUserIdAndStatus(appId, _, appStatus)) =>
+        //    for {
+        //      reportOpt <- trRepository.getReportByApplicationId(appId)
+        //      pOpt <- fpRepository.tryGetPreferences(appId)
+        //    } yield {
+        //      for {
+        //        r <- reportOpt
+        //        p <- pOpt
+        //      } yield CandidateScoresWithPreferencesAndPassmarkSettings(settings, p, r, appStatus)
+        //    }
+        //  case _ =>
+        //    Future.successful(None)
+        //}
       case _ =>
         Logger.error("No settings exist in PassMarkSettings")
         Future.successful(None)
@@ -128,21 +130,25 @@ trait OnlineTestPassmarkService {
     val result = passmarkRulesEngine.evaluate(score)
     val applicationStatus = determineApplicationStatus(score.passmarkSettings.setting, result)
 
-    oRepository.savePassMarkScore(
-      score.scores.applicationId,
-      score.passmarkSettings.version,
-      result,
-      applicationStatus
-    )
+    // TODO FAST STREAM FIX ME
+    Future.successful(Unit)
+    //oRepository.savePassMarkScore(
+    //  score.scores.applicationId,
+    //  score.passmarkSettings.version,
+    //  result,
+    //  applicationStatus
+    //)
   }
 
   def evaluateCandidateScoreWithoutChangingApplicationStatus(score: CandidateScoresWithPreferencesAndPassmarkSettings): Future[Unit] = {
     val result = passmarkRulesEngine.evaluate(score)
 
-    oRepository.savePassMarkScoreWithoutApplicationStatusUpdate(
-      score.scores.applicationId,
-      score.passmarkSettings.version,
-      result
-    )
+    // TODO FAST STREAM FIX ME
+    Future.successful(Unit)
+    //oRepository.savePassMarkScoreWithoutApplicationStatusUpdate(
+    //  score.scores.applicationId,
+    //  score.passmarkSettings.version,
+    //  result
+    //)
   }
 }
