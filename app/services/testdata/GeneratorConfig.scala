@@ -35,4 +35,6 @@ case class GeneratorConfig(emailPrefix: String,
                            confirmedAllocation: Boolean = true,
                            dob: Option[LocalDate],
                            postCode: Option[String],
-                           country: Option[String])
+                           country: Option[String],
+                           phase1StartTime: Option[LocalDate],
+                           phase1ExpiryTime: Option[LocalDate])

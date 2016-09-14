@@ -23,7 +23,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object OnlineTestCompletedStatusGenerator extends OnlineTestCompletedStatusGenerator {
-  override val previousStatusGenerator = OnlineTestStartedStatusGenerator
+  override val previousStatusGenerator = Phase1TestsStartedStatusGenerator$
   override val otRepository = onlineTestRepository
 }
 

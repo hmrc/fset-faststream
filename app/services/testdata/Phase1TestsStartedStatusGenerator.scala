@@ -23,12 +23,12 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object OnlineTestStartedStatusGenerator extends OnlineTestStartedStatusGenerator {
-  override val previousStatusGenerator = OnlineTestInvitedStatusGenerator
+object Phase1TestsStartedStatusGenerator extends Phase1TestsStartedStatusGenerator {
+  override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator$
   override val otRepository = onlineTestRepository
 }
 
-trait OnlineTestStartedStatusGenerator extends ConstructiveGenerator {
+trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
   val otRepository: OnlineTestRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {

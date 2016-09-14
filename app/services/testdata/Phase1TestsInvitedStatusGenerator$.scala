@@ -16,33 +16,43 @@
 
 package services.testdata
 
+import java.util.UUID
+
+import connectors.testdata.ExchangeObjects.OnlineTestProfileResponse
+import model.OnlineTestCommands.OnlineTestProfile
+import org.joda.time.DateTime
 import repositories._
 import repositories.application.OnlineTestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object OnlineTestCompletedWithPDFReportStatusGenerator extends OnlineTestCompletedWithPDFReportStatusGenerator {
-  override val previousStatusGenerator = OnlineTestCompletedWithXMLReportStatusGenerator
+object Phase1TestsInvitedStatusGenerator$ extends Phase1TestsInvitedStatusGenerator$ {
+  override val previousStatusGenerator = SubmittedStatusGenerator
   override val otRepository = onlineTestRepository
-  override val otReportPDFRepository = onlineTestPDFReportRepository
 }
 
-trait OnlineTestCompletedWithPDFReportStatusGenerator extends ConstructiveGenerator {
+trait Phase1TestsInvitedStatusGenerator$ extends ConstructiveGenerator {
   val otRepository: OnlineTestRepository
-  val otReportPDFRepository: OnlineTestPDFReportRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+
+    val onlineTestProfile = OnlineTestProfile(
+      cubiksUserId = 117344,
+      token = UUID.randomUUID().toString,
+      onlineTestUrl = generatorConfig.cubiksUrl,
+      invitationDate = DateTime.now(),
+      expirationDate = DateTime.now().plusDays(7),
+      participantScheduleId = 149245
+    )
+
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otReportPDFRepository.save(candidateInPreviousStatus.applicationId.get, readFakeFakeReport())
-      _ <- otRepository.updatePDFReportSaved(candidateInPreviousStatus.applicationId.get)
+      _ <- otRepository.storeOnlineTestProfileAndUpdateStatusToInvite(candidateInPreviousStatus.applicationId.get, onlineTestProfile)
     } yield {
-      candidateInPreviousStatus
+      candidateInPreviousStatus.copy(onlineTestProfile = Some(
+        OnlineTestProfileResponse(onlineTestProfile.cubiksUserId, onlineTestProfile.token, onlineTestProfile.onlineTestUrl)
+      ))
     }
-  }
-
-  private def readFakeFakeReport() = {
-    Array[Byte](0x01, 0x02)
   }
 }
