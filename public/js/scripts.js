@@ -767,4 +767,8 @@ $(function() {
     }
   });
 
+  // Accessibility fixes
+
+  $('input, select').not('[optional], [data-optional] *, [type="hidden"]').attr('required', true);
+
 });
