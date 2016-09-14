@@ -22,7 +22,7 @@ import connectors.ExchangeObjects._
 import connectors.{CSREmailClient, CubiksGatewayClient, EmailClient}
 import controllers.OnlineTest
 import factories.{DateTimeFactory, UUIDFactory}
-import model.{ApplicationStatus, ApplicationStatuses}
+import model.{ApplicationStatus, ApplicationStatuses, ProgressStatuses}
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
 import org.joda.time.DateTime
@@ -92,11 +92,11 @@ trait OnlineTestService {
       markAsCompleted(application)(Phase1TestProfile(expirationDate = expirationDate, tests = phase1Tests))
     }
 
-    registerAndInviteProcess.flatMap { _ =>
-      candidateEmailAddress(application).flatMap { emailAddress =>
-        emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
-      }
-    }
+    for {
+      _ <- registerAndInviteProcess
+      emailAddress <- candidateEmailAddress(application)
+      _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+    } yield audit("OnlineTestInvitationProcessComplete", application.userId)
   }
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int,
@@ -193,10 +193,10 @@ trait OnlineTestService {
   private def markAsCompleted(application: OnlineTestApplication)
     (onlineTestProfile: Phase1TestProfile): Future[Unit] = for {
     _ <- otRepository.insertPhase1TestProfile(application.applicationId, onlineTestProfile)
-    _ <- appRepository.setOnlineTestStatus(application.applicationId, "ONLINE_TESTS_INVITED")
+    _ <- appRepository.updateProgressStatus(application.applicationId, ProgressStatuses.PHASE1_TESTS_INVITED)
   } yield {
-      audit("OnlineTestInvitationProcessComplete", application.userId)
-      audit("OnlineTestStatusSetToInvited", application.userId)
+      audit(s"ApplicationStatus set to ${ApplicationStatus.PHASE1_TESTS} - ProgressStatus set to" +
+        s" ${ProgressStatuses.PHASE1_TESTS_INVITED}", application.userId)
   }
 
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =

@@ -48,7 +48,7 @@ object ProgressStatuses {
   val AssessmentCentrePassedNotifiedProgress = ApplicationStatuses.AssessmentCentrePassedNotified.toLowerCase()
   val AssessmentCentreFailedNotifiedProgress = ApplicationStatuses.AssessmentCentreFailedNotified.toLowerCase()
 
-  sealed abstract class ProgressStatus(applicationStatus: ApplicationStatus)
+  sealed abstract class ProgressStatus(val applicationStatus: ApplicationStatus)
 
   object ProgressStatus {
     implicit val progressStatusFormat = new Format[ProgressStatus] {

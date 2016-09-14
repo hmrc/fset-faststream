@@ -20,15 +20,16 @@ import config.MicroserviceAppConfig._
 import controllers.OnlineTestDetails
 import factories.DateTimeFactory
 import model.EvaluationResults._
-import model.Exceptions.{ NotFoundException, UnexpectedException }
+import model.Exceptions.{NotFoundException, UnexpectedException}
 import model.OnlineTestCommands.Phase1TestProfile
 import model.OnlineTestCommands.Implicits._
-import model.PersistedObjects.{ ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest }
-import model.{ ApplicationStatuses, Commands }
-import org.joda.time.{ DateTime, LocalDate }
+import model.PersistedObjects.{ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest}
+import model.{ApplicationStatuses, Commands}
+import org.joda.time.{DateTime, LocalDate}
+import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.api.commands.UpdateWriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID, BSONString }
+import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID, BSONString}
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -74,8 +75,8 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("testGroups.PHASE1" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
-      case Some(doc) => Some(Phase1TestProfile.phase1TestProfileHandler.read(doc))
+    collection.find(query, projection).one[BSONDocument].map {
+      case Some(doc) => doc.getAs[Phase1TestProfile]("testGroups.PHASE1").orElse(None)
       case _ => None
     }
   }

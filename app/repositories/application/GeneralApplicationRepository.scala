@@ -115,8 +115,7 @@ trait GeneralApplicationRepository {
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
-  def setOnlineTestStatus(applicationId: String, status: String): Future[Unit]
-
+  def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -1011,15 +1010,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   // TODO: get rid of this, it feels wrong and we should also be using the App Status case objects.
   private def applicationStatus(status: String): BSONDocument = {
     val flag = status match {
-      case "ONLINE_TEST_INVITED" => "online_test_invited"
-      case "ONLINE_TEST_STARTED" => "online_test_started"
-      case "ONLINE_TEST_COMPLETED" => "online_test_completed"
-      case "ONLINE_TEST_EXPIRED" => "online_test_expired"
-      case "ONLINE_TEST_FAILED" => "online_test_failed"
-      case "ONLINE_TEST_FAILED_NOTIFIED" => "online_test_failed_notified"
+      case "ONLINE_TESTS_INVITED" => "online_tests_invited"
+      case "ONLINE_TESTS_STARTED" => "online_tests_started"
+      case "ONLINE_TESTS_COMPLETED" => "online_tests_completed"
+      case "ONLINE_TESTS_EXPIRED" => "online_tests_expired"
+      case "ONLINE_TESTS_FAILED" => "online_tests_failed"
+      case "ONLINE_TESTS_FAILED_NOTIFIED" => "online_tests_failed_notified"
     }
 
-    if (flag == "online_test_completed") {
+    if (flag == "online_tests_completed") {
       BSONDocument("$set" -> BSONDocument(
         s"progressstatus.$flag" -> true,
         "applicationStatus" -> status,
@@ -1035,29 +1034,32 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> "SUBMITTED"),
+      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
       BSONDocument("fastpass-details.applicable" -> false)
     ))
 
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
   }
 
-  override def setOnlineTestStatus(appId: String, status: String): Future[Unit] = status match {
-    case "ONLINE_TEST_INVITED" => setOnlineTestStatusInvited(appId)
+  override def updateProgressStatus(applicationId: String,
+    progressStatus: ProgressStatuses.ProgressStatus
+  ): Future[Unit] = progressStatus match {
+    case ProgressStatuses.PHASE1_TESTS_INVITED => initialisePhase1TestStatus(applicationId)
     case _ => {
-      val query = BSONDocument("applicationId" -> appId)
-      val applicationStatusBSON = applicationStatus(status)
-      collection.update(query, applicationStatusBSON, upsert = false).map { _ =>  }
+      val query = BSONDocument("applicationId" -> applicationId)
+      collection.update(query, BSONDocument("$set" ->
+        applicationStatusBSON(progressStatus))
+      ) map { _ => }
     }
   }
 
-  private def setOnlineTestStatusInvited(applicationId: String): Future[Unit] = {
+
+  private def initialisePhase1TestStatus(applicationId: String): Future[Unit] = {
     import model.ProgressStatuses._
 
     val query = BSONDocument("applicationId" -> applicationId)
 
     val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_INVITED" -> "",
       s"progress-status.$PHASE1_TESTS_COMPLETED" -> "",
       s"progress-status.$PHASE1_TESTS_EXPIRED" -> "",
       s"progress-status.$AwaitingOnlineTestReevaluationProgress" -> "",
@@ -1066,8 +1068,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       s"progress-status.$AwaitingOnlineTestAllocationProgress" -> "",
       s"passmarkEvaluation" -> ""
     )) ++ BSONDocument("$set" -> BSONDocument(
-      "progress-status.online_test_invited" -> true,
-      "applicationStatus" -> "ONLINE_TEST_INVITED"
+      s"progress-status.$PHASE1_TESTS_INVITED" -> true,
+      "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
     ))
 
     collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )

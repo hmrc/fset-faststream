@@ -19,7 +19,8 @@ package repositories.application
 import factories.UUIDFactory
 import model.Commands.{Candidate, Report}
 import model.Exceptions.NotFoundException
-import model.FastPassDetails
+import model.ProgressStatuses.ProgressStatus
+import model.{ApplicationStatus, FastPassDetails, ProgressStatuses}
 import org.joda.time.{DateTime, LocalDate}
 import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
@@ -162,22 +163,13 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   }
 
-  "Update status" should {
-    "update status for the specific user id" in {
+  "Update application status" should {
+    "update the application and progress status for a user" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED")
-      repository.setOnlineTestStatus("appId", "ONLINE_TEST_INVITED").futureValue
+      repository.updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_INVITED).futureValue
 
       val result = repository.findByUserId("userId", "frameworkId").futureValue
-
-      result.applicationStatus must be("ONLINE_TEST_INVITED")
-    }
-
-    "update status to ONLINE_TEST_COMPLETED" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED")
-      repository.setOnlineTestStatus("appId", "ONLINE_TEST_COMPLETED").futureValue
-
-      val result = repository.findByUserId("userId", "frameworkId").futureValue
-      result.applicationStatus must be("ONLINE_TEST_COMPLETED")
+      result.applicationStatus mustBe ProgressStatuses.PHASE1_TESTS_INVITED.applicationStatus.toString
     }
   }
 
