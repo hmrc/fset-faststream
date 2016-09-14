@@ -35,7 +35,7 @@ trait CubiksGatewayClient {
   val url: String
 
   def registerApplicant(registerApplicant: RegisterApplicant)(implicit hc: HeaderCarrier): Future[Registration] = {
-    http.POST(s"$url/csr-cubiks-gateway/register", registerApplicant).map { response =>
+    http.POST(s"$url/csr-cubiks-gateway/faststream/register", registerApplicant).map { response =>
       if (response.status == OK) {
         response.json.as[Registration]
       } else {
@@ -45,7 +45,7 @@ trait CubiksGatewayClient {
   }
 
   def inviteApplicant(inviteApplicant: InviteApplicant)(implicit hc: HeaderCarrier): Future[Invitation] = {
-    http.POST(s"$url/csr-cubiks-gateway/invite", inviteApplicant).map { response =>
+    http.POST(s"$url/csr-cubiks-gateway/faststream/invite", inviteApplicant).map { response =>
       if (response.status == OK) {
         response.json.as[Invitation]
       } else {
