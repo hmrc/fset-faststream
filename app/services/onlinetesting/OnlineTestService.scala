@@ -105,7 +105,7 @@ trait OnlineTestService {
 
     for {
       userId <- registerApplicant(application, authToken)
-      invitation <- inviteApplicant(application, userId, scheduleId)
+      invitation <- inviteApplicant(application, authToken, userId, scheduleId)
       _ <- trRepository.remove(application.applicationId)
     } yield {
       Phase1Test(scheduleId = scheduleId,
@@ -173,9 +173,9 @@ trait OnlineTestService {
     }
   }
 
-  private def inviteApplicant(application: OnlineTestApplication, userId: Int, scheduleId: Int): Future[Invitation] = {
+  private def inviteApplicant(application: OnlineTestApplication, authToken: String, userId: Int, scheduleId: Int): Future[Invitation] = {
 
-    val inviteApplicant = buildInviteApplication(application, userId, scheduleId)
+    val inviteApplicant = buildInviteApplication(application, authToken, userId, scheduleId)
     cubiksGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
       audit("UserInvitedToOnlineTest", application.userId)
       invitation
@@ -258,12 +258,23 @@ trait OnlineTestService {
     math.min(adjustedValue, maximum).toInt
   }
 
-  private[services] def buildInviteApplication(application: OnlineTestApplication, userId: Int, scheduleId: Int) = {
+  private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
+    val scheduleCompletionUrl = gatewayConfig.candidateAppUrl + "/fset-fast-stream/online-tests/complete/" + token
     if (application.guaranteedInterview) {
-      InviteApplicant(scheduleId, userId, None)
+      InviteApplicant(scheduleId,
+        userId,
+        scheduleCompletionUrl,
+        resultsUrl = None,
+        timeAdjustments = None
+      )
     } else {
       val timeAdjustments = getTimeAdjustments(application)
-      InviteApplicant(scheduleId, userId, timeAdjustments)
+      InviteApplicant(scheduleId,
+        userId,
+        scheduleCompletionUrl,
+        resultsUrl = None,
+        timeAdjustments
+      )
     }
   }
 

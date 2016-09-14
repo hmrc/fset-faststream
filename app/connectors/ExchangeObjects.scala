@@ -31,14 +31,20 @@ object ExchangeObjects {
 
   // Cubiks Gateway Requests
   case class RegisterApplicant(firstName: String, lastName: String, email: String)
-  case class InviteApplicant(scheduleID: Int, userId: Int, timeAdjustments: Option[TimeAdjustments] = None)
+  case class InviteApplicant(scheduleId: Int, userId: Int, scheduleCompletionUrl: String,
+    resultsUrl: Option[String] = None, timeAdjustments: Option[TimeAdjustments] = None
+  )
+
   case class TimeAdjustments(verbalAndNumericalAssessmentId: Int, verbalSectionId: Int,
     numericalSectionId: Int, verbalAbsoluteTime: Int, numericalAbsoluteTime: Int)
   case class ReportNorm(assessmentId: Int, normId: Int)
 
   // Cubiks Gateway Response
   case class Registration(userId: Int)
-  case class Invitation(userId: Int, email: String, accessCode: String, logonUrl: String, authenticateUrl: String, participantScheduleId: Int)
+  case class Invitation(userId: Int,
+    email: String, accessCode: String, logonUrl: String, authenticateUrl: String,
+    participantScheduleId: Int
+  )
 
   case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: DateTime, expirationDate: Option[LocalDate])
 
