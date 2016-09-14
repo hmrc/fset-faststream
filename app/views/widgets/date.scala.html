@@ -2,7 +2,7 @@
 
 @defining(form.errors.filter(f => f.key.startsWith(s"$fieldNamespace.") || f.key == fieldNamespace)) { errors =>
 
-    <div id="@{fieldNamespace}_field" class="form-group inline-fixed @if(errors.nonEmpty) {has-an-error input-validation-error}">
+    <fieldset id="@{fieldNamespace}_field" class="form-group inline-fixed @if(errors.nonEmpty) {has-an-error input-validation-error}">
         <legend class="form-label" id="dobMainLabel">@labelContent</legend>
         <span class="form-hint">For example,
             <span class="small-right-margin">31</span>
@@ -39,6 +39,6 @@
         </div>
 
         <span class="has-error">@errors.map(k => Messages(k.message)).headOption</span>
-    </div>
+    </fieldset>
 
 }
