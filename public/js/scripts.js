@@ -164,15 +164,22 @@ $(function() {
 
   });
 
-  $('.selectWithOptionTrigger').on('change', function() {
-    var optionTrigger = $(this).find('.optionTrigger'),
-      optionTarget = $('#' + optionTrigger.attr('data-optiontrigger'));
-
+  function toggleTargetDisplayOnOptionSelection(selectBox){
+    var optionTrigger = selectBox.find('.optionTrigger'),
+          optionTarget = $('#' + optionTrigger.attr('data-optiontrigger'));
     if(optionTrigger.is(':selected')) {
       optionTarget.show();
     } else {
       optionTarget.hide();
     }
+  }
+
+  $('.selectWithOptionTrigger').on('change', function() {
+       toggleTargetDisplayOnOptionSelection($(this))
+  });
+
+  $('.selectWithOptionTrigger').ready(function() {
+       toggleTargetDisplayOnOptionSelection($(this))
   });
 
   $('.amend-answers').on('click', function() {

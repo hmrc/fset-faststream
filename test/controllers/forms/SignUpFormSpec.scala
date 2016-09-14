@@ -18,6 +18,7 @@ package controllers.forms
 
 import controllers.BaseSpec
 import forms.SignUpForm
+import _root_.forms.SignUpForm._
 import forms.SignUpForm.Data
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -88,6 +89,14 @@ class SignUpFormSpec extends BaseSpec {
 
   }
 
+  "sanitize" should {
+    "clean up campaignOther field when campaignReferrer is not selected as Other" in {
+      val (_, signUpForm) = SignupFormGenerator(campaignReferrer = Some("Friend from Fast Stream"),
+        campaignOther = Some("Heard about campaign from other sources")).get
+      signUpForm.data.sanitize mustNot contain key "campaignOther"
+    }
+  }
+
 }
 
 /**
@@ -118,6 +127,7 @@ case class SignupFormGenerator(firstName: String = "name",
     "password" -> data.password,
     "confirmpwd" -> data.confirmpwd,
     "campaignReferrer" -> data.campaignReferrer.get,
+    "campaignOther" -> data.campaignOther.getOrElse(""),
     "agree" -> data.agree.toString,
     "eligible" -> data.eligibility.toString
   )

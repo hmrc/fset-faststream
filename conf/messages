@@ -20,6 +20,7 @@ error.lastName = Enter your last name
 error.email = Enter your full email address
 error.confirmpwd = Confirm your password
 error.password = Your password requires upper and lowercase letters, a number and at least 9 characters
+error.campaignOther.maxLength = Maximum length is 256
 error.password.empty = Enter your password
 error.password.dontmatch = Your passwords don''t match
 agree.accept = Accept the terms and conditions
