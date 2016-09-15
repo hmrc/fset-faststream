@@ -66,6 +66,7 @@ error.address.required = Enter the first line of your address
 error.postcode.required = Enter your postcode
 error.postcode.invalid = You''ve entered an invalid postcode
 error.country.required = Enter your country
+error.country.invalid = Maximum length is 100
 
 error.phone.required = Add a phone number in case we need to contact you
 error.phoneNumber.format = You''ve entered an invalid phone number
