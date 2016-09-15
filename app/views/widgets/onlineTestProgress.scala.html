@@ -38,11 +38,13 @@
                     target="_blank" rel="external">help with getting online</a>. </p>
             </div>
 
+        @* TODO: Remove or fix when online test stories will be implemented
             @helper.form(action = routes.OnlineTestController.startTests(), 'novalidate -> "novalidate") {
                 @helper.CSRF.formField
 
                 <button id="submit_online_tests" type="submit" value="submit" class="button">Start tests</button>
             }
+        *@
 
             <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-selection-exercises"
             target="_blank" rel="external">Find out more about the online tests</a>
@@ -66,11 +68,13 @@
                 href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#help-with-getting-online"
                 target="_blank" rel="external">help with getting online</a>. </p>
 
+        @* TODO: Remove or fix when online test stories will be implemented
         @helper.form(action = routes.OnlineTestController.startTests(), 'novalidate -> "novalidate") {
             @helper.CSRF.formField
 
             <button id="submit_online_tests" type="submit" value="submit" class="button">Continue tests</button>
         }
+        *@
 
         <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-selection-exercises"
         target="_blank" rel="external">Find out more about the online tests</a>
@@ -91,6 +95,7 @@
             </p>
 
             <p><a href="@routes.ApplicationController.helpdesk()">Contact us</a> if you believe there has been a mistake.</p>
+        *@
     }
 
     case ONLINE_TEST_EXPIRED => {

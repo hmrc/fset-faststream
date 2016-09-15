@@ -45,7 +45,7 @@
                                         @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = PartnerGraduateProgrammesRole.isAuthorized(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose locations and schemes }
                                         @renderProgressElement(showLink = PartnerGraduateProgrammesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "partnerGraduateProgrammesStep")(routes.PartnerGraduateProgrammesController.present()) { Partner graduate programmes }
                                         @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Tell us about any assistance needs you may have }
-                                        @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = PreviewApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.startOrContinue()) { Fill in the diversity questions }
+                                        @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = PreviewApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.presentStartOrContinue()) { Fill in the diversity questions }
                                         @renderProgressElement(showLink = PreviewApplicationRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "previewStep")(routes.PreviewApplicationController.present()) { Check your application }
                                         @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = WithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.present()) { Submit }
                                     }
@@ -140,6 +140,7 @@
                                                 <br /><a href="https://www.gov.uk/government/publications/fast-track-assessment-centre-locations" class="font-small" rel="external" target="_blank">See the locations</a>
                                             </p>
 
+                                            @* TODO: Remove or fix when assessment stories will be implemented
                                             @helper.form(controllers.routes.HomeController.confirmAlloc) {
                                             @helper.CSRF.formField
                                             <div id="attendQuestion">
@@ -147,6 +148,7 @@
                                                 <button type="submit" class="button" id="canAttendBtn">I can attend</button>
                                             </div>
                                             }
+                                            *@
 
                                             <p>
                                                 @aDetails.expirationDate.map{ expirationDate =>

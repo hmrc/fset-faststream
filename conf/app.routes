@@ -22,9 +22,9 @@ POST        /activation                                             controllers.
 GET         /signin                                                 controllers.SignInController.present
 POST        /signin                                                 controllers.SignInController.signIn
 GET         /signout                                                controllers.SignInController.signOut
-GET         /password/forgot                                        controllers.PasswordResetController.presentCode(email: Option[String])
+GET         /password/forgot                                        controllers.PasswordResetController.presentCode
 POST        /password/forgot                                        controllers.PasswordResetController.submitCode
-GET         /password/reset                                         controllers.PasswordResetController.presentReset(email: Option[String])
+GET         /password/reset                                         controllers.PasswordResetController.presentReset
 POST        /password/reset                                         controllers.PasswordResetController.submitReset
 
 # Application pages
@@ -33,7 +33,7 @@ GET         /application/create                                     controllers.
 GET         /application/resume                                     controllers.HomeController.resume
 GET         /application/withdraw                                   controllers.HomeController.presentWithDraw
 POST        /application/withdraw                                   controllers.HomeController.withdraw
-POST        /application/confirm-allocation                         controllers.HomeController.confirmAlloc
+#POST        /application/confirm-allocation                         controllers.HomeController.confirmAlloc
 
 GET         /application/details                                    controllers.PersonalDetailsController.present
 POST        /application/details                                    controllers.PersonalDetailsController.submitGeneralDetails
@@ -57,19 +57,19 @@ POST        /application/submit                                     controllers.
 GET         /application/success                                    controllers.SubmitApplicationController.success
 
 # Questionnaire
-GET         /questionnaire/start                                    controllers.QuestionnaireController.startOrContinue
+GET         /questionnaire/start                                    controllers.QuestionnaireController.presentStartOrContinue
 POST        /questionnaire/start                                    controllers.QuestionnaireController.submitStart
 POST        /questionnaire/continue                                 controllers.QuestionnaireController.submitContinue
-GET         /questionnaire/page/1                                   controllers.QuestionnaireController.firstPageView
-POST        /questionnaire/page/1                                   controllers.QuestionnaireController.firstPageSubmit
-GET         /questionnaire/page/2                                   controllers.QuestionnaireController.secondPageView
-POST        /questionnaire/page/2                                   controllers.QuestionnaireController.secondPageSubmit
-GET         /questionnaire/page/3                                   controllers.QuestionnaireController.thirdPageView
-POST        /questionnaire/page/3                                   controllers.QuestionnaireController.thirdPageSubmit
+GET         /questionnaire/page/1                                   controllers.QuestionnaireController.presentFirstPage
+POST        /questionnaire/page/1                                   controllers.QuestionnaireController.submitFirstPage
+GET         /questionnaire/page/2                                   controllers.QuestionnaireController.presentSecondPage
+POST        /questionnaire/page/2                                   controllers.QuestionnaireController.submitSecondPage
+GET         /questionnaire/page/3                                   controllers.QuestionnaireController.presentThirdPage
+POST        /questionnaire/page/3                                   controllers.QuestionnaireController.submitThirdPage
 
 # Online Test
-POST        /online-tests/start                                     controllers.OnlineTestController.startTests
-GET         /online-tests/complete/:token                           controllers.OnlineTestController.complete(token: UniqueIdentifier)
+#POST        /online-tests/start                                     controllers.OnlineTestController.startTests
+#GET         /online-tests/complete/:token                           controllers.OnlineTestController.complete(token: UniqueIdentifier)
 
 # Assets controller
 GET         /assets/*file                                           controllers.Assets.versioned(path="/public", file: Asset)

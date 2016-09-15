@@ -16,6 +16,7 @@
 
 package forms
 
+import connectors.exchange.PartnerGraduateProgrammes
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
@@ -60,6 +61,24 @@ object PartnerGraduateProgrammesForm {
     )(Data.apply)(Data.unapply)
   )
 
-  case class Data(interested: String, partnerGraduateProgrammes: Option[List[String]])
+  case class Data(interested: String, partnerGraduateProgrammes: Option[List[String]]) {
+
+    def exchange = PartnerGraduateProgrammes(
+      interested == "Yes",
+      partnerGraduateProgrammes
+    )
+
+    def sanitizeData = {
+      PartnerGraduateProgrammesForm.Data(
+        interested,
+        if (interested == "Yes") partnerGraduateProgrammes else None
+      )
+    }
+  }
+
+  object Data {
+    def apply(pgp: PartnerGraduateProgrammes): PartnerGraduateProgrammesForm.Data =
+      PartnerGraduateProgrammesForm.Data(if (pgp.interested) "Yes" else "No", pgp.partnerGraduateProgrammes)
+  }
 
 }

@@ -1,4 +1,6 @@
-@(questionnaireForm: Form[_root_.forms.QuestionnaireOccupationInfoForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@import models.view.SimpleAnswerOptions
+@import models.view.questionnaire.{ Employee, Occupation, OrganizationSize }
+@(questionnaireForm: Form[_root_.forms.ParentalOccupationQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import views.html.widgets.{pageProgress, radioBoxHorizontal, radioBoxVertical, radioBoxOccupation, radioBoxOccupationFirst}
 
@@ -15,7 +17,7 @@
                 disadvantaged because of their background.</p>
         </div>
     </div>
-    @helper.form(action = routes.QuestionnaireController.thirdPageSubmit(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.QuestionnaireController.submitThirdPage(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
 
         <section>
@@ -36,7 +38,7 @@
                 <fieldset class="hidingOccupations initiallyHidden" data-requiredifshown data-optional>
                     <legend class="form-label">@Messages("parentsOccupation.question")</legend>
 
-                    @radioBoxOccupation(questionnaireForm("parentsOccupation"), models.Occupations.seq)
+                    @radioBoxOccupation(questionnaireForm("parentsOccupation"), models.view.questionnaire.Occupation.seq)
                 </fieldset>
         </section>
 
@@ -45,7 +47,7 @@
                 <fieldset>
                     <legend class="form-label">@Messages("employee.question")</legend>
                     <div class="form-group inline">
-                        @radioBoxVertical(questionnaireForm("employee"), options = models.Employee.list)
+                        @radioBoxVertical(questionnaireForm("employee"), options = models.view.questionnaire.Employee.list)
                     </div>
                 </fieldset>
             </section>
@@ -54,7 +56,7 @@
                 <fieldset>
                     <legend class="form-label">@Messages("organizationSize.question")</legend>
                     <div class="form-group inline">
-                        @radioBoxVertical(questionnaireForm("organizationSize"), options = models.OrganizationSize.list)
+                        @radioBoxVertical(questionnaireForm("organizationSize"), options = models.view.questionnaire.OrganizationSize.list)
                     </div>
                 </fieldset>
             </section>

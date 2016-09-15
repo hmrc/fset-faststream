@@ -16,33 +16,26 @@
 
 package controllers
 
-import com.mohiva.play.silhouette.api.EventBus
-import com.mohiva.play.silhouette.impl.authenticators.{SessionAuthenticator, SessionAuthenticatorService}
 import connectors.ApplicationClient
-import models.CachedDataExample
-import org.mockito.Matchers.{eq => eqTo, _}
-import org.mockito.Mockito._
-import play.api.mvc.{Flash, Request, Result, Results}
+import play.api.mvc._
 import play.api.test.Helpers._
 import security._
-import testables.{NoIdentityTestableCSRUserAwareAction, TestableCSRUserAwareAction}
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.Future
-import scala.util.Right
+import testables.NoIdentityTestableCSRUserAwareAction
+import uk.gov.hmrc.play.http.{ HeaderCarrier, SessionKeys }
 
 class LockAccountControllerSpec extends BaseControllerSpec {
 
   "present" should {
-    "Return locked page with no email if there is no email in flash context" in new TestFixture {
+    "Return locked page with no email if there is no email in session" in new TestFixture {
       val result = lockAccountController.present(fakeRequest)
 
       status(result) mustBe OK
       contentAsString(result) must include("Account locked</h1>")
     }
 
-    "Return locked page with email if there is email in flash context" in new TestFixture {
-      val result = lockAccountController.present(fakeRequest.withFlash("email" -> "testEmailXYZ@mailinator.com"))
+    "Return locked page with email if there is email in session" in new TestFixture {
+      val result = lockAccountController.present(fakeRequest.
+        withSession("email" -> "testEmailXYZ@mailinator.com"))
 
       status(result) mustBe OK
       val content = contentAsString(result)
@@ -60,18 +53,21 @@ class LockAccountControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustEqual Some(routes.LockAccountController.present().toString())
-      flash(result) mustBe Flash(Map("email" -> ""))
+      session(result).get("email") mustBe None
     }
 
     "present reset password page when email is passed" in new TestFixture {
+
       val lockAccountRequest = fakeRequest.withFormUrlEncodedBody(
         "email" -> "testEmail123@mailinator.com"
-      )
+      ).withSession(SessionKeys.sessionId -> "session-0379e8ad-3797-4c7f-b80f-2279b5f0819a")
+
       val result = lockAccountController.submit(lockAccountRequest)
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustEqual Some(routes.PasswordResetController.presentReset(Some("testEmail123@mailinator.com")).toString())
-      flash(result) mustBe Flash(Map("email" -> "testEmail123@mailinator.com"))
+      redirectLocation(result) mustEqual Some(routes.PasswordResetController.presentReset().toString())
+      val sess = session(result)
+      sess.get("email") mustBe Some("testEmail123@mailinator.com")
     }
   }
 

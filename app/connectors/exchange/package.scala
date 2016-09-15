@@ -81,11 +81,6 @@ package object exchange {
   case class SendPasswordCodeRequest(email: String, service: String)
   case class ResetPasswordRequest(email: String, token: String, newPassword: String, service: String)
 
-  //  questionnaire
-  case class Answer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
-  case class Question(question: String, answer: Answer)
-  case class Questionnaire(questions: List[Question])
-
   case class PreviewRequest(flag: Boolean)
 
   case class OnlineTest(expireDate: DateTime, onlineTestLink: String, isOnlineTestEnabled: Boolean, pdfReportAvailable: Boolean) {
@@ -178,10 +173,6 @@ package object exchange {
 
     implicit val sendPasswordCodeRequestFormats = Json.format[SendPasswordCodeRequest]
     implicit val resetPasswordRequestFormats = Json.format[ResetPasswordRequest]
-
-    implicit val answerFormats = Json.format[Answer]
-    implicit val questionFormats = Json.format[Question]
-    implicit val questionnaireFormats = Json.format[Questionnaire]
 
     implicit val previewFormats = Json.format[PreviewRequest]
 

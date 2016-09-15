@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package models
+package models.view.questionnaire
 
-object SexOrientation {
+object Employee {
   val list = List(
-    ("straight", "Heterosexual/straight", false),
-    ("gay", "Gay/lesbian", false),
-    ("bisexual", "Bisexual", false),
-    ("other", "Other", true),
-    ("preferNotSay","I don't know/prefer not to say",false)
+    ("employee", "Employee", false),
+    ("self-with-employees", "Self-employed with employees", false),
+    ("self-without-employees", "Self-employed/freelancer without employees", false),
+    ("unknown", "I don't know/prefer not to say", false)
   )
 }

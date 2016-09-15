@@ -17,6 +17,7 @@
 package controllers
 
 import _root_.forms.SignUpForm
+import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
 import config.CSRHttp
 import connectors.ApplicationClient
@@ -47,7 +48,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient) extend
     implicit user =>
 
       SignUpForm.form.bindFromRequest.fold(
-        invalidForm => Future.successful(Ok(views.html.registration.signup(invalidForm))),
+        invalidForm => Future.successful(Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize)))),
         data => {
           env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
             applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
@@ -56,7 +57,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient) extend
                 redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
                 env = env
               ).map { r =>
-                env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString), request, request2lang))
+                env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
                 r
               }
             }

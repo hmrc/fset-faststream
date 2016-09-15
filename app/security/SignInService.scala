@@ -41,7 +41,7 @@ trait SignInService {
     redirect: Result = Redirect(routes.HomeController.present())
   )(implicit request: Request[_]): Future[Result] = {
     if (user.lockStatus == "LOCKED") {
-      Future.successful(Redirect(routes.LockAccountController.present()).flashing("email" -> user.email))
+      Future.successful(Redirect(routes.LockAccountController.present()).addingToSession("email" -> user.email))
     } else {
       def signIn(app: Option[ApplicationData]) = for {
         u <- env.userService.save(CachedData(user, app))

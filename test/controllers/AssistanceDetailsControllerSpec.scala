@@ -16,12 +16,12 @@
 
 package controllers
 
-import _root_.forms.AssistanceDetailsFormExamples
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord }
-import connectors.exchange.AssistanceDetailsExchangeExamples
+import connectors.exchange.AssistanceDetailsExamples
+import controllers.forms.AssistanceDetailsFormExamples
 import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
 import models._
@@ -53,7 +53,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
     "load assistance details page for the already created assistance details" in new TestFixture {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
 
       val result = controller.present()(fakeRequest)
 
@@ -61,7 +61,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
-      content must include("online adjustment description xxx")
+      content must include("Some adjustment")
     }
   }
 
@@ -69,7 +69,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     "update assistance details and redirect to questionnaire if questionnaire is not completed" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
       when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
-        eqTo(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsForm))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+        eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InAssistanceDetails))
@@ -81,7 +81,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       val result = controller.submit()(Request)
 
       status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.QuestionnaireController.startOrContinue().url))
+      redirectLocation(result) must be(Some(routes.QuestionnaireController.presentStartOrContinue().url))
     }
 
     "update assistance details and redirect to preview if questionnaire is completed" in new TestFixture {
@@ -94,7 +94,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
       val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
       when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
-        eqTo(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsForm))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+        eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InQuestionnaire))

@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-package forms
+package controllers.forms
+
+import forms.PartnerGraduateProgrammesForm
 
 object PartnerGraduateProgrammesFormExamples {
   val InterestedNotAllForm = PartnerGraduateProgrammesForm.Data("Yes",
     Some(List("Entrepreneur First", "Frontline", "Think Ahead")))
-  val NoInterestedForm = PartnerGraduateProgrammesForm.Data("No", None)
+  val NotInterestedForm = PartnerGraduateProgrammesForm.Data("No", None)
   val InterestedButNoProgrammeSelectedForm = PartnerGraduateProgrammesForm.Data("Yes", None)
 
-  val InterestedNotAll = Map[String, String](
+  val InterestedNotAllMap = Map[String, String](
     "interested" -> "Yes",
     "partnerGraduateProgrammes[]" -> "Entrepreneur First",
     "partnerGraduateProgrammes[]" -> "Frontline",
     "partnerGraduateProgrammes[]" -> "Think Ahead"
   )
 
-  val NoInterested = Map[String, String](
+  val NoInterestedMap = Map[String, String](
     "interested" -> "No"
   )
 
-  val InterestedButNoProgrammeSelected = Map[String, String](
+  val InterestedButNoProgrammeSelectedMap = Map[String, String](
     "interested" -> "Yes"
   )
 

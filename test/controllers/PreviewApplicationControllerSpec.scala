@@ -16,13 +16,13 @@
 
 package controllers
 
-import _root_.forms.AssistanceDetailsFormExamples
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.{ ApplicationClient, SchemeClient }
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.exchange.{ AssistanceDetailsExchangeExamples, GeneralDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
+import connectors.exchange.{ AssistanceDetailsExamples, GeneralDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
+import controllers.forms.AssistanceDetailsFormExamples
 import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
 import models._
@@ -113,7 +113,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(SchemePreferencesExamples.DefaultSelectedSchemes))
     when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments))
+      .thenReturn(Future.successful(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
     when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(PartnerGraduateProgrammesExamples.InterestedNotAll))
 

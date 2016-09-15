@@ -1,3 +1,4 @@
+@import models.view.PartnerGraduateProgrammes
 @(form: Form[_root_.forms.PartnerGraduateProgrammesForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import views.html.widgets.{ pageProgress, saveAndContinueButton, radioBoxHorizontal, inputCheckboxGroup }
@@ -28,7 +29,7 @@
 
                         <legend class="form-label">Choose any programmes you're interested in</legend>
                         <p class="text">We'll let them know your details so they can contact you</p>
-                        @inputCheckboxGroup(form("partnerGraduateProgrammes"), models.PartnerGraduateProgrammesTypes.seq)
+                        @inputCheckboxGroup(form("partnerGraduateProgrammes"), models.view.PartnerGraduateProgrammes.seq)
                     </div>
                 </div>
             </fieldset>

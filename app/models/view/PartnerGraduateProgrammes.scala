@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package connectors.exchange
+package models.view
 
-object AssistanceDetailsExchangeExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, false, None)
-  val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("disability description"), Some(true), true,
-    Some("online adjustment description xxx"), true, Some("venue adjustment description yyy"))
+object PartnerGraduateProgrammes {
+  val seq = Seq(
+    ("Entrepreneur First", "Entrepreneur First"),
+    ("Frontline", "Frontline"),
+    ("Lead First", "Lead First"),
+    ("Police Now", "Police Now"),
+    ("TeachFirst", "TeachFirst"),
+    ("Think Ahead", "Think Ahead"),
+    ("Year Here", "Year Here")
+  )
 }

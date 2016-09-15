@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package models
+package models.view.questionnaire
 
 // scalastyle:off line.size.limit
-object Occupations {
+object Occupation {
   val seq = Seq(
     ("Traditional professional", "Accountant, solicitor, medical practitioner, scientist, civil/mechanical engineer"),
     ("Modern professional", "Teacher/lecturer, nurse, physiotherapist, social worker, welfare officer, artist, musician, police officer (sergeant or above), software designer"),

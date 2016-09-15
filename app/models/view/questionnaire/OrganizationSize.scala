@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package models
+package models.view.questionnaire
 
-object Employee {
+object OrganizationSize {
   val list = List(
-    ("employee", "Employee", false),
-    ("self-with-employees", "Self-employed with employees", false),
-    ("self-without-employees", "Self-employed/freelancer without employees", false),
+    ("small", "Small (1 - 24 employees)", false),
+    ("large", "Large (over 24 employees)", false),
     ("unknown", "I don't know/prefer not to say", false)
   )
 }

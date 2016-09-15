@@ -23,12 +23,5 @@ case class PartnerGraduateProgrammes(interested: Boolean,
                                      partnerGraduateProgrammes: Option[List[String]])
 
 object PartnerGraduateProgrammes {
-  implicit val partnerGraduateProgrammesExchangeFormat = Json.format[PartnerGraduateProgrammes]
-
-  implicit class partnerGraduateProgrammesFormatRequest(data: PartnerGraduateProgrammesForm.Data) {
-    def exchange = PartnerGraduateProgrammes(
-      data.interested == "Yes",
-      data.partnerGraduateProgrammes
-    )
-  }
+  implicit val partnerGraduateProgrammesFormat = Json.format[PartnerGraduateProgrammes]
 }

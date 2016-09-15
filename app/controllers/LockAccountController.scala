@@ -30,7 +30,7 @@ abstract class LockAccountController(applicationClient: ApplicationClient) exten
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
-      val email = request.flash.get("email")
+      val email = request.session.get("email")
       Future.successful(Ok(views.html.index.locked(
         LockAccountForm.form.fill(LockAccountForm.Data(email.getOrElse("")))
       )))
@@ -39,9 +39,9 @@ abstract class LockAccountController(applicationClient: ApplicationClient) exten
   def submit = CSRUserAwareAction { implicit request =>
     implicit user =>
       LockAccountForm.form.bindFromRequest.fold(
-        invalidForm => Future.successful(Redirect(routes.LockAccountController.present()).flashing("email" -> "")),
-        data => Future.successful(Redirect(routes.PasswordResetController.presentReset(Some(data.email))).
-          flashing("email" -> data.email))
+        invalidForm => Future.successful(Redirect(routes.LockAccountController.present())),
+        data => Future.successful(Redirect(routes.PasswordResetController.presentReset())
+          addingToSession("email" -> data.email))
       )
   }
 

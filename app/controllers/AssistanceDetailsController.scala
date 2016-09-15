@@ -33,7 +33,7 @@ class AssistanceDetailsController(applicationClient: ApplicationClient) extends 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
       applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId).map { ad =>
-        val form = AssistanceDetailsForm.form.fill(assistanceDetailsExchange2Data(ad))
+        val form = AssistanceDetailsForm.form.fill(AssistanceDetailsForm.Data(ad))
         Ok(views.html.application.assistanceDetails(form))
       }.recover {
         case e: AssistanceDetailsNotFound => Ok(views.html.application.assistanceDetails(AssistanceDetailsForm.form))
@@ -46,12 +46,13 @@ class AssistanceDetailsController(applicationClient: ApplicationClient) extends 
         invalidForm =>
           Future.successful(Ok(views.html.application.assistanceDetails(invalidForm))),
         data => {
-          applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID, sanitizeData(data)).flatMap { _ =>
+          applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID,
+            data.sanitizeData.exchange).flatMap { _ =>
             updateProgress()(_ => {
               if (RoleUtils.hasOccupation(CachedData(user.user, Some(user.application)))) {
                 Redirect(routes.PreviewApplicationController.present())
               } else {
-                Redirect(routes.QuestionnaireController.startOrContinue())
+                Redirect(routes.QuestionnaireController.presentStartOrContinue())
               }
             })
           }
@@ -59,35 +60,5 @@ class AssistanceDetailsController(applicationClient: ApplicationClient) extends 
       )
   }
 
-  private def assistanceDetailsExchange2Data(ad: AssistanceDetails) = {
-    AssistanceDetailsForm.Data(
-      ad.hasDisability,
-      ad.hasDisabilityDescription,
-      ad.guaranteedInterview.map {
-        case true => "Yes"
-        case false => "No"
-      },
-      ad.needsSupportForOnlineAssessment match {
-        case true => "Yes"
-        case false => "No"
-      },
-      ad.needsSupportForOnlineAssessmentDescription,
-      ad.needsSupportAtVenue match {
-        case true => "Yes"
-        case false => "No"
-      },
-      ad.needsSupportAtVenueDescription
-    )
-  }
 
-  private def sanitizeData(data: AssistanceDetailsForm.Data) = {
-    AssistanceDetailsForm.Data(
-      data.hasDisability,
-      if (data.hasDisability == "Yes") data.hasDisabilityDescription else None,
-      if (data.hasDisability == "Yes") data.guaranteedInterview else None,
-      data.needsSupportForOnlineAssessment,
-      if (data.needsSupportForOnlineAssessment=="Yes") data.needsSupportForOnlineAssessmentDescription else None,
-      data.needsSupportAtVenue,
-      if (data.needsSupportAtVenue=="Yes") data.needsSupportAtVenueDescription else None)
-  }
 }

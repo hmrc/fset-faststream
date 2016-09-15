@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package forms
+package controllers.forms
 
-import forms.GeneralDetailsFormExamples._
+import forms.GeneralDetailsForm
+import controllers.forms.GeneralDetailsFormExamples._
 import org.joda.time.LocalDate
 import org.scalatestplus.play.PlaySpec
 
 class GeneralDetailsFormSpec extends PlaySpec {
   implicit val now = LocalDate.now
 
-  import GeneralDetailsForm.{form => personalDetailsForm}
+  import GeneralDetailsForm.{ form => personalDetailsForm }
 
   "Personal Details form" should {
     "be invalid for missing mandatory fields" in {
@@ -32,7 +33,7 @@ class GeneralDetailsFormSpec extends PlaySpec {
       form.hasErrors must be(true)
       form.hasGlobalErrors must be(false)
 
-      form.errors.map(_.key) must be(OutsideUKMandatoryFields)
+      form.errors.map(_.key) must be(InsideUKMandatoryFields)
     }
 
     "be successful for outside UK address without post code, but with country" in {
@@ -46,7 +47,7 @@ class GeneralDetailsFormSpec extends PlaySpec {
       val form = personalDetailsForm.bind(InvalidUKAddressWithoutPostCode)
 
       form.hasErrors must be(true)
-      form.hasGlobalErrors must be(true)
+      form.hasGlobalErrors must be(false)
       form.errors.flatMap(_.messages) must be(List("error.postcode.required"))
     }
 
