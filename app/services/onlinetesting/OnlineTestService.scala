@@ -77,10 +77,8 @@ trait OnlineTestService {
 
   def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = {
     appRepository.findCandidateByUserId(userId).flatMap {
-      case Some(candidate) if candidate.applicationId.isDefined =>
-        otRepository.getPhase1TestProfile(candidate.applicationId.get)
+      case Some(candidate) => otRepository.getPhase1TestProfile(candidate.applicationId.getOrElse(""))
       case None => Future.successful(None)
-      case _ => Future.successful(None)
     }
   }
 
@@ -224,9 +222,9 @@ trait OnlineTestService {
 
   private def getScheduleIdForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
-      gatewayConfig.onlineTestConfig.scheduleIds.gis
+      gatewayConfig.onlineTestConfig.gis.flatMap(gatewayConfig.onlineTestConfig.scheduleIds.get)
     } else {
-      gatewayConfig.onlineTestConfig.scheduleIds.standard
+      gatewayConfig.onlineTestConfig.standard.flatMap(gatewayConfig.onlineTestConfig.scheduleIds.get)
     }
   }
 

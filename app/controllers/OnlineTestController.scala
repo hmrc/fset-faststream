@@ -16,7 +16,9 @@
 
 package controllers
 
+import config.CubiksGatewayConfig
 import model.Commands
+import model.exchange
 import model.OnlineTestCommands.Implicits._
 import org.joda.time.DateTime
 import play.api.Logger
@@ -26,6 +28,7 @@ import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
 import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import config.MicroserviceAppConfig.cubiksGatewayConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -51,6 +54,7 @@ object OnlineTestController extends OnlineTestController {
   override val onlineRepository: OnlineTestRepository = onlineTestRepository
   override val onlineTestingService: OnlineTestService = OnlineTestService
   override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
+  override val cubiksConfig = cubiksGatewayConfig
 }
 
 trait OnlineTestController extends BaseController {
@@ -59,13 +63,33 @@ trait OnlineTestController extends BaseController {
   val onlineRepository: OnlineTestRepository
   val onlineTestingService: OnlineTestService
   val onlineTestExtensionService: OnlineTestExtensionService
+  val cubiksConfig: CubiksGatewayConfig
 
   import Commands.Implicits._
 
   def getOnlineTest(userId: String) = Action.async { implicit request =>
 
+    // TODO This is a bit icky
+    def getScheduleNameFromId(id: Int): String = {
+      cubiksConfig.onlineTestConfig.scheduleIds.find(_._2 == id).getOrElse(("UNKOWN", 0))._1
+    }
+
     onlineTestingService.getPhase1TestProfile(userId).map {
-      case Some(phase1TestProfile) => Ok(Json.toJson(phase1TestProfile))
+      case Some(phase1TestProfile) =>
+        Ok(Json.toJson(exchange.Phase1TestProfile(
+          expirationDate = phase1TestProfile.expirationDate,
+          tests = phase1TestProfile.tests.map { test =>
+            exchange.Phase1Test(testType = getScheduleNameFromId(test.scheduleId),
+              usedForResults = test.usedForResults,
+              testUrl = test.testUrl,
+              invitationDate = test.invitationDate,
+              started = test.started,
+              completed = test.completed,
+              resultsReadyToDownload = test.resultsReadyToDownload
+            )
+          }
+        )))
+
       case None => Logger.error(s"No phase 1 test found for userID [$userId]")
         NotFound
     }

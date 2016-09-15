@@ -178,8 +178,12 @@ object Commands {
     phoneAndEmail: PhoneAndEmail
   )
 
-  case class ApplicationResponse(applicationId: String, applicationStatus: String, userId: String, progressResponse: ProgressResponse,
-                                 fastPassDetails: Option[FastPassDetails])
+  case class ApplicationResponse(applicationId: String,
+    applicationStatus: String,
+    userId: String,
+    progressResponse: ProgressResponse,
+    fastPassDetails: Option[FastPassDetails] = None
+  )
 
   case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: DateTime)
 
