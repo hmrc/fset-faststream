@@ -21,17 +21,20 @@
         <h1 class="heading-xlarge" id="personalDetailsHeading">Choose your schemes</h1>
 
         <div class="panel-indent">
-            <p>Select the schemes you'd like to work in</p>
+            <p>In preference order, select only the schemes you'd like to work in.</p>
         </div>
 
-        <section class="grid-wrapper scheme-wrapper">
-            <div class="scheme-input-container">
-            @schemesCheckboxGroup(isCandidateCivilServant, form("schemes"), SelectedSchemesForm.AllSchemes,
-                '_label -> "",
-                '_class -> ""
-            )
-            </div>
-        </section>
+        <fieldset>
+            <legend class="visuallyhidden">In preference order, select only the schemes you'd like to work in.</legend>
+            <section class="grid-wrapper scheme-wrapper">
+                <div class="scheme-input-container">
+                @schemesCheckboxGroup(isCandidateCivilServant, form("schemes"), SelectedSchemesForm.AllSchemes,
+                    '_label -> "",
+                    '_class -> ""
+                )
+                </div>
+            </section>
+        </fieldset>
 
         <section id="selectedPreferences" class="hide-nojs">
             <h2 class="heading-large">Your chosen schemes</h2>
@@ -46,7 +49,7 @@
             <ol id="selectedPrefList" class="list-text">
                 <li></li>
             </ol>
-                &nbsp;
+            <span class="visuallyhidden" id="schemeRemovedMessage" aria-live="assertive"></span>
         </section>
         <section class="text panel-indent">
             <p>Your schemes will be offered to you in order of preference.</p>

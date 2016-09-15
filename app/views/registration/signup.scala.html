@@ -49,8 +49,8 @@
         <section class="section-border">
             <h2 class="heading-large">Set your password</h2>
             <div class="form-group">
-                <label for="password" class="form-label">Create password</label>
-
+                <label for="password" class="form-label" id="firstPassLabel">Create password</label>
+                <span class="visuallyhidden" id="hiddenPasswordRequirements">Must have: uppercase letters, lowercase letters, a number, and at least 9 characters</span>
                 <div class="form-hint text">
                     <p class="no-btm-margin">Must have:</p>
                     <ul id="passwordRequirements" class="list-withicons list-text">
@@ -80,6 +80,9 @@
                         </div>
                     </div>
                 </div>
+                <div class="panel-danger hidden" id="errorPassword" role="alert">
+                  <p>There is a problem with your password</p>
+                </div>
             </div>
         </section>
 
@@ -102,7 +105,7 @@
             <h2 class="heading-large">How did you hear about us?</h2>
             <div data-optional>
                 @select_guard(signUpForm("campaignReferrer"), models.CampaignReferrers.list,
-                "hearAboutUsDetail", "-- Select one --") {
+                "hearAboutUsDetail", "Select one") {
                 Select how you heard about us (optional)
                 }
             </div>

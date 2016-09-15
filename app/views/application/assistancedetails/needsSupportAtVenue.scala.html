@@ -11,11 +11,8 @@
             optionTrigger = "needsSupportAtVenue-describe")
         <div id="needsSupportAtVenue-describe" class="toggle-content" aria-hidden="true">
             <div class="form-group">
-                <label id="adj-other" class="form-label">What adjustments will you need?</label>
-                <p class="form-hint">For example, rest breaks or extra time</p>
                 @helper.textarea(form("needsSupportAtVenueDescription"),
-                    '_label -> "",
-                    '_labelClass -> "form-hint",
+                    '_label -> "What adjustments will you need?",
                     'class -> "form-control",
                     'rows -> 4,
                     'dataValLengthMax -> "2048",
