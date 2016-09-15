@@ -68,7 +68,7 @@ $(function()
               '</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
               thisScheme +
               '</span><p>You\'re eligible as a current civil servant</p>' +
-              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove</a>' +
+              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove <span class="visuallyhidden">' + thisScheme + '</span></a>' +
               '</div>'
             );
           }
@@ -80,7 +80,7 @@ $(function()
               preferencesAsText[arrayPositionNow] +
               '</span><div class="text scheme-elegrepeat"><span class="bold-small" data-schemenameinlist>' +
               thisScheme + '</span>' + specialEligibility +
-              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove</a>' +
+              '<a href="#" class="link-unimp scheme-remove"><i class="fa fa-times" aria-hidden="true"></i>Remove <span class="visuallyhidden">' + thisScheme + '</span></a>' +
               '</div>'
             );
           }
@@ -142,12 +142,14 @@ $(function()
 
     $('#selectedPrefList').on('click', '.scheme-remove', function(e) {
       var thisScheme = $(this).closest('.scheme-prefcontainer').attr('data-scheme-id'),
-        schemesAfter = $(this).closest('.scheme-prefcontainer').nextAll();
+        schemesAfter = $(this).closest('.scheme-prefcontainer').nextAll(),
+        schemeName = $(this).closest('.scheme-prefcontainer').find('[data-schemenameinlist]').text();
 
       e.preventDefault();
 
       $('#' + thisScheme).trigger('click').attr('checked', false).closest('label').removeClass('selected');
 
+      $('#schemeRemovedMessage').text(schemeName + ' has been removed from your preferences');
 
       schemesAfter.each(function () {
         var schemeID = $(this).attr('data-scheme-id');
