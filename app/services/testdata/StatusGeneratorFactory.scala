@@ -24,9 +24,6 @@ object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
   def getGenerator(applicationStatus: String, progressStatus: Option[ProgressStatus]) = {
 
-    // Legacy until all application statuses are migrated
-    val phase1TestsAppStatus = ApplicationStatus.PHASE1_TESTS.toString
-
     (applicationStatus, progressStatus) match {
       case (appStatus, None) => appStatus match {
         case "REGISTERED" => RegisteredStatusGenerator
@@ -57,7 +54,7 @@ object StatusGeneratorFactory {
         case ApplicationStatuses.AssessmentCentreFailedNotified => AssessmentCentreFailedNotifiedStatusGenerator
         case ApplicationStatuses.Withdrawn => WithdrawnStatusGenerator
       }
-      case (phase1TestsAppStatus, Some(PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
+      case ("PHASE1_TESTS", Some(PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
       case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
     }
   }

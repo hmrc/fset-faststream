@@ -17,8 +17,7 @@
 package services.testdata
 
 import model.EvaluationResults.Result
-import org.joda.time.LocalDate
-import play.api.Play
+import org.joda.time.{ DateTime, LocalDate }
 
 case class GeneratorConfig(emailPrefix: String,
                            setGis: Boolean = false,
@@ -36,5 +35,5 @@ case class GeneratorConfig(emailPrefix: String,
                            dob: Option[LocalDate],
                            postCode: Option[String],
                            country: Option[String],
-                           phase1StartTime: Option[LocalDate],
-                           phase1ExpiryTime: Option[LocalDate])
+                           phase1StartTime: Option[DateTime],
+                           phase1ExpiryTime: Option[DateTime])

@@ -84,6 +84,16 @@ trait OnlineTestService {
     }
   }
 
+  def extendTestGroup(groupKey: String, applicationId: String, extraDays: Int) = {
+    /* phase1TestRepository.getOnlineTestApplication(applicationId).flatMap {
+      case Some(onlineTestApp) =>
+        onlineTestExtensionService.extendExpiryTime(onlineTestApp, extension.extraDays).map { _ =>
+          Ok
+        }
+      case _ => Future.successful(NotFound)
+    } */
+  }
+
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
     val (invitationDate, expirationDate) = onlineTestDates
     val registerAndInviteProcess = Future.sequence(getScheduleIdForApplication(application).map { scheduleId =>

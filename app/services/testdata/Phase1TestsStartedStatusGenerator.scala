@@ -24,7 +24,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase1TestsStartedStatusGenerator extends Phase1TestsStartedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator$
+  override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
   override val otRepository = onlineTestRepository
 }
 
@@ -34,8 +34,6 @@ trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      // TODO: in faststream
-      // updateStatus <- otRepository.updateStatus(candidateInPreviousStatus.userId, ApplicationStatuses.OnlineTestStarted)
     } yield {
       candidateInPreviousStatus
     }

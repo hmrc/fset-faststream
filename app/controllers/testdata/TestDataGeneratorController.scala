@@ -24,7 +24,7 @@ import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
 import model.{ ApplicationStatuses, ProgressStatuses }
 import model.EvaluationResults.Result
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, LocalDate }
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
 import play.api.libs.json.Json
@@ -116,8 +116,8 @@ trait TestDataGeneratorController extends BaseController {
       dob = dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),
       postCode = postCode.map(pc => validatePostcode(pc)),
       country = country,
-      phase1StartTime = phase1StartTime.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-ddThh:mm:ss"))),
-      phase1ExpiryTime = phase1ExpiryTime.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-ddThh:mm:ss")))
+      phase1StartTime = phase1StartTime.map(x => DateTime.parse(x)),
+      phase1ExpiryTime = phase1ExpiryTime.map(x => DateTime.parse(x))
     )
 
     TestDataGeneratorService.createCandidatesInSpecificStatus(

@@ -18,7 +18,7 @@ package services.testdata
 
 import java.util.UUID
 
-import connectors.testdata.ExchangeObjects.OnlineTestProfileResponse
+import connectors.testdata.ExchangeObjects.Phase1TestGroupResponse
 import model.ApplicationStatuses
 import model.OnlineTestCommands.Phase1TestProfile
 import org.joda.time.DateTime

@@ -26,6 +26,7 @@ import model.OnlineTestCommands.Implicits._
 import model.PersistedObjects.{ ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest }
 import model.{ ApplicationStatuses, Commands }
 import org.joda.time.{ DateTime, LocalDate }
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.api.commands.UpdateWriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID, BSONString }
@@ -45,7 +46,7 @@ trait OnlineTestRepository {
 
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
 
-  //def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit]
+  def updateGroupExpiryTime(groupKey: String, newExpirationDate: DateTime): Future[Unit]
 
   def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
@@ -75,31 +76,26 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val projection = BSONDocument("testGroups.PHASE1" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(doc) => Some(Phase1TestProfile.phase1TestProfileHandler.read(doc))
+      case Some(doc) => Some(
+        Phase1TestProfile.phase1TestProfileHandler.read(doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument]("PHASE1").get)
+      )
       case _ => None
     }
   }
 
-/*  override def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit] = {
-    val queryUser = BSONDocument("userId" -> userId)
-    val queryUserExpired = BSONDocument("userId" -> userId, "applicationStatus" -> "ONLINE_TEST_EXPIRED")
-    val newExpiryTime = BSONDocument("$set" -> BSONDocument(
-      "online-tests.expirationDate" -> expirationDate
-    ))
-    val newStatus = BSONDocument("$set" -> BSONDocument(
-      "progress-status.online_test_expired" -> false,
-      "progress-status.online_test_invited" -> true,
-      "applicationStatus" -> "ONLINE_TEST_INVITED"
-    ))
+  override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
+    /*
+    val queryTestGroup = BSONDocument("applicationId" -> applicationId)
 
     for {
-      status <- collection.update(queryUser, newExpiryTime, upsert = false)
-      _ <- collection.update(queryUserExpired, newStatus, upsert = false)
+      status <- collection.update(queryTestGroup, newExpiryTime, upsert = false)
+      _ <- collection.update(queryTestGroupExpired, newStatus, upsert = false)
     } yield {
       if (status.n == 0) throw new NotFoundException(s"updateStatus didn't update anything for userId:$userId")
       if (status.n > 1) throw new UnexpectedException(s"updateStatus somehow updated more than one record for userId:$userId")
-    }
-  }*/
+    }*/
+    Future.successful(())
+  }
 
 
 
