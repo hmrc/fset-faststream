@@ -17,6 +17,7 @@
 package forms
 
 import forms.Mappings._
+import models.CampaignReferrers
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation.Constraints
@@ -92,7 +93,7 @@ object SignUpForm {
   def campaignOtherFormatter = new Formatter[Option[String]] {
     override def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val optCampaignOther = request.get("campaignOther")
-      if (request.hearAboutCampaignFromOthers) {
+      if (request.hasOptionalInfoProvided) {
         optCampaignOther match {
           case Some(campaignOther) if campaignOther.trim.length > 256 => Left(List(FormError(key, Messages(s"error.$key.maxLength"))))
           case _ => Right(optCampaignOther.map(_.trim))
@@ -106,10 +107,11 @@ object SignUpForm {
   }
 
   implicit class RequestValidation(request: Map[String, String]) {
-      def hearAboutCampaignFromOthers = request.get("campaignReferrer").contains("Other")
+      def hasOptionalInfoProvided = CampaignReferrers.list.find(pair =>
+        pair._1 == request.getOrElse("campaignReferrer", "")).exists(_._2)
 
       def sanitize = request.filterKeys {
-        case "campaignOther" => hearAboutCampaignFromOthers
+        case "campaignOther" => hasOptionalInfoProvided
         case _ => true
       }
   }

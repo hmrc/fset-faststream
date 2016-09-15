@@ -42,7 +42,7 @@ object GeneralDetailsFormExamples {
 
   val InvalidAddressDoBInFuture = ValidUKAddress + ("dateOfBirth.year" -> yearInTheFuture)
 
-  val OutsideUKMandatoryFields = List(
+  val InsideUKMandatoryFields = List(
     "firstName",
     "lastName",
     "preferredName",
@@ -50,6 +50,7 @@ object GeneralDetailsFormExamples {
     "dateOfBirth.month",
     "dateOfBirth.year",
     "address.line1",
+    "postCode",
     "phone",
     "fastPassDetails.applicable"
   )
