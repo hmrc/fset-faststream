@@ -24,6 +24,8 @@ object ApplicationStatus extends Enumeration {
   val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED = Value
   val PHASE1_TESTS = Value
 
+  implicit def toString(applicationStatus: ApplicationStatus): String = applicationStatus.toString
+
   implicit val applicationStatusFormat = new Format[ApplicationStatus] {
     def reads(json: JsValue) = JsSuccess(ApplicationStatus.withName(json.as[String]))
     def writes(myEnum: ApplicationStatus) = JsString(myEnum.toString)

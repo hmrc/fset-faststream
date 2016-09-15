@@ -19,3 +19,4 @@ dist
 *.iws
 
     
+/bin/

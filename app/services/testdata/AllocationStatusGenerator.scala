@@ -67,7 +67,8 @@ trait AllocationStatusGenerator extends ConstructiveGenerator {
         candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
         randomAssessment <- getApplicationAssessment(candidateInPreviousStatus)
         _ <- aaRepository.create(List(randomAssessment))
-        _ <- otRepository.saveCandidateAllocationStatus(candidateInPreviousStatus.applicationId.get, newStatus, None)
+        //TODO FAST STREAM FIX ME
+        //_ <- otRepository.saveCandidateAllocationStatus(candidateInPreviousStatus.applicationId.get, newStatus, None)
       } yield {
         candidateInPreviousStatus.copy(
           applicationAssessment = Some(randomAssessment)

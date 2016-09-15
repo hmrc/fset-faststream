@@ -24,16 +24,17 @@ import model.ApplicationStatuses._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
+import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
+import model.OnlineTestCommands.{OnlineTestApplication, TimeAdjustmentsOnlineTestApplication}
 import model.PersistedObjects.ApplicationForNotification
 import model._
 import model.command._
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
 import play.api.Logger
-import play.api.libs.json.{ Format, JsNumber, JsObject }
-import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, _ }
+import play.api.libs.json.{Format, JsNumber, JsObject}
+import reactivemongo.api.{DB, QueryOpts, ReadPreference}
+import reactivemongo.bson.{BSONDocument, _}
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -43,6 +44,11 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+// TODO FAST STREAM
+// This is far too large an interface - we should look at splitting up based on
+// functional concerns.
+
+// scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
 
   def create(userId: String, frameworkId: String): Future[ApplicationResponse]
@@ -107,6 +113,9 @@ trait GeneralApplicationRepository {
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,
                                     evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: String): Future[Unit]
 
+  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
+
+  def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -996,6 +1005,45 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       ))
 
     collection.update(query, passMarkEvaluation, upsert = false) map { _ => }
+  }
+
+  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+      BSONDocument("fastpass-details.applicable" -> false)
+    ))
+
+    selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
+  }
+
+  override def updateProgressStatus(applicationId: String,
+    progressStatus: ProgressStatuses.ProgressStatus
+  ): Future[Unit] = progressStatus match {
+    case ProgressStatuses.PHASE1_TESTS_INVITED => initialisePhase1TestStatus(applicationId)
+    case _ => {
+      val query = BSONDocument("applicationId" -> applicationId)
+      collection.update(query, BSONDocument("$set" ->
+        applicationStatusBSON(progressStatus))
+      ) map { _ => }
+    }
+  }
+
+
+  private def initialisePhase1TestStatus(applicationId: String): Future[Unit] = {
+    import model.ProgressStatuses._
+
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
+      s"progress-status.$OnlineTestFailedProgress" -> "",
+      s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
+      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> ""
+    )) ++ BSONDocument("$set" -> BSONDocument(
+      s"progress-status.$PHASE1_TESTS_INVITED" -> true,
+      "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
+    ))
+
+    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

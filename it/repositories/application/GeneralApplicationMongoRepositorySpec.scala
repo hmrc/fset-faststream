@@ -17,13 +17,17 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model.Commands.{ Candidate, Report }
-import model.FastPassDetails
-import org.joda.time.LocalDate
-import reactivemongo.bson.BSONDocument
+import model.Commands.{Candidate, Report}
+import model.Exceptions.NotFoundException
+import model.ProgressStatuses.ProgressStatus
+import model.{ApplicationStatus, FastPassDetails, ProgressStatuses}
+import org.joda.time.{DateTime, LocalDate}
+import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
+
+import scala.concurrent.Future
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -46,7 +50,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         appId, Some("registered"), Some("Location1"), Some("Commercial"), Some("Digital and technology"),
         Some("Location2"), Some("Business"), Some("Finance"),
         Some("Yes"), Some("Yes"), Some("Yes"), Some("Yes"),
-        Some("No"), Some("No"), Some("No"),
+        None, Some("No"), None,
         Some("this candidate has changed the email")
       ))
     }
@@ -75,8 +79,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       applicationResponse.userId mustBe  userId
       applicationResponse.applicationId mustBe  appId
-      applicationResponse.fastPassDetails.get mustBe FastPassDetails(applicable = true, None, None,
-        fastPassReceived = Some(true), certificateNumber = None)
+      applicationResponse.fastPassDetails.get mustBe FastPassDetails(applicable = false, None, None,
+        fastPassReceived = Some(false), certificateNumber = None)
     }
   }
 
@@ -159,6 +163,39 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   }
 
+  "Update application status" should {
+    "update the application and progress status for a user" in {
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED")
+      repository.updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_INVITED).futureValue
+
+      val result = repository.findByUserId("userId", "frameworkId").futureValue
+      result.applicationStatus mustBe ProgressStatuses.PHASE1_TESTS_INVITED.applicationStatus.toString
+    }
+  }
+
+  "Next application ready for online testing" should {
+    "return no application if htere is only one and it is a fast pass candidate" in{
+      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
+      )
+
+      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
+
+      result must be (None)
+    }
+
+    "return one application if there is only one and it is not a fast pass candidate" in{
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false
+      )
+
+      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
+
+      result.get.applicationId mustBe "appId"
+      result.get.userId mustBe "userId"
+    }
+  }
+
   val testCandidate = Map(
     "firstName" -> "George",
     "lastName" -> "Jetson",
@@ -166,7 +203,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "dateOfBirth" -> "1986-05-01"
   )
 
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String, appStatus: String = "") = {
+  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
+    appStatus: String = "", needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
+    timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false) = {
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -198,19 +237,48 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         "stemLevel" -> true
       ),
       "fastpass-details" -> BSONDocument(
-        "applicable" -> true,
-        "fastPassReceived" -> true
+        "applicable" -> fastPassApplicable,
+        "fastPassReceived" -> fastPassApplicable
       ),
-      "assistance-details" -> BSONDocument(
-        "needsAssistance" -> "No",
-        "needsAdjustment" -> "No",
-        "guaranteedInterview" -> "No"
-      ),
+      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> BSONDocument(
         "registered" -> "true"
       )
     )).futureValue
+  }
+
+  private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
+    timeExtensionAdjustments:Boolean) = {
+    if (needsAdjustment) {
+      if (adjustmentsConfirmed) {
+        if (timeExtensionAdjustments) {
+          BSONDocument(
+            "needsAdjustment" -> "Yes",
+            "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
+            "adjustments-confirmed" -> true,
+            "verbalTimeAdjustmentPercentage" -> 9,
+            "numericalTimeAdjustmentPercentage" -> 11
+          )
+        } else {
+          BSONDocument(
+            "needsAdjustment" -> "Yes",
+            "typeOfAdjustments" -> BSONArray("room alone"),
+            "adjustments-confirmed" -> true
+          )
+        }
+      } else {
+        BSONDocument(
+          "needsAdjustment" -> "Yes",
+          "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
+          "adjustments-confirmed" -> false
+        )
+      }
+    } else {
+      BSONDocument(
+        "needsAdjustment" -> "No"
+      )
+    }
   }
 
   def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
@@ -220,4 +288,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       "frameworkId" -> frameworkId
     )).futureValue
   }
+
+
 }

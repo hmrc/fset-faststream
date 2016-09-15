@@ -36,7 +36,7 @@ trait SendInvitationJob extends SingleInstanceScheduledJob with SendInvitationJo
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationReadyForOnlineTesting().flatMap {
       case Some(application) =>
-        onlineTestingService.registerAndInviteApplicant(application)
+        onlineTestingService.registerAndInviteForTestGroup(application)
       case None =>
         Future.successful(Unit)
     }

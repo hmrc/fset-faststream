@@ -20,11 +20,11 @@ import connectors.EmailClient
 import model.PersistedObjects.ExpiringOnlineTest
 import play.api.Logger
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 trait OnlineTestExpiryService {
   def processNextExpiredTest(): Future[Unit]
@@ -34,6 +34,7 @@ trait OnlineTestExpiryService {
 }
 
 class OnlineTestExpiryServiceImpl(
+  appRepository: GeneralApplicationRepository,
   otRepository: OnlineTestRepository,
   cdRepository: ContactDetailsRepository,
   emailClient: EmailClient,
@@ -44,11 +45,14 @@ class OnlineTestExpiryServiceImpl(
   private final val ExpiredStatus = "ONLINE_TEST_EXPIRED"
   private implicit def headerCarrier = newHeaderCarrier
 
-  override def processNextExpiredTest(): Future[Unit] =
-    otRepository.nextApplicationPendingExpiry.flatMap {
-      case Some(expiringTest) => processExpiredTest(expiringTest)
-      case None => Future.successful(())
-    }
+  override def processNextExpiredTest(): Future[Unit] = {
+    // TODO FAST STREAM FIX ME
+    Future.successful(Unit)
+    //otRepository.nextApplicationPendingExpiry.flatMap {
+    //  case Some(expiringTest) => processExpiredTest(expiringTest)
+    //  case None => Future.successful(())
+    //}
+  }
 
   override def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =
     for {
@@ -63,7 +67,7 @@ class OnlineTestExpiryServiceImpl(
     }
 
   override def commitExpiredStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
-    otRepository.updateStatus(expiringTest.userId, ExpiredStatus).map { _ =>
+    applicationRepository.updateStatus(expiringTest.userId, ExpiredStatus).map { _ =>
       audit("ExpiredOnlineTest", expiringTest)
     }
 
