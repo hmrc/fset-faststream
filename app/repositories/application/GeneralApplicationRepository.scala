@@ -1007,31 +1007,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     collection.update(query, passMarkEvaluation, upsert = false) map { _ => }
   }
 
-  // TODO: get rid of this, it feels wrong and we should also be using the App Status case objects.
-  private def applicationStatus(status: String): BSONDocument = {
-    val flag = status match {
-      case "ONLINE_TESTS_INVITED" => "online_tests_invited"
-      case "ONLINE_TESTS_STARTED" => "online_tests_started"
-      case "ONLINE_TESTS_COMPLETED" => "online_tests_completed"
-      case "ONLINE_TESTS_EXPIRED" => "online_tests_expired"
-      case "ONLINE_TESTS_FAILED" => "online_tests_failed"
-      case "ONLINE_TESTS_FAILED_NOTIFIED" => "online_tests_failed_notified"
-    }
-
-    if (flag == "online_tests_completed") {
-      BSONDocument("$set" -> BSONDocument(
-        s"progressstatus.$flag" -> true,
-        "applicationStatus" -> status,
-        "onlinetests.completionDate" -> DateTime.now
-      ))
-    } else {
-      BSONDocument("$set" -> BSONDocument(
-        s"progressstatus.$flag" -> true,
-        "applicationStatus" -> status
-      ))
-    }
-  }
-
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
@@ -1060,13 +1035,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val query = BSONDocument("applicationId" -> applicationId)
 
     val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_COMPLETED" -> "",
-      s"progress-status.$PHASE1_TESTS_EXPIRED" -> "",
-      s"progress-status.$AwaitingOnlineTestReevaluationProgress" -> "",
       s"progress-status.$OnlineTestFailedProgress" -> "",
       s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
-      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> "",
-      s"passmarkEvaluation" -> ""
+      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> ""
     )) ++ BSONDocument("$set" -> BSONDocument(
       s"progress-status.$PHASE1_TESTS_INVITED" -> true,
       "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus

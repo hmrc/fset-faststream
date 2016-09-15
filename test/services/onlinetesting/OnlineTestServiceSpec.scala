@@ -161,7 +161,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     }
 
-    val validInviteDate = new DateTime(2016, 5, 21, 0, 0)
     val validExpireDate = new DateTime(2016, 6, 9, 0, 0)
 
     "return a valid set of aggregated online test data if the user id is valid" in new OnlineTest {
@@ -183,24 +182,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   }
 
   "register and invite application" should {
-
-    "issue one email for invites to SJQ for GIS candidates" in new OnlineTest {
-
-      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
-        .thenReturn(Future.successful(invitation))
-      when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
-        .thenReturn(Future.successful(()))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
-      when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
-        any[HeaderCarrier]
-      )).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
-        .thenReturn(Future.successful(()))
-      when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-      when(appRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful())
-
+    "issue one email for invites to SJQ for GIS candidates" in new SuccessfulTestInviteFixture {
       val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingGisWithNoTimeAdjustments)
       result.futureValue mustBe (())
 
@@ -215,23 +197,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       verify(auditServiceMock, times(5)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
-    "issue one email for invites to SJQ and BQ tests for non GIS candidates" in new OnlineTest {
-
-      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
-        .thenReturn(Future.successful(invitation))
-      when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
-        .thenReturn(Future.successful(()))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
-      when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
-        any[HeaderCarrier]
-      )).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
-        .thenReturn(Future.successful(()))
-      when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-      when(appRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful())
-
+    "issue one email for invites to SJQ and BQ tests for non GIS candidates" in new SuccessfulTestInviteFixture {
       val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
       result.futureValue mustBe (())
 
@@ -451,5 +417,22 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val onlineTestInvitationDateFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
     }
+  }
+
+  trait SuccessfulTestInviteFixture extends OnlineTest {
+    when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
+      .thenReturn(Future.successful(registration))
+    when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
+      .thenReturn(Future.successful(invitation))
+    when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
+      .thenReturn(Future.successful(()))
+    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+    when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
+      any[HeaderCarrier]
+    )).thenReturn(Future.successful(()))
+    when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
+      .thenReturn(Future.successful(()))
+    when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
+    when(appRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful())
   }
 }

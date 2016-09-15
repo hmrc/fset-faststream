@@ -89,7 +89,7 @@ trait OnlineTestService {
     val registerAndInviteProcess = Future.sequence(getScheduleIdForApplication(application).map { scheduleId =>
       registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
     }).map { phase1Tests =>
-      markAsCompleted(application)(Phase1TestProfile(expirationDate = expirationDate, tests = phase1Tests))
+      markAsInvited(application)(Phase1TestProfile(expirationDate = expirationDate, tests = phase1Tests))
     }
 
     for {
@@ -190,7 +190,7 @@ trait OnlineTestService {
     }
   }
 
-  private def markAsCompleted(application: OnlineTestApplication)
+  private def markAsInvited(application: OnlineTestApplication)
     (onlineTestProfile: Phase1TestProfile): Future[Unit] = for {
     _ <- otRepository.insertPhase1TestProfile(application.applicationId, onlineTestProfile)
     _ <- appRepository.updateProgressStatus(application.applicationId, ProgressStatuses.PHASE1_TESTS_INVITED)

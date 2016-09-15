@@ -19,11 +19,12 @@ package controllers
 import model.Commands
 import model.OnlineTestCommands.Implicits._
 import org.joda.time.DateTime
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
-import services.onlinetesting.{OnlineTestExtensionService, OnlineTestService}
+import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -65,9 +66,8 @@ trait OnlineTestController extends BaseController {
 
     onlineTestingService.getPhase1TestProfile(userId).map {
       case Some(phase1TestProfile) => Ok(Json.toJson(phase1TestProfile))
-      case None => NotFound
-    } recover {
-      case e => NotFound
+      case None => Logger.error(s"No phase 1 test found for userID [$userId]")
+        NotFound
     }
   }
 

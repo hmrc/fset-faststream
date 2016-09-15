@@ -16,14 +16,14 @@
 
 package repositories
 
-import model.{ApplicationStatus, ProgressStatuses}
+import model.ProgressStatuses
 import org.joda.time.LocalDate
 import reactivemongo.bson.BSONDocument
 
 
 trait CommonBSONDocuments {
 
-  def applicationStatusBSON( progressStatus: ProgressStatuses.ProgressStatus): BSONDocument = {
+  def applicationStatusBSON(progressStatus: ProgressStatuses.ProgressStatus): BSONDocument = {
 
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
