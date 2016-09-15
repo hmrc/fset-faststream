@@ -16,9 +16,9 @@
 
 package models.page
 
-import connectors.exchange.OnlineTest
+import connectors.exchange.Phase1TestProfile
 import models.page.DashboardPage.Flags._
-import models.{ CachedData, Progress }
+import models.{CachedData, Progress}
 import org.joda.time.LocalDate
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
@@ -45,9 +45,13 @@ object DashboardPage {
   import models.ApplicationData.ApplicationStatus
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], test: Option[OnlineTest])
+  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], testProfile: Option[Phase1TestProfile])
            (implicit request: RequestHeader, lang: Lang): DashboardPage = {
-    val (firstStepVisibility, secondStepVisibility, thirdStepVisibility, fourthStepVisibility) = visibilityForUser(user)
+
+    val (firstStepVisibility, secondStepVisibility, thirdStepVisibility,
+      fourthStepVisibility
+    ) = visibilityForUser(user)
+
     DashboardPage(
       firstStepVisibility,
       secondStepVisibility,
@@ -59,8 +63,8 @@ object DashboardPage {
       isApplicationCreatedOrInProgress(user),
       isUserWithNoApplication(user),
       user.user.firstName + " " + user.user.lastName,
-      getAssessmentInProgressStatus(user, allocationDetails, test),
-      getPostAssessmentStatus(user, allocationDetails, test)
+      getAssessmentInProgressStatus(user, allocationDetails, testProfile),
+      getPostAssessmentStatus(user, allocationDetails, testProfile)
     )
   }
 
@@ -117,17 +121,13 @@ object DashboardPage {
 
     case object Step2 extends Step {
       def isReached(p: Progress): Boolean = {
-        val ot = p.onlineTest
-        List(p.submitted, ot.onlineTestInvited, ot.onlineTestStarted, ot.onlineTestCompleted, ot.onlineTestExpired,
-          ot.onlineTestFailed, ot.onlineTestFailedNotified).contains(true)
+        true
       }
     }
 
     case object Step3 extends Step {
       def isReached(p: Progress): Boolean = {
-        val ot = p.onlineTest
-        List(ot.onlineTestAwaitingAllocation, ot.onlineTestAllocationConfirmed, ot.onlineTestAllocationUnconfirmed,
-          p.failedToAttend, p.assessmentScores.entered, p.assessmentScores.accepted).contains(true)
+        false
       }
     }
 
@@ -170,9 +170,10 @@ object DashboardPage {
     ApplicationStartRole.isAuthorized(user)
 
   private def getAssessmentInProgressStatus(user: CachedData,
-                                            allocationDetails: Option[AllocationDetails],
-                                            test: Option[OnlineTest])
-                                           (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
+    allocationDetails: Option[AllocationDetails],
+    testProfile: Option[Phase1TestProfile])
+  (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
+
     if(hasReceivedFastPass(user)) {
       ASSESSMENT_FAST_PASS_CERTIFICATE
     } else if (ConfirmedAllocatedCandidateRole.isAuthorized(user)) {
@@ -183,9 +184,9 @@ object DashboardPage {
       } else {
         ASSESSMENT_PENDING_CONFIRMATION
       }
-    } else if (AssessmentCentreFailedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)) {
+    } else if (AssessmentCentreFailedNotifiedRole.isAuthorized(user)) {
       ASSESSMENT_FAILED
-    } else if (AssessmentCentrePassedNotifiedRole.isAuthorized(user) && test.exists(_.pdfReportAvailable)) {
+    } else if (AssessmentCentrePassedNotifiedRole.isAuthorized(user)) {
       ASSESSMENT_PASSED
     } else if (AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
       ASSESSMENT_NOT_ATTENDED
@@ -195,9 +196,9 @@ object DashboardPage {
   }
 
   private def getPostAssessmentStatus(user: CachedData,
-                                      allocationDetails: Option[AllocationDetails],
-                                      test: Option[OnlineTest])
-                                           (implicit request: RequestHeader, lang: Lang): PostAssessmentStageStatus = {
+    allocationDetails: Option[AllocationDetails],
+    testProfile: Option[Phase1TestProfile])
+  (implicit request: RequestHeader, lang: Lang): PostAssessmentStageStatus = {
     if (AssessmentCentreFailedNotifiedRole.isAuthorized(user) || AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
       POSTASSESSMENT_FAILED_APPLY_AGAIN
     } else if (AssessmentCentrePassedNotifiedRole.isAuthorized(user)) {
@@ -224,7 +225,9 @@ object DashboardPage {
     }
 
     def activeUserVisibility(user: CachedData) = {
-      val isStatusOnlineTestFailedNotified = user.application.exists(_.applicationStatus == ApplicationStatus.ONLINE_TEST_FAILED_NOTIFIED)
+      //TODO FIX ME
+      //val isStatusOnlineTestFailedNotified = user.application.exists(_.applicationStatus == ApplicationStatus.PHASE1_TESTS)
+      val isStatusOnlineTestFailedNotified = false
 
       val firstStep = if (activeUserWithApp(user)) { ProgressActive } else { ProgressInactive }
       val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || hasReceivedFastPass(user)) {

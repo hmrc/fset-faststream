@@ -56,9 +56,10 @@ abstract class OnlineTestController(applicationClient: ApplicationClient) extend
 
   def startTests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit user =>
-      applicationClient.getTestAssessment(user.user.userID).flatMap { onlineTest =>
-        applicationClient.onlineTestUpdate(user.user.userID, ApplicationStatus.ONLINE_TEST_STARTED).map { _ =>
-          Redirect(onlineTest.onlineTestLink)
+      applicationClient.getPhase1TestProfile(user.user.userID).flatMap { onlineTest =>
+        applicationClient.onlineTestUpdate(user.user.userID, ApplicationStatus.PHASE1_TESTS).map { _ =>
+          // TODO FIX ME - redirect to test URL
+          Ok
         }
       }
   }

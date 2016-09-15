@@ -33,28 +33,10 @@ case class Progress(
                      occupationQuestionnaire: Boolean,
                      submitted: Boolean,
                      withdrawn: Boolean,
-                     onlineTest: OnlineTestProgress,
                      failedToAttend: Boolean,
                      assessmentScores: AssessmentScores,
                      assessmentCentre: AssessmentCentre
 )
-
-case class OnlineTestProgress(
-  onlineTestInvited: Boolean,
-  onlineTestStarted: Boolean,
-  onlineTestCompleted: Boolean,
-  onlineTestExpired: Boolean,
-  onlineTestAwaitingReevaluation: Boolean,
-  onlineTestFailed: Boolean,
-  onlineTestFailedNotified: Boolean,
-  onlineTestAwaitingAllocation: Boolean,
-  onlineTestAllocationConfirmed: Boolean,
-  onlineTestAllocationUnconfirmed: Boolean
-)
-
-object OnlineTestProgress {
-  implicit val onlineTestProgressFormat = Json.format[OnlineTestProgress]
-}
 
 object Progress {
   implicit val assessmentScoresFormat = Json.format[AssessmentScores]
@@ -74,20 +56,6 @@ object Progress {
       occupationQuestionnaire = progressResponse.questionnaire.contains("occupation_questionnaire"),
       submitted = progressResponse.submitted,
       withdrawn = progressResponse.withdrawn,
-
-      onlineTest = OnlineTestProgress(
-        onlineTestInvited = progressResponse.onlineTest.onlineTestInvited,
-        onlineTestStarted = progressResponse.onlineTest.onlineTestStarted,
-        onlineTestCompleted = progressResponse.onlineTest.onlineTestCompleted,
-        onlineTestExpired = progressResponse.onlineTest.onlineTestExpired,
-        onlineTestAwaitingReevaluation = progressResponse.onlineTest.onlineTestAwaitingReevaluation,
-        onlineTestFailed = progressResponse.onlineTest.onlineTestFailed,
-        onlineTestFailedNotified = progressResponse.onlineTest.onlineTestFailedNotified,
-        onlineTestAwaitingAllocation = progressResponse.onlineTest.onlineTestAwaitingAllocation,
-        onlineTestAllocationConfirmed = progressResponse.onlineTest.onlineTestAllocationConfirmed,
-        onlineTestAllocationUnconfirmed = progressResponse.onlineTest.onlineTestAllocationUnconfirmed
-      ),
-
       failedToAttend = progressResponse.failedToAttend,
       assessmentScores = progressResponse.assessmentScores,
       assessmentCentre = progressResponse.assessmentCentre

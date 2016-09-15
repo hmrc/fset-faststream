@@ -21,7 +21,8 @@ import connectors.exchange.AssistanceDetails._
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
-import forms.{ AssistanceDetailsForm, PartnerGraduateProgrammesForm }
+import forms.{AssistanceDetailsForm, PartnerGraduateProgrammesForm}
+import connectors.exchange.Phase1TestProfile
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
 import play.api.Play.current
@@ -168,9 +169,9 @@ trait ApplicationClient {
     }
   }
 
-  def getTestAssessment(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[OnlineTest] = {
+  def getPhase1TestProfile(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestProfile] = {
     http.GET(s"${url.host}${url.base}/online-test/candidate/$userId").map { response =>
-      response.json.as[OnlineTest]
+      response.json.as[Phase1TestProfile]
     } recover {
       case _: NotFoundException => throw new OnlineTestNotFound()
     }
@@ -189,7 +190,7 @@ trait ApplicationClient {
   }
 
   def onlineTestUpdate(userId: UniqueIdentifier, status: ApplicationStatus)(implicit hc: HeaderCarrier): Future[Unit] = {
-    val body = Json.toJson(OnlineTestStatus(status))
+    val body = Json.toJson(status)
     http.POST(s"${url.host}${url.base}/online-test/candidate/$userId/status", body).map(_ => ())
   }
 
