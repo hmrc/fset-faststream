@@ -793,5 +793,13 @@ $(function() {
     $civilServantSection.find('fieldset:eq(0)').prepend('<legend class="visuallyhidden">' + legendText + '</legend>');
   }
 
+  if($('.editSection').length) {
+    $('.editSection').each(function() {
+      var sectionName = $(this).closest('h2').find('.sectionTitle').text();
+
+      $(this).text(sectionName);
+    });
+  }
+
 
 });
