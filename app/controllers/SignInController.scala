@@ -19,10 +19,10 @@ package controllers
 import _root_.forms.SignInForm
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.{CSRCache, CSRHttp}
+import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import helpers.NotificationType._
-import security.{SignInService, _}
+import security.{ SignInService, _ }
 
 import scala.concurrent.Future
 
@@ -48,16 +48,15 @@ abstract class SignInController(val applicationClient: ApplicationClient) extend
         invalidForm =>
           Future.successful(Ok(views.html.index.signin(invalidForm))),
         data => env.credentialsProvider.authenticate(Credentials(data.signIn, data.signInPassword)).flatMap {
-          case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful {
-            Redirect(routes.LockAccountController.present()).flashing("email" -> usr.email)
-          }
+          case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(
+            Redirect(routes.LockAccountController.present()).addingToSession("email" -> usr.email))
           case Right(usr) if usr.isActive => signInUser(usr, env)
           case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()), env = env)
           case Left(InvalidRole) => Future.successful(showErrorLogin(data, errorMsg = "error.invalidRole"))
           case Left(InvalidCredentials) => Future.successful(showErrorLogin(data))
           case Left(LastAttempt) => Future.successful(showErrorLogin(data, errorMsg = "last.attempt"))
           case Left(AccountLocked) => Future.successful(Redirect(routes.LockAccountController.present())
-            .flashing("email" -> data.signIn))
+            .addingToSession("email" -> data.signIn))
         }
       )
   }

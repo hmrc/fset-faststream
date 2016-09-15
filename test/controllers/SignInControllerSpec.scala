@@ -89,7 +89,7 @@ class SignInControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustEqual Some(routes.LockAccountController.present().toString())
-      flash(result) mustBe Flash(Map("email" -> CachedDataExample.LockedCandidateUser.email))
+      session(result).get("email") mustBe Some(CachedDataExample.LockedCandidateUser.email)
     }
 
     "sign in user if he/ she is active" in new TestFixture {
@@ -157,7 +157,7 @@ class SignInControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustEqual Some(routes.LockAccountController.present().toString())
-      flash(result) mustBe Flash(Map("email" -> "xxx"))
+      session(result).get("email") mustBe Some("xxx")
     }
 
     "sign out" should {
