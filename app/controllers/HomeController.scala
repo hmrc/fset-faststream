@@ -19,12 +19,13 @@ package controllers
 import _root_.forms.WithdrawApplicationForm
 import config.CSRHttp
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.{FrameworkId, WithdrawApplicationRequest }
+import connectors.exchange.{ FrameworkId, WithdrawApplicationRequest }
 import connectors.ApplicationClient
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.DashboardPage
 import models.{ CachedData, CachedDataWithApp }
+import play.api.Logger
 import security.Roles
 import security.Roles._
 
@@ -45,6 +46,7 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
       app = CachedDataWithApp(cachedData.user, cachedData.application.get)
       updatedData <- refreshCachedUser()(app, hc, request)
     } yield {
+        Logger.debug(s"$phase1TestProfile")
         val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(phase1TestProfile))
         Ok(views.html.home.dashboard(updatedData, dashboardPage, Some(phase1TestProfile), allocationDetails))
     }

@@ -20,7 +20,7 @@ import org.joda.time.{DateTime, Period}
 import org.joda.time.format.{DateTimeFormatterBuilder, PeriodFormatterBuilder}
 import play.api.libs.json.Json
 
-case class Phase1Test(scheduleId: Int,
+case class Phase1Test(testType: String,
   usedForResults: Boolean,
   testUrl: String,
   invitationDate: DateTime,
