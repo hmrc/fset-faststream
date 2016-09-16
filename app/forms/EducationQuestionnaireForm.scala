@@ -17,6 +17,7 @@
 package forms
 
 import connectors.exchange._
+import mappings.PostCodeMapping._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.Messages
@@ -26,27 +27,27 @@ object EducationQuestionnaireForm {
   val form = Form(
     mapping(
       "liveInUKBetween14and18" -> Mappings.nonEmptyTrimmedText("error.liveInUKBetween14and18.required", 31),
-      "postcodeQ" -> of(requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
-        "postcodeQ", "preferNotSay_postcodeQ", Some(256))),
+      "postcodeQ" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
+        "postcodeQ", "preferNotSay_postcodeQ", Some(256))
+      (postCode => !postcodePattern.pattern.matcher(postCode).matches(), "error.postcodeQ.invalid")),
       "preferNotSay_postcodeQ" -> optional(checked(Messages("error.required.postcodeQ"))),
-      "schoolName14to16" -> of(requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
+      "schoolName14to16" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
         "schoolName14to16", "preferNotSay_schoolName14to16", Some(256))),
       "preferNotSay_schoolName14to16" -> optional(checked(Messages("error.required.schoolName14to16"))),
-      "schoolName16to18" -> of(requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
-        "schoolName16to18", "preferNotSay_schoolName14to16", Some(256))),
+      "schoolName16to18" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
+        "schoolName16to18", "preferNotSay_schoolName16to18", Some(256))),
       "preferNotSay_schoolName16to18" -> optional(checked(Messages("error.required.schoolName16to18"))),
       "freeSchoolMeals" -> of(requiredFormatterWithMaxLengthCheck("liveInUKBetween14and18", "freeSchoolMeals", Some(256))),
       "isCandidateCivilServant" -> Mappings.nonEmptyTrimmedText("error.isCandidateCivilServant.required", 31),
       "haveDegree" -> of(requiredFormatterWithMaxLengthCheck("isCandidateCivilServant", "haveDegree", Some(31))),
-      "university" -> of(requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay("haveDegree",
+      "university" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("haveDegree",
         "university", "preferNotSay_university", Some(256))),
       "preferNotSay_university" -> optional(checked(Messages("error.university.required"))),
-      "universityDegreeCategory" -> of(requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay("haveDegree",
+      "universityDegreeCategory" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("haveDegree",
         "universityDegreeCategory", "preferNotSay_universityDegreeCategory", Some(256))),
       "preferNotSay_universityDegreeCategory" -> optional(checked(Messages("error.universityDegreeCategory.required")))
     )(Data.apply)(Data.unapply)
   )
-
   case class Data(
                    liveInUKBetween14and18: String,
                    postcode: Option[String],
@@ -79,15 +80,15 @@ object EducationQuestionnaireForm {
         case _ => Answer(freeSchoolMeals, None, None)
       }
 
-      def getOptionalSchoolList() = {
-        (if (liveInUKBetween14and18 == "Yes") {
+      def getOptionalSchoolList = {
+        if (liveInUKBetween14and18 == "Yes") {
           List(Question(Messages("postcode.question"), getAnswer(postcode, preferNotSayPostcode)),
             Question(Messages("schoolName14to16.question"), getAnswer(schoolName14to16, preferNotSaySchoolName14to16)),
             Question(Messages("schoolName16to18.question"), getAnswer(schoolName16to18, preferNotSaySchoolName16to18)),
             Question(Messages("freeSchoolMeals.question"), freeSchoolMealAnswer))
         } else {
           List.empty
-        })
+        }
       }
 
       def getOptionalUniversityList(isCandidateCivilServant: String): List[Question] = {
@@ -105,7 +106,7 @@ object EducationQuestionnaireForm {
 
       Questionnaire(
         List(Question(Messages("liveInUKBetween14and18.question"), Answer(Some(liveInUKBetween14and18), None, None))) ++
-          getOptionalSchoolList() ++
+          getOptionalSchoolList ++
           getOptionalUniversityList(isCandidateCivilServant)
       )
     }
@@ -135,7 +136,7 @@ object EducationQuestionnaireForm {
     }
 
     private def sanitizeUniversity = {
-      if (haveDegree == Some("Yes")) {
+      if (haveDegree.contains("Yes")) {
         this
       } else {
         this.copy(
