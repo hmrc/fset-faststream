@@ -118,7 +118,7 @@ object EducationQuestionnaireFormExamples {
 
   val FullValidFormMap = Map(
     "liveInUKBetween14and18" -> "Yes",
-    "postcodeQ" -> "AAA 111",
+    "postcodeQ" -> "SL1 3GQ",
     "schoolName14to16" -> "my school at 15",
     "schoolName16to18" -> "my school at 17",
     "freeSchoolMeals" -> "No",
@@ -155,7 +155,7 @@ object EducationQuestionnaireFormExamples {
 
   val NoCivilServantValidFormMap = Map(
     "liveInUKBetween14and18" -> "Yes",
-    "postcodeQ" -> "AAA 111",
+    "postcodeQ" -> "SL1 3GQ",
     "schoolName14to16" -> "school1",
     "schoolName16to18" -> "school2",
     "freeSchoolMeals" -> "Yes",
