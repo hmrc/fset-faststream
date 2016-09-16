@@ -25,7 +25,7 @@
 //import org.scalatest.time.{ Millis, Span }
 //import org.scalatestplus.play.PlaySpec
 //import repositories.ContactDetailsRepository
-//import repositories.application.OnlineTestRepository
+//import repositories.onlinetests.OnlineTestRepository
 //import services.AuditService
 //import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 //import testkit.MockitoSugar

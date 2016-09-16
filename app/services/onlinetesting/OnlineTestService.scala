@@ -29,7 +29,8 @@ import org.joda.time.DateTime
 import play.api.Logger
 import play.libs.Akka
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetests.{ OnlineTestRepository, OnlineTestStatusFlags }
 import services.onlinetesting.OnlineTestService.TestExtensionException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -115,7 +116,7 @@ trait OnlineTestService {
         token = authToken,
         invitationDate = invitationDate,
         participantScheduleId = invitation.participantScheduleId,
-        testUrl = invitation.logonUrl
+        testUrl = invitation.authenticateUrl
       )
     }
 

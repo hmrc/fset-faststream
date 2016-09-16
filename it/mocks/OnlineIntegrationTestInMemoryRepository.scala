@@ -18,10 +18,10 @@ package mocks
 
 import controllers.OnlineTestDetails
 import model.EvaluationResults._
-import model.OnlineTestCommands.{OnlineTestApplication, OnlineTestApplicationWithCubiksUser, Phase1TestProfile}
-import model.PersistedObjects.{ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest}
-import org.joda.time.{DateTime, LocalDate}
-import repositories.application.OnlineTestRepository
+import model.OnlineTestCommands.{ OnlineTestApplication, OnlineTestApplicationWithCubiksUser, Phase1TestProfile }
+import model.PersistedObjects.{ ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest }
+import org.joda.time.{ DateTime, LocalDate }
+import repositories.onlinetests.{ OnlineTestRepository, OnlineTestStatusFlags }
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -89,4 +89,5 @@ class OnlineIntegrationTestInMemoryRepository extends OnlineTestRepository {
 
   def removeOnlineTestEvaluationAndReports(applicationId: String): Future[Unit] = ???
 
+  def setTestStatusFlag(applicationId: String, scheduleId: Int, flag: OnlineTestStatusFlags.Value): Future[Unit] = ???
 }

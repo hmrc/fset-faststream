@@ -18,16 +18,17 @@ package services.onlinetesting
 
 import connectors.EmailClient
 import model.Address
-import model.PersistedObjects.{ApplicationForNotification, ContactDetails}
-import org.mockito.Matchers.{any, eq => eqTo}
+import model.PersistedObjects.{ ApplicationForNotification, ContactDetails }
+import org.mockito.Matchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Span}
+import org.scalatest.time.{ Millis, Span }
 import org.scalatestplus.play.PlaySpec
 import repositories.ContactDetailsRepository
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetests.OnlineTestRepository
 import services.AuditService
-import testkit.MockitoImplicits.{OngoingStubbingExtension, OngoingStubbingExtensionUnit}
+import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
 import uk.gov.hmrc.play.http.HeaderCarrier
 

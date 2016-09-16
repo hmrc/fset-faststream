@@ -20,11 +20,12 @@ import connectors.EmailClient
 import model.PersistedObjects.ExpiringOnlineTest
 import play.api.Logger
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetests.OnlineTestRepository
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait OnlineTestExpiryService {
   def processNextExpiredTest(): Future[Unit]

@@ -35,6 +35,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.onlinetests.OnlineTestRepository
 import repositories.{ ContactDetailsRepository, TestReportRepository }
 import services.AuditService
 import testkit.ExtendedTimeout

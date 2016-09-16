@@ -23,7 +23,7 @@ import model.ApplicationStatuses
 import model.OnlineTestCommands.Phase1TestProfile
 import org.joda.time.DateTime
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global

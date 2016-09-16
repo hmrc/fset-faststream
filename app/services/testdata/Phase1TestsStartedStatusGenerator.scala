@@ -18,7 +18,7 @@ package services.testdata
 
 import model.ApplicationStatuses
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetests.OnlineTestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global

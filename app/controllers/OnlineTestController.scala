@@ -25,11 +25,12 @@ import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import config.MicroserviceAppConfig.cubiksGatewayConfig
-import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses._
+import repositories.onlinetests.{ OnlineTestRepository, OnlineTestStatusFlags }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -83,6 +84,7 @@ trait OnlineTestController extends BaseController {
             exchange.Phase1Test(testType = getScheduleNameFromId(test.scheduleId),
               usedForResults = test.usedForResults,
               testUrl = test.testUrl,
+              token = test.token,
               invitationDate = test.invitationDate,
               started = test.started,
               completed = test.completed,
@@ -97,8 +99,19 @@ trait OnlineTestController extends BaseController {
   }
 
   def onlineTestStatusUpdate(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[exchange.ProgressStatus] { progressStatus =>
-      appRepository.updateProgressStatus(applicationId, progressStatus.status).map ( _ => Ok )
+    withJsonBody[exchange.TestStatusUpdate] { testStatusUpdate =>
+
+      val flagToUpdate = testStatusUpdate.status match {
+        case PHASE1_TESTS_STARTED => Some(OnlineTestStatusFlags.started)
+        case PHASE1_TESTS_COMPLETED => Some(OnlineTestStatusFlags.completed)
+        case _ => None
+      }
+
+      flagToUpdate.map { flag =>
+        onlineRepository.setTestStatusFlag(applicationId, testStatusUpdate.testToken, flag)
+      }.getOrElse(Future.successful()).map { x =>
+        appRepository.updateProgressStatus(applicationId, testStatusUpdate.status)
+      }.map( _ => Ok )
     }
   }
 

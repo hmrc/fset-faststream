@@ -22,7 +22,7 @@ import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatuses
 import model.EvaluationResults.RuleCategoryResult
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetests.OnlineTestRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 

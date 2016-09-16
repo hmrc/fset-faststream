@@ -23,7 +23,7 @@ import common.FutureEx
 import connectors.AssessmentScheduleExchangeObjects.Implicits._
 import connectors.AssessmentScheduleExchangeObjects._
 import connectors.ExchangeObjects.AllocationDetails
-import connectors.{CSREmailClient, EmailClient}
+import connectors.{ CSREmailClient, EmailClient }
 import model.ApplicationStatuses._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.AssessmentScheduleCommands.Implicits.ApplicationForAssessmentAllocationResultFormats
@@ -33,10 +33,11 @@ import model.Exceptions.NotFoundException
 import model.{ ApplicationStatusOrder, Commands }
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
-import play.api.mvc.{Action, Result}
+import play.api.mvc.{ Action, Result }
 import repositories.AssessmentCentreLocation.assessmentCentreVenueFormat
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository, PersonalDetailsRepository}
+import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.onlinetests.OnlineTestRepository
 import services.AuditService
 import services.applicationassessment.ApplicationAssessmentService
 import uk.gov.hmrc.play.microservice.controller.BaseController

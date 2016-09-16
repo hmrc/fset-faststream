@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package model.exchange
+package repositories.onlinetests
 
-import model.ProgressStatuses
-import play.api.libs.json.Json
-
-case class ProgressStatus(status: ProgressStatuses.ProgressStatus)
-object ProgressStatus {
-  import ProgressStatuses.ProgressStatus.progressStatusFormat
-  implicit def progressStatusFormat = Json.format[ProgressStatus]
+object OnlineTestStatusFlags extends Enumeration {
+  val started, completed, resultsReadyToDownload = Value
 }

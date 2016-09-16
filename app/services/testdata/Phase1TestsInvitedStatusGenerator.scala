@@ -19,10 +19,10 @@ package services.testdata
 import java.util.UUID
 
 import connectors.testdata.ExchangeObjects.Phase1TestGroupResponse
-import model.OnlineTestCommands.{Phase1Test, Phase1TestProfile}
+import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import org.joda.time.DateTime
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetests.OnlineTestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global

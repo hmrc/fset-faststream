@@ -14,57 +14,22 @@
  * limitations under the License.
  */
 
-package repositories.application
+package repositories.onlinetests
 
-import config.MicroserviceAppConfig._
 import controllers.OnlineTestDetails
 import factories.DateTimeFactory
-import model.EvaluationResults._
-import model.Exceptions.{ NotFoundException, UnexpectedException }
+import model.Commands
 import model.OnlineTestCommands.Phase1TestProfile
-import model.OnlineTestCommands.Implicits._
-import model.PersistedObjects.{ ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest }
-import model.{ ApplicationStatuses, Commands }
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.Logger
-import play.api.libs.json.Json
+import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest }
+import org.joda.time.DateTime
 import reactivemongo.api.DB
-import reactivemongo.api.commands.UpdateWriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID, BSONString }
-import repositories._
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import repositories.RandomSelection
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-
 import scala.concurrent.ExecutionContext.Implicits.global
+
 import scala.concurrent.Future
-
-trait OnlineTestRepository {
-  //def nextApplicationPendingExpiry: Future[Option[ExpiringOnlineTest]]
-
-  //def nextApplicationPendingFailure: Future[Option[ApplicationForNotification]]
-
-  //def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
-
-  def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
-
-  def updateGroupExpiryTime(groupKey: String, newExpirationDate: DateTime): Future[Unit]
-
-  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
-
-  //def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
-
-  //def updateXMLReportSaved(applicationId: String): Future[Unit]
-
-  //def nextApplicationPassMarkProcessing(currentVersion: String): Future[Option[ApplicationIdWithUserIdAndStatus]]
-
-  //def savePassMarkScore(applicationId: String, version: String, p: RuleCategoryResult, applicationStatus: String): Future[Unit]
-
-  //def savePassMarkScoreWithoutApplicationStatusUpdate(applicationId: String, version: String, p: RuleCategoryResult): Future[Unit]
-
-  //def removeCandidateAllocationStatus(applicationId: String): Future[Unit]
-
-  //def saveCandidateAllocationStatus(applicationId: String, applicationStatus: String, expireDate: Option[LocalDate]): Future[Unit]
-}
 
 class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[OnlineTestDetails, BSONObjectID]("online-tests", mongo,
@@ -82,6 +47,20 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       )
       case _ => None
     }
+  }
+
+  override def setTestStatusFlag(applicationId: String, testToken: String, flag: OnlineTestStatusFlags.Value): Future[Unit] ={
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument("testGroups.PHASE1.tests.token" -> testToken),
+      BSONDocument("testGroups.PHASE1.tests.usedForResults" -> true)
+    ))
+
+    val modifier = BSONDocument("$set" -> BSONDocument(
+      "testGroups.PHASE1.tests.$.started" -> true
+    ))
+
+    collection.update(query, modifier).map( _ => () )
   }
 
   override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {

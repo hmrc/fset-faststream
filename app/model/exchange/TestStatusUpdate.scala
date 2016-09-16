@@ -16,29 +16,13 @@
 
 package model.exchange
 
-import org.joda.time.DateTime
+import model.ProgressStatuses
 import play.api.libs.json.Json
 
-
-case class Phase1Test(testType: String, // TODO maybe this should be a const?
-  usedForResults: Boolean,
-  testProvider: String = "cubiks",
-  testUrl: String,
-  token: String,
-  invitationDate: DateTime,
-  started: Boolean = false,
-  completed: Boolean = false,
-  resultsReadyToDownload: Boolean = false
+case class TestStatusUpdate(status: ProgressStatuses.ProgressStatus,
+  testToken: String
 )
-
-object Phase1Test{
-  implicit def phase1TestFormat = Json.format[Phase1Test]
-}
-
-case class Phase1TestProfile(expirationDate: DateTime,
-  tests: List[Phase1Test]
-)
-
-object Phase1TestProfile {
-  implicit def phase1TestProfileFormat = Json.format[Phase1TestProfile]
+object TestStatusUpdate {
+  import ProgressStatuses.ProgressStatus.progressStatusFormat
+  implicit def progressStatusFormat = Json.format[TestStatusUpdate]
 }
