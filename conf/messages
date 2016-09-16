@@ -114,27 +114,31 @@ secondScheme.duplicate=Second preference of scheme can''t be the same as your fi
 
 #Schemes & qualification
 schemes.required=You must choose a scheme
-orderAgreed.required=Select whether or not you are happy with the order of your schemes
-eligible.required=Select whether or not you are eligible for your chosen schemes
+orderAgreed.required=Review your preferences and confirm your happy with the order to continue
+eligible.required=You can only select preferences you're eligible for
 alternatives.required=Select whether or not you would consider other schemes
 
-scheme.CentralDepartments.description=Central Departments
 scheme.Commercial.description=Commercial
-scheme.DigitalAndTechnology.description=Digital and Technology
+scheme.DigitalAndTechnology.description=Digital & Technology
 scheme.DiplomaticService.description=Diplomatic Service
+scheme.DiplomaticServiceEconomics.description=Diplomatic Service (Economists)
+scheme.DiplomaticServiceEuropean.description=Diplomatic Service (European)
 scheme.European.description=European
 scheme.Finance.description=Finance
+scheme.Generalist.description=Generalist
 scheme.GovernmentCommunicationService.description=Government Communication Service
-scheme.GovernmentEconomicService.description=Government Economic Service
+scheme.GovernmentEconomicsService.description=Government Economics Service
 scheme.GovernmentOperationalResearchService.description=Government Operational Research Service
 scheme.GovernmentSocialResearchService.description=Government Social Research Service
 scheme.GovernmentStatisticalService.description=Government Statistical Service
 scheme.HousesOfParliament.description=Houses of Parliament
 scheme.HumanResources.description=Human Resources
 scheme.ProjectDelivery.description=Project Delivery
-scheme.ScienceAndEngineering.description=Science and Engineering
+scheme.ScienceAndEngineering.description=Science & Engineering
 
-scheme.GovernmentEconomicService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility
+scheme.DiplomaticServiceEconomics.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility
+scheme.DiplomaticServiceEuropean.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility
+scheme.GovernmentEconomicsService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility
 scheme.GovernmentOperationalResearchService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-operational-research-service#eligibility
 scheme.GovernmentSocialResearchService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-social-research-service#eligibility
 scheme.GovernmentStatisticalService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-statistical-service#eligibility
@@ -142,7 +146,8 @@ scheme.ScienceAndEngineering.link=civil-service-generalist-fast-stream/fast-stre
 
 qualification.Degree_21.description=2:1 degree in any subject
 qualification.Degree_22.description=2:2 degree in any subject
-qualification.Degree_Economics.description=2:1 degree in economics or a 2:2 with a postgraduate qualification in economics
+qualification.Degree_DipServEconomics.description=2:1 degree in economics or a 2:2 with a postgraduate qualification in economics
+qualification.Degree_Economics.description=2:2 degree or better in any subject
 qualification.Degree_Numerate.description=2:1 degree in a numerate subject or a 2:2 with a relevant postgraduate qualification
 qualification.Degree_SocialScience.description=2:1 degree in social science or a 2:2 with a postgraduate qualification in social research
 qualification.Degree_CharteredEngineer.description=2:1 degree, plus either chartered engineer status or a postgraduate degree in a relevant subject
