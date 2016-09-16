@@ -27,12 +27,13 @@
         <h1 class="heading-xlarge">Home</h1>
         <p class="subtitle">@dashboardPage.fullName</p>
     </div>
-
-    <div class="lede">
-        <p>Your application has been withdrawn.</p>
-        <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>.</p>
-    </div>
-
+    @if(dashboardPage.isApplicationWithdrawn) {
+        <div class="lede">
+            <p>Your application has been withdrawn.</p>
+            <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">
+                contact us</a>.</p>
+        </div>
+    }
     <section class="section-border">
         <ol class="step-by-step-coloured" id="sixSteps">
             <li class="first-step @activateByStep(dashboardPage.firstStepVisibility)">
