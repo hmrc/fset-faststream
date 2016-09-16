@@ -192,8 +192,7 @@ trait OnlineTestService {
 
   private def markAsInvited(application: OnlineTestApplication)
     (onlineTestProfile: Phase1TestProfile): Future[Unit] = for {
-    _ <- otRepository.insertPhase1TestProfile(application.applicationId, onlineTestProfile)
-    _ <- appRepository.updateProgressStatus(application.applicationId, ProgressStatuses.PHASE1_TESTS_INVITED)
+    _ <- appRepository.insertPhase1TestProfile(application.applicationId, onlineTestProfile)
   } yield {
       audit(s"ApplicationStatus set to ${ApplicationStatus.PHASE1_TESTS} - ProgressStatus set to" +
         s" ${ProgressStatuses.PHASE1_TESTS_INVITED}", application.userId)
