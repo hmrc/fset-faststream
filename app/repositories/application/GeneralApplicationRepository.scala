@@ -114,6 +114,8 @@ trait GeneralApplicationRepository {
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
+  def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
+
   def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
 
   def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
@@ -1015,6 +1017,13 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     ))
 
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
+  }
+
+  override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
+    val query = BSONDocument("applicationId" -> appId)
+    collection.find(query).one[BSONDocument] map {
+      _.map(bsonDocToOnlineTestApplication)
+    }
   }
 
   override def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {

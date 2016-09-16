@@ -66,7 +66,7 @@ GET         /diagnostic/user/:userId                                     control
 GET         /online-test/candidate/:userId                               controllers.OnlineTestController.getOnlineTest(userId: String)
 POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
 POST        /online-test/complete/:token                                 controllers.OnlineTestController.completeTests(token: String)
-POST        /online-test/reset/:appId                                    controllers.OnlineTestController.resetOnlineTests(appId: String)
+POST        /online-test/:testType/reset/:appId                          controllers.OnlineTestController.resetOnlineTests(testType: String, appId: String)
 POST        /online-test/extend/:appId                                   controllers.OnlineTestController.extendOnlineTests(appId: String)
 
 PUT         /phase1-test/:assessmentId/start                             controllers.Phase1TestsController.startAssessment(assessmentId: String)

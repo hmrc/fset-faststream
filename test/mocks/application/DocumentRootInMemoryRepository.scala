@@ -21,7 +21,7 @@ import model.Commands._
 import model.command._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
-import model.OnlineTestCommands.Phase1TestProfile
+import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model.{ ApplicationStatus, FastPassDetails, ProgressStatuses }
 import model.PersistedObjects.ApplicationForNotification
 import org.joda.time.{ DateTime, LocalDate }
@@ -158,4 +158,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def setOnlineTestStatus(applicationId: String, status: String): scala.concurrent.Future[Unit] = ???
 
   def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit] = ???
+
+  def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
 }

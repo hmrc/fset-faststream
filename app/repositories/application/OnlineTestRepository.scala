@@ -48,8 +48,6 @@ trait OnlineTestRepository {
 
   //def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit]
 
-  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
-
   //def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
   //def updateXMLReportSaved(applicationId: String): Future[Unit]
@@ -66,17 +64,18 @@ trait OnlineTestRepository {
 }
 
 class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[OnlineTestDetails, BSONObjectID]("online-tests", mongo,
+  extends ReactiveRepository[OnlineTestDetails, BSONObjectID]("application", mongo,
     Commands.Implicits.onlineTestDetailsFormat, ReactiveMongoFormats.objectIdFormats) with OnlineTestRepository with RandomSelection {
 
 
   override def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]] = {
-
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("testGroups.PHASE1" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument].map {
-      case Some(doc) => doc.getAs[Phase1TestProfile]("testGroups.PHASE1").orElse(None)
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) if doc.getAs[BSONDocument]("testGroups").isDefined => Some(
+        Phase1TestProfile.phase1TestProfileHandler.read(doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument]("PHASE1").get)
+      )
       case _ => None
     }
   }
@@ -101,17 +100,6 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       if (status.n > 1) throw new UnexpectedException(s"updateStatus somehow updated more than one record for userId:$userId")
     }
   }*/
-
-
-
-  override def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
-
-    val doc = BSONDocument("applicationId" -> applicationId,
-      "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
-    )
-
-    collection.insert(doc) map ( _ => () )
-  }
 
   /*
   override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {

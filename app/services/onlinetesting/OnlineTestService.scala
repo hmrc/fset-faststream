@@ -191,11 +191,20 @@ trait OnlineTestService {
   }
 
   private def markAsInvited(application: OnlineTestApplication)
-    (onlineTestProfile: Phase1TestProfile): Future[Unit] = for {
-    _ <- appRepository.insertPhase1TestProfile(application.applicationId, onlineTestProfile)
+    (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
+    currentOnlineTestProfile <- otRepository.getPhase1TestProfile(application.applicationId)
+    updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
+    _ <- appRepository.insertPhase1TestProfile(application.applicationId, updatedOnlineTestProfile)
   } yield {
       audit(s"ApplicationStatus set to ${ApplicationStatus.PHASE1_TESTS} - ProgressStatus set to" +
         s" ${ProgressStatuses.PHASE1_TESTS_INVITED}", application.userId)
+  }
+
+  private def merge(currentProfile: Option[Phase1TestProfile], newProfile: Phase1TestProfile): Phase1TestProfile = currentProfile match {
+    case None =>
+      newProfile
+    case Some(profile) =>
+      Phase1TestProfile(newProfile.expirationDate, profile.tests.map(_.copy(usedForResults = false)) ++ newProfile.tests)
   }
 
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
