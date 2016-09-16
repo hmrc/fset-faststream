@@ -1,6 +1,7 @@
 @import connectors.exchange.{ AllocationDetails, Phase1TestProfile }
 @import security.RoleUtils
-@(cachedUserData: CachedData, phase1TestProfile: Option[Phase1TestProfile] = None,
+@import models.page.{ Phase1TestsPage, Phase1TestPage }
+@(cachedUserData: CachedData, phase1TestProfile: Option[Phase1TestsPage] = None,
         applicationStatus: models.ApplicationData.ApplicationStatus.ApplicationStatus,
         progressStatus: models.ApplicationData.ProgressStatuses.ProgressStatus,
         allocationDetails: Option[AllocationDetails])(implicit request: Request[_])
@@ -27,32 +28,35 @@
                         </li>
                     </ul>
                 }
-                case Some(testProfile) if cachedUserData.application.isDefined => {
+                case Some(tests) if cachedUserData.application.isDefined => {
                     <ul class="list-text list-withicons">
                         <li>
                         <p class="med-btm-margin" id="testsHeading"><i class="fa fa-minus the-icon"></i>Online exercises</p>
                         <ul class="list-text list-withicons" id="testsIndividual">
-                            @{if (testProfile.tests.exists(_.testType == "sjq")) {
-                            <li><i class="fa fa-minus the-icon"></i>Situational judgement
-                                questionnaire (untimed)</li>
+                            @{tests.sjq.map { sjq =>
+                                if (sjq.completed) {
+                                    <li><i class="fa fa-check the-icon"></i>Situational judgement questionnaire (untimed)</li>
+                                } else {
+                                    <li><i class="fa fa-minus the-icon"></i>Situational judgement questionnaire (untimed)</li>
+                                }
                             }}
-                            @{if (testProfile.tests.exists(_.testType == "bq")) {
-                            <li><i class="fa fa-minus the-icon"></i>Behavioural questionnaire
-                                (untimed)</li>
+                            @{tests.bq.map { bq =>
+                                if (bq.completed) {
+                                    <li><i class="fa fa-minus the-icon"></i>Behavioural questionnaire (untimed)</li>
+                                } else {
+                                    <li><i class="fa fa-minus the-icon"></i>Behavioural questionnaire (untimed)</li>
+                                }
                             }}
                         </ul>
-                        <p id="testsTime">You have <strong>@{testProfile.getDuration}</strong> to finish the
-                            online exercises</p>
+                        <p id="testsTime">You have <strong>@{tests.getDuration}</strong> to finish the online exercises</p>
                         <div id="testsButtonContainer">
 
                             @helper.form(action = routes.OnlineTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
                             @helper.CSRF.formField
-                                @{testProfile.tests.find(_.completed == false).map { test =>
-                                    if (!test.started) {
-                                        <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
-                                    } else {
-                                        <button id="submit_online_tests" type="submit" value="submit" class="button">Continue section</button>
-                                    }
+                                @{if (!tests.areStarted) {
+                                    <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
+                                } else {
+                                    <button id="submit_online_tests" type="submit" value="submit" class="button">Continue section</button>
                                 }}
                             }
                             <p>(Should take about an hour to finish both exercises)</p>

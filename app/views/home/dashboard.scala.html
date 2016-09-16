@@ -1,18 +1,19 @@
-@import connectors.exchange.{ AllocationDetails, Phase1TestProfile }
+@import connectors.exchange.AllocationDetails
 @import helpers.DateFormatter._
 @import models.ApplicationData.ApplicationStatus._
 @import models.ApplicationData.ProgressStatuses._
 @import models.ApplicationData.ProgressStatuses.ProgressStatus._
 @import models.page.DashboardPage.activateByStep
 @import models.page.DashboardPage.Flags._
+@import models.page.Phase1TestsPage
+@import models.page.Phase1TestPage
 @import models.page._
 @import security.QuestionnaireRoles._
 @import security.Roles._
 @import security.RoleUtils._
 @import views.html.widgets.onlineTestProgress
 
-@(usr: CachedData, dashboardPage: DashboardPage, phase1TestProfile: Option[Phase1TestProfile] = None,
-  allocationDetails: Option[AllocationDetails] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(usr: CachedData, dashboardPage: DashboardPage, allocationDetails: Option[AllocationDetails] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @renderProgressElement(showLink: Boolean, checked: Boolean, id: String)(link: Call)(body: Html) = {
     <li id="@id"><i id="@id-icon" class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
@@ -84,7 +85,7 @@
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
                             <h2 class="heading-medium">2. Take the online tests</h2>
-                        @onlineTestProgress(usr, phase1TestProfile,
+                        @onlineTestProgress(usr, dashboardPage.phase1TestsPage,
                                     PHASE1_TESTS, PHASE1_TESTS_INVITED, allocationDetails)
                         </div>
                     </div>

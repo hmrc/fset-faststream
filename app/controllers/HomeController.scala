@@ -48,7 +48,7 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
     } yield {
         Logger.debug(s"$phase1TestProfile")
         val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(phase1TestProfile))
-        Ok(views.html.home.dashboard(updatedData, dashboardPage, Some(phase1TestProfile), allocationDetails))
+        Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))
     }
 
     dashboard recover {
@@ -60,7 +60,7 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
 
         if (isDashboardEnabled) {
           val dashboardPage = DashboardPage(cachedData, None, None)
-          Ok(views.html.home.dashboard(cachedData, dashboardPage, None, None))
+          Ok(views.html.home.dashboard(cachedData, dashboardPage, None))
         } else {
           Ok(views.html.home.submit_disabled(cachedData))
         }

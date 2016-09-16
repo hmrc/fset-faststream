@@ -26,18 +26,19 @@ import security.RoleUtils._
 import security.Roles._
 
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
-                         secondStepVisibility: ProgressStepVisibility,
-                         thirdStepVisibility: ProgressStepVisibility,
-                         fourthStepVisibility: ProgressStepVisibility,
-                         isApplicationSubmittedAndNotWithdrawn: Boolean,
-                         isApplicationInProgressAndNotWithdrawn: Boolean,
-                         isApplicationWithdrawn: Boolean,
-                         isApplicationCreatedOrInProgress: Boolean,
-                         isUserWithNoApplication: Boolean,
-                         fullName: String,
-                         assessmentStageStatus: AssessmentStageStatus,
-                         postAssessmentStageStatus: PostAssessmentStageStatus
-                        )
+  secondStepVisibility: ProgressStepVisibility,
+  thirdStepVisibility: ProgressStepVisibility,
+  fourthStepVisibility: ProgressStepVisibility,
+  isApplicationSubmittedAndNotWithdrawn: Boolean,
+  isApplicationInProgressAndNotWithdrawn: Boolean,
+  isApplicationWithdrawn: Boolean,
+  isApplicationCreatedOrInProgress: Boolean,
+  isUserWithNoApplication: Boolean,
+  fullName: String,
+  phase1TestsPage: Option[Phase1TestsPage],
+  assessmentStageStatus: AssessmentStageStatus,
+  postAssessmentStageStatus: PostAssessmentStageStatus
+)
 
 object DashboardPage {
 
@@ -63,6 +64,7 @@ object DashboardPage {
       isApplicationCreatedOrInProgress(user),
       isUserWithNoApplication(user),
       user.user.firstName + " " + user.user.lastName,
+      testProfile.map(Phase1TestsPage.apply),
       getAssessmentInProgressStatus(user, allocationDetails, testProfile),
       getPostAssessmentStatus(user, allocationDetails, testProfile)
     )
