@@ -57,12 +57,12 @@
         </section>
         <section class="text">
                 @yesNoQuestion(form("orderAgreed"), question = "Are you happy with the order of your schemes?",
-                noMessage = "If you're not happy with the order of your preferences, change the order now before you continue.")
+                noMessage = "Review your preferences and confirm your happy with the order to continue")
         </section>
         <section class="text">
             @yesNoQuestion(form("eligible"), question = "Are you eligible for your chosen schemes?",
-            noMessage = "You can only apply for a scheme you're eligible for. Check you're eligible for the scheme and then choose your preferred scheme.",
-            description = Some("""Make sure you're <a href="https://www.gov.uk/guidance/civil-service-fast-stream-graduate-schemes">eligible</a> for your chosen schemes."""))
+            noMessage = "You can only select preferences you're eligible for",
+            description = Some("""Make sure you're <a href="http://faststream.gov.uk">eligible</a> for your chosen schemes."""))
         </section>
 
         <div class="form-group no-btm-margin">
