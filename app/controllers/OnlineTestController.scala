@@ -22,54 +22,32 @@ import models.ApplicationData.{ ApplicationStatus, ProgressStatuses }
 import models.UniqueIdentifier
 import security.Roles.{ DisplayOnlineTestSectionRole, OnlineTestInvitedRole }
 
+import scala.concurrent.Future
+
 object OnlineTestController extends OnlineTestController(ApplicationClient) {
   val http = CSRHttp
 }
 
 abstract class OnlineTestController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
-  // TODO: I think the names can be improved
-  // startTests is plural but then we call getTestAssesment.
-  // It also seems we are using different names to refer to the same thing: "Tests", "onlineTest", "TestAssesment"
-  // I suggest rename startTests to start as we are in OnlineTestController
-  // getTestAssesment returns an Future[OnlineTestDetails], I think a more appropriate name would be
-  // getOnlineTestDetails or rename OnlineTestDetails to TestAssesment.
-  // then ".flatMap { onlineTest =>" should be consistent which whatever choice
-  // To sum up it could be like this:
-  /*
-  def start = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
-    implicit user =>
-      getOnlineTestDetails(user.user.userID).flatMap { onlineTestDetails =>
-        updateStatusOnlineTestDetails(user.user.userID, ApplicationStatus.ONLINE_TEST_STARTED).map { _ =>
-          Redirect(onlineTestDetails.getTestLink())
-        }
-      }
-  }
-
-  def complete(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
-    implicit user =>
-      completeOnlineTest(token).map { _ =>
-        Ok(views.html.application.onlineTestSuccess())
-      }
-  }
-*/
-
-  def startTests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
+  def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>
 
-      for {
-        phase1TestProfile <- applicationClient.getPhase1TestProfile(cachedUserData.user.userID)
-        applicationId = cachedUserData.application.applicationId
-        _ <- applicationClient.onlineTestUpdate(applicationId,
-          connectors.exchange.ProgressStatus(ProgressStatuses.PHASE1_TESTS_STARTED))
-      } yield {
-        phase1TestProfile.tests.find(!_.completed).map { incompleteTest =>
-          Redirect(incompleteTest.testUrl)
-        }.getOrElse(BadRequest)
+      applicationClient.getPhase1TestProfile(cachedUserData.user.userID).flatMap { testProfile =>
+        // If we've started but not completed a test we still want to send them to that
+        // test link to continue with it
+        testProfile.tests.find(!_.completed).map { testToStart =>
+          applicationClient.onlineTestUpdate(cachedUserData.application.applicationId,
+            connectors.exchange.TestStatusUpdate(ProgressStatuses.PHASE1_TESTS_STARTED,
+              testToStart.token
+            )
+          )
+          Future.successful(Redirect(testToStart.testUrl))
+        }.getOrElse(Future.successful(NotFound))
       }
   }
 
-  def complete(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
+  def completeTestByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTests(token).map { _ =>
         Ok(views.html.application.onlineTestSuccess())

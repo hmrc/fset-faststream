@@ -45,7 +45,7 @@
                             online exercises</p>
                         <div id="testsButtonContainer">
 
-                            @helper.form(action = routes.OnlineTestController.startTests(), 'novalidate -> "novalidate") {
+                            @helper.form(action = routes.OnlineTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
                             @helper.CSRF.formField
                                 @{testProfile.tests.find(_.completed == false).map { test =>
                                     if (!test.started) {
