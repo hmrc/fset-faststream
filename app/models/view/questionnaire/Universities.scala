@@ -16,7 +16,7 @@
 
 package models.view.questionnaire
 
-object University {
+object Universities {
   val seq = Seq(
     ("Aberdeen", "1"),
     ("Abertay Dundee", "2"),

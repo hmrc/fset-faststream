@@ -18,10 +18,7 @@ package models.view.questionnaire
 
 import scala.collection.immutable.ListMap
 
-/**
-  * Created by miguelgil_garcia on 02/09/2016.
-  */
-object Ethnicity {
+object Ethnicities {
   val map = ListMap(
     "White" -> List(
       ("English/Welsh/Scottish/Northern Irish/British", false),

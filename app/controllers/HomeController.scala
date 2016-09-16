@@ -17,10 +17,9 @@
 package controllers
 
 import _root_.forms.WithdrawApplicationForm
-import config.CSRHttp
-import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.{FrameworkId, WithdrawApplicationRequest }
 import connectors.ApplicationClient
+import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
+import connectors.exchange.{ FrameworkId, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.DashboardPage
@@ -30,13 +29,12 @@ import security.Roles._
 
 import scala.concurrent.Future
 
-object HomeController extends HomeController(ApplicationClient) {
-  val http = CSRHttp
-}
+object HomeController extends HomeController(ApplicationClient)
 
-abstract class HomeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class HomeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
   val Withdrawer = "Candidate"
-  val present = CSRSecureAction(ActiveUserRole) { implicit request =>
+
+  def present = CSRSecureAction(ActiveUserRole) { implicit request =>
     implicit user =>
       // TODO: I think the non existance of the onlineTest can be handled with an Option
       // not an Exception. It is not really an exceptional situation as in most situations
@@ -72,12 +70,12 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
 
   }
 
-  val resume = CSRSecureAppAction(ActiveUserRole) { implicit request =>
+  def resume = CSRSecureAppAction(ActiveUserRole) { implicit request =>
     implicit user =>
       Future.successful(Redirect(Roles.userJourneySequence.find(_._1.isAuthorized(user)).map(_._2).getOrElse(routes.HomeController.present())))
   }
 
-  val create = CSRSecureAction(ApplicationStartRole) { implicit request =>
+  def create = CSRSecureAction(ApplicationStartRole) { implicit request =>
     implicit user =>
       for {
         response <- applicationClient.createApplication(user.user.userID, FrameworkId)
@@ -88,25 +86,31 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
       }
   }
 
-  val presentWithDraw = CSRSecureAppAction(WithdrawApplicationRole) { implicit request =>
+  def presentWithdrawApplication = CSRSecureAppAction(WithdrawApplicationRole) { implicit request =>
     implicit user =>
-      Future.successful(
-        Ok(views.html.application.withdraw(WithdrawApplicationForm.form))
-      )
+      Future.successful(Ok(views.html.application.withdraw(WithdrawApplicationForm.form)))
   }
 
-  val withdraw = CSRSecureAppAction(WithdrawApplicationRole) { implicit request =>
+  def withdrawApplication = CSRSecureAppAction(WithdrawApplicationRole) { implicit request =>
     implicit user =>
 
-      def updateStatus(data: CachedData) = data.copy(application =
-        data.application.map(_.copy(applicationStatus = ApplicationStatus.WITHDRAWN)))
+      def updateApplicationStatus(data: CachedData) = {
+        data.copy(application = data.application.map { app =>
+          app.copy(
+            applicationStatus = ApplicationStatus.WITHDRAWN,
+            progress = app.progress.copy(withdrawn = true)
+          )
+        }
+        )
+      }
 
       WithdrawApplicationForm.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.application.withdraw(invalidForm))),
         data => {
-          applicationClient.withdrawApplication(user.application.applicationId, WithdrawApplicationRequest(data.reason, data.otherReason,
+          applicationClient.withdrawApplication(user.application.applicationId, WithdrawApplication(data.reason.get, data.otherReason,
             Withdrawer)).flatMap { _ =>
-            updateProgress(updateStatus)(_ => Redirect(routes.HomeController.present()).flashing(success("application.withdrawn")))
+            updateProgress(updateApplicationStatus)(_ =>
+              Redirect(routes.HomeController.present()).flashing(success("application.withdrawn", feedbackUrl)))
           }.recover {
             case _: CannotWithdraw => Redirect(routes.HomeController.present()).flashing(danger("error.cannot.withdraw"))
           }

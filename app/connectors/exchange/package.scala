@@ -35,8 +35,6 @@ package object exchange {
 
   case class CreateApplicationRequest(userId: UniqueIdentifier, frameworkId: String)
 
-  case class WithdrawApplicationRequest(reason: String, otherReason: Option[String], withdrawer: String)
-
   case class GeneralDetails(firstName: String,
                             lastName: String,
                             preferredName: String,
@@ -167,7 +165,6 @@ package object exchange {
 
     /** Requests serialization */
     implicit val createApplicationRequestFormats: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
-    implicit val withdrawApplicationRequestFormats: Format[WithdrawApplicationRequest] = Json.format[WithdrawApplicationRequest]
     implicit val updatePersonalDetailsRequestFormats: Format[GeneralDetails] = Json.format[GeneralDetails]
     implicit val updateAssistanceDetailsRequestFormats: Format[AssistanceDetails] = Json.format[AssistanceDetails]
 

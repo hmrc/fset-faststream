@@ -32,4 +32,5 @@ object ProgressResponseExamples {
     "education_questionnaire", "occupation_questionnaire"))
   val InPreview = InQuestionnaire.copy(preview = true)
   val Submitted = InPreview.copy(submitted = true)
+  val WithdrawnAfterSubmitted = Submitted.copy(withdrawn = true)
 }

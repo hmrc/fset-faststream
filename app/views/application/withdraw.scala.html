@@ -1,39 +1,46 @@
 @(withdrawForm: Form[_root_.forms.WithdrawApplicationForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@import helpers.CSRFieldConstructor._
-@import views.html.widgets.select_guard
+    @import views.html.widgets.{ radioBoxHorizontal, select_guard }
 
+    @main_template(title = "Withdraw your application", pageForms = Seq(withdrawForm)) {
 
-
-@main_template(title = "Withdraw your application", pageForms = Seq(withdrawForm)) {
-
-    <h1 class="heading-xlarge">Withdraw your application</h1>
-    <div class="panel-indent">
-        <div class="text">
-            <p>If you withdraw your application you won't be able to apply
-                using this account. To continue with your application you'll need to start again, with a new account.</p>
-            <p>If you've completed the online test and withdrawn your application,
-                you will be unable to re-apply.</p>
+        <h1 class="heading-xlarge">Withdraw your application</h1>
+        <div class="panel-indent">
+            <div class="text">
+                <p>If you withdraw your application you will no longer be able to apply
+                    using this account. If you want to reinstate your application you
+                    will need to start again, with a new account.</p>
+                <p>If you've completed the online test and withdrawn your application,
+                    you will be unable to re-apply.</p>
+            </div>
         </div>
-    </div>
 
-    @helper.form(action = routes.HomeController.withdraw(), 'novalidate -> "novalidate") {
-        @helper.CSRF.formField
+        @helper.form(action = routes.HomeController.withdrawApplication(), 'novalidate -> "novalidate") {
+            <fieldset>
+                @helper.CSRF.formField
+                <legend class="form-label">Do you still want to withdraw?</legend>
+                @radioBoxHorizontal(withdrawForm("wantToWithdraw"), options = List(("yes", "Yes", true), ("no", "No", false)),
+                    optionTrigger = "wantToWithdraw-describe")
+                <div id="wantToWithdraw-describe" class="toggle-content" aria-hidden="true">
 
-        @select_guard(withdrawForm("reason"), models.WithdrawReasons.list, "moreInfo", "-- Select one --") {
-            Reason for withdrawal
+                    @select_guard(withdrawForm("reason"), models.view.WithdrawReasons.list, "moreInfo", "-- Select one --") {
+                        Tell us why you're withdrawing
+                    }
+
+                    <div class="toggle-content form-group form-group-compound" id="moreInfo">
+                        <legend class="form-label">More information about your withdrawal</legend>
+                        @helper.textarea(withdrawForm("otherReason"),
+                        '_label -> "",
+                        'class -> "form-control",
+                        'rows -> 6, 'cols -> 80,
+                        '_showConstraints -> false)
+                    </div>
+
+                    <button id="submit" type="submit" value="submit" class="button">Withdraw my application</button>
+
+                </div>
+            </fieldset>
+
         }
-
-        <div class="form-group toggle-content" id="moreInfo">
-            @helper.textarea(withdrawForm("otherReason"),
-                '_label -> "More information about your withdrawal",
-                'class -> "form-control",
-                'rows -> 6, 'cols -> 80,
-                '_showConstraints -> false)
-        </div>
-
-        <button id="submit" type="submit" value="submit" class="button">Withdraw my application</button>
-
+        <a class="account-link" id="applicationsLink" href="@routes.HomeController.present">Return to home page</a>
     }
-
-}

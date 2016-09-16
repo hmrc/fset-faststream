@@ -111,7 +111,9 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
 
   implicit def optionUserToUser(implicit u: CachedData): Option[CachedData] = Some(u)
 
-  implicit def userWithAppToOptionCachedUser(implicit u: CachedDataWithApp): Option[CachedData] = Some(CachedData(u.user, Some(u.application)))
+  implicit def userWithAppToOptionCachedUser(implicit u: CachedDataWithApp): Option[CachedData] = {
+    Some(CachedData(u.user, Some(u.application)))
+  }
 
   private def gotoAuthentication = Future.successful(Redirect(routes.SignInController.present()))
 

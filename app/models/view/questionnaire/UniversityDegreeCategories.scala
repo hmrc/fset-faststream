@@ -16,7 +16,7 @@
 
 package models.view.questionnaire
 
-object UniversityDegreeCategory {
+object UniversityDegreeCategories {
   val seq = Seq(
     ("Combined", "(J)"),
     ("Agriculture & Related Subjects", "(5)"),

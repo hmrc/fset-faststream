@@ -16,11 +16,10 @@
 
 package forms
 
-import forms.Mappings._
-import models.WithdrawReasons
+import models.view.WithdrawReasons
+import play.api.data.{ Form, FormError }
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 object WithdrawApplicationForm {
@@ -38,14 +37,16 @@ object WithdrawApplicationForm {
 
   val form = Form(
     mapping(
-      "reason" -> nonEmptyTrimmedText("error.required.reason", 64),
+      "wantToWithdraw" -> Mappings.nonEmptyTrimmedText("error.wantToWithdraw.required", 31),
+      "reason" -> of(requiredFormatterWithMaxLengthCheck("wantToWithdraw", "reason", Some(64))),
       "otherReason" -> of(otherReasonFormatter)
     )(Data.apply)(Data.unapply)
   )
 
   case class Data(
-    reason: String,
-    otherReason: Option[String]
-  )
+                 wantToWithdraw: String,
+                   reason: Option[String],
+                   otherReason: Option[String]
+                 )
 
 }

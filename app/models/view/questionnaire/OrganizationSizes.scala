@@ -16,11 +16,10 @@
 
 package models.view.questionnaire
 
-object Gender {
+object OrganizationSizes {
   val list = List(
-    ("male", "Male", false),
-    ("female", "Female", false),
-    ("other", "Other", true),
-    ("preferNotSay","I don't know/prefer not to say",false)
+    ("small", "Small (1 - 24 employees)", false),
+    ("large", "Large (over 24 employees)", false),
+    ("unknown", "I don't know/prefer not to say", false)
   )
 }

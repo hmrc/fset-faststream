@@ -31,8 +31,8 @@ POST        /password/reset                                         controllers.
 GET         /dashboard                                              controllers.HomeController.present
 GET         /application/create                                     controllers.HomeController.create
 GET         /application/resume                                     controllers.HomeController.resume
-GET         /application/withdraw                                   controllers.HomeController.presentWithDraw
-POST        /application/withdraw                                   controllers.HomeController.withdraw
+GET         /application/withdraw                                   controllers.HomeController.presentWithdrawApplication
+POST        /application/withdraw                                   controllers.HomeController.withdrawApplication
 #POST        /application/confirm-allocation                         controllers.HomeController.confirmAlloc
 
 GET         /application/details                                    controllers.PersonalDetailsController.present
