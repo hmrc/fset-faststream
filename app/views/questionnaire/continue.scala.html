@@ -1,45 +1,46 @@
 @()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@main_template(title = "Diversity questionnaire") {
+@main_template(title = "Before you continue") {
 
-    <h1 class="heading-xlarge">Diversity questionnaire</h1>
-    <div class="panel-indent text">
-        <p class="lede">
-            Any information you give is treated in strict confidence and your answers don't affect your application.
-        </p>
-        <p class="lede">
-            If you have a question about this form,  <a href="@routes.ApplicationController.helpdesk()" target="_blank">contact us</a>.
-        </p>
+    <div class="hgroup">
+        <h1 class="heading-xlarge">Before you continue</h1>
+        <p class="subtitle">Diversity questions</p>
     </div>
-    <details class="text">
-        <summary id="link-why-collect-data">Why do we collect this information?</summary>
-        <div id="panel-why-collect-data" class="detail-content panel-indent">
-             <p>
-                The Civil Service is committed to promoting diversity, irrespective of ethnicity or nationality, gender, transgender, sexuality, disability, age, religion, marital status, working patterns and socio-economic status.</p>
-            <p>
-                We collect diversity and socio economic information for monitoring purposes only and this data is treated separately from the application process. Your answers in this section don't affect your results in any way and are treated in strict confidence.
-            </p>
 
+    <section>
+        <div class="text">
+            <p>We have a few more questions before you submit your application, relating to diversity. We are committed to promoting diversity and valuing everyone, irrespective of ethnicity or nationality, disability, gender identity, sexual orientation, age or socio-economic status.</p>
+          </div>
 
+          <div class="panel-info standard-panel">
+            <div class="text">
+              <p>The following questions are:</p>
+              <ul class="no-btm-margin">
+                <li>for information monitoring only, to understand the effectiveness of our processes in terms of diversity and how we could improve</li>
+                <li>not part of your application and will have no bearing on any selection decision</li>
+                <li>treated in strict confidence</li>
+              </ul>
+            </div>
+          </div>
+        <div class="text">
+            <p>For security reasons, once you save a page you won't be able to go
+                back and change your answers.</p>
         </div>
-    </details>
+    </section>
 
     <div>
         @if(user.get.application.get.progress.diversityQuestionnaire) {
-            <div class="panel-indent text">
-                <p>Once you save a page on the form, you won't be able to go back and change your answers.</p>
-            </div>
-            <p>So far you've completed:</p>
+            <p class="small-btm-margin">So far you've completed:</p>
         }
         <ul class="list-bullet">
             @if(user.get.application.get.progress.diversityQuestionnaire) {
-                <li>Page 1 of the diversity questionnaire</li>
+                <li>About you</li>
             }
             @if(user.get.application.get.progress.educationQuestionnaire) {
-                <li>Page 2 of the diversity questionnaire</li>
+                <li>About your education</li>
             }
             @if(user.get.application.get.progress.occupationQuestionnaire) {
-                <li>Page 3 of the diversity questionnaire</li>
+                <li>About your parents</li>
             }
         </ul>
     </div>

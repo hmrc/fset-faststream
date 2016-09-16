@@ -208,7 +208,7 @@ haveDegree.question = Do you have a degree?
 university.question = What is the name of the university you received your degree from?
 universityDegreeCategory.question = Which category best describes your degree?
 
-employedParent.question = When you were 14, was your highest earning parent / guardian?
+employedParent.question = When you were 14, was your highest-earning parent or guardian employed?
 parentsOccupation.question = When you were 14, what kind of work did your highest-earning parent or guardian do?
 parentsDegree.question = Do you have a parent or guardian that has completed a university degree course or equivalent?
 employee.question = Did they work as an employee or were they self-employed?

@@ -6,23 +6,24 @@
 
 @helper.input(field) { (id, name, value, args) =>
     <div>
+        <label for="occupation-employed" class="block-label inputTrigger" data-inputTrigger="occupations">
+            <input type="radio" name="@name" id="occupation-employed" value="Employed" class="showsContent showsOccupations"
+                @(if(value.contains("Employed")) "checked" else "")>Yes, employed or self-employed
+        </label>
+    </div>
+    <div>
         <label for="occupation-unemployed-seeking" class="block-label">
             <input type="radio" name="@name" id="occupation-unemployed-seeking" value="Unemployed but seeking work" class="hidesContent hidesOccupations"
-                @(if(value.contains("Unemployed but seeking work")) "checked" else "")>Unemployed but seeking work
+                @(if(value.contains("Unemployed but seeking work")) "checked" else "")>No, unemployed and seeking work
         </label>
     </div>
     <div>
         <label for="occupation-unemployed" class="block-label">
             <input type="radio" name="@name" id="occupation-unemployed" value="Unemployed" class="hidesContent hidesOccupations"
-                @(if(value.contains("Unemployed")) "checked" else "")>Unemployed
+                @(if(value.contains("Unemployed")) "checked" else "")>No, unemployed and not seeking work
         </label>
     </div>
-    <div>
-        <label for="occupation-employed" class="block-label inputTrigger" data-inputTrigger="occupations">
-            <input type="radio" name="@name" id="occupation-employed" value="Employed" class="showsContent showsOccupations"
-                @(if(value.contains("Employed")) "checked" else "")>Employed/self-employed
-        </label>
-    </div>
+    
     <div>
         <label for="occupation-unknown" class="block-label">
             <input type="radio" name="@name" id="occupation-unknown" value="Unknown" class="hidesContent hidesOccupations"
