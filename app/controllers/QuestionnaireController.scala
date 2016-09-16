@@ -18,8 +18,7 @@ package controllers
 
 import _root_.forms.{ DiversityQuestionnaireForm, EducationQuestionnaireForm, ParentalOccupationQuestionnaireForm }
 import connectors.ApplicationClient
-import connectors.exchange.{ FastPassDetails, Questionnaire }
-import forms.FastPassForm
+import connectors.exchange.Questionnaire
 import helpers.NotificationType._
 import models.CachedDataWithApp
 import play.api.mvc.{ Request, RequestHeader, Result }
@@ -124,7 +123,7 @@ class QuestionnaireController(applicationClient: ApplicationClient) extends Base
 
           },
           data => {
-            submitQuestionnaire(data.sanitizeData.exchange, "education_questionnaire")(
+            submitQuestionnaire(data.sanitizeData.exchange(), "education_questionnaire")(
               Redirect(routes.QuestionnaireController.presentThirdPage()))
           }
         )
