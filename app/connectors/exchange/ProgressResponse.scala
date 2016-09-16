@@ -18,52 +18,37 @@ package connectors.exchange
 
 import play.api.libs.json.Json
 
-case class OnlineTestProgressResponse(
-                                       onlineTestInvited: Boolean = false,
-                                       onlineTestStarted: Boolean = false,
-                                       onlineTestCompleted: Boolean = false,
-                                       onlineTestExpired: Boolean = false,
-                                       onlineTestAwaitingReevaluation: Boolean = false,
-                                       onlineTestFailed: Boolean = false,
-                                       onlineTestFailedNotified: Boolean = false,
-                                       onlineTestAwaitingAllocation: Boolean = false,
-                                       onlineTestAllocationConfirmed: Boolean = false,
-                                       onlineTestAllocationUnconfirmed: Boolean = false
-                                     )
+case class AssessmentScores(entered: Boolean = false, accepted: Boolean = false)
 
-case class AssessmentScores(
-                             entered: Boolean = false,
-                             accepted: Boolean = false
-                           )
-
-case class AssessmentCentre(
-                             awaitingReevaluation: Boolean = false,
-                             passed: Boolean = false,
-                             passedNotified: Boolean = false,
-                             failed: Boolean = false,
-                             failedNotified: Boolean = false
-                           )
+case class AssessmentCentre(awaitingReevaluation: Boolean = false,
+  passed: Boolean = false,
+  passedNotified: Boolean = false,
+  failed: Boolean = false,
+  failedNotified: Boolean = false
+)
 
 
-case class ProgressResponse(
-                             applicationId: String,
-                             personalDetails: Boolean = false,
-                             schemePreferences: Boolean = false,
-                             partnerGraduateProgrammes: Boolean = false,
-                             assistanceDetails: Boolean = false,
-                             preview: Boolean = false,
-                             questionnaire: List[String] = Nil,
-                             submitted: Boolean = false,
-                             withdrawn: Boolean = false,
-                             onlineTest: OnlineTestProgressResponse = OnlineTestProgressResponse(),
-                             failedToAttend: Boolean = false,
-                             assessmentScores: AssessmentScores = AssessmentScores(),
-                             assessmentCentre: AssessmentCentre = AssessmentCentre()
+case class ProgressResponse(applicationId: String,
+  personalDetails: Boolean = false,
+  schemePreferences: Boolean = false,
+  partnerGraduateProgrammes: Boolean = false,
+  assistanceDetails: Boolean = false,
+  preview: Boolean = false,
+  questionnaire: List[String] = Nil,
+  submitted: Boolean = false,
+  withdrawn: Boolean = false,
+  phase1TestsInvited: Boolean = false,
+  phase1TestsStarted: Boolean = false,
+  phase1TestsCompleted: Boolean = false,
+  phase1TestsExpired: Boolean = false,
+  phase1TestsResultsReceived: Boolean = false,
+  failedToAttend: Boolean = false,
+  assessmentScores: AssessmentScores = AssessmentScores(),
+  assessmentCentre: AssessmentCentre = AssessmentCentre()
 )
 
 
 object ProgressResponse {
-  implicit val onlineTestProgressResponseFormat = Json.format[OnlineTestProgressResponse]
   implicit val assessmentScoresFormat = Json.format[AssessmentScores]
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
   implicit val progressResponseFormat = Json.format[ProgressResponse]

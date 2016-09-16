@@ -1,6 +1,6 @@
 @import connectors.exchange.{ AllocationDetails, Phase1TestProfile }
 @import security.RoleUtils
-@(usr: CachedData, phase1TestProfile: Option[Phase1TestProfile] = None,
+@(cachedUserData: CachedData, phase1TestProfile: Option[Phase1TestProfile] = None,
         applicationStatus: models.ApplicationData.ApplicationStatus.ApplicationStatus,
         progressStatus: models.ApplicationData.ProgressStatuses.ProgressStatus,
         allocationDetails: Option[AllocationDetails])(implicit request: Request[_])
@@ -27,20 +27,34 @@
                         </li>
                     </ul>
                 }
-                case Some(testProfile) => {
+                case Some(testProfile) if cachedUserData.application.isDefined => {
                     <ul class="list-text list-withicons">
                         <li>
                         <p class="med-btm-margin" id="testsHeading"><i class="fa fa-minus the-icon"></i>Online exercises</p>
                         <ul class="list-text list-withicons" id="testsIndividual">
+                            @{if (testProfile.tests.exists(_.testType == "sjq")) {
                             <li><i class="fa fa-minus the-icon"></i>Situational judgement
                                 questionnaire (untimed)</li>
+                            }}
+                            @{if (testProfile.tests.exists(_.testType == "bq")) {
                             <li><i class="fa fa-minus the-icon"></i>Behavioural questionnaire
                                 (untimed)</li>
+                            }}
                         </ul>
                         <p id="testsTime">You have <strong>@{testProfile.getDuration}</strong> to finish the
                             online exercises</p>
                         <div id="testsButtonContainer">
-                            <a href="/tests/tests.html" class="button" id="testsButton">Start section</a>
+
+                            @helper.form(action = routes.OnlineTestController.startTests(), 'novalidate -> "novalidate") {
+                            @helper.CSRF.formField
+                                @{testProfile.tests.find(_.completed == false).map { test =>
+                                    if (!test.started) {
+                                        <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
+                                    } else {
+                                        <button id="submit_online_tests" type="submit" value="submit" class="button">Continue section</button>
+                                    }
+                                }}
+                            }
                             <p>(Should take about an hour to finish both exercises)</p>
                         </div>
                         </li>

@@ -16,11 +16,10 @@
 
 package connectors.exchange
 
-import models.{ OnlineTestProgress, Progress }
+import models.Progress
 
 object ProgressExamples {
   val InitialProgress = Progress(false, false, false, false, false, false, false, false, false, false, false,
-    OnlineTestProgress(false, false, false, false, false, false, false, false, false, false),
     false,
     AssessmentScores(false, false),
     AssessmentCentre(false, false, false)

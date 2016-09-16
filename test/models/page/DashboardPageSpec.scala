@@ -16,7 +16,7 @@
 
 package models.page
 
-import connectors.exchange.{ AssessmentCentre, AssessmentScores }
+import connectors.exchange.{ AssessmentCentre, AssessmentScores, Phase1Test, Phase1TestProfile }
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus._
 import models.page.DashboardPage._
@@ -43,17 +43,11 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
     (CREATED,                                  ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   true,                                     false,                    true,                               false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
     (IN_PROGRESS,                              ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                   true,                                     false,                    true,                               false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
     (SUBMITTED,                                ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
+    (PHASE1_TESTS,                             ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
     (WITHDRAWN,                                ProgressActive,   ProgressActive,   ProgressActive,            ProgressInactiveDisabled, false,                                   false,                                    true,                     false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_INVITED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_STARTED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_COMPLETED,                    ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_EXPIRED,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
     (ALLOCATION_CONFIRMED,                     ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_BOOKED_CONFIRMED,        POSTASSESSMENT_STATUS_UNKNOWN),
     (ALLOCATION_UNCONFIRMED,                   ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_PENDING_CONFIRMATION,    POSTASSESSMENT_STATUS_UNKNOWN),
     (AWAITING_ALLOCATION,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_FAILED,                       ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (ONLINE_TEST_FAILED_NOTIFIED,              ProgressActive,   ProgressActive,   ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (AWAITING_ONLINE_TEST_RE_EVALUATION,       ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
     (FAILED_TO_ATTEND,                         ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_NOT_ATTENDED,            POSTASSESSMENT_FAILED_APPLY_AGAIN),
     (ASSESSMENT_SCORES_ENTERED,                ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_BOOKED_CONFIRMED,        POSTASSESSMENT_STATUS_UNKNOWN),
     (ASSESSMENT_SCORES_ACCEPTED,               ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                    false,                                    false,                    false,                              false,                         "John Biggs",    ASSESSMENT_BOOKED_CONFIRMED,        POSTASSESSMENT_STATUS_UNKNOWN),
@@ -107,11 +101,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
   val WithdrawnApplications = Table(
     ("Status before Withdraw", "step1", "step2", "step3", "step4", "isApplicationSubmittedAndNotWithdrawn", "isApplicationInProgressAndNotWithdrawn", "isApplicationWithdrawn", "isApplicationCreatedOrInProgress", "isUserWithNoApplication", "fullName", "assessmentInProgressStatus", "assessmentCompletedStatus"),
     (PersonalDetailsProgress, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "John Biggs", ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_STATUS_UNKNOWN),
-    (SubmittedProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "John Biggs", ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_STATUS_UNKNOWN),
-    (AwaitingAssessmentCentreAllocation, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "John Biggs", ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_STATUS_UNKNOWN),
-    (OnlineTestInvited, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "John Biggs", ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_STATUS_UNKNOWN),
-    (OnlineTestFailed, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "John Biggs", ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_STATUS_UNKNOWN),
-    (AssessmentCentreInvited, ProgressActive, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "John Biggs", ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_STATUS_UNKNOWN)
+    (SubmittedProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, false, true, false, false, "John Biggs", ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_STATUS_UNKNOWN)
   )
   // scalastyle:on line.size.limit
   // format: on
@@ -134,12 +124,12 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
          assessmentInProgressStatus: AssessmentStageStatus,
          assessmentCompletedStatus: PostAssessmentStageStatus
         ) => {
-          DashboardPage(withdrawnApplication(progress), None, None) mustBe(
+          DashboardPage(withdrawnApplication(progress), None, None) mustBe
             DashboardPage(step1, step2, step3, step4,
               isApplicationSubmittedAndNotWithdrawn, isApplicationInProgressAndNotWithdrawn,
               isApplicationWithdrawn, isApplicationCreatedOrInProgress, isUserWithNoApplication,
               fullName, assessmentInProgressStatus, assessmentCompletedStatus)
-          )
+
         }
       }
     }
@@ -148,7 +138,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
       val statusesTested = Applications.toList.map { case (status, _, _, _, _, _, _, _, _, _, _, _, _) => status }
       // For any new status DashboardPage.Step1/2/3 or 4 needs to have this status
       // Add this new status to isReached method and increase this value
-      statusesTested.length mustBe(23)
+      statusesTested.length mustBe(17)
     }
   }
 
@@ -164,36 +154,6 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
         DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
           true, false, false, false, false, "John Biggs",
           ASSESSMENT_PENDING_CONFIRMATION, POSTASSESSMENT_STATUS_UNKNOWN))
-    }
-  }
-
-  "The assessment status, when the assessment test failed" should {
-    "be failed if the relative pdf report is available" in {
-      DashboardPage(user(ASSESSMENT_CENTRE_FAILED_NOTIFIED), None, Some(PdfReportAvailable)) mustBe(
-        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
-          true, false, false, false, false, "John Biggs",
-          ASSESSMENT_FAILED, POSTASSESSMENT_FAILED_APPLY_AGAIN))
-    }
-    "and unknown if the report is not available" in {
-      DashboardPage(user(ASSESSMENT_CENTRE_FAILED_NOTIFIED), None, Some(PdfReportNotAvailable)) mustBe(
-        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
-          true, false, false, false, false, "John Biggs",
-          ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_FAILED_APPLY_AGAIN))
-    }
-  }
-
-  "The assessment status, when the assessment test passed" should {
-    "be passed if the relative pdf report is available" in {
-      DashboardPage(user(ASSESSMENT_CENTRE_PASSED_NOTIFIED), None, Some(PdfReportAvailable)) mustBe(
-        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
-          true, false, false, false, false, "John Biggs",
-          ASSESSMENT_PASSED, POSTASSESSMENT_PASSED_MORE_SOON))
-    }
-    "and unknown if the report is not available" in {
-      DashboardPage(user(ASSESSMENT_CENTRE_PASSED_NOTIFIED), None, Some(PdfReportNotAvailable)) mustBe(
-        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
-          true, false, false, false, false, "John Biggs",
-          ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_PASSED_MORE_SOON))
     }
   }
 
@@ -214,7 +174,6 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
 object DashboardPageSpec {
 
   import connectors.exchange.AllocationDetails
-  import connectors.exchange.OnlineTest
   import org.joda.time.{DateTime, LocalDate}
 
   def user(status: ApplicationStatus.Value) = {
@@ -236,26 +195,21 @@ object DashboardPageSpec {
   }
 
   val EmptyProgress = Progress(false, false, false, false, false, false, false, false, false, false, false,
-    OnlineTestProgress(false, false, false, false, false, false, false, false, false, false),
     false, AssessmentScores(false, false), AssessmentCentre(false, false))
 
-  val OnlineTestProgressAwaitingAllocation = OnlineTestProgress(onlineTestInvited = true, onlineTestStarted = true,
-    onlineTestCompleted = true, onlineTestExpired = false, onlineTestAwaitingReevaluation = false,
-    onlineTestFailed = false, onlineTestFailedNotified = false, onlineTestAwaitingAllocation = true,
-    onlineTestAllocationConfirmed = false, onlineTestAllocationUnconfirmed = false)
-
-  val OnlineTestProgressFailed = OnlineTestProgressAwaitingAllocation.copy(onlineTestFailed = true)
-  val OnlineTestProgressInvited = OnlineTestProgressAwaitingAllocation.copy(onlineTestInvited = true)
-
+  val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now,
+    tests = List(Phase1Test(testType = "sjq",
+      usedForResults = true,
+      testUrl = "test.com",
+      invitationDate = DateTime.now,
+      started = false,
+      completed = false,
+      resultsReadyToDownload = false
+    ))
+  )
   val PersonalDetailsProgress = EmptyProgress.copy(personalDetails = true)
   val SubmittedProgress = PersonalDetailsProgress.copy(submitted = true)
-  val AwaitingAssessmentCentreAllocation = SubmittedProgress.copy(onlineTest = OnlineTestProgressAwaitingAllocation)
-  val OnlineTestFailed = SubmittedProgress.copy(onlineTest = OnlineTestProgressFailed)
-  val OnlineTestInvited = SubmittedProgress.copy(onlineTest = OnlineTestProgressInvited)
-  val AssessmentCentreInvited = SubmittedProgress.copy(onlineTest = OnlineTestProgressAwaitingAllocation.copy(onlineTestInvited = true))
   private val AllocationDetails_Expired = AllocationDetails("", "", new DateTime(), Some(new LocalDate().minusDays(1)))
   private val AllocationDetails_Not_Expired = AllocationDetails("", "", new DateTime(), Some(new LocalDate().plusDays(1)))
-  private val PdfReportAvailable = OnlineTest(new DateTime(), "", false, true)
-  private val PdfReportNotAvailable = OnlineTest(new DateTime(), "", true, false)
 
 }

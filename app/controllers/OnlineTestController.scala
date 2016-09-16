@@ -18,7 +18,7 @@ package controllers
 
 import config.CSRHttp
 import connectors.ApplicationClient
-import models.ApplicationData.ApplicationStatus
+import models.ApplicationData.{ ApplicationStatus, ProgressStatuses }
 import models.UniqueIdentifier
 import security.Roles.{ DisplayOnlineTestSectionRole, OnlineTestInvitedRole }
 
@@ -55,12 +55,17 @@ abstract class OnlineTestController(applicationClient: ApplicationClient) extend
 */
 
   def startTests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
-    implicit user =>
-      applicationClient.getPhase1TestProfile(user.user.userID).flatMap { onlineTest =>
-        applicationClient.onlineTestUpdate(user.user.userID, ApplicationStatus.PHASE1_TESTS).map { _ =>
-          // TODO FIX ME - redirect to test URL
-          Ok
-        }
+    implicit cachedUserData =>
+
+      for {
+        phase1TestProfile <- applicationClient.getPhase1TestProfile(cachedUserData.user.userID)
+        applicationId = cachedUserData.application.applicationId
+        _ <- applicationClient.onlineTestUpdate(applicationId,
+          connectors.exchange.ProgressStatus(ProgressStatuses.PHASE1_TESTS_STARTED))
+      } yield {
+        phase1TestProfile.tests.find(!_.completed).map { incompleteTest =>
+          Redirect(incompleteTest.testUrl)
+        }.getOrElse(BadRequest)
       }
   }
 
