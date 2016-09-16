@@ -74,7 +74,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def submit(applicationId: String): Future[Unit] = Future.successful(Unit)
 
-  override def withdraw(applicationId: String, reason: WithdrawApplicationRequest): Future[Unit] = Future.successful(Unit)
+  override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = Future.successful(Unit)
 
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = Future.successful(Unit)
 

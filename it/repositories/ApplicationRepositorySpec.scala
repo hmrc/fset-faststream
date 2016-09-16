@@ -19,6 +19,7 @@ package repositories
 import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
+import model.command.WithdrawApplication
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.persisted.AssistanceDetails
@@ -120,7 +121,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "capture the withdrawn date and change the application status to withdrawn" in {
       val applicationStatus = (for {
         app <- applicationRepo.create("userId1", frameworkId)
-        _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplicationRequest("test", None, "test"))
+        _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplication("test", None, "test"))
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
@@ -408,7 +409,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val result = applicationRepo.candidatesAwaitingAllocation(frameworkId).futureValue
       result.foreach{ c =>
         val appId = applicationRepo.findByUserId(c.userId, frameworkId).futureValue.applicationId
-        applicationRepo.withdraw(appId,WithdrawApplicationRequest("testing", None,"Candidate")).futureValue
+        applicationRepo.withdraw(appId,WithdrawApplication("testing", None,"Candidate")).futureValue
       }
 
       val updatedResult = applicationRepo.candidatesAwaitingAllocation(frameworkId).futureValue

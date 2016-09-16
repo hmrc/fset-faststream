@@ -72,7 +72,7 @@ trait GeneralApplicationRepository {
 
   def submit(applicationId: String): Future[Unit]
 
-  def withdraw(applicationId: String, reason: WithdrawApplicationRequest): Future[Unit]
+  def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
 
   def preview(applicationId: String): Future[Unit]
 
@@ -347,7 +347,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     collection.update(query, updateBSON, upsert = false) map { _ => }
   }
 
-  override def withdraw(applicationId: String, reason: WithdrawApplicationRequest): Future[Unit] = {
+  override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationBSON = BSONDocument("$set" -> BSONDocument(
         "withdraw" -> reason

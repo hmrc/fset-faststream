@@ -18,6 +18,7 @@ package services.application
 
 import model.Commands._
 import model.Exceptions.NotFoundException
+import model.command.WithdrawApplication
 import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -35,7 +36,7 @@ class ApplicationServiceSpec extends PlaySpec with BeforeAndAfterEach with Mocki
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val ApplicationId = "1111-1111"
-  val withdrawApplicationRequest = WithdrawApplicationRequest("reason", Some("other reason"), "Candidate")
+  val withdrawApplicationRequest = WithdrawApplication("reason", Some("other reason"), "Candidate")
   val auditDetails = Map("applicationId" -> ApplicationId, "withdrawRequest" -> withdrawApplicationRequest.toString)
 
   "withdraw an application" should {

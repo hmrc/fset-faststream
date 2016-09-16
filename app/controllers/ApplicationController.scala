@@ -18,6 +18,7 @@ package controllers
 
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
+import model.command.WithdrawApplication
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories._
@@ -73,8 +74,8 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def applicationWithdraw(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[WithdrawApplicationRequest] { withdrawRequest =>
+  def withdrawApplication(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[WithdrawApplication] { withdrawRequest =>
       applicationService.withdraw(applicationId, withdrawRequest).map { _ =>
         Ok
       }.recover {

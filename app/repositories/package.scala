@@ -15,15 +15,16 @@
  */
 
 import factories.DateTimeFactory
-import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback}
+import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
-import model.OnlineTestCommands.{OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication}
+import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication }
 import model.PassmarkPersistedObjects._
-import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
+import model.PersistedObjects.{ ContactDetails, PersistedAnswer, PersonalDetails, _ }
+import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import org.joda.time.{DateTime, DateTimeZone, LocalDate}
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -34,7 +35,7 @@ import services.reporting.SocioEconomicScoreCalculatorTrait
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
 package object repositories {
@@ -160,7 +161,7 @@ package object repositories {
     }
   }
 
-  implicit val withdrawHandler: BSONHandler[BSONDocument, WithdrawApplicationRequest] = Macros.handler[WithdrawApplicationRequest]
+  implicit val withdrawHandler: BSONHandler[BSONDocument, WithdrawApplication] = Macros.handler[WithdrawApplication]
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
   implicit val answerHandler: BSONHandler[BSONDocument, PersistedAnswer] = Macros.handler[PersistedAnswer]
