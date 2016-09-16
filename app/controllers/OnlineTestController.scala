@@ -29,6 +29,7 @@ import repositories.application.{ GeneralApplicationRepository, OnlineTestReposi
 import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import config.MicroserviceAppConfig.cubiksGatewayConfig
+import model.ProgressStatuses.ProgressStatus
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -50,7 +51,7 @@ case class OnlineTestExtension(extraDays: Int)
 case class UserIdWrapper(userId: String)
 
 object OnlineTestController extends OnlineTestController {
-  override val applicationRepository: GeneralApplicationRepository = applicationRepository
+  override val appRepository: GeneralApplicationRepository = applicationRepository
   override val onlineRepository: OnlineTestRepository = onlineTestRepository
   override val onlineTestingService: OnlineTestService = OnlineTestService
   override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
@@ -59,7 +60,7 @@ object OnlineTestController extends OnlineTestController {
 
 trait OnlineTestController extends BaseController {
 
-  val applicationRepository: GeneralApplicationRepository
+  val appRepository: GeneralApplicationRepository
   val onlineRepository: OnlineTestRepository
   val onlineTestingService: OnlineTestService
   val onlineTestExtensionService: OnlineTestExtensionService
@@ -96,8 +97,8 @@ trait OnlineTestController extends BaseController {
   }
 
   def onlineTestStatusUpdate(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[OnlineTestStatus] { onlineTestStatus =>
-      applicationRepository.updateStatus(applicationId, onlineTestStatus.status).map(_ => Ok)
+    withJsonBody[exchange.ProgressStatus] { progressStatus =>
+      appRepository.updateProgressStatus(applicationId, progressStatus.status).map ( _ => Ok )
     }
   }
 

@@ -1014,12 +1014,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     progressStatus: ProgressStatuses.ProgressStatus
   ): Future[Unit] = progressStatus match {
     case ProgressStatuses.PHASE1_TESTS_INVITED => initialisePhase1TestStatus(applicationId)
-    case _ => {
+    case _ =>
       val query = BSONDocument("applicationId" -> applicationId)
       collection.update(query, BSONDocument("$set" ->
         applicationStatusBSON(progressStatus))
-      ) map { _ => }
-    }
+      ) map ( _ => () )
   }
 
 
