@@ -33,7 +33,7 @@ class GeneralDetailsFormSpec extends PlaySpec {
       form.hasErrors must be(true)
       form.hasGlobalErrors must be(false)
 
-      form.errors.map(_.key) must be(OutsideUKMandatoryFields)
+      form.errors.map(_.key) must be(InsideUKMandatoryFields)
     }
 
     "be successful for outside UK address without post code, but with country" in {
@@ -47,7 +47,7 @@ class GeneralDetailsFormSpec extends PlaySpec {
       val form = personalDetailsForm.bind(InvalidUKAddressWithoutPostCode)
 
       form.hasErrors must be(true)
-      form.hasGlobalErrors must be(true)
+      form.hasGlobalErrors must be(false)
       form.errors.flatMap(_.messages) must be(List("error.postcode.required"))
     }
 

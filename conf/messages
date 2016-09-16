@@ -20,6 +20,7 @@ error.lastName = Enter your last name
 error.email = Enter your full email address
 error.confirmpwd = Confirm your password
 error.password = Your password requires upper and lowercase letters, a number and at least 9 characters
+error.campaignOther.maxLength = Maximum length is 256
 error.password.empty = Enter your password
 error.password.dontmatch = Your passwords don''t match
 agree.accept = Accept the terms and conditions
@@ -65,6 +66,7 @@ error.address.required = Enter the first line of your address
 error.postcode.required = Enter your postcode
 error.postcode.invalid = You''ve entered an invalid postcode
 error.country.required = Enter your country
+error.country.invalid = Maximum length is 100
 
 error.phone.required = Add a phone number in case we need to contact you
 error.phoneNumber.format = You''ve entered an invalid phone number

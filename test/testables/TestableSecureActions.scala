@@ -71,8 +71,10 @@ trait TestableCSRUserAwareAction extends SecureActions {
         )), request)
       implicit val carrier = PersonalDetailsController.hc(request)
 
-      val session = userAwareReq.session + (SessionKeys.sessionId -> s"session-${UUID.randomUUID}")
-      block(userAwareReq)(Some(CachedDataExample.ActiveCandidate)).map(_.withSession(session))
+      val session = (SessionKeys.sessionId -> s"session-${UUID.randomUUID}")
+
+      block(userAwareReq)(Some(CachedDataExample.ActiveCandidate)).
+        map(_.addingToSession(session)(request))
     }
 }
 
@@ -85,8 +87,10 @@ trait NoIdentityTestableCSRUserAwareAction extends SecureActions {
         None, request)
       implicit val carrier = PersonalDetailsController.hc(request)
 
-      val session = userAwareReq.session + (SessionKeys.sessionId -> s"session-${UUID.randomUUID}")
-      block(userAwareReq)(Some(CachedDataExample.ActiveCandidate)).map(_.withSession(session))
+      val sessionId = SessionKeys.sessionId -> s"session-${UUID.randomUUID}"
+
+      block(userAwareReq)(Some(CachedDataExample.ActiveCandidate))
+        .map(_.addingToSession(sessionId)(request))
     }
 }
 // scalastyle:on method.name

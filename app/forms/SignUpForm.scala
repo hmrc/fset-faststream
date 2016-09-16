@@ -17,6 +17,7 @@
 package forms
 
 import forms.Mappings._
+import models.view.CampaignReferrers
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation.Constraints
@@ -34,8 +35,8 @@ object SignUpForm {
   val passwordFormatter = new Formatter[String] {
     // scalastyle:off cyclomatic.complexity
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] = {
-      val passwd = data.get("password").get.trim
-      val confirm = data.get("confirmpwd").get.trim
+      val passwd = data("password").trim
+      val confirm = data("confirmpwd").trim
 
       def formError(id: String) = Left(List(FormError("password", Messages(id))))
 
@@ -50,6 +51,7 @@ object SignUpForm {
         case _ => Right(passwd)
       }
     }
+
     // scalastyle:on cyclomatic.complexity
 
     override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
@@ -82,11 +84,37 @@ object SignUpForm {
       passwordField -> of(passwordFormatter),
       confirmPasswordField -> nonEmptyTrimmedText("error.confirmpwd", passwordMaxLength),
       "campaignReferrer" -> Mappings.optionalTrimmedText(64),
-      "campaignOther" -> Mappings.optionalTrimmedText(256),
+      "campaignOther" -> of(campaignOtherFormatter),
       "agree" -> checked(Messages("agree.accept")),
       "eligible" -> checked(Messages("agree.eligible"))
     )(Data.apply)(Data.unapply)
   )
+
+  def campaignOtherFormatter = new Formatter[Option[String]] {
+    override def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      val optCampaignOther = request.get("campaignOther")
+      if (request.hasOptionalInfoProvided) {
+        optCampaignOther match {
+          case Some(campaignOther) if campaignOther.trim.length > 256 => Left(List(FormError(key, Messages(s"error.$key.maxLength"))))
+          case _ => Right(optCampaignOther.map(_.trim))
+        }
+      } else {
+        Right(None)
+      }
+    }
+
+    override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.map(_.trim).getOrElse(""))
+  }
+
+  implicit class RequestValidation(request: Map[String, String]) {
+      def hasOptionalInfoProvided = CampaignReferrers.list.find(pair =>
+        pair._1 == request.getOrElse("campaignReferrer", "")).exists(_._2)
+
+      def sanitize = request.filterKeys {
+        case "campaignOther" => hasOptionalInfoProvided
+        case _ => true
+      }
+  }
 
   case class Data(firstName: String,
                   lastName: String,

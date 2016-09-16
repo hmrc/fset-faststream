@@ -24,7 +24,7 @@ object CampaignReferrers {
     ("Fast Stream website (including scheme sites)", false),
     ("News article or online search (Google)", false),
     ("Friend in the Fast Stream", false),
-    ("Friend or family in the Civil Service", true),
+    ("Friend or family in the Civil Service", false),
     ("Friend or family outside of the Civil Service", false),
     ("Careers fair (University or graduate)", false),
     ("University careers service (or jobs flyers)", false),

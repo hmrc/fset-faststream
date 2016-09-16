@@ -33,14 +33,17 @@ object PasswordResetController extends PasswordResetController(ApplicationClient
 
 abstract class PasswordResetController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
 
-  def presentCode(email: Option[String]) = CSRUserAwareAction { implicit request =>
+  def presentCode() = CSRUserAwareAction { implicit request =>
     implicit user =>
+      val email = request.session.get("email")
       email.filter(e => ResetPasswordForm.validateEmail(e)).map(e => sendCode(e, true)).getOrElse {
-        Future.successful(Ok(views.html.registration.request_reset(RequestResetPasswordForm.form)))
+        Future.successful {
+          Ok(views.html.registration.request_reset(RequestResetPasswordForm.form))
+        }
       }
   }
 
-  def submitCode = CSRUserAwareAction { implicit request =>
+  def submitCode() = CSRUserAwareAction { implicit request =>
     implicit user =>
       RequestResetPasswordForm.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.registration.request_reset(invalidForm))),
@@ -48,8 +51,9 @@ abstract class PasswordResetController(val applicationClient: ApplicationClient)
       )
   }
 
-  def presentReset(email: Option[String]) = CSRUserAwareAction { implicit request =>
+  def presentReset() = CSRUserAwareAction { implicit request =>
     implicit user =>
+      val email = request.session.get("email")
       email.filter(e => ResetPasswordForm.validateEmail(e)).map { e =>
         Future.successful(
           Ok(views.html.registration.reset_password(
@@ -76,8 +80,9 @@ abstract class PasswordResetController(val applicationClient: ApplicationClient)
     request: UserAwareRequest[_], user: Option[CachedData]
   ) = {
     env.sendResetPwdCode(email).map { _ =>
-      Redirect(routes.PasswordResetController.presentReset(Some(email))).
-        flashing(success(if (isResend) "resetpwd.code-resent" else "resetpwd.code-sent"), "email" -> email)
+      Redirect(routes.PasswordResetController.presentReset()).
+        flashing(info(if (isResend) "resetpwd.code-resent" else "resetpwd.code-sent")).
+        addingToSession("email" -> email)
     }.recover {
       case _: InvalidEmailException =>
         Ok(views.html.registration.request_reset(
@@ -102,11 +107,10 @@ abstract class PasswordResetController(val applicationClient: ApplicationClient)
 
     env.resetPasswd(email, code, newPassword).map { _ =>
       env.credentialsProvider.authenticate(Credentials(email, newPassword)).map {
-        case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(
-          Redirect(routes.LockAccountController.present()).flashing("email" -> usr.email)
-        )
-        case Right(usr) if usr.isActive => signInUser(usr, env)
-        case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()), env = env)
+        case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(Redirect(routes.LockAccountController.present()))
+        case Right(usr) if usr.isActive => signInUser(usr, env).map(_.removingFromSession("email"))
+        case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()), env = env).
+          map(_.removingFromSession("email"))
         case Left(InvalidRole) => Future.successful(showErrorLogin(SignInForm.Data(
           signIn = email,
           signInPassword = newPassword

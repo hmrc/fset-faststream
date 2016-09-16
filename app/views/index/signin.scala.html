@@ -8,7 +8,7 @@
     <h1 class="heading-xlarge">Sign in</h1>
     <section class="panel-indent text">
         <p>To sign in you must have already created an account for the Fast Stream.</p>
-        <p>If you don't have an account you can <a href="@routes.SignUpController.present" id="createAccount">create your account</a>.</p>
+        <p>If you don't have an account you can <a href="@routes.SignUpController.present()" id="createAccount">create your account</a>.</p>
     </section>
 
     @helper.form(action = routes.SignInController.signIn(), 'novalidate -> "novalidate") {
@@ -26,7 +26,7 @@
             '_hasLink -> true,
             '_showConstraints -> false)
 
-        <p><a href="@routes.PasswordResetController.presentCode(None)">I can't access my account</a></p>
+        <p><a href="@routes.PasswordResetController.presentCode()">I can't access my account</a></p>
 
         <div class="form-group small-btm-margin">
             <button id="btnSignIn" type="submit" value="submit" class="button">Sign in</button>

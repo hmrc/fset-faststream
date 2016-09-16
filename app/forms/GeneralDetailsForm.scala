@@ -19,7 +19,7 @@ package forms
 import connectors.exchange.GeneralDetails
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
-import mappings.PostCodeMapping.{ PostCode, validPostcode }
+import mappings.PostCodeMapping._
 import mappings.{ Address, DayMonthYear, PhoneNumberMapping, PostCodeMapping }
 import org.joda.time.LocalDate
 import play.api.data.Forms._
@@ -30,15 +30,44 @@ object GeneralDetailsForm {
   private val MinAge = 16
   private val MinDob = new LocalDate(1900, 1, 1)
 
+  val firstName = "firstName"
+  val lastName = "lastName"
+  val preferredName = "preferredName"
+  val dateOfBirth = "dateOfBirth"
+  val outsideUk = "outsideUk"
+  val address = "address"
+  val postCode = "postCode"
+  val country = "country"
+  val phone = "phone"
+
   def ageReference(implicit now: LocalDate) = new LocalDate(now.getYear, 8, 31)
+
+  def form(implicit now: LocalDate) = {
+    val maxDob = Some(ageReference.minusYears(MinAge))
+
+    Form(
+      mapping(
+        firstName -> nonEmptyTrimmedText("error.firstName", 256),
+        lastName -> nonEmptyTrimmedText("error.lastName", 256),
+        preferredName -> nonEmptyTrimmedText("error.preferredName", 256),
+        dateOfBirth -> DayMonthYear.validDayMonthYear("error.dateOfBirth", "error.dateOfBirthInFuture")(Some(MinDob), maxDob),
+        outsideUk -> optional(checked("error.address.required")),
+        address -> Address.address,
+        postCode -> of(postCodeFormatter),
+        country -> of(countryFormatter),
+        phone -> of(phoneNumberFormatter),
+        FastPassForm.formQualifier -> FastPassForm.form.mapping
+      )(Data.apply)(Data.unapply)
+    )
+  }
 
   val phoneNumberFormatter = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      val phone: Option[String] = data.get("phone")
+      val phone: Option[String] = data.get(key)
 
       phone match {
-        case None | Some("") => Left(List(FormError("phone", "error.phone.required")))
-        case Some(m) if !m.isEmpty && !PhoneNumberMapping.validatePhoneNumber(m) => Left(List(FormError("phone", "error.phoneNumber.format")))
+        case None | Some("") => Left(List(FormError(key, "error.phone.required")))
+        case Some(m) if !m.isEmpty && !PhoneNumberMapping.validatePhoneNumber(m) => Left(List(FormError(key, "error.phoneNumber.format")))
         case _ => Right(phone.map(_.trim))
       }
     }
@@ -46,27 +75,32 @@ object GeneralDetailsForm {
     override def unbind(key: String, value: Option[String]) = Map(key -> value.map(_.trim).getOrElse(""))
   }
 
-  def form(implicit now: LocalDate) = {
-    val maxDob = Some(ageReference.minusYears(MinAge))
+  val postCodeFormatter = new Formatter[Option[String]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      val outsideUK = data.getOrElse(outsideUk, "false").toBoolean
+      val postCode = data.getOrElse(key, "").trim
+      outsideUK match {
+        case true => Right(None)
+        case _ if postCode.isEmpty => Left(List(FormError(key, "error.postcode.required")))
+        case _ if !postcodePattern.pattern.matcher(postCode).matches() => Left(List(FormError(key, "error.postcode.invalid")))
+        case _ => Right(Some(postCode))
+      }
+    }
+    override def unbind(key: String, value: Option[String]) = Map(key -> value.getOrElse(""))
+  }
 
-    Form(
-      mapping(
-        "firstName" -> nonEmptyTrimmedText("error.firstName", 256),
-        "lastName" -> nonEmptyTrimmedText("error.lastName", 256),
-        "preferredName" -> nonEmptyTrimmedText("error.preferredName", 256),
-        "dateOfBirth" -> DayMonthYear.validDayMonthYear("error.dateOfBirth", "error.dateOfBirthInFuture")(Some(MinDob), maxDob),
-        "outsideUk" -> optional(checked("error.address.required")),
-        "address" -> Address.address,
-        "postCode" -> optional(text.verifying(validPostcode)),
-        "country" -> optionalTrimmedText(100),
-        "phone" -> of(phoneNumberFormatter),
-        FastPassForm.formQualifier -> FastPassForm.form.mapping
-      )(Data.apply)(Data.unapply).verifying("error.postcode.required", d =>
-        !d.insideUk || d.postCode.isDefined
-      ).verifying("error.country.required", d =>
-        d.insideUk || d.country.isDefined
-      )
-    )
+  val countryFormatter = new Formatter[Option[String]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      val outsideUK = data.getOrElse(outsideUk, "false").toBoolean
+      val country = data.getOrElse(key, "").trim
+      outsideUK match {
+        case true if country.isEmpty => Left(List(FormError(key, "error.country.required")))
+        case true if country.length > 100 => Left(List(FormError(key, "error.country.invalid")))
+        case true => Right(Some(country))
+        case _ => Right(None)
+      }
+    }
+    override def unbind(key: String, value: Option[String]) = Map(key -> value.getOrElse(""))
   }
 
   case class Data(firstName: String,
