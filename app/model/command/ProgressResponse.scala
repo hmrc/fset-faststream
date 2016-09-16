@@ -18,19 +18,6 @@ package model.command
 
 import play.api.libs.json.Json
 
-case class OnlineTestProgressResponse(
-                                       onlineTestInvited: Boolean = false,
-                                       onlineTestStarted: Boolean = false,
-                                       onlineTestCompleted: Boolean = false,
-                                       onlineTestExpired: Boolean = false,
-                                       onlineTestAwaitingReevaluation: Boolean = false,
-                                       onlineTestFailed: Boolean = false,
-                                       onlineTestFailedNotified: Boolean = false,
-                                       onlineTestAwaitingAllocation: Boolean = false,
-                                       onlineTestAllocationConfirmed: Boolean = false,
-                                       onlineTestAllocationUnconfirmed: Boolean = false
-                                     )
-
 case class AssessmentScores(
                              entered: Boolean = false,
                              accepted: Boolean = false
@@ -55,7 +42,11 @@ case class ProgressResponse(
                              questionnaire: List[String] = Nil,
                              submitted: Boolean = false,
                              withdrawn: Boolean = false,
-                             onlineTest: OnlineTestProgressResponse = OnlineTestProgressResponse(),
+                             phase1TestsInvited: Boolean = false,
+                             phase1TestsStarted: Boolean = false,
+                             phase1TestsCompleted: Boolean = false,
+                             phase1TestsExpired: Boolean = false,
+                             phase1TestsResultsReceived: Boolean = false,
                              failedToAttend: Boolean = false,
                              assessmentScores: AssessmentScores = AssessmentScores(),
                              assessmentCentre: AssessmentCentre = AssessmentCentre()
@@ -63,7 +54,6 @@ case class ProgressResponse(
 
 
 object ProgressResponse {
-  implicit val onlineTestProgressResponseFormat = Json.format[OnlineTestProgressResponse]
   implicit val assessmentScoresFormat = Json.format[AssessmentScores]
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
   implicit val progressResponseFormat = Json.format[ProgressResponse]

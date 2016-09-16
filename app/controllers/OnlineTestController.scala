@@ -131,19 +131,4 @@ trait OnlineTestController extends BaseController {
     //  case _ => Future.successful(NotFound)
     //}
   }
-
-  def extendOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
-    // TODO FAST STREAM FIX ME
-    Future.successful(Ok)
-    //withJsonBody[OnlineTestExtension] { extension =>
-    //  onlineRepository.getOnlineTestApplication(appId).flatMap {
-    //    case Some(onlineTestApp) =>
-    //      onlineTestExtensionService.extendExpiryTime(onlineTestApp, extension.extraDays).map { _ =>
-    //        Ok
-    //      }
-    //    case _ => Future.successful(NotFound)
-    //  }
-    //}
-  }
-
 }
