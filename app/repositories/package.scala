@@ -15,26 +15,27 @@
  */
 
 import factories.DateTimeFactory
-import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback}
+import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
-import model.OnlineTestCommands.{OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication}
+import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication }
 import model.PassmarkPersistedObjects._
-import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
+import model.PersistedObjects.{ ContactDetails, PersistedAnswer, PersonalDetails, _ }
 import model.persisted.AssistanceDetails
-import org.joda.time.{DateTime, DateTimeZone, LocalDate}
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
 import repositories.application._
+import repositories.onlinetests.OnlineTestMongoRepository
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculatorTrait
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
 package object repositories {

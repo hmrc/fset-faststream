@@ -22,7 +22,7 @@ import model.OnlineTestCommands._
 import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
 import play.api.Logger
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetests.OnlineTestRepository
 import services.evaluation._
 import services.passmarksettings.PassMarkSettingsService
 

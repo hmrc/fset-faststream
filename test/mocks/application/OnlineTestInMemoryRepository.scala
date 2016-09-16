@@ -19,10 +19,10 @@ package mocks.application
 import controllers.OnlineTestDetails
 import model.EvaluationResults._
 import model.OnlineTestCommands
-import model.OnlineTestCommands.{OnlineTestApplication, OnlineTestApplicationWithCubiksUser, Phase1TestProfile}
-import model.PersistedObjects.{ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest}
-import org.joda.time.{DateTime, LocalDate}
-import repositories.application.OnlineTestRepository
+import model.OnlineTestCommands.{ OnlineTestApplication, OnlineTestApplicationWithCubiksUser, Phase1TestProfile }
+import model.PersistedObjects.{ ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest }
+import org.joda.time.{ DateTime, LocalDate }
+import repositories.onlinetests.{ OnlineTestRepository, OnlineTestStatusFlags }
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -45,7 +45,7 @@ class OnlineTestInMemoryRepository extends OnlineTestRepository {
 
   def updateStatus(userId: String, status: String): Future[Unit] = Future.successful(Unit)
 
-  def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit] = Future.successful(Unit)
+  def updateGroupExpiryTime(userId: String, expirationDate: DateTime): Future[Unit] = Future.successful(Unit)
 
   def consumeToken(token: String): Future[Unit] = Future.successful(Unit)
 
@@ -72,4 +72,7 @@ class OnlineTestInMemoryRepository extends OnlineTestRepository {
   def removeOnlineTestEvaluationAndReports(applicationId: String): Future[Unit] = ???
 
   def savePassMarkScoreWithoutApplicationStatusUpdate(applicationId: String, version: String, p: RuleCategoryResult): Future[Unit] = ???
+
+  def setTestStatusFlag(applicationId: String, scheduleId: Int, flag: OnlineTestStatusFlags.Value): Future[Unit] = ???
+
 }

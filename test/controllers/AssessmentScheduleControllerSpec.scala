@@ -23,23 +23,24 @@ import config._
 import connectors.EmailClient
 import model.Address
 import model.AssessmentScheduleCommands.Implicits._
-import model.AssessmentScheduleCommands.{ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult}
+import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.command._
 import model.Exceptions.NotFoundException
-import model.PersistedObjects.{ContactDetails, PersonalDetails}
-import org.joda.time.{DateTime, LocalDate}
-import org.mockito.Matchers.{eq => eqTo, _}
+import model.PersistedObjects.{ ContactDetails, PersonalDetails }
+import org.joda.time.{ DateTime, LocalDate }
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{JsArray, JsString, JsValue, Json}
+import play.api.libs.json.{ JsArray, JsString, JsValue, Json }
 import play.api.mvc.Results
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.AssessmentCentreLocation._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository, PersonalDetailsRepository}
-import repositories.{AssessmentCentreLocation, _}
+import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.onlinetests.OnlineTestRepository
+import repositories.{ AssessmentCentreLocation, _ }
 import services.applicationassessment.ApplicationAssessmentService
 import testkit.MockitoSugar
 
@@ -709,8 +710,7 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
         )
       ))
       when(mockApplicationRepository.findProgress(any())).thenReturn(Future.successful(
-        ProgressResponse("appid-1", true, true, true, true, true, List(), true, false,
-          OnlineTestProgressResponse(true, true, true, false, false, false, false, true, true))
+        ProgressResponse("appid-1", true, true, true, true, true, List(), true, false)
       ))
     }
 
@@ -744,12 +744,10 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
         )
       ))
       when(mockApplicationRepository.findProgress(eqTo("appid-1"))).thenReturn(Future.successful(
-        ProgressResponse("appid-1", true, true, true, true, true, List(), true, false,
-          OnlineTestProgressResponse(true, true, true, false, false, false, false, true, true, false), false)
+        ProgressResponse("appid-1", true, true, true, true, true, List(), true, false)
       ))
       when(mockApplicationRepository.findProgress(eqTo("appid-2"))).thenReturn(Future.successful(
-        ProgressResponse("appid-2", true, true, true, true, true, List(), true, false,
-          OnlineTestProgressResponse(true, true, true, false, false, false, false, true, true, false), false)
+        ProgressResponse("appid-2", true, true, true, true, true, List(), true, false)
       ))
     }
 
@@ -771,12 +769,10 @@ class AssessmentScheduleControllerSpec extends PlaySpec with Results
         )
       ))
       when(mockApplicationRepository.findProgress(eqTo("appid-1"))).thenReturn(Future.successful(
-        ProgressResponse("appid-1", true, true, true, true, true, List(), true, withdrawn = true,
-          OnlineTestProgressResponse(true, true, true, false, false, false, false, true, true, false), false)
+        ProgressResponse("appid-1", true, true, true, true, true, List(), true, withdrawn = true)
       ))
       when(mockApplicationRepository.findProgress(eqTo("appid-2"))).thenReturn(Future.successful(
-        ProgressResponse("appid-2", true, true, true, true, true, List(), true, false,
-          OnlineTestProgressResponse(true, true, true, false, false, false, false, true, true, false), false)
+        ProgressResponse("appid-2", true, true, true, true, true, List(), true, false)
       ))
     }
 

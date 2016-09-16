@@ -22,14 +22,14 @@ import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatuses
 import model.EvaluationResults.RuleCategoryResult
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetests.OnlineTestRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AwaitingAllocationStatusGenerator extends AwaitingAllocationStatusGenerator {
-  override val previousStatusGenerator = OnlineTestCompletedStatusGenerator
+  override val previousStatusGenerator = CreatedStatusGenerator // TODO: Fix this in faststream once the appropriate prior stage is complete
   override val otRepository = onlineTestRepository
 }
 

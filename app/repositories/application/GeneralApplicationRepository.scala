@@ -184,17 +184,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
         questionnaire = questionnaire,
         submitted = getProgress("submitted"),
         withdrawn = getProgress("withdrawn"),
-        onlineTest = OnlineTestProgressResponse(onlineTestInvited = getProgress("online_test_invited"),
-          onlineTestStarted = getProgress("online_test_started"),
-          onlineTestCompleted = getProgress("online_test_completed"),
-          onlineTestExpired = getProgress("online_test_expired"),
-          onlineTestAwaitingReevaluation = getProgress("awaiting_online_test_re_evaluation"),
-          onlineTestFailed = getProgress("online_test_failed"),
-          onlineTestFailedNotified = getProgress("online_test_failed_notified"),
-          onlineTestAwaitingAllocation = getProgress("awaiting_online_test_allocation"),
-          onlineTestAllocationConfirmed = getProgress("allocation_confirmed"),
-          onlineTestAllocationUnconfirmed = getProgress("allocation_unconfirmed")
-        ),
+        phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.toString),
+        phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.toString),
+        phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.toString),
+        phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
+        phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
         failedToAttend = getProgress("failed_to_attend"),
         assessmentScores = AssessmentScores(getProgress("assessment_scores_entered"), getProgress("assessment_scores_accepted")),
         assessmentCentre = AssessmentCentre(
@@ -1020,12 +1014,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     progressStatus: ProgressStatuses.ProgressStatus
   ): Future[Unit] = progressStatus match {
     case ProgressStatuses.PHASE1_TESTS_INVITED => initialisePhase1TestStatus(applicationId)
-    case _ => {
+    case _ =>
       val query = BSONDocument("applicationId" -> applicationId)
       collection.update(query, BSONDocument("$set" ->
         applicationStatusBSON(progressStatus))
-      ) map { _ => }
-    }
+      ) map ( _ => () )
   }
 
 

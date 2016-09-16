@@ -16,16 +16,21 @@
 
 package controllers
 
+import config.CubiksGatewayConfig
 import model.Commands
+import model.exchange
 import model.OnlineTestCommands.Implicits._
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import config.MicroserviceAppConfig.cubiksGatewayConfig
+import model.ProgressStatuses._
+import repositories.onlinetests.{ OnlineTestRepository, OnlineTestStatusFlags }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -47,33 +52,66 @@ case class OnlineTestExtension(extraDays: Int)
 case class UserIdWrapper(userId: String)
 
 object OnlineTestController extends OnlineTestController {
-  override val applicationRepository: GeneralApplicationRepository = applicationRepository
+  override val appRepository: GeneralApplicationRepository = applicationRepository
   override val onlineRepository: OnlineTestRepository = onlineTestRepository
   override val onlineTestingService: OnlineTestService = OnlineTestService
   override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
+  override val cubiksConfig = cubiksGatewayConfig
 }
 
 trait OnlineTestController extends BaseController {
 
-  val applicationRepository: GeneralApplicationRepository
+  val appRepository: GeneralApplicationRepository
   val onlineRepository: OnlineTestRepository
   val onlineTestingService: OnlineTestService
   val onlineTestExtensionService: OnlineTestExtensionService
+  val cubiksConfig: CubiksGatewayConfig
 
   import Commands.Implicits._
 
   def getOnlineTest(userId: String) = Action.async { implicit request =>
 
+    // TODO This is a bit icky
+    def getScheduleNameFromId(id: Int): String = {
+      cubiksConfig.onlineTestConfig.scheduleIds.find(_._2 == id).getOrElse(("UNKOWN", 0))._1
+    }
+
     onlineTestingService.getPhase1TestProfile(userId).map {
-      case Some(phase1TestProfile) => Ok(Json.toJson(phase1TestProfile))
+      case Some(phase1TestProfile) =>
+        Ok(Json.toJson(exchange.Phase1TestProfile(
+          expirationDate = phase1TestProfile.expirationDate,
+          tests = phase1TestProfile.tests.map { test =>
+            exchange.Phase1Test(testType = getScheduleNameFromId(test.scheduleId),
+              usedForResults = test.usedForResults,
+              testUrl = test.testUrl,
+              token = test.token,
+              invitationDate = test.invitationDate,
+              started = test.started,
+              completed = test.completed,
+              resultsReadyToDownload = test.resultsReadyToDownload
+            )
+          }
+        )))
+
       case None => Logger.error(s"No phase 1 test found for userID [$userId]")
         NotFound
     }
   }
 
   def onlineTestStatusUpdate(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[OnlineTestStatus] { onlineTestStatus =>
-      applicationRepository.updateStatus(applicationId, onlineTestStatus.status).map(_ => Ok)
+    withJsonBody[exchange.TestStatusUpdate] { testStatusUpdate =>
+
+      val flagToUpdate = testStatusUpdate.status match {
+        case PHASE1_TESTS_STARTED => Some(OnlineTestStatusFlags.started)
+        case PHASE1_TESTS_COMPLETED => Some(OnlineTestStatusFlags.completed)
+        case _ => None
+      }
+
+      flagToUpdate.map { flag =>
+        onlineRepository.setTestStatusFlag(applicationId, testStatusUpdate.testToken, flag)
+      }.getOrElse(Future.successful()).map { x =>
+        appRepository.updateProgressStatus(applicationId, testStatusUpdate.status)
+      }.map( _ => Ok )
     }
   }
 
@@ -107,19 +145,4 @@ trait OnlineTestController extends BaseController {
     //  case _ => Future.successful(NotFound)
     //}
   }
-
-  def extendOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
-    // TODO FAST STREAM FIX ME
-    Future.successful(Ok)
-    //withJsonBody[OnlineTestExtension] { extension =>
-    //  onlineRepository.getOnlineTestApplication(appId).flatMap {
-    //    case Some(onlineTestApp) =>
-    //      onlineTestExtensionService.extendExpiryTime(onlineTestApp, extension.extraDays).map { _ =>
-    //        Ok
-    //      }
-    //    case _ => Future.successful(NotFound)
-    //  }
-    //}
-  }
-
 }

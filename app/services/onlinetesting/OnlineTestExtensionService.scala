@@ -17,32 +17,56 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import model.OnlineTestCommands.OnlineTestApplication
 import org.joda.time.DateTime
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetests.OnlineTestRepository
+import services.onlinetesting.OnlineTestService.TestExtensionException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait OnlineTestExtensionService {
-  def extendExpiryTime(application: OnlineTestApplication, extraDays: Int): Future[Unit]
+  def extendTestGroupExpiryTime(groupKey: String, applicationId: String, extraDays: Int): Future[Unit]
 }
 
 class OnlineTestExtensionServiceImpl(
+  appRepository: GeneralApplicationRepository,
   otRepository: OnlineTestRepository,
   dateTime: DateTimeFactory
 ) extends OnlineTestExtensionService {
 
-  override def extendExpiryTime(application: OnlineTestApplication, extraDays: Int): Future[Unit] = {
-    val userId = application.userId
+  override def extendTestGroupExpiryTime(groupKey: String, applicationId: String, extraDays: Int): Future[Unit] = {
+    // Check the state of this user
+    appRepository.findProgress(applicationId).map { progressResponse =>
+      if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) {
+        // Get existing expiry
+        //otRepository.getPhase1TestProfile(applicationId).map { testGroup =>
+
+        //}
+        // Extend
+      } else if (progressResponse.phase1TestsExpired) {
+
+      } else {
+        throw TestExtensionException("Application is in an invalid status for test extension")
+      }
+
+      //otRepository.getOnlineTestApplication(applicationId).flatMap {
+      //case Some(onlineTestApp) =>
+      //onlineTestExtensionService.extendExpiryTime(onlineTestApp, extension.extraDays).map { _ =>
+
+      //   }
+      //}
+
+      /*val userId = application.userId
     for {
       expiryDate <- getExpiryDate(userId)
       newExpiryDate = calculateNewExpiryDate(expiryDate, extraDays)
       // TODO FAST STREAM FIX ME _ <- otRepository.updateExpiryTime(userId, newExpiryDate)
-    } yield ()
+    } yield ()*/
+    }
   }
-
+    /*
   private def getExpiryDate(userId: String): Future[DateTime] = {
     // TODO FAST STREAM FIX ME
     Future.successful(DateTime.now())
@@ -55,7 +79,7 @@ class OnlineTestExtensionServiceImpl(
   private def max(dateTime1: DateTime, dateTime2: DateTime): DateTime = {
     implicit val dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
     List(dateTime1, dateTime2).max
-  }
+  }*/
 }
 
-object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(onlineTestRepository, DateTimeFactory)
+object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(applicationRepository, onlineTestRepository, DateTimeFactory)

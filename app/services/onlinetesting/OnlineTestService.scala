@@ -19,21 +19,23 @@ package services.onlinetesting
 import _root_.services.AuditService
 import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
-import connectors.{CSREmailClient, CubiksGatewayClient, EmailClient}
+import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
 import controllers.OnlineTest
-import factories.{DateTimeFactory, UUIDFactory}
-import model.{ApplicationStatus, ApplicationStatuses, ProgressStatuses}
+import factories.{ DateTimeFactory, UUIDFactory }
+import model.{ ApplicationStatus, ApplicationStatuses, ProgressStatuses }
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
 import org.joda.time.DateTime
 import play.api.Logger
 import play.libs.Akka
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetests.{ OnlineTestRepository, OnlineTestStatusFlags }
+import services.onlinetesting.OnlineTestService.TestExtensionException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
 object OnlineTestService extends OnlineTestService {
@@ -48,6 +50,8 @@ object OnlineTestService extends OnlineTestService {
   val emailClient = CSREmailClient
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
+
+  case class TestExtensionException(message: String) extends Exception(message)
 }
 
 trait OnlineTestService {
@@ -77,10 +81,8 @@ trait OnlineTestService {
 
   def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = {
     appRepository.findCandidateByUserId(userId).flatMap {
-      case Some(candidate) if candidate.applicationId.isDefined =>
-        otRepository.getPhase1TestProfile(candidate.applicationId.get)
+      case Some(candidate) => otRepository.getPhase1TestProfile(candidate.applicationId.getOrElse(""))
       case None => Future.successful(None)
-      case _ => Future.successful(None)
     }
   }
 
@@ -114,7 +116,7 @@ trait OnlineTestService {
         token = authToken,
         invitationDate = invitationDate,
         participantScheduleId = invitation.participantScheduleId,
-        testUrl = invitation.logonUrl
+        testUrl = invitation.authenticateUrl
       )
     }
 
@@ -224,9 +226,9 @@ trait OnlineTestService {
 
   private def getScheduleIdForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
-      gatewayConfig.onlineTestConfig.scheduleIds.gis
+      gatewayConfig.onlineTestConfig.gis.flatMap(gatewayConfig.onlineTestConfig.scheduleIds.get)
     } else {
-      gatewayConfig.onlineTestConfig.scheduleIds.standard
+      gatewayConfig.onlineTestConfig.standard.flatMap(gatewayConfig.onlineTestConfig.scheduleIds.get)
     }
   }
 

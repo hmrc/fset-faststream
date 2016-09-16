@@ -19,13 +19,14 @@ package repositories
 import java.util.UUID
 
 import factories.DateTimeFactory
-import model.OnlineTestCommands.{Phase1Test, Phase1TestProfile }
+import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.OnlineTestCommands.Implicits.Phase1TestProfileFormats
 import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
 import org.joda.time.DateTime
-import reactivemongo.bson.{BSONArray, BSONDocument}
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{GeneralApplicationMongoRepository, OnlineTestMongoRepository}
+import repositories.application.GeneralApplicationMongoRepository
+import repositories.onlinetests.{ OnlineTestMongoRepository, OnlineTestStatusFlags }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
@@ -52,11 +53,27 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       val date = new DateTime("2016-03-08T13:04:29.643Z")
       val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
 
-      onlineTestRepo.insertPhase1TestProfile("appId", testProfile)
+      onlineTestRepo.insertPhase1TestProfile("appId", testProfile).futureValue
 
       onlineTestRepo.getPhase1TestProfile("appId").futureValue.foreach { result =>
-        result.expirationDate.toDate must be (new DateTime("2016-03-15T13:04:29.643Z").toDate)
+        result.expirationDate.toDate mustBe date
         result.tests.head.testUrl mustBe phase1Test.testUrl
+      }
+    }
+  }
+
+  "set a status flag for a test" should {
+    "set the status flag to true" in {
+      val date = DateTime.now
+      val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
+      onlineTestRepo.insertPhase1TestProfile("appId", testProfile).futureValue
+
+      onlineTestRepo.setTestStatusFlag("appId", testProfile.tests.head.token,
+        OnlineTestStatusFlags.started
+      ).futureValue
+
+      onlineTestRepo.getPhase1TestProfile("appId").futureValue.foreach { result =>
+        result.tests.head.started mustBe true
       }
     }
   }
