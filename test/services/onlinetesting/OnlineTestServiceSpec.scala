@@ -308,10 +308,9 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
         any[HeaderCarrier]
       )).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
+      when(appRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.successful(()))
       when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-      when(appRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful())
 
       val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
       result.futureValue mustBe (())
@@ -433,6 +432,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
       .thenReturn(Future.successful(()))
     when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-    when(appRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful())
+    when(appRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile])).thenReturn(Future.successful())
   }
 }

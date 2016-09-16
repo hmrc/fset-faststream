@@ -163,16 +163,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   }
 
-  "Update application status" should {
-    "update the application and progress status for a user" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED")
-      repository.updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_INVITED).futureValue
-
-      val result = repository.findByUserId("userId", "frameworkId").futureValue
-      result.applicationStatus mustBe ProgressStatuses.PHASE1_TESTS_INVITED.applicationStatus.toString
-    }
-  }
-
   "Next application ready for online testing" should {
     "return no application if htere is only one and it is a fast pass candidate" in{
       createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,

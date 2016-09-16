@@ -16,25 +16,24 @@
 
 package repositories.application
 
-import java.util.{ Calendar, Date, UUID }
+import java.util.UUID
 
-import model.ApplicationStatus.ApplicationStatus
 import model.ApplicationStatusOrder._
 import model.ApplicationStatuses._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
-import model.OnlineTestCommands.{OnlineTestApplication, TimeAdjustmentsOnlineTestApplication}
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
+import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model.PersistedObjects.ApplicationForNotification
+import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model._
 import model.command._
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, LocalDate}
-import play.api.Logger
-import play.api.libs.json.{Format, JsNumber, JsObject}
-import reactivemongo.api.{DB, QueryOpts, ReadPreference}
-import reactivemongo.bson.{BSONDocument, _}
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.{ Format, JsNumber, JsObject }
+import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -116,6 +115,8 @@ trait GeneralApplicationRepository {
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
   def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
+
+  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -1016,22 +1017,14 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
   }
 
-  override def updateProgressStatus(applicationId: String,
-    progressStatus: ProgressStatuses.ProgressStatus
-  ): Future[Unit] = progressStatus match {
-    case ProgressStatuses.PHASE1_TESTS_INVITED => initialisePhase1TestStatus(applicationId)
-    case _ => {
-      val query = BSONDocument("applicationId" -> applicationId)
-      collection.update(query, BSONDocument("$set" ->
-        applicationStatusBSON(progressStatus))
-      ) map { _ => }
-    }
+  override def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    collection.update(query, BSONDocument("$set" ->
+      applicationStatusBSON(progressStatus))
+    ) map { _ => }
   }
 
-
-  private def initialisePhase1TestStatus(applicationId: String): Future[Unit] = {
-    import model.ProgressStatuses._
-
+  override def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
@@ -1041,6 +1034,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     )) ++ BSONDocument("$set" -> BSONDocument(
       s"progress-status.$PHASE1_TESTS_INVITED" -> true,
       "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
+    )) ++ BSONDocument("$set" -> BSONDocument(
+      "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
     ))
 
     collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
