@@ -173,29 +173,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-  "Next application ready for online testing" should {
-    "return no application if htere is only one and it is a fast pass candidate" in{
-      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
-      )
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result must be (None)
-    }
-
-    "return one application if there is only one and it is not a fast pass candidate" in{
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false
-      )
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result.get.applicationId mustBe "appId"
-      result.get.userId mustBe "userId"
-    }
-  }
-
   val testCandidate = Map(
     "firstName" -> "George",
     "lastName" -> "Jetson",

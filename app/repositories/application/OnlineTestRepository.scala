@@ -20,16 +20,17 @@ import config.MicroserviceAppConfig._
 import controllers.OnlineTestDetails
 import factories.DateTimeFactory
 import model.EvaluationResults._
-import model.Exceptions.{NotFoundException, UnexpectedException}
-import model.OnlineTestCommands.Phase1TestProfile
+import model.Exceptions.{ NotFoundException, UnexpectedException }
+import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model.OnlineTestCommands.Implicits._
-import model.PersistedObjects.{ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest}
-import model.{ApplicationStatuses, Commands}
-import org.joda.time.{DateTime, LocalDate}
+import model.PersistedObjects.{ ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest }
+import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
+import model.{ ApplicationStatus, ApplicationStatuses, Commands }
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.api.commands.UpdateWriteResult
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID, BSONString}
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID, BSONString }
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -42,7 +43,7 @@ trait OnlineTestRepository {
 
   //def nextApplicationPendingFailure: Future[Option[ApplicationForNotification]]
 
-  //def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
+  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
 
@@ -66,9 +67,34 @@ trait OnlineTestRepository {
 }
 
 class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[OnlineTestDetails, BSONObjectID]("online-tests", mongo,
+  extends ReactiveRepository[OnlineTestDetails, BSONObjectID]("application", mongo,
     Commands.Implicits.onlineTestDetailsFormat, ReactiveMongoFormats.objectIdFormats) with OnlineTestRepository with RandomSelection {
 
+  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+      BSONDocument("fastpass-details.applicable" -> false)
+    ))
+
+    selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
+  }
+
+  override def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
+      s"progress-status.$OnlineTestFailedProgress" -> "",
+      s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
+      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> ""
+    )) ++ BSONDocument("$set" -> BSONDocument(
+      s"progress-status.$PHASE1_TESTS_INVITED" -> true,
+      "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
+    )) ++ BSONDocument("$set" -> BSONDocument(
+      "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
+    ))
+
+    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
+  }
 
   override def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]] = {
 
@@ -101,17 +127,6 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       if (status.n > 1) throw new UnexpectedException(s"updateStatus somehow updated more than one record for userId:$userId")
     }
   }*/
-
-
-
-  override def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
-
-    val doc = BSONDocument("applicationId" -> applicationId,
-      "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
-    )
-
-    collection.insert(doc) map ( _ => () )
-  }
 
   /*
   override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {

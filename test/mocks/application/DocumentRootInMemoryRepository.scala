@@ -16,14 +16,15 @@
 
 package mocks.application
 
-import model.AssessmentScheduleCommands.{ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult}
+import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.command._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
-import model.{ApplicationStatus, FastPassDetails, ProgressStatuses}
+import model.OnlineTestCommands.Phase1TestProfile
+import model.{ ApplicationStatus, FastPassDetails, ProgressStatuses }
 import model.PersistedObjects.ApplicationForNotification
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
 
 import scala.collection.mutable
@@ -155,4 +156,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   def nextApplicationReadyForOnlineTesting: scala.concurrent.Future[Option[model.OnlineTestCommands.OnlineTestApplication]] = ???
   def setOnlineTestStatus(applicationId: String, status: String): scala.concurrent.Future[Unit] = ???
+
+  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit] = ???
 }
