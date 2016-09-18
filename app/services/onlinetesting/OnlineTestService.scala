@@ -271,10 +271,6 @@ trait OnlineTestService {
     )
   }
 
-  private def calculateExpireDate(invitationDate: DateTime) = {
-    invitationDate.plusDays(gatewayConfig.onlineTestConfig.expiryTimeInDays)
-  }
-
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
       gatewayConfig.onlineTestConfig.gis
