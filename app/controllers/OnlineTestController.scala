@@ -18,6 +18,7 @@ package controllers
 
 import model.Commands
 import model.OnlineTestCommands.Implicits._
+import model.command.ResetOnlineTest
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
@@ -47,7 +48,7 @@ case class OnlineTestExtension(extraDays: Int)
 case class UserIdWrapper(userId: String)
 
 object OnlineTestController extends OnlineTestController {
-  override val applicationRepository: GeneralApplicationRepository = applicationRepository
+  override val appRepository: GeneralApplicationRepository = applicationRepository
   override val onlineRepository: OnlineTestRepository = onlineTestRepository
   override val onlineTestingService: OnlineTestService = OnlineTestService
   override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
@@ -55,7 +56,7 @@ object OnlineTestController extends OnlineTestController {
 
 trait OnlineTestController extends BaseController {
 
-  val applicationRepository: GeneralApplicationRepository
+  val appRepository: GeneralApplicationRepository
   val onlineRepository: OnlineTestRepository
   val onlineTestingService: OnlineTestService
   val onlineTestExtensionService: OnlineTestExtensionService
@@ -73,7 +74,7 @@ trait OnlineTestController extends BaseController {
 
   def onlineTestStatusUpdate(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestStatus] { onlineTestStatus =>
-      applicationRepository.updateStatus(applicationId, onlineTestStatus.status).map(_ => Ok)
+      appRepository.updateStatus(applicationId, onlineTestStatus.status).map(_ => Ok)
     }
   }
 
@@ -95,17 +96,17 @@ trait OnlineTestController extends BaseController {
     Future.successful(Ok)
   }
 
-  def resetOnlineTests(appId: String) = Action.async { implicit request =>
+  def resetOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
+      appRepository.getOnlineTestApplication(appId).flatMap {
+        case Some(onlineTestApp) =>
+          onlineTestingService.registerAndInviteForTestGroup(onlineTestApp, resetOnlineTest.tests).map { _ =>
+            Ok
+          }
+        case _ => Future.successful(NotFound)
+      }
+    }
 
-    // TODO FAST STREAM FIX ME
-    Future.successful(Ok)
-    //onlineRepository.getOnlineTestApplication(appId).flatMap {
-    //  case Some(onlineTestApp) =>
-    //    onlineTestingService.registerAndInviteForTestGroup(onlineTestApp).map { _ =>
-    //      Ok
-    //    }
-    //  case _ => Future.successful(NotFound)
-    //}
   }
 
   def extendOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>

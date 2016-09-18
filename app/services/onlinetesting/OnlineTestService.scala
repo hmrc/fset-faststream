@@ -72,23 +72,27 @@ trait OnlineTestService {
   ).map(a => ReportNorm(a.assessmentId, a.normId)).toList
 
   def nextApplicationReadyForOnlineTesting() = {
-    appRepository.nextApplicationReadyForOnlineTesting
+    otRepository.nextApplicationReadyForOnlineTesting
   }
 
   def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = {
     appRepository.findCandidateByUserId(userId).flatMap {
-      case Some(candidate) if candidate.applicationId.isDefined =>
-        otRepository.getPhase1TestProfile(candidate.applicationId.get)
+      case Some(candidate) if candidate.applicationId.isDefined => otRepository.getPhase1TestProfile(candidate.applicationId.get)
       case None => Future.successful(None)
-      case _ => Future.successful(None)
     }
   }
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
-    val (invitationDate, expirationDate) = onlineTestDates
-    val registerAndInviteProcess = Future.sequence(getScheduleIdForApplication(application).map { scheduleId =>
+    registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
+  }
+
+  def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String]): Future[Unit] = {
+    val (invitationDate, expirationDate) = calcOnlineTestDates
+
+    val registerAndInviteProcess = Future.sequence(scheduleNames.map { sn =>
+      val scheduleId = scheduleIdByName(sn)
       registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
-    }).map { phase1Tests =>
+    }).flatMap { phase1Tests =>
       markAsInvited(application)(Phase1TestProfile(expirationDate = expirationDate, tests = phase1Tests))
     }
 
@@ -100,7 +104,7 @@ trait OnlineTestService {
   }
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int,
-    invitationDate: DateTime, expirationDate: DateTime): Future[Phase1Test] = {
+                                         invitationDate: DateTime, expirationDate: DateTime): Future[Phase1Test] = {
     val authToken = tokenFactory.generateUUID()
 
     for {
@@ -114,7 +118,7 @@ trait OnlineTestService {
         token = authToken,
         invitationDate = invitationDate,
         participantScheduleId = invitation.participantScheduleId,
-        testUrl = invitation.logonUrl
+        testUrl = invitation.authenticateUrl
       )
     }
 
@@ -183,7 +187,7 @@ trait OnlineTestService {
   }
 
   private def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-    invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = {
+                                     invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
       audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))
@@ -191,25 +195,39 @@ trait OnlineTestService {
   }
 
   private def markAsInvited(application: OnlineTestApplication)
-    (onlineTestProfile: Phase1TestProfile): Future[Unit] = for {
-    _ <- otRepository.insertPhase1TestProfile(application.applicationId, onlineTestProfile)
-    _ <- appRepository.updateProgressStatus(application.applicationId, ProgressStatuses.PHASE1_TESTS_INVITED)
+                           (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
+    currentOnlineTestProfile <- otRepository.getPhase1TestProfile(application.applicationId)
+    updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
+    _ <- otRepository.insertPhase1TestProfile(application.applicationId, updatedOnlineTestProfile)
   } yield {
-      audit(s"ApplicationStatus set to ${ApplicationStatus.PHASE1_TESTS} - ProgressStatus set to" +
-        s" ${ProgressStatuses.PHASE1_TESTS_INVITED}", application.userId)
+    audit("OnlineTestInvited", application.userId)
+  }
+
+  private def merge(currentProfile: Option[Phase1TestProfile], newProfile: Phase1TestProfile): Phase1TestProfile = currentProfile match {
+    case None =>
+      newProfile
+    case Some(profile) =>
+      val scheduleIdsToArchive = newProfile.tests.map(_.scheduleId)
+      val existingTests = profile.tests.map(t =>
+        if (scheduleIdsToArchive.contains(t.scheduleId)) {
+          t.copy(usedForResults = false)
+        } else {
+          t
+        }
+      )
+      Phase1TestProfile(newProfile.expirationDate, existingTests ++ newProfile.tests)
   }
 
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
     cdRepository.find(application.userId).map(_.email)
 
-  private def onlineTestDates: (DateTime, DateTime) = {
+  private def calcOnlineTestDates: (DateTime, DateTime) = {
     val invitationDate = onlineTestInvitationDateFactory.nowLocalTimeZone
     val expirationDate = calculateExpireDate(invitationDate)
     (invitationDate, expirationDate)
   }
 
   private def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
-    // Only log user ID (not email).
     Logger.info(s"$event for user $userId")
 
     auditService.logEventNoRequest(
@@ -222,12 +240,16 @@ trait OnlineTestService {
     invitationDate.plusDays(gatewayConfig.onlineTestConfig.expiryTimeInDays)
   }
 
-  private def getScheduleIdForApplication(application: OnlineTestApplication) = {
+  private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
-      gatewayConfig.onlineTestConfig.scheduleIds.gis
+      gatewayConfig.onlineTestConfig.gis
     } else {
-      gatewayConfig.onlineTestConfig.scheduleIds.standard
+      gatewayConfig.onlineTestConfig.standard
     }
+  }
+
+  private def scheduleIdByName(name: String): Int = {
+    gatewayConfig.onlineTestConfig.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
   private[services] def getTimeAdjustments(application: OnlineTestApplication): Option[TimeAdjustments] = {
