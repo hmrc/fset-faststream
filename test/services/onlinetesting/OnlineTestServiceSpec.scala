@@ -62,7 +62,9 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     "",
     CubiksOnlineTestConfig(phaseName = "phase",
       expiryTimeInDays = 7,
-      scheduleIds = CubiksGatewaysScheduleIds(standardScheduleIdMock, gisScheduledIdMock)
+      scheduleIds = Map(),
+      List(),
+      List()
     ),
     CubiksGatewayVerbalAndNumericalAssessment(
       VerbalAndNumericalAssessmentId,
