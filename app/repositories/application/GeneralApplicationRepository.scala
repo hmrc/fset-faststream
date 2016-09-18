@@ -257,19 +257,17 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   def findByCriteria(firstOrPreferredNameOpt: Option[String],
     lastNameOpt: Option[String],
     dateOfBirth: Option[LocalDate],
-    userIds: List[String] = List.empty
+    userIds: List[String]
   ): Future[List[Candidate]] = {
+
+    def matchIfSome(value: Option[String]) = value.map(v => BSONRegex("^" + v + "$", "i"))
 
     val innerQuery = BSONArray(
       BSONDocument("$or" -> BSONArray(
-        BSONDocument("personal-details.firstName" -> firstOrPreferredNameOpt.map {
-          firstName => BSONRegex("^" + firstName + "$", "i")
-        }),
-        BSONDocument("personal-details.preferredName" -> firstOrPreferredNameOpt.map {
-          preferredName => BSONRegex("^" + preferredName + "$", "i") }
-        )
+        BSONDocument("personal-details.firstName" -> matchIfSome(firstOrPreferredNameOpt)),
+        BSONDocument("personal-details.preferredName" -> matchIfSome(firstOrPreferredNameOpt))
       )),
-      BSONDocument("personal-details.lastName" -> lastNameOpt.map { lastName => BSONRegex("^" + lastName + "$", "i") }),
+      BSONDocument("personal-details.lastName" -> matchIfSome(lastNameOpt)),
       BSONDocument("personal-details.dateOfBirth" -> dateOfBirth)
     )
 
