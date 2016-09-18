@@ -276,8 +276,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           .thenReturn(Future.successful(registration))
         when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(invitation))
-        when(otRepositoryMock.insertPhase1TestProfile(ApplicationId, phase1TestProfile))
-          .thenReturn(Future.successful(()))
         when(cdRepositoryMock.find(UserId)).thenReturn(Future.successful(contactDetails))
         when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
           any[HeaderCarrier]
@@ -302,13 +300,11 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         .thenReturn(Future.successful(registration))
       when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
         .thenReturn(Future.successful(invitation))
-      when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
-        .thenReturn(Future.successful(()))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
         any[HeaderCarrier]
       )).thenReturn(Future.successful(()))
-      when(appRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
+      when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.successful(()))
       when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
 
@@ -423,8 +419,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       .thenReturn(Future.successful(registration))
     when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
       .thenReturn(Future.successful(invitation))
-    when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
-      .thenReturn(Future.successful(()))
     when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
     when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
       any[HeaderCarrier]
@@ -432,6 +426,5 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
       .thenReturn(Future.successful(()))
     when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-    when(appRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile])).thenReturn(Future.successful())
   }
 }

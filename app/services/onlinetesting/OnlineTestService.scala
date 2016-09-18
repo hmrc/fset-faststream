@@ -72,7 +72,7 @@ trait OnlineTestService {
   ).map(a => ReportNorm(a.assessmentId, a.normId)).toList
 
   def nextApplicationReadyForOnlineTesting() = {
-    appRepository.nextApplicationReadyForOnlineTesting
+    otRepository.nextApplicationReadyForOnlineTesting
   }
 
   def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = {
@@ -192,7 +192,7 @@ trait OnlineTestService {
 
   private def markAsInvited(application: OnlineTestApplication)
     (onlineTestProfile: Phase1TestProfile): Future[Unit] = for {
-    _ <- appRepository.insertPhase1TestProfile(application.applicationId, onlineTestProfile)
+    _ <- otRepository.insertPhase1TestProfile(application.applicationId, onlineTestProfile)
   } yield {
       audit(s"ApplicationStatus set to ${ApplicationStatus.PHASE1_TESTS} - ProgressStatus set to" +
         s" ${ProgressStatuses.PHASE1_TESTS_INVITED}", application.userId)

@@ -17,31 +17,25 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model.Commands.{Candidate, Report}
-import model.Exceptions.NotFoundException
-import model.ProgressStatuses.ProgressStatus
-import model.{ApplicationStatus, FastPassDetails, ProgressStatuses}
-import org.joda.time.{DateTime, LocalDate}
-import reactivemongo.bson.{BSONArray, BSONDocument}
-import reactivemongo.json.ImplicitBSONHandlers
+import model.Commands.Report
+import model.FastPassDetails
+import org.joda.time.LocalDate
+import repositories.ApplicationRepositoryHelper
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.Future
-
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
-
-  import ImplicitBSONHandlers._
 
   val collectionName = "application"
 
   def repository = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  val helperRepository = new ApplicationRepositoryHelper(repository)
 
   "General Application repository" should {
     "Get overall report for an application with all fields" in {
       val userId = generateUUID()
       val appId = generateUUID()
-      createApplicationWithAllFields(userId, appId, "FastStream-2016")
+      helperRepository.createApplicationWithAllFields(userId, appId, "FastStream-2016")
 
       val result = repository.overallReport("FastStream-2016").futureValue
 
@@ -58,7 +52,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "Get overall report for the minimum application" in {
       val userId = generateUUID()
       val appId = generateUUID()
-      createMinimumApplication(userId, appId, "FastStream-2016")
+      helperRepository.createMinimumApplication(userId, appId, "FastStream-2016")
 
       val result = repository.overallReport("FastStream-2016").futureValue
 
@@ -73,7 +67,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val userId = "fastPassUser"
       val appId = "fastPassApp"
       val frameworkId = "FastStream-2016"
-      createApplicationWithAllFields(userId, appId, frameworkId)
+      helperRepository.createApplicationWithAllFields(userId, appId, frameworkId)
 
       val applicationResponse = repository.findByUserId(userId, frameworkId).futureValue
 
@@ -86,10 +80,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Find by criteria" should {
     "find by first name" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      helperRepository.createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
 
       val applicationResponse = repository.findByCriteria(
-        Some(testCandidate("firstName")), None, None
+        Some(helperRepository.testCandidate("firstName")), None, None
       ).futureValue
 
       applicationResponse.size mustBe 1
@@ -97,10 +91,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by preferred name" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      helperRepository.createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
 
       val applicationResponse = repository.findByCriteria(
-        Some(testCandidate("preferredName")), None, None
+        Some(helperRepository.testCandidate("preferredName")), None, None
       ).futureValue
 
       applicationResponse.size mustBe 1
@@ -108,10 +102,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by lastname" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      helperRepository.createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
 
       val applicationResponse = repository.findByCriteria(
-        None, Some(testCandidate("lastName")), None
+        None, Some(helperRepository.testCandidate("lastName")), None
       ).futureValue
 
       applicationResponse.size mustBe 1
@@ -119,9 +113,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find date of birth" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      helperRepository.createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
 
-      val dobParts = testCandidate("dateOfBirth").split("-").map(_.toInt)
+      val dobParts = helperRepository.testCandidate("dateOfBirth").split("-").map(_.toInt)
       val (dobYear, dobMonth, dobDay) = (dobParts.head, dobParts(1), dobParts(2))
 
       val applicationResponse = repository.findByCriteria(
@@ -137,7 +131,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "Return an empty candidate list when there are no results" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      helperRepository.createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
 
       val applicationResponse = repository.findByCriteria(
         Some("UnknownFirstName"), None, None
@@ -147,7 +141,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "filter by provided user Ids" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      helperRepository.createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
       val matchResponse = repository.findByCriteria(
         None, None, None, List("userId")
       ).futureValue
@@ -162,122 +156,4 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
   }
-
-  "Next application ready for online testing" should {
-    "return no application if htere is only one and it is a fast pass candidate" in{
-      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
-      )
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result must be (None)
-    }
-
-    "return one application if there is only one and it is not a fast pass candidate" in{
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false
-      )
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result.get.applicationId mustBe "appId"
-      result.get.userId mustBe "userId"
-    }
-  }
-
-  val testCandidate = Map(
-    "firstName" -> "George",
-    "lastName" -> "Jetson",
-    "preferredName" -> "Georgy",
-    "dateOfBirth" -> "1986-05-01"
-  )
-
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-    appStatus: String = "", needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
-    timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false) = {
-    repository.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "applicationStatus" -> appStatus,
-      "userId" -> userId,
-      "frameworkId" -> frameworkId,
-      "framework-preferences" -> BSONDocument(
-        "firstLocation" -> BSONDocument(
-          "region" -> "Region1",
-          "location" -> "Location1",
-          "firstFramework" -> "Commercial",
-          "secondFramework" -> "Digital and technology"
-        ),
-        "secondLocation" -> BSONDocument(
-          "location" -> "Location2",
-          "firstFramework" -> "Business",
-          "secondFramework" -> "Finance"
-        ),
-        "alternatives" -> BSONDocument(
-          "location" -> true,
-          "framework" -> true
-        )
-      ),
-      "personal-details" -> BSONDocument(
-        "firstName" -> s"${testCandidate("firstName")}",
-        "lastName" -> s"${testCandidate("lastName")}",
-        "preferredName" -> s"${testCandidate("preferredName")}",
-        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}",
-        "aLevel" -> true,
-        "stemLevel" -> true
-      ),
-      "fastpass-details" -> BSONDocument(
-        "applicable" -> fastPassApplicable,
-        "fastPassReceived" -> fastPassApplicable
-      ),
-      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments),
-      "issue" -> "this candidate has changed the email",
-      "progress-status" -> BSONDocument(
-        "registered" -> "true"
-      )
-    )).futureValue
-  }
-
-  private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
-    timeExtensionAdjustments:Boolean) = {
-    if (needsAdjustment) {
-      if (adjustmentsConfirmed) {
-        if (timeExtensionAdjustments) {
-          BSONDocument(
-            "needsAdjustment" -> "Yes",
-            "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-            "adjustments-confirmed" -> true,
-            "verbalTimeAdjustmentPercentage" -> 9,
-            "numericalTimeAdjustmentPercentage" -> 11
-          )
-        } else {
-          BSONDocument(
-            "needsAdjustment" -> "Yes",
-            "typeOfAdjustments" -> BSONArray("room alone"),
-            "adjustments-confirmed" -> true
-          )
-        }
-      } else {
-        BSONDocument(
-          "needsAdjustment" -> "Yes",
-          "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-          "adjustments-confirmed" -> false
-        )
-      }
-    } else {
-      BSONDocument(
-        "needsAdjustment" -> "No"
-      )
-    }
-  }
-
-  def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
-    repository.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "userId" -> userId,
-      "frameworkId" -> frameworkId
-    )).futureValue
-  }
-
-
 }
