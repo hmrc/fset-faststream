@@ -82,7 +82,7 @@ trait ApplicationAssessmentService {
       //    "applicationId" -> applicationId
       //  ))
       //}
-      Future.successful()
+      Future.successful(())
     }
   }
 

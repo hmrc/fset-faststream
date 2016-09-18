@@ -50,11 +50,14 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val repo = repositories.applicationRepository
 
       val indexes = indexesWithFields(repo)
-      indexes must contain (List("_id"))
-      indexes must contain (List("applicationId", "userId"))
-      indexes must contain (List("userId", "frameworkId"))
-      indexes must contain (List("applicationStatus"))
-      indexes.size must be (4)
+      indexes must contain theSameElementsAs
+        Seq(
+          List("_id"),
+          List("applicationId", "userId"),
+          List("userId", "frameworkId"),
+          List("applicationStatus")
+        )
+
     }
 
     "return the gis parameter" in {

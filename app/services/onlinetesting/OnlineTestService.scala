@@ -158,8 +158,6 @@ trait OnlineTestService {
         testUrl = invitation.authenticateUrl
       )
     }
-
-
   }
 
   def retrieveTestResult(application: OnlineTestApplicationWithCubiksUser, waitSecs: Option[Int]): Future[Unit] = {
@@ -260,7 +258,7 @@ trait OnlineTestService {
 
   private def calcOnlineTestDates: (DateTime, DateTime) = {
     val invitationDate = onlineTestInvitationDateFactory.nowLocalTimeZone
-    val expirationDate = calculateExpireDate(invitationDate)
+    val expirationDate = invitationDate.plusDays(gatewayConfig.onlineTestConfig.expiryTimeInDays)
     (invitationDate, expirationDate)
   }
 
