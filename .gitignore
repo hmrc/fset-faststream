@@ -17,6 +17,5 @@ dist
 /RUNNING_PID
 /.settings
 *.iws
-
-    
+/.cache-main
 /bin/
