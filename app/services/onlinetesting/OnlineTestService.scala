@@ -72,12 +72,12 @@ trait OnlineTestService {
   ).map(a => ReportNorm(a.assessmentId, a.normId)).toList
 
   def nextApplicationReadyForOnlineTesting() = {
-    appRepository.nextApplicationReadyForOnlineTesting
+    otRepository.nextApplicationReadyForOnlineTesting
   }
 
   def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = {
     appRepository.findCandidateByUserId(userId).flatMap {
-      case Some(candidate) => otRepository.getPhase1TestProfile(candidate.applicationId.getOrElse(""))
+      case Some(candidate) if candidate.applicationId.isDefined => otRepository.getPhase1TestProfile(candidate.applicationId.get)
       case None => Future.successful(None)
     }
   }

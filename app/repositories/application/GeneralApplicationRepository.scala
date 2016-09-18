@@ -112,8 +112,6 @@ trait GeneralApplicationRepository {
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,
                                     evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: String): Future[Unit]
 
-  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
-
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
   def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
@@ -1006,15 +1004,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       ))
 
     collection.update(query, passMarkEvaluation, upsert = false) map { _ => }
-  }
-
-  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
-      BSONDocument("fastpass-details.applicable" -> false)
-    ))
-
-    selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
   }
 
   override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
