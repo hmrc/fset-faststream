@@ -17,17 +17,13 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model.Commands.{Candidate, Report}
-import model.Exceptions.NotFoundException
-import model.ProgressStatuses.ProgressStatus
-import model.{ApplicationStatus, FastPassDetails, ProgressStatuses}
-import org.joda.time.{DateTime, LocalDate}
-import reactivemongo.bson.{BSONArray, BSONDocument}
+import model.Commands.Report
+import model.FastPassDetails
+import org.joda.time.LocalDate
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
-
-import scala.concurrent.Future
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 

@@ -117,8 +117,6 @@ trait GeneralApplicationRepository {
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
   def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
-
-  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -1031,23 +1029,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     collection.update(query, BSONDocument("$set" ->
       applicationStatusBSON(progressStatus))
     ) map { _ => }
-  }
-
-  override def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
-    val query = BSONDocument("applicationId" -> applicationId)
-
-    val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
-      s"progress-status.$OnlineTestFailedProgress" -> "",
-      s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
-      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> ""
-    )) ++ BSONDocument("$set" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_INVITED" -> true,
-      "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
-    )) ++ BSONDocument("$set" -> BSONDocument(
-      "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
-    ))
-
-    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

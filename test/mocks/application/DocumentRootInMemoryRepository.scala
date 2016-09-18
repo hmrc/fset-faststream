@@ -155,9 +155,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def updateProgressStatus(appId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = ???
 
   def nextApplicationReadyForOnlineTesting: scala.concurrent.Future[Option[model.OnlineTestCommands.OnlineTestApplication]] = ???
-  def setOnlineTestStatus(applicationId: String, status: String): scala.concurrent.Future[Unit] = ???
-
-  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit] = ???
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
 }

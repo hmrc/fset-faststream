@@ -20,16 +20,17 @@ import config.MicroserviceAppConfig._
 import controllers.OnlineTestDetails
 import factories.DateTimeFactory
 import model.EvaluationResults._
-import model.Exceptions.{NotFoundException, UnexpectedException}
+import model.Exceptions.{ NotFoundException, UnexpectedException }
 import model.OnlineTestCommands.Phase1TestProfile
 import model.OnlineTestCommands.Implicits._
-import model.PersistedObjects.{ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest}
-import model.{ApplicationStatuses, Commands}
-import org.joda.time.{DateTime, LocalDate}
+import model.PersistedObjects.{ ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest }
+import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
+import model.{ ApplicationStatuses, Commands }
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.api.commands.UpdateWriteResult
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID, BSONString}
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID, BSONString }
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -45,6 +46,8 @@ trait OnlineTestRepository {
   //def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
+
+  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
   //def updateExpiryTime(userId: String, expirationDate: DateTime): Future[Unit]
 
@@ -133,8 +136,22 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     selectRandom(query).map(_.map(bsonDocToApplicationForNotification))
   }*/
 
+  override def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
+    val query = BSONDocument("applicationId" -> applicationId)
 
+    val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
+      s"progress-status.$OnlineTestFailedProgress" -> "",
+      s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
+      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> ""
+    )) ++ BSONDocument("$set" -> BSONDocument(
+      s"progress-status.$PHASE1_TESTS_INVITED" -> true,
+      "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
+    )) ++ BSONDocument("$set" -> BSONDocument(
+      "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
+    ))
 
+    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
+  }
 
   private def bsonDocToExpiringOnlineTest(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get

@@ -197,7 +197,7 @@ trait OnlineTestService {
                            (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
     currentOnlineTestProfile <- otRepository.getPhase1TestProfile(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- appRepository.insertPhase1TestProfile(application.applicationId, updatedOnlineTestProfile)
+    _ <- otRepository.insertPhase1TestProfile(application.applicationId, updatedOnlineTestProfile)
   } yield {
     audit(s"ApplicationStatus set to ${ApplicationStatus.PHASE1_TESTS} - ProgressStatus set to" +
       s" ${ProgressStatuses.PHASE1_TESTS_INVITED}", application.userId)

@@ -52,7 +52,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       val date = new DateTime("2016-03-08T13:04:29.643Z")
       val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
 
-      applicationRepository.insertPhase1TestProfile("appId", testProfile)
+      onlineTestRepo.insertPhase1TestProfile("appId", testProfile)
 
       onlineTestRepo.getPhase1TestProfile("appId").futureValue.foreach { result =>
         result.expirationDate.toDate must be (new DateTime("2016-03-15T13:04:29.643Z").toDate)
