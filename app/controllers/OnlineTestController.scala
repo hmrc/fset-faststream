@@ -18,6 +18,7 @@ package controllers
 
 import model.Commands
 import model.OnlineTestCommands.Implicits._
+import model.command.ResetOnlineTest
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
@@ -95,15 +96,17 @@ trait OnlineTestController extends BaseController {
     Future.successful(Ok)
   }
 
-  def resetOnlineTests(testType: String, appId: String) = Action.async { implicit request =>
-    // TODO Use testType once the second test is added
-    appRepository.getOnlineTestApplication(appId).flatMap {
-      case Some(onlineTestApp) =>
-        onlineTestingService.registerAndInviteForTestGroup(onlineTestApp).map { _ =>
-          Ok
-        }
-      case _ => Future.successful(NotFound)
+  def resetOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
+      appRepository.getOnlineTestApplication(appId).flatMap {
+        case Some(onlineTestApp) =>
+          onlineTestingService.registerAndInviteForTestGroup(onlineTestApp, resetOnlineTest.tests).map { _ =>
+            Ok
+          }
+        case _ => Future.successful(NotFound)
+      }
     }
+
   }
 
   def extendOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
