@@ -22,17 +22,18 @@ import factories.DateTimeFactory
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import org.joda.time.DateTime
 import reactivemongo.bson.{ BSONArray, BSONDocument }
+import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ GeneralApplicationMongoRepository, OnlineTestMongoRepository }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
 class OnlineTestRepositorySpec extends MongoRepositorySpec {
+  import ImplicitBSONHandlers._
 
   override val collectionName = "application"
 
   def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
   def onlineTestRepo = new OnlineTestMongoRepository(DateTimeFactory)
-  def applicationHelperRepo = new ApplicationRepositoryHelper(onlineTestRepo)
 
   val phase1Test = Phase1Test(scheduleId = 123,
     usedForResults = true, cubiksUserId = 999, token = UUID.randomUUID.toString, testUrl = "test.com",
@@ -60,7 +61,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
   "Next application ready for online testing" should {
     "return no application if htere is only one and it is a fast pass candidate" in {
-      applicationHelperRepo.createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
       )
 
@@ -70,7 +71,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
 
     "return one application if there is only one and it is not a fast pass candidate" in {
-      applicationHelperRepo.createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false
       )
 
@@ -112,4 +113,90 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       )
     }
   }
+
+  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
+                                     appStatus: String = "", needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
+                                     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false) = {
+    onlineTestRepo.collection.insert(BSONDocument(
+      "applicationId" -> appId,
+      "applicationStatus" -> appStatus,
+      "userId" -> userId,
+      "frameworkId" -> frameworkId,
+      "framework-preferences" -> BSONDocument(
+        "firstLocation" -> BSONDocument(
+          "region" -> "Region1",
+          "location" -> "Location1",
+          "firstFramework" -> "Commercial",
+          "secondFramework" -> "Digital and technology"
+        ),
+        "secondLocation" -> BSONDocument(
+          "location" -> "Location2",
+          "firstFramework" -> "Business",
+          "secondFramework" -> "Finance"
+        ),
+        "alternatives" -> BSONDocument(
+          "location" -> true,
+          "framework" -> true
+        )
+      ),
+      "personal-details" -> BSONDocument(
+        "firstName" -> s"${testCandidate("firstName")}",
+        "lastName" -> s"${testCandidate("lastName")}",
+        "preferredName" -> s"${testCandidate("preferredName")}",
+        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}",
+        "aLevel" -> true,
+        "stemLevel" -> true
+      ),
+      "fastpass-details" -> BSONDocument(
+        "applicable" -> fastPassApplicable,
+        "fastPassReceived" -> fastPassApplicable
+      ),
+      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments),
+      "issue" -> "this candidate has changed the email",
+      "progress-status" -> BSONDocument(
+        "registered" -> "true"
+      )
+    )).futureValue
+  }
+
+  private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
+                                      timeExtensionAdjustments:Boolean) = {
+    if (needsAdjustment) {
+      if (adjustmentsConfirmed) {
+        if (timeExtensionAdjustments) {
+          BSONDocument(
+            "needsAdjustment" -> "Yes",
+            "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
+            "adjustments-confirmed" -> true,
+            "verbalTimeAdjustmentPercentage" -> 9,
+            "numericalTimeAdjustmentPercentage" -> 11
+          )
+        } else {
+          BSONDocument(
+            "needsAdjustment" -> "Yes",
+            "typeOfAdjustments" -> BSONArray("room alone"),
+            "adjustments-confirmed" -> true
+          )
+        }
+      } else {
+        BSONDocument(
+          "needsAdjustment" -> "Yes",
+          "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
+          "adjustments-confirmed" -> false
+        )
+      }
+    } else {
+      BSONDocument(
+        "needsAdjustment" -> "No"
+      )
+    }
+  }
+
+  val testCandidate = Map(
+    "firstName" -> "George",
+    "lastName" -> "Jetson",
+    "preferredName" -> "Georgy",
+    "dateOfBirth" -> "1986-05-01"
+  )
+
 }
