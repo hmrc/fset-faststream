@@ -49,9 +49,9 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val projection = BSONDocument("testGroups.PHASE1" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(doc) if doc.getAs[BSONDocument]("testGroups").isDefined => Some(
-        Phase1TestProfile.phase1TestProfileHandler.read(doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument]("PHASE1").get)
-      )
+      case Some(doc) =>
+        val bson = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument]("PHASE1").get)
+        bson.map(Phase1TestProfile.phase1TestProfileHandler.read)
       case _ => None
     }
   }

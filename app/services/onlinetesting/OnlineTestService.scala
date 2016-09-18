@@ -87,11 +87,12 @@ trait OnlineTestService {
   }
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String]): Future[Unit] = {
-    val (invitationDate, expirationDate) = onlineTestDates
+    val (invitationDate, expirationDate) = calcOnlineTestDates
+
     val registerAndInviteProcess = Future.sequence(scheduleNames.map { sn =>
       val scheduleId = scheduleIdByName(sn)
       registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
-    }).map { phase1Tests =>
+    }).flatMap { phase1Tests =>
       markAsInvited(application)(Phase1TestProfile(expirationDate = expirationDate, tests = phase1Tests))
     }
 
@@ -199,10 +200,7 @@ trait OnlineTestService {
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
     _ <- otRepository.insertPhase1TestProfile(application.applicationId, updatedOnlineTestProfile)
   } yield {
-    audit(s"ApplicationStatus set to ${ApplicationStatus.PHASE1_TESTS} - ProgressStatus set to" +
-      s" ${ProgressStatuses.PHASE1_TESTS_INVITED}", application.userId)
-    audit(s"ApplicationStatus set to ${ApplicationStatus.PHASE1_TESTS} - ProgressStatus set to" +
-      s" ${ProgressStatuses.PHASE1_TESTS_INVITED}", application.userId)
+    audit("OnlineTestInvited", application.userId)
   }
 
   private def merge(currentProfile: Option[Phase1TestProfile], newProfile: Phase1TestProfile): Phase1TestProfile = currentProfile match {
@@ -223,14 +221,13 @@ trait OnlineTestService {
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
     cdRepository.find(application.userId).map(_.email)
 
-  private def onlineTestDates: (DateTime, DateTime) = {
+  private def calcOnlineTestDates: (DateTime, DateTime) = {
     val invitationDate = onlineTestInvitationDateFactory.nowLocalTimeZone
     val expirationDate = calculateExpireDate(invitationDate)
     (invitationDate, expirationDate)
   }
 
   private def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
-    // Only log user ID (not email).
     Logger.info(s"$event for user $userId")
 
     auditService.logEventNoRequest(
