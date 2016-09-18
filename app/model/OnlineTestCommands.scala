@@ -22,12 +22,13 @@ import model.PersistedObjects.CandidateTestReport
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
-import repositories.BSONDateTimeHandler
 
 object OnlineTestCommands {
   case class Phase1TestProfile(expirationDate: DateTime,
     tests: List[Phase1Test]
-  )
+  ) {
+    def activeTests = tests filter (_.usedForResults)
+  }
 
   object Phase1TestProfile {
     implicit val phase1TestProfileHandler: BSONHandler[BSONDocument, Phase1TestProfile] =
@@ -49,6 +50,7 @@ object OnlineTestCommands {
 
   object Phase1Test{
     implicit val phase1TestHandler: BSONHandler[BSONDocument, Phase1Test] = Macros.handler[Phase1Test]
+    implicit val phase1TestFormat = Json.format[Phase1Test]
   }
 
   case class OnlineTestApplication(applicationId: String, applicationStatus: String, userId: String,
@@ -77,7 +79,6 @@ object OnlineTestCommands {
     implicit val OnlineTestReportNormFormats = Json.format[ReportNorm]
     implicit val OnlineTestApplicationForReportRetrievingFormats = Json.format[OnlineTestApplicationForReportRetrieving]
     implicit val OnlineTestApplicationUserFormats = Json.format[OnlineTestApplicationWithCubiksUser]
-    implicit val Phase1TestFormats = Json.format[Phase1Test]
     implicit val Phase1TestProfileFormats = Json.format[Phase1TestProfile]
     implicit val OnlineTestReportIdMRAFormats = Json.format[OnlineTestReportAvailability]
     implicit val testFormat = Json.format[TestResult]
