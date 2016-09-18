@@ -139,7 +139,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     }
   }
 
-  def docToCandidate(doc: BSONDocument): Candidate = {
+  private def docToCandidate(doc: BSONDocument): Candidate = {
     val userId = doc.getAs[String]("userId").getOrElse("")
     val applicationId = doc.getAs[String]("applicationId")
 
@@ -213,7 +213,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) => findProgress(document, applicationId)
-      case None => ProgressResponse(applicationId)
+      case None => throw ApplicationNotFound(applicationId)
     }
   }
 
@@ -223,7 +223,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) => {
-        val status = document.getAs[String]("applicationStatus").getOrElse("")
+        val status = document.getAs[String]("applicationStatus").get
         val statusDate = document.getAs[BSONDocument]("progress-status-dates").flatMap(_.getAs[LocalDate](status.toLowerCase))
         ApplicationStatusDetails(status, statusDate)
       }
@@ -234,17 +234,16 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val query = BSONDocument("userId" -> userId, "frameworkId" -> frameworkId)
 
-    val resp: Future[Future[ApplicationResponse]] = collection.find(query).one[BSONDocument] map {
+    collection.find(query).one[BSONDocument] flatMap {
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[String]("applicationStatus").get
         val fastPassReceived = document.getAs[FastPassDetails]("fastpass-details")
-        findProgress(applicationId).map { (p: ProgressResponse) =>
-          ApplicationResponse(applicationId, applicationStatus, userId, p, fastPassReceived)
+        findProgress(applicationId).map { progress =>
+          ApplicationResponse(applicationId, applicationStatus, userId, progress, fastPassReceived)
         }
       case None => throw ApplicationNotFound(userId)
     }
-    resp.flatMap(identity)
   }
 
   def findCandidateByUserId(userId: String): Future[Option[Candidate]] = {
