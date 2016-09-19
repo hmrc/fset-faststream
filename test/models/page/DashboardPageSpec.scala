@@ -16,7 +16,9 @@
 
 package models.page
 
-import connectors.exchange.{ AssessmentCentre, AssessmentScores, Phase1Test, Phase1TestProfile }
+import java.util.UUID
+
+import connectors.exchange._
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus._
 import models.page.DashboardPage._
@@ -77,11 +79,21 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
          assessmentInProgressStatus: AssessmentStageStatus,
          assessmentCompletedStatus: PostAssessmentStageStatus
         ) => {
-          DashboardPage(user(status), None, None) mustBe(
-            DashboardPage(step1, step2, step3, step4,
-              isApplicationSubmittedAndNotWithdrawn, isApplicationInProgressAndNotWithdrawn,
-              isApplicationWithdrawn, isApplicationCreatedOrInProgress, isUserWithNoApplication,
-              fullName, assessmentInProgressStatus, assessmentCompletedStatus)
+          DashboardPage(user(status), None, None) mustBe (
+            DashboardPage(
+              step1,
+              step2,
+              step3,
+              step4,
+              isApplicationSubmittedAndNotWithdrawn,
+              isApplicationInProgressAndNotWithdrawn,
+              isApplicationWithdrawn,
+              isApplicationCreatedOrInProgress,
+              isUserWithNoApplication,
+              fullName,
+              None,
+              assessmentInProgressStatus,
+              assessmentCompletedStatus)
           )
         }
       }
@@ -110,7 +122,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
     "be correctly determined by previous applicationStatus" in {
 
       forAll(WithdrawnApplications) {
-        (progress: Progress,
+        (progress: ProgressResponse,
          step1: ProgressStepVisibility,
          step2: ProgressStepVisibility,
          step3: ProgressStepVisibility,
@@ -124,12 +136,22 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
          assessmentInProgressStatus: AssessmentStageStatus,
          assessmentCompletedStatus: PostAssessmentStageStatus
         ) => {
-          DashboardPage(withdrawnApplication(progress), None, None) mustBe
-            DashboardPage(step1, step2, step3, step4,
-              isApplicationSubmittedAndNotWithdrawn, isApplicationInProgressAndNotWithdrawn,
-              isApplicationWithdrawn, isApplicationCreatedOrInProgress, isUserWithNoApplication,
-              fullName, assessmentInProgressStatus, assessmentCompletedStatus)
-
+          DashboardPage(withdrawnApplication(progress), None, None) mustBe(
+            DashboardPage(
+              step1,
+              step2,
+              step3,
+              step4,
+              isApplicationSubmittedAndNotWithdrawn,
+              isApplicationInProgressAndNotWithdrawn,
+              isApplicationWithdrawn,
+              isApplicationCreatedOrInProgress,
+              isUserWithNoApplication,
+              fullName,
+              None,
+              assessmentInProgressStatus,
+              assessmentCompletedStatus)
+            )
         }
       }
     }
@@ -139,21 +161,6 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
       // For any new status DashboardPage.Step1/2/3 or 4 needs to have this status
       // Add this new status to isReached method and increase this value
       statusesTested.length mustBe(17)
-    }
-  }
-
-  "The assessment status, when the assessment hasn't yet been confirmed" should {
-    "be expired when the candidate didn't confirm it within the given date" in {
-      DashboardPage(user(ALLOCATION_UNCONFIRMED), Some(AllocationDetails_Expired), None) mustBe(
-        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
-          true, false, false, false, false, "John Biggs",
-          ASSESSMENT_CONFIRMATION_EXPIRED, POSTASSESSMENT_STATUS_UNKNOWN))
-    }
-    "be awaiting candidate confirmation when not expired" in {
-      DashboardPage(user(ALLOCATION_UNCONFIRMED), Some(AllocationDetails_Not_Expired), None) mustBe(
-        DashboardPage(ProgressActive, ProgressActive, ProgressInactive, ProgressInactive,
-          true, false, false, false, false, "John Biggs",
-          ASSESSMENT_PENDING_CONFIRMATION, POSTASSESSMENT_STATUS_UNKNOWN))
     }
   }
 
@@ -194,14 +201,14 @@ object DashboardPageSpec {
     templateCachedData.copy(application = updatedApplication)
   }
 
-  val EmptyProgress = Progress(false, false, false, false, false, false, false, false, false, false, false,
-    false, AssessmentScores(false, false), AssessmentCentre(false, false))
+  val EmptyProgress = ProgressResponseExamples.Initial
 
   val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now,
     tests = List(Phase1Test(testType = "sjq",
       usedForResults = true,
       testUrl = "test.com",
       invitationDate = DateTime.now,
+      token = UniqueIdentifier(UUID.randomUUID()),
       started = false,
       completed = false,
       resultsReadyToDownload = false

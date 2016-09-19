@@ -20,9 +20,14 @@ import models.Progress
 
 object ProgressExamples {
   val InitialProgress = Progress(false, false, false, false, false, false, false, false, false, false, false,
-    false,
+    false, false, false, false, false, false,
     AssessmentScores(false, false),
     AssessmentCentre(false, false, false)
+  )
+  val FullProgress = Progress(true, true, true, true, true, true, true, true, true, true, true,
+    true, true, true, true, true, true,
+    AssessmentScores(true, true),
+    AssessmentCentre(true, true, true)
   )
   val PersonalDetailsProgress = InitialProgress.copy(personalDetails = true)
   val SchemePreferencesProgress = PersonalDetailsProgress.copy(schemePreferences = true)

@@ -60,11 +60,11 @@ object Progress {
       occupationQuestionnaire = progressResponse.questionnaire.contains("occupation_questionnaire"),
       submitted = progressResponse.submitted,
       withdrawn = progressResponse.withdrawn,
-      phase1TestsInvited = progressResponse.phase1TestsInvited,
-      phase1TestsStarted  = progressResponse.phase1TestsStarted,
-      phase1TestsCompleted = progressResponse.phase1TestsCompleted,
-      phase1TestsExpired= progressResponse.phase1TestsExpired,
-      phase1TestsResultsReceived = progressResponse.phase1TestsResultsReceived,
+      phase1TestsInvited = progressResponse.onlineTest.onlineTestInvited,
+      phase1TestsStarted  = progressResponse.onlineTest.onlineTestStarted,
+      phase1TestsCompleted = progressResponse.onlineTest.onlineTestCompleted,
+      phase1TestsExpired= progressResponse.onlineTest.onlineTestExpired,
+      phase1TestsResultsReceived = false, // TODO replace once retrieve is implemented
       failedToAttend = progressResponse.failedToAttend,
       assessmentScores = progressResponse.assessmentScores,
       assessmentCentre = progressResponse.assessmentCentre

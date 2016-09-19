@@ -18,7 +18,7 @@ package security
 
 import java.util.UUID
 
-import connectors.exchange.{ AssessmentCentre, AssessmentScores }
+import connectors.exchange.{ AssessmentCentre, AssessmentScores, ProgressExamples }
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus.{ CREATED, _ }
 import models._
@@ -77,9 +77,7 @@ object RolesSpec {
   def activeUser(applicationStatus: ApplicationStatus) = CachedData(CachedUser(
     id,
     "John", "Biggs", None, "aaa@bbb.com", isActive = true, "locked"
-  ), Some(ApplicationData(id, id, applicationStatus,
-    Progress(true, true, true, true, true, true, true, true, true, true, true,
-      true, AssessmentScores(true, true), AssessmentCentre(true, true)), None)))
+  ), Some(ApplicationData(id, id, applicationStatus, ProgressExamples.FullProgress, None)))
 
   def registeredUser(applicationStatus: ApplicationStatus) = CachedData(CachedUser(
     id,
