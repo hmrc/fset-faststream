@@ -72,4 +72,6 @@ class OnlineTestInMemoryRepository extends OnlineTestRepository {
   def removeOnlineTestEvaluationAndReports(applicationId: String): Future[Unit] = ???
 
   def savePassMarkScoreWithoutApplicationStatusUpdate(applicationId: String, version: String, p: RuleCategoryResult): Future[Unit] = ???
+
+  def getPhase1TestProfileByToken(token: String): Future[Option[Phase1TestProfile]] = ???
 }

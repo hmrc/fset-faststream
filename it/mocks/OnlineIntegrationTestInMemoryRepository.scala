@@ -89,4 +89,5 @@ class OnlineIntegrationTestInMemoryRepository extends OnlineTestRepository {
 
   def removeOnlineTestEvaluationAndReports(applicationId: String): Future[Unit] = ???
 
+  def getPhase1TestProfileByToken(token: String): Future[Option[Phase1TestProfile]] = ???
 }

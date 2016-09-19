@@ -315,7 +315,7 @@ trait OnlineTestService {
   }
 
   private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
-    val scheduleCompletionUrl = gatewayConfig.candidateAppUrl + "/fset-fast-stream/online-tests/complete/" + token
+    val scheduleCompletionUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/phase1-test/complete-by-token/$token"
     if (application.guaranteedInterview) {
       InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None, timeAdjustments = None)
     } else {
