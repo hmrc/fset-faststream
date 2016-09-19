@@ -17,12 +17,11 @@
 package services.onlinetesting
 
 import _root_.services.AuditService
+import common.FutureEx
 import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
-import controllers.OnlineTest
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.{ ApplicationStatus, ApplicationStatuses, ProgressStatuses }
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
 import model.exchange.Phase1TestProfileWithNames
@@ -34,8 +33,9 @@ import repositories.application.{ GeneralApplicationRepository, OnlineTestReposi
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.language.postfixOps
+import scala.util.{ Failure, Success, Try }
 
 object OnlineTestService extends OnlineTestService {
   import config.MicroserviceAppConfig._
@@ -109,11 +109,28 @@ trait OnlineTestService {
   def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String]): Future[Unit] = {
     val (invitationDate, expirationDate) = calcOnlineTestDates
 
-    val registerAndInviteProcess = Future.sequence(scheduleNames.map { sn =>
+    def mapValue[T]( f: Future[T] ): Future[Try[T]] = {
+      val prom = Promise[Try[T]]()
+      f onComplete prom.success
+      prom.future
+    }
+
+    // TODO work out a better way to do this
+    // The problem is that the standard future sequence returns at the point when the first future has failed
+    // but doesn't actually wait until all futures are complete. This can be problematic for tests which assert
+    // the something has or hasn't worked. It is also a bit nasty in production where processing can still be
+    // going on in the background.
+    // The approach to fixing it here is to generate futures that return Try[A] and then all futures will be
+    // traversed. Afterward, we look at the results and clear up the mess
+    val registerAndInvite = FutureEx.traverseToTry(scheduleNames){ sn =>
       val scheduleId = scheduleIdByName(sn)
       registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
-    }).flatMap { phase1Tests =>
-      markAsInvited(application)(Phase1TestProfile(expirationDate = expirationDate, tests = phase1Tests))
+    }
+
+    val registerAndInviteProcess = registerAndInvite.flatMap { phase1TestsRegs =>
+      phase1TestsRegs.collect { case Failure(e) => throw e }
+      val successfullyRegisteredTests = phase1TestsRegs.collect { case Success(t) => t }.toList
+      markAsInvited(application)(Phase1TestProfile(expirationDate = expirationDate, tests = successfullyRegisteredTests))
     }
 
     for {
