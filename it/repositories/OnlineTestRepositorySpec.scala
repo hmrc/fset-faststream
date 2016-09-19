@@ -19,14 +19,17 @@ package repositories
 import java.util.UUID
 
 import factories.DateTimeFactory
-import model.OnlineTestCommands.{Phase1Test, Phase1TestProfile }
-import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
-import org.joda.time.DateTime
-import reactivemongo.bson.{BSONArray, BSONDocument}
+import model.ApplicationStatus
+import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
+import model.PersistedObjects.ExpiringOnlineTest
+import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED }
+import org.joda.time.{ DateTime, LocalDate }
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{GeneralApplicationMongoRepository, OnlineTestMongoRepository}
+import repositories.application.{ GeneralApplicationMongoRepository, OnlineTestMongoRepository }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
+
 
 class OnlineTestRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
@@ -52,6 +55,8 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
 
       onlineTestRepo.insertPhase1TestProfile("appId", testProfile)
+
+      onlineTestRepo.getPhase1TestProfile("appId").futureValue must be(None)
 
       onlineTestRepo.getPhase1TestProfile("appId").futureValue.foreach { result =>
         result.expirationDate.toDate must be (new DateTime("2016-03-15T13:04:29.643Z").toDate)
@@ -82,6 +87,59 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       result.get.userId mustBe "userId"
     }
   }
+
+  "nextApplicationPendingExpiry" should {
+    val date = new DateTime("2015-03-08T13:04:29.643Z")
+    val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
+    "return one result" when {
+      "there is an application in PHASE1_TESTS and should be expired" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        onlineTestRepo.insertPhase1TestProfile(AppId, testProfile).futureValue
+        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be (Some(ExpiringOnlineTest(AppId,UserId,"Georgy")))
+      }
+    }
+    "return no results" when {
+      "there are no application in PHASE1_TESTS" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        onlineTestRepo.insertPhase1TestProfile(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS))
+        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+      }
+
+      "the date is not expired yet" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        onlineTestRepo.insertPhase1TestProfile(
+          AppId,
+          Phase1TestProfile(expirationDate = new DateTime().plusHours(2), tests = List(phase1Test))).futureValue
+        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+      }
+
+      "the test is already expired" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        onlineTestRepo.insertPhase1TestProfile(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("$set" -> BSONDocument(
+          "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
+          s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
+          s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
+        )))
+        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+      }
+
+      "the test is completed" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        onlineTestRepo.insertPhase1TestProfile(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("$set" -> BSONDocument(
+          "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
+          s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
+          s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
+        )))
+        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+      }
+    }
+
+  }
+
+  def updateApplication(doc: BSONDocument) = onlineTestRepo.collection.update(BSONDocument("applicationId" -> AppId), doc)
 
   def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String,
     needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean,
@@ -130,31 +188,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  def createOnlineTest(userId: String, appStatus: String, phase1Tests: List[Phase1Test],
-    expirationDate: DateTime = DateTime.now) = {
-    import model.OnlineTestCommands.Phase1TestProfile.phase1TestProfileHandler
 
-    val appId = UUID.randomUUID().toString
-
-    val profile = Phase1TestProfile(expirationDate = expirationDate, tests = phase1Tests)
-    onlineTestRepo.collection.insert(profile)
-
-    helperRepo.collection.insert(BSONDocument(
-      "userId" -> userId,
-      "applicationId" -> appId,
-      "frameworkId" -> "frameworkId",
-      "applicationStatus" -> appStatus,
-      "personal-details" -> BSONDocument("preferredName" -> "Test Preferred Name"),
-      "progress-status-dates" -> BSONDocument("allocation_unconfirmed" -> "2016-04-05"),
-      "assistance-details" -> BSONDocument(
-        "guaranteedInterview" -> "Yes",
-        "needsSupportForOnlineAssessment" -> "No",
-        "needsSupportAtVene" -> "No"
-      )
-    )).futureValue
-
-    ApplicationIdWithUserIdAndStatus(appId, userId, appStatus)
-  }
 
   def createOnlineTestApplication(appId: String, applicationStatus: String, xmlReportSavedOpt: Option[Boolean] = None,
                                   alreadyEvaluatedAgainstPassmarkVersionOpt: Option[String] = None): String = {
@@ -229,10 +263,33 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       ),
       "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments),
       "issue" -> "this candidate has changed the email",
-      "progress-status" -> BSONDocument(
-        "registered" -> "true"
-      )
+      "progress-status" -> progressStatus()
     )).futureValue
+  }
+
+  private def progressStatus(args: List[Option[(String, Boolean)]] = List.empty): BSONDocument = {
+    val baseDoc = BSONDocument(
+      "personal-details" -> true,
+      "in_progress" -> true,
+      "scheme-preferences" -> true,
+      "partner-graduate-programmes" -> true,
+      "assistance-details" -> true,
+      "questionnaire" -> questionnaire(),
+      "preview" -> true,
+      "submitted" -> true
+    )
+
+    args.foldLeft(baseDoc)((acc, opt) => opt.fold(baseDoc)(v => baseDoc.++(v._1 -> v._2)))
+
+  }
+
+  private def questionnaire() = {
+    BSONDocument(
+      "start_questionnaire" -> true,
+      "diversity_questionnaire" -> true,
+      "education_questionnaire" -> true,
+      "occupation_questionnaire" -> true
+    )
   }
 
   private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,

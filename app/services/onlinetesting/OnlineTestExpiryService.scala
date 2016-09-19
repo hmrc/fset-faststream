@@ -46,7 +46,6 @@ class OnlineTestExpiryServiceImpl(
   private implicit def headerCarrier = newHeaderCarrier
 
   override def processNextExpiredTest(): Future[Unit] = {
-    Future.successful(Unit)
     otRepository.nextApplicationPendingExpiry.flatMap {
       case Some(expiringTest) => processExpiredTest(expiringTest)
       case None => Future.successful(())
