@@ -57,11 +57,10 @@ case class CubiksGatewayConfig(url: String, onlineTestConfig: CubiksOnlineTestCo
   reportConfig: ReportConfig, candidateAppUrl: String, emailDomain: String)
 
 case class CubiksOnlineTestConfig(phaseName: String,
-  expiryTimeInDays: Int,
-  scheduleIds: CubiksGatewaysScheduleIds
-)
-
-case class CubiksGatewaysScheduleIds(standard: List[Int], gis: List[Int])
+                                  expiryTimeInDays: Int,
+                                  scheduleIds: Map[String, Int],
+                                  standard: List[String],
+                                  gis: List[String])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
