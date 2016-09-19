@@ -63,7 +63,7 @@ object ApplicationStatusOrder {
     (progress.questionnaire.contains("education_questionnaire"), 60, EducationQuestionsCompletedProgress),
     (progress.questionnaire.contains("occupation_questionnaire"), 70, OccupationQuestionsCompletedProgress),
     (progress.preview, 80, PreviewCompletedProgress),
-    (progress.submitted, 90, SubmittedProgress),
+    (progress.submitted, 90, SubmittedProgress),olinetres
     // TODO: in faststream
     // (progress.onlineTest.onlineTestInvited, 100, OnlineTestInvitedProgress),
     // (progress.onlineTest.onlineTestStarted, 110, OnlineTestStartedProgress),

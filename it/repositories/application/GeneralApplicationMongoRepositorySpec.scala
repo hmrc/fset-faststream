@@ -17,16 +17,13 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model.Commands.{Candidate, Report}
-import model.Exceptions.NotFoundException
+import model.Commands.Report
 import model.FastPassDetails
-import org.joda.time.{DateTime, LocalDate}
-import reactivemongo.bson.{BSONArray, BSONDocument}
+import org.joda.time.LocalDate
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
-
-import scala.concurrent.Future
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -160,48 +157,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       noMatchResponse.size mustBe 0
     }
 
-  }
-
-  "Update status" should {
-    "update status for the specific user id" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED")
-      repository.setOnlineTestStatus("appId", "ONLINE_TEST_INVITED").futureValue
-
-      val result = repository.findByUserId("userId", "frameworkId").futureValue
-
-      result.applicationStatus must be("ONLINE_TEST_INVITED")
-    }
-
-    "update status to ONLINE_TEST_COMPLETED" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED")
-      repository.setOnlineTestStatus("appId", "ONLINE_TEST_COMPLETED").futureValue
-
-      val result = repository.findByUserId("userId", "frameworkId").futureValue
-      result.applicationStatus must be("ONLINE_TEST_COMPLETED")
-    }
-  }
-
-  "Next application ready for online testing" should {
-    "return no application if htere is only one and it is a fast pass candidate" in{
-      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
-      )
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result must be (None)
-    }
-
-    "return one application if there is only one and it is not a fast pass candidate" in{
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false
-      )
-
-      val result = repository.nextApplicationReadyForOnlineTesting.futureValue
-
-      result.get.applicationId mustBe "appId"
-      result.get.userId mustBe "userId"
-    }
   }
 
   val testCandidate = Map(

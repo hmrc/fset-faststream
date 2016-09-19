@@ -16,11 +16,21 @@
 
 package repositories
 
+import model.ProgressStatuses
 import org.joda.time.LocalDate
 import reactivemongo.bson.BSONDocument
 
 
 trait CommonBSONDocuments {
+
+  def applicationStatusBSON(progressStatus: ProgressStatuses.ProgressStatus): BSONDocument = {
+
+    BSONDocument(
+      "applicationStatus" -> progressStatus.applicationStatus,
+      s"progress-status.$progressStatus" -> true,
+      s"progress-status-dates.$progressStatus" -> LocalDate.now()
+    )
+  }
 
   def applicationStatusBSON(status: String)(implicit progressStatus: String = status.toLowerCase) = {
     BSONDocument(

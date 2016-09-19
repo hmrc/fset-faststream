@@ -16,25 +16,24 @@
 
 package repositories.application
 
-import java.util.{ Calendar, Date, UUID }
+import java.util.UUID
 
-import model.ApplicationStatus.ApplicationStatus
 import model.ApplicationStatusOrder._
 import model.ApplicationStatuses._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
-import model.OnlineTestCommands.{OnlineTestApplication, TimeAdjustmentsOnlineTestApplication}
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
+import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model.PersistedObjects.ApplicationForNotification
+import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model._
 import model.command._
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, LocalDate}
-import play.api.Logger
-import play.api.libs.json.{Format, JsNumber, JsObject}
-import reactivemongo.api.{DB, QueryOpts, ReadPreference}
-import reactivemongo.bson.{BSONDocument, _}
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.{ Format, JsNumber, JsObject }
+import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -113,10 +112,9 @@ trait GeneralApplicationRepository {
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,
                                     evaluationResult: AssessmentRuleCategoryResult, newApplicationStatus: String): Future[Unit]
 
-  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
+  def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
-  def setOnlineTestStatus(applicationId: String, status: String): Future[Unit]
-
+  def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -1002,69 +1000,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     collection.update(query, passMarkEvaluation, upsert = false) map { _ => }
   }
 
-  // TODO: get rid of this, it feels wrong and we should also be using the App Status case objects.
-  private def applicationStatus(status: String): BSONDocument = {
-    val flag = status match {
-      case "ONLINE_TEST_INVITED" => "online_test_invited"
-      case "ONLINE_TEST_STARTED" => "online_test_started"
-      case "ONLINE_TEST_COMPLETED" => "online_test_completed"
-      case "ONLINE_TEST_EXPIRED" => "online_test_expired"
-      case "ONLINE_TEST_FAILED" => "online_test_failed"
-      case "ONLINE_TEST_FAILED_NOTIFIED" => "online_test_failed_notified"
-    }
-
-    if (flag == "online_test_completed") {
-      BSONDocument("$set" -> BSONDocument(
-        s"progressstatus.$flag" -> true,
-        "applicationStatus" -> status,
-        "onlinetests.completionDate" -> DateTime.now
-      ))
-    } else {
-      BSONDocument("$set" -> BSONDocument(
-        s"progressstatus.$flag" -> true,
-        "applicationStatus" -> status
-      ))
+  override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
+    val query = BSONDocument("applicationId" -> appId)
+    collection.find(query).one[BSONDocument] map {
+      _.map(bsonDocToOnlineTestApplication)
     }
   }
 
-  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> "SUBMITTED"),
-      BSONDocument("fastpass-details.applicable" -> false)
-    ))
-
-    selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
-  }
-
-  override def setOnlineTestStatus(appId: String, status: String): Future[Unit] = status match {
-    case "ONLINE_TEST_INVITED" => setOnlineTestStatusInvited(appId)
-    case _ => {
-      val query = BSONDocument("applicationId" -> appId)
-      val applicationStatusBSON = applicationStatus(status)
-      collection.update(query, applicationStatusBSON, upsert = false).map { _ =>  }
-    }
-  }
-
-  private def setOnlineTestStatusInvited(applicationId: String): Future[Unit] = {
-    import model.ProgressStatuses._
-
+  override def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-
-    val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_INVITED" -> "",
-      s"progress-status.$PHASE1_TESTS_COMPLETED" -> "",
-      s"progress-status.$PHASE1_TESTS_EXPIRED" -> "",
-      s"progress-status.$AwaitingOnlineTestReevaluationProgress" -> "",
-      s"progress-status.$OnlineTestFailedProgress" -> "",
-      s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
-      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> "",
-      s"passmarkEvaluation" -> ""
-    )) ++ BSONDocument("$set" -> BSONDocument(
-      "progress-status.online_test_invited" -> true,
-      "applicationStatus" -> "ONLINE_TEST_INVITED"
-    ))
-
-    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
+    collection.update(query, BSONDocument("$set" ->
+      applicationStatusBSON(progressStatus))
+    ) map { _ => }
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

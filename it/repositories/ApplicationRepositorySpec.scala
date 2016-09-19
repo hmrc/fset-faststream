@@ -54,7 +54,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       indexes must contain (List("applicationId", "userId"))
       indexes must contain (List("userId", "frameworkId"))
       indexes must contain (List("applicationStatus"))
-      indexes.size must be (5)
+      indexes.size must be (4)
     }
 
     "return the gis parameter" in {
