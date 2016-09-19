@@ -35,9 +35,7 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isApplicationCreatedOrInProgress: Boolean,
   isUserWithNoApplication: Boolean,
   fullName: String,
-  phase1TestsPage: Option[Phase1TestsPage],
-  assessmentStageStatus: AssessmentStageStatus,
-  postAssessmentStageStatus: PostAssessmentStageStatus
+  phase1TestsPage: Option[Phase1TestsPage]
 )
 
 object DashboardPage {
@@ -64,9 +62,7 @@ object DashboardPage {
       isApplicationCreatedOrInProgress(user),
       isUserWithNoApplication(user),
       user.user.firstName + " " + user.user.lastName,
-      testProfile.map(Phase1TestsPage.apply),
-      getAssessmentInProgressStatus(user, allocationDetails, testProfile),
-      getPostAssessmentStatus(user, allocationDetails, testProfile)
+      testProfile.map(Phase1TestsPage.apply)
     )
   }
 
