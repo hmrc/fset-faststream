@@ -29,10 +29,10 @@
                 @school(questionnaireForm)
             </div>
         </fieldset>
-
-        <fieldset>
-            <input type="hidden" id="isCandidateCivilServant" name="isCandidateCivilServant" value="@isCandidateCivilServant">
-            @if(isCandidateCivilServant=="Yes") {
+        
+        <input type="hidden" id="isCandidateCivilServant" name="isCandidateCivilServant" value="@isCandidateCivilServant">
+        @if(isCandidateCivilServant=="Yes") {
+            <fieldset>
                 <legend class="form-label text">@Messages("haveDegree.question")</legend>
                 @radioBoxHorizontal(questionnaireForm("haveDegree"), options = List(("yes", "Yes", true), ("no", "No", false)),
                     optionTrigger = "haveDegree-panel")
@@ -44,8 +44,16 @@
                     @university(questionnaireForm)
                     @universityDegreeCategory(questionnaireForm)
                 </div>
-            }
-        </fieldset>
+            </fieldset>
+        }else {
+            <h2 class="heading-medium">University</h2>
+            <div class="panel-indent text">
+                <p>This data helps us monitor the application rates and performance of applicants from different universities and disciplines enabling us to target maximum opportunity for all.</p>
+            </div>
+            @university(questionnaireForm)
+            @universityDegreeCategory(questionnaireForm)
+        }
+
         <div>
             <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
         </div>
