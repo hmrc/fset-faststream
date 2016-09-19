@@ -37,7 +37,7 @@ object OnlineTestCommands {
                         resultsReadyToDownload: Boolean = false
                        )
 
-  object Phase1Test{
+  object Phase1Test {
     import repositories.BSONDateTimeHandler
     implicit val phase1TestHandler: BSONHandler[BSONDocument, Phase1Test] = Macros.handler[Phase1Test]
     implicit val phase1TestFormat = Json.format[Phase1Test]

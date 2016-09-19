@@ -30,6 +30,7 @@ import play.api.Logger
 import play.libs.Akka
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import services.onlinetesting.OnlineTestService.TestExtensionException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
@@ -49,6 +50,8 @@ object OnlineTestService extends OnlineTestService {
   val emailClient = CSREmailClient
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
+
+  case class TestExtensionException(message: String) extends Exception(message)
 }
 
 trait OnlineTestService {

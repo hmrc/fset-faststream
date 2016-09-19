@@ -72,7 +72,7 @@ object ProgressStatuses {
 
   case object PHASE1_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
 
-  private val nameToProgressStatus: Map[String, ProgressStatus] = List(
+  val nameToProgressStatus: Map[String, ProgressStatus] = List(
     PHASE1_TESTS_INVITED,
     PHASE1_TESTS_STARTED,
     PHASE1_TESTS_COMPLETED,

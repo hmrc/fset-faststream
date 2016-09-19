@@ -16,25 +16,24 @@
 
 package services.testdata
 
+import model.ApplicationStatuses
 import repositories._
 import repositories.application.OnlineTestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object OnlineTestCompletedStatusGenerator extends OnlineTestCompletedStatusGenerator {
-  override val previousStatusGenerator = OnlineTestStartedStatusGenerator
+object Phase1TestsStartedStatusGenerator extends Phase1TestsStartedStatusGenerator {
+  override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
   override val otRepository = onlineTestRepository
 }
 
-trait OnlineTestCompletedStatusGenerator extends ConstructiveGenerator {
+trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
   val otRepository: OnlineTestRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      // TODO FAST STREAM FIX ME
-      //_ <- otRepository.consumeToken(candidateInPreviousStatus.onlineTestProfile.get.token)
     } yield {
       candidateInPreviousStatus
     }
