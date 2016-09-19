@@ -51,8 +51,11 @@ package object forms {
       (requiredField, keyField) match {
         case (Some("Yes"), None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
         case (Some("Yes"), Some("")) => Left(List(FormError(key, Messages(s"error.$key.required"))))
-        case _ => if (maxLength.isDefined && keyField.isDefined && keyField.get.size > maxLength.get) {
-          Left(List(FormError(key, Messages(s"error.$key.maxLength")))) } else { Right(keyField) }
+        case _ => if (maxLength.isDefined && keyField.isDefined && keyField.get.length > maxLength.get) {
+          Left(List(FormError(key, Messages(s"error.$key.maxLength"))))
+        } else {
+          Right(keyField)
+        }
       }
     }
 
@@ -60,27 +63,32 @@ package object forms {
   }
 
   // scalastyle:off cyclomatic.complexity
-  def requiredFormatterWithMaxLengthCheckAndSeparatePreferNotToSay(requiredKey: String,
-                                                                   key: String,
-                                                                   keyPreferNotToSay: String,
-                                                                   maxLength: Option[Int]) = new Formatter[Option[String]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      val requiredField: Option[String] = if (data.isEmpty) None else data.get(requiredKey)
-      val keyField: Option[String] = if (data.isEmpty) None else data.get(key).map(_.trim)
-      val keyPreferNotToSayField: Option[String] = if (data.isEmpty) None else data.get(keyPreferNotToSay)
+  def requiredFormatterWithValidationCheckAndSeparatePreferNotToSay(
+        requiredKey: String,
+        key: String,
+        keyPreferNotToSay: String,
+        maxLength: Option[Int]
+      )(
+        implicit invalidFn: (String => Boolean) = inputValue => maxLength.exists(_ < inputValue.trim.length),
+        validationErrorKey:String = s"error.$key.maxLength"
+      ) = new Formatter[Option[String]] {
+          override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+            val requiredField: Option[String] = if (data.isEmpty) None else data.get(requiredKey)
+            val keyField: Option[String] = if (data.isEmpty) None else data.get(key).map(_.trim)
+            val keyPreferNotToSayField: Option[String] = if (data.isEmpty) None else data.get(keyPreferNotToSay)
 
-      (requiredField, keyField, keyPreferNotToSayField) match {
-        case (Some("Yes"), None, None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
-        case (Some("Yes"), Some(""), None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
-        case (Some("Yes"), Some(""), Some("Yes")) => Right(Some("I don't know/prefer not to say"))
-        case (Some("Yes"), None, Some("Yes")) => Right(Some("I don't know/prefer not to say"))
-        case _ => if (maxLength.isDefined && keyField.isDefined && keyField.get.size > maxLength.get) {
-          Left(List(FormError(key, Messages(s"error.$key.maxLength")))) } else { Right(keyField) }
-      }
-    }
+            (requiredField, keyField, keyPreferNotToSayField) match {
+              case (Some("Yes"), None, None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
+              case (Some("Yes"), Some(keyValue), None) if keyValue.trim.isEmpty => Left(List(FormError(key, Messages(s"error.$key.required"))))
+              case (Some("Yes"), Some(keyValue), None) if invalidFn(keyValue) => Left(List(FormError(key, Messages(validationErrorKey))))
+              case (Some("Yes"), _, Some("Yes")) => Right(Some("I don't know/prefer not to say"))
+              case _ => Right(keyField)
+            }
+          }
 
-    override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
+          override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
+
   // scalastyle:on
 
 }
