@@ -17,7 +17,6 @@
 package controllers
 
 import model.Commands
-import model.OnlineTestCommands.Implicits._
 import model.command.ResetOnlineTest
 import org.joda.time.DateTime
 import play.api.Logger
@@ -66,7 +65,7 @@ trait OnlineTestController extends BaseController {
   def getOnlineTest(userId: String) = Action.async { implicit request =>
 
     onlineTestingService.getPhase1TestProfile(userId).map {
-      case Some(phase1TestProfile) => Ok(Json.toJson(phase1TestProfile))
+      case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
       case None => Logger.error(s"No phase 1 test found for userID [$userId]")
         NotFound
     }

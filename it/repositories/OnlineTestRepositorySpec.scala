@@ -20,7 +20,6 @@ import java.util.UUID
 
 import factories.DateTimeFactory
 import model.OnlineTestCommands.{Phase1Test, Phase1TestProfile }
-import model.OnlineTestCommands.Implicits.Phase1TestProfileFormats
 import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
 import org.joda.time.DateTime
 import reactivemongo.bson.{BSONArray, BSONDocument}

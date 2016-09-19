@@ -19,21 +19,22 @@ package services.onlinetesting
 import _root_.services.AuditService
 import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
-import connectors.{CSREmailClient, CubiksGatewayClient, EmailClient}
+import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
 import controllers.OnlineTest
-import factories.{DateTimeFactory, UUIDFactory}
-import model.{ApplicationStatus, ApplicationStatuses, ProgressStatuses}
+import factories.{ DateTimeFactory, UUIDFactory }
+import model.{ ApplicationStatus, ApplicationStatuses, ProgressStatuses }
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
+import model.exchange.Phase1TestProfileWithNames
 import org.joda.time.DateTime
 import play.api.Logger
 import play.libs.Akka
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
 object OnlineTestService extends OnlineTestService {
@@ -75,12 +76,31 @@ trait OnlineTestService {
     otRepository.nextApplicationReadyForOnlineTesting
   }
 
-  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = {
+  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfileWithNames]] = {
     appRepository.findCandidateByUserId(userId).flatMap {
-      case Some(candidate) if candidate.applicationId.isDefined => otRepository.getPhase1TestProfile(candidate.applicationId.get)
+      case Some(candidate) if candidate.applicationId.isDefined =>
+        for {
+          phase1 <- otRepository.getPhase1TestProfile(candidate.applicationId.get)
+        } yield {
+          phase1 map { p =>
+            val sjqTests = p.activeTests filter (_.scheduleId == sjq)
+            val bqTests = p.activeTests filter (_.scheduleId == bq)
+            require(sjqTests.length <= 1)
+            require(bqTests.length <= 1)
+
+            Phase1TestProfileWithNames(p.expirationDate, Map()
+              ++ (if (sjqTests.nonEmpty) Map("sjq" -> sjqTests.head) else Map())
+              ++ (if (bqTests.nonEmpty) Map("bq" -> bqTests.head) else Map())
+            )
+          }
+        }
       case None => Future.successful(None)
     }
   }
+
+  private def sjq = gatewayConfig.onlineTestConfig.scheduleIds("sjq")
+
+  private def bq = gatewayConfig.onlineTestConfig.scheduleIds("bq")
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
