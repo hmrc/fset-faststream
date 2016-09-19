@@ -25,6 +25,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.{ ApplicationStatus, ApplicationStatuses, ProgressStatuses }
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
+import model.exchange.Phase1TestProfileWithNames
 import org.joda.time.DateTime
 import play.api.Logger
 import play.libs.Akka
@@ -78,12 +79,31 @@ trait OnlineTestService {
     otRepository.nextApplicationReadyForOnlineTesting
   }
 
-  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfile]] = {
+  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfileWithNames]] = {
     appRepository.findCandidateByUserId(userId).flatMap {
-      case Some(candidate) if candidate.applicationId.isDefined => otRepository.getPhase1TestProfile(candidate.applicationId.get)
+      case Some(candidate) if candidate.applicationId.isDefined =>
+        for {
+          phase1 <- otRepository.getPhase1TestProfile(candidate.applicationId.get)
+        } yield {
+          phase1 map { p =>
+            val sjqTests = p.activeTests filter (_.scheduleId == sjq)
+            val bqTests = p.activeTests filter (_.scheduleId == bq)
+            require(sjqTests.length <= 1)
+            require(bqTests.length <= 1)
+
+            Phase1TestProfileWithNames(p.expirationDate, Map()
+              ++ (if (sjqTests.nonEmpty) Map("sjq" -> sjqTests.head) else Map())
+              ++ (if (bqTests.nonEmpty) Map("bq" -> bqTests.head) else Map())
+            )
+          }
+        }
       case None => Future.successful(None)
     }
   }
+
+  private def sjq = gatewayConfig.onlineTestConfig.scheduleIds("sjq")
+
+  private def bq = gatewayConfig.onlineTestConfig.scheduleIds("bq")
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
