@@ -95,7 +95,7 @@ case class Phase1TestsPage(
 
 object Phase1TestsPage {
 
-  def apply(profile: connectors.exchange.Phase1TestProfile): Phase1TestsPage = {
+  def apply(profile: connectors.exchange.Phase1TestProfileWithNames): Phase1TestsPage = {
     Phase1TestsPage(expirationDate = profile.expirationDate,
       sjq = profile.tests.find(_.testType == "sjq").map(Phase1TestPage.apply),
       bq = profile.tests.find(_.testType == "bq").map(Phase1TestPage.apply)

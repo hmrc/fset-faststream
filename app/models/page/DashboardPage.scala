@@ -16,9 +16,9 @@
 
 package models.page
 
-import connectors.exchange.Phase1TestProfile
+import connectors.exchange.{ Phase1TestProfile, Phase1TestProfileWithNames }
 import models.page.DashboardPage.Flags._
-import models.{CachedData, Progress}
+import models.{ CachedData, Progress }
 import org.joda.time.LocalDate
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
@@ -44,7 +44,7 @@ object DashboardPage {
   import models.ApplicationData.ApplicationStatus
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], testProfile: Option[Phase1TestProfile])
+  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], testProfile: Option[Phase1TestProfileWithNames])
            (implicit request: RequestHeader, lang: Lang): DashboardPage = {
 
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility,
