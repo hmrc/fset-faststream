@@ -22,13 +22,13 @@ import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 import play.api.libs.json.Json
 
 case class Phase1Test(usedForResults: Boolean,
-  testUrl: String,
-  token: UniqueIdentifier,
-  invitationDate: DateTime,
-  started: Boolean = false,
-  completed: Boolean = false,
-  resultsReadyToDownload: Boolean = false
-)
+                      testUrl: String,
+                      token: UniqueIdentifier,
+                      cubiksUserId: Int,
+                      invitationDate: DateTime,
+                      started: Boolean = false,
+                      completed: Boolean = false,
+                      resultsReadyToDownload: Boolean = false)
 
 object Phase1Test {
   implicit def phase1TestFormat = Json.format[Phase1Test]

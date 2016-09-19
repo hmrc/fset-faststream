@@ -198,6 +198,7 @@ object DashboardPageSpec {
       testUrl = "test.com",
       invitationDate = DateTime.now,
       token = UniqueIdentifier(UUID.randomUUID()),
+      cubiksUserId = 123,
       started = false,
       completed = false,
       resultsReadyToDownload = false
