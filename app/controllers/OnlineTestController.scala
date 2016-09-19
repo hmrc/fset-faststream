@@ -63,7 +63,6 @@ trait OnlineTestController extends BaseController {
   import Commands.Implicits._
 
   def getOnlineTest(userId: String) = Action.async { implicit request =>
-
     onlineTestingService.getPhase1TestProfile(userId).map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
       case None => Logger.error(s"No phase 1 test found for userID [$userId]")
@@ -107,19 +106,4 @@ trait OnlineTestController extends BaseController {
     }
 
   }
-
-  def extendOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
-    // TODO FAST STREAM FIX ME
-    Future.successful(Ok)
-    //withJsonBody[OnlineTestExtension] { extension =>
-    //  onlineRepository.getOnlineTestApplication(appId).flatMap {
-    //    case Some(onlineTestApp) =>
-    //      onlineTestExtensionService.extendExpiryTime(onlineTestApp, extension.extraDays).map { _ =>
-    //        Ok
-    //      }
-    //    case _ => Future.successful(NotFound)
-    //  }
-    //}
-  }
-
 }

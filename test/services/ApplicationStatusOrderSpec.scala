@@ -17,7 +17,7 @@
 package services
 
 import model.ApplicationStatusOrder
-import model.command.{ OnlineTestProgressResponse, ProgressResponse, ProgressResponseExamples }
+import model.command.{ ProgressResponse, ProgressResponseExamples }
 import org.scalatestplus.play.PlaySpec
 
 class ApplicationStatusOrderSpec extends PlaySpec {
@@ -114,5 +114,5 @@ object ApplicationStatusOrderSpec {
 
   val completeProgressResponse = ProgressResponse("1", true, true, true, true, true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire",
-      "occupation_questionnaire"), true, true, OnlineTestProgressResponse(true, true, true, true))
+      "occupation_questionnaire"), true, true)
 }

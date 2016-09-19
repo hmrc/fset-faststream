@@ -22,9 +22,9 @@ import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
-import model.ApplicationStatuses
+import model.{ ApplicationStatuses, ProgressStatuses }
 import model.EvaluationResults.Result
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, LocalDate }
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
 import play.api.libs.json.Json
@@ -74,7 +74,10 @@ trait TestDataGeneratorController extends BaseController {
   }
 
   // scalastyle:off parameter.number
-  def createCandidatesInStatus(status: String, numberToGenerate: Int,
+  // scalastyle:off method.length
+  def createCandidatesInStatus(applicationStatus: String,
+                               progressStatus: Option[String],
+                               numberToGenerate: Int,
                                emailPrefix: String,
                                setGis: Boolean,
                                firstName: Option[String],
@@ -85,11 +88,13 @@ trait TestDataGeneratorController extends BaseController {
                                region: Option[String],
                                loc1scheme1EvaluationResult: Option[String],
                                loc1scheme2EvaluationResult: Option[String],
-                               previousStatus: Option[String] = None,
+                               previousStatus: Option[String],
                                confirmedAllocation: Boolean,
-                               dateOfBirth: Option[String] = None,
+                               dateOfBirth: Option[String],
                                postCode: Option[String],
-                               country: Option[String]) = Action.async { implicit request =>
+                               country: Option[String],
+                               phase1StartTime: Option[String],
+                               phase1ExpiryTime: Option[String]) = Action.async { implicit request =>
     val initialConfig = GeneratorConfig(
       emailPrefix = emailPrefix,
       setGis = setGis,
@@ -103,23 +108,27 @@ trait TestDataGeneratorController extends BaseController {
       loc1scheme1Passmark = loc1scheme1EvaluationResult.map(Result(_)),
       loc1scheme2Passmark = loc1scheme2EvaluationResult.map(Result(_)),
       previousStatus = previousStatus,
-      confirmedAllocation = status match {
+      confirmedAllocation = applicationStatus match {
         case ApplicationStatuses.AllocationUnconfirmed => false
         case ApplicationStatuses.AllocationConfirmed => true
         case _ => confirmedAllocation
       },
       dob = dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),
       postCode = postCode.map(pc => validatePostcode(pc)),
-      country = country
+      country = country,
+      phase1StartTime = phase1StartTime.map(x => DateTime.parse(x)),
+      phase1ExpiryTime = phase1ExpiryTime.map(x => DateTime.parse(x))
     )
-    // scalastyle:on
 
-    TestDataGeneratorService.createCandidatesInSpecificStatus(numberToGenerate, StatusGeneratorFactory.getGenerator(status),
-      initialConfig).map { candidates =>
+    TestDataGeneratorService.createCandidatesInSpecificStatus(
+      numberToGenerate,
+      StatusGeneratorFactory.getGenerator(applicationStatus, progressStatus.map(ProgressStatuses.nameToProgressStatus)),
+      initialConfig
+    ).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }
-
+  // scalastyle:on
 
   private def validatePostcode(postcode: String) = {
     // putting this on multiple lines won't make this regex any clearer
