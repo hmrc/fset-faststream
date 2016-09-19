@@ -54,7 +54,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val numericalTimeInMinutesMaximum = 12
 
   val emailDomainMock = "mydomain.com"
-  val onlineTestCompletedUrlMock = "http://localhost:8000/fset-fast-stream/online-tests/complete/"
+  val onlineTestCompletedUrlMock = "http://localhost:8000/fset-fast-stream/phase1-test/complete-by-token/"
   val gisScheduledIdMock = List(11111)
   val standardScheduleIdMock = List(16196, 16194)
 
