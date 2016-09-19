@@ -21,40 +21,26 @@ import play.api.libs.json.Json
 
 import scala.language.implicitConversions
 
-case class Progress(
-                     personalDetails: Boolean,
-                     schemePreferences: Boolean,
-                     partnerGraduateProgrammes: Boolean,
-                     assistanceDetails: Boolean,
-                     preview: Boolean,
-                     startedQuestionnaire: Boolean,
-                     diversityQuestionnaire: Boolean,
-                     educationQuestionnaire: Boolean,
-                     occupationQuestionnaire: Boolean,
-                     submitted: Boolean,
-                     withdrawn: Boolean,
-                     onlineTest: OnlineTestProgress,
-                     failedToAttend: Boolean,
-                     assessmentScores: AssessmentScores,
-                     assessmentCentre: AssessmentCentre
+case class Progress(personalDetails: Boolean,
+  schemePreferences: Boolean,
+  partnerGraduateProgrammes: Boolean,
+  assistanceDetails: Boolean,
+  preview: Boolean,
+  startedQuestionnaire: Boolean,
+  diversityQuestionnaire: Boolean,
+  educationQuestionnaire: Boolean,
+  occupationQuestionnaire: Boolean,
+  submitted: Boolean,
+  withdrawn: Boolean = false,
+  phase1TestsInvited: Boolean = false,
+  phase1TestsStarted: Boolean = false,
+  phase1TestsCompleted: Boolean = false,
+  phase1TestsExpired: Boolean = false,
+  phase1TestsResultsReceived: Boolean = false,
+  failedToAttend: Boolean = false,
+  assessmentScores: AssessmentScores,
+  assessmentCentre: AssessmentCentre
 )
-
-case class OnlineTestProgress(
-  onlineTestInvited: Boolean,
-  onlineTestStarted: Boolean,
-  onlineTestCompleted: Boolean,
-  onlineTestExpired: Boolean,
-  onlineTestAwaitingReevaluation: Boolean,
-  onlineTestFailed: Boolean,
-  onlineTestFailedNotified: Boolean,
-  onlineTestAwaitingAllocation: Boolean,
-  onlineTestAllocationConfirmed: Boolean,
-  onlineTestAllocationUnconfirmed: Boolean
-)
-
-object OnlineTestProgress {
-  implicit val onlineTestProgressFormat = Json.format[OnlineTestProgress]
-}
 
 object Progress {
   implicit val assessmentScoresFormat = Json.format[AssessmentScores]
@@ -74,20 +60,11 @@ object Progress {
       occupationQuestionnaire = progressResponse.questionnaire.contains("occupation_questionnaire"),
       submitted = progressResponse.submitted,
       withdrawn = progressResponse.withdrawn,
-
-      onlineTest = OnlineTestProgress(
-        onlineTestInvited = progressResponse.onlineTest.onlineTestInvited,
-        onlineTestStarted = progressResponse.onlineTest.onlineTestStarted,
-        onlineTestCompleted = progressResponse.onlineTest.onlineTestCompleted,
-        onlineTestExpired = progressResponse.onlineTest.onlineTestExpired,
-        onlineTestAwaitingReevaluation = progressResponse.onlineTest.onlineTestAwaitingReevaluation,
-        onlineTestFailed = progressResponse.onlineTest.onlineTestFailed,
-        onlineTestFailedNotified = progressResponse.onlineTest.onlineTestFailedNotified,
-        onlineTestAwaitingAllocation = progressResponse.onlineTest.onlineTestAwaitingAllocation,
-        onlineTestAllocationConfirmed = progressResponse.onlineTest.onlineTestAllocationConfirmed,
-        onlineTestAllocationUnconfirmed = progressResponse.onlineTest.onlineTestAllocationUnconfirmed
-      ),
-
+      phase1TestsInvited = progressResponse.onlineTest.onlineTestInvited,
+      phase1TestsStarted  = progressResponse.onlineTest.onlineTestStarted,
+      phase1TestsCompleted = progressResponse.onlineTest.onlineTestCompleted,
+      phase1TestsExpired= progressResponse.onlineTest.onlineTestExpired,
+      phase1TestsResultsReceived = false, // TODO replace once retrieve is implemented
       failedToAttend = progressResponse.failedToAttend,
       assessmentScores = progressResponse.assessmentScores,
       assessmentCentre = progressResponse.assessmentCentre

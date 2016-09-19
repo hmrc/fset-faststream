@@ -1,154 +1,103 @@
-@import connectors.exchange.{ AllocationDetails, OnlineTest }
+@import connectors.exchange.{ AllocationDetails, Phase1TestProfile }
 @import security.RoleUtils
-@(usr: CachedData, onlineTest: Option[OnlineTest] = None,
+@import models.page.{ Phase1TestsPage, Phase1TestPage }
+@(cachedUserData: CachedData, phase1TestProfile: Option[Phase1TestsPage] = None,
         applicationStatus: models.ApplicationData.ApplicationStatus.ApplicationStatus,
+        progressStatus: models.ApplicationData.ProgressStatuses.ProgressStatus,
         allocationDetails: Option[AllocationDetails])(implicit request: Request[_])
 
 @import models.ApplicationData.ApplicationStatus._
+<div data-hidesdip>
+            @phase1TestProfile match {
+                case None => {
+                    <ul class="list-text list-withicons" id="testsIndividual">
+                        <li>
+                            <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
+                                <span class="font-xsmall" data-locked>- locked</span>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>E-tray
+                                <span class="font-xsmall" data-locked>- locked</span>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Video interview
+                                <span class="font-xsmall" data-locked>- locked</span>
+                            </p>
+                        </li>
+                    </ul>
+                }
+                case Some(tests) if cachedUserData.application.isDefined => {
+                    <ul class="list-text list-withicons">
+                        <li>
+                        <p class="med-btm-margin" id="testsHeading"><i class="fa fa-minus the-icon"></i>Online exercises</p>
+                        <ul class="list-text list-withicons" id="testsIndividual">
+                            @{tests.sjq.map { sjq =>
+                                if (sjq.completed) {
+                                    <li><i class="fa fa-check the-icon"></i>Situational judgement questionnaire (untimed)</li>
+                                } else {
+                                    <li><i class="fa fa-minus the-icon"></i>Situational judgement questionnaire (untimed)</li>
+                                }
+                            }}
+                            @{tests.bq.map { bq =>
+                                if (bq.completed) {
+                                    <li><i class="fa fa-minus the-icon"></i>Behavioural questionnaire (untimed)</li>
+                                } else {
+                                    <li><i class="fa fa-minus the-icon"></i>Behavioural questionnaire (untimed)</li>
+                                }
+                            }}
+                        </ul>
+                        <p id="testsTime">You have <strong>@{tests.getDuration}</strong> to finish the online exercises</p>
+                        <div id="testsButtonContainer">
 
-@applicationStatus match {
-    case REGISTERED | CREATED | IN_PROGRESS | WITHDRAWN => {
-            <p>Once you've submitted your application and completed the diversity questions, you'll be invited to take the online tests. Once you've been invited, you'll have 7 days to complete the tests.</p>
-            <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-tests" rel="external" target="_blank">
-                        Find out more about the online tests</a></p>
-    }
-    case ONLINE_TEST_INVITED => {
-
-            <p>Your tests are now ready.</p>
-            <p>You have <b>@{
-                onlineTest.map(v => v.getDuration).getOrElse("")
-            }</b> to complete the tests.
-                <br>The tests will expire at @{
-                onlineTest.map(v => v.getExpireDateTime).getOrElse("")
-            }.</p>
-        <p>The tests will consist of</p>
-            <ol class="list-number">
-                <li>Competency questionnaire (untimed)</li>
-                <li>Verbal reasoning exercise (6 minutes) *</li>
-                <li>Numerical reasoning exercise (6 minutes) *</li>
-                <li>Situational judgement questionnaire (untimed)</li>
-            </ol>
-            <div class="panel-indent text">
-                <p>* Note: if you've applied under the guaranteed interview scheme (GIS), you don't need to do the verbal or numerical reasoning exercises.</p>
-            </div>
-            <div class="hide-tablet panel-indent">
-                <p><i class="fa fa-exclamation-triangle"></i>The online tests
-                    will be extremely difficult to use on a small device.</p>
-                <p>Use a laptop or desktop browser, or alternatively seek
-                    <a
-                    href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#help-with-getting-online"
-                    target="_blank" rel="external">help with getting online</a>. </p>
-            </div>
-
-        @* TODO: Remove or fix when online test stories will be implemented
-            @helper.form(action = routes.OnlineTestController.startTests(), 'novalidate -> "novalidate") {
-                @helper.CSRF.formField
-
-                <button id="submit_online_tests" type="submit" value="submit" class="button">Start tests</button>
-            }
-        *@
-
-            <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-selection-exercises"
-            target="_blank" rel="external">Find out more about the online tests</a>
-            </p>
-    }
-
-    case ONLINE_TEST_STARTED => {
-
-            <p>Your tests are now ready.</p>
-            <p>You have <b>@{
-                onlineTest.map(v => v.getDuration).getOrElse("")
-            }</b> to complete the tests.
-                <br>The tests will expire at @{
-                onlineTest.map(v => v.getExpireDateTime).getOrElse("")
-            }.</p>
-                <div class="hide-tablet panel-indent">
-        <p><i class="fa fa-exclamation-triangle"></i>The online tests
-            will be extremely difficult to use on a small device.</p>
-            <p>Use a laptop or desktop browser, or alternatively seek
-                <a
-                href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#help-with-getting-online"
-                target="_blank" rel="external">help with getting online</a>. </p>
-
-        @* TODO: Remove or fix when online test stories will be implemented
-        @helper.form(action = routes.OnlineTestController.startTests(), 'novalidate -> "novalidate") {
-            @helper.CSRF.formField
-
-            <button id="submit_online_tests" type="submit" value="submit" class="button">Continue tests</button>
-        }
-        *@
-
-        <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-selection-exercises"
-        target="_blank" rel="external">Find out more about the online tests</a>
-        </p>
-
-    }
-
-    case ONLINE_TEST_FAILED | ONLINE_TEST_FAILED_NOTIFIED if onlineTest.exists(_.pdfReportAvailable) => {
-        @* Only display failed section if a PDF report for the failure is available *@
-
-            <p>
-                We've assessed your test results and unfortunately you've been
-                unsuccessful this time.
-            </p>
-            <p>
-                You'll be able to reapply for Fast Track next year, alternatively
-                use the <a href="https://www.gov.uk/apply-apprenticeship" rel="external">find an apprenticeship</a> service to search for other apprenticeships in England.
-            </p>
-
-        @* TODO: Remove or fix when online test stories will be implemented
-            @onlineTest.map { test =>
-                @if(test.pdfReportAvailable) {
-                    <p><a href="@routes.OnlineTestController.downloadPDFReport()">View your online test feedback (Less than 100kb)</a></p>
+                            @helper.form(action = routes.OnlineTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
+                            @helper.CSRF.formField
+                                @{if (!tests.areStarted) {
+                                    <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
+                                } else {
+                                    <button id="submit_online_tests" type="submit" value="submit" class="button">Continue section</button>
+                                }}
+                            }
+                            <p>(Should take about an hour to finish both exercises)</p>
+                        </div>
+                        </li>
+                        <li id="etraySection">
+                            <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray <span class="font-xsmall"
+                                                                                                                        data-locked>- locked</span></p>
+                            <p data-locked>Unlocked if you're successful in the online exercises</p>
+                            <div id="etrayBlurb" class="hidden">
+                                <p id="etrayDescription" class="">This section is timed, after starting the section you'll
+                                    have 80 minutes to complete it.</p>
+                                <p id="etrayTime" class="">You have <strong>6 days 3 hours</strong> to finish
+                                    the E-tray</p>
+                                <a href="" class="button" id="etrayButton">Start section</a>
+                                <p>(You'll have 80 minutes to finish)</p>
+                            </div>
+                        </li>
+                        <li id="videoSection">
+                            <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
+                                <span
+                                        class="font-xsmall" data-locked>- locked</span>
+                            </p>
+                            <p data-locked>Unlocked if you're successful in the E-tray</p>
+                            <div id="videoBlurb" class="hidden">
+                                <p id="videoDescription" class="">This section is timed, after starting the section you'll
+                                    have 30 minutes to complete it.</p>
+                                <p id="videoTime" class="">You have <strong>6 days 3 hours</strong> to finish
+                                    the video interview</p>
+                                <a href="https://launchpadrecruitsapp.com/apply/4dbf86b937ecb3df1c533a30" class="button"
+                                   id="videoButton">Start section</a>
+                                <p>(You'll have 30 minutes to finish)</p>
+                            </div>
+                        </li>
+                    </ul>
                 }
             }
-
-            <p><a href="@routes.ApplicationController.helpdesk()">Contact us</a> if you believe there has been a mistake.</p>
-        *@
-    }
-
-    case ONLINE_TEST_EXPIRED => {
-        <p><i class="fa fa-exclamation-triangle"></i>Your online tests
-            expired on @{onlineTest.map(_.getExpireDate).getOrElse("")}.</p>
-    <p>You can no longer take the online tests.</p>
-        <p><a href="@routes.ApplicationController.helpdesk()">Contact us</a> if you believe there
-            has been a mistake.</p>
-    }
-
-    case ONLINE_TEST_COMPLETED | AWAITING_ONLINE_TEST_RE_EVALUATION | ONLINE_TEST_FAILED | ONLINE_TEST_FAILED_NOTIFIED | AWAITING_ALLOCATION => {
-            <p><i class="fa fa-check the-icon"></i>You've completed the online
-                tests</p>
-            <p>We'll send you an email to let you know when your results are
-                available.</p>
-            <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-selection-exercises"
-            target="_blank" rel="external">Find out more about the online tests</a>
-            </p>
-
-    }
-
-    case ASSESSMENT_CENTRE_PASSED_NOTIFIED | ASSESSMENT_CENTRE_FAILED_NOTIFIED if onlineTest.exists(_.pdfReportAvailable) => {
-        <p><i class="fa fa-check the-icon"></i>Congratulations – we've assessed your test results and you've passed the online tests.</p>
-
-        @* TODO: Remove or fix when online test stories will be implemented
-        @onlineTest.map { test =>
-            @if(test.pdfReportAvailable) {
-                <p><a href="@routes.OnlineTestController.downloadPDFReport()">View your online test feedback (Less than 100kb)</a></p>
-            }
-        }
-        *@
-    }
-
-    case _ if RoleUtils.hasReceivedFastPass(usr) => {
-        <p>We need to check and verify your certificate number before
-            you can progress as a Fast Pass candidate.</p>
-    }
-
-    case _ if(allocationDetails.isDefined) => {
-        <p><i class="fa fa-check the-icon"></i>Congratulations – we've assessed your test results and you've passed the online tests.</p>
-    }
-    case _ if(!allocationDetails.isDefined) => {
-        <p>The online tests are not available yet. Once you've been invited, you'll have 7 days to complete the tests.</p>
-        <p><a href="https://www.gov.uk/guidance/civil-service-fast-track-apprenticeship-how-to-apply#online-tests" rel="external" target="_blank">
-                    Find out more about the online tests</a></p>
-    }
-}
+    <p id="testsFindoutmore"><a href="" rel="external">Find out more about the online tests</a></p>
+</div>
+<div class="toggle-content" data-sdip>
+    <p>We need to check and verify your certificate number before
+        you can progress as a Fast Pass candidate. This should
+        take 2 working days.</p>
+</div>
