@@ -36,17 +36,14 @@ object ApplicationData {
   object ApplicationStatus extends Enumeration {
     type ApplicationStatus = Value
     // format: OFF
-    val REGISTERED, CREATED, IN_PROGRESS, SUBMITTED, WITHDRAWN, ONLINE_TEST_INVITED,
-    ONLINE_TEST_STARTED, ONLINE_TEST_COMPLETED, ONLINE_TEST_EXPIRED,
-    ALLOCATION_CONFIRMED, ALLOCATION_UNCONFIRMED, AWAITING_ALLOCATION,
-    ONLINE_TEST_FAILED, ONLINE_TEST_FAILED_NOTIFIED, AWAITING_ONLINE_TEST_RE_EVALUATION, FAILED_TO_ATTEND,
+    val REGISTERED, CREATED, IN_PROGRESS, SUBMITTED, WITHDRAWN, PHASE1_TESTS,
+    ALLOCATION_CONFIRMED, ALLOCATION_UNCONFIRMED, AWAITING_ALLOCATION, FAILED_TO_ATTEND,
     ASSESSMENT_SCORES_ENTERED, ASSESSMENT_SCORES_ACCEPTED, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ASSESSMENT_CENTRE_PASSED,
     ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED_NOTIFIED, ASSESSMENT_CENTRE_FAILED_NOTIFIED = Value
     // format: ON
 
     implicit val applicationStatusFormat = new Format[ApplicationStatus] {
       def reads(json: JsValue) = JsSuccess(ApplicationStatus.withName(json.as[String]))
-
       def writes(myEnum: ApplicationStatus) = JsString(myEnum.toString)
     }
   }
@@ -63,4 +60,55 @@ object ApplicationData {
       resp.progressResponse, resp.fastPassDetails)
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
+
+  object ProgressStatuses {
+    val RegisteredProgress = "registered"
+    val PersonalDetailsCompletedProgress = "personal_details_completed"
+    val SchemePreferencesCompletedProgress = "scheme_preferences_completed"
+    val PartnerGraduateProgrammesCompletedProgress = "partner_graduate_programmes_completed"
+    val AssistanceDetailsCompletedProgress = "assistance_details_completed"
+    val PreviewCompletedProgress = "preview_completed"
+    val StartDiversityQuestionnaireProgress = "start_diversity_questionnaire"
+    val DiversityQuestionsCompletedProgress = "diversity_questions_completed"
+    val EducationQuestionsCompletedProgress = "education_questions_completed"
+    val OccupationQuestionsCompletedProgress = "occupation_questions_completed"
+    val SubmittedProgress = "submitted"
+    val WithdrawnProgress = "withdrawn"
+    val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
+    val OnlineTestFailedProgress = "online_test_failed"
+    val OnlineTestFailedNotifiedProgress = "online_test_failed_notified"
+    val AwaitingOnlineTestAllocationProgress = "awaiting_online_test_allocation"
+    val AllocationConfirmedProgress = "allocation_confirmed"
+    val AllocationUnconfirmedProgress = "allocation_unconfirmed"
+
+    sealed abstract class ProgressStatus(val applicationStatus: ApplicationStatus)
+
+    object ProgressStatus {
+      implicit val progressStatusFormat = new Format[ProgressStatus] {
+        def reads(json: JsValue) = JsSuccess(nameToProgressStatus(json.as[String]))
+        def writes(progressStatusName: ProgressStatus) = JsString(progressStatusName.toString)
+      }
+    }
+
+    case object PHASE1_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+    case object PHASE1_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+    case object PHASE1_TESTS_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+    case object PHASE1_TESTS_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+    case object PHASE1_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+    private val nameToProgressStatus: Map[String, ProgressStatus] = List(
+      PHASE1_TESTS_INVITED,
+      PHASE1_TESTS_STARTED,
+      PHASE1_TESTS_COMPLETED,
+      PHASE1_TESTS_EXPIRED,
+      PHASE1_TESTS_RESULTS_RECEIVED
+    ).map { value =>
+      value.toString -> value
+    }.toMap
+
+  }
 }

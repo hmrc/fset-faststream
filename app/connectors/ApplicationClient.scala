@@ -22,8 +22,11 @@ import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
 import forms.{ AssistanceDetailsForm, PartnerGraduateProgrammesForm }
+import connectors.exchange.Phase1TestProfile
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
+import models.ApplicationData.ProgressStatuses.ProgressStatus
 import models.UniqueIdentifier
+import play.api.Logger
 import play.api.Play.current
 import play.api.http.Status._
 import play.api.libs.iteratee.Iteratee
@@ -168,21 +171,12 @@ trait ApplicationClient {
     }
   }
 
-  def getTestAssessment(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[OnlineTest] = {
+  def getPhase1TestProfile(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestProfileWithNames] = {
     http.GET(s"${url.host}${url.base}/online-test/candidate/$userId").map { response =>
-      response.json.as[OnlineTest]
+      response.json.as[Phase1TestProfileWithNames]
     } recover {
       case _: NotFoundException => throw new OnlineTestNotFound()
     }
-  }
-
-  def getPDFReport(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Array[Byte]] = {
-    http.wS.url(s"${url.host}${url.base}/online-test/pdf-report/$applicationId").get(resp =>
-      if (resp.status == 200) {
-        Iteratee.consume[Array[Byte]]()
-      } else {
-        throw new PdfReportNotFoundException()
-      }).flatMap { it => it.run }
   }
 
   def getAllocationDetails(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[AllocationDetails]] = {
@@ -197,9 +191,12 @@ trait ApplicationClient {
     http.POST(s"${url.host}${url.base}/allocation-status/confirm/$appId", "").map(_ => ())
   }
 
-  def onlineTestUpdate(userId: UniqueIdentifier, status: ApplicationStatus)(implicit hc: HeaderCarrier): Future[Unit] = {
-    val body = Json.toJson(OnlineTestStatus(status))
-    http.POST(s"${url.host}${url.base}/online-test/candidate/$userId/status", body).map(_ => ())
+  def onlineTestUpdate(applicationId: UniqueIdentifier, progressStatus: connectors.exchange.TestStatusUpdate)
+    (implicit hc: HeaderCarrier): Future[Unit] = {
+    import connectors.exchange.TestStatusUpdate.progressStatusFormat
+
+    val body = Json.toJson(progressStatus)
+    http.POST(s"${url.host}${url.base}/online-test/candidate/$applicationId/status", body).map(_ => ())
   }
 
   def completeTests(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
