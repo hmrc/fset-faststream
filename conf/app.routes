@@ -74,7 +74,6 @@ PUT         /phase1-test/:assessmentId/complete                          control
 PUT         /phase1-test/:assessmentId/results-ready                     controllers.Phase1TestsController.markResultsReady(assessmentId: String)
 
 POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
-GET         /phase1-test-group/:applicationId                            controllers.Phase1TestGroupController.getStatus(applicationId: String)
 
 GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
 PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)

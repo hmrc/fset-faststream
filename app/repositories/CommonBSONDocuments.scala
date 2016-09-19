@@ -32,6 +32,7 @@ trait CommonBSONDocuments {
     )
   }
 
+  @deprecated("Please use the dedicated Progress Status object instead of lower cased appStatus", "19-09-2016")
   def applicationStatusBSON(status: String)(implicit progressStatus: String = status.toLowerCase) = {
     BSONDocument(
       "applicationStatus" -> status,

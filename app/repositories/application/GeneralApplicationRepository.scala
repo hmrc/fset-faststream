@@ -114,7 +114,9 @@ trait GeneralApplicationRepository {
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
-  def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
+  def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
+
+  def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]) : Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -1004,11 +1006,22 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     }
   }
 
-  override def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
+  override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     collection.update(query, BSONDocument("$set" ->
       applicationStatusBSON(progressStatus))
     ) map { _ => }
+  }
+
+  override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    collection.update(query, BSONDocument("$unset" -> BSONDocument(
+      progressStatuses.map { progressStatus =>
+        s"progress-status.$progressStatus" -> BSONString("")
+        s"progress-status-dates.$progressStatus" -> BSONString("")
+      }
+    ))).map { _ => }
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

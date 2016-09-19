@@ -18,7 +18,7 @@ package services.testdata
 
 import model.{ ApplicationStatus, ApplicationStatuses }
 import model.Exceptions.InvalidStatusException
-import model.ProgressStatuses.{ PHASE1_TESTS_STARTED, ProgressStatus }
+import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, ProgressStatus }
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
@@ -35,12 +35,6 @@ object StatusGeneratorFactory {
         case "IN_PROGRESS_QUESTIONNAIRE" => InProgressQuestionnaireStatusGenerator
         case "IN_PROGRESS_PREVIEW" => InProgressPreviewStatusGenerator
         case ApplicationStatuses.Submitted => SubmittedStatusGenerator
-        // TODO: in faststream
-        // case ApplicationStatuses.OnlineTestInvited => OnlineTestInvitedStatusGenerator
-        // case ApplicationStatuses.OnlineTestExpired => OnlineTestExpiredStatusGenerator
-        // case ApplicationStatuses.AwaitingOnlineTestReevaluation => AwaitingOnlineTestReevaluationStatusGenerator
-        //case ApplicationStatuses.OnlineTestFailed => OnlineTestFailedStatusGenerator
-        //case ApplicationStatuses.OnlineTestFailedNotified => OnlineTestFailedNotifiedStatusGenerator
         case ApplicationStatuses.AwaitingAllocation => AwaitingAllocationStatusGenerator
         case ApplicationStatuses.AllocationConfirmed => AllocationStatusGenerator
         case ApplicationStatuses.AllocationUnconfirmed => AllocationStatusGenerator
@@ -54,6 +48,8 @@ object StatusGeneratorFactory {
         case ApplicationStatuses.AssessmentCentreFailedNotified => AssessmentCentreFailedNotifiedStatusGenerator
         case ApplicationStatuses.Withdrawn => WithdrawnStatusGenerator
       }
+      // TODO: Once all old string application statuses are removed convert this to a typed match
+      case ("PHASE1_TESTS", Some(PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
       case ("PHASE1_TESTS", Some(PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
       case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
     }

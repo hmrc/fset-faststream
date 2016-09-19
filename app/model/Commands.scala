@@ -265,7 +265,6 @@ object Commands {
     implicit val onlineTestDetailsFormat = Json.format[OnlineTestDetails]
     implicit val onlineTestFormat = Json.format[OnlineTest]
     implicit val onlineTestStatusFormats = Json.format[OnlineTestStatus]
-    implicit val onlineTestExtensionFormats = Json.format[OnlineTestExtension]
     implicit val userIdWrapperFormats = Json.format[UserIdWrapper]
 
     implicit val passMarkReportQuestionnaireDataFormat = Json.format[PassMarkReportQuestionnaireData]

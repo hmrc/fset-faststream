@@ -37,7 +37,7 @@ import scala.concurrent.Future
 trait OnlineTestRepository {
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
 
-  def updateGroupExpiryTime(groupKey: String, newExpirationDate: DateTime): Future[Unit]
+  def updateGroupExpiryTime(applicationId: String, newExpirationDate: DateTime): Future[Unit]
 
   def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
@@ -75,7 +75,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       )
     )).map { status =>
       if (status.n != 1) {
-        val msg = s"Query to update testgroup expiration affected ${status.n} rows intead of 1! (App Id: $applicationId)"
+        val msg = s"Query to update testgroup expiration affected ${status.n} rows instead of 1! (App Id: $applicationId)"
         Logger.warn(msg)
         throw UnexpectedException(msg)
       }

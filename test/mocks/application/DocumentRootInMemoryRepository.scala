@@ -152,7 +152,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String, evaluationResult: AssessmentRuleCategoryResult,
     newApplicationStatus: String): Future[Unit] = ???
 
-  def updateProgressStatus(appId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = ???
+  def addProgressStatusAndUpdateAppStatus(appId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = ???
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
 }

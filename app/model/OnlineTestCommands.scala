@@ -32,8 +32,8 @@ object OnlineTestCommands {
                         testUrl: String,
                         invitationDate: DateTime,
                         participantScheduleId: Int,
-                        started: Boolean = false,
-                        completed: Boolean = false,
+                        startedDateTime: Option[DateTime],
+                        completedDateTime: Option[DateTime],
                         resultsReadyToDownload: Boolean = false
                        )
 

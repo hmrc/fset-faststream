@@ -44,6 +44,10 @@ case class OnlineTestStatus(status: String)
 
 case class OnlineTestExtension(extraDays: Int)
 
+object OnlineTestExtension {
+  implicit val onlineTestExtensionFormat = Json.format[OnlineTestExtension]
+}
+
 case class UserIdWrapper(userId: String)
 
 object OnlineTestController extends OnlineTestController {
