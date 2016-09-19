@@ -1,6 +1,7 @@
 @(withdrawForm: Form[_root_.forms.WithdrawApplicationForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
     @import views.html.widgets.{ radioBoxHorizontal, select_guard }
+    @import helpers.CSRFieldConstructor._
 
     @main_template(title = "Withdraw your application", pageForms = Seq(withdrawForm)) {
 
