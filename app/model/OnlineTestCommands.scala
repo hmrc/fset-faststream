@@ -22,33 +22,37 @@ import model.PersistedObjects.CandidateTestReport
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
-import repositories.BSONDateTimeHandler
 
 object OnlineTestCommands {
-  case class Phase1TestProfile(expirationDate: DateTime,
-    tests: List[Phase1Test]
-  )
-
-  object Phase1TestProfile {
-    implicit val phase1TestProfileHandler: BSONHandler[BSONDocument, Phase1TestProfile] =
-      Macros.handler[Phase1TestProfile]
-  }
-
   case class Phase1Test(scheduleId: Int,
-    usedForResults: Boolean,
-    cubiksUserId: Int,
-    testProvider: String = "cubiks",
-    token: String,
-    testUrl: String,
-    invitationDate: DateTime,
-    participantScheduleId: Int,
-    started: Boolean = false,
-    completed: Boolean = false,
-    resultsReadyToDownload: Boolean = false
-  )
+                        usedForResults: Boolean,
+                        cubiksUserId: Int,
+                        testProvider: String = "cubiks",
+                        token: String,
+                        testUrl: String,
+                        invitationDate: DateTime,
+                        participantScheduleId: Int,
+                        started: Boolean = false,
+                        completed: Boolean = false,
+                        resultsReadyToDownload: Boolean = false
+                       )
 
   object Phase1Test{
+    import repositories.BSONDateTimeHandler
     implicit val phase1TestHandler: BSONHandler[BSONDocument, Phase1Test] = Macros.handler[Phase1Test]
+    implicit val phase1TestFormat = Json.format[Phase1Test]
+  }
+
+  case class Phase1TestProfile(expirationDate: DateTime,
+    tests: List[Phase1Test]
+  ) {
+    def activeTests = tests filter (_.usedForResults)
+  }
+
+  object Phase1TestProfile {
+    import repositories.BSONDateTimeHandler
+    implicit val phase1TestProfileHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Macros.handler[Phase1TestProfile]
+    implicit val phase1TestProfileFormat = Json.format[Phase1TestProfile]
   }
 
   case class OnlineTestApplication(applicationId: String, applicationStatus: String, userId: String,
@@ -77,8 +81,6 @@ object OnlineTestCommands {
     implicit val OnlineTestReportNormFormats = Json.format[ReportNorm]
     implicit val OnlineTestApplicationForReportRetrievingFormats = Json.format[OnlineTestApplicationForReportRetrieving]
     implicit val OnlineTestApplicationUserFormats = Json.format[OnlineTestApplicationWithCubiksUser]
-    implicit val Phase1TestFormats = Json.format[Phase1Test]
-    implicit val Phase1TestProfileFormats = Json.format[Phase1TestProfile]
     implicit val OnlineTestReportIdMRAFormats = Json.format[OnlineTestReportAvailability]
     implicit val testFormat = Json.format[TestResult]
   }
