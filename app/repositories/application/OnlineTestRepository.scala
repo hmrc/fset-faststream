@@ -18,21 +18,13 @@ package repositories.application
 
 import controllers.OnlineTestDetails
 import factories.DateTimeFactory
-<<<<<<< HEAD
-import model.EvaluationResults._
-import model.Exceptions.{ NotFoundException, UnexpectedException }
-import model.OnlineTestCommands.Phase1TestProfile
-import model.OnlineTestCommands.Implicits._
-import model.PersistedObjects.{ ApplicationForNotification, ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest }
-import model.{ ApplicationStatuses, Commands }
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.Logger
-=======
+import model.Exceptions.UnexpectedException
+import org.joda.time.DateTime
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.{ ApplicationStatus, Commands }
->>>>>>> origin/master
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories._
@@ -70,17 +62,25 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
-    /*
     val queryTestGroup = BSONDocument("applicationId" -> applicationId)
 
-    for {
-      status <- collection.update(queryTestGroup, newExpiryTime, upsert = false)
-      _ <- collection.update(queryTestGroupExpired, newStatus, upsert = false)
-    } yield {
-      if (status.n == 0) throw new NotFoundException(s"updateStatus didn't update anything for userId:$userId")
-      if (status.n > 1) throw new UnexpectedException(s"updateStatus somehow updated more than one record for userId:$userId")
-    }*/
-    Future.successful(())
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    collection.update(query, BSONDocument(
+      "testGroups" ->
+      BSONDocument(
+        "PHASE1" -> BSONDocument(
+          "$set" -> BSONDocument("expirationDate" -> expirationDate)
+        )
+      )
+    )).map { status =>
+      if (status.n != 1) {
+        val msg = s"Query to update testgroup expiration affected ${status.n} rows intead of 1! (App Id: $applicationId)"
+        Logger.warn(msg)
+        throw UnexpectedException(msg)
+      }
+      ()
+    }
   }
 
   override def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
