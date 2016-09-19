@@ -194,7 +194,7 @@ error.required.parentsDegree = You must tell us if your parent/guardian has a de
 error.required.employmentStatus = You must tell us the employment status of your highest-earning parent/guardian, or choose ''prefer not to say''
 error.required.parentsOccupation = You must tell us what type of work your highest-earning parent/guardian did
 error.required.employee = You must tell us if your parent/guardian was either employed or self-employed, or choose ''prefer not to say''
-error.required.organizationSize = You must tell us the size of your parent/guardian’s workplace, or choose ''prefer not to say''
+error.required.organizationSize = You must tell us the size of your parent/guardian's workplace, or choose ''prefer not to say''
 error.required.supervise = You must tell us if your parent/guardian supervised employees, or choose ''prefer not to say''
 error.required.acceptance = Confirm you understand that the information you give here won''t affect your application
 
