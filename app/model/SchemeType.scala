@@ -22,7 +22,8 @@ import reactivemongo.bson.{BSON, BSONHandler, BSONString}
 object SchemeType extends Enumeration {
   type SchemeType = Value
 
-  val CentralDepartments, Commercial, DigitalAndTechnology, DiplomaticService, European, Finance,
+  val Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,
+  DiplomaticServiceEuropean, European, Finance, Generalist,
   GovernmentCommunicationService, GovernmentEconomicService, GovernmentOperationalResearchService,
   GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
   ProjectDelivery, ScienceAndEngineering = Value
