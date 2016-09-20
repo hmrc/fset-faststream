@@ -27,6 +27,7 @@ object WithdrawnStatusGenerator extends WithdrawnStatusGenerator {
   override val appRepository = applicationRepository
 }
 
+
 trait WithdrawnStatusGenerator extends BaseGenerator {
   val appRepository: GeneralApplicationRepository
 
