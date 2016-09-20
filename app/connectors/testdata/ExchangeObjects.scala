@@ -33,18 +33,18 @@ object ExchangeObjects {
                                     personalDetails: Option[PersonalDetails] = None,
                                     isCivilServant: Option[Boolean] = None,
                                     contactDetails: Option[ContactDetails] = None,
-                                    onlineTestProfile: Option[OnlineTestProfileResponse] = None,
+                                    phase1TestGroup: Option[Phase1TestGroupResponse] = None,
                                     applicationAssessment: Option[ApplicationAssessment] = None,
                                     schemePreferences: Option[SelectedSchemes] = None
                                    )
 
-  case class OnlineTestProfileResponse(cubiksUserId: Int, token: String, onlineTestUrl: String)
+  case class Phase1TestGroupResponse(cubiksUserId: Int, token: String, testUrl: String)
 
   object Implicits {
 
     import model.Commands.Implicits._
 
-    implicit val onlineTestProfileResponseFormat = Json.format[OnlineTestProfileResponse]
+    implicit val phase1TestGroupResponseFormat = Json.format[Phase1TestGroupResponse]
     implicit val dataGenerationResponseFormat = Json.format[DataGenerationResponse]
   }
 

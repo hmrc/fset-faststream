@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package co
+package controllers
 
 import config.TestFixtureBase
 import connectors.AuthProviderClient

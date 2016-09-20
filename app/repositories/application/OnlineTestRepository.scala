@@ -18,10 +18,13 @@ package repositories.application
 
 import controllers.OnlineTestDetails
 import factories.DateTimeFactory
+import model.Exceptions.UnexpectedException
+import org.joda.time.DateTime
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.{ ApplicationStatus, Commands }
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories._
@@ -33,6 +36,10 @@ import scala.concurrent.Future
 
 trait OnlineTestRepository {
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
+
+  def getPhase1TestProfileByToken(token: String): Future[Option[Phase1TestProfile]]
+
+  def updateGroupExpiryTime(groupKey: String, newExpirationDate: DateTime): Future[Unit]
 
   def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
@@ -55,6 +62,42 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         val bson = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument]("PHASE1").get)
         bson.map(Phase1TestProfile.phase1TestProfileHandler.read)
       case _ => None
+    }
+  }
+
+  override def getPhase1TestProfileByToken(token: String): Future[Option[Phase1TestProfile]] = {
+    val query = BSONDocument("testGroups.PHASE1.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+    val projection = BSONDocument("testGroups.PHASE1" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) =>
+        val bson = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument]("PHASE1").get)
+        bson.map(Phase1TestProfile.phase1TestProfileHandler.read)
+      case _ => None
+    }
+  }
+
+  override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
+    val queryTestGroup = BSONDocument("applicationId" -> applicationId)
+
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    collection.update(query, BSONDocument(
+      "testGroups" ->
+      BSONDocument(
+        "PHASE1" -> BSONDocument(
+          "$set" -> BSONDocument("expirationDate" -> expirationDate)
+        )
+      )
+    )).map { status =>
+      if (status.n != 1) {
+        val msg = s"Query to update testgroup expiration affected ${status.n} rows intead of 1! (App Id: $applicationId)"
+        Logger.warn(msg)
+        throw UnexpectedException(msg)
+      }
+      ()
     }
   }
 

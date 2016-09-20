@@ -65,13 +65,16 @@ GET         /diagnostic/user/:userId                                     control
 
 GET         /online-test/candidate/:userId                               controllers.OnlineTestController.getOnlineTest(userId: String)
 POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
-POST        /online-test/complete/:token                                 controllers.OnlineTestController.completeTests(token: String)
 POST        /online-test/reset/:appId                                    controllers.OnlineTestController.resetOnlineTests(appId: String)
-POST        /online-test/extend/:appId                                   controllers.OnlineTestController.extendOnlineTests(appId: String)
 
-PUT         /phase1-test/:assessmentId/start                             controllers.Phase1TestsController.startAssessment(assessmentId: String)
-PUT         /phase1-test/:assessmentId/complete                          controllers.Phase1TestsController.completeAssessment(assessmentId: String)
-PUT         /phase1-test/:assessmentId/results-ready                     controllers.Phase1TestsController.markResultsReady(assessmentId: String)
+
+PUT         /phase1-test/:cubiksUserId/start                             controllers.Phase1TestsController.start(cubiksUserId: String)
+PUT         /phase1-test/:cubiksUserId/complete                          controllers.Phase1TestsController.complete(cubiksUserId: String)
+PUT         /phase1-test/complete-by-token/:token                        controllers.Phase1TestsController.completeTestByToken(token: String)
+PUT         /phase1-test/:cubiksUserId/results-ready                     controllers.Phase1TestsController.markResultsReady(cubiksUserId: String)
+
+POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
+GET         /phase1-test-group/:applicationId                            controllers.Phase1TestGroupController.getStatus(applicationId: String)
 
 GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
 PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)

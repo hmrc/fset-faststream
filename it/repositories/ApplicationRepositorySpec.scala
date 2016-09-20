@@ -50,11 +50,14 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val repo = repositories.applicationRepository
 
       val indexes = indexesWithFields(repo)
-      indexes must contain (List("_id"))
-      indexes must contain (List("applicationId", "userId"))
-      indexes must contain (List("userId", "frameworkId"))
-      indexes must contain (List("applicationStatus"))
-      indexes.size must be (4)
+      indexes must contain theSameElementsAs
+        Seq(
+          List("_id"),
+          List("applicationId", "userId"),
+          List("userId", "frameworkId"),
+          List("applicationStatus")
+        )
+
     }
 
     "return the gis parameter" in {
@@ -215,7 +218,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val frameworkId = "FastStream-2016"
 
       lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(1000).futureValue
+      testData.createApplications(100).futureValue
 
       val listFut = applicationRepo.adjustmentReport(frameworkId)
 
@@ -243,7 +246,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
     "return an empty list when there are no applications awaiting for allocation" in {
       lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(200, false).futureValue
+      testData.createApplications(5, false, Seq("London" -> "London")).futureValue
 
       val result = applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 0, 5).futureValue
       result mustBe a[ApplicationForAssessmentAllocationResult]
@@ -251,7 +254,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
     "return a one item list when there are applications awaiting for allocation and start item and end item is the same" in {
       lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(200, true).futureValue
+      testData.createApplications(5, true, Seq("London" -> "London")).futureValue
 
       val result =  applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 2, 2).futureValue
       result mustBe a[ApplicationForAssessmentAllocationResult]
@@ -259,15 +262,15 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
     "return a non empty list when there are applications" in {
       lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(200, true).futureValue
+      testData.createApplications(20, true, Seq("London" -> "London")).futureValue
 
       val result =  applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 0, 5).futureValue
       result mustBe a[ApplicationForAssessmentAllocationResult]
-      result.result must not be empty
+      result.result.length mustBe 6
     }
     "return an empty list when start is beyond the number of results" in {
       lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(200, true).futureValue
+      testData.createApplications(5, true, Seq("London" -> "London")).futureValue
 
       val result =  applicationRepo.findApplicationsForAssessmentAllocation(List("London"), Int.MaxValue, Int.MaxValue).futureValue
       result mustBe a[ApplicationForAssessmentAllocationResult]
@@ -275,7 +278,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
     "return an empty list when start is higher than end" in {
       lazy val testData = new TestDataMongoRepository()
-      testData.createApplications(200, true).futureValue
+      testData.createApplications(5, true, Seq("London" -> "London")).futureValue
 
       val result =  applicationRepo.findApplicationsForAssessmentAllocation(List("London"), 2, 1).futureValue
       result mustBe a[ApplicationForAssessmentAllocationResult]
@@ -396,14 +399,14 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   "manual assessment centre allocation report" should {
     "return all candidates that are in awaiting allocation state" in {
       val testData = new TestDataMongoRepository()
-      testData.createApplications(10,true).futureValue
+      testData.createApplications(10, true).futureValue
 
       val result = applicationRepo.candidatesAwaitingAllocation(frameworkId).futureValue
       result must have size 10
     }
     "not return candidates that are initially awaiting allocation but subsequently withdrawn" in {
       val testData = new TestDataMongoRepository()
-      testData.createApplications(10,true).futureValue
+      testData.createApplications(10, true).futureValue
 
       val result = applicationRepo.candidatesAwaitingAllocation(frameworkId).futureValue
       result.foreach{ c =>

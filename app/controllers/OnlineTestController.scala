@@ -63,7 +63,6 @@ trait OnlineTestController extends BaseController {
   import Commands.Implicits._
 
   def getOnlineTest(userId: String) = Action.async { implicit request =>
-
     onlineTestingService.getPhase1TestProfile(userId).map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
       case None => Logger.error(s"No phase 1 test found for userID [$userId]")
@@ -75,24 +74,6 @@ trait OnlineTestController extends BaseController {
     withJsonBody[OnlineTestStatus] { onlineTestStatus =>
       appRepository.updateStatus(applicationId, onlineTestStatus.status).map(_ => Ok)
     }
-  }
-
-  /**
-   * Note that this function will result with an ok even if the token is invalid.
-   * This is done on purpose. We want to update the status of the user if the token is correct, but if for
-   * any reason the token is wrong we still want to display the success page. The admin report will handle
-   * potential errors
-   *
-   * @return
-   */
-  def completeTests(token: String) = Action.async { implicit request =>
-    // TODO FIX ME - get appId from online test repo by token
-    //for {
-    //  appId <- onlineRepository.findByToken(token)
-    //  _ <- applicationRepository.setOnlineTestStatus(appId, "ONLINE_TESTS_COMPLETE")
-    //} yield Ok
-
-    Future.successful(Ok)
   }
 
   def resetOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
@@ -107,19 +88,4 @@ trait OnlineTestController extends BaseController {
     }
 
   }
-
-  def extendOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
-    // TODO FAST STREAM FIX ME
-    Future.successful(Ok)
-    //withJsonBody[OnlineTestExtension] { extension =>
-    //  onlineRepository.getOnlineTestApplication(appId).flatMap {
-    //    case Some(onlineTestApp) =>
-    //      onlineTestExtensionService.extendExpiryTime(onlineTestApp, extension.extraDays).map { _ =>
-    //        Ok
-    //      }
-    //    case _ => Future.successful(NotFound)
-    //  }
-    //}
-  }
-
 }
