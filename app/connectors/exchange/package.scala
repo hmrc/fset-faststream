@@ -81,60 +81,6 @@ package object exchange {
 
   case class PreviewRequest(flag: Boolean)
 
-  case class OnlineTest(expireDate: DateTime, onlineTestLink: String, isOnlineTestEnabled: Boolean, pdfReportAvailable: Boolean) {
-    def getDuration: String = {
-
-      val now = DateTime.now
-      val date = expireDate
-
-      val periodFormat = new PeriodFormatterBuilder().
-        printZeroAlways().
-        appendDays().
-        appendSuffix(" day ", " days ").
-        appendSeparator(" and ").
-        appendHours().
-        appendSuffix(" hour ", " hours ").
-        toFormatter
-
-      val period = new Period(now, date)
-
-      periodFormat print period
-    }
-
-    def getExpireDateTime: String = {
-
-      val dateTimeFormat = new DateTimeFormatterBuilder().
-        appendClockhourOfHalfday(1).
-        appendLiteral(":").
-        appendMinuteOfHour(2).
-        appendHalfdayOfDayText().
-        appendLiteral(" on ").
-        appendDayOfMonth(1).
-        appendLiteral(" ").
-        appendMonthOfYearText().
-        appendLiteral(" ").
-        appendYear(4, 4).
-        toFormatter
-
-      dateTimeFormat.print(expireDate)
-    }
-
-    def getExpireDate: String = {
-
-      val dateTimeFormat = new DateTimeFormatterBuilder().
-        appendDayOfMonth(1).
-        appendLiteral(" ").
-        appendMonthOfYearText().
-        appendLiteral(" ").
-        appendYear(4, 4).
-        toFormatter
-
-      dateTimeFormat.print(expireDate)
-    }
-  }
-
-  case class OnlineTestStatus(status: ApplicationStatus)
-
   object Implicits {
 
     implicit val emailWrapperFormats = Json.format[EmailWrapper]
@@ -172,10 +118,6 @@ package object exchange {
     implicit val resetPasswordRequestFormats = Json.format[ResetPasswordRequest]
 
     implicit val previewFormats = Json.format[PreviewRequest]
-
-    implicit val onlineTestFormats = Json.format[OnlineTest]
-
-    implicit val onlineTestStatusFormats = Json.format[OnlineTestStatus]
 
   }
 

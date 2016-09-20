@@ -68,9 +68,8 @@ GET         /questionnaire/page/3                                   controllers.
 POST        /questionnaire/page/3                                   controllers.QuestionnaireController.submitThirdPage
 
 # Online Test
-#POST        /online-tests/start                                     controllers.OnlineTestController.startTests
-#GET         /online-tests/complete/:token                           controllers.OnlineTestController.complete(token: UniqueIdentifier)
-#GET         /online-tests/pdf-report/download                       controllers.OnlineTestController.downloadPDFReport
+POST        /online-tests/phase1/start                              controllers.OnlineTestController.startPhase1Tests
+GET         /online-tests/complete/:token                           controllers.OnlineTestController.completeTestByToken(token: UniqueIdentifier)
 
 # Assets controller
 GET         /assets/*file                                           controllers.Assets.versioned(path="/public", file: Asset)

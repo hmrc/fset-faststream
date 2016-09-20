@@ -22,7 +22,7 @@ import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange.{ FrameworkId, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
-import models.page.DashboardPage
+import models.page.{ DashboardPage, Phase1TestsPage }
 import models.{ CachedData, CachedDataWithApp }
 import security.Roles
 import security.Roles._
@@ -34,40 +34,32 @@ object HomeController extends HomeController(ApplicationClient)
 class HomeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
   val Withdrawer = "Candidate"
 
-  def present = CSRSecureAction(ActiveUserRole) { implicit request =>
-    implicit user =>
-      // TODO: I think the non existance of the onlineTest can be handled with an Option
-      // not an Exception. It is not really an exceptional situation as in most situations
-      // the onlineTest will not be present until later.
-      applicationClient.getTestAssessment(user.user.userID).flatMap { onlineTest =>
-        applicationClient.getAllocationDetails(user.application.get.applicationId).flatMap { allocationDetails =>
-          // It is possible that the scheduler may have enabled testing, but that the
-          // current user session has older cached user data, so force an update
-          // TODO Work out a better way to invalidate the cache across the site
-          implicit val app = CachedDataWithApp(user.user, user.application.get)
-          refreshCachedUser().map { updatedData =>
-            // The application must exist if the user is invited
-            implicit val appOpt = Some(updatedData)
-            val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(onlineTest))
+  val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
+    val dashboard = for {
+      phase1TestsWithNames <- applicationClient.getPhase1TestProfile(cachedData.user.userID)
+      allocationDetails <- applicationClient.getAllocationDetails(cachedData.application.get.applicationId)
+      // TODO Work out a better way to invalidate the cache across the site
+      app = CachedDataWithApp(cachedData.user, cachedData.application.get)
+      updatedData <- refreshCachedUser()(app, hc, request)
+    } yield {
+      val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)))
+      Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))
+    }
 
-            Ok(views.html.home.dashboard(updatedData, dashboardPage, Some(onlineTest), allocationDetails))
-          }
+    dashboard recover {
+      case e: OnlineTestNotFound =>
+        val applicationSubmitted = !cachedData.application.forall { app =>
+          app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
         }
-      } recover {
-        case e: OnlineTestNotFound =>
-          val applicationSubmitted = !user.application.forall { app =>
-            app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
-          }
-          val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled || applicationSubmitted
+        val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled || applicationSubmitted
 
-          if (isDashboardEnabled) {
-            val dashboardPage = DashboardPage(user, None, None)
-            Ok(views.html.home.dashboard(user, dashboardPage, None, None))
-          } else {
-            Ok(views.html.home.submit_disabled(user))
-          }
-      }
-
+        if (isDashboardEnabled) {
+          val dashboardPage = DashboardPage(cachedData, None, None)
+          Ok(views.html.home.dashboard(cachedData, dashboardPage, None))
+        } else {
+          Ok(views.html.home.submit_disabled(cachedData))
+        }
+    }
   }
 
   def resume = CSRSecureAppAction(ActiveUserRole) { implicit request =>

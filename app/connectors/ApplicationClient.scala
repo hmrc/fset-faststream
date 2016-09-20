@@ -20,11 +20,8 @@ import config.CSRHttp
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
-import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.UniqueIdentifier
-import play.api.Play.current
 import play.api.http.Status._
-import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
 
@@ -166,21 +163,12 @@ trait ApplicationClient {
     }
   }
 
-  def getTestAssessment(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[OnlineTest] = {
+  def getPhase1TestProfile(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestProfileWithNames] = {
     http.GET(s"${url.host}${url.base}/online-test/candidate/$userId").map { response =>
-      response.json.as[OnlineTest]
+      response.json.as[Phase1TestProfileWithNames]
     } recover {
       case _: NotFoundException => throw new OnlineTestNotFound()
     }
-  }
-
-  def getPDFReport(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Array[Byte]] = {
-    http.wS.url(s"${url.host}${url.base}/online-test/pdf-report/$applicationId").get(resp =>
-      if (resp.status == 200) {
-        Iteratee.consume[Array[Byte]]()
-      } else {
-        throw new PdfReportNotFoundException()
-      }).flatMap { it => it.run }
   }
 
   def getAllocationDetails(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[AllocationDetails]] = {
@@ -195,13 +183,12 @@ trait ApplicationClient {
     http.POST(s"${url.host}${url.base}/allocation-status/confirm/$appId", "").map(_ => ())
   }
 
-  def onlineTestUpdate(userId: UniqueIdentifier, status: ApplicationStatus)(implicit hc: HeaderCarrier): Future[Unit] = {
-    val body = Json.toJson(OnlineTestStatus(status))
-    http.POST(s"${url.host}${url.base}/online-test/candidate/$userId/status", body).map(_ => ())
+  def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/phase1-test/$cubiksUserId/start", "").map(_ => ())
   }
 
-  def completeTests(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.POST(s"${url.host}${url.base}/online-test/complete/$token", "").map(_ => ())
+  def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/phase1-test/complete-by-token/$token", "").map(_ => ())
   }
 }
 
