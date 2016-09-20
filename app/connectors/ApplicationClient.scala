@@ -191,16 +191,12 @@ trait ApplicationClient {
     http.POST(s"${url.host}${url.base}/allocation-status/confirm/$appId", "").map(_ => ())
   }
 
-  def onlineTestUpdate(applicationId: UniqueIdentifier, progressStatus: connectors.exchange.TestStatusUpdate)
-    (implicit hc: HeaderCarrier): Future[Unit] = {
-    import connectors.exchange.TestStatusUpdate.progressStatusFormat
-
-    val body = Json.toJson(progressStatus)
-    http.POST(s"${url.host}${url.base}/online-test/candidate/$applicationId/status", body).map(_ => ())
+  def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/phase1-test/$cubiksUserId/start", "").map(_ => ())
   }
 
-  def completeTests(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.POST(s"${url.host}${url.base}/online-test/complete/$token", "").map(_ => ())
+  def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/phase1-test/complete-by-token/$token", "").map(_ => ())
   }
 }
 

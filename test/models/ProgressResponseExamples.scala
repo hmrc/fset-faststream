@@ -18,7 +18,7 @@ package models
 
 import java.util.UUID
 
-import connectors.exchange.{ OnlineTestProgressResponse, ProgressResponse }
+import connectors.exchange.ProgressResponse
 
 object ProgressResponseExamples {
   val Initial = ProgressResponse(UUID.randomUUID().toString, false, false, false, false, false, Nil, false, false,
