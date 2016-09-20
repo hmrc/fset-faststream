@@ -1,0 +1,13 @@
+@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit lang: play.api.i18n.Lang)
+
+@import views.html.widgets.{ checkbox, selectValueDifferentFromDisplayedText }
+@import views.html.questionnaire.components.{ postcode, school, universityName, universityDegreeCategory }
+
+
+<h2 class="heading-medium">University</h2>
+<div class="panel-indent text">
+    <p>This data helps us compare the average performance of certain universities
+        to the national average.</p>
+</div>
+@universityName(questionnaireForm)
+@universityDegreeCategory(questionnaireForm)
