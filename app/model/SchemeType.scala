@@ -24,7 +24,7 @@ object SchemeType extends Enumeration {
 
   val Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,
   DiplomaticServiceEuropean, European, Finance, Generalist,
-  GovernmentCommunicationService, GovernmentEconomicService, GovernmentOperationalResearchService,
+  GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService,
   GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
   ProjectDelivery, ScienceAndEngineering = Value
 
