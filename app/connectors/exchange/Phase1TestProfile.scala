@@ -26,9 +26,13 @@ case class Phase1Test(usedForResults: Boolean,
                       token: UniqueIdentifier,
                       cubiksUserId: Int,
                       invitationDate: DateTime,
-                      started: Boolean = false,
-                      completed: Boolean = false,
-                      resultsReadyToDownload: Boolean = false)
+                      startedDateTime: Option[DateTime] = None,
+                      completedDateTime: Option[DateTime] = None,
+                      resultsReadyToDownload: Boolean = false) {
+  def started = startedDateTime.isDefined
+
+  def completed = completedDateTime.isDefined
+}
 
 object Phase1Test {
   implicit def phase1TestFormat = Json.format[Phase1Test]

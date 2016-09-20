@@ -210,8 +210,8 @@ object DashboardPageSpec {
       invitationDate = DateTime.now,
       token = UniqueIdentifier(UUID.randomUUID()),
       cubiksUserId = 123,
-      started = false,
-      completed = false,
+      startedDateTime = Some(DateTime.now),
+      completedDateTime= Some(DateTime.now),
       resultsReadyToDownload = false
     ))
   )
