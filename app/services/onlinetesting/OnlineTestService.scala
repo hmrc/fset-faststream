@@ -79,25 +79,22 @@ trait OnlineTestService {
     otRepository.nextApplicationReadyForOnlineTesting
   }
 
-  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfileWithNames]] = {
-    appRepository.findCandidateByUserId(userId).flatMap {
-      case Some(candidate) if candidate.applicationId.isDefined =>
-        for {
-          phase1 <- otRepository.getPhase1TestProfile(candidate.applicationId.get)
-        } yield {
-          phase1 map { p =>
-            val sjqTests = p.activeTests filter (_.scheduleId == sjq)
-            val bqTests = p.activeTests filter (_.scheduleId == bq)
-            require(sjqTests.length <= 1)
-            require(bqTests.length <= 1)
+  def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfileWithNames]] = {
+    for {
+      phase1Opt <- otRepository.getPhase1TestProfile(applicationId)
+    } yield {
+      phase1Opt.map { phase1 =>
+        val sjqTests = phase1.activeTests filter (_.scheduleId == sjq)
+        val bqTests = phase1.activeTests filter (_.scheduleId == bq)
+        require(sjqTests.length <= 1)
+        require(bqTests.length <= 1)
 
-            Phase1TestProfileWithNames(p.expirationDate, Map()
-              ++ (if (sjqTests.nonEmpty) Map("sjq" -> sjqTests.head) else Map())
-              ++ (if (bqTests.nonEmpty) Map("bq" -> bqTests.head) else Map())
-            )
-          }
-        }
-      case None => Future.successful(None)
+        Phase1TestProfileWithNames(
+          phase1.expirationDate, Map()
+            ++ (if (sjqTests.nonEmpty) Map("sjq" -> sjqTests.head) else Map())
+            ++ (if (bqTests.nonEmpty) Map("bq" -> bqTests.head) else Map())
+        )
+      }
     }
   }
 

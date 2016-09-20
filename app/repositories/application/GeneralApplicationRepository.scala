@@ -52,6 +52,8 @@ trait GeneralApplicationRepository {
 
   def create(userId: String, frameworkId: String): Future[ApplicationResponse]
 
+  def find(applicationId: String): Future[Option[Candidate]]
+
   def find(applicationIds: List[String]): Future[List[Candidate]]
 
   def findProgress(applicationId: String): Future[ProgressResponse]
@@ -154,10 +156,13 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
   }
 
+  def find(applicationId: String): Future[Option[Candidate]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    collection.find(query).one[BSONDocument].map(x => x.map(docToCandidate))
+  }
+
   def find(applicationIds: List[String]): Future[List[Candidate]] = {
-
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map(docToCandidate))
   }
 
@@ -243,9 +248,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   def findCandidateByUserId(userId: String): Future[Option[Candidate]] = {
-
     val query = BSONDocument("userId" -> userId)
-
     collection.find(query).one[BSONDocument].map(_.map(docToCandidate))
   }
 
