@@ -1,8 +1,9 @@
-@(details: Form[_root_.forms.GeneralDetailsForm.Data], updateStatus: Boolean)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
+@(details: Form[_root_.forms.GeneralDetailsForm.Data], updateStatus: Boolean)(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
 
 @import views.html.application.personalDetails.{contactDetails, nameAndDateOfBirth}
 @import views.html.application.fastPassDetails.fastPassDetailsPanel
 @import views.html.widgets.{pageProgress, saveAndContinueButton}
+@import security.Roles.EditPersonalDetailsAndContinueRole
 
 @redirectUrl = @{
     if (updateStatus) routes.PersonalDetailsController.submitGeneralDetailsAndContinue()
@@ -18,7 +19,9 @@
 
         @nameAndDateOfBirth(details)
         @contactDetails(details)
-        @fastPassDetailsPanel(details)
+        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData))){
+            @fastPassDetailsPanel(details)
+        }
         @saveAndContinueButton()
     }
 }

@@ -27,10 +27,7 @@ case class FastPassDetails(applicable: Boolean,
                            internshipTypes: Option[Seq[String]] = None,
                            fastPassReceived: Option[Boolean] = None,
                            certificateNumber: Option[String] = None) {
-  def isCivilServant() = {
-    fastPassType.map {fpt => fpt == FastPassForm.CivilServant || fpt == FastPassForm.CivilServantViaFastTrack}.getOrElse(false)
-  }
-
+  def isCivilServant = fastPassType.exists {fpt => fpt == FastPassForm.CivilServant || fpt == FastPassForm.CivilServantViaFastTrack}
 }
 
 object FastPassDetails {
