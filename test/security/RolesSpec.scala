@@ -18,7 +18,7 @@ package security
 
 import java.util.UUID
 
-import connectors.exchange.{ AssessmentCentre, AssessmentScores }
+import connectors.exchange.{ AssessmentCentre, AssessmentScores, ProgressExamples }
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus.{ CREATED, _ }
 import models._
@@ -36,7 +36,7 @@ class RolesSpec extends PlaySpec with MustMatchers {
 
   "Withdraw Component" should {
     "be enable only for specific roles" in {
-      val disabledStatuses = List(IN_PROGRESS, WITHDRAWN, CREATED, ONLINE_TEST_FAILED, ONLINE_TEST_FAILED_NOTIFIED,
+      val disabledStatuses = List(IN_PROGRESS, WITHDRAWN, CREATED,
         ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
       val enabledStatuses = ApplicationStatus.values.toList.diff(disabledStatuses)
 
@@ -77,10 +77,7 @@ object RolesSpec {
   def activeUser(applicationStatus: ApplicationStatus) = CachedData(CachedUser(
     id,
     "John", "Biggs", None, "aaa@bbb.com", isActive = true, "locked"
-  ), Some(ApplicationData(id, id, applicationStatus,
-    Progress(true, true, true, true, true, true, true, true, true, true, true,
-      OnlineTestProgress(true, true, true, true, true, true, true, true, true, true),
-      true, AssessmentScores(true, true), AssessmentCentre(true, true)), None)))
+  ), Some(ApplicationData(id, id, applicationStatus, ProgressExamples.FullProgress, None)))
 
   def registeredUser(applicationStatus: ApplicationStatus) = CachedData(CachedUser(
     id,
