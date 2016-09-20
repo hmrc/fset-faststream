@@ -121,20 +121,20 @@ class FastPassFormSpec extends PlaySpec {
     "remove other fields when fast pass is not applicable" in {
       val data = Map("fastPassDetails.applicable" -> "false", "fastPassDetails.fastPassType" -> "DiversityInternship",
         "fastPassDetails.internshipTypes[0]" -> "SDIPCurrentYear")
-      data.cleanupFastPassFields() mustBe Map("fastPassDetails.applicable" -> "false")
+      data.cleanupFastPassFields mustBe Map("fastPassDetails.applicable" -> "false")
     }
 
     "remove internship types when fast pass type is CivilServant" in {
       val data = Map("fastPassDetails.applicable" -> "true", "fastPassDetails.fastPassType" -> "CivilServant",
         "fastPassDetails.internshipTypes[0]" -> "SDIPCurrentYear")
-      data.cleanupFastPassFields() must contain theSameElementsAs
+      data.cleanupFastPassFields must contain theSameElementsAs
         Map("fastPassDetails.applicable" -> "true", "fastPassDetails.fastPassType" -> "CivilServant")
     }
 
     "remove certificate number when fast pass is not received" in {
       val data = Map("fastPassDetails.applicable" -> "true", "fastPassDetails.fastPassType" -> "DiversityInternship",
         "fastPassDetails.internshipTypes[0]" -> "SDIPCurrentYear", "fastPassReceived" -> "false", "certificateNumber" -> "1234567")
-      data.cleanupFastPassFields() must contain theSameElementsAs
+      data.cleanupFastPassFields must contain theSameElementsAs
         Map("fastPassDetails.applicable" -> "true", "fastPassDetails.fastPassType" -> "DiversityInternship",
           "fastPassDetails.internshipTypes[0]" -> "SDIPCurrentYear", "fastPassReceived" -> "false")
     }

@@ -18,9 +18,7 @@ package controllers
 
 import _root_.forms.SelectedSchemesForm._
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.exchange.FastPassDetails
 import connectors.{ ApplicationClient, SchemeClient }
-import _root_.forms.FastPassForm
 import security.Roles.SchemesRole
 
 import scala.concurrent.Future
@@ -30,7 +28,7 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
-      val civilServant = user.application.fastPassDetails.exists(_.isCivilServant())
+      val civilServant = user.application.fastPassDetails.exists(_.isCivilServant)
       schemeClient.getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
         Ok(views.html.application.schemePreferences.schemeSelection(civilServant, form.fill(selectedSchemes)))
       }.recover {
@@ -43,7 +41,7 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
     implicit user =>
       form.bindFromRequest.fold(
         invalidForm => {
-          val civilServant = user.application.fastPassDetails.exists(_.isCivilServant())
+          val civilServant = user.application.fastPassDetails.exists(_.isCivilServant)
           Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(civilServant, invalidForm)))
         },
         selectedSchemes => {
