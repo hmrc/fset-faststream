@@ -1,6 +1,6 @@
 @(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data], isCandidateCivilServant: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@import views.html.questionnaire.components.{ postcode, school, university, universityDegreeCategory }
+@import views.html.questionnaire.components.{ postcode, school, universitySection }
 @import views.html.widgets.{ pageProgress, radioBoxHorizontal }
 
 @main_template(title = "Your education", pageForms = Seq(questionnaireForm)) {
@@ -32,31 +32,21 @@
             </div>
         </fieldset>
         <input type="hidden" id="isCandidateCivilServant" name="isCandidateCivilServant" value="@isCandidateCivilServant">
+
         @if(isCandidateCivilServant=="Yes") {
             <fieldset>
                 <legend class="form-label text">@Messages("haveDegree.question")</legend>
                 @radioBoxHorizontal(questionnaireForm("haveDegree"), options = List(("yes", "Yes", true), ("no", "No", false)),
                     optionTrigger = "haveDegree-panel")
                 <div id="haveDegree-panel" class="toggle-content" aria-hidden="true">
-                    <h2 class="heading-medium">University</h2>
-                    <div class="panel-indent text">
-                        <p>This data helps us compare the average performance of certain universities
-                            to the national average.</p>
-                    </div>
-                    @university(questionnaireForm)
-                    @universityDegreeCategory(questionnaireForm)
+                    @universitySection(questionnaireForm)
                 </div>
             </fieldset>
         } else {
-            <h2 class="heading-medium">University</h2>
-            <div class="panel-indent text">
-                <p>This data helps us compare the average performance of certain universities
-                    to the national average.</p>
-            </div>
             <input type="hidden" id="haveDegree" name="haveDegree" value="Yes">
-            @university(questionnaireForm)
-            @universityDegreeCategory(questionnaireForm)
+            @universitySection(questionnaireForm)
         }
+
 
         <div>
             <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
