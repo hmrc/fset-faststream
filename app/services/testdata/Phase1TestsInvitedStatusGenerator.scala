@@ -53,7 +53,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.insertPhase1TestProfile(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
+      _ <- otRepository.insertOrUpdatePhase1TestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
     } yield {
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
         Phase1TestGroupResponse(phase1TestProfile.tests.head.cubiksUserId,

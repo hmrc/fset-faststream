@@ -20,39 +20,44 @@ import model.exchange.Phase1TestResultReady
 import play.api.mvc.Action
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.Logger
-import scala.concurrent.Future
+import services.onlinetesting.OnlineTestService
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase1TestsController extends Phase1TestsController {
-
+  override val phase1TestService = OnlineTestService
 }
 
 trait Phase1TestsController extends BaseController {
+  val phase1TestService: OnlineTestService
 
-  def start(cubiksUserId: String) = Action.async(parse.json) { implicit request =>
+  def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId started")
-    Future.successful(Ok)
+    phase1TestService.markAsStarted(cubiksUserId).map(_ => Ok)
   }
 
-  def complete(cubiksUserId: String) = Action.async(parse.json) { implicit request =>
+  def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId completed")
-    Future.successful(Ok)
+    phase1TestService.markAsCompleted(cubiksUserId).map(_ => Ok)
   }
 
   /**
     * Note that this function will result with an ok even if the token is invalid.
     * This is done on purpose. We want to update the status of the user if the token is correct, but if for
-    * any reason the token is wrong we still want to display the success page. The admin report will handle
-    * potential errors
+    * any reason the token is wrong we still want to display the success page.
     */
   def completeTestByToken(token: String) = Action.async { implicit request =>
     Logger.info(s"Complete test by token $token")
-    Future.successful(Ok)
+    phase1TestService.markAsCompleted(token).map(_ => Ok).recover {
+      case e =>
+        Logger.warn("Error in test completion by token", e)
+        Ok
+    }
   }
 
-  def markResultsReady(cubiksUserId: String) = Action.async(parse.json) { implicit request =>
+  def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     withJsonBody[Phase1TestResultReady] { phase1TestResultReady =>
       Logger.info(s"Assessment $cubiksUserId has report [$phase1TestResultReady] ready to download")
-      Future.successful(Ok)
+      phase1TestService.markAsReportReadyToDownload(cubiksUserId, phase1TestResultReady).map(_ => Ok)
     }
   }
 

@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package model.exchange
+package model.persisted
 
-import play.api.libs.json.Json
+import model.OnlineTestCommands.Phase1TestProfile
+import reactivemongo.bson.Macros
 
-case class Phase1TestResultReady(reportId: Option[Int],
-                                 reportStatus: String,
-                                 reportLinkURL: Option[String])
+case class Phase1TestProfileWithAppId(applicationId: String, phase1TestProfile: Phase1TestProfile)
 
-case object Phase1TestResultReady {
-  implicit val phase1TestResultReadyFormat = Json.format[Phase1TestResultReady]
+object Phase1TestProfileWithAppId {
+  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestProfileWithAppId]
 }
