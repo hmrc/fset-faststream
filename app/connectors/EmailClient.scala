@@ -40,7 +40,7 @@ trait CSREmailClient extends EmailClient {
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier) =
     sendEmail(
       to,
-      "csr_app_online_test_invitation",
+      "fset_faststream_app_online_test_invitation",
       Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
     )
 
