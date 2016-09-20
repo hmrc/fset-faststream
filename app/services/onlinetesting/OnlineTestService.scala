@@ -30,7 +30,6 @@ import play.api.Logger
 import play.libs.Akka
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
-import services.onlinetesting.OnlineTestService.TestExtensionException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
@@ -315,7 +314,7 @@ trait OnlineTestService {
   }
 
   private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
-    val scheduleCompletionUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/phase1-test/complete-by-token/$token"
+    val scheduleCompletionUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/$token"
     if (application.guaranteedInterview) {
       InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None, timeAdjustments = None)
     } else {
