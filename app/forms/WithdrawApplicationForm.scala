@@ -17,9 +17,9 @@
 package forms
 
 import models.view.WithdrawReasons
-import play.api.data.{ Form, FormError }
 import play.api.data.Forms._
 import play.api.data.format.Formatter
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 object WithdrawApplicationForm {
@@ -32,7 +32,10 @@ object WithdrawApplicationForm {
       case _ =>
         val fieldValue = data.get(key)
         if (maxLength.isDefined && fieldValue.isDefined && fieldValue.get.size > maxLength.get) {
-          Left(List(FormError(key, Messages(s"error.$key.maxLength")))) } else { Right(fieldValue) }
+          Left(List(FormError(key, Messages(s"error.$key.maxLength"))))
+        } else {
+          Right(fieldValue)
+        }
     }
 
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
@@ -40,14 +43,14 @@ object WithdrawApplicationForm {
 
   val form = Form(
     mapping(
-      "wantToWithdraw" -> Mappings.nonEmptyTrimmedText("error.wantToWithdraw.required", 31),
+      "wantToWithdraw" -> Mappings.nonEmptyTrimmedText("error.wantToWithdraw.required", 5),
       "reason" -> of(requiredFormatterWithMaxLengthCheck("wantToWithdraw", "reason", Some(64))),
       "otherReason" -> of(otherReasonFormatter(Some(300)))
     )(Data.apply)(Data.unapply)
   )
 
   case class Data(
-                 wantToWithdraw: String,
+                   wantToWithdraw: String,
                    reason: Option[String],
                    otherReason: Option[String]
                  )

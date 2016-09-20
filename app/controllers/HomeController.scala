@@ -86,7 +86,7 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
   def withdrawApplication = CSRSecureAppAction(WithdrawApplicationRole) { implicit request =>
     implicit user =>
 
-      def updateApplicationStatus(data: CachedData) = {
+      def updateApplicationStatus(data: CachedData): CachedData = {
         data.copy(application = data.application.map { app =>
           app.copy(
             applicationStatus = ApplicationStatus.WITHDRAWN,

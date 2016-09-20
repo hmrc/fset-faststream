@@ -94,9 +94,9 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
-      //scalastyle:off
+      //scalastyle:off line.length
       flash(result).data must be (Map("success" -> "You've successfully withdrawn your application. <a href=\"https://www.gov.uk/done/apply-civil-service-apprenticeship\" target=\"_blank\" rel=\"external\">Give feedback?</a> (30 second survey)"))
-      //scalastyle:on
+      //scalastyle:on line.length
     }
   }
 
