@@ -16,7 +16,7 @@
 
 package forms
 
-import connectors.exchange.GeneralDetails
+import connectors.exchange.{ FastPassDetails, GeneralDetails }
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping._
@@ -42,8 +42,10 @@ object GeneralDetailsForm {
 
   def ageReference(implicit now: LocalDate) = new LocalDate(now.getYear, 8, 31)
 
-  def form(implicit now: LocalDate) = {
-    val maxDob = Some(ageReference.minusYears(MinAge))
+  def maxDob(implicit now: LocalDate) = Some(ageReference.minusYears(MinAge))
+
+  def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false) = {
+    val fastPassFormMapping = if(ignoreFastPassValidations) FastPassForm.ignoreForm.mapping else FastPassForm.form.mapping
 
     Form(
       mapping(
@@ -56,7 +58,7 @@ object GeneralDetailsForm {
         postCode -> of(postCodeFormatter),
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
-        FastPassForm.formQualifier -> FastPassForm.form.mapping
+        FastPassForm.formQualifier -> fastPassFormMapping
       )(Data.apply)(Data.unapply)
     )
   }
@@ -120,7 +122,8 @@ object GeneralDetailsForm {
       case _ => true
     }
 
-    def toExchange(email: String, updateApplicationStatus: Option[Boolean]) = GeneralDetails(
+    def toExchange(email: String, updateApplicationStatus: Option[Boolean],
+                   overrideFastPassDetails: Option[FastPassDetails] = None) = GeneralDetails(
       firstName,
       lastName,
       preferredName,
@@ -131,7 +134,7 @@ object GeneralDetailsForm {
       postCode.map(p => PostCodeMapping.formatPostcode(p)),
       country,
       phone,
-      fastPassDetails,
+      overrideFastPassDetails.getOrElse(fastPassDetails),
       updateApplicationStatus
     )
   }

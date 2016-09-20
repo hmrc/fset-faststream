@@ -18,7 +18,7 @@ package models
 
 import java.util.UUID
 
-import connectors.exchange.{ AssessmentCentre, AssessmentScores, ProgressExamples }
+import connectors.exchange.{ FastPassDetails, ProgressExamples }
 import models.ApplicationData.ApplicationStatus
 
 object CachedDataExample {
@@ -34,7 +34,7 @@ object CachedDataExample {
     UniqueIdentifier(UUID.randomUUID.toString),
     ApplicationStatus.CREATED,
     ProgressExamples.InitialProgress,
-    None
+    Some(FastPassDetails(applicable = false))
   )
 
   val InPersonalDetailsApplication = CreatedApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,

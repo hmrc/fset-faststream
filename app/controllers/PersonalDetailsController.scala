@@ -20,11 +20,13 @@ import _root_.forms.GeneralDetailsForm
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.FastPassForm._
+import connectors.exchange.FastPassDetails
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.ApplicationData.ApplicationStatus._
 import models.CachedDataWithApp
 import org.joda.time.LocalDate
+import play.api.data.Form
 import play.api.mvc.{ Request, Result }
 import security.Roles.{ EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -90,12 +92,13 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
 
   def submitGeneralDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
     implicit user =>
-      submit(ContinueToNextStepInJourney, Redirect(routes.SchemePreferencesController.present()))
+      submit(GeneralDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, Redirect(routes.SchemePreferencesController.present()))
   }
 
   def submitGeneralDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
-      submit(RedirectToTheDashboard, Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")))
+      submit(GeneralDetailsForm.form(LocalDate.now, ignoreFastPassValidations = true), RedirectToTheDashboard,
+        Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")), user.application.fastPassDetails)
   }
 
   private def continuetoTheNextStep(onSuccess: OnSuccess) = onSuccess match {
@@ -103,38 +106,44 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
     case RedirectToTheDashboard => false
   }
 
-  private def submit(onSuccess: OnSuccess, redirectOnSuccess: Result)(
-    implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
-    implicit val now: LocalDate = LocalDate.now
+  private def submit(generalDetailsForm: Form[GeneralDetailsForm.Data], onSuccess: OnSuccess, redirectOnSuccess: Result,
+                     overrideFastPassDetails: Option[FastPassDetails] = None)
+                    (implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
 
-    GeneralDetailsForm.form.bindFromRequest.fold(
-      errorForm => Future.successful(Ok(views.html.application.generalDetails(GeneralDetailsForm.
-        form.bind(errorForm.data.cleanupFastPassFields()), continuetoTheNextStep(onSuccess)))),
-      gd => for {
+    val handleFormWithErrors = (errorForm:Form[GeneralDetailsForm.Data]) => {
+      Future.successful(Ok(views.html.application.generalDetails(
+        generalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess)))
+      )
+    }
+    val handleValidForm = (form: GeneralDetailsForm.Data) => {
+      val fastPassDetails: FastPassDetails = overrideFastPassDetails.getOrElse(form.fastPassDetails)
+      for {
         _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
-          toExchange(gd, cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
-        _ <- userManagementClient.updateDetails(cachedData.user.userID, gd.firstName, gd.lastName, Some(gd.preferredName))
+          toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideFastPassDetails))
+        _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
         redirect <- updateProgress(data => {
-          val applicationCopy = data.application.map(_.copy(fastPassDetails = Some(gd.fastPassDetails)))
-          data.copy(user = cachedData.user.copy(firstName = gd.firstName, lastName = gd.lastName,
-            preferredName = Some(gd.preferredName)), application =
+          val applicationCopy = data.application.map(_.copy(fastPassDetails = Some(fastPassDetails)))
+          data.copy(user = cachedData.user.copy(firstName = form.firstName, lastName = form.lastName,
+            preferredName = Some(form.preferredName)), application =
             if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)
         })(_ => redirectOnSuccess)
       } yield {
         redirect
       }
-    )
+    }
+    generalDetailsForm.bindFromRequest.fold(handleFormWithErrors, handleValidForm)
   }
 
 }
 
 trait GeneralDetailsToExchangeConverter {
 
-  def toExchange(generalDetails: GeneralDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean]) = {
+  def toExchange(generalDetails: GeneralDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean],
+                 fastPassDetails: Option[FastPassDetails] = None) = {
     val gd = generalDetails.insideUk match {
       case true => generalDetails.copy(country = None)
       case false => generalDetails.copy(postCode = None)
     }
-    gd.toExchange(email, updateApplicationStatus)
+    gd.toExchange(email, updateApplicationStatus, fastPassDetails)
   }
 }
