@@ -18,6 +18,7 @@ package model
 
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+import scala.language.implicitConversions
 
 object ApplicationStatus extends Enumeration {
   type ApplicationStatus = Value

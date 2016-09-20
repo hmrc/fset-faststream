@@ -16,14 +16,9 @@
 
 package services.testdata
 
-import java.util.UUID
-
-import connectors.testdata.ExchangeObjects.OnlineTestProfileResponse
 import model.ApplicationStatuses
-import model.OnlineTestCommands.Phase1TestProfile
-import org.joda.time.DateTime
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,7 +35,7 @@ trait WithdrawnStatusGenerator extends BaseGenerator {
     for {
       candidateInPreviousStatus <- StatusGeneratorFactory.getGenerator(generatorConfig.previousStatus.getOrElse(
         ApplicationStatuses.Submitted
-      )).generate(generationId, generatorConfig)
+      ), None).generate(generationId, generatorConfig)
       _ <- appRepository.withdraw(candidateInPreviousStatus.applicationId.get, model.command.WithdrawApplication("test", Some("test"),
         "test"))
     } yield {

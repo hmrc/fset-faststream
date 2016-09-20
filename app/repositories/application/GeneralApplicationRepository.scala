@@ -139,7 +139,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     }
   }
 
-  def docToCandidate(doc: BSONDocument): Candidate = {
+  private def docToCandidate(doc: BSONDocument): Candidate = {
     val userId = doc.getAs[String]("userId").getOrElse("")
     val applicationId = doc.getAs[String]("applicationId")
 
@@ -183,17 +183,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
         questionnaire = questionnaire,
         submitted = getProgress("submitted"),
         withdrawn = getProgress("withdrawn"),
-        onlineTest = OnlineTestProgressResponse(onlineTestInvited = getProgress("online_test_invited"),
-          onlineTestStarted = getProgress("online_test_started"),
-          onlineTestCompleted = getProgress("online_test_completed"),
-          onlineTestExpired = getProgress("online_test_expired"),
-          onlineTestAwaitingReevaluation = getProgress("awaiting_online_test_re_evaluation"),
-          onlineTestFailed = getProgress("online_test_failed"),
-          onlineTestFailedNotified = getProgress("online_test_failed_notified"),
-          onlineTestAwaitingAllocation = getProgress("awaiting_online_test_allocation"),
-          onlineTestAllocationConfirmed = getProgress("allocation_confirmed"),
-          onlineTestAllocationUnconfirmed = getProgress("allocation_unconfirmed")
-        ),
+        phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.toString),
+        phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.toString),
+        phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.toString),
+        phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
+        phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
         failedToAttend = getProgress("failed_to_attend"),
         assessmentScores = AssessmentScores(getProgress("assessment_scores_entered"), getProgress("assessment_scores_accepted")),
         assessmentCentre = AssessmentCentre(
@@ -213,7 +207,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) => findProgress(document, applicationId)
-      case None => ProgressResponse(applicationId)
+      case None => throw ApplicationNotFound(applicationId)
     }
   }
 
@@ -223,7 +217,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) => {
-        val status = document.getAs[String]("applicationStatus").getOrElse("")
+        val status = document.getAs[String]("applicationStatus").get
         val statusDate = document.getAs[BSONDocument]("progress-status-dates").flatMap(_.getAs[LocalDate](status.toLowerCase))
         ApplicationStatusDetails(status, statusDate)
       }
@@ -234,17 +228,16 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val query = BSONDocument("userId" -> userId, "frameworkId" -> frameworkId)
 
-    val resp: Future[Future[ApplicationResponse]] = collection.find(query).one[BSONDocument] map {
+    collection.find(query).one[BSONDocument] flatMap {
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[String]("applicationStatus").get
         val fastPassReceived = document.getAs[FastPassDetails]("fastpass-details")
-        findProgress(applicationId).map { (p: ProgressResponse) =>
-          ApplicationResponse(applicationId, applicationStatus, userId, p, fastPassReceived)
+        findProgress(applicationId).map { progress =>
+          ApplicationResponse(applicationId, applicationStatus, userId, progress, fastPassReceived)
         }
       case None => throw ApplicationNotFound(userId)
     }
-    resp.flatMap(identity)
   }
 
   def findCandidateByUserId(userId: String): Future[Option[Candidate]] = {
@@ -257,19 +250,17 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   def findByCriteria(firstOrPreferredNameOpt: Option[String],
     lastNameOpt: Option[String],
     dateOfBirth: Option[LocalDate],
-    userIds: List[String] = List.empty
+    userIds: List[String]
   ): Future[List[Candidate]] = {
+
+    def matchIfSome(value: Option[String]) = value.map(v => BSONRegex("^" + v + "$", "i"))
 
     val innerQuery = BSONArray(
       BSONDocument("$or" -> BSONArray(
-        BSONDocument("personal-details.firstName" -> firstOrPreferredNameOpt.map {
-          firstName => BSONRegex("^" + firstName + "$", "i")
-        }),
-        BSONDocument("personal-details.preferredName" -> firstOrPreferredNameOpt.map {
-          preferredName => BSONRegex("^" + preferredName + "$", "i") }
-        )
+        BSONDocument("personal-details.firstName" -> matchIfSome(firstOrPreferredNameOpt)),
+        BSONDocument("personal-details.preferredName" -> matchIfSome(firstOrPreferredNameOpt))
       )),
-      BSONDocument("personal-details.lastName" -> lastNameOpt.map { lastName => BSONRegex("^" + lastName + "$", "i") }),
+      BSONDocument("personal-details.lastName" -> matchIfSome(lastNameOpt)),
       BSONDocument("personal-details.dateOfBirth" -> dateOfBirth)
     )
 

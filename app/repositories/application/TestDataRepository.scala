@@ -38,7 +38,7 @@ object Utils {
 }
 
 trait TestDataRepository {
-  def createApplications(num: Int, onlyAwaitingAllocation: Boolean = false): Future[Unit]
+  def createApplications(num: Int, onlyAwaitingAllocation: Boolean = false, locationsAndRegions: Seq[(String, String)]): Future[Unit]
 }
 
 trait TestDataContactDetailsRepository {
@@ -80,7 +80,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
   val preferredName = Seq("Superman", "Batman", "Spiderman", "Wolverine", "Hulk")
   val frameworks = Seq("Digital and technology", "Finance", "Project delivery", "Commercial", "Business")
 
-  val locationsAndRegions = Seq("Southend" -> "East", "Nottingham" -> "East-midlands", "London" -> "London", "Darlington" -> "North-east",
+  val allLocationsAndRegions = Seq("Southend" -> "East", "Nottingham" -> "East-midlands", "London" -> "London", "Darlington" -> "North-east",
     "newcastle" -> "North-east", "Blackpool" -> "North-west", "Stockport" -> "North-west", "Warrington" -> "North-west",
     "Manchester / Salford" -> "North-west", "Liverpool / Bootle / Netherton" -> "North-west", "Bathgate" -> "Scotland",
     "East Kilbride" -> "Scotland", "Edinburgh" -> "Scotland", "Glasgow" -> "Scotland", "Airdrie / Motherwell / Hamilton" -> "Scotland",
@@ -92,14 +92,15 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     LocalDate.parse("1982-12-12"), LocalDate.parse("1983-12-12"), LocalDate.parse("1984-12-12"), LocalDate.parse("1985-12-12"),
     LocalDate.parse("1987-12-12"), LocalDate.parse("1987-12-12"))
 
-  override def createApplications(num: Int, onlyAwaitingAllocation: Boolean = false): Future[Unit] =
+  override def createApplications(num: Int, onlyAwaitingAllocation: Boolean = false,
+                                  locationsAndRegions: Seq[(String, String)] = allLocationsAndRegions): Future[Unit] =
     Future.sequence(
-      (0 until num).map { i => createSingleApplication(i, onlyAwaitingAllocation) }
+      (0 until num).map { i => createSingleApplication(i, onlyAwaitingAllocation, locationsAndRegions) }
     ).map(_ => ())
 
-  private def createSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false): Future[Unit] = {
+  private def createSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false, locationsAndRegions: Seq[(String, String)]): Future[Unit] = {
 
-    val document = buildSingleApplication(id, onlyAwaitingAllocation)
+    val document = buildSingleApplication(id, onlyAwaitingAllocation, locationsAndRegions)
 
     collection.update(BSONDocument("userId" -> id.toString), document, upsert = true) map (_ => ())
   }
@@ -122,9 +123,9 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     progress
   }
 
-  private def buildSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false) = {
+  private def buildSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false, locationsAndRegions: Seq[(String, String)]) = {
     val personalDetails = createPersonalDetails(id, onlyAwaitingAllocation)
-    val frameworks = createLocations(id, onlyAwaitingAllocation)
+    val frameworks = createLocations(id, onlyAwaitingAllocation, locationsAndRegions)
     val assistance = createAssistance(id, onlyAwaitingAllocation)
     val onlineTests = createOnlineTests(id, onlyAwaitingAllocation)
     val submitted = isSubmitted(id)(personalDetails, frameworks, assistance)
@@ -178,23 +179,36 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       ))
   }
 
-  private def createLocations(id: Int, buildAlways: Boolean = false) = id match {
+  private def createLocations(id: Int, buildAlways: Boolean = false, regionsAndLocations: Seq[(String, String)] ) = id match {
     case x if x % 11 == 0 && !buildAlways => None
     case _ =>
-      val firstLocationRegion = chooseOne(locationsAndRegions)
-      val secondLocationRegion = chooseOne(locationsAndRegions)
-      Some(BSONDocument(
-        "firstLocation" -> BSONDocument(
-          "region" -> firstLocationRegion._2, "location" -> firstLocationRegion._1,
-          "firstFramework" -> chooseOne(frameworks), "secondFramework" -> chooseOne(frameworks)
-        ), // Could be identical.
-        "secondLocation" -> BSONDocument(
-          "region" -> secondLocationRegion._2, "location" -> secondLocationRegion._1,
-          "firstFramework" -> chooseOne(frameworks), "secondFramework" -> chooseOne(frameworks)
-        ), // Could be identical.
-        "secondLocationIntended" -> true,
-        "alternatives" -> BSONDocument("location" -> true, "framework" -> true)
-      ))
+      val firstLocationRegion = chooseOne(regionsAndLocations)
+      val possibleSecondRegions = regionsAndLocations.filterNot(_ == firstLocationRegion)
+      val secondLocationRegion = if (possibleSecondRegions.isEmpty) None else Some(chooseOne(possibleSecondRegions))
+
+      secondLocationRegion.map { sl =>
+        Some(BSONDocument(
+          "firstLocation" -> BSONDocument(
+            "region" -> firstLocationRegion._2, "location" -> firstLocationRegion._1,
+            "firstFramework" -> chooseOne(frameworks), "secondFramework" -> chooseOne(frameworks)
+          ),
+          "secondLocation" -> BSONDocument(
+            "region" -> sl._2, "location" -> sl._1,
+            "firstFramework" -> chooseOne(frameworks), "secondFramework" -> chooseOne(frameworks)
+          ),
+          "secondLocationIntended" -> true,
+          "alternatives" -> BSONDocument("location" -> true, "framework" -> true)
+        ))
+      } getOrElse {
+        Some(BSONDocument(
+          "firstLocation" -> BSONDocument(
+            "region" -> firstLocationRegion._2, "location" -> firstLocationRegion._1,
+            "firstFramework" -> chooseOne(frameworks), "secondFramework" -> chooseOne(frameworks)
+          ),
+          "secondLocationIntended" -> false,
+          "alternatives" -> BSONDocument("location" -> true, "framework" -> true)
+        ))
+      }
   }
 
   private def createOnlineTests(id: Int, buildAlways: Boolean = false) = id match {

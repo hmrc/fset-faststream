@@ -17,8 +17,9 @@
 package common
 
 import scala.collection.generic.CanBuildFrom
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.language.higherKinds
+import scala.util.{ Failure, Success, Try }
 
 object FutureEx {
   /**
@@ -36,4 +37,22 @@ object FutureEx {
     in.foldLeft(Future.successful(cbf(in))) { (fr, a) =>
       for (r <- fr; b <- fn(a)) yield r += b
     }.map(_.result())
+
+
+  /**
+    * Create futures of Try[B] so that filtering/processing can be carried out later
+    * http://stackoverflow.com/questions/15775824/how-to-carry-on-executing-future-sequence-despite-failure
+    */
+  def traverseToTry[A, B](seq: Seq[A])(f: A => Future[B])(implicit executor: ExecutionContext): Future[Seq[Try[B]]] = {
+    // Can also be done more concisely (but less efficiently) as:
+    // f.map(Success(_)).recover{ case t: Throwable => Failure( t ) }
+    // NOTE: you might also want to move this into an enrichment class
+    def mapValue[T]( f: Future[T] ): Future[Try[T]] = {
+      val prom = Promise[Try[T]]()
+      f onComplete prom.success
+      prom.future
+    }
+
+    Future.traverse( seq )( f andThen mapValue )
+  }
 }
