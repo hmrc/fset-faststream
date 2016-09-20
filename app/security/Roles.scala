@@ -124,6 +124,11 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS)
   }
 
+  object OnlineTestExpiredRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS) && isTestExpired(user)
+  }
+
   object DisplayOnlineTestSectionRole extends CsrAuthorization {
     // format: OFF
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
@@ -218,5 +223,7 @@ object RoleUtils {
       .flatMap(_.fastPassDetails)
       .flatMap(_.fastPassReceived)
       .getOrElse(false)
+
+  def isTestExpired(implicit user: CachedData) = progress.phase1TestsExpired
 
 }
