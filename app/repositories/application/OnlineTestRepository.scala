@@ -37,6 +37,8 @@ import scala.concurrent.Future
 trait OnlineTestRepository {
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
 
+  def getPhase1TestProfileByToken(token: String): Future[Option[Phase1TestProfile]]
+
   def updateGroupExpiryTime(groupKey: String, newExpirationDate: DateTime): Future[Unit]
 
   def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
@@ -51,6 +53,20 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]] = {
     val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("testGroups.PHASE1" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) =>
+        val bson = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument]("PHASE1").get)
+        bson.map(Phase1TestProfile.phase1TestProfileHandler.read)
+      case _ => None
+    }
+  }
+
+  override def getPhase1TestProfileByToken(token: String): Future[Option[Phase1TestProfile]] = {
+    val query = BSONDocument("testGroups.PHASE1.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
     val projection = BSONDocument("testGroups.PHASE1" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
