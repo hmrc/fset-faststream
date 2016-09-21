@@ -18,7 +18,7 @@ package controllers
 
 import config.TestFixtureBase
 import mocks.application.DocumentRootInMemoryRepository
-import model.Commands.WithdrawApplicationRequest
+import model.command.WithdrawApplication
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -38,7 +38,7 @@ import scala.language.postfixOps
 class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results {
 
   val ApplicationId = "1111-1111"
-  val aWithdrawApplicationRequest = WithdrawApplicationRequest("Something", Some("Else"), "Candidate")
+  val aWithdrawApplicationRequest = WithdrawApplication("Something", Some("Else"), "Candidate")
   val auditDetails = Map("applicationId" -> ApplicationId, "withdrawRequest" -> aWithdrawApplicationRequest.toString)
 
   "Create Application" should {
@@ -123,7 +123,7 @@ class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results 
 
   "Withdraw application" should {
     "withdraw the application" in new TestFixture {
-      val result = TestApplicationController.applicationWithdraw("1111-1111")(withdrawApplicationRequest("1111-1111")(
+      val result = TestApplicationController.withdrawApplication("1111-1111")(withdrawApplicationRequest("1111-1111")(
         s"""
            |{
            |  "reason":"Something",
@@ -178,7 +178,7 @@ class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results 
 
     def withdrawApplicationRequest(applicationId: String)(jsonString: String) = {
       val json = Json.parse(jsonString)
-      FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.applicationWithdraw(applicationId).url, FakeHeaders(), json)
+      FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.withdrawApplication(applicationId).url, FakeHeaders(), json)
         .withHeaders("Content-Type" -> "application/json")
     }
 

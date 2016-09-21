@@ -25,6 +25,8 @@ import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.PersistedObjects.ExpiringOnlineTest
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED }
 import model.persisted.Phase1TestProfileWithAppId
+import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
+import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
@@ -101,7 +103,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   }
 
   "Next application ready for online testing" should {
-    "return no application if htere is only one and it is a fast pass candidate" in{
+    "return no application if there is only one and it is a fast pass candidate" in{
       createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
       )
@@ -120,6 +122,30 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
       result.get.applicationId mustBe "appId"
       result.get.userId mustBe "userId"
+    }
+  }
+
+  "The OnlineTestApplication case model" should {
+    "be correctly read from mongo" in {
+       createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false, isGis = true
+      )
+
+      val onlineTestApplication = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
+
+      onlineTestApplication.isDefined mustBe true
+
+      inside (onlineTestApplication.get) { case OnlineTestApplication(applicationId, applicationStatus, userId,
+        guaranteedInterview, needsAdjustments, preferredName, timeAdjustments) =>
+
+        applicationId mustBe "appId"
+        applicationStatus mustBe "SUBMITTED"
+        userId mustBe "userId"
+        guaranteedInterview mustBe true
+        needsAdjustments mustBe false
+        preferredName mustBe testCandidate("preferredName")
+        timeAdjustments mustBe None
+      }
     }
   }
 
@@ -260,9 +286,10 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     appId
   }
 
+  // scalastyle:off parameter.number
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
                                      appStatus: String = "", needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
-                                     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false) = {
+                                     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false, isGis: Boolean = false) = {
     helperRepo.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -297,11 +324,12 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         "applicable" -> fastPassApplicable,
         "fastPassReceived" -> fastPassApplicable
       ),
-      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments),
+      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments, isGis),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus()
     )).futureValue
   }
+  // scalastyle:on parameter.number
 
   private def progressStatus(args: List[Option[(String, Boolean)]] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(
@@ -329,7 +357,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   }
 
   private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
-                                      timeExtensionAdjustments:Boolean) = {
+                                      timeExtensionAdjustments:Boolean, isGis: Boolean = false) = {
     if (needsAdjustment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
@@ -338,25 +366,29 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
             "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
             "adjustments-confirmed" -> true,
             "verbalTimeAdjustmentPercentage" -> 9,
-            "numericalTimeAdjustmentPercentage" -> 11
+            "numericalTimeAdjustmentPercentage" -> 11,
+            "guaranteedInterview" -> isGis
           )
         } else {
           BSONDocument(
             "needsAdjustment" -> "Yes",
             "typeOfAdjustments" -> BSONArray("room alone"),
-            "adjustments-confirmed" -> true
+            "adjustments-confirmed" -> true,
+            "guaranteedInterview" -> isGis
           )
         }
       } else {
         BSONDocument(
           "needsAdjustment" -> "Yes",
           "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-          "adjustments-confirmed" -> false
+          "adjustments-confirmed" -> false,
+          "guaranteedInterview" -> isGis
         )
       }
     } else {
       BSONDocument(
-        "needsAdjustment" -> "No"
+        "needsAdjustment" -> "No",
+        "guaranteedInterview" -> isGis
       )
     }
   }
@@ -381,12 +413,4 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     ))).futureValue
   }
 
-  /*
-  "personal-details" : {
-        "firstName" : "George",
-        "lastName" : "Foreman",
-        "preferredName" : "George",
-        "dateOfBirth" : "1962-12-12"
-    }
-   */
 }
