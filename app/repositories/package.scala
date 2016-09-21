@@ -195,7 +195,7 @@ package object repositories {
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
 
     val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
-    val guaranteedInterview = assistanceDetailsRoot getAs[Boolean]("guaranteedInterview") getOrElse false
+    val guaranteedInterview = assistanceDetailsRoot.getAs[Boolean]("guaranteedInterview").getOrElse(false)
     val needsAdjustment = assistanceDetailsRoot.getAs[String]("needsAdjustment").contains("Yes")
 
     if (needsAdjustment) {
