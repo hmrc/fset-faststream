@@ -16,23 +16,12 @@
 
 package services
 
-import java.io.File
-
-import com.typesafe.config.{Config, ConfigFactory}
-import connectors.PassMarkExchangeObjects.Settings
-import mocks.{OnlineIntegrationTestInMemoryRepository, PassMarkSettingsInMemoryRepository}
-import model.EvaluationResults._
-import model.OnlineTestCommands.CandidateScoresWithPreferencesAndPassmarkSettings
+import mocks.PassMarkSettingsInMemoryRepository
 import model.PersistedObjects.CandidateTestReport
-import model.{ApplicationStatuses, Preferences}
-import net.ceedubs.ficus.Ficus._
-import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-import net.ceedubs.ficus.readers.ValueReader
-import org.joda.time.DateTime
+import model.Preferences
 import org.scalatest.mock.MockitoSugar
-import play.Logger
-import play.api.test.WithApplication
-import repositories.{FrameworkPreferenceRepository, FrameworkRepository, PassMarkSettingsRepository, TestReportRepository}
+import repositories.application.OnlineTestRepository
+import repositories.{ FrameworkPreferenceRepository, FrameworkRepository, PassMarkSettingsRepository, TestReportRepository }
 import services.onlinetesting.OnlineTestPassmarkService
 import services.passmarksettings.PassMarkSettingsService
 import testkit.IntegrationSpec
@@ -48,7 +37,7 @@ class OnlineTestPassmarkServiceSpec extends IntegrationSpec with MockitoSugar {
 
     val fpRepository = mock[FrameworkPreferenceRepository]
     val trRepository = mock[TestReportRepository]
-    val oRepository = OnlineIntegrationTestInMemoryRepository
+    val oRepository = mock[OnlineTestRepository]
     val passmarkRulesEngine = OnlineTestPassmarkService.passmarkRulesEngine
     val pmsRepository: PassMarkSettingsRepository = PassMarkSettingsInMemoryRepository
     val passMarkSettingsService = new PassMarkSettingsService {
