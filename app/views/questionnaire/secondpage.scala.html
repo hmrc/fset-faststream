@@ -19,6 +19,8 @@
                 and reflects the society it serves.</p>
         </div>
     </div>
+    <button type="button" id="testajax" value="testajax">Click Me!</button>
+
     @helper.form(action = routes.QuestionnaireController.submitSecondPage(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
 
