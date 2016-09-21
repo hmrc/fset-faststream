@@ -47,7 +47,7 @@ object SelectedSchemesForm {
     Scheme("GovernmentEconomicsService", Degree_Economics, specificRequirement = true, eligibilityForCivilServant = false),
     Scheme("GovernmentOperationalResearchService", Degree_GORS, specificRequirement = true, eligibilityForCivilServant = false),
     Scheme("GovernmentSocialResearchService", Degree_SocialScience, specificRequirement = true, eligibilityForCivilServant = false),
-    Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement = true, eligibilityForCivilServant = true),
     Scheme("HousesOfParliament", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("HumanResources", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("ProjectDelivery", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),

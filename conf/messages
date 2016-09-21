@@ -136,8 +136,8 @@ scheme.HumanResources.description=Human Resources
 scheme.ProjectDelivery.description=Project Delivery
 scheme.ScienceAndEngineering.description=Science & Engineering
 
-scheme.DiplomaticServiceEconomics.link=#
-scheme.DiplomaticServiceEuropean.link=#
+scheme.DiplomaticServiceEconomics.link=government-economic-service
+scheme.DiplomaticServiceEuropean.link=european
 scheme.DiplomaticService.link=diplomatic-service
 scheme.European.link=european
 scheme.GovernmentEconomicsService.link=government-economic-service
@@ -148,7 +148,7 @@ scheme.ScienceAndEngineering.link=science-engineering
 
 qualification.Degree_21.description=2:1 degree in any subject
 qualification.Degree_22.description=2:2 degree in any subject
-qualification.Degree_21_PostGrad=2:1 degree in any subject or a 2:2 with a postgraduate degree in any subject
+qualification.Degree_21_PostGrad.description=2:1 degree in any subject or a 2:2 with a postgraduate degree in any subject
 qualification.Degree_DipServEconomics.description=2:1 degree in economics, or a 2:2 with a postgraduate in economics
 qualification.Degree_Economics.description=2:1 degree in economics, or a 2:2 with a postgraduate in economics
 qualification.Degree_Numerate.description=2:1 degree in a numerate subject
