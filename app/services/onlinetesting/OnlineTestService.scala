@@ -385,11 +385,6 @@ trait OnlineTestService {
     }
   }
 
-  private def updateProgress(appId: String, progressStatus: Option[ProgressStatus]): Future[Unit] = progressStatus match {
-    case Some(p) => appRepository.updateProgressStatus(appId, p)
-    case None => Future.successful()
-  }
-
   private def toCandidateTestReport(appId: String, tests: Map[String, TestResult]) = {
     val VerbalTestName = "Logiks Verbal and Numerical - Verbal"
     val NumericalTestName = "Logiks Verbal and Numerical - Numerical"
