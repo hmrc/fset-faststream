@@ -824,11 +824,10 @@ $(function() {
   
   $( "#postcodeQ" ).autocomplete({
     source: function( request, response ) {
-      var r = jsRoutes.controllers.SchoolsController.getSchools()
+      var r = jsRoutes.controllers.SchoolsController.getSchools(request.term)
       r.ajax({
         success : function(data) {
-          //$('#postcodeQ').removeClass('ui-autocomplete-loading');
-          // hide loading image
+          $('#postcodeQ').removeClass('ui-autocomplete-loading');
 
           response( $.map( data, function(item) {
             return item;
@@ -839,7 +838,7 @@ $(function() {
         }
       });
     },
-    minLength: 3,
+    minLength: 1,
     open: function() {},
     close: function() {},
     focus: function(event,ui) {},
