@@ -17,19 +17,11 @@
 package connectors
 
 import config.CSRHttp
-import connectors.exchange.AssistanceDetails._
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
-import forms.{ AssistanceDetailsForm, PartnerGraduateProgrammesForm }
-import connectors.exchange.Phase1TestProfile
-import models.ApplicationData.ApplicationStatus.ApplicationStatus
-import models.ApplicationData.ProgressStatuses.ProgressStatus
 import models.UniqueIdentifier
-import play.api.Logger
-import play.api.Play.current
 import play.api.http.Status._
-import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
 
@@ -58,7 +50,7 @@ trait ApplicationClient {
     }
   }
 
-  def withdrawApplication(applicationId: UniqueIdentifier, reason: WithdrawApplicationRequest)(implicit hc: HeaderCarrier) = {
+  def withdrawApplication(applicationId: UniqueIdentifier, reason: WithdrawApplication)(implicit hc: HeaderCarrier) = {
     http.PUT(s"${url.host}${url.base}/application/withdraw/$applicationId", Json.toJson(reason)).map {
       case x: HttpResponse if x.status == OK => ()
     }.recover {
@@ -154,10 +146,10 @@ trait ApplicationClient {
     hc: HeaderCarrier
   ) = {
     http.PUT(s"${url.host}${url.base}/questionnaire/$applicationId/$sectionId", questionnaire).map {
-        case x: HttpResponse if x.status == ACCEPTED => ()
-      } recover {
-        case _: BadRequestException => throw new CannotUpdateRecord()
-      }
+      case x: HttpResponse if x.status == ACCEPTED => ()
+    } recover {
+      case _: BadRequestException => throw new CannotUpdateRecord()
+    }
   }
 
   def updatePreview(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {

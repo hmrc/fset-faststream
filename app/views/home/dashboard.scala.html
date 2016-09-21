@@ -30,6 +30,13 @@
         <h1 class="heading-xlarge">Home</h1>
         <p class="subtitle">@dashboardPage.fullName</p>
     </div>
+    @if(dashboardPage.isApplicationWithdrawn) {
+        <div class="lede">
+            <p>Your application has been withdrawn.</p>
+            <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()" id="contactUsWithdrawn">
+                contact us</a>.</p>
+        </div>
+    }
     <section class="section-border">
         <ol class="step-by-step-coloured" id="sixSteps">
             <li class="first-step @activateByStep(dashboardPage.firstStepVisibility)">
@@ -144,7 +151,7 @@
             <div class="text">
                 <p>If you no longer wish to proceed with your application you can withdraw
                     at any time.</p>
-                <a id="withdraw-app" href="@routes.HomeController.presentWithDraw()">Withdraw application</a>
+                <a id="withdraw-app" href="@routes.HomeController.presentWithdrawApplication()">Withdraw application</a>
             </div>
         </section>
     }

@@ -16,7 +16,7 @@
 
 package models.view.questionnaire
 
-object University {
+object Universities {
   val seq = Seq(
     ("Abingdon and Witney College", "A14-AWC"),
     ("University of Aberdeen", "A20-ABRDN"),

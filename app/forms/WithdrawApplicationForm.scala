@@ -16,8 +16,7 @@
 
 package forms
 
-import forms.Mappings._
-import models.WithdrawReasons
+import models.view.WithdrawReasons
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
@@ -27,10 +26,16 @@ object WithdrawApplicationForm {
 
   val mandatoryReason = WithdrawReasons.list.find(_._2).map(_._1).get
 
-  def otherReasonFormatter = new Formatter[Option[String]] {
+  def otherReasonFormatter(maxLength: Option[Int]) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]) = (data.get("reason"), data.get(key)) match {
       case (Some(`mandatoryReason`), None | Some("")) => Left(Seq(FormError(key, Messages("error.required.reason.more_info"))))
-      case _ => Right(data.get(key))
+      case _ =>
+        val fieldValue = data.get(key)
+        if (maxLength.isDefined && fieldValue.isDefined && fieldValue.get.size > maxLength.get) {
+          Left(List(FormError(key, Messages(s"error.$key.maxLength"))))
+        } else {
+          Right(fieldValue)
+        }
     }
 
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
@@ -38,14 +43,16 @@ object WithdrawApplicationForm {
 
   val form = Form(
     mapping(
-      "reason" -> nonEmptyTrimmedText("error.required.reason", 64),
-      "otherReason" -> of(otherReasonFormatter)
+      "wantToWithdraw" -> Mappings.nonEmptyTrimmedText("error.wantToWithdraw.required", 5),
+      "reason" -> of(requiredFormatterWithMaxLengthCheck("wantToWithdraw", "reason", Some(64))),
+      "otherReason" -> of(otherReasonFormatter(Some(300)))
     )(Data.apply)(Data.unapply)
   )
 
   case class Data(
-    reason: String,
-    otherReason: Option[String]
-  )
+                   wantToWithdraw: String,
+                   reason: Option[String],
+                   otherReason: Option[String]
+                 )
 
 }

@@ -38,7 +38,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
       form.get must be(data)
     }
 
-    "be valid when no civil servant in UK" in new Fixture {
+    "be valid when not civil servant in UK" in new Fixture {
       val (data, form) = NoCivilServantValid
       form.get must be(data)
     }
@@ -80,7 +80,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
       assertFieldRequired(NoUkLivedValidFormMap, "university", "university")
     }
 
-    "fail when all values are correct and no civil servant but no school" in new Fixture {
+    "fail when all values are correct and not civil servant but no school" in new Fixture {
       assertFieldRequired(NoCivilServantValidFormMap, "schoolName14to16", "schoolName14to16")
     }
 
@@ -126,7 +126,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
       questionList(7).answer.unknown must be(Some(true))
     }
 
-    "transform form with no uk and no civil servant valid fields to a question list" in new Fixture {
+    "transform form with no uk and not civil servant valid fields to a question list" in new Fixture {
       val questionList = NoUkLivedAndNoCivilServantValidForm.exchange.questions
       questionList.size must be(1)
       questionList(0).answer.answer must be(Some("No"))

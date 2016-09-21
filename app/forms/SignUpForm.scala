@@ -17,7 +17,7 @@
 package forms
 
 import forms.Mappings._
-import models.CampaignReferrers
+import models.view.CampaignReferrers
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation.Constraints

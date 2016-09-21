@@ -19,7 +19,6 @@ package controllers
 import _root_.forms.AssistanceDetailsForm
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
-import connectors.exchange.AssistanceDetails
 import models.CachedData
 import security.RoleUtils
 import security.Roles.AssistanceDetailsRole

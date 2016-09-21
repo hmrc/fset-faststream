@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package models.view.questionnaire
+package models.view
 
-object OrganizationSize {
+object WithdrawReasons {
   val list = List(
-    ("small", "Small (1 - 24 employees)", false),
-    ("large", "Large (over 24 employees)", false),
-    ("unknown", "I don't know/prefer not to say", false)
+    ("I accepted another job offer", false),
+    ("I realised it was the wrong kind of job for me", false),
+    ("I decided to take my studies further/pursue an academic career", false),
+    ("I changed my mind about wanting a career in the Civil Service", false),
+    ("Online assessments looked too demanding/difficult", false),
+    ("Other personal reasons", false),
+    ("Other (provide details)", true)
   )
 }

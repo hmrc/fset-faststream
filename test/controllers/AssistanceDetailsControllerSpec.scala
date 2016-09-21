@@ -19,10 +19,9 @@ package controllers
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.CSRHttp
 import connectors.ApplicationClient
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord }
+import connectors.ApplicationClient.AssistanceDetailsNotFound
 import connectors.exchange.AssistanceDetailsExamples
 import controllers.forms.AssistanceDetailsFormExamples
-import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -35,9 +34,11 @@ import scala.concurrent.Future
 
 class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
-   // This is the implicit user
-   override def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
-    CachedDataExample.InSchemePreferencesApplication.copy(userId = ActiveCandidate.user.userID))
+  // This is the implicit user
+  override def currentCandidateWithApp: CachedDataWithApp = {
+    CachedDataWithApp(ActiveCandidate.user,
+      CachedDataExample.InProgressInSchemePreferencesApplication.copy(userId = ActiveCandidate.user.userID))
+  }
 
   "present" should {
     "load assistance details page for the new user" in new TestFixture {
@@ -85,11 +86,12 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "update assistance details and redirect to preview if questionnaire is completed" in new TestFixture {
-      class TestableAssistanceDetailsControllerWithUserInQuestionnaire extends TestableAssistanceDetailsController
-         {
+
+      class TestableAssistanceDetailsControllerWithUserInQuestionnaire extends TestableAssistanceDetailsController {
         override val CandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
-          CachedDataExample.InQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
+          CachedDataExample.InProgressInQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
       }
+
       override def controller = new TestableAssistanceDetailsControllerWithUserInQuestionnaire
 
       val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
@@ -112,17 +114,19 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
-    val mockSecurityEnvironment = mock[security.SecurityEnvironment]
     val mockUserService = mock[UserService]
 
     class TestableAssistanceDetailsController extends AssistanceDetailsController(mockApplicationClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override protected def env = mockSecurityEnvironment
-      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+
+      override protected def env = securityEnvironment
+
+      when(securityEnvironment.userService).thenReturn(mockUserService)
     }
 
     def controller = new TestableAssistanceDetailsController
 
   }
+
 }
