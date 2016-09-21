@@ -410,6 +410,6 @@ object Universities {
     ("The University of York", "Y50-YORK"),
     ("York College (York)", "Y70-YCOLL"),
     ("York St John University", "Y75-YSJ"),
-    ("Other", "Others-UK")
+    ("Other", "Others")
   )
 }
