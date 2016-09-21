@@ -47,7 +47,7 @@ trait CSREmailClient extends EmailClient {
   override def sendOnlineTestExpired(to: String, name: String)(implicit hc: HeaderCarrier) =
     sendEmail(
       to,
-      "csr_app_online_test_expired",
+      "fset_faststream_app_online_test_expired",
       Map("name" -> name)
     )
 
