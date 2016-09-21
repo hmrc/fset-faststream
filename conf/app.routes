@@ -68,10 +68,10 @@ POST        /online-test/candidate/:userId/status                        control
 POST        /online-test/reset/:appId                                    controllers.OnlineTestController.resetOnlineTests(appId: String)
 
 
-PUT         /phase1-test/:cubiksUserId/start                             controllers.Phase1TestsController.start(cubiksUserId: String)
-PUT         /phase1-test/:cubiksUserId/complete                          controllers.Phase1TestsController.complete(cubiksUserId: String)
+PUT         /phase1-test/:cubiksUserId/start                             controllers.Phase1TestsController.start(cubiksUserId: Int)
+PUT         /phase1-test/:cubiksUserId/complete                          controllers.Phase1TestsController.complete(cubiksUserId: Int)
 PUT         /phase1-test/complete-by-token/:token                        controllers.Phase1TestsController.completeTestByToken(token: String)
-PUT         /phase1-test/:cubiksUserId/results-ready                     controllers.Phase1TestsController.markResultsReady(cubiksUserId: String)
+PUT         /phase1-test/:cubiksUserId/results-ready                     controllers.Phase1TestsController.markResultsReady(cubiksUserId: Int)
 
 POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
 GET         /phase1-test-group/:applicationId                            controllers.Phase1TestGroupController.getStatus(applicationId: String)

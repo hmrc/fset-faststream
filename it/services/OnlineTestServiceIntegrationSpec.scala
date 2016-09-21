@@ -100,7 +100,7 @@ class OnlineTestServiceIntegrationSpec extends IntegrationSpec with MockitoSugar
     val cubiksGatewayClient = gatewayClientMock
     val cubiksSanitizer = CubiksSanitizer
     val tokenFactory = UUIDFactory
-    val onlineTestInvitationDateFactory = DateTimeFactory
+    val dateTimeFactory = DateTimeFactory
     val emailClient = CSREmailClient
     val auditService = auditMock
     val gatewayConfig = cubiksGatewayConfig
@@ -114,7 +114,7 @@ class OnlineTestServiceIntegrationSpec extends IntegrationSpec with MockitoSugar
     val cubiksGatewayClient = gatewayFailingClientMock
     val cubiksSanitizer = CubiksSanitizer
     val tokenFactory = UUIDFactory
-    val onlineTestInvitationDateFactory = DateTimeFactory
+    val dateTimeFactory = DateTimeFactory
     val emailClient = CSREmailClient
     val auditService = auditMock
     val gatewayConfig = cubiksGatewayConfig

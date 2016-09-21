@@ -281,7 +281,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           any[HeaderCarrier]
         )).thenReturn(Future.successful(()))
 
-        when(otRepositoryMock.insertPhase1TestProfile(ApplicationId, phase1TestProfile))
+        when(otRepositoryMock.insertOrUpdatePhase1TestGroup(ApplicationId, phase1TestProfile))
           .thenReturn(Future.failed(new Exception))
         when(trRepositoryMock.remove(ApplicationId)).thenReturn(Future.successful(()))
 
@@ -305,7 +305,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
         any[HeaderCarrier]
       )).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
+      when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.successful(()))
       when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
 
@@ -410,7 +410,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val tokenFactory = tokenFactoryMock
-      val onlineTestInvitationDateFactory = onlineTestInvitationDateFactoryMock
+      val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
     }
   }
@@ -424,7 +424,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
       any[HeaderCarrier]
     )).thenReturn(Future.successful(()))
-    when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+    when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
     when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
   }
 }
