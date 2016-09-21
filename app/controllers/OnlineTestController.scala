@@ -32,16 +32,11 @@ abstract class OnlineTestController(applicationClient: ApplicationClient) extend
 
   def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>
-
-      applicationClient.getPhase1TestProfile(cachedUserData.user.userID).flatMap { testProfile =>
+     applicationClient.getPhase1TestProfile(cachedUserData.user.userID).flatMap { testProfile =>
         // If we've started but not completed a test we still want to send them to that
         // test link to continue with it
         testProfile.tests.find(!_.completed).map { testToStart =>
-          applicationClient.onlineTestUpdate(cachedUserData.application.applicationId,
-            connectors.exchange.TestStatusUpdate(ProgressStatuses.PHASE1_TESTS_STARTED,
-              testToStart.token
-            )
-          )
+          applicationClient.startTest(testToStart.cubiksUserId)
           Future.successful(Redirect(testToStart.testUrl))
         }.getOrElse(Future.successful(NotFound))
       }
@@ -49,7 +44,7 @@ abstract class OnlineTestController(applicationClient: ApplicationClient) extend
 
   def completeTestByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
-      applicationClient.completeTests(token).map { _ =>
+      applicationClient.completeTestByToken(token).map { _ =>
         Ok(views.html.application.onlineTestSuccess())
       }
   }

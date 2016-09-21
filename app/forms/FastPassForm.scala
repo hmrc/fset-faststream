@@ -16,10 +16,10 @@
 
 package forms
 
-import _root_.forms.Mappings._
-import play.api.data.{ Form, FormError }
 import play.api.data.Forms._
+import Mappings._
 import play.api.data.format.Formatter
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 object FastPassForm {
@@ -74,16 +74,20 @@ object FastPassForm {
     )(Data.apply)(Data.unapply))
   }
 
-  def getKeyQualifier(formKey: String) = formKey.split('.') match {
-    case splits if splits.length > 1 => splits(0) + "."
-    case _ => ""
+  def ignoreForm = {
+    Form(mapping(
+      applicable -> ignored(""),
+      fastPassType -> ignored(Option("")),
+      internshipTypes -> ignored(Option(Seq(""))),
+      fastPassReceived -> ignored(Option(false)),
+      certificateNumber -> ignored(Option(""))
+    )(Data.apply)(Data.unapply))
   }
 
   def fastPassTypeFormatter = new Formatter[Option[String]] {
-    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      implicit val keyQualifier = getKeyQualifier(key)
-      bindOptionalParam(data.isApplicable, data.isValidFastPassTypeSelected,
-        fastPassTypeRequiredMsg)(key, data.getFastPassType)
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      bindOptionalParam(request.isCivilServantOrFastTrackOrIntern, request.isValidFastPassTypeSelected,
+        fastPassTypeRequiredMsg)(key, request.fastPassTypeParam)
     }
 
     def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
@@ -91,10 +95,9 @@ object FastPassForm {
   }
 
   def internshipTypesFormatter = new Formatter[Option[Seq[String]]] {
-    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[Seq[String]]] = {
-      implicit val keyQualifier = getKeyQualifier(key)
-      bindOptionalParam(data.isDiversityInternshipSelected, data.isValidInternshipTypesSelected,
-        internshipTypeRequiredMsg)(key, data.getInternshipTypes)
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[Seq[String]]] = {
+      bindOptionalParam(request.isDiversityInternshipSelected, request.isValidInternshipTypesSelected,
+        internshipTypeRequiredMsg)(key, request.internshipTypesParam)
     }
 
     def unbind(key: String, value: Option[Seq[String]]): Map[String, String] = {
@@ -107,10 +110,9 @@ object FastPassForm {
   }
 
   def fastPassReceivedFormatter = new Formatter[Option[Boolean]] {
-    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[Boolean]] = {
-      implicit val keyQualifier = getKeyQualifier(key)
-      bindOptionalParam(data.isSDIPCurrentYearSelected, data.isFastPassReceivedValid,
-        fastPassReceivedRequiredMsg)(key, data.getFastPassReceived.toBoolean)
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[Boolean]] = {
+      bindOptionalParam(request.isSDIPCurrentYearSelected, request.isFastPassReceivedValid,
+        fastPassReceivedRequiredMsg)(key, request.fastPassReceivedParam.toBoolean)
     }
 
     def unbind(key: String, value: Option[Boolean]): Map[String, String] = optionalParamToMap(key, value)
@@ -118,10 +120,9 @@ object FastPassForm {
   }
 
   def fastPassCertificateFormatter = new Formatter[Option[String]] {
-    def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      implicit val keyQualifier = getKeyQualifier(key)
-      bindOptionalParam(data.isFastPassReceived, data.isCertificateNumberValid,
-        certificateNumberRequiredMsg) (key, data.getCertificateNumber)
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      bindOptionalParam(request.isFastPassReceived, request.isCertificateNumberValid,
+        certificateNumberRequiredMsg) (key, request.certificateNumberParam)
     }
 
     def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
@@ -143,47 +144,41 @@ object FastPassForm {
     }
   }
 
-  implicit class DataValidations(data: Map[String, String]) {
+  implicit class RequestValidation(request: Map[String, String]) {
 
-    def getApplicable(implicit keyQualifier: String) = data.getOrElse(s"$keyQualifier$applicable", "")
+    def param(name:String) = request.collectFirst { case (key, value) if key.endsWith(name) => value }
 
-    def getFastPassType(implicit keyQualifier: String) = data.getOrElse(s"$keyQualifier$fastPassType", "")
+    def fastPassApplicableParam = param(applicable).getOrElse("")
 
-    def getInternshipTypes(implicit keyQualifier: String) = data.filterKeys(_.contains(s"$keyQualifier$internshipTypes")).values.toSeq
+    def fastPassTypeParam = param(fastPassType).getOrElse("")
 
-    def getFastPassReceived(implicit keyQualifier: String) = data.getOrElse(s"$keyQualifier$fastPassReceived", "")
+    def internshipTypesParam = request.filterKeys(_.contains(internshipTypes)).values.toSeq
 
-    def getCertificateNumber(implicit keyQualifier: String) = data.getOrElse(s"$keyQualifier$certificateNumber", "")
+    def fastPassReceivedParam = param(fastPassReceived).getOrElse("")
 
-    def isValidFastPassTypeSelected(implicit keyQualifier: String) =
-      FastPassTypes.map(_._1).contains(getFastPassType(keyQualifier))
+    def certificateNumberParam = param(certificateNumber).getOrElse("")
 
-    def isValidInternshipTypesSelected(implicit keyQualifier: String) = {
-      val internshipTypes = getInternshipTypes(keyQualifier)
-      internshipTypes.nonEmpty && internshipTypes.diff(InternshipTypes.toMap.keys.toSeq).isEmpty
-    }
+    def isValidFastPassTypeSelected = FastPassTypes.map(_._1).contains(fastPassTypeParam)
 
-    def isFastPassReceivedValid(implicit keyQualifier: String) =
-      getFastPassReceived(keyQualifier) == "true" || getFastPassReceived(keyQualifier) == "false"
+    def isValidInternshipTypesSelected = internshipTypesParam.nonEmpty && internshipTypesParam.diff(InternshipTypes.toMap.keys.toSeq).isEmpty
 
-    def isCertificateNumberValid(implicit keyQualifier: String) = getCertificateNumber(keyQualifier).matches("[0-9]{7}")
+    def isFastPassReceivedValid = fastPassReceivedParam == "true" || fastPassReceivedParam == "false"
 
-    def isApplicable(implicit keyQualifier: String) = getApplicable(keyQualifier) == "true"
+    def isCertificateNumberValid = certificateNumberParam.matches("[0-9]{7}")
 
-    def isDiversityInternshipSelected(implicit keyQualifier: String) =
-      isApplicable(keyQualifier) && DiversityInternship == getFastPassType(keyQualifier)
+    def isCivilServantOrFastTrackOrIntern = fastPassApplicableParam == "true"
 
-    def isSDIPCurrentYearSelected(implicit keyQualifier: String) =
-      isDiversityInternshipSelected(keyQualifier) && getInternshipTypes(keyQualifier).contains(SDIPCurrentYear)
+    def isDiversityInternshipSelected = isCivilServantOrFastTrackOrIntern && (fastPassTypeParam == DiversityInternship)
 
-    def isFastPassReceived(implicit keyQualifier: String) =
-      isSDIPCurrentYearSelected(keyQualifier) && getFastPassReceived(keyQualifier) == "true"
+    def isSDIPCurrentYearSelected = isDiversityInternshipSelected && internshipTypesParam.contains(SDIPCurrentYear)
 
-    def cleanupFastPassFields(keyQualifier: String = formQualifier + ".") = data.filterKeys {
-      case key if key.endsWith(fastPassType) => isApplicable(keyQualifier)
-      case key if key.contains(internshipTypes) => isDiversityInternshipSelected(keyQualifier)
-      case key if key.endsWith(fastPassReceived) => isSDIPCurrentYearSelected(keyQualifier)
-      case key if key.endsWith(certificateNumber) => isFastPassReceived(keyQualifier)
+    def isFastPassReceived = isSDIPCurrentYearSelected && (fastPassReceivedParam == "true")
+
+    def cleanupFastPassFields = request.filterKeys {
+      case key if key.endsWith(fastPassType) => isCivilServantOrFastTrackOrIntern
+      case key if key.contains(internshipTypes) => isDiversityInternshipSelected
+      case key if key.endsWith(fastPassReceived) => isSDIPCurrentYearSelected
+      case key if key.endsWith(certificateNumber) => isFastPassReceived
       case _ => true
     }
   }

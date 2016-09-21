@@ -16,7 +16,6 @@
 
 package models.page
 
-import connectors.exchange.{ Phase1TestProfile, Phase1TestProfileWithNames }
 import models.page.DashboardPage.Flags._
 import models.{ CachedData, Progress }
 import org.joda.time.LocalDate
@@ -35,7 +34,9 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isApplicationCreatedOrInProgress: Boolean,
   isUserWithNoApplication: Boolean,
   fullName: String,
-  phase1TestsPage: Option[Phase1TestsPage]
+  phase1TestsPage: Option[Phase1TestsPage],
+  assessmentStageStatus: AssessmentStageStatus,
+  postAssessmentStageStatus: PostAssessmentStageStatus
 )
 
 object DashboardPage {
@@ -44,7 +45,7 @@ object DashboardPage {
   import models.ApplicationData.ApplicationStatus
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], testProfile: Option[Phase1TestProfileWithNames])
+  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], testProfile: Option[Phase1TestsPage])
            (implicit request: RequestHeader, lang: Lang): DashboardPage = {
 
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility,
@@ -62,7 +63,9 @@ object DashboardPage {
       isApplicationCreatedOrInProgress(user),
       isUserWithNoApplication(user),
       user.user.firstName + " " + user.user.lastName,
-      testProfile.map(Phase1TestsPage.apply)
+      testProfile,
+      getAssessmentInProgressStatus(user, allocationDetails),
+      getPostAssessmentStatus(user, allocationDetails)
     )
   }
 
@@ -168,8 +171,7 @@ object DashboardPage {
     ApplicationStartRole.isAuthorized(user)
 
   private def getAssessmentInProgressStatus(user: CachedData,
-    allocationDetails: Option[AllocationDetails],
-    testProfile: Option[Phase1TestProfile])
+    allocationDetails: Option[AllocationDetails])
   (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
 
     if(hasReceivedFastPass(user)) {
@@ -194,8 +196,7 @@ object DashboardPage {
   }
 
   private def getPostAssessmentStatus(user: CachedData,
-    allocationDetails: Option[AllocationDetails],
-    testProfile: Option[Phase1TestProfile])
+    allocationDetails: Option[AllocationDetails])
   (implicit request: RequestHeader, lang: Lang): PostAssessmentStageStatus = {
     if (AssessmentCentreFailedNotifiedRole.isAuthorized(user) || AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
       POSTASSESSMENT_FAILED_APPLY_AGAIN

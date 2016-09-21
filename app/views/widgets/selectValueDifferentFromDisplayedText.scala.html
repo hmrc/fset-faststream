@@ -1,9 +1,10 @@
-@(field : play.api.data.Field, options: List[(String, String)])(defaultChoice: String = "-- Choose method --")(labelContent: Html)
+@(field : play.api.data.Field, options: List[(String, String)])(defaultChoice: String = "-- Choose method --")(labelContent: Html)(implicit hint: Html = Html(""))
 
 @import helpers.CSRSkinnyFieldConstructor._
 
 @helper.input(field) { (id, name, value, args) =>
     <label for="@id" class="form-label">@labelContent</label>
+    @hint
     <select name="@name" id="@id">
         <option value="">@defaultChoice</option>
         @for((optionTextDisplayed, optionValue) <- options) {

@@ -7,6 +7,8 @@
         models.view.questionnaire.University.seq.toList)(
         "Select one") {
         @Messages("university.question")
+    } {
+        <span>Your first degree or your current university if you haven't finished yet</span>
     }
     <div class="form-group">
     @checkbox(questionnaireForm("preferNotSay_university"), Some("university")) {

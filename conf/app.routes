@@ -68,7 +68,7 @@ GET         /questionnaire/page/3                                   controllers.
 POST        /questionnaire/page/3                                   controllers.QuestionnaireController.submitThirdPage
 
 # Online Test
-POST        /online-tests/phase1/start                                     controllers.OnlineTestController.startPhase1Tests
+POST        /online-tests/phase1/start                              controllers.OnlineTestController.startPhase1Tests
 GET         /online-tests/complete/:token                           controllers.OnlineTestController.completeTestByToken(token: UniqueIdentifier)
 
 # Assets controller

@@ -99,8 +99,15 @@
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
                             <h2 class="heading-medium">2. Take the online tests</h2>
-                        @onlineTestProgress(usr, dashboardPage.phase1TestsPage,
-                                    PHASE1_TESTS, PHASE1_TESTS_INVITED, allocationDetails)
+                            @if(dashboardPage.assessmentStageStatus == ASSESSMENT_FAST_PASS_CERTIFICATE) {
+                                <div data-sdip>
+                                    <p id="fast-pass-msg">We need to check and verify your certificate number before
+                                        you can progress as a Fast Pass candidate. This should
+                                        take 2 working days.</p>
+                                </div>
+                            } else {
+                                @onlineTestProgress(usr, dashboardPage.phase1TestsPage, allocationDetails)
+                            }
                         </div>
                     </div>
                     <div class="grid grid-1-3">
@@ -112,10 +119,13 @@
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
                             <h2 class="heading-medium ">3. Attend an assessment centre</h2>
-                            <p data-hidesdip>If you pass the online tests, you'll be invited to attend an
+                            @if(dashboardPage.assessmentStageStatus == ASSESSMENT_FAST_PASS_CERTIFICATE) {
+                                <p id="fast-pass-msg" data-sdip>Once we've verified your certificate number, you'll be invited
+                                    to attend an assessment centre.</p>
+                            } else {
+                                <p data-hidesdip>If you pass the online tests, you'll be invited to attend an
                                 assessment centre.</p>
-                            <p data-sdip>Once we've verified your certificate number, you'll be invited
-                                to attend an assessment centre.</p>
+                            }
                             <p><a href="https://www.gov.uk/guidance/civil-service-fast-stream-how-to-apply#analytical-fast-stream-assessment"
                                   rel="external" target="_blank">Find out more about the assessment day</a></p>
                         </div>

@@ -23,7 +23,7 @@ import connectors.exchange.{ FrameworkId, WithdrawApplicationRequest }
 import connectors.ApplicationClient
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
-import models.page.DashboardPage
+import models.page.{ DashboardPage, Phase1TestsPage }
 import models.{ CachedData, CachedDataWithApp }
 import play.api.Logger
 import security.Roles
@@ -40,14 +40,13 @@ abstract class HomeController(applicationClient: ApplicationClient) extends Base
 
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     val dashboard = for {
-      phase1TestProfile <- applicationClient.getPhase1TestProfile(cachedData.user.userID)
+      phase1TestsWithNames <- applicationClient.getPhase1TestProfile(cachedData.user.userID)
       allocationDetails <- applicationClient.getAllocationDetails(cachedData.application.get.applicationId)
       // TODO Work out a better way to invalidate the cache across the site
       app = CachedDataWithApp(cachedData.user, cachedData.application.get)
       updatedData <- refreshCachedUser()(app, hc, request)
     } yield {
-        Logger.debug(s"$phase1TestProfile")
-        val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(phase1TestProfile))
+        val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)))
         Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))
     }
 
