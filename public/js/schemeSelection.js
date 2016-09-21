@@ -4,7 +4,7 @@ $(function()
       firstEmptyPosition = $.inArray('Empty', schemePrefArray),
       preferencesAs123 = ['1st', '2nd', '3rd', '4th', '5th', '6th',
         '7th', '8th', '9th', '10th', '11th', '12th', '13th', '14th',
-        '15th'
+        '15th', '16th', '17th'
       ],
       numberOfSchemas = preferencesAs123.length,
       preferencesAsText = [
@@ -22,7 +22,9 @@ $(function()
         '12th preference',
         '13th preference',
         '14th preference',
-        '15th preference'
+        '15th preference',
+        '16th preference',
+        '17th preference'
       ];
 
     $('[data-schemename]').on('change', function()

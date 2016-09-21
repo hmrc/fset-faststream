@@ -40,6 +40,9 @@
                 'type -> "email",
                 '_showConstraints -> false,
                 'spellcheck -> "false")
+            <div class="panel-indent">
+                <p>If you're currently a civil servant, use your personal email address</p>
+            </div>
             @helper.inputText(signUpForm("email_confirm"),
                 '_label -> "Confirm your email",
                 'class -> "form-control",
@@ -93,16 +96,15 @@
                 <h2 class="heading-medium">Confirm the following statements are true</h2>
             </div>
             <ul id="eligibility-list" class="para-btm-margin text">
-                <li>I'm <a href="http://neves.io/faststream-marketing/eligibility/" target="_blank" rel="external">eligible to work in the UK</a></li>
+                <li>I'm <a href="http://www.faststream.gov.uk/faqs/" target="_blank" rel="external">eligible to work in the UK</a></li>
                 <li>I have a relevant degree or qualify as a current civil servant</li>
-                <li>I'm available to start work in January 2017</li>
                 <li>I meet my schemes eligibility requirements</li>
             </ul>
 
             @yesNoQuestion(signUpForm("eligible"), question = "Are you eligible to apply?",
                 noMessage = "You must be eligible to apply for the Civil Service Fast Stream")
         </section>
-        <section>
+        <section class="section-border">
             <h2 class="heading-large">How did you hear about us?</h2>
             <div data-optional>
                 @select_guard(signUpForm("campaignReferrer"), models.view.CampaignReferrers.list,

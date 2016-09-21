@@ -46,7 +46,7 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
       val result = controller.present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
-      content must include("<title>Partner graduate programmes")
+      content must include("<title>Do you want to defer your place?")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
     }
 
@@ -58,7 +58,7 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
 
       status(result) must be(OK)
       val content = contentAsString(result)
-      content must include("<title>Partner graduate programmes")
+      content must include("<title>Do you want to defer your place?")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content must include("Are you interested in a partner programme?")
     }

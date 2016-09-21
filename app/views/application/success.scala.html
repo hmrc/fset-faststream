@@ -1,6 +1,6 @@
 @()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@main_template(title = "Your application has been submitted") {
+@main_template(title = "Application submitted") {
 
     <div class="success-banner">
         <h1 class="heading-large no-btm-margin"><i class="fa fa-check"></i>Application submitted</h1>
@@ -9,11 +9,11 @@
         <p><i class="fa fa-envelope-o"></i>We've sent you an email confirming your
             application</p>
     </div>
-    <section class="section-border">
+    <section>
         <div class="text">
             <h2 class="heading-large">What happens next?</h2>
             <p>The next step is to complete the online exercises.</p>
-            <a href="@routes.HomeController.present()" class="button">Return to home</a>
+            <a href="@routes.HomeController.present()" class="button">See the next steps</a>
             <p><a href="@feedbackUrl" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>
         </div>
     </section>
