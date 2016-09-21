@@ -19,17 +19,13 @@ package repositories
 import java.util.UUID
 
 import factories.DateTimeFactory
-import model.Exceptions.CannotFindTestByCubiksId
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
-import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
-import model.persisted.Phase1TestProfileWithAppId
-import org.joda.time.{ DateTime, DateTimeZone }
-import reactivemongo.bson.{ BSONArray, BSONDocument }
 import model.ApplicationStatus
+import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.PersistedObjects.ExpiringOnlineTest
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED }
-import org.joda.time.{ DateTime, LocalDate }
+import model.persisted.Phase1TestProfileWithAppId
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ GeneralApplicationMongoRepository, OnlineTestMongoRepository }
@@ -133,21 +129,22 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     "return one result" when {
       "there is an application in PHASE1_TESTS and should be expired" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
-        onlineTestRepo.insertPhase1TestProfile(AppId, testProfile).futureValue
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         onlineTestRepo.nextApplicationPendingExpiry.futureValue must be (Some(ExpiringOnlineTest(AppId,UserId,"Georgy")))
       }
     }
     "return no results" when {
       "there are no application in PHASE1_TESTS" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
-        onlineTestRepo.insertPhase1TestProfile(AppId, testProfile).futureValue
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS))
         onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
       }
 
       "the date is not expired yet" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
-        onlineTestRepo.insertPhase1TestProfile(
+        insertApplication(AppId)
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(
           AppId,
           Phase1TestProfile(expirationDate = new DateTime().plusHours(2), tests = List(phase1Test))).futureValue
         onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
@@ -155,7 +152,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
       "the test is already expired" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
-        onlineTestRepo.insertPhase1TestProfile(AppId, testProfile).futureValue
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
@@ -166,7 +163,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
       "the test is completed" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
-        onlineTestRepo.insertPhase1TestProfile(AppId, testProfile).futureValue
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
@@ -372,7 +369,24 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   )
 
   private def insertApplication(appId: String) = {
-    helperRepo.collection.insert(BSONDocument("applicationId" -> appId)).futureValue
+    helperRepo.collection.insert(BSONDocument(
+      "applicationId" -> appId,
+      "personal-details" -> BSONDocument(
+        "firstName" -> s"${testCandidate("firstName")}",
+        "lastName" -> s"${testCandidate("lastName")}",
+        "preferredName" -> s"${testCandidate("preferredName")}",
+        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}",
+        "aLevel" -> true,
+        "stemLevel" -> true
+    ))).futureValue
   }
 
+  /*
+  "personal-details" : {
+        "firstName" : "George",
+        "lastName" : "Foreman",
+        "preferredName" : "George",
+        "dateOfBirth" : "1962-12-12"
+    }
+   */
 }
