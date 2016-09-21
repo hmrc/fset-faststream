@@ -51,7 +51,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
       val result = controllerUnderTest(questionnaireStarted).presentStartOrContinue()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
-      content must include ("Page 1 of the diversity questionnaire")
+      content must include ("About you")
     }
 
     "redirect to home page when the questionnaire is completed already" in {
