@@ -821,5 +821,29 @@ $(function() {
         alert(data)
       }
     });
+  
+  $( "#postcodeQ" ).autocomplete({
+    source: function( request, response ) {
+      var r = jsRoutes.controllers.SchoolsController.getSchools()
+      r.ajax({
+        success : function(data) {
+          //$('#postcodeQ').removeClass('ui-autocomplete-loading');
+          // hide loading image
+
+          response( $.map( data, function(item) {
+            return item;
+          }));
+        },
+        error: function(data) {
+          $('#postcodeQ').removeClass('ui-autocomplete-loading');
+        }
+      });
+    },
+    minLength: 3,
+    open: function() {},
+    close: function() {},
+    focus: function(event,ui) {},
+    select: function(event, ui) {}
   });
+
 });
