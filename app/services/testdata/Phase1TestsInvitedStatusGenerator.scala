@@ -41,7 +41,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
 
-    val sjq = Phase1Test(
+    val sjqTest = Phase1Test(
       cubiksUserId = 117344,
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
@@ -52,7 +52,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       usedForResults = true
     )
 
-    val bq = Phase1Test(
+    val bqTest = Phase1Test(
       cubiksUserId = 117344,
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
@@ -65,7 +65,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
     val phase1TestProfile = Phase1TestProfile(
       expirationDate = generatorConfig.phase1ExpiryTime.getOrElse(DateTime.now().plusDays(7)),
-      tests = if (generatorConfig.setGis) List(sjq) else List(sjq, bq)
+      tests = if (generatorConfig.setGis) List(sjqTest) else List(sjqTest, bqTest)
     )
 
     for {
