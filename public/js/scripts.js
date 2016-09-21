@@ -830,6 +830,7 @@ $(function() {
           $('#postcodeQ').removeClass('ui-autocomplete-loading');
 
           response( $.map( data, function(item) {
+            item.label = item.name
             return item
           }));
         },
