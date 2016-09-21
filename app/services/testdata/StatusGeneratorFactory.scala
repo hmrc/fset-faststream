@@ -18,7 +18,7 @@ package services.testdata
 
 import model.{ ApplicationStatus, ApplicationStatuses }
 import model.Exceptions.InvalidStatusException
-import model.ProgressStatuses.{ PHASE1_TESTS_STARTED, ProgressStatus }
+import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, ProgressStatus }
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
@@ -54,6 +54,7 @@ object StatusGeneratorFactory {
         case ApplicationStatuses.AssessmentCentreFailedNotified => AssessmentCentreFailedNotifiedStatusGenerator
         case ApplicationStatuses.Withdrawn => WithdrawnStatusGenerator
       }
+      case ("PHASE1_TESTS", Some(PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
       case ("PHASE1_TESTS", Some(PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
       case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
     }
