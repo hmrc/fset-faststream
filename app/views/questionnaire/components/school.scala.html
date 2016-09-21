@@ -5,8 +5,7 @@
 
 <h2 class="heading-medium">School</h2>
 <div class="panel-indent text">
-    <p>This data helps us compare the average performance of certain schools
-        and colleges to the national average.</p>
+    <p>This data helps us understand the socio-economic background of applicants because the schools attended by applicants between ages 14 to 18 is widely recognised as a key indicator.</p>
 </div>
 <section>
     <div class="form-group form-group-compound">
@@ -39,6 +38,7 @@
 <section>
     <div class="text">
         <legend class="form-label text" for="schoolMeals-ques">@Messages("freeSchoolMeals.question")</legend>
+        <span class="form-hint">We ask this as another key indicator of socio-economic background</span>
         @radioBox(questionnaireForm("freeSchoolMeals"), options = Seq("Yes" -> "Yes", "No" -> "No",
             "Unknown/prefer not to say" -> "I don't know/prefer not to say"))
     </div>

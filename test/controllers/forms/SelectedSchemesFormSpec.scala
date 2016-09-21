@@ -33,7 +33,7 @@ class SelectedSchemesFormSpec extends PlaySpec {
     "be valid when multiple schemes are selected" in {
       val form = selectedSchemesForm.bind(Map(
         "scheme_0" -> "Finance",
-        "scheme_1" -> "CentralDepartments",
+        "scheme_1" -> "GovernmentEconomicsService",
         "scheme_2" -> "Commercial",
         "scheme_3" -> "DigitalAndTechnology",
         "scheme_4" -> "DiplomaticService",

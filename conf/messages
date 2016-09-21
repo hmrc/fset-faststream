@@ -1,4 +1,4 @@
-error.invalidRole = You don't have access to this application.
+error.invalidRole = You don''t have access to this application.
 error.required.signIn = Enter your email
 error.required.password = Enter your password
 error.required.campaignOther = Tell us how you heard about us
@@ -115,38 +115,47 @@ secondScheme.duplicate=Second preference of scheme can''t be the same as your fi
 
 #Schemes & qualification
 schemes.required=You must choose a scheme
-orderAgreed.required=Select whether or not you are happy with the order of your schemes
-eligible.required=Select whether or not you are eligible for your chosen schemes
+orderAgreed.required=Review your preferences and confirm you''re happy with the order to continue
+eligible.required=You can only select preferences you''re eligible for
 alternatives.required=Select whether or not you would consider other schemes
 
-scheme.CentralDepartments.description=Central Departments
 scheme.Commercial.description=Commercial
-scheme.DigitalAndTechnology.description=Digital and Technology
+scheme.DigitalAndTechnology.description=Digital & Technology
 scheme.DiplomaticService.description=Diplomatic Service
+scheme.DiplomaticServiceEconomics.description=Diplomatic Service (Economists)
+scheme.DiplomaticServiceEuropean.description=Diplomatic Service (European)
 scheme.European.description=European
 scheme.Finance.description=Finance
+scheme.Generalist.description=Generalist
 scheme.GovernmentCommunicationService.description=Government Communication Service
-scheme.GovernmentEconomicService.description=Government Economic Service
+scheme.GovernmentEconomicsService.description=Government Economics Service
 scheme.GovernmentOperationalResearchService.description=Government Operational Research Service
 scheme.GovernmentSocialResearchService.description=Government Social Research Service
 scheme.GovernmentStatisticalService.description=Government Statistical Service
 scheme.HousesOfParliament.description=Houses of Parliament
 scheme.HumanResources.description=Human Resources
 scheme.ProjectDelivery.description=Project Delivery
-scheme.ScienceAndEngineering.description=Science and Engineering
+scheme.ScienceAndEngineering.description=Science & Engineering
 
-scheme.GovernmentEconomicService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-economic-service#eligibility
-scheme.GovernmentOperationalResearchService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-operational-research-service#eligibility
-scheme.GovernmentSocialResearchService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-social-research-service#eligibility
-scheme.GovernmentStatisticalService.link=civil-service-analytical-fast-streams/civil-service-fast-stream-government-statistical-service#eligibility
-scheme.ScienceAndEngineering.link=civil-service-generalist-fast-stream/fast-stream-science-and-engineering#eligibility
+scheme.DiplomaticServiceEconomics.link=government-economic-service
+scheme.DiplomaticServiceEuropean.link=european
+scheme.DiplomaticService.link=diplomatic-service
+scheme.European.link=european
+scheme.GovernmentEconomicsService.link=government-economic-service
+scheme.GovernmentOperationalResearchService.link=government-operational-research-service
+scheme.GovernmentSocialResearchService.link=government-social-research-service
+scheme.GovernmentStatisticalService.link=government-statistical-service
+scheme.ScienceAndEngineering.link=science-engineering
 
 qualification.Degree_21.description=2:1 degree in any subject
 qualification.Degree_22.description=2:2 degree in any subject
-qualification.Degree_Economics.description=2:1 degree in economics or a 2:2 with a postgraduate qualification in economics
-qualification.Degree_Numerate.description=2:1 degree in a numerate subject or a 2:2 with a relevant postgraduate qualification
-qualification.Degree_SocialScience.description=2:1 degree in social science or a 2:2 with a postgraduate qualification in social research
-qualification.Degree_CharteredEngineer.description=2:1 degree, plus either chartered engineer status or a postgraduate degree in a relevant subject
+qualification.Degree_21_PostGrad.description=2:1 degree in any subject or a 2:2 with a postgraduate degree in any subject
+qualification.Degree_DipServEconomics.description=2:1 degree in economics, or a 2:2 with a postgraduate in economics
+qualification.Degree_Economics.description=2:1 degree in economics, or a 2:2 with a postgraduate in economics
+qualification.Degree_Numerate.description=2:1 degree in a numerate subject
+qualification.Degree_GORS.description=2:1 degree in a numerate subject, or a 2:2 with a relevant postgraduate degree
+qualification.Degree_SocialScience.description=2:1 degree in a relevant social science subject, or a 2:2 with a relevant postgraduate degree
+qualification.Degree_CharteredEngineer.description=2:1 degree and at least a postgraduate degree in a relevant subject, or you must be a registered chartered engineer
 
 
 # Should rarely ever occur. Will either occur if we start calculating location availability dynamically, or if the
@@ -186,7 +195,7 @@ error.required.parentsDegree = You must tell us if your parent/guardian has a de
 error.required.employmentStatus = You must tell us the employment status of your highest-earning parent/guardian, or choose ''prefer not to say''
 error.required.parentsOccupation = You must tell us what type of work your highest-earning parent/guardian did
 error.required.employee = You must tell us if your parent/guardian was either employed or self-employed, or choose ''prefer not to say''
-error.required.organizationSize = You must tell us the size of your parent/guardian’s workplace, or choose ''prefer not to say''
+error.required.organizationSize = You must tell us the size of your parent/guardian''s workplace, or choose ''prefer not to say''
 error.required.supervise = You must tell us if your parent/guardian supervised employees, or choose ''prefer not to say''
 error.required.acceptance = Confirm you understand that the information you give here won''t affect your application
 
@@ -203,7 +212,7 @@ haveDegree.question = Do you have a degree?
 university.question = What is the name of the university you received your degree from?
 universityDegreeCategory.question = Which category best describes your degree?
 
-employedParent.question = When you were 14, was your highest earning parent / guardian?
+employedParent.question = When you were 14, was your highest-earning parent or guardian employed?
 parentsOccupation.question = When you were 14, what kind of work did your highest-earning parent or guardian do?
 parentsDegree.question = Do you have a parent or guardian that has completed a university degree course or equivalent?
 employee.question = Did they work as an employee or were they self-employed?

@@ -30,16 +30,19 @@
             />
                 <!--<![endif]-->
             <link rel="shortcut icon" href='@routes.Assets.versioned("img/favicon.ico")' type="image/x-icon">
-            <link href='@routes.Assets.versioned("css/font-awesome/css/font-awesome.min.css")' rel="stylesheet"
-            type="text/css">
-        <script>
-            var html = document.documentElement;
-            html.className += " js-enabled";
+            <link rel="apple-touch-icon" href='@routes.Assets.versioned("img/apple-touch-icon-144x144.png")'>
+            <link rel="apple-touch-icon" sizes="76x76" href='@routes.Assets.versioned("img/apple-touch-icon-72x72.png")'>
+            <link rel="apple-touch-icon" sizes="120x120" href='@routes.Assets.versioned("img/apple-touch-icon-114x114.png")'>
+            <link rel="apple-touch-icon" sizes="152x152" href='@routes.Assets.versioned("img/apple-touch-icon-144x144.png")'>
+            <link href='@routes.Assets.versioned("css/font-awesome/css/font-awesome.min.css")' rel="stylesheet" type="text/css">
+            <script>
+                var html = document.documentElement;
+                html.className += " js-enabled";
 
-            if (!('open' in document.createElement('details'))) {
-              document.documentElement.className += ' no-details';
-            }
-          </script>
+                if (!('open' in document.createElement('details'))) {
+                  document.documentElement.className += ' no-details';
+                }
+            </script>
 
             <script src='@routes.Assets.versioned("js/vendor/modernizr-custom.js")'></script>
         </head>

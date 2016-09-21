@@ -8,14 +8,13 @@
     @pageProgress(6,8)
     <div class="hgroup">
         <h1 class="heading-xlarge">About you</h1>
+        <p class="subtitle">Diversity questions</p>
     </div>
     <div class="panel-info standard-panel">
         <div class="text">
             <h2 class="heading-medium">Why do we ask these questions?</h2>
-            <p>These questions help us to gather data on people's gender, sexual orientation
-                and ethnicity. We anonymise the data and use it to monitor the Civil
-                Service and make sure it's a diverse organisation that reflects the
-                society it serves.</p>
+            <p>These questions help us to gather data on people's gender identity, sexual orientation and ethnicity.</p>
+            <p>We anonymise the data and use it to monitor and improve the effectiveness of our processes in enabling all candidates to do their best irrespective of their diversity characteristics.</p>
         </div>
     </div>
 
@@ -53,7 +52,7 @@
 
         <section>
             @select_guard_multi(questionnaireForm("ethnicity"), models.view.questionnaire.Ethnicities.map,
-                "ethnicity-describe", "-- Select one --") {
+                "ethnicity-describe", "Select one") {
                 @Messages("ethnicity.question")
             }
 

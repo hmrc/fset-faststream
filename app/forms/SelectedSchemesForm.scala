@@ -26,23 +26,28 @@ object SelectedSchemesForm {
 
   val Degree_21 = "Degree_21"
   val Degree_22 = "Degree_22"
+  val Degree_21_PostGrad = "Degree_21_PostGrad"
+  val Degree_DipServEconomics = "Degree_DipServEconomics"
   val Degree_Economics = "Degree_Economics"
   val Degree_Numerate = "Degree_Numerate"
+  val Degree_GORS = "Degree_GORS"
   val Degree_SocialScience = "Degree_SocialScience"
   val Degree_CharteredEngineer = "Degree_CharteredEngineer"
 
   val AllSchemes = Seq(
-    Scheme("CentralDepartments", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("Commercial", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("DigitalAndTechnology", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("DiplomaticService", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("European", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("DigitalAndTechnology", Degree_21_PostGrad, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("DiplomaticService", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
+    Scheme("DiplomaticServiceEconomics", Degree_DipServEconomics, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("DiplomaticServiceEuropean", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
+    Scheme("European", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
     Scheme("Finance", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
+    Scheme("Generalist", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("GovernmentCommunicationService", Degree_21, specificRequirement = false, eligibilityForCivilServant = true),
-    Scheme("GovernmentEconomicService", Degree_Economics, specificRequirement = true, eligibilityForCivilServant = false),
-    Scheme("GovernmentOperationalResearchService", Degree_Numerate, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("GovernmentEconomicsService", Degree_Economics, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("GovernmentOperationalResearchService", Degree_GORS, specificRequirement = true, eligibilityForCivilServant = false),
     Scheme("GovernmentSocialResearchService", Degree_SocialScience, specificRequirement = true, eligibilityForCivilServant = false),
-    Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement = true, eligibilityForCivilServant = false),
+    Scheme("GovernmentStatisticalService", Degree_Numerate, specificRequirement = true, eligibilityForCivilServant = true),
     Scheme("HousesOfParliament", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("HumanResources", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("ProjectDelivery", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
