@@ -24,7 +24,7 @@ object SchoolsController extends SchoolsController
 case class School
 (
   id: String,
-  label: String
+  name: String
 )
 
 
@@ -35,7 +35,7 @@ class SchoolsController extends Controller{
   def getSchools(term: String) = Action{
     val list = School("1","Hello") :: School("2","There") :: School("3", "Hi") :: Nil
 
-    val results = list.filter(item => item.label.startsWith(term))
+    val results = list.filter(item => item.name.startsWith(term))
     Ok(Json.toJson(results))
   }
 }
