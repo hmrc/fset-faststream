@@ -329,18 +329,20 @@ trait OnlineTestService {
 
   def markAsStarted(cubiksUserId: Int): Future[Unit] = {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
-    updatedTestPhase1 map { u =>
+    updatedTestPhase1 flatMap { u =>
       otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED)
     }
   }
 
   def markAsCompleted(cubiksUserId: Int): Future[Unit] = {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
-    updatedTestPhase1 map { u =>
+    updatedTestPhase1 flatMap { u =>
       require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
 
       if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
         otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED)
+      } else {
+        Future.successful(())
       }
     }
   }
