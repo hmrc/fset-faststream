@@ -19,19 +19,16 @@ package services.onlinetesting
 import config._
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
-import controllers.OnlineTestDetails
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.{ Address, ApplicationStatus, Commands, ProgressStatuses }
-import model.Commands._
-import model.Exceptions.{ ConnectorException, NotFoundException }
+import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
-import model.ProgressStatuses.ProgressStatus
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.{ BeforeAndAfterEach, PrivateMethodTester }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -43,7 +40,8 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout {
+class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout
+  with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val VerbalAndNumericalAssessmentId = 1
@@ -366,23 +364,57 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   "build invite application" should {
     "return an InviteApplication with no time adjustments if gis and application has no time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithNoTimeAdjustments,
-        "", CubiksUserId, ScheduleId) must be(inviteApplicantGisWithNoTimeAdjustments)
+      val result = onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithNoTimeAdjustments,
+        "token", CubiksUserId, testGatewayConfig.onlineTestConfig.scheduleIds("sjq"))
+
+      result mustBe inviteApplicantGisWithNoTimeAdjustments.copy(
+        scheduleCompletionURL = s"${testGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/token"
+      )
     }
 
     "return an InviteApplication with no time adjustments if gis and application has time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithTimeAdjustments,
-        "", CubiksUserId, ScheduleId) must be(inviteApplicantGisWithNoTimeAdjustments)
+      val result = onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithTimeAdjustments,
+        "token", CubiksUserId, testGatewayConfig.onlineTestConfig.scheduleIds("sjq"))
+
+      result mustBe inviteApplicantGisWithNoTimeAdjustments.copy(
+        scheduleCompletionURL = s"${testGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/token"
+      )
     }
 
     "return an InviteApplication with no time adjustments if no gis and application has no time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingWithNoTimeAdjustments,
-        "", CubiksUserId, ScheduleId) must be(inviteApplicantNoGisWithNoTimeAdjustments)
+      val sjqInvite = onlineTestService.buildInviteApplication(applicationForOnlineTestingWithNoTimeAdjustments,
+        "token", CubiksUserId, testGatewayConfig.onlineTestConfig.scheduleIds("sjq"))
+
+      sjqInvite mustBe inviteApplicantNoGisWithNoTimeAdjustments.copy(
+        scheduleID = testGatewayConfig.onlineTestConfig.scheduleIds("sjq"),
+        scheduleCompletionURL = s"${testGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/continue/token"
+      )
+
+      val bqInvite = onlineTestService.buildInviteApplication(applicationForOnlineTestingWithNoTimeAdjustments,
+        "token", CubiksUserId, testGatewayConfig.onlineTestConfig.scheduleIds("bq"))
+
+      bqInvite mustBe inviteApplicantNoGisWithNoTimeAdjustments.copy(
+        scheduleID = testGatewayConfig.onlineTestConfig.scheduleIds("bq"),
+        scheduleCompletionURL = s"${testGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/token"
+      )
     }
 
     "return an InviteApplication with time adjustments if no gis and application has time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingWithTimeAdjustments,
-        "", CubiksUserId, ScheduleId) must be(inviteApplicantNoGisWithTimeAdjustments)
+      val sjqInvite = onlineTestService.buildInviteApplication(applicationForOnlineTestingWithTimeAdjustments,
+        "token", CubiksUserId, testGatewayConfig.onlineTestConfig.scheduleIds("sjq"))
+
+      sjqInvite mustBe inviteApplicantNoGisWithTimeAdjustments.copy(
+        scheduleID = testGatewayConfig.onlineTestConfig.scheduleIds("sjq"),
+        scheduleCompletionURL = s"${testGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/continue/token"
+      )
+
+      val bqInvite = onlineTestService.buildInviteApplication(applicationForOnlineTestingWithTimeAdjustments,
+        "token", CubiksUserId, testGatewayConfig.onlineTestConfig.scheduleIds("bq"))
+
+      bqInvite mustBe inviteApplicantNoGisWithTimeAdjustments.copy(
+        scheduleID = testGatewayConfig.onlineTestConfig.scheduleIds("bq"),
+        scheduleCompletionURL = s"${testGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/token"
+      )
     }
   }
 
@@ -411,6 +443,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     }
   }
 
+
   trait OnlineTest {
     implicit val hc = HeaderCarrier()
 
@@ -438,6 +471,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
+
+
     }
   }
 
