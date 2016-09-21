@@ -46,6 +46,8 @@ trait OnlineTestRepository {
 
   def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
+  def nextExpiringApplication: Future[Option[ExpiringOnlineTest]]
+
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit]
@@ -141,6 +143,22 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
 
     collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
+  }
+
+  override def nextExpiringApplication: Future[Option[ExpiringOnlineTest]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument(
+        "applicationStatus" -> ApplicationStatus.PHASE1_TESTS
+      ),
+      BSONDocument(
+        "testGroups.PHASE1.expirationDate" -> BSONDocument("$lte" -> dateTime.nowLocalTimeZone) // Serialises to UTC.
+      ),
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("progress-status.PHASE1_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+        BSONDocument("progress-status.PHASE1_TESTS_EXPIRED" -> BSONDocument("$ne" -> true))
+      ))
+    ))
+    selectRandom(query).map(_.map(bsonDocToExpiringOnlineTest))
   }
 
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {

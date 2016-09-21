@@ -22,10 +22,12 @@ import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
-import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
-import model.ProgressStatuses.PHASE1_TESTS_STARTED
+import model.PersistedObjects.ExpiringOnlineTest
+import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED }
 import model.persisted.Phase1TestProfileWithAppId
-import org.joda.time.{ DateTime, DateTimeZone }
+import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
+import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ GeneralApplicationMongoRepository, OnlineTestMongoRepository }
@@ -101,7 +103,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   }
 
   "Next application ready for online testing" should {
-    "return no application if htere is only one and it is a fast pass candidate" in{
+    "return no application if there is only one and it is a fast pass candidate" in{
       createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
       )
@@ -123,15 +125,83 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  "Update progress status" should {
-    "update progress status to PHASE1_TESTS_STARTED" in {
-      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS)
-      onlineTestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
+  "The OnlineTestApplication case model" should {
+    "be correctly read from mongo" in {
+       createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false, isGis = true
+      )
 
-      val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
-      app.progressResponse.phase1TestsStarted mustBe true
+      val onlineTestApplication = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
+
+      onlineTestApplication.isDefined mustBe true
+
+      inside (onlineTestApplication.get) { case OnlineTestApplication(applicationId, applicationStatus, userId,
+        guaranteedInterview, needsAdjustments, preferredName, timeAdjustments) =>
+
+        applicationId mustBe "appId"
+        applicationStatus mustBe "SUBMITTED"
+        userId mustBe "userId"
+        guaranteedInterview mustBe true
+        needsAdjustments mustBe false
+        preferredName mustBe testCandidate("preferredName")
+        timeAdjustments mustBe None
+      }
     }
   }
+
+  "nextExpiringApplication" should {
+    val date = new DateTime("2015-03-08T13:04:29.643Z")
+    val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
+    "return one result" when {
+      "there is an application in PHASE1_TESTS and should be expired" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
+        onlineTestRepo.nextExpiringApplication.futureValue must be (Some(ExpiringOnlineTest(AppId,UserId,"Georgy")))
+      }
+    }
+    "return no results" when {
+      "there are no application in PHASE1_TESTS" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS))
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
+      }
+
+      "the date is not expired yet" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        insertApplication(AppId)
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(
+          AppId,
+          Phase1TestProfile(expirationDate = new DateTime().plusHours(2), tests = List(phase1Test))).futureValue
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
+      }
+
+      "the test is already expired" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("$set" -> BSONDocument(
+          "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
+          s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
+          s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
+        )))
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
+      }
+
+      "the test is completed" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("$set" -> BSONDocument(
+          "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
+          s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
+          s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
+        )))
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
+      }
+    }
+
+  }
+
+  def updateApplication(doc: BSONDocument) = onlineTestRepo.collection.update(BSONDocument("applicationId" -> AppId), doc)
 
   def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String,
     needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean,
@@ -180,34 +250,46 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  def createOnlineTest(userId: String, appStatus: String, phase1Tests: List[Phase1Test],
-    expirationDate: DateTime = DateTime.now) = {
 
-    val appId = UUID.randomUUID().toString
 
-    val profile = Phase1TestProfile(expirationDate = expirationDate, tests = phase1Tests)
-    onlineTestRepo.collection.insert(profile)
+  def createOnlineTestApplication(appId: String, applicationStatus: String, xmlReportSavedOpt: Option[Boolean] = None,
+                                  alreadyEvaluatedAgainstPassmarkVersionOpt: Option[String] = None): String = {
+    val result = (xmlReportSavedOpt, alreadyEvaluatedAgainstPassmarkVersionOpt) match {
+      case (None, None ) =>
+        helperRepo.collection.insert(BSONDocument(
+          "applicationId" -> appId,
+          "applicationStatus" -> applicationStatus
+        ))
+      case (Some(xmlReportSaved), None) =>
+        helperRepo.collection.insert(BSONDocument(
+          "applicationId" -> appId,
+          "applicationStatus" -> applicationStatus,
+          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved)
+        ))
+      case (None, Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
+        helperRepo.collection.insert(BSONDocument(
+          "applicationId" -> appId,
+          "applicationStatus" -> applicationStatus,
+          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
+        ))
+      case (Some(xmlReportSaved), Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
+        helperRepo.collection.insert(BSONDocument(
+          "applicationId" -> appId,
+          "applicationStatus" -> applicationStatus,
+          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved),
+          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
+        ))
+    }
 
-    helperRepo.collection.insert(BSONDocument(
-      "userId" -> userId,
-      "applicationId" -> appId,
-      "frameworkId" -> "frameworkId",
-      "applicationStatus" -> appStatus,
-      "personal-details" -> BSONDocument("preferredName" -> "Test Preferred Name"),
-      "progress-status-dates" -> BSONDocument("allocation_unconfirmed" -> "2016-04-05"),
-      "assistance-details" -> BSONDocument(
-        "guaranteedInterview" -> "Yes",
-        "needsSupportForOnlineAssessment" -> "No",
-        "needsSupportAtVene" -> "No"
-      )
-    )).futureValue
+    result.futureValue
 
-    ApplicationIdWithUserIdAndStatus(appId, userId, appStatus)
+    appId
   }
 
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String = "frameworkId",
-                                     appStatus: String, needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
-                                     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false) = {
+  // scalastyle:off parameter.number
+  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
+                                     appStatus: String = "", needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
+                                     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false, isGis: Boolean = false) = {
     helperRepo.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -242,16 +324,40 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         "applicable" -> fastPassApplicable,
         "fastPassReceived" -> fastPassApplicable
       ),
-      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments),
+      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments, isGis),
       "issue" -> "this candidate has changed the email",
-      "progress-status" -> BSONDocument(
-        "registered" -> "true"
-      )
+      "progress-status" -> progressStatus()
     )).futureValue
+  }
+  // scalastyle:on parameter.number
+
+  private def progressStatus(args: List[Option[(String, Boolean)]] = List.empty): BSONDocument = {
+    val baseDoc = BSONDocument(
+      "personal-details" -> true,
+      "in_progress" -> true,
+      "scheme-preferences" -> true,
+      "partner-graduate-programmes" -> true,
+      "assistance-details" -> true,
+      "questionnaire" -> questionnaire(),
+      "preview" -> true,
+      "submitted" -> true
+    )
+
+    args.foldLeft(baseDoc)((acc, opt) => opt.fold(baseDoc)(v => baseDoc.++(v._1 -> v._2)))
+
+  }
+
+  private def questionnaire() = {
+    BSONDocument(
+      "start_questionnaire" -> true,
+      "diversity_questionnaire" -> true,
+      "education_questionnaire" -> true,
+      "occupation_questionnaire" -> true
+    )
   }
 
   private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
-                                      timeExtensionAdjustments:Boolean) = {
+                                      timeExtensionAdjustments:Boolean, isGis: Boolean = false) = {
     if (needsAdjustment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
@@ -260,25 +366,29 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
             "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
             "adjustments-confirmed" -> true,
             "verbalTimeAdjustmentPercentage" -> 9,
-            "numericalTimeAdjustmentPercentage" -> 11
+            "numericalTimeAdjustmentPercentage" -> 11,
+            "guaranteedInterview" -> isGis
           )
         } else {
           BSONDocument(
             "needsAdjustment" -> "Yes",
             "typeOfAdjustments" -> BSONArray("room alone"),
-            "adjustments-confirmed" -> true
+            "adjustments-confirmed" -> true,
+            "guaranteedInterview" -> isGis
           )
         }
       } else {
         BSONDocument(
           "needsAdjustment" -> "Yes",
           "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-          "adjustments-confirmed" -> false
+          "adjustments-confirmed" -> false,
+          "guaranteedInterview" -> isGis
         )
       }
     } else {
       BSONDocument(
-        "needsAdjustment" -> "No"
+        "needsAdjustment" -> "No",
+        "guaranteedInterview" -> isGis
       )
     }
   }
@@ -291,7 +401,16 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   )
 
   private def insertApplication(appId: String) = {
-    helperRepo.collection.insert(BSONDocument("applicationId" -> appId)).futureValue
+    helperRepo.collection.insert(BSONDocument(
+      "applicationId" -> appId,
+      "personal-details" -> BSONDocument(
+        "firstName" -> s"${testCandidate("firstName")}",
+        "lastName" -> s"${testCandidate("lastName")}",
+        "preferredName" -> s"${testCandidate("preferredName")}",
+        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}",
+        "aLevel" -> true,
+        "stemLevel" -> true
+    ))).futureValue
   }
 
 }
