@@ -22,8 +22,9 @@ import play.api.mvc._
 object SchoolsController extends SchoolsController
 
 class SchoolsController extends Controller{
-  def getSchools = Action{
+  def getSchools(term: String) = Action{
     val list = "Hello" :: "There" :: "Hi" :: Nil
-    Ok(Json.toJson(list))
+    val results = list.filter(item => item.startsWith(term))
+    Ok(Json.toJson(results))
   }
 }
