@@ -16,8 +16,9 @@
 
 package services.application
 
-import model.Commands.WithdrawApplicationRequest
+import model.command.WithdrawApplication
 import model.Exceptions.NotFoundException
+import model.command.WithdrawApplication
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
@@ -38,7 +39,7 @@ trait ApplicationService {
   val appAssessService: ApplicationAssessmentService
   val auditService: AuditService
 
-  def withdraw(applicationId: String, withdrawRequest: WithdrawApplicationRequest) = {
+  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication) = {
     appRepository.withdraw(applicationId, withdrawRequest).flatMap { result =>
       auditService.logEventNoRequest(
         "ApplicationWithdrawn",
