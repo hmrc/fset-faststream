@@ -23,6 +23,7 @@ object SchoolsController extends SchoolsController
 
 class SchoolsController extends Controller{
   def getSchools = Action{
-    Ok(Json.toJson("hello"))
+    val list = "Hello" :: "There" :: "Hi" :: Nil
+    Ok(Json.toJson(list))
   }
 }

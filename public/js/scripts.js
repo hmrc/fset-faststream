@@ -807,13 +807,29 @@ $(function() {
       $(this).text(sectionName);
     });
   }
+  
+  $( "#postcodeQ" ).autocomplete({
+    source: function( request, response ) {
+      var r = jsRoutes.controllers.SchoolsController.getSchools()
+      r.ajax({
+        success : function(data) {
+          //$('#postcodeQ').removeClass('ui-autocomplete-loading');
+          // hide loading image
 
-  $('#testajax').click(function(evt) {
-    var r = jsRoutes.controllers.SchoolsController.getSchools()
-    r.ajax({
-      success : function(data) {
-        alert(data)
-      }
-    });
+          response( $.map( data, function(item) {
+            return item;
+          }));
+        },
+        error: function(data) {
+          $('#postcodeQ').removeClass('ui-autocomplete-loading');
+        }
+      });
+    },
+    minLength: 3,
+    open: function() {},
+    close: function() {},
+    focus: function(event,ui) {},
+    select: function(event, ui) {}
   });
+
 });
