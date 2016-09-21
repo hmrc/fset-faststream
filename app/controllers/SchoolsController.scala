@@ -21,10 +21,21 @@ import play.api.mvc._
 
 object SchoolsController extends SchoolsController
 
+case class School
+(
+  id: String,
+  label: String
+)
+
+
+
 class SchoolsController extends Controller{
+  implicit val schoolFormat = Json.format[School]
+
   def getSchools(term: String) = Action{
-    val list = "Hello" :: "There" :: "Hi" :: Nil
-    val results = list.filter(item => item.startsWith(term))
+    val list = School("1","Hello") :: School("2","There") :: School("3", "Hi") :: Nil
+
+    val results = list.filter(item => item.label.startsWith(term))
     Ok(Json.toJson(results))
   }
 }
