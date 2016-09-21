@@ -1,4 +1,4 @@
-error.invalidRole = You don't have access to this application.
+error.invalidRole = You don''t have access to this application.
 error.required.signIn = Enter your email
 error.required.password = Enter your password
 error.required.campaignOther = Tell us how you heard about us
@@ -116,7 +116,7 @@ secondScheme.duplicate=Second preference of scheme can''t be the same as your fi
 #Schemes & qualification
 schemes.required=You must choose a scheme
 orderAgreed.required=Review your preferences and confirm your happy with the order to continue
-eligible.required=You can only select preferences you're eligible for
+eligible.required=You can only select preferences you''re eligible for
 alternatives.required=Select whether or not you would consider other schemes
 
 scheme.Commercial.description=Commercial
@@ -195,7 +195,7 @@ error.required.parentsDegree = You must tell us if your parent/guardian has a de
 error.required.employmentStatus = You must tell us the employment status of your highest-earning parent/guardian, or choose ''prefer not to say''
 error.required.parentsOccupation = You must tell us what type of work your highest-earning parent/guardian did
 error.required.employee = You must tell us if your parent/guardian was either employed or self-employed, or choose ''prefer not to say''
-error.required.organizationSize = You must tell us the size of your parent/guardian's workplace, or choose ''prefer not to say''
+error.required.organizationSize = You must tell us the size of your parent/guardian''s workplace, or choose ''prefer not to say''
 error.required.supervise = You must tell us if your parent/guardian supervised employees, or choose ''prefer not to say''
 error.required.acceptance = Confirm you understand that the information you give here won''t affect your application
 
