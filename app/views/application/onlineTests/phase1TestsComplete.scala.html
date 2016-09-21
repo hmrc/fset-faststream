@@ -1,0 +1,25 @@
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Online exercises complete | Apply for the Civil Service Fast Stream") {
+    <div class="success-banner">
+        <h1 class="heading-large no-btm-margin"><i class="fa fa-check"></i>Exercise complete</h1>
+    </div>
+    <section>
+        <div class="text">
+            <p>You've completed the online exercises.</p>
+            <h2 class="heading-large">What you need to do next</h2>
+            <div class="panel-indent">
+                <p>We're now going to assess your answers.</p>
+                <p>You'll be sent an email once we have your results, make sure you
+                    check your junk inbox. If you're successful, the next section to
+                    complete will be the e-tray.</p>
+            </div>
+        </div>
+    @if(user.isDefined){
+        <p><a href="@routes.HomeController.present">Return to home</a>. Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a>.</p>
+    } else {
+        <p>You've been signed out. <a href="@routes.SignInController.signIn">Sign in</a> to return to your home page.</p>
+    }
+    </section>
+}
+

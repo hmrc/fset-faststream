@@ -69,6 +69,8 @@ POST        /questionnaire/page/3                                   controllers.
 
 # Online Test
 POST        /online-tests/phase1/start                              controllers.OnlineTestController.startPhase1Tests
+GET         /online-tests/phase1/continue/:token                    controllers.OnlineTestController.completeSjqByTokeAndContinuePhase1Tests(token: UniqueIdentifier)
+GET         /online-tests/phase1/complete/:token                    controllers.OnlineTestController.completePhase1TestsByToken(token: UniqueIdentifier)
 GET         /online-tests/complete/:token                           controllers.OnlineTestController.completeTestByToken(token: UniqueIdentifier)
 
 # Assets controller
