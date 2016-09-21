@@ -816,7 +816,7 @@ $(function() {
           $('#postcodeQ').removeClass('ui-autocomplete-loading');
 
           response( $.map( data, function(item) {
-            return item;
+            return item
           }));
         },
         error: function(data) {
@@ -828,7 +828,9 @@ $(function() {
     open: function() {},
     close: function() {},
     focus: function(event,ui) {},
-    select: function(event, ui) {}
+    select: function(event, ui) {
+      alert(ui.item.id)
+    }
   });
 
 });
