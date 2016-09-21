@@ -36,7 +36,7 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
 
   // This is the implicit user
   override def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
-    CachedDataExample.inPartnerGraduateProgrammesApplication.copy(userId = ActiveCandidate.user.userID))
+    CachedDataExample.InProgressInPartnerGraduateProgrammesApplication.copy(userId = ActiveCandidate.user.userID))
 
   "present" should {
     "load partner graduate programmes page for the new user" in new TestFixture {

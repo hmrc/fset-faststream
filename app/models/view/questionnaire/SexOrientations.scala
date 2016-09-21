@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package models
+package models.view.questionnaire
 
-object WithdrawReasons {
+object SexOrientations {
   val list = List(
-    ("I've found another job elsewhere", false),
-    ("I'm joining another apprenticeship scheme", false),
-    ("I realised I wasn't eligible for an apprenticeship", false),
-    ("My circumstances have changed", false),
-    ("I have moved abroad", false),
-    ("Other reason (provide details)", true)
+    ("straight", "Heterosexual/straight", false),
+    ("gay", "Gay/lesbian", false),
+    ("bisexual", "Bisexual", false),
+    ("other", "Other", true),
+    ("preferNotSay","I don't know/prefer not to say",false)
   )
 }

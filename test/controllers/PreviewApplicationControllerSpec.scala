@@ -38,7 +38,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
 
   // This is the implicit user
   override def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
-    CachedDataExample.InQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
+    CachedDataExample.InProgressInQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
 
   "present" should {
     "load preview page for existing application" in new TestFixture {

@@ -37,13 +37,20 @@ object CachedDataExample {
     Some(FastPassDetails(applicable = false))
   )
 
-  val InPersonalDetailsApplication = CreatedApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,
+  val InProgressInPersonalDetailsApplication = CreatedApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,
     progress = ProgressExamples.PersonalDetailsProgress)
-  val InSchemePreferencesApplication = InPersonalDetailsApplication.copy(progress = ProgressExamples.SchemePreferencesProgress)
-  val inPartnerGraduateProgrammesApplication = InSchemePreferencesApplication.copy(progress = ProgressExamples.PartnerGraduateProgrammesProgress)
-  val InAssistanceDetailsApplication = inPartnerGraduateProgrammesApplication.copy(progress = ProgressExamples.AssistanceDetailsProgress)
-  val InQuestionnaireApplication = InAssistanceDetailsApplication.copy(progress = ProgressExamples.QuestionnaireProgress)
-  val InPreviewApplication = InQuestionnaireApplication.copy(progress = ProgressExamples.PreviewProgress)
+  val InProgressInSchemePreferencesApplication = InProgressInPersonalDetailsApplication.copy(progress =
+    ProgressExamples.SchemePreferencesProgress)
+  val InProgressInPartnerGraduateProgrammesApplication = InProgressInSchemePreferencesApplication.copy(progress =
+    ProgressExamples.PartnerGraduateProgrammesProgress)
+  val InProgressInAssistanceDetailsApplication = InProgressInPartnerGraduateProgrammesApplication.copy(progress =
+    ProgressExamples.AssistanceDetailsProgress)
+  val InProgressInQuestionnaireApplication = InProgressInAssistanceDetailsApplication.copy(progress = ProgressExamples.QuestionnaireProgress)
+  val InProgressInPreviewApplication = InProgressInQuestionnaireApplication.copy(progress = ProgressExamples.PreviewProgress)
+  val SubmittedApplication = InProgressInPreviewApplication.copy(applicationStatus = ApplicationStatus.SUBMITTED,
+    progress = ProgressExamples.SubmitProgress)
+  val WithdrawApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
+    progress = ProgressExamples.WithdrawnAfterSubmitProgress)
 
   val ActiveCandidate = CachedData(ActiveCandidateUser, Some(CreatedApplication))
 }

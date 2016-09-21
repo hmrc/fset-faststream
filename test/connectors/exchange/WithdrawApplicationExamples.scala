@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package models.view.questionnaire
+package connectors.exchange
 
-object Employee {
-  val list = List(
-    ("employee", "Employee", false),
-    ("self-with-employees", "Self-employed with employees", false),
-    ("self-without-employees", "Self-employed/freelancer without employees", false),
-    ("unknown", "I don't know/prefer not to say", false)
-  )
+import forms.WithdrawApplicationForm
+
+object WithdrawApplicationExamples {
+  val Valid = WithdrawApplication("found another job", None, "Candidate")
+  val OtherReasonValid = WithdrawApplication("found another job", Some("Other (provide details)"), "Candidate")
+  val OtherReasonInvalidNoReason = WithdrawApplication("", None, "Candidate")
+  val OtherReasonInvalidNoOtherReasonMoreInfo = WithdrawApplication("Other (provide details)", None, "Candidate")
 }

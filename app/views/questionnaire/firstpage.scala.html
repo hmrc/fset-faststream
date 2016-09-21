@@ -1,4 +1,4 @@
-@import models.view.questionnaire.{ Ethnicity, Gender, SexOrientation }
+@import models.view.questionnaire.{ Ethnicities, Genders, SexOrientations }
 @(questionnaireForm: Form[_root_.forms.DiversityQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import helpers.CSRFieldConstructor._
@@ -24,7 +24,7 @@
         <section>
             <fieldset class="form-group">
                 <legend class="form-label" id="gender-ques">@Messages("gender.question")</legend>
-                @radioBoxVertical(questionnaireForm("gender"), options = models.view.questionnaire.Gender.list, optionTrigger = "gender-describe")
+                @radioBoxVertical(questionnaireForm("gender"), options = models.view.questionnaire.Genders.list, optionTrigger = "gender-describe")
                 <div class="toggle-content form-group form-group-compound" id="gender-describe">
                 @helper.inputText(questionnaireForm("other_gender"),
                     '_label -> "Provide more information (optional)",
@@ -39,7 +39,7 @@
         <section>
             <fieldset class="form-group">
                 <legend class="form-label" id="orientation-ques">@Messages("sexOrientation.question")</legend>
-                @radioBoxVertical(questionnaireForm("sexOrientation"), options = models.view.questionnaire.SexOrientation.list, optionTrigger = "orientation-describe")
+                @radioBoxVertical(questionnaireForm("sexOrientation"), options = models.view.questionnaire.SexOrientations.list, optionTrigger = "orientation-describe")
                 <div class="toggle-content form-group form-group-compound" id="orientation-describe">
                 @helper.inputText(questionnaireForm("other_sexOrientation"),
                     '_label -> "Provide more information (optional)",
@@ -52,7 +52,7 @@
         </section>
 
         <section>
-            @select_guard_multi(questionnaireForm("ethnicity"), models.view.questionnaire.Ethnicity.map,
+            @select_guard_multi(questionnaireForm("ethnicity"), models.view.questionnaire.Ethnicities.map,
                 "ethnicity-describe", "-- Select one --") {
                 @Messages("ethnicity.question")
             }
