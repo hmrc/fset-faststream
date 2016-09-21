@@ -1,5 +1,5 @@
 @import models.view.SimpleAnswerOptions
-@import models.view.questionnaire.{ Employee, Occupation, OrganizationSize }
+@import models.view.questionnaire.{ Employees, Occupations, OrganizationSizes }
 @(questionnaireForm: Form[_root_.forms.ParentalOccupationQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import views.html.widgets.{pageProgress, radioBoxHorizontal, radioBoxVertical, radioBoxOccupation, radioBoxOccupationFirst}
@@ -37,7 +37,7 @@
                 <fieldset class="hidingOccupations initiallyHidden" data-requiredifshown data-optional>
                     <legend class="form-label">@Messages("parentsOccupation.question")</legend>
 
-                    @radioBoxOccupation(questionnaireForm("parentsOccupation"), models.view.questionnaire.Occupation.seq)
+                    @radioBoxOccupation(questionnaireForm("parentsOccupation"), models.view.questionnaire.Occupations.seq)
                 </fieldset>
         </section>
 
@@ -46,7 +46,7 @@
                 <fieldset>
                     <legend class="form-label">@Messages("employee.question")</legend>
                     <div class="form-group inline">
-                        @radioBoxVertical(questionnaireForm("employee"), options = models.view.questionnaire.Employee.list)
+                        @radioBoxVertical(questionnaireForm("employee"), options = models.view.questionnaire.Employees.list)
                     </div>
                 </fieldset>
             </section>
@@ -55,7 +55,7 @@
                 <fieldset>
                     <legend class="form-label">@Messages("organizationSize.question")</legend>
                     <div class="form-group inline">
-                        @radioBoxVertical(questionnaireForm("organizationSize"), options = models.view.questionnaire.OrganizationSize.list)
+                        @radioBoxVertical(questionnaireForm("organizationSize"), options = models.view.questionnaire.OrganizationSizes.list)
                     </div>
                 </fieldset>
             </section>

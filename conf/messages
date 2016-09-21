@@ -6,9 +6,10 @@ session.expired = You''ve been signed out due to inactivity. Sign in again if yo
 
 application.cannotbe.withdrawn = You can''nt withdraw an application before you submit it
 error.cannot.withdraw = We can''t find an application to withdraw
-error.required.reason = Select a reason for withdrawal
-error.required.reason.more_info = Give more information about your withdrawal
-application.withdrawn = Your application has been withdrawn
+error.reason.required = Select a reason for withdrawing your application
+error.required.reason.more_info = Tell us why you''re withdrawing your application
+application.withdrawn = You''ve successfully withdrawn your application. <a href="{0}" target="_blank" rel="external">Give feedback?</a> (30 second survey)
+error.otherReason.maxLength = Information must not exceed 300 characters
 
 # Signin form
 signIn.giveFeedback = You''ve successfully signed out.<p><a href="{0}" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>

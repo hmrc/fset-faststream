@@ -37,4 +37,5 @@ object ProgressExamples {
     educationQuestionnaire = true ,occupationQuestionnaire = true)
   val PreviewProgress = QuestionnaireProgress.copy(preview = true)
   val SubmitProgress = PreviewProgress.copy(submitted = true)
+  val WithdrawnAfterSubmitProgress = SubmitProgress.copy(withdrawn = true)
 }

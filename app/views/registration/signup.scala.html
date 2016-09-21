@@ -1,3 +1,4 @@
+@import models.view.CampaignReferrers
 @(signUpForm: Form[_root_.forms.SignUpForm.Data], notification: Option[(helpers.NotificationType, String)] = None)(
         implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, faststreamConfig: FaststreamConfig)
 
@@ -106,8 +107,8 @@
         <section class="section-border">
             <h2 class="heading-large">How did you hear about us?</h2>
             <div data-optional>
-                @select_guard(signUpForm("campaignReferrer"), models.CampaignReferrers.list,
-                "hearAboutUsDetail", "Select one") {
+                @select_guard(signUpForm("campaignReferrer"), models.view.CampaignReferrers.list,
+                "hearAboutUsDetail", "-- Select one --") {
                 Select how you heard about us (optional)
                 }
             </div>
