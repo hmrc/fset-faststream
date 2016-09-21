@@ -31,7 +31,7 @@ trait OnlineTestExpiryService {
   def processNextExpiredTest(): Future[Unit]
   def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit]
   def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit]
-  def commitExpiredStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
+  def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
 }
 
 class OnlineTestExpiryServiceImpl(
@@ -46,8 +46,8 @@ class OnlineTestExpiryServiceImpl(
   private implicit def headerCarrier = newHeaderCarrier
 
   override def processNextExpiredTest(): Future[Unit] = {
-    otRepository.nextApplicationPendingExpiry.flatMap {
-      case Some(expiringTest) => processExpiredTest(expiringTest)
+    otRepository.nextExpiringApplication.flatMap {
+      case Some(expiredTest) => processExpiredTest(expiredTest)
       case None => Future.successful(())
     }
   }
@@ -56,7 +56,7 @@ class OnlineTestExpiryServiceImpl(
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
       _ <- emailCandidate(expiringTest, emailAddress)
-      _ <- commitExpiredStatus(expiringTest)
+      _ <- commitExpiredProgressStatus(expiringTest)
     } yield ()
 
   override def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit] =
@@ -64,7 +64,7 @@ class OnlineTestExpiryServiceImpl(
       audit("ExpiredOnlineTestNotificationEmailed", expiringTest, Some(emailAddress))
     }
 
-  override def commitExpiredStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
+  override def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
     applicationRepository.updateProgressStatus(expiringTest.applicationId, PHASE1_TESTS_EXPIRED).map { _ =>
       audit("ExpiredOnlineTest", expiringTest)
     }

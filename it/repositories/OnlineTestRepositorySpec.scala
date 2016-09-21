@@ -149,14 +149,14 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  "nextApplicationPendingExpiry" should {
+  "nextExpiringApplication" should {
     val date = new DateTime("2015-03-08T13:04:29.643Z")
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     "return one result" when {
       "there is an application in PHASE1_TESTS and should be expired" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be (Some(ExpiringOnlineTest(AppId,UserId,"Georgy")))
+        onlineTestRepo.nextExpiringApplication.futureValue must be (Some(ExpiringOnlineTest(AppId,UserId,"Georgy")))
       }
     }
     "return no results" when {
@@ -164,7 +164,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS))
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
       "the date is not expired yet" in {
@@ -173,7 +173,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         onlineTestRepo.insertOrUpdatePhase1TestGroup(
           AppId,
           Phase1TestProfile(expirationDate = new DateTime().plusHours(2), tests = List(phase1Test))).futureValue
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
       "the test is already expired" in {
@@ -184,7 +184,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
         )))
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
       "the test is completed" in {
@@ -195,7 +195,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
         )))
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
     }
 

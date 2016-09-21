@@ -46,7 +46,7 @@ trait OnlineTestRepository {
 
   def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
-  def nextApplicationPendingExpiry: Future[Option[ExpiringOnlineTest]]
+  def nextExpiringApplication: Future[Option[ExpiringOnlineTest]]
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 }
@@ -144,7 +144,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
   }
 
-  override def nextApplicationPendingExpiry: Future[Option[ExpiringOnlineTest]] = {
+  override def nextExpiringApplication: Future[Option[ExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(
         "applicationStatus" -> ApplicationStatus.PHASE1_TESTS
