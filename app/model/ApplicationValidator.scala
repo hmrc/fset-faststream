@@ -41,7 +41,7 @@ case class ApplicationValidator(gd: PersonalDetails, ad: AssistanceDetails, sl: 
     val ifNeedsVenueAdjustments = ifNeeds(Some(ad.needsSupportAtVenue)) _
 
     def hasGis(ad: AssistanceDetails): Boolean = ad.guaranteedInterview match {
-      case Some(x) => x
+      case Some(_) => true
       case _ => false
     }
 
