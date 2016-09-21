@@ -18,29 +18,30 @@ package services.onlinetesting
 
 import config._
 import connectors.ExchangeObjects._
-import connectors.{CSREmailClient, CubiksGatewayClient}
+import connectors.{ CSREmailClient, CubiksGatewayClient }
 import controllers.OnlineTestDetails
-import factories.{DateTimeFactory, UUIDFactory}
-import model.{Address, ApplicationStatus, Commands, ProgressStatuses}
+import factories.{ DateTimeFactory, UUIDFactory }
+import model.{ Address, ApplicationStatus, Commands, ProgressStatuses }
 import model.Commands._
-import model.Exceptions.{ConnectorException, NotFoundException}
+import model.Exceptions.{ ConnectorException, NotFoundException }
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
+import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
-import repositories.{ContactDetailsRepository, TestReportRepository}
+import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.{ ContactDetailsRepository, TestReportRepository }
 import services.AuditService
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -382,6 +383,31 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     "return an InviteApplication with time adjustments if no gis and application has time adjustments" in new OnlineTest {
       onlineTestService.buildInviteApplication(applicationForOnlineTestingWithTimeAdjustments,
         "", CubiksUserId, ScheduleId) must be(inviteApplicantNoGisWithTimeAdjustments)
+    }
+  }
+
+  "mark as started" should {
+    "change progress to started" in new OnlineTest {
+      when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful())
+      when(otRepositoryMock.getPhase1TestProfileByCubiksId(CubiksUserId))
+        .thenReturn(Future.successful(Phase1TestProfileWithAppId("appId123", phase1TestProfile)))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)).thenReturn(Future.successful())
+      onlineTestService.markAsStarted(CubiksUserId).futureValue
+
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
+    }
+  }
+
+  "mark as completed" should {
+    "change progress to completed if there are all tests completed" in new OnlineTest {
+      when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful())
+      val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))))
+      when(otRepositoryMock.getPhase1TestProfileByCubiksId(CubiksUserId))
+        .thenReturn(Future.successful(Phase1TestProfileWithAppId("appId123", phase1Tests)))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful())
+      onlineTestService.markAsCompleted(CubiksUserId).futureValue
+
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
     }
   }
 

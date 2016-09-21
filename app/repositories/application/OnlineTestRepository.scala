@@ -49,8 +49,9 @@ trait OnlineTestRepository {
   def nextExpiringApplication: Future[Option[ExpiringOnlineTest]]
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
-}
 
+  def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit]
+}
 
 // TODO: Rename to something like: Phase1TestGroupMongoRepository
 class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -167,6 +168,20 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
 
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
+  }
+
+  override def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = {
+    require(progressStatus.applicationStatus == ApplicationStatus.PHASE1_TESTS, "Forbidden progress status update")
+
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      "applicationStatus" -> ApplicationStatus.PHASE1_TESTS
+    )
+
+    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
+      s"progress-status.$progressStatus" -> true
+    ))
+    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
   }
 
   private def bsonDocToExpiringOnlineTest(doc: BSONDocument) = {
