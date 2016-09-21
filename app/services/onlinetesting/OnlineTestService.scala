@@ -24,6 +24,8 @@ import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
+import model.ProgressStatuses
+import model.ProgressStatuses.ProgressStatus
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
@@ -326,11 +328,21 @@ trait OnlineTestService {
   }
 
   def markAsStarted(cubiksUserId: Int): Future[Unit] = {
-    updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
+    val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
+    updatedTestPhase1 map { u =>
+      otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED)
+    }
   }
 
   def markAsCompleted(cubiksUserId: Int): Future[Unit] = {
-    updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
+    val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
+    updatedTestPhase1 map { u =>
+      require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
+
+      if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
+        otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED)
+      }
+    }
   }
 
   def markAsCompleted(token: String): Future[Unit] = {
@@ -340,7 +352,7 @@ trait OnlineTestService {
     }
   }
 
-  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: Phase1TestResultReady): Future[Unit] = {
+  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: Phase1TestResultReady): Future[Phase1TestProfileWithAppId] = {
     updateTestPhase1(cubiksUserId,
       t => t.copy(
         resultsReadyToDownload = reportReady.reportStatus == "Ready",
@@ -351,8 +363,8 @@ trait OnlineTestService {
     )
   }
 
-  private def updateTestPhase1(cubiksUserId: Int, update: Phase1Test => Phase1Test): Future[Unit] = {
-    def createUpdateTestGroup(p: Phase1TestProfileWithAppId): (String, Phase1TestProfile) = {
+  private def updateTestPhase1(cubiksUserId: Int, update: Phase1Test => Phase1Test): Future[Phase1TestProfileWithAppId] = {
+    def createUpdateTestGroup(p: Phase1TestProfileWithAppId): Phase1TestProfileWithAppId = {
       val testGroup = p.phase1TestProfile
       require(testGroup.tests.count(_.cubiksUserId == cubiksUserId) == 1)
       val appId = p.applicationId
@@ -361,14 +373,21 @@ trait OnlineTestService {
         case t => t
       }
       val updatedTestGroup = testGroup.copy(tests = updatedTestsWithTodaysDate)
-      (appId, updatedTestGroup)
+      Phase1TestProfileWithAppId(appId, updatedTestGroup)
     }
 
     for {
       p <- otRepository.getPhase1TestProfileByCubiksId(cubiksUserId)
-      (appId, updatedTestGroup) = createUpdateTestGroup(p)
-      _ <- otRepository.insertOrUpdatePhase1TestGroup(appId, updatedTestGroup)
-    } yield {}
+      updated = createUpdateTestGroup(p)
+      _ <- otRepository.insertOrUpdatePhase1TestGroup(updated.applicationId, updated.phase1TestProfile)
+    } yield {
+      updated
+    }
+  }
+
+  private def updateProgress(appId: String, progressStatus: Option[ProgressStatus]): Future[Unit] = progressStatus match {
+    case Some(p) => appRepository.updateProgressStatus(appId, p)
+    case None => Future.successful()
   }
 
   private def toCandidateTestReport(appId: String, tests: Map[String, TestResult]) = {

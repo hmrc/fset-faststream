@@ -19,9 +19,11 @@ package repositories
 import java.util.UUID
 
 import factories.DateTimeFactory
+import model.ApplicationStatus
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
+import model.ProgressStatuses.PHASE1_TESTS_STARTED
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
@@ -121,6 +123,16 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  "Update progress status" should {
+    "update progress status to PHASE1_TESTS_STARTED" in {
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS)
+      onlineTestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
+
+      val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
+      app.progressResponse.phase1TestsStarted mustBe true
+    }
+  }
+
   def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String,
     needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean,
     fastPassApplicable: Boolean = false) = {
@@ -170,7 +182,6 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
   def createOnlineTest(userId: String, appStatus: String, phase1Tests: List[Phase1Test],
     expirationDate: DateTime = DateTime.now) = {
-    import model.OnlineTestCommands.Phase1TestProfile.phase1TestProfileHandler
 
     val appId = UUID.randomUUID().toString
 
@@ -194,42 +205,8 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     ApplicationIdWithUserIdAndStatus(appId, userId, appStatus)
   }
 
-  def createOnlineTestApplication(appId: String, applicationStatus: String, xmlReportSavedOpt: Option[Boolean] = None,
-                                  alreadyEvaluatedAgainstPassmarkVersionOpt: Option[String] = None): String = {
-    val result = (xmlReportSavedOpt, alreadyEvaluatedAgainstPassmarkVersionOpt) match {
-      case (None, None ) =>
-        helperRepo.collection.insert(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus
-        ))
-      case (Some(xmlReportSaved), None) =>
-        helperRepo.collection.insert(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus,
-          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved)
-        ))
-      case (None, Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
-        helperRepo.collection.insert(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus,
-          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
-        ))
-      case (Some(xmlReportSaved), Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
-        helperRepo.collection.insert(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus,
-          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved),
-          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
-        ))
-    }
-
-    result.futureValue
-
-    appId
-  }
-
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-                                     appStatus: String = "", needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
+  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String = "frameworkId",
+                                     appStatus: String, needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
                                      timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false) = {
     helperRepo.collection.insert(BSONDocument(
       "applicationId" -> appId,
