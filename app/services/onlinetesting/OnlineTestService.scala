@@ -24,13 +24,13 @@ import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
-import model.exchange.Phase1TestProfileWithNames
+import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
+import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
 import play.api.Logger
 import play.libs.Akka
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
-import services.onlinetesting.OnlineTestService.TestExtensionException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
@@ -46,7 +46,7 @@ object OnlineTestService extends OnlineTestService {
   val trRepository = testReportRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
-  val onlineTestInvitationDateFactory = DateTimeFactory
+  val dateTimeFactory = DateTimeFactory
   val emailClient = CSREmailClient
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
@@ -54,6 +54,7 @@ object OnlineTestService extends OnlineTestService {
   case class TestExtensionException(message: String) extends Exception(message)
 }
 
+// TODO: Rename to something like: Phase1TestGroupService
 trait OnlineTestService {
   implicit def headerCarrier = new HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -66,7 +67,7 @@ trait OnlineTestService {
   val emailClient: EmailClient
   val auditService: AuditService
   val tokenFactory: UUIDFactory
-  val onlineTestInvitationDateFactory: DateTimeFactory
+  val dateTimeFactory: DateTimeFactory
   val gatewayConfig: CubiksGatewayConfig
 
   def norms = Seq(
@@ -236,7 +237,7 @@ trait OnlineTestService {
                            (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
     currentOnlineTestProfile <- otRepository.getPhase1TestProfile(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- otRepository.insertPhase1TestProfile(application.applicationId, updatedOnlineTestProfile)
+    _ <- otRepository.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
   } yield {
     audit("OnlineTestInvited", application.userId)
   }
@@ -260,7 +261,7 @@ trait OnlineTestService {
     cdRepository.find(application.userId).map(_.email)
 
   private def calcOnlineTestDates: (DateTime, DateTime) = {
-    val invitationDate = onlineTestInvitationDateFactory.nowLocalTimeZone
+    val invitationDate = dateTimeFactory.nowLocalTimeZone
     val expirationDate = invitationDate.plusDays(gatewayConfig.onlineTestConfig.expiryTimeInDays)
     (invitationDate, expirationDate)
   }
@@ -315,13 +316,59 @@ trait OnlineTestService {
   }
 
   private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
-    val scheduleCompletionUrl = gatewayConfig.candidateAppUrl + "/fset-fast-stream/online-tests/complete/" + token
+    val scheduleCompletionUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/$token"
     if (application.guaranteedInterview) {
       InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None, timeAdjustments = None)
     } else {
       val timeAdjustments = getTimeAdjustments(application)
       InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None, timeAdjustments)
     }
+  }
+
+  def markAsStarted(cubiksUserId: Int): Future[Unit] = {
+    updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
+  }
+
+  def markAsCompleted(cubiksUserId: Int): Future[Unit] = {
+    updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
+  }
+
+  def markAsCompleted(token: String): Future[Unit] = {
+    otRepository.getPhase1TestProfileByToken(token).flatMap { p =>
+      val test = p.tests.find(_.token == token).get
+      markAsCompleted(test.cubiksUserId)
+    }
+  }
+
+  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: Phase1TestResultReady): Future[Unit] = {
+    updateTestPhase1(cubiksUserId,
+      t => t.copy(
+        resultsReadyToDownload = reportReady.reportStatus == "Ready",
+        reportId = reportReady.reportId,
+        reportLinkURL = reportReady.reportLinkURL,
+        reportStatus = Some(reportReady.reportStatus)
+      )
+    )
+  }
+
+  private def updateTestPhase1(cubiksUserId: Int, update: Phase1Test => Phase1Test): Future[Unit] = {
+    def createUpdateTestGroup(p: Phase1TestProfileWithAppId): (String, Phase1TestProfile) = {
+      val testGroup = p.phase1TestProfile
+      require(testGroup.tests.count(_.cubiksUserId == cubiksUserId) == 1)
+      val appId = p.applicationId
+      val updatedTestsWithTodaysDate = testGroup.tests.collect {
+        case t if t.cubiksUserId == cubiksUserId => update(t)
+        case t => t
+      }
+      val updatedTestGroup = testGroup.copy(tests = updatedTestsWithTodaysDate)
+      (appId, updatedTestGroup)
+    }
+
+    for {
+      p <- otRepository.getPhase1TestProfileByCubiksId(cubiksUserId)
+      (appId, updatedTestGroup) = createUpdateTestGroup(p)
+      _ <- otRepository.insertOrUpdatePhase1TestGroup(appId, updatedTestGroup)
+    } yield {}
   }
 
   private def toCandidateTestReport(appId: String, tests: Map[String, TestResult]) = {
