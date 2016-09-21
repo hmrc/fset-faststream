@@ -66,6 +66,7 @@ GET         /questionnaire/page/2                                   controllers.
 POST        /questionnaire/page/2                                   controllers.QuestionnaireController.submitSecondPage
 GET         /questionnaire/page/3                                   controllers.QuestionnaireController.presentThirdPage
 POST        /questionnaire/page/3                                   controllers.QuestionnaireController.submitThirdPage
+GET         /schools                                                controllers.SchoolsController.getSchools
 
 # Online Test
 POST        /online-tests/phase1/start                              controllers.OnlineTestController.startPhase1Tests

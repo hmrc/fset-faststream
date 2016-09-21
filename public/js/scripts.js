@@ -814,5 +814,12 @@ $(function() {
     window.print();
   });
 
-
+  $('#testajax').click(function(evt) {
+    var r = jsRoutes.controllers.SchoolsController.getSchools()
+    r.ajax({
+      success : function(data) {
+        alert(data)
+      }
+    });
+  });
 });

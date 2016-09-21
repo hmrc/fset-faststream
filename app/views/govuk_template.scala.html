@@ -45,6 +45,10 @@
             </script>
 
             <script src='@routes.Assets.versioned("js/vendor/modernizr-custom.js")'></script>
+
+            @helper.javascriptRouter("jsRoutes")(
+                routes.javascript.SchoolsController.getSchools
+            )
         </head>
         <body>
             @if(!CookiePolicy.bannerSeen(request)) {
