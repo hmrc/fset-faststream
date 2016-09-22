@@ -1,13 +1,27 @@
 @import connectors.exchange.{ AllocationDetails, Phase1TestProfile }
 @import security.RoleUtils
-@import models.page.{ Phase1TestsPage, Phase1TestPage }
-@(cachedUserData: CachedData, phase1TestProfile: Option[Phase1TestsPage] = None,
+@import models.page.{ DashboardPage, Phase1TestsPage, Phase1TestPage }
+@(cachedUserData: CachedData, dashboardPage: DashboardPage,
         allocationDetails: Option[AllocationDetails])(implicit request: Request[_])
 
 @import models.ApplicationData.ApplicationStatus._
 <div data-hidesdip>
     @phase1TestProfile match {
         case None => {
+    @(dashboardPage.isTestGroupExpired, dashboardPage.phase1TestsPage) match {
+        case (true, _) => {
+            <ul class="list-text list-withicons">
+                <li>
+                    <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>Online exercises</p>
+                    <div id="groupTestExpired">
+                        <p>Unfortunately the time you had to finish the online exercises has expired.</p>
+                        <p>If you believe there's been a mistake, please <a href="helpdesk">contact us</a>.</p>
+                        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk">Civil Service jobs</a> site for more opportunities with us.</p>
+                    </div>
+                </li>
+            </ul>
+        }
+        case (_, None) => {
             <ul class="list-text list-withicons" id="testsIndividual">
                 <li>
                     <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
@@ -25,8 +39,9 @@
                     </p>
                 </li>
             </ul>
+            <p id="testsFindoutmore"><a href="" rel="external">Find out more about the online tests</a></p>
         }
-        case Some(tests) if cachedUserData.application.isDefined => {
+        case (_, Some(tests)) if cachedUserData.application.isDefined => {
             <ul class="list-text list-withicons">
             @if(tests.allCompleted) {
                 <li>
@@ -101,8 +116,9 @@
                     </div>
                 </li>
             </ul>
+            <p id="testsFindoutmore"><a href="" rel="external">Find out more about the online tests</a></p>
         }
     }
-    <p id="testsFindoutmore"><a href="" rel="external">Find out more about the online tests</a></p>
+
 </div>
 
