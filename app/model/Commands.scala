@@ -31,6 +31,7 @@ import play.api.libs.json._
 
 import scala.language.implicitConversions
 import model.command.{ AssessmentCentre, ProgressResponse }
+import model.report.CandidateProgressReport
 
 //scalastyle:off
 object Commands {

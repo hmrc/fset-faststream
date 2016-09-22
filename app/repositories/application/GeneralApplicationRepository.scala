@@ -31,6 +31,7 @@ import model.PersistedObjects.ApplicationForNotification
 import model.SchemeType._
 import model._
 import model.command._
+import model.report.CandidateProgressReport
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, JsNumber, JsObject }
@@ -79,9 +80,9 @@ trait GeneralApplicationRepository {
 
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
 
-  def overallReport(frameworkId: String): Future[List[CandidateProgressReport]]
+  def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]]
 
-  def overallReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]]
+  def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]]
 
   def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]]
 
@@ -219,9 +220,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) =>
-        val status = document.getAs[String]("applicationStatus").get
-        val statusDate = document.getAs[BSONDocument]("progress-status-dates").flatMap(_.getAs[LocalDate](status.toLowerCase))
-        ApplicationStatusDetails(status, statusDate)
+        val applicationStatus = document.getAs[String]("applicationStatus").get
+        val progressStatusDate = document.getAs[BSONDocument]("progress-status-dates").flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase))
+        ApplicationStatusDetails(applicationStatus, progressStatusDate)
 
       case None => throw ApplicationNotFound(applicationId)
     }
@@ -376,8 +377,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   }
 
-  override def overallReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] =
-    overallReport(BSONDocument("$and" -> BSONArray(
+  override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] =
+    candidateProgressReport(BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN"))
     )))
@@ -388,10 +389,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN"))
     )))
 
-  override def overallReport(frameworkId: String): Future[List[CandidateProgressReport]] =
-    overallReport(BSONDocument("frameworkId" -> frameworkId))
+  override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]] =
+    candidateProgressReport(BSONDocument("frameworkId" -> frameworkId))
 
-  private def overallReport(query: BSONDocument): Future[List[CandidateProgressReport]] = {
+  private def candidateProgressReport(query: BSONDocument): Future[List[CandidateProgressReport]] = {
     val projection = BSONDocument(
       "userId" -> "1",
       "scheme-preferences.schemes" -> "1",

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package model
+package model.report
 
 import model.SchemeType.SchemeType
 import play.api.libs.json.Json

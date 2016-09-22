@@ -19,6 +19,7 @@ package repositories.application
 import factories.UUIDFactory
 import model._
 import model.SchemeType.SchemeType
+import model.report.CandidateProgressReport
 import org.joda.time.LocalDate
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
@@ -39,7 +40,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val appId = generateUUID()
       createApplicationWithAllFields(userId, appId, "FastStream-2016")
 
-      val result = repository.overallReport("FastStream-2016").futureValue
+      val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
       result.head must be(CandidateProgressReport(appId, Some("registered"),
@@ -53,7 +54,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val appId = generateUUID()
       createMinimumApplication(userId, appId, "FastStream-2016")
 
-      val result = repository.overallReport("FastStream-2016").futureValue
+      val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
       result.head must be(CandidateProgressReport(appId, Some("registered"),

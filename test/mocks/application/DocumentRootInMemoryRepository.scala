@@ -24,6 +24,7 @@ import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model._
 import model.PersistedObjects.ApplicationForNotification
+import model.report.CandidateProgressReport
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
 
@@ -96,9 +97,9 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findCandidateByUserId(userId: String): Future[Option[Candidate]] = Future.successful(None)
 
-  override def overallReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] = overallReport(frameworkId)
+  override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] = candidateProgressReport(frameworkId)
 
-  override def overallReport(frameworkId: String): Future[List[CandidateProgressReport]] = Future.successful(List(
+  override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]] = Future.successful(List(
     CandidateProgressReport("", Some("registered"),
       List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None))
   )
