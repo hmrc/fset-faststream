@@ -808,12 +808,12 @@ $(function() {
     });
   }
   
-  $( "#postcodeQ" ).autocomplete({
+  $( "#schoolName14to16" ).autocomplete({
     source: function( request, response ) {
       var r = jsRoutes.controllers.SchoolsController.getSchools(request.term)
       r.ajax({
         success : function(data) {
-          $('#postcodeQ').removeClass('ui-autocomplete-loading');
+          $('#schoolName14to16').removeClass('ui-autocomplete-loading');
 
           response( $.map( data, function(item) {
             item.label = item.name
@@ -821,7 +821,7 @@ $(function() {
           }));
         },
         error: function(data) {
-          $('#postcodeQ').removeClass('ui-autocomplete-loading');
+          $('#schoolName14to16').removeClass('ui-autocomplete-loading');
         }
       });
     },
