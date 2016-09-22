@@ -24,6 +24,7 @@ import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import org.joda.time.DateTime
 import repositories._
 import repositories.application.OnlineTestRepository
+import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 
@@ -42,7 +43,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
 
     val sjqTest = Phase1Test(
-      cubiksUserId = 117344,
+      cubiksUserId = scala.util.Random.nextInt(10000000),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
@@ -52,7 +53,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
     )
 
     val bqTest = Phase1Test(
-      cubiksUserId = 117344,
+      cubiksUserId = scala.util.Random.nextInt(10000000),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),

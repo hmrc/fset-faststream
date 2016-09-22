@@ -45,8 +45,9 @@ object OnlineTestCommands {
     implicit val phase1TestFormat = Json.format[Phase1Test]
   }
 
-  case class Phase1TestProfile(expirationDate: DateTime,
-    tests: List[Phase1Test]
+  case class Phase1TestProfile(
+                                expirationDate: DateTime,
+                                tests: List[Phase1Test]
   ) {
     def activeTests = tests filter (_.usedForResults)
   }

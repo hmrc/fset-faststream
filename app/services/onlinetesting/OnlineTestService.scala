@@ -84,7 +84,7 @@ trait OnlineTestService {
 
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfileWithNames]] = {
     for {
-      phase1Opt <- otRepository.getPhase1TestProfile(applicationId)
+      phase1Opt <- otRepository.getPhase1TestGroup(applicationId)
     } yield {
       phase1Opt.map { phase1 =>
         val sjqTests = phase1.activeTests filter (_.scheduleId == sjq)
@@ -234,7 +234,7 @@ trait OnlineTestService {
 
   private def markAsInvited(application: OnlineTestApplication)
                            (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
-    currentOnlineTestProfile <- otRepository.getPhase1TestProfile(application.applicationId)
+    currentOnlineTestProfile <- otRepository.getPhase1TestGroup(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
     _ <- otRepository.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
   } yield {
@@ -325,9 +325,11 @@ trait OnlineTestService {
   }
 
   def markAsStarted(cubiksUserId: Int): Future[Unit] = {
+    Logger.debug(s"====== Marking cubiks user $cubiksUserId as started")
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
     updatedTestPhase1 flatMap { u =>
-      otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED)
+      Logger.debug(s"====== Updated object = $u")
+      otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
     }
   }
 
@@ -365,19 +367,21 @@ trait OnlineTestService {
   private def updateTestPhase1(cubiksUserId: Int, update: Phase1Test => Phase1Test): Future[Phase1TestProfileWithAppId] = {
     def createUpdateTestGroup(p: Phase1TestProfileWithAppId): Phase1TestProfileWithAppId = {
       val testGroup = p.phase1TestProfile
-      require(testGroup.tests.count(_.cubiksUserId == cubiksUserId) == 1)
+      val requireUserIdOnOnlyOneTestCount = testGroup.tests.count(_.cubiksUserId == cubiksUserId)
+      require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
+
       val appId = p.applicationId
-      val updatedTestsWithTodaysDate = testGroup.tests.collect {
+      val updatedTests = testGroup.tests.collect {
         case t if t.cubiksUserId == cubiksUserId => update(t)
         case t => t
       }
-      val updatedTestGroup = testGroup.copy(tests = updatedTestsWithTodaysDate)
+      val updatedTestGroup = testGroup.copy(tests = updatedTests)
       Phase1TestProfileWithAppId(appId, updatedTestGroup)
     }
 
     for {
-      p <- otRepository.getPhase1TestProfileByCubiksId(cubiksUserId)
-      updated = createUpdateTestGroup(p)
+      p1TestProfile <- otRepository.getPhase1TestProfileByCubiksId(cubiksUserId)
+      updated = createUpdateTestGroup(p1TestProfile)
       _ <- otRepository.insertOrUpdatePhase1TestGroup(updated.applicationId, updated.phase1TestProfile)
     } yield {
       updated

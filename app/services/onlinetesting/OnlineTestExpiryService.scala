@@ -16,7 +16,7 @@
 
 package services.onlinetesting
 
-import connectors.EmailClient
+import connectors.{CSREmailClient, EmailClient}
 import model.PersistedObjects.ExpiringOnlineTest
 import model.ProgressStatuses.PHASE1_TESTS_EXPIRED
 import play.api.Logger
@@ -26,6 +26,7 @@ import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait OnlineTestExpiryService {
   def processNextExpiredTest(): Future[Unit]
@@ -81,3 +82,7 @@ class OnlineTestExpiryServiceImpl(
     )
   }
 }
+
+object OnlineTestExpiryService extends OnlineTestExpiryServiceImpl(
+applicationRepository, onlineTestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
+)

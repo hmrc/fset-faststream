@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus }
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, ProgressStatus }
 import org.joda.time.DateTime
 import play.api.Logger
 import repositories._
@@ -41,22 +41,36 @@ class OnlineTestExtensionServiceImpl(
   override def extendTestGroupExpiryTime(groupKey: String, applicationId: String, extraDays: Int): Future[Unit] = {
     // Check the state of this user
     appRepository.findProgress(applicationId).map { progressResponse =>
-      if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) {
+      if (progressResponse.phase1TestsExpired) {
+        Logger.warn("============ In Expired - woohoo!")
         for {
-          phase1TestProfile <- otRepository.getPhase1TestProfile(applicationId)
+          _ <- otRepository.updateGroupExpiryTime(applicationId, DateTime.now().withDurationAdded(86400 * extraDays * 1000, 1))
+          phase1TestGroup <- otRepository.getPhase1TestGroup(applicationId)
+          progressStatusToSet = if (phase1TestGroup.get.tests.exists(test => test.startedDateTime.isDefined)) {
+            PHASE1_TESTS_STARTED
+          } else {
+            PHASE1_TESTS_INVITED
+          }
+          _ = Logger.warn("======== Status to set = " + progressStatusToSet)
+          progressStatusesToRemove = List(PHASE1_TESTS_EXPIRED) ++ (if (progressStatusToSet == PHASE1_TESTS_INVITED) {
+            List(PHASE1_TESTS_STARTED)
+          } else {
+            Nil
+          })
+          _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, progressStatusToSet)
+          _ <- appRepository.removeProgressStatuses(applicationId, progressStatusesToRemove)
+        } yield {
+          audit("ExpiredTestsExtended", applicationId)
+        }
+      } else if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) {
+        Logger.warn("============ In Invite/Started")
+        for {
+          phase1TestProfile <- otRepository.getPhase1TestGroup(applicationId)
           existingExpiry = phase1TestProfile.get.expirationDate
           _ <- otRepository.updateGroupExpiryTime(applicationId, existingExpiry.withDurationAdded(86400 * extraDays * 1000, 1))
         } yield {
           audit("NonExpiredTestsExtended", applicationId)
         }
-      } else if (progressResponse.phase1TestsExpired) {
-        for {
-          _ <- otRepository.updateGroupExpiryTime(applicationId, DateTime.now().withDurationAdded(86400 * extraDays * 1000, 1))
-          _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_STARTED)
-          _ <- appRepository.removeProgressStatuses(applicationId, List(PHASE1_TESTS_EXPIRED)) // TODO: status finessing
-          } yield {
-            audit("ExpiredTestsExtended", applicationId)
-          }
       } else {
         throw TestExtensionException("Application is in an invalid status for test extension")
       }

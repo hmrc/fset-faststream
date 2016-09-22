@@ -31,7 +31,8 @@ import model._
 import model.command._
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ Format, JsNumber, JsObject }
+import play.api.Logger
+import play.api.libs.json.{Json, Format, JsNumber, JsObject}
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
@@ -1019,12 +1020,22 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    collection.update(query, BSONDocument("$unset" -> BSONDocument(
-      progressStatuses.map { progressStatus =>
-        s"progress-status.$progressStatus" -> BSONString("")
-        s"progress-status-dates.$progressStatus" -> BSONString("")
-      }
-    ))).map { _ => }
+    Logger.warn(s"========= Removing for app id $applicationId, statuses: $progressStatuses")
+
+    val statusesToUnset = progressStatuses.flatMap { progressStatus =>
+        Map(s"progress-status.$progressStatus" -> BSONString(""),
+        s"progress-status-dates.$progressStatus" -> BSONString(""))
+    }
+
+    val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))
+
+    Logger.warn(s"======== UnsetDoc = ${Json.toJson(unsetDoc)}")
+
+    collection.update(query, unsetDoc)
+    .map {
+      status =>
+        Logger.warn("=========== Status affected = " + status.n)
+    }
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

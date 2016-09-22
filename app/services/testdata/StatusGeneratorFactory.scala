@@ -18,7 +18,7 @@ package services.testdata
 
 import model.{ ApplicationStatus, ApplicationStatuses }
 import model.Exceptions.InvalidStatusException
-import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, ProgressStatus }
+import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, ProgressStatus}
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
@@ -51,6 +51,7 @@ object StatusGeneratorFactory {
       // TODO: Once all old string application statuses are removed convert this to a typed match
       case ("PHASE1_TESTS", Some(PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
       case ("PHASE1_TESTS", Some(PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
+      case ("PHASE1_TESTS", Some(PHASE1_TESTS_EXPIRED)) => Phase1TestsExpiredStatusGenerator
       case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
     }
   }

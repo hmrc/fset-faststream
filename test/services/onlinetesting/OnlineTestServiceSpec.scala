@@ -154,7 +154,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   "get online test" should {
     "return None if the application id does not exist" in new OnlineTest {
-      when(otRepositoryMock.getPhase1TestProfile(any())).thenReturn(Future.successful(None))
+      when(otRepositoryMock.getPhase1TestGroup(any())).thenReturn(Future.successful(None))
       val result = onlineTestService.getPhase1TestProfile("nonexistent-userid").futureValue
       result mustBe None
     }
@@ -166,7 +166,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         Some(candidate)
       ))
 
-      when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(
+      when(otRepositoryMock.getPhase1TestGroup(any[String])).thenReturn(Future.successful(
         Some(Phase1TestProfile(expirationDate = validExpireDate,
           tests = List(phase1Test)
         ))
@@ -181,7 +181,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   "register and invite application" should {
     "issue one email for invites to SJQ for GIS candidates" in new SuccessfulTestInviteFixture {
-      when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(otRepositoryMock.getPhase1TestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
       val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingGisWithNoTimeAdjustments)
       result.futureValue mustBe (())
 
@@ -197,7 +197,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     }
 
     "issue one email for invites to SJQ and BQ tests for non GIS candidates" in new SuccessfulTestInviteFixture {
-      when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(otRepositoryMock.getPhase1TestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
       val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
       result.futureValue mustBe (())
 
@@ -296,7 +296,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
       }
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
-      when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(otRepositoryMock.getPhase1TestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
       when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
         .thenReturn(Future.successful(registration))
       when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
