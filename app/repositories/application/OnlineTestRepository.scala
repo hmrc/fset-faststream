@@ -27,7 +27,7 @@ import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, Commands }
 import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.bson._
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -51,6 +51,8 @@ trait OnlineTestRepository {
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit]
+
+  def removeProgressStatuses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
 }
 
 // TODO: Rename to something like: Phase1TestGroupMongoRepository
@@ -182,6 +184,21 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       s"progress-status.$progressStatus" -> true
     ))
     collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
+  }
+
+  override def removeProgressStatuses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
+    require(progressStatuses.nonEmpty)
+    require(progressStatuses forall (_.applicationStatus == ApplicationStatus.PHASE1_TESTS), "Cannot remove non Phase 1 progress status")
+
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      "applicationStatus" -> ApplicationStatus.PHASE1_TESTS
+    )
+    val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
+
+    val updateQuery = BSONDocument("$unset" -> BSONDocument(progressesToRemoveQueryPartial))
+
+    collection.update(query, updateQuery, upsert = false) map ( _ => () )
   }
 
   private def bsonDocToExpiringOnlineTest(doc: BSONDocument) = {

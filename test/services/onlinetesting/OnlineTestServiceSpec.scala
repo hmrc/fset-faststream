@@ -28,7 +28,7 @@ import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.Phase1TestProfileWithAppId
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -122,8 +122,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val LogonUrl = "http://localhost/logonUrl"
   val AuthenticateUrl = "http://localhost/authenticate"
   val invitation = Invitation(CubiksUserId, EmailCubiks, AccessCode, LogonUrl, AuthenticateUrl, ScheduleId)
-
-  val InvitationDate = DateTime.parse("2016-05-11")
+  val InvitationDate = DateTime.parse("2016-05-11").withZone(DateTimeZone.UTC)
   val ExpirationDate = InvitationDate.plusDays(7)
   val phase1Test = Phase1Test(scheduleId = standardScheduleIdMock.head,
     usedForResults = true,
@@ -408,6 +407,25 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       onlineTestService.markAsCompleted(CubiksUserId).futureValue
 
       verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
+    }
+  }
+
+  "reset phase1 tests" should {
+    "remove progress and register for new tests" in new SuccessfulTestInviteFixture {
+      when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(otRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
+      val result = onlineTestService.resetPhase1Tests(
+        applicationForOnlineTestingWithNoTimeAdjustments, List("sjq")).futureValue
+
+      verify(otRepositoryMock).removeProgressStatuses(
+        "ApplicationId1",
+        List(ProgressStatuses.PHASE1_TESTS_INVITED, ProgressStatuses.PHASE1_TESTS_COMPLETED))
+      val expectedTestsAfterReset = List(phase1Test.copy(usedForResults = false),
+        phase1Test.copy(participantScheduleId = invitation.participantScheduleId))
+      verify(otRepositoryMock).insertOrUpdatePhase1TestGroup(
+        "ApplicationId1",
+        phase1TestProfile.copy(tests = expectedTestsAfterReset)
+      )
     }
   }
 
