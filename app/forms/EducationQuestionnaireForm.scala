@@ -104,8 +104,8 @@ object EducationQuestionnaireForm {
 
       Questionnaire(
         List(Question(Messages("liveInUKBetween14and18.question"), Answer(Some(liveInUKBetween14and18), None, None))) ++
-          List(Question(Messages("haveDegree.question"), getAnswer(haveDegree, None))) ++
           getOptionalSchoolList ++
+          List(Question(Messages("haveDegree.question"), getAnswer(haveDegree, None))) ++
           getOptionalUniversityList(isCandidateCivilServant)
       )
     }
