@@ -52,7 +52,7 @@ object EducationQuestionnaireFormExamples {
     None,
     Some(true))
 
-  val NoUkLivedAndNoCivilServantValidForm = EducationQuestionnaireForm.Data(
+  val NotUkLivedAndNoDegreeValidForm = EducationQuestionnaireForm.Data(
     "No",
     None,
     None,
@@ -62,13 +62,13 @@ object EducationQuestionnaireFormExamples {
     None,
     None,
     "No",
-    None,
+    Some("No"),
     None,
     None,
     None,
     None)
 
-  val NoUkValidForm = EducationQuestionnaireForm.Data(
+  val NotUkLivedAndHaveDegreeValidForm = EducationQuestionnaireForm.Data(
     "No",
     None,
     None,
@@ -84,7 +84,7 @@ object EducationQuestionnaireFormExamples {
     Some("(3)"),
     None)
 
-  val NoCivilServantValidForm = EducationQuestionnaireForm.Data(
+  val LivedInUKAndNoDegreeValidForm = EducationQuestionnaireForm.Data(
     "Yes",
     Some("AAA 111"),
     None,
@@ -94,13 +94,13 @@ object EducationQuestionnaireFormExamples {
     None,
     Some("No"),
     "No",
-    None,
+    Some("No"),
     None,
     None,
     None,
     None)
 
-  val NoUkAndNoHaveDegreeFullInvalidForm = EducationQuestionnaireForm.Data(
+  val NotUkLivedAndNoHaveDegreeFullInvalidForm = EducationQuestionnaireForm.Data(
     "No",
     Some("AAA 111"),
     None,
@@ -109,7 +109,7 @@ object EducationQuestionnaireFormExamples {
     Some("my school at 17"),
     None,
     Some("No"),
-    "Yes",
+    "No",
     Some("No"),
     Some("1"),
     None,
@@ -125,7 +125,7 @@ object EducationQuestionnaireFormExamples {
     "isCandidateCivilServant" -> "Yes",
     "haveDegree" -> "Yes",
     "university" -> "1",
-    "universityDegreeCategory" -> "(3)" //,
+    "universityDegreeCategory" -> "(3)"
   )
 
   val AllPreferNotToSayFormMap = Map(
@@ -140,12 +140,13 @@ object EducationQuestionnaireFormExamples {
     "preferNotSayUniversityDegreeCategory" -> "true"
   )
 
-  val NoUkLivedAndNoCivilServantValidFormMap = Map(
+  val NotUkLivedAndNoDegreeValidFormMap = Map(
     "liveInUKBetween14and18" -> "No",
-    "isCandidateCivilServant" -> "No"
+    "isCandidateCivilServant" -> "No",
+    "haveDegree" -> "No"
   )
 
-  val NoUkLivedValidFormMap = Map(
+  val NotUkLivedAndHaveDegreeValidFormMap = Map(
     "liveInUKBetween14and18" -> "No",
     "isCandidateCivilServant" -> "Yes",
     "haveDegree" -> "Yes",
@@ -153,12 +154,13 @@ object EducationQuestionnaireFormExamples {
     "universityDegreeCategory" -> "(E)"
   )
 
-  val NoCivilServantValidFormMap = Map(
+  val LivedInUKAndNoDegreeValidFormMap = Map(
     "liveInUKBetween14and18" -> "Yes",
     "postcodeQ" -> "SL1 3GQ",
     "schoolName14to16" -> "school1",
     "schoolName16to18" -> "school2",
     "freeSchoolMeals" -> "Yes",
-    "isCandidateCivilServant" -> "No"
+    "isCandidateCivilServant" -> "No",
+    "haveDegree" -> "No"
   )
 }
