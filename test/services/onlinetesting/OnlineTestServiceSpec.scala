@@ -44,7 +44,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/"
+  val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
 
   val testGatewayConfig = CubiksGatewayConfig(
     "",
@@ -336,7 +336,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       )
 
       result mustBe inviteApplicant.copy(
-        scheduleCompletionURL = s"${testGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/token"
+        scheduleCompletionURL = s"$scheduleCompletionBaseUrl/complete/$token"
       )
     }
 
@@ -346,7 +346,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       sjqInvite mustBe inviteApplicant.copy(
         scheduleID = sjqScheduleId,
-        scheduleCompletionURL = s"${testGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/continue/token"
+        scheduleCompletionURL = s"$scheduleCompletionBaseUrl/continue/$token"
       )
 
       val bqInvite = onlineTestService.buildInviteApplication(onlineTestApplication,
@@ -354,7 +354,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       bqInvite mustBe inviteApplicant.copy(
         scheduleID = bqScheduleId,
-        scheduleCompletionURL = s"${testGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/token"
+        scheduleCompletionURL = s"$scheduleCompletionBaseUrl/complete/$token"
       )
     }
 
