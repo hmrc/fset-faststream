@@ -17,8 +17,9 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model.Commands.Report
-import model.FastPassDetails
+import model._
+import model.SchemeType.SchemeType
+import model.report.CandidateProgressReport
 import org.joda.time.LocalDate
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
@@ -39,16 +40,13 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val appId = generateUUID()
       createApplicationWithAllFields(userId, appId, "FastStream-2016")
 
-      val result = repository.overallReport("FastStream-2016").futureValue
+      val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(Report(
-        appId, Some("registered"), Some("Location1"), Some("Commercial"), Some("Digital and technology"),
-        Some("Location2"), Some("Business"), Some("Finance"),
-        Some("Yes"), Some("Yes"), Some("Yes"), Some("Yes"),
-        None, Some("No"), None,
-        Some("this candidate has changed the email")
-      ))
+      result.head must be(CandidateProgressReport(appId, Some("registered"),
+        List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
+        Some("No"), Some("No"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))
+      )
     }
 
     "Get overall report for the minimum application" in {
@@ -56,11 +54,11 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val appId = generateUUID()
       createMinimumApplication(userId, appId, "FastStream-2016")
 
-      val result = repository.overallReport("FastStream-2016").futureValue
+      val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(Report(appId, Some("registered"),
-        None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+      result.head must be(CandidateProgressReport(appId, Some("registered"),
+        List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None)
       )
 
     }
@@ -73,10 +71,11 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val applicationResponse = repository.findByUserId(userId, frameworkId).futureValue
 
-      applicationResponse.userId mustBe  userId
-      applicationResponse.applicationId mustBe  appId
-      applicationResponse.fastPassDetails.get mustBe FastPassDetails(applicable = false, None, None,
-        fastPassReceived = Some(false), certificateNumber = None)
+      applicationResponse.userId mustBe userId
+      applicationResponse.applicationId mustBe appId
+      applicationResponse.fastPassDetails.get mustBe FastPassDetails(applicable = true, Some(FastPassType.CivilServant),
+        Some(List(InternshipType.SDIPCurrentYear, InternshipType.EDIP)), fastPassReceived = Some(true),
+        certificateNumber = Some("1234567"))
     }
   }
 
@@ -150,7 +149,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       matchResponse.size mustBe 1
 
-       val noMatchResponse = repository.findByCriteria(
+      val noMatchResponse = repository.findByCriteria(
         None, None, None, List("unknownUser")
       ).futureValue
 
@@ -167,81 +166,40 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   )
 
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-    appStatus: String = "", needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
-    timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false) = {
+                                     appStatus: String = "", hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
+                                     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false) = {
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
       "userId" -> userId,
       "frameworkId" -> frameworkId,
-      "framework-preferences" -> BSONDocument(
-        "firstLocation" -> BSONDocument(
-          "region" -> "Region1",
-          "location" -> "Location1",
-          "firstFramework" -> "Commercial",
-          "secondFramework" -> "Digital and technology"
-        ),
-        "secondLocation" -> BSONDocument(
-          "location" -> "Location2",
-          "firstFramework" -> "Business",
-          "secondFramework" -> "Finance"
-        ),
-        "alternatives" -> BSONDocument(
-          "location" -> true,
-          "framework" -> true
-        )
+      "scheme-preferences" -> BSONDocument(
+        "schemes" -> BSONArray(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService)
       ),
       "personal-details" -> BSONDocument(
         "firstName" -> s"${testCandidate("firstName")}",
         "lastName" -> s"${testCandidate("lastName")}",
         "preferredName" -> s"${testCandidate("preferredName")}",
-        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}",
-        "aLevel" -> true,
-        "stemLevel" -> true
+        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"
       ),
       "fastpass-details" -> BSONDocument(
-        "applicable" -> fastPassApplicable,
-        "fastPassReceived" -> fastPassApplicable
+        "applicable" -> true,
+        "fastPassReceived" -> true,
+        "certificateNumber" -> "1234567",
+        "fastPassType" -> FastPassType.CivilServant,
+        "internshipTypes" -> BSONArray(InternshipType.SDIPCurrentYear, InternshipType.EDIP)
       ),
-      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments),
+      "assistance-details" -> BSONDocument(
+        "hasDisability" -> "Yes",
+        "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
+        "needsSupportAtVenue" -> needsSupportAtVenue,
+        "guaranteedInterview" -> guaranteedInterview
+      ),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> BSONDocument(
         "registered" -> "true"
       )
     )).futureValue
-  }
-
-  private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
-    timeExtensionAdjustments:Boolean) = {
-    if (needsAdjustment) {
-      if (adjustmentsConfirmed) {
-        if (timeExtensionAdjustments) {
-          BSONDocument(
-            "needsAdjustment" -> "Yes",
-            "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-            "adjustments-confirmed" -> true,
-            "verbalTimeAdjustmentPercentage" -> 9,
-            "numericalTimeAdjustmentPercentage" -> 11
-          )
-        } else {
-          BSONDocument(
-            "needsAdjustment" -> "Yes",
-            "typeOfAdjustments" -> BSONArray("room alone"),
-            "adjustments-confirmed" -> true
-          )
-        }
-      } else {
-        BSONDocument(
-          "needsAdjustment" -> "Yes",
-          "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-          "adjustments-confirmed" -> false
-        )
-      }
-    } else {
-      BSONDocument(
-        "needsAdjustment" -> "No"
-      )
-    }
   }
 
   def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
@@ -251,6 +209,5 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       "frameworkId" -> frameworkId
     )).futureValue
   }
-
-
 }
+
