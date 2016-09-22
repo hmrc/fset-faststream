@@ -38,8 +38,6 @@ object Commands {
 
   case class CreateApplicationRequest(userId: String, frameworkId: String)
 
-  case class WithdrawApplicationRequest(reason: String, otherReason: Option[String], withdrawer: String)
-
   case class PassMarkSettingsRequest(settings: Settings)
 
   case class ApplicationCreated(applicationId: String, applicationStatus: String, userId: String)
@@ -242,7 +240,6 @@ object Commands {
     implicit val passMarkSettingsCreateResponseFormat = Json.format[PassMarkSettingsCreateResponse]
     implicit val personalDetailsAddedFormat = Json.format[PersonalDetailsAdded]
     implicit val createApplicationRequestFormats: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
-    implicit val withdrawApplicationRequestFormats: Format[WithdrawApplicationRequest] = Json.format[WithdrawApplicationRequest]
 
     implicit val answerFormats = Json.format[Answer]
     implicit val questionFormats = Json.format[Question]

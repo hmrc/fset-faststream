@@ -18,11 +18,12 @@ package repositories.application
 
 import controllers.OnlineTestDetails
 import factories.DateTimeFactory
-import model.Exceptions.UnexpectedException
+import model.Exceptions.{ CannotFindTestByCubiksId, UnexpectedException }
 import org.joda.time.DateTime
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
+import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, Commands }
 import play.api.Logger
 import reactivemongo.api.DB
@@ -37,13 +38,22 @@ import scala.concurrent.Future
 trait OnlineTestRepository {
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
 
+  def getPhase1TestProfileByToken(token: String): Future[Phase1TestProfile]
+
+  def getPhase1TestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestProfileWithAppId]
+
   def updateGroupExpiryTime(applicationId: String, newExpirationDate: DateTime): Future[Unit]
 
-  def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
+  def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
+
+  def nextExpiringApplication: Future[Option[ExpiringOnlineTest]]
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
+
+  def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit]
 }
 
+// TODO: Rename to something like: Phase1TestGroupMongoRepository
 class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[OnlineTestDetails, BSONObjectID]("application", mongo,
     Commands.Implicits.onlineTestDetailsFormat, ReactiveMongoFormats.objectIdFormats) with OnlineTestRepository with RandomSelection {
@@ -51,6 +61,41 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]] = {
     val query = BSONDocument("applicationId" -> applicationId)
+    phaseTestProfileByQuery(query)
+  }
+
+  override def getPhase1TestProfileByToken(token: String): Future[Phase1TestProfile] = {
+    val query = BSONDocument("testGroups.PHASE1.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+    phaseTestProfileByQuery(query).map(_.getOrElse(cannotFindTestByToken(token)))
+  }
+
+  override def getPhase1TestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestProfileWithAppId] = {
+    val query = BSONDocument("testGroups.PHASE1.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
+    ))
+    val projection = BSONDocument("applicationId" -> 1, "testGroups.PHASE1" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument]("PHASE1").get)
+        val phase1TestGroup = bsonPhase1.map(Phase1TestProfile.phase1TestProfileHandler.read).getOrElse(cannotFindTestByCubiksId(cubiksUserId))
+        Phase1TestProfileWithAppId(applicationId, phase1TestGroup)
+      case _ => cannotFindTestByCubiksId(cubiksUserId)
+    }
+  }
+
+  private def cannotFindTestByCubiksId(cubiksUserId: Int) = {
+    throw CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId")
+  }
+
+  private def cannotFindTestByToken(token: String) = {
+    throw CannotFindTestByCubiksId(s"Cannot find test group by token: $token")
+  }
+
+  private def phaseTestProfileByQuery(query: BSONDocument) = {
     val projection = BSONDocument("testGroups.PHASE1" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
@@ -83,7 +128,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
   }
 
-  override def insertPhase1TestProfile(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
+  override def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
@@ -100,6 +145,22 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
   }
 
+  override def nextExpiringApplication: Future[Option[ExpiringOnlineTest]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument(
+        "applicationStatus" -> ApplicationStatus.PHASE1_TESTS
+      ),
+      BSONDocument(
+        "testGroups.PHASE1.expirationDate" -> BSONDocument("$lte" -> dateTime.nowLocalTimeZone) // Serialises to UTC.
+      ),
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("progress-status.PHASE1_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+        BSONDocument("progress-status.PHASE1_TESTS_EXPIRED" -> BSONDocument("$ne" -> true))
+      ))
+    ))
+    selectRandom(query).map(_.map(bsonDocToExpiringOnlineTest))
+  }
+
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
@@ -107,6 +168,20 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
 
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
+  }
+
+  override def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = {
+    require(progressStatus.applicationStatus == ApplicationStatus.PHASE1_TESTS, "Forbidden progress status update")
+
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      "applicationStatus" -> ApplicationStatus.PHASE1_TESTS
+    )
+
+    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
+      s"progress-status.$progressStatus" -> true
+    ))
+    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
   }
 
   private def bsonDocToExpiringOnlineTest(doc: BSONDocument) = {

@@ -82,24 +82,6 @@ trait OnlineTestController extends BaseController {
     }
   }
 
-  /**
-   * Note that this function will result with an ok even if the token is invalid.
-   * This is done on purpose. We want to update the status of the user if the token is correct, but if for
-   * any reason the token is wrong we still want to display the success page. The admin report will handle
-   * potential errors
-   *
-   * @return
-   */
-  def completeTests(token: String) = Action.async { implicit request =>
-    // TODO FIX ME - get appId from online test repo by token
-    //for {
-    //  appId <- onlineRepository.findByToken(token)
-    //  _ <- applicationRepository.setOnlineTestStatus(appId, "ONLINE_TESTS_COMPLETE")
-    //} yield Ok
-
-    Future.successful(Ok)
-  }
-
   def resetOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
       appRepository.getOnlineTestApplication(appId).flatMap {

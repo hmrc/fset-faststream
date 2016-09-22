@@ -18,14 +18,19 @@ package services.testdata
 
 import java.util.UUID
 
+<<<<<<< HEAD
 import config.MicroserviceAppConfig._
 import _root_.config.CubiksGatewayConfig
+=======
+import config.CubiksGatewayConfig
+>>>>>>> origin/master
 import connectors.testdata.ExchangeObjects.Phase1TestGroupResponse
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import org.joda.time.DateTime
 import repositories._
 import repositories.application.OnlineTestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
+import config.MicroserviceAppConfig.cubiksGatewayConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -41,35 +46,36 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
 
+    val sjqTest = Phase1Test(
+      cubiksUserId = 117344,
+      token = UUID.randomUUID().toString,
+      testUrl = generatorConfig.cubiksUrl,
+      invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
+      // TODO: Add started datetime
+      participantScheduleId = 149245,
+      scheduleId = gatewayConfig.onlineTestConfig.scheduleIds("sjq"),
+      usedForResults = true
+    )
+
+    val bqTest = Phase1Test(
+      cubiksUserId = 117344,
+      token = UUID.randomUUID().toString,
+      testUrl = generatorConfig.cubiksUrl,
+      invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
+      // TODO: Add started datetime
+      participantScheduleId = 149245,
+      scheduleId = gatewayConfig.onlineTestConfig.scheduleIds("bq"),
+      usedForResults = true
+    )
+
     val phase1TestProfile = Phase1TestProfile(
       expirationDate = generatorConfig.phase1ExpiryTime.getOrElse(DateTime.now().plusDays(7)),
-      tests = List(
-        Phase1Test(
-          cubiksUserId = 117344,
-          token = UUID.randomUUID().toString,
-          testUrl = generatorConfig.cubiksUrl,
-          invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
-          // TODO: Add started datetime
-          participantScheduleId = 149245,
-          scheduleId = gatewayConfig.onlineTestConfig.scheduleIds("sjq"),
-          usedForResults = true
-        ),
-        Phase1Test(
-          cubiksUserId = 117344,
-          token = UUID.randomUUID().toString,
-          testUrl = generatorConfig.cubiksUrl,
-          invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
-          // TODO: Add started datetime
-          participantScheduleId = 149245,
-          scheduleId = gatewayConfig.onlineTestConfig.scheduleIds("bq"),
-          usedForResults = true
-        )
-      )
+      tests = if (generatorConfig.setGis) List(sjqTest) else List(sjqTest, bqTest)
     )
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.insertPhase1TestProfile(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
+      _ <- otRepository.insertOrUpdatePhase1TestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
     } yield {
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
         Phase1TestGroupResponse(phase1TestProfile.tests.head.cubiksUserId,

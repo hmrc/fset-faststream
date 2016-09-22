@@ -34,8 +34,11 @@ object OnlineTestCommands {
                         participantScheduleId: Int,
                         startedDateTime: Option[DateTime] = None,
                         completedDateTime: Option[DateTime] = None,
-                        resultsReadyToDownload: Boolean = false
-                       )
+                        resultsReadyToDownload: Boolean = false,
+                        reportId: Option[Int] = None,
+                        reportLinkURL: Option[String] = None,
+                        reportStatus: Option[String] = None)
+                      )
 
   object Phase1Test {
     import repositories.BSONDateTimeHandler

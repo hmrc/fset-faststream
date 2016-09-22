@@ -18,19 +18,20 @@ package services.onlinetesting
 
 import connectors.EmailClient
 import model.PersistedObjects.ExpiringOnlineTest
+import model.ProgressStatuses.PHASE1_TESTS_EXPIRED
 import play.api.Logger
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait OnlineTestExpiryService {
   def processNextExpiredTest(): Future[Unit]
   def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit]
   def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit]
-  def commitExpiredStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
+  def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
 }
 
 class OnlineTestExpiryServiceImpl(
@@ -42,23 +43,20 @@ class OnlineTestExpiryServiceImpl(
   newHeaderCarrier: => HeaderCarrier
 )(implicit executor: ExecutionContext) extends OnlineTestExpiryService {
 
-  private final val ExpiredStatus = "ONLINE_TEST_EXPIRED"
   private implicit def headerCarrier = newHeaderCarrier
 
   override def processNextExpiredTest(): Future[Unit] = {
-    // TODO FAST STREAM FIX ME
-    Future.successful(Unit)
-    //otRepository.nextApplicationPendingExpiry.flatMap {
-    //  case Some(expiringTest) => processExpiredTest(expiringTest)
-    //  case None => Future.successful(())
-    //}
+    otRepository.nextExpiringApplication.flatMap {
+      case Some(expiredTest) => processExpiredTest(expiredTest)
+      case None => Future.successful(())
+    }
   }
 
   override def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
       _ <- emailCandidate(expiringTest, emailAddress)
-      _ <- commitExpiredStatus(expiringTest)
+      _ <- commitExpiredProgressStatus(expiringTest)
     } yield ()
 
   override def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit] =
@@ -66,8 +64,8 @@ class OnlineTestExpiryServiceImpl(
       audit("ExpiredOnlineTestNotificationEmailed", expiringTest, Some(emailAddress))
     }
 
-  override def commitExpiredStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
-    applicationRepository.updateStatus(expiringTest.userId, ExpiredStatus).map { _ =>
+  override def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
+    applicationRepository.updateProgressStatus(expiringTest.applicationId, PHASE1_TESTS_EXPIRED).map { _ =>
       audit("ExpiredOnlineTest", expiringTest)
     }
 

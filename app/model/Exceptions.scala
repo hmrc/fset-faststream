@@ -74,4 +74,6 @@ object Exceptions {
   case class DataFakingException(message: String) extends Exception(message)
 
   case class DataGenerationException(message: String) extends Exception(message)
+
+  case class CannotFindTestByCubiksId(message: String) extends Exception(message)
 }

@@ -18,29 +18,30 @@ package services.onlinetesting
 
 import config._
 import connectors.ExchangeObjects._
-import connectors.{CSREmailClient, CubiksGatewayClient}
+import connectors.{ CSREmailClient, CubiksGatewayClient }
 import controllers.OnlineTestDetails
-import factories.{DateTimeFactory, UUIDFactory}
-import model.{Address, ApplicationStatus, Commands, ProgressStatuses}
+import factories.{ DateTimeFactory, UUIDFactory }
+import model.{ Address, ApplicationStatus, Commands, ProgressStatuses }
 import model.Commands._
-import model.Exceptions.{ConnectorException, NotFoundException}
+import model.Exceptions.{ ConnectorException, NotFoundException }
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
+import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
-import repositories.{ContactDetailsRepository, TestReportRepository}
+import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.{ ContactDetailsRepository, TestReportRepository }
 import services.AuditService
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -54,7 +55,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val numericalTimeInMinutesMaximum = 12
 
   val emailDomainMock = "mydomain.com"
-  val onlineTestCompletedUrlMock = "http://localhost:8000/fset-fast-stream/online-tests/complete/"
+  val onlineTestCompletedUrlMock = "http://localhost:9284/fset-fast-stream/online-tests/complete/"
   val gisScheduledIdMock = List(11111)
   val standardScheduleIdMock = List(16196, 16194)
 
@@ -75,7 +76,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     CubiksGatewayStandardAssessment(31, 32),
     CubiksGatewayStandardAssessment(41, 42),
     ReportConfig(1, 2, "en-GB"),
-    "http://localhost:8000",
+    "http://localhost:9284",
     emailDomainMock
   )
 
@@ -281,7 +282,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           any[HeaderCarrier]
         )).thenReturn(Future.successful(()))
 
-        when(otRepositoryMock.insertPhase1TestProfile(ApplicationId, phase1TestProfile))
+        when(otRepositoryMock.insertOrUpdatePhase1TestGroup(ApplicationId, phase1TestProfile))
           .thenReturn(Future.failed(new Exception))
         when(trRepositoryMock.remove(ApplicationId)).thenReturn(Future.successful(()))
 
@@ -305,7 +306,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
         any[HeaderCarrier]
       )).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile]))
+      when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.successful(()))
       when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
 
@@ -385,6 +386,31 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     }
   }
 
+  "mark as started" should {
+    "change progress to started" in new OnlineTest {
+      when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful())
+      when(otRepositoryMock.getPhase1TestProfileByCubiksId(CubiksUserId))
+        .thenReturn(Future.successful(Phase1TestProfileWithAppId("appId123", phase1TestProfile)))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)).thenReturn(Future.successful())
+      onlineTestService.markAsStarted(CubiksUserId).futureValue
+
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
+    }
+  }
+
+  "mark as completed" should {
+    "change progress to completed if there are all tests completed" in new OnlineTest {
+      when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful())
+      val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))))
+      when(otRepositoryMock.getPhase1TestProfileByCubiksId(CubiksUserId))
+        .thenReturn(Future.successful(Phase1TestProfileWithAppId("appId123", phase1Tests)))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful())
+      onlineTestService.markAsCompleted(CubiksUserId).futureValue
+
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
+    }
+  }
+
   trait OnlineTest {
     implicit val hc = HeaderCarrier()
 
@@ -410,7 +436,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val tokenFactory = tokenFactoryMock
-      val onlineTestInvitationDateFactory = onlineTestInvitationDateFactoryMock
+      val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
     }
   }
@@ -424,7 +450,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
       any[HeaderCarrier]
     )).thenReturn(Future.successful(()))
-    when(otRepositoryMock.insertPhase1TestProfile(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+    when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
     when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
   }
 }

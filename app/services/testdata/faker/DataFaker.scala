@@ -114,8 +114,9 @@ object DataFaker {
     }
 
     def schemeTypes = randList(List(
-      CentralDepartments, Commercial, DigitalAndTechnology, DiplomaticService, European, Finance,
-      GovernmentCommunicationService, GovernmentEconomicService, GovernmentOperationalResearchService,
+      Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,
+      DiplomaticServiceEuropean, European, Finance, Generalist,
+      GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService,
       GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
       ProjectDelivery, ScienceAndEngineering),
       5)

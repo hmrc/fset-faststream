@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package model.exchange
+package model.command
 
-import play.api.libs.json.Json
+import play.api.libs.json.{ Format, Json }
 
-case class Phase1TestResultReady(reportId: Option[Int],
-                                 reportStatus: String,
-                                 reportLinkURL: Option[String])
+import scala.language.implicitConversions
 
-case object Phase1TestResultReady {
-  implicit val phase1TestResultReadyFormat = Json.format[Phase1TestResultReady]
+case class WithdrawApplication(reason: String, otherReason: Option[String], withdrawer: String)
+
+object WithdrawApplication {
+  implicit val withdrawApplicationFormats: Format[WithdrawApplication] = Json.format[WithdrawApplication]
 }
