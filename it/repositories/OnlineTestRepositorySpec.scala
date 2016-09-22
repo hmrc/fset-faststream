@@ -23,7 +23,7 @@ import model.ApplicationStatus
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.PersistedObjects.ExpiringOnlineTest
-import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED }
+import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED }
 import model.persisted.Phase1TestProfileWithAppId
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
 import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
@@ -149,14 +149,14 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  "nextApplicationPendingExpiry" should {
+  "nextExpiringApplication" should {
     val date = new DateTime("2015-03-08T13:04:29.643Z")
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     "return one result" when {
       "there is an application in PHASE1_TESTS and should be expired" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be (Some(ExpiringOnlineTest(AppId,UserId,"Georgy")))
+        onlineTestRepo.nextExpiringApplication.futureValue must be (Some(ExpiringOnlineTest(AppId,UserId,"Georgy")))
       }
     }
     "return no results" when {
@@ -164,7 +164,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS))
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
       "the date is not expired yet" in {
@@ -173,7 +173,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         onlineTestRepo.insertOrUpdatePhase1TestGroup(
           AppId,
           Phase1TestProfile(expirationDate = new DateTime().plusHours(2), tests = List(phase1Test))).futureValue
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
       "the test is already expired" in {
@@ -184,7 +184,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
         )))
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
       "the test is completed" in {
@@ -195,10 +195,20 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
         )))
-        onlineTestRepo.nextApplicationPendingExpiry.futureValue must be(None)
+        onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
     }
 
+  }
+
+  "Update progress status" should {
+    "update progress status to PHASE1_TESTS_STARTED" in {
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS)
+      onlineTestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
+
+      val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
+      app.progressResponse.phase1TestsStarted mustBe true
+    }
   }
 
   def updateApplication(doc: BSONDocument) = onlineTestRepo.collection.update(BSONDocument("applicationId" -> AppId), doc)
@@ -287,8 +297,8 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   }
 
   // scalastyle:off parameter.number
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-                                     appStatus: String = "", needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
+  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String = "frameworkId",
+                                     appStatus: String, needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
                                      timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false, isGis: Boolean = false) = {
     helperRepo.collection.insert(BSONDocument(
       "applicationId" -> appId,
