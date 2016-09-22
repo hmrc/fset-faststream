@@ -77,11 +77,11 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     }
 
     "fail when all values are correct and not lived in UK and have degree but no university" in new Fixture {
-      assertFieldRequired(NoUkLivedAndHaveDegreeValidFormMap, "university", "university")
+      assertFieldRequired(NotUkLivedAndHaveDegreeValidFormMap, "university", "university")
     }
 
     "fail when all values are correct and live in UK and no degree but no school" in new Fixture {
-      assertFieldRequired(LiveInUKAndNoDegreeValidFormMap, "schoolName14to16", "schoolName14to16")
+      assertFieldRequired(LivedInUKAndNoDegreeValidFormMap, "schoolName14to16", "schoolName14to16")
     }
 
     "transform form when form is full valid (has degree and lived in uk) to a question list" in new Fixture {
@@ -127,7 +127,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     }
 
     "transform form with no lived in uk and has not degree with valid fields to a question list" in new Fixture {
-      val questionList = NoUkLivedAndNoDegreeValidForm.exchange.questions
+      val questionList = NotUkLivedAndNoDegreeValidForm.exchange.questions
       questionList.size must be(2)
       questionList(0).answer.answer must be(Some("No"))
       questionList(0).answer.unknown must be(None)
@@ -136,7 +136,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     }
 
     "transform form when has degree and no uk lived with all valid fields to a question list" in new Fixture {
-      val questionList = NoUkAndHaveDegreeValidForm.exchange.questions
+      val questionList = NotUkLivedAndHaveDegreeValidForm.exchange.questions
       questionList.size must be(4)
       questionList(0).answer.answer must be(Some("No"))
       questionList(0).answer.unknown must be(None)
@@ -149,7 +149,7 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     }
 
     "transform form when no degree but lived in UK with all valid fields to a question list" in new Fixture {
-      val questionList = LiveInUKAndNoDegreeValidForm.exchange.questions
+      val questionList = LivedInUKAndNoDegreeValidForm.exchange.questions
       questionList.size must be(6)
       questionList(0).answer.answer must be(Some("Yes"))
       questionList(0).answer.unknown must be(None)
@@ -170,8 +170,8 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     }
 
     "sanitize data should sanitize values when liveInUKBetween14and18 is No and haveDegree is No" in new Fixture {
-      EducationQuestionnaireFormExamples.NoUkAndNoHaveDegreeFullInvalidForm.sanitizeData must be
-      (EducationQuestionnaireFormExamples.NoUkLivedAndNoDegreeValidForm)
+      EducationQuestionnaireFormExamples.NotUkLivedAndNoHaveDegreeFullInvalidForm.sanitizeData must be
+      (EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm)
     }
   }
 
@@ -183,14 +183,14 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     val AllPreferNotToSayValid = (EducationQuestionnaireFormExamples.AllPreferNotToSayValidForm, EducationQuestionnaireForm.form.fill(
       EducationQuestionnaireFormExamples.AllPreferNotToSayValidForm))
 
-    val NoUkAndHaveDegreeValid = (EducationQuestionnaireFormExamples.NoUkAndHaveDegreeValidForm, EducationQuestionnaireForm.form.fill(
-      EducationQuestionnaireFormExamples.NoUkAndHaveDegreeValidForm))
+    val NoUkAndHaveDegreeValid = (EducationQuestionnaireFormExamples.NotUkLivedAndHaveDegreeValidForm, EducationQuestionnaireForm.form.fill(
+      EducationQuestionnaireFormExamples.NotUkLivedAndHaveDegreeValidForm))
 
-    val LiveInUKAndNoDegreeValid = (EducationQuestionnaireFormExamples.LiveInUKAndNoDegreeValidForm, EducationQuestionnaireForm.form.fill(
-      EducationQuestionnaireFormExamples.LiveInUKAndNoDegreeValidForm))
+    val LiveInUKAndNoDegreeValid = (EducationQuestionnaireFormExamples.LivedInUKAndNoDegreeValidForm, EducationQuestionnaireForm.form.fill(
+      EducationQuestionnaireFormExamples.LivedInUKAndNoDegreeValidForm))
 
-    val NoUkLivedAndNoDegreeValid = (EducationQuestionnaireFormExamples.NoUkLivedAndNoDegreeValidForm,
-      EducationQuestionnaireForm.form.fill(EducationQuestionnaireFormExamples.NoUkLivedAndNoDegreeValidForm))
+    val NoUkLivedAndNoDegreeValid = (EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm,
+      EducationQuestionnaireForm.form.fill(EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm))
 
     def assertFieldRequired(formMap: Map[String, String], expectedKeyInError: String, fieldKey: String*) =
       assertFormError(expectedKeyInError, formMap ++ fieldKey.map(k => k -> ""))
