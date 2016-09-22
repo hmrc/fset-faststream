@@ -45,14 +45,14 @@ abstract class OnlineTestController(applicationClient: ApplicationClient) extend
   def completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByToken(token).map { _ =>
-        Ok(views.html.application.onlineTests.sjqComplete_continuePhase1Tests)
+        Ok(views.html.application.onlineTests.sjqComplete_continuePhase1Tests())
       }
   }
 
   def completePhase1TestsByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByToken(token).map { _ =>
-        Ok(views.html.application.onlineTests.phase1TestsComplete)
+        Ok(views.html.application.onlineTests.phase1TestsComplete())
       }
   }
 
