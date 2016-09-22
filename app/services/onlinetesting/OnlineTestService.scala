@@ -113,9 +113,6 @@ trait OnlineTestService extends ResetPhase1Test {
 
   def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String]): Future[Unit] = {
     for {
-    phase1Test <- getPhase1TestProfile(application.userId).map(_.get)
-    currentTests = phase1Test.activeTests.values.toList
-    _ <- otRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(currentTests, testNamesToRemove))
     - <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
       auditService.logEventNoRequest(
@@ -253,6 +250,7 @@ trait OnlineTestService extends ResetPhase1Test {
     currentOnlineTestProfile <- otRepository.getPhase1TestProfile(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
     _ <- otRepository.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
+    _ <- otRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
   } yield {
     audit("OnlineTestInvited", application.userId)
   }
@@ -419,13 +417,9 @@ trait OnlineTestService extends ResetPhase1Test {
 trait ResetPhase1Test {
   import ProgressStatuses._
 
-  def determineStatusesToRemove(activeTests: List[Phase1Test], testsToRemove: List[String]): List[ProgressStatus] = {
-    val alreadyStartedTests = activeTests.filter(_.startedDateTime.isDefined)
-
-    require(alreadyStartedTests.length >= testsToRemove.length,
-      s"Cannot reset more tests than already marked as started: $alreadyStartedTests, requested to remove: $testsToRemove")
-
-    List(PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED) ++
-    (if (alreadyStartedTests.length == testsToRemove.length) List(PHASE1_TESTS_STARTED, PHASE1_TESTS_INVITED) else List())
+  def determineStatusesToRemove(testGroup: Phase1TestProfile): List[ProgressStatus] = {
+    (if (testGroup.hasNotStartedYet) List(PHASE1_TESTS_STARTED) else List()) ++
+    (if (testGroup.hasNotCompletedYet) List(PHASE1_TESTS_COMPLETED) else List()) ++
+    (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED) else List())
   }
 }
