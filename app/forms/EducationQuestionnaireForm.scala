@@ -91,9 +91,9 @@ object EducationQuestionnaireForm {
         }
       }
 
-      def getOptionalUniversityList(isCandidateCivilServant: String): List[Question] = {
-        (isCandidateCivilServant, haveDegree) match  {
-          case (_, Some("Yes")) => List(
+      def getOptionalUniversityList: List[Question] = {
+        haveDegree match  {
+          case Some("Yes") => List(
             Question(Messages("university.question"), getAnswer(university, preferNotSayUniversity)),
             Question(Messages("universityDegreeCategory.question"), getAnswer(universityDegreeCategory,
               preferNotSayUniversityDegreeCategory))
@@ -106,7 +106,7 @@ object EducationQuestionnaireForm {
         List(Question(Messages("liveInUKBetween14and18.question"), Answer(Some(liveInUKBetween14and18), None, None))) ++
           getOptionalSchoolList ++
           List(Question(Messages("haveDegree.question"), getAnswer(haveDegree, None))) ++
-          getOptionalUniversityList(isCandidateCivilServant)
+          getOptionalUniversityList
       )
     }
 
