@@ -22,7 +22,7 @@ object WithdrawReasons {
     ("I realised it was the wrong kind of job for me", false),
     ("I decided to take my studies further/pursue an academic career", false),
     ("I changed my mind about wanting a career in the Civil Service", false),
-    ("Online assessments looked too demanding/difficult", false),
+    ("Online tests looked too demanding/difficult", false),
     ("Other personal reasons", false),
     ("Other (provide details)", true)
   )
