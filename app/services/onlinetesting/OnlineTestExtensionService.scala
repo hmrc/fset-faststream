@@ -46,19 +46,29 @@ class OnlineTestExtensionServiceImpl(
           phase1TestProfile <- otRepository.getPhase1TestProfile(applicationId)
           existingExpiry = phase1TestProfile.get.expirationDate
           _ <- otRepository.updateGroupExpiryTime(applicationId, existingExpiry.withDurationAdded(86400 * extraDays * 1000, 1))
-          _ <- auditService.logEvent("NonExpiredTestsExtended")
-        } yield ()
+        } yield {
+          audit("NonExpiredTestsExtended", applicationId)
+        }
       } else if (progressResponse.phase1TestsExpired) {
         for {
-          _ <- otRepository.updateGroupExpiryTime(applicationId, DateTime.now().withDurationAdded(86400 * extraDays, 1))
+          _ <- otRepository.updateGroupExpiryTime(applicationId, DateTime.now().withDurationAdded(86400 * extraDays * 1000, 1))
           _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_STARTED)
-          _ <- appRepository.removeProgressStatuses(applicationId, List(PHASE1_TESTS_EXPIRED))
-          _ <- auditService.logEvent("ExpiredTestsExtended")
-          } yield ()
+          _ <- appRepository.removeProgressStatuses(applicationId, List(PHASE1_TESTS_EXPIRED)) // TODO: status finessing
+          } yield {
+            audit("ExpiredTestsExtended", applicationId)
+          }
       } else {
         throw TestExtensionException("Application is in an invalid status for test extension")
       }
     }
+  }
+
+  private def audit(eventName: String, applicationId: String): Unit = {
+    Logger.info(s"$eventName for applicationId '$applicationId'")
+
+    auditService.logEventNoRequest(eventName, Map(
+      "applicationId" -> applicationId
+    ))
   }
 }
 
