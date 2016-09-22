@@ -51,7 +51,7 @@ case class WaitingScheduledJobConfig(
 ) extends ScheduledJobConfigurable
 
 case class CubiksGatewayConfig(url: String,
-  onlineTestConfig: CubiksOnlineTestConfig,
+  phase1TestsConfig: Phase1TestsConfig,
   competenceAssessment: CubiksGatewayStandardAssessment,
   situationalAssessment: CubiksGatewayStandardAssessment,
   reportConfig: ReportConfig,
@@ -59,8 +59,7 @@ case class CubiksGatewayConfig(url: String,
   emailDomain: String
 )
 
-case class CubiksOnlineTestConfig(phaseName: String,
-                                  expiryTimeInDays: Int,
+case class Phase1TestsConfig(expiryTimeInDays: Int,
                                   scheduleIds: Map[String, Int],
                                   standard: List[String],
                                   gis: List[String])

@@ -48,7 +48,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
       // TODO: Add started datetime
       participantScheduleId = 149245,
-      scheduleId = gatewayConfig.onlineTestConfig.scheduleIds("sjq"),
+      scheduleId = gatewayConfig.phase1TestsConfig.scheduleIds("sjq"),
       usedForResults = true
     )
 
@@ -59,7 +59,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
       // TODO: Add started datetime
       participantScheduleId = 149245,
-      scheduleId = gatewayConfig.onlineTestConfig.scheduleIds("bq"),
+      scheduleId = gatewayConfig.phase1TestsConfig.scheduleIds("bq"),
       usedForResults = true
     )
 

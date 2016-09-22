@@ -48,8 +48,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   val testGatewayConfig = CubiksGatewayConfig(
     "",
-    CubiksOnlineTestConfig(phaseName = "phase",
-      expiryTimeInDays = 7,
+    Phase1TestsConfig(expiryTimeInDays = 7,
       scheduleIds = Map("sjq" -> 16196, "bq" -> 16194),
       List("sjq", "bq"),
       List("sjq")
@@ -61,8 +60,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     emailDomain = "test.com"
   )
 
-  val sjqScheduleId =testGatewayConfig.onlineTestConfig.scheduleIds("sjq")
-  val bqScheduleId =testGatewayConfig.onlineTestConfig.scheduleIds("bq")
+  val sjqScheduleId =testGatewayConfig.phase1TestsConfig.scheduleIds("sjq")
+  val bqScheduleId =testGatewayConfig.phase1TestsConfig.scheduleIds("bq")
 
   val preferredName = "Preferred\tName"
   val preferredNameSanitized = "Preferred Name"
@@ -95,7 +94,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   val invitationDate = DateTime.parse("2016-05-11")
   val expirationDate = invitationDate.plusDays(7)
-  val phase1Test = Phase1Test(scheduleId = testGatewayConfig.onlineTestConfig.scheduleIds("sjq"),
+  val phase1Test = Phase1Test(scheduleId = testGatewayConfig.phase1TestsConfig.scheduleIds("sjq"),
     usedForResults = true,
     cubiksUserId = cubiksUserId,
     token = token,
@@ -342,7 +341,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     "return an InviteApplication for a non GIS candidate" in new OnlineTest {
       val sjqInvite = onlineTestService.buildInviteApplication(onlineTestApplication,
-        "token", cubiksUserId, testGatewayConfig.onlineTestConfig.scheduleIds("sjq"))
+        "token", cubiksUserId, testGatewayConfig.phase1TestsConfig.scheduleIds("sjq"))
 
       sjqInvite mustBe inviteApplicant.copy(
         scheduleID = sjqScheduleId,
