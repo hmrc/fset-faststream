@@ -41,7 +41,8 @@
                 '_showConstraints -> false,
                 'spellcheck -> "false")
             <div class="panel-indent">
-                <p>If you're currently a civil servant, use your personal email address</p>
+                <p>You'll need access to this email address over the next year.</p>
+                <p>If you're currently a civil servant, use your personal email address.</p>
             </div>
             @helper.inputText(signUpForm("email_confirm"),
                 '_label -> "Confirm your email",
@@ -98,7 +99,7 @@
             <ul id="eligibility-list" class="para-btm-margin text">
                 <li>I'm <a href="http://www.faststream.gov.uk/faqs/" target="_blank" rel="external">eligible to work in the UK</a></li>
                 <li>I have a relevant degree or qualify as a current civil servant</li>
-                <li>I meet my schemes eligibility requirements</li>
+                <li>I meet my scheme's eligibility requirements</li>
             </ul>
 
             @yesNoQuestion(signUpForm("eligible"), question = "Are you eligible to apply?",
