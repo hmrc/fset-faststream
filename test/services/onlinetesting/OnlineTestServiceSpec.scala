@@ -450,6 +450,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     when(tokenFactoryMock.generateUUID()).thenReturn(Token)
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(InvitationDate)
+    when(otRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
 
     val onlineTestService = new OnlineTestService {
       val appRepository = appRepositoryMock
@@ -476,5 +477,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     )).thenReturn(Future.successful(()))
     when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
     when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
+    when(otRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
   }
 }
