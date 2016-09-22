@@ -27,8 +27,6 @@ case class School
   name: String
 )
 
-
-
 class SchoolsController extends Controller{
   implicit val schoolFormat = Json.format[School]
 
