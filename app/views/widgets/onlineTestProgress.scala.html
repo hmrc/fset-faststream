@@ -6,7 +6,6 @@
 
 @import models.ApplicationData.ApplicationStatus._
 <div data-hidesdip>
-    @{println(dashboardPage.phase1TestsPage)}
     @(dashboardPage.isTestGroupExpired, dashboardPage.phase1TestsPage) match {
         case (true, _) => {
             <ul class="list-text list-withicons">
