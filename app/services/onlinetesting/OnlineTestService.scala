@@ -103,9 +103,9 @@ trait OnlineTestService {
     }
   }
 
-  private def sjq = gatewayConfig.phase1TestsConfig.scheduleIds("sjq")
+  private def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
 
-  private def bq = gatewayConfig.phase1TestsConfig.scheduleIds("bq")
+  private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
@@ -263,7 +263,7 @@ trait OnlineTestService {
 
   private def calcOnlineTestDates: (DateTime, DateTime) = {
     val invitationDate = dateTimeFactory.nowLocalTimeZone
-    val expirationDate = invitationDate.plusDays(gatewayConfig.phase1TestsConfig.expiryTimeInDays)
+    val expirationDate = invitationDate.plusDays(gatewayConfig.phase1Tests.expiryTimeInDays)
     (invitationDate, expirationDate)
   }
 
@@ -278,14 +278,14 @@ trait OnlineTestService {
 
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
-      gatewayConfig.phase1TestsConfig.gis
+      gatewayConfig.phase1Tests.gis
     } else {
-      gatewayConfig.phase1TestsConfig.standard
+      gatewayConfig.phase1Tests.standard
     }
   }
 
   private def scheduleIdByName(name: String): Int = {
-    gatewayConfig.phase1TestsConfig.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
+    gatewayConfig.phase1Tests.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
 

@@ -51,7 +51,7 @@ case class WaitingScheduledJobConfig(
 ) extends ScheduledJobConfigurable
 
 case class CubiksGatewayConfig(url: String,
-  phase1TestsConfig: Phase1TestsConfig,
+  phase1Tests: Phase1TestsConfig,
   competenceAssessment: CubiksGatewayStandardAssessment,
   situationalAssessment: CubiksGatewayStandardAssessment,
   reportConfig: ReportConfig,
