@@ -24,9 +24,11 @@ import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, Ap
 import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
+import model.FastPassType.FastPassType
+import model.InternshipType.InternshipType
+import model.OnlineTestCommands.OnlineTestApplication
 import model.PersistedObjects.ApplicationForNotification
-import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
+import model.SchemeType._
 import model._
 import model.command._
 import org.joda.time.format.DateTimeFormat
@@ -77,9 +79,9 @@ trait GeneralApplicationRepository {
 
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
 
-  def overallReport(frameworkId: String): Future[List[Report]]
+  def overallReport(frameworkId: String): Future[List[CandidateProgressReport]]
 
-  def overallReportNotWithdrawn(frameworkId: String): Future[List[Report]]
+  def overallReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]]
 
   def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]]
 
@@ -216,11 +218,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val projection = BSONDocument("applicationStatus" -> 1, "progress-status-dates" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(document) => {
+      case Some(document) =>
         val status = document.getAs[String]("applicationStatus").get
         val statusDate = document.getAs[BSONDocument]("progress-status-dates").flatMap(_.getAs[LocalDate](status.toLowerCase))
         ApplicationStatusDetails(status, statusDate)
-      }
+
       case None => throw ApplicationNotFound(applicationId)
     }
   }
@@ -374,7 +376,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   }
 
-  override def overallReportNotWithdrawn(frameworkId: String): Future[List[Report]] =
+  override def overallReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] =
     overallReport(BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN"))
@@ -386,33 +388,51 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN"))
     )))
 
-  override def overallReport(frameworkId: String): Future[List[Report]] =
+  override def overallReport(frameworkId: String): Future[List[CandidateProgressReport]] =
     overallReport(BSONDocument("frameworkId" -> frameworkId))
 
-  private def overallReport(query: BSONDocument): Future[List[Report]] = {
+  private def overallReport(query: BSONDocument): Future[List[CandidateProgressReport]] = {
     val projection = BSONDocument(
       "userId" -> "1",
-      "framework-preferences.alternatives.location" -> "1",
-      "framework-preferences.alternatives.framework" -> "1",
-      "framework-preferences.firstLocation.location" -> "1",
-      "framework-preferences.secondLocation.location" -> "1",
-      "framework-preferences.firstLocation.firstFramework" -> "1",
-      "framework-preferences.secondLocation.firstFramework" -> "1",
-      "framework-preferences.firstLocation.secondFramework" -> "1",
-      "framework-preferences.secondLocation.secondFramework" -> "1",
-      "personal-details.aLevel" -> "1",
-      "personal-details.stemLevel" -> "1",
-      "assistance-details.needsAssistance" -> "1",
-      "assistance-details.needsAdjustment" -> "1",
-      "assistance-details.guaranteedInterview" -> "1",
-      "issue" -> "1",
+      "scheme-preferences.schemes" -> "1",
+      "assistance-details" -> "1",
+      "fastpass-details" -> "1",
       "applicationId" -> "1",
       "progress-status" -> "2"
     )
 
     reportQueryWithProjections[BSONDocument](query, projection) map { lst =>
-      lst.map(docToReport)
+      lst.map(docToCandidateProgressReport)
     }
+  }
+
+  private def docToCandidateProgressReport(document: BSONDocument) = {
+    val schemesDoc = document.getAs[BSONDocument]("scheme-preferences")
+    val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+
+    val adDoc = document.getAs[BSONDocument]("assistance-details")
+    val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
+    val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
+    val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
+    val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview")).map(booleanTranslator)
+
+    val fpDoc = document.getAs[BSONDocument]("fastpass-details")
+    val fastPassType = (fpType: FastPassType) => fpDoc.map(_.getAs[FastPassType]("fastPassType").contains(fpType))
+    val internshipTypes = (internshipType: InternshipType) =>
+      fpDoc.map(_.getAs[List[InternshipType]]("internshipTypes").getOrElse(List.empty[InternshipType]).contains(internshipType))
+
+    val civilServant = fastPassType(FastPassType.CivilServant).map(booleanTranslator)
+    val fastTrack = fastPassType(FastPassType.CivilServantViaFastTrack).map(booleanTranslator)
+    val edip = internshipTypes(InternshipType.EDIP).map(booleanTranslator)
+    val sdipPrevious = internshipTypes(InternshipType.SDIPPreviousYear).map(booleanTranslator)
+    val sdip = internshipTypes(InternshipType.SDIPCurrentYear).map(booleanTranslator)
+    val fastPassCertificate = fpDoc.map(_.getAs[String]("certificateNumber").getOrElse("No"))
+
+    val applicationId = document.getAs[String]("applicationId").getOrElse("")
+    val progress: ProgressResponse = findProgress(document, applicationId)
+
+    CandidateProgressReport(applicationId, Some(getStatus(progress)), schemes.getOrElse(List.empty[SchemeType]), disability, onlineAdjustments,
+      assessmentCentreAdjustments, gis, civilServant, fastTrack, edip, sdipPrevious, sdip, fastPassCertificate)
   }
 
   override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] =
@@ -610,40 +630,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     reportQueryWithProjections[BSONDocument](query, projection) map { lst =>
       lst.map(docToReportWithPersonalDetails)
     }
-  }
-
-  private def docToReport(document: BSONDocument) = {
-    val fr = document.getAs[BSONDocument]("framework-preferences")
-    val fr1 = fr.flatMap(_.getAs[BSONDocument]("firstLocation"))
-    val fr2 = fr.flatMap(_.getAs[BSONDocument]("secondLocation"))
-
-    def frLocation(root: Option[BSONDocument]) = extract("location")(root)
-    def frScheme1(root: Option[BSONDocument]) = extract("firstFramework")(root)
-    def frScheme2(root: Option[BSONDocument]) = extract("secondFramework")(root)
-
-    val personalDetails = document.getAs[BSONDocument]("personal-details")
-    val aLevel = personalDetails.flatMap(_.getAs[Boolean]("aLevel").map(booleanTranslator))
-    val stemLevel = personalDetails.flatMap(_.getAs[Boolean]("stemLevel").map(booleanTranslator))
-
-    val fpAlternatives = fr.flatMap(_.getAs[BSONDocument]("alternatives"))
-    val location = fpAlternatives.flatMap(_.getAs[Boolean]("location").map(booleanTranslator))
-    val framework = fpAlternatives.flatMap(_.getAs[Boolean]("framework").map(booleanTranslator))
-
-    val ad = document.getAs[BSONDocument]("assistance-details")
-    val needsAssistance = ad.flatMap(_.getAs[String]("needsAssistance"))
-    val needsAdjustment = ad.flatMap(_.getAs[String]("needsAdjustment"))
-    val guaranteedInterview = ad.flatMap(_.getAs[String]("guaranteedInterview"))
-
-    val applicationId = document.getAs[String]("applicationId").getOrElse("")
-    val progress: ProgressResponse = findProgress(document, applicationId)
-
-    val issue = document.getAs[String]("issue")
-
-    Report(
-      applicationId, Some(getStatus(progress)), frLocation(fr1), frScheme1(fr1), frScheme2(fr1),
-      frLocation(fr2), frScheme1(fr2), frScheme2(fr2), aLevel,
-      stemLevel, location, framework, needsAssistance, needsAdjustment, guaranteedInterview, issue
-    )
   }
 
   private def docToReportWithPersonalDetails(document: BSONDocument) = {
