@@ -19,8 +19,10 @@ package services.onlinetesting
 import factories.DateTimeFactory
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus }
 import org.joda.time.DateTime
+import play.api.Logger
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import services.AuditService
 import services.onlinetesting.OnlineTestService.TestExtensionException
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,7 +35,7 @@ trait OnlineTestExtensionService {
 class OnlineTestExtensionServiceImpl(
   appRepository: GeneralApplicationRepository,
   otRepository: OnlineTestRepository,
-  dateTime: DateTimeFactory
+  auditService: AuditService
 ) extends OnlineTestExtensionService {
 
   override def extendTestGroupExpiryTime(groupKey: String, applicationId: String, extraDays: Int): Future[Unit] = {
@@ -43,13 +45,15 @@ class OnlineTestExtensionServiceImpl(
         for {
           phase1TestProfile <- otRepository.getPhase1TestProfile(applicationId)
           existingExpiry = phase1TestProfile.get.expirationDate
-          _ <- otRepository.updateGroupExpiryTime(applicationId, existingExpiry.withDurationAdded(86400 * extraDays, 1))
+          _ <- otRepository.updateGroupExpiryTime(applicationId, existingExpiry.withDurationAdded(86400 * extraDays * 1000, 1))
+          _ <- auditService.logEvent("NonExpiredTestsExtended")
         } yield ()
       } else if (progressResponse.phase1TestsExpired) {
         for {
           _ <- otRepository.updateGroupExpiryTime(applicationId, DateTime.now().withDurationAdded(86400 * extraDays, 1))
           _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_STARTED)
           _ <- appRepository.removeProgressStatuses(applicationId, List(PHASE1_TESTS_EXPIRED))
+          _ <- auditService.logEvent("ExpiredTestsExtended")
           } yield ()
       } else {
         throw TestExtensionException("Application is in an invalid status for test extension")
@@ -58,4 +62,6 @@ class OnlineTestExtensionServiceImpl(
   }
 }
 
-object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(applicationRepository, onlineTestRepository, DateTimeFactory)
+object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(
+  applicationRepository, onlineTestRepository, AuditService
+)

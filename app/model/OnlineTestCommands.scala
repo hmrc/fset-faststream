@@ -38,7 +38,6 @@ object OnlineTestCommands {
                         reportId: Option[Int] = None,
                         reportLinkURL: Option[String] = None,
                         reportStatus: Option[String] = None)
-                      )
 
   object Phase1Test {
     import repositories.BSONDateTimeHandler

@@ -153,11 +153,10 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val MaximumAssessmentTime = 12
 
   "get online test" should {
-    "return None if the user does not exist" in new OnlineTest {
-      when(appRepositoryMock.findCandidateByUserId(any[String])).thenReturn(Future.successful(None))
+    "return None if the application id does not exist" in new OnlineTest {
+      when(otRepositoryMock.getPhase1TestProfile(any())).thenReturn(Future.successful(None))
       val result = onlineTestService.getPhase1TestProfile("nonexistent-userid").futureValue
       result mustBe None
-
     }
 
     val validExpireDate = new DateTime(2016, 6, 9, 0, 0)

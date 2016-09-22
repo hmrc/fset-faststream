@@ -65,7 +65,7 @@ class OnlineTestExpiryServiceImpl(
     }
 
   override def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
-    applicationRepository.updateProgressStatus(expiringTest.applicationId, PHASE1_TESTS_EXPIRED).map { _ =>
+    applicationRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, PHASE1_TESTS_EXPIRED).map { _ =>
       audit("ExpiredOnlineTest", expiringTest)
     }
 

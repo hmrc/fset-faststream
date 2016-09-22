@@ -107,18 +107,11 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
-    val queryTestGroup = BSONDocument("applicationId" -> applicationId)
-
     val query = BSONDocument("applicationId" -> applicationId)
 
-    collection.update(query, BSONDocument(
-      "testGroups" ->
-      BSONDocument(
-        "PHASE1" -> BSONDocument(
-          "$set" -> BSONDocument("expirationDate" -> expirationDate)
-        )
-      )
-    )).map { status =>
+    collection.update(query, BSONDocument("$set" -> BSONDocument(
+      "testGroups.PHASE1.expirationDate" -> expirationDate
+    ))).map { status =>
       if (status.n != 1) {
         val msg = s"Query to update testgroup expiration affected ${status.n} rows instead of 1! (App Id: $applicationId)"
         Logger.warn(msg)

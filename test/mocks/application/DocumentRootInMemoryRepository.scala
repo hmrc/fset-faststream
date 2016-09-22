@@ -39,6 +39,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def find(applicationIds: List[String]): Future[List[Candidate]] = ???
 
+  override def find(applicationId: String): Future[Option[Candidate]] = ???
+
   override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
 
     val applicationId = java.util.UUID.randomUUID().toString
@@ -153,6 +155,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
     newApplicationStatus: String): Future[Unit] = ???
 
   def addProgressStatusAndUpdateAppStatus(appId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = ???
+
+  def removeProgressStatuses(appId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = ???
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
 }

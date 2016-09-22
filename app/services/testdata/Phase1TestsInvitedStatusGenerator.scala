@@ -18,12 +18,7 @@ package services.testdata
 
 import java.util.UUID
 
-<<<<<<< HEAD
-import config.MicroserviceAppConfig._
-import _root_.config.CubiksGatewayConfig
-=======
 import config.CubiksGatewayConfig
->>>>>>> origin/master
 import connectors.testdata.ExchangeObjects.Phase1TestGroupResponse
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import org.joda.time.DateTime
@@ -51,7 +46,6 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
-      // TODO: Add started datetime
       participantScheduleId = 149245,
       scheduleId = gatewayConfig.onlineTestConfig.scheduleIds("sjq"),
       usedForResults = true
@@ -62,7 +56,6 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
-      // TODO: Add started datetime
       participantScheduleId = 149245,
       scheduleId = gatewayConfig.onlineTestConfig.scheduleIds("bq"),
       usedForResults = true

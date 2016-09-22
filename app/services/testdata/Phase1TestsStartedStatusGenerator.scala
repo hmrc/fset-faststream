@@ -34,6 +34,7 @@ trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+      // TODO: Set started datetime in test group;
     } yield {
       candidateInPreviousStatus
     }
