@@ -825,13 +825,19 @@ $(function() {
         }
       });
     },
-    minLength: 1,
+    minLength: 3,
+    change: function(event, ui) {
+      // todo - set/clear hidden form field for the 'id'
+      if (ui.item != null){
+        alert(ui.item.id)
+      }else{
+        alert("no id")
+      }
+    },
     open: function() {},
     close: function() {},
     focus: function(event,ui) {},
-    select: function(event, ui) {
-      alert(ui.item.id)
-    }
+    select: function(event, ui) {}
   });
 
 });
