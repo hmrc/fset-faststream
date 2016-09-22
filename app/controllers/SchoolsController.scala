@@ -16,24 +16,26 @@
 
 package controllers
 
+import connectors.ApplicationClient
+import connectors.exchange.School
 import play.api.libs.json.Json
 import play.api.mvc._
+import security.QuestionnaireRoles.EducationQuestionnaireRole
 
-object SchoolsController extends SchoolsController
+import scala.concurrent.Future
+import scala.language.reflectiveCalls
 
-case class School
-(
-  id: String,
-  name: String
-)
+object SchoolsController extends SchoolsController(ApplicationClient)
 
-class SchoolsController extends Controller{
-  implicit val schoolFormat = Json.format[School]
+class SchoolsController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
-  def getSchools(term: String) = Action{
-    val list = School("1","Hello") :: School("2","There") :: School("3", "Hi") :: Nil
+  def getSchools(term: String) = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
+    implicit user =>
+      Future.successful {
+        val list = School("1", "Hello") :: School("2", "There") :: School("3", "Hi") :: Nil
 
-    val results = list.filter(item => item.name.startsWith(term))
-    Ok(Json.toJson(results))
+        val results = list.filter(item => item.name.startsWith(term))
+        Ok(Json.toJson(results))
+      }
   }
 }
