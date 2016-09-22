@@ -105,6 +105,12 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
   lazy val sendInvitationJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-invitation-job")
+
+  lazy val firstReminderJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-reminder-expiring-test-job")
+  lazy val secondReminderJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-reminder-expiring-test-job")
+
   lazy val expireOnlineTestJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-job")
   lazy val failedOnlineTestJobConfig =

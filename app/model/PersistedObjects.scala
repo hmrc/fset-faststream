@@ -59,6 +59,13 @@ object PersistedObjects {
     preferredName: String
   )
 
+  case class NotificationExpiringOnlineTest(
+    applicationId: String,
+    userId: String,
+    preferredName: String,
+    expiryDate: DateTime
+  )
+
   case class ApplicationForNotification(
     applicationId: String,
     userId: String,
