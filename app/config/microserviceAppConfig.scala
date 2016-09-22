@@ -50,11 +50,14 @@ case class WaitingScheduledJobConfig(
   waitSecs: Option[Int]
 ) extends ScheduledJobConfigurable
 
-case class CubiksGatewayConfig(url: String, onlineTestConfig: CubiksOnlineTestConfig,
-  verbalAndNumericalAssessment: CubiksGatewayVerbalAndNumericalAssessment,
+case class CubiksGatewayConfig(url: String,
+  onlineTestConfig: CubiksOnlineTestConfig,
   competenceAssessment: CubiksGatewayStandardAssessment,
   situationalAssessment: CubiksGatewayStandardAssessment,
-  reportConfig: ReportConfig, candidateAppUrl: String, emailDomain: String)
+  reportConfig: ReportConfig,
+  candidateAppUrl: String,
+  emailDomain: String
+)
 
 case class CubiksOnlineTestConfig(phaseName: String,
                                   expiryTimeInDays: Int,
@@ -68,17 +71,6 @@ trait CubiksGatewayAssessment {
 }
 
 case class CubiksGatewayStandardAssessment(assessmentId: Int, normId: Int) extends CubiksGatewayAssessment
-
-case class CubiksGatewayVerbalAndNumericalAssessment(
-  assessmentId: Int,
-  normId: Int,
-  verbalSectionId: Int,
-  verbalTimeInMinutesMinimum: Int,
-  verbalTimeInMinutesMaximum: Int,
-  numericalSectionId: Int,
-  numericalTimeInMinutesMinimum: Int,
-  numericalTimeInMinutesMaximum: Int
-) extends CubiksGatewayAssessment
 
 case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, suppressValidation: Boolean = false)
 

@@ -74,8 +74,7 @@ trait OnlineTestService {
 
   def norms = Seq(
     gatewayConfig.competenceAssessment,
-    gatewayConfig.situationalAssessment,
-    gatewayConfig.verbalAndNumericalAssessment
+    gatewayConfig.situationalAssessment
   ).map(a => ReportNorm(a.assessmentId, a.normId)).toList
 
   def nextApplicationReadyForOnlineTesting() = {
@@ -289,28 +288,6 @@ trait OnlineTestService {
     gatewayConfig.onlineTestConfig.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
-  private[services] def getTimeAdjustments(application: OnlineTestApplication): Option[TimeAdjustments] = {
-    if (application.timeAdjustments.isEmpty) {
-      None
-    } else {
-      val config = gatewayConfig.verbalAndNumericalAssessment
-      Some(TimeAdjustments(
-        config.assessmentId,
-        config.verbalSectionId,
-        config.numericalSectionId,
-        getAdjustedTime(
-          config.verbalTimeInMinutesMinimum,
-          config.verbalTimeInMinutesMaximum,
-          application.timeAdjustments.get.verbalTimeAdjustmentPercentage
-        ),
-        getAdjustedTime(
-          config.numericalTimeInMinutesMinimum,
-          config.numericalTimeInMinutesMaximum,
-          application.timeAdjustments.get.numericalTimeAdjustmentPercentage
-        )
-      ))
-    }
-  }
 
   private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {
     val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))
@@ -323,17 +300,16 @@ trait OnlineTestService {
       InviteApplicant(scheduleId,
         userId,
         s"$scheduleCompletionUrl/complete/$token",
-        resultsURL = None, timeAdjustments = None
+        resultsURL = None
       )
     } else {
-      val timeAdjustments = getTimeAdjustments(application)
       val completionUrl = if (scheduleIdByName("sjq") == scheduleId) {
         s"$scheduleCompletionUrl/continue/$token"
       } else {
         s"$scheduleCompletionUrl/complete/$token"
       }
 
-      InviteApplicant(scheduleId, userId, completionUrl, resultsURL = None, timeAdjustments)
+      InviteApplicant(scheduleId, userId, completionUrl, resultsURL = None)
     }
   }
 
