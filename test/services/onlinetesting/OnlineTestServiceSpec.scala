@@ -19,19 +19,16 @@ package services.onlinetesting
 import config._
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
-import controllers.OnlineTestDetails
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.{ Address, ApplicationStatus, Commands, ProgressStatuses }
-import model.Commands._
-import model.Exceptions.{ ConnectorException, NotFoundException }
+import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
-import model.ProgressStatuses.ProgressStatus
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.{ BeforeAndAfterEach, PrivateMethodTester }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -43,97 +40,70 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout {
+class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout
+  with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val VerbalAndNumericalAssessmentId = 1
-  val VerbalSectionId = 1
-  val NumericalSectionId = 2
-  val verbalTimeInMinutesMinimum = 6
-  val verbalTimeInMinutesMaximum = 12
-  val numericalTimeInMinutesMinimum = 6
-  val numericalTimeInMinutesMaximum = 12
-
-  val emailDomainMock = "mydomain.com"
-  val onlineTestCompletedUrlMock = "http://localhost:9284/fset-fast-stream/online-tests/complete/"
-  val gisScheduledIdMock = List(11111)
-  val standardScheduleIdMock = List(16196, 16194)
+  val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
 
   val testGatewayConfig = CubiksGatewayConfig(
     "",
-    CubiksOnlineTestConfig(phaseName = "phase",
-      expiryTimeInDays = 7,
+    Phase1TestsConfig(expiryTimeInDays = 7,
       scheduleIds = Map("sjq" -> 16196, "bq" -> 16194),
       List("sjq", "bq"),
       List("sjq")
     ),
-    CubiksGatewayVerbalAndNumericalAssessment(
-      VerbalAndNumericalAssessmentId,
-      normId = 22,
-      VerbalSectionId, verbalTimeInMinutesMinimum, verbalTimeInMinutesMaximum, NumericalSectionId,
-      numericalTimeInMinutesMinimum, numericalTimeInMinutesMaximum
-    ),
-    CubiksGatewayStandardAssessment(31, 32),
-    CubiksGatewayStandardAssessment(41, 42),
+    competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
+    situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
     ReportConfig(1, 2, "en-GB"),
-    "http://localhost:9284",
-    emailDomainMock
+    candidateAppUrl = "http://localhost:9284",
+    emailDomain = "test.com"
   )
 
-  val ErrorMessage = "Error in connector"
+  val sjqScheduleId =testGatewayConfig.phase1Tests.scheduleIds("sjq")
+  val bqScheduleId =testGatewayConfig.phase1Tests.scheduleIds("bq")
 
-  val ApplicationId = "ApplicationId1"
-  val UserId = "1"
-  val GuaranteedInterviewFalse = false
-  val GuaranteedInterviewTrue = true
-  val NeedsAdjustment = false
-  val VerbalTimeAdjustmentPercentage = 6
-  val NumericalTimeAdjustmentPercentage = 6
-  val PreferredName = "Preferred\tName"
-  val PreferredNameSanitized = "Preferred Name"
-  val applicationForOnlineTestingWithNoTimeAdjustments = OnlineTestApplication(ApplicationId, ApplicationStatus.SUBMITTED, UserId,
-    GuaranteedInterviewFalse, NeedsAdjustment, PreferredName, None)
-  val timeAdjustments = TimeAdjustmentsOnlineTestApplication(VerbalTimeAdjustmentPercentage, NumericalTimeAdjustmentPercentage)
-  val applicationForOnlineTestingWithTimeAdjustments = OnlineTestApplication(ApplicationId, ApplicationStatus.SUBMITTED, UserId,
-    GuaranteedInterviewFalse, NeedsAdjustment, PreferredName, Some(timeAdjustments))
-  val applicationForOnlineTestingGisWithNoTimeAdjustments = OnlineTestApplication(ApplicationId, ApplicationStatus.SUBMITTED, UserId,
-    GuaranteedInterviewTrue, NeedsAdjustment, PreferredName, None)
-  val applicationForOnlineTestingGisWithTimeAdjustments = OnlineTestApplication(ApplicationId, ApplicationStatus.SUBMITTED, UserId,
-    GuaranteedInterviewTrue, NeedsAdjustment, PreferredName, Some(timeAdjustments))
+  val preferredName = "Preferred\tName"
+  val preferredNameSanitized = "Preferred Name"
+  val userId = "userId"
 
-  val FirstName = PreferredName
-  val LastName = ""
-  val Token = "2222"
-  val EmailCubiks = Token + "@" + emailDomainMock
-  val registerApplicant = RegisterApplicant(PreferredNameSanitized, LastName, EmailCubiks)
+  val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
+    applicationStatus = ApplicationStatus.SUBMITTED,
+    userId = userId,
+    guaranteedInterview = false,
+    needsAdjustments = false,
+    preferredName,
+    timeAdjustments = None
+  )
 
-  val CubiksUserId = 2222
-  val registration = Registration(CubiksUserId)
+  val cubiksUserId = 98765
+  val lastName = ""
+  val token = "token"
+  val emailCubiks = token + "@" + testGatewayConfig.emailDomain
+  val registerApplicant = RegisterApplicant(preferredNameSanitized, lastName, emailCubiks)
+  val registration = Registration(cubiksUserId)
 
-  val ScheduleId = standardScheduleIdMock.head
+  val inviteApplicant = InviteApplicant(sjqScheduleId,
+    cubiksUserId, s"$scheduleCompletionBaseUrl/complete/$token",
+    resultsURL = None, timeAdjustments = None
+  )
 
-  val inviteApplicant = InviteApplicant(ScheduleId, CubiksUserId, onlineTestCompletedUrlMock, None, None)
-  val inviteApplicantGisWithNoTimeAdjustments = inviteApplicant
-  val inviteApplicantNoGisWithNoTimeAdjustments = inviteApplicant
-  val timeAdjustmentsForInviteApplicant = TimeAdjustments(VerbalAndNumericalAssessmentId, VerbalSectionId, NumericalSectionId,
-    7, 7)
-  val inviteApplicantNoGisWithTimeAdjustments = inviteApplicant.copy(timeAdjustments = Some(timeAdjustmentsForInviteApplicant))
-  val AccessCode = "fdkfdfj"
-  val LogonUrl = "http://localhost/logonUrl"
-  val AuthenticateUrl = "http://localhost/authenticate"
-  val invitation = Invitation(CubiksUserId, EmailCubiks, AccessCode, LogonUrl, AuthenticateUrl, ScheduleId)
+  val accessCode = "fdkfdfj"
+  val logonUrl = "http://localhost/logonUrl"
+  val authenticateUrl = "http://localhost/authenticate"
+  val invitation = Invitation(cubiksUserId, emailCubiks, accessCode, logonUrl, authenticateUrl, sjqScheduleId)
 
-  val InvitationDate = DateTime.parse("2016-05-11")
-  val ExpirationDate = InvitationDate.plusDays(7)
-  val phase1Test = Phase1Test(scheduleId = standardScheduleIdMock.head,
+  val invitationDate = DateTime.parse("2016-05-11")
+  val expirationDate = invitationDate.plusDays(7)
+  val phase1Test = Phase1Test(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("sjq"),
     usedForResults = true,
-    cubiksUserId = CubiksUserId,
-    token = Token,
-    testUrl = AuthenticateUrl,
-    invitationDate = InvitationDate,
+    cubiksUserId = cubiksUserId,
+    token = token,
+    testUrl = authenticateUrl,
+    invitationDate = invitationDate,
     participantScheduleId = 234
   )
-  val phase1TestProfile = Phase1TestProfile(ExpirationDate,
+  val phase1TestProfile = Phase1TestProfile(expirationDate,
     List(phase1Test)
   )
 
@@ -142,15 +112,14 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     email = Some("test@test.com"), dateOfBirth = None, address = None, postCode = None, country = None
   )
 
-  val Postcode = "WC2B 4"
-  val EmailContactDetails = "emailfjjfjdf@mailinator.com"
-  val contactDetails = ContactDetails(Address("Aldwych road"), Postcode, EmailContactDetails, Some("111111"))
+  val postcode = "WC2B 4"
+  val emailContactDetails = "emailfjjfjdf@mailinator.com"
+  val contactDetails = ContactDetails(Address("Aldwych road"), postcode, emailContactDetails, Some("111111"))
 
-  val auditDetails = Map("userId" -> UserId)
-  val auditDetailsWithEmail = auditDetails + ("email" -> EmailContactDetails)
+  val auditDetails = Map("userId" -> userId)
+  val auditDetailsWithEmail = auditDetails + ("email" -> emailContactDetails)
 
-  val MinimumAssessmentTime = 6
-  val MaximumAssessmentTime = 12
+  val connectorErrorMessage = "Error in connector"
 
   "get online test" should {
     "return None if the user does not exist" in new OnlineTest {
@@ -183,12 +152,15 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   "register and invite application" should {
     "issue one email for invites to SJQ for GIS candidates" in new SuccessfulTestInviteFixture {
       when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingGisWithNoTimeAdjustments)
+      val result = onlineTestService
+        .registerAndInviteForTestGroup(onlineTestApplication.copy(guaranteedInterview = true))
+
       result.futureValue mustBe (())
 
-      verify(emailClientMock, times(1)).sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
-        any[HeaderCarrier]
-      )
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
+      )(any[HeaderCarrier])
+
       verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
@@ -199,12 +171,13 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     "issue one email for invites to SJQ and BQ tests for non GIS candidates" in new SuccessfulTestInviteFixture {
       when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
+      val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
       result.futureValue mustBe (())
 
-      verify(emailClientMock, times(1)).sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
-        any[HeaderCarrier]
-      )
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
+      )(any[HeaderCarrier])
+
       verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
@@ -215,21 +188,22 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     "fail if registration fails" in new OnlineTest {
       when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])(any[HeaderCarrier])).
-        thenReturn(Future.failed(new ConnectorException(ErrorMessage)))
+        thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
 
-      val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
+      val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
       result.failed.futureValue mustBe a[ConnectorException]
 
       verify(auditServiceMock, times(0)).logEventNoRequest(any[String], any[Map[String, String]])
     }
+
     "fail and audit 'UserRegisteredForOnlineTest' if invitation fails" in new OnlineTest {
       when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])(any[HeaderCarrier]))
         .thenReturn(Future.successful(registration))
       when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier])).thenReturn(
-        Future.failed(new ConnectorException(ErrorMessage))
+        Future.failed(new ConnectorException(connectorErrorMessage))
       )
 
-      val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
+      val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
       result.failed.futureValue mustBe a[ConnectorException]
 
       verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
@@ -241,10 +215,10 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           .thenReturn(Future.successful(registration))
         when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(invitation))
-        when(cdRepositoryMock.find(UserId))
+        when(cdRepositoryMock.find(userId))
           .thenReturn(Future.failed(new Exception))
 
-        val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
+        val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
         result.failed.futureValue mustBe an[Exception]
 
         verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
@@ -257,13 +231,15 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           .thenReturn(Future.successful(registration))
         when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(invitation))
-        when(cdRepositoryMock.find(UserId))
+        when(cdRepositoryMock.find(userId))
           .thenReturn(Future.successful(contactDetails))
-        when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
-          any[HeaderCarrier]
-        )).thenReturn(Future.failed(new Exception))
 
-        val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
+        when(emailClientMock.sendOnlineTestInvitation(
+          eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
+        )(any[HeaderCarrier]))
+          .thenReturn(Future.failed(new Exception))
+
+        val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
         result.failed.futureValue mustBe an[Exception]
 
         verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
@@ -277,25 +253,27 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           .thenReturn(Future.successful(registration))
         when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(invitation))
-        when(cdRepositoryMock.find(UserId)).thenReturn(Future.successful(contactDetails))
-        when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
-          any[HeaderCarrier]
-        )).thenReturn(Future.successful(()))
+        when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
+        when(emailClientMock.sendOnlineTestInvitation(
+          eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+        ).thenReturn(Future.successful(()))
 
-        when(otRepositoryMock.insertOrUpdatePhase1TestGroup(ApplicationId, phase1TestProfile))
-          .thenReturn(Future.failed(new Exception))
-        when(trRepositoryMock.remove(ApplicationId)).thenReturn(Future.successful(()))
 
-        val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
-        result.failed.futureValue mustBe an[Exception]
+      when(otRepositoryMock.insertOrUpdatePhase1TestGroup("appId", phase1TestProfile))
+        .thenReturn(Future.failed(new Exception))
+      when(trRepositoryMock.remove("appId")).thenReturn(Future.successful(()))
 
-        verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
-          any[HeaderCarrier]
-        )
-        verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-        verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
-        verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
-      }
+      val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
+      result.failed.futureValue mustBe an[Exception]
+
+      verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
+        any[HeaderCarrier]
+      )
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+    }
+
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
       when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
       when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
@@ -303,41 +281,27 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
         .thenReturn(Future.successful(invitation))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
-      when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
+      when(emailClientMock.sendOnlineTestInvitation(
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
         any[HeaderCarrier]
       )).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.successful(()))
       when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
 
-      val result = onlineTestService.registerAndInviteForTestGroup(applicationForOnlineTestingWithNoTimeAdjustments)
+      val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
       result.futureValue mustBe (())
 
-      verify(emailClientMock, times(1)).sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
-        any[HeaderCarrier]
-      )
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
+      )(any[HeaderCarrier])
+
       verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
       verify(auditServiceMock, times(7)).logEventNoRequest(any[String], any[Map[String, String]])
-    }
-  }
-
-  "get time adjustments" should {
-    "return None if application's time adjustments are empty" in new OnlineTest {
-      onlineTestService.getTimeAdjustments(applicationForOnlineTestingWithNoTimeAdjustments) mustBe (None)
-    }
-
-    "return Time Adjustments if application's time adjustments are not empty" in new OnlineTest {
-      val result = onlineTestService.getTimeAdjustments(applicationForOnlineTestingWithTimeAdjustments)
-      result.isDefined mustBe (true)
-      result.get.numericalSectionId mustBe (NumericalSectionId)
-      result.get.numericalAbsoluteTime mustBe (7)
-      result.get.verbalAndNumericalAssessmentId mustBe (VerbalAndNumericalAssessmentId)
-      result.get.verbalSectionId mustBe (VerbalSectionId)
-      result.get.verbalAbsoluteTime mustBe (7)
     }
   }
 
@@ -365,34 +329,44 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   }
 
   "build invite application" should {
-    "return an InviteApplication with no time adjustments if gis and application has no time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithNoTimeAdjustments,
-        "", CubiksUserId, ScheduleId) must be(inviteApplicantGisWithNoTimeAdjustments)
+    "return an InviteApplication for a GIS candidate" in new OnlineTest {
+      val result = onlineTestService.buildInviteApplication(
+        onlineTestApplication.copy(guaranteedInterview = true),
+        token, cubiksUserId, sjqScheduleId
+      )
+
+      result mustBe inviteApplicant.copy(
+        scheduleCompletionURL = s"$scheduleCompletionBaseUrl/complete/$token"
+      )
     }
 
-    "return an InviteApplication with no time adjustments if gis and application has time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingGisWithTimeAdjustments,
-        "", CubiksUserId, ScheduleId) must be(inviteApplicantGisWithNoTimeAdjustments)
+    "return an InviteApplication for a non GIS candidate" in new OnlineTest {
+      val sjqInvite = onlineTestService.buildInviteApplication(onlineTestApplication,
+        token, cubiksUserId, testGatewayConfig.phase1Tests.scheduleIds("sjq"))
+
+      sjqInvite mustBe inviteApplicant.copy(
+        scheduleID = sjqScheduleId,
+        scheduleCompletionURL = s"$scheduleCompletionBaseUrl/continue/$token"
+      )
+
+      val bqInvite = onlineTestService.buildInviteApplication(onlineTestApplication,
+        token, cubiksUserId, bqScheduleId)
+
+      bqInvite mustBe inviteApplicant.copy(
+        scheduleID = bqScheduleId,
+        scheduleCompletionURL = s"$scheduleCompletionBaseUrl/complete/$token"
+      )
     }
 
-    "return an InviteApplication with no time adjustments if no gis and application has no time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingWithNoTimeAdjustments,
-        "", CubiksUserId, ScheduleId) must be(inviteApplicantNoGisWithNoTimeAdjustments)
-    }
-
-    "return an InviteApplication with time adjustments if no gis and application has time adjustments" in new OnlineTest {
-      onlineTestService.buildInviteApplication(applicationForOnlineTestingWithTimeAdjustments,
-        "", CubiksUserId, ScheduleId) must be(inviteApplicantNoGisWithTimeAdjustments)
-    }
   }
 
   "mark as started" should {
     "change progress to started" in new OnlineTest {
       when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful())
-      when(otRepositoryMock.getPhase1TestProfileByCubiksId(CubiksUserId))
+      when(otRepositoryMock.getPhase1TestProfileByCubiksId(cubiksUserId))
         .thenReturn(Future.successful(Phase1TestProfileWithAppId("appId123", phase1TestProfile)))
       when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)).thenReturn(Future.successful())
-      onlineTestService.markAsStarted(CubiksUserId).futureValue
+      onlineTestService.markAsStarted(cubiksUserId).futureValue
 
       verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
     }
@@ -402,14 +376,15 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     "change progress to completed if there are all tests completed" in new OnlineTest {
       when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful())
       val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))))
-      when(otRepositoryMock.getPhase1TestProfileByCubiksId(CubiksUserId))
+      when(otRepositoryMock.getPhase1TestProfileByCubiksId(cubiksUserId))
         .thenReturn(Future.successful(Phase1TestProfileWithAppId("appId123", phase1Tests)))
       when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful())
-      onlineTestService.markAsCompleted(CubiksUserId).futureValue
+      onlineTestService.markAsCompleted(cubiksUserId).futureValue
 
       verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
     }
   }
+
 
   trait OnlineTest {
     implicit val hc = HeaderCarrier()
@@ -424,8 +399,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     val tokenFactoryMock = mock[UUIDFactory]
     val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
 
-    when(tokenFactoryMock.generateUUID()).thenReturn(Token)
-    when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(InvitationDate)
+    when(tokenFactoryMock.generateUUID()).thenReturn(token)
+    when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
 
     val onlineTestService = new OnlineTestService {
       val appRepository = appRepositoryMock
@@ -438,6 +413,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
+
+
     }
   }
 
@@ -447,7 +424,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
       .thenReturn(Future.successful(invitation))
     when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
-    when(emailClientMock.sendOnlineTestInvitation(eqTo(EmailContactDetails), eqTo(PreferredName), eqTo(ExpirationDate))(
+    when(emailClientMock.sendOnlineTestInvitation(
+      eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
       any[HeaderCarrier]
     )).thenReturn(Future.successful(()))
     when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
