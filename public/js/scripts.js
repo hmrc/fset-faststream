@@ -821,7 +821,7 @@ $(function() {
         alert(data)
       }
     });
-  
+
   $( "#schoolName14to16" ).autocomplete({
     source: function( request, response ) {
       var r = jsRoutes.controllers.SchoolsController.getSchools(request.term)
