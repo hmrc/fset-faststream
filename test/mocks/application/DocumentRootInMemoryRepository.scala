@@ -22,8 +22,9 @@ import model.command._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
-import model.{ ApplicationStatus, FastPassDetails, ProgressStatuses }
+import model._
 import model.PersistedObjects.ApplicationForNotification
+import model.report.CandidateProgressReport
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
 
@@ -98,16 +99,12 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findCandidateByUserId(userId: String): Future[Option[Candidate]] = Future.successful(None)
 
-  override def overallReportNotWithdrawn(frameworkId: String): Future[List[Report]] = overallReport(frameworkId)
+  override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] = candidateProgressReport(frameworkId)
 
-  override def overallReport(frameworkId: String): Future[List[Report]] = Future.successful(List(
-    Report("123", Some("SUBMITTED"), Some("London"), Some("Business"), None, None, None, None,
-      Some("Yes"), Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some("No"), None),
-    Report("456", Some("IN_PROGRESS"), Some("London"), Some("Business"), None, None, None, None,
-      Some("Yes"), Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some("No"), None),
-    Report("789", Some("SUBMITTED"), Some("London"), Some("Business"), None, None, None, None,
-      Some("Yes"), Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some("No"), None)
-  ))
+  override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]] = Future.successful(List(
+    CandidateProgressReport("", Some("registered"),
+      List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None))
+  )
 
   override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReport]] =
     Future.successful(

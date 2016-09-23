@@ -59,7 +59,7 @@ GET         /report/preferences-and-contact/:frameworkId                 control
 GET         /report/application-user-ids/:frameworkId                    controllers.ReportingController.applicationAndUserIdsReport(frameworkId: String)
 GET         /report/assessment-results/:frameworkId                      controllers.ReportingController.createAssessmentResultsReport(frameworkId: String)
 GET         /report/successful-candidates/:frameworkId                   controllers.ReportingController.createSuccessfulCandidatesReport(frameworkId: String)
-GET         /report/:frameworkId                                         controllers.ReportingController.createReport(frameworkId: String)
+GET         /report/candidate-progress/:frameworkId                      controllers.ReportingController.candidateProgressReport(frameworkId: String)
 
 GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getUserById(userId: String)
 

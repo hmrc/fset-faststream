@@ -51,8 +51,8 @@ trait ReportingController extends BaseController {
   val testReportRepository: TestReportRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresRepository
 
-  def createReport(frameworkId: String) = Action.async { implicit request =>
-    appRepository.overallReport(frameworkId).map(r => Ok(Json.toJson(r)))
+  def candidateProgressReport(frameworkId: String) = Action.async { implicit request =>
+    appRepository.candidateProgressReport(frameworkId).map(r => Ok(Json.toJson(r)))
   }
 
   def retrieveDiversityReport = Action.async { implicit request =>
@@ -163,7 +163,7 @@ trait ReportingController extends BaseController {
   def createPassMarkModellingReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
       for {
-        applications <- appRepository.overallReportNotWithdrawn(frameworkId)
+        applications <- appRepository.candidateProgressReportNotWithdrawn(frameworkId)
         questionnaires <- questionnaireRepository.passMarkReport
         testResults <- testReportRepository.getOnlineTestReports
       } yield {
