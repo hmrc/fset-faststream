@@ -24,23 +24,23 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1TestsStartedStatusGenerator extends Phase1TestsStartedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
+object Phase1TestsCompletedStatusGenerator extends Phase1TestsCompletedStatusGenerator {
+  override val previousStatusGenerator = Phase1TestsStartedStatusGenerator
   override val otRepository = onlineTestRepository
   override val otService = OnlineTestService
 }
 
-trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
+trait Phase1TestsCompletedStatusGenerator extends ConstructiveGenerator {
   val otRepository: OnlineTestRepository
   val otService: OnlineTestService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otService.markAsStarted(candidateInPreviousStatus.phase1TestGroup.get.tests.head.cubiksUserId)
+      _ <- otService.markAsCompleted(candidateInPreviousStatus.phase1TestGroup.get.tests.head.cubiksUserId)
     } yield {
       candidateInPreviousStatus.phase1TestGroup.get.tests.lift(1).map { secondTest =>
-        otService.markAsStarted(secondTest.cubiksUserId).map(_ => ())
+        otService.markAsCompleted(secondTest.cubiksUserId).map(_ => ())
       }
       candidateInPreviousStatus
     }
