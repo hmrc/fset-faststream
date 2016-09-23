@@ -42,6 +42,12 @@ case class Phase1TestsPage(
     sjq.exists(_.started) || bq.exists(_.started)
   }
 
+  def allCompleted: Boolean = (sjq, bq) match {
+    case (Some(sjq), Some(bq)) => sjq.completed && bq.completed
+    case (Some(sjq), None) => sjq.completed
+    case _ => false
+  }
+
   def getDuration: String = {
 
     val now = DateTime.now

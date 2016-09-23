@@ -41,6 +41,16 @@
         }
         case (_, Some(tests)) if cachedUserData.application.isDefined => {
             <ul class="list-text list-withicons">
+            @if(tests.allCompleted) {
+                <li>
+                    <p class="med-btm-margin" id="testsHeading"><i class="fa fa-check the-icon"></i>Online exercises</p>
+                    <div>
+                        <p>You've completed this section, we'll send you an email when we have your results.
+                            Make sure you check your junk inbox.</p>
+                    </div>
+                </li>
+
+            } else {
                 <li>
                 <p class="med-btm-margin" id="testsHeading"><i class="fa fa-minus the-icon"></i>Online exercises</p>
                 <ul class="list-text list-withicons" id="testsIndividual">
@@ -73,6 +83,7 @@
                     <p>(Should take about an hour to finish both exercises)</p>
                 </div>
                 </li>
+            }
                 <li id="etraySection">
                     <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray <span class="font-xsmall"
                                                                                                                 data-locked>- locked</span></p>
