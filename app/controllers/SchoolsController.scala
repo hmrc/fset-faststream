@@ -16,26 +16,25 @@
 
 package controllers
 
-import connectors.ApplicationClient
-import connectors.exchange.School
+import connectors.SchoolsClient
+import connectors.SchoolsClient.SchoolsNotFound
 import play.api.libs.json.Json
-import play.api.mvc._
 import security.QuestionnaireRoles.EducationQuestionnaireRole
+import security.SecureActions
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
-object SchoolsController extends SchoolsController(ApplicationClient)
+object SchoolsController extends SchoolsController(SchoolsClient)
 
-class SchoolsController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class SchoolsController(schoolsClient: SchoolsClient) extends FrontendController with SecureActions {
 
   def getSchools(term: String) = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
-      Future.successful {
-        val list = School("1", "Hello") :: School("2", "There") :: School("3", "Hi") :: Nil
-
-        val results = list.filter(item => item.name.startsWith(term))
+      schoolsClient.getSchools(term).map { results =>
         Ok(Json.toJson(results))
+      }.recover{
+        case _: SchoolsNotFound => BadRequest("could not locate school list")
       }
   }
 }
