@@ -105,7 +105,8 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   "Next application ready for online testing" should {
     "return no application if there is only one and it is a fast pass candidate" in{
       createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true,
+        fastPassReceived = true
       )
 
       val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
@@ -115,7 +116,8 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
     "return one application if there is only one and it is not a fast pass candidate" in{
       createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false
       )
 
       val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
@@ -311,9 +313,10 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
   // scalastyle:off parameter.number
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String = "frameworkId",
-                                     appStatus: String, needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
-                                     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false, isGis: Boolean = false,
-                                     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty) = {
+    appStatus: String, needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
+    timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false,
+    fastPassReceived: Boolean = false, isGis: Boolean = false,
+    additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty) = {
     helperRepo.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -346,7 +349,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       ),
       "fastpass-details" -> BSONDocument(
         "applicable" -> fastPassApplicable,
-        "fastPassReceived" -> fastPassApplicable
+        "fastPassReceived" -> fastPassReceived
       ),
       "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments, isGis),
       "issue" -> "this candidate has changed the email",
