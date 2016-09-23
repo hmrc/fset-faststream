@@ -38,12 +38,14 @@ object ExchangeObjects {
                                     schemePreferences: Option[SelectedSchemes] = None
                                    )
 
-  case class Phase1TestGroupResponse(cubiksUserId: Int, token: String, testUrl: String)
+  case class Phase1TestGroupResponse(tests: List[Phase1TestResponse])
+  case class Phase1TestResponse(cubiksUserId: Int, token: String, testUrl: String)
 
   object Implicits {
 
     import model.Commands.Implicits._
 
+    implicit val phase1TestResponseFormat = Json.format[Phase1TestResponse]
     implicit val phase1TestGroupResponseFormat = Json.format[Phase1TestGroupResponse]
     implicit val dataGenerationResponseFormat = Json.format[DataGenerationResponse]
   }

@@ -19,7 +19,7 @@ package services.testdata
 import java.util.UUID
 
 import config.CubiksGatewayConfig
-import connectors.testdata.ExchangeObjects.Phase1TestGroupResponse
+import connectors.testdata.ExchangeObjects.{ Phase1TestGroupResponse, Phase1TestResponse }
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import org.joda.time.DateTime
 import repositories._
@@ -43,7 +43,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
 
     val sjqTest = Phase1Test(
-      cubiksUserId = scala.util.Random.nextInt(10000000),
+      cubiksUserId = scala.util.Random.nextInt(1000000000),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
@@ -53,7 +53,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
     )
 
     val bqTest = Phase1Test(
-      cubiksUserId = scala.util.Random.nextInt(10000000),
+      cubiksUserId = scala.util.Random.nextInt(1000000000),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
@@ -71,9 +71,16 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- otRepository.insertOrUpdatePhase1TestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
     } yield {
+      val sjq = phase1TestProfile.tests.find(t => t.cubiksUserId == sjqTest.cubiksUserId).get
+      val bq = phase1TestProfile.tests.find(t => t.cubiksUserId == bqTest.cubiksUserId)
+
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
-        Phase1TestGroupResponse(phase1TestProfile.tests.head.cubiksUserId,
-          phase1TestProfile.tests.head.token, phase1TestProfile.tests.head.testUrl)
+        Phase1TestGroupResponse(
+          List(Phase1TestResponse(sjq.cubiksUserId, sjq.token, sjq.testUrl)) ++
+          bq.map { b =>
+            List(Phase1TestResponse(b.cubiksUserId, b.token, b.testUrl))
+          }.getOrElse(Nil)
+        )
       ))
     }
   }
