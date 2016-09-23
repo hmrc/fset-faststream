@@ -61,14 +61,14 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
   "Get online test" should {
     "return None if there is no test for the specific user id" in {
-      val result = onlineTestRepo.getPhase1TestProfile("userId").futureValue
+      val result = onlineTestRepo.getPhase1TestGroup("userId").futureValue
       result mustBe None
     }
 
     "return an online test for the specific user id" in {
       insertApplication("appId")
       onlineTestRepo.insertOrUpdatePhase1TestGroup("appId", TestProfile).futureValue
-      val result = onlineTestRepo.getPhase1TestProfile("appId").futureValue
+      val result = onlineTestRepo.getPhase1TestGroup("appId").futureValue
       result mustBe Some(TestProfile)
     }
   }

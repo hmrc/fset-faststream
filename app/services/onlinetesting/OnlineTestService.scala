@@ -80,25 +80,22 @@ trait OnlineTestService extends ResetPhase1Test {
     otRepository.nextApplicationReadyForOnlineTesting
   }
 
-  def getPhase1TestProfile(userId: String): Future[Option[Phase1TestProfileWithNames]] = {
-    appRepository.findCandidateByUserId(userId).flatMap {
-      case Some(candidate) if candidate.applicationId.isDefined =>
-        for {
-          phase1 <- otRepository.getPhase1TestProfile(candidate.applicationId.get)
-        } yield {
-          phase1 map { p =>
-            val sjqTests = p.activeTests filter (_.scheduleId == sjq)
-            val bqTests = p.activeTests filter (_.scheduleId == bq)
-            require(sjqTests.length <= 1)
-            require(bqTests.length <= 1)
+  def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfileWithNames]] = {
+    for {
+      phase1Opt <- otRepository.getPhase1TestGroup(applicationId)
+    } yield {
+      phase1Opt.map { phase1 =>
+        val sjqTests = phase1.activeTests filter (_.scheduleId == sjq)
+        val bqTests = phase1.activeTests filter (_.scheduleId == bq)
+        require(sjqTests.length <= 1)
+        require(bqTests.length <= 1)
 
-            Phase1TestProfileWithNames(p.expirationDate, Map()
-              ++ (if (sjqTests.nonEmpty) Map("sjq" -> sjqTests.head) else Map())
-              ++ (if (bqTests.nonEmpty) Map("bq" -> bqTests.head) else Map())
-            )
-          }
-        }
-      case None => Future.successful(None)
+        Phase1TestProfileWithNames(
+          phase1.expirationDate, Map()
+            ++ (if (sjqTests.nonEmpty) Map("sjq" -> sjqTests.head) else Map())
+            ++ (if (bqTests.nonEmpty) Map("bq" -> bqTests.head) else Map())
+        )
+      }
     }
   }
 
@@ -246,7 +243,7 @@ trait OnlineTestService extends ResetPhase1Test {
 
   private def markAsInvited(application: OnlineTestApplication)
                            (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
-    currentOnlineTestProfile <- otRepository.getPhase1TestProfile(application.applicationId)
+    currentOnlineTestProfile <- otRepository.getPhase1TestGroup(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
     _ <- otRepository.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
     _ <- otRepository.removePhase1TestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
@@ -327,7 +324,7 @@ trait OnlineTestService extends ResetPhase1Test {
   def markAsStarted(cubiksUserId: Int): Future[Unit] = {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
     updatedTestPhase1 flatMap { u =>
-      otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED)
+      otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
     }
   }
 
@@ -365,19 +362,21 @@ trait OnlineTestService extends ResetPhase1Test {
   private def updateTestPhase1(cubiksUserId: Int, update: Phase1Test => Phase1Test): Future[Phase1TestProfileWithAppId] = {
     def createUpdateTestGroup(p: Phase1TestProfileWithAppId): Phase1TestProfileWithAppId = {
       val testGroup = p.phase1TestProfile
-      require(testGroup.tests.count(_.cubiksUserId == cubiksUserId) == 1)
+      val requireUserIdOnOnlyOneTestCount = testGroup.tests.count(_.cubiksUserId == cubiksUserId)
+      require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
+
       val appId = p.applicationId
-      val updatedTestsWithTodaysDate = testGroup.tests.collect {
+      val updatedTests = testGroup.tests.collect {
         case t if t.cubiksUserId == cubiksUserId => update(t)
         case t => t
       }
-      val updatedTestGroup = testGroup.copy(tests = updatedTestsWithTodaysDate)
+      val updatedTestGroup = testGroup.copy(tests = updatedTests)
       Phase1TestProfileWithAppId(appId, updatedTestGroup)
     }
 
     for {
-      p <- otRepository.getPhase1TestProfileByCubiksId(cubiksUserId)
-      updated = createUpdateTestGroup(p)
+      p1TestProfile <- otRepository.getPhase1TestProfileByCubiksId(cubiksUserId)
+      updated = createUpdateTestGroup(p1TestProfile)
       _ <- otRepository.insertOrUpdatePhase1TestGroup(updated.applicationId, updated.phase1TestProfile)
     } yield {
       updated

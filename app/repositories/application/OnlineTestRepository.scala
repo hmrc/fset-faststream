@@ -36,13 +36,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait OnlineTestRepository {
-  def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]]
+  def getPhase1TestGroup(applicationId: String): Future[Option[Phase1TestProfile]]
 
   def getPhase1TestProfileByToken(token: String): Future[Phase1TestProfile]
 
   def getPhase1TestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestProfileWithAppId]
 
-  def updateGroupExpiryTime(groupKey: String, newExpirationDate: DateTime): Future[Unit]
+  def updateGroupExpiryTime(applicationId: String, newExpirationDate: DateTime): Future[Unit]
 
   def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
@@ -61,7 +61,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     Commands.Implicits.onlineTestDetailsFormat, ReactiveMongoFormats.objectIdFormats) with OnlineTestRepository with RandomSelection {
 
 
-  override def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfile]] = {
+  override def getPhase1TestGroup(applicationId: String): Future[Option[Phase1TestProfile]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     phaseTestProfileByQuery(query)
   }
@@ -109,20 +109,13 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
-    val queryTestGroup = BSONDocument("applicationId" -> applicationId)
-
     val query = BSONDocument("applicationId" -> applicationId)
 
-    collection.update(query, BSONDocument(
-      "testGroups" ->
-      BSONDocument(
-        "PHASE1" -> BSONDocument(
-          "$set" -> BSONDocument("expirationDate" -> expirationDate)
-        )
-      )
-    )).map { status =>
+    collection.update(query, BSONDocument("$set" -> BSONDocument(
+      "testGroups.PHASE1.expirationDate" -> expirationDate
+    ))).map { status =>
       if (status.n != 1) {
-        val msg = s"Query to update testgroup expiration affected ${status.n} rows intead of 1! (App Id: $applicationId)"
+        val msg = s"Query to update testgroup expiration affected ${status.n} rows instead of 1! (App Id: $applicationId)"
         Logger.warn(msg)
         throw UnexpectedException(msg)
       }
@@ -144,7 +137,14 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
     ))
 
-    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
+    collection.update(query, applicationStatusBSON, upsert = false) map { status =>
+      if (status.n != 1) {
+        val msg = s"${status.n} rows affected when inserting or updating instead of 1! (App Id: $applicationId)"
+        Logger.warn(msg)
+        throw UnexpectedException(msg)
+      }
+      ()
+    }
   }
 
   override def nextExpiringApplication: Future[Option[ExpiringOnlineTest]] = {
