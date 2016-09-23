@@ -42,7 +42,6 @@ class OnlineTestExtensionServiceImpl(
     // Check the state of this user
     appRepository.findProgress(applicationId).map { progressResponse =>
       if (progressResponse.phase1TestsExpired) {
-        Logger.warn("============ In Expired - woohoo!")
         for {
           _ <- otRepository.updateGroupExpiryTime(applicationId, DateTime.now().withDurationAdded(86400 * extraDays * 1000, 1))
           phase1TestGroup <- otRepository.getPhase1TestGroup(applicationId)
@@ -51,7 +50,6 @@ class OnlineTestExtensionServiceImpl(
           } else {
             PHASE1_TESTS_INVITED
           }
-          _ = Logger.warn("======== Status to set = " + progressStatusToSet)
           progressStatusesToRemove = List(PHASE1_TESTS_EXPIRED) ++ (if (progressStatusToSet == PHASE1_TESTS_INVITED) {
             List(PHASE1_TESTS_STARTED)
           } else {
@@ -63,7 +61,6 @@ class OnlineTestExtensionServiceImpl(
           audit("ExpiredTestsExtended", applicationId)
         }
       } else if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) {
-        Logger.warn("============ In Invite/Started")
         for {
           phase1TestProfile <- otRepository.getPhase1TestGroup(applicationId)
           existingExpiry = phase1TestProfile.get.expirationDate

@@ -1007,8 +1007,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    Logger.warn(s"========= Removing for app id $applicationId, statuses: $progressStatuses")
-
     val statusesToUnset = progressStatuses.flatMap { progressStatus =>
         Map(s"progress-status.$progressStatus" -> BSONString(""),
         s"progress-status-dates.$progressStatus" -> BSONString(""))
@@ -1016,13 +1014,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))
 
-    Logger.warn(s"======== UnsetDoc = ${Json.toJson(unsetDoc)}")
-
     collection.update(query, unsetDoc)
-    .map {
-      status =>
-        Logger.warn("=========== Status affected = " + status.n)
-    }
+    .map { _ => () }
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {
