@@ -164,7 +164,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
-      BSONDocument("fastpass-details.applicable" -> false)
+      BSONDocument("fastpass-details.fastPassReceived" -> BSONDocument("$ne" -> true))
     ))
 
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
