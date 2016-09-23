@@ -829,9 +829,9 @@ $(function() {
     change: function(event, ui) {
       // todo - set/clear hidden form field for the 'id'
       if (ui.item != null){
-        alert(ui.item.id)
+        //alert(ui.item.id)
       }else{
-        alert("no id")
+        //alert("no id")
       }
     },
     open: function() {},
