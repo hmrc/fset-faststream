@@ -129,6 +129,7 @@ object PersistedObjects {
     implicit val contactDetailsFormats = Json.format[ContactDetails]
     implicit val contactDetailsIdFormats = Json.format[ContactDetailsWithId]
     implicit val expiringOnlineTestFormats = Json.format[ExpiringOnlineTest]
+    implicit val notificationExpiringOnlineTestFormats = Json.format[NotificationExpiringOnlineTest]
     implicit val applicationForNotificationFormats = Json.format[ApplicationForNotification]
     implicit val answerFormats = Json.format[PersistedAnswer]
     implicit val questionFormats = Json.format[PersistedQuestion]

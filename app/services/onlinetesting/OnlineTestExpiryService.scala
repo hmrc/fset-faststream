@@ -20,7 +20,6 @@ import connectors.EmailClient
 import model.PersistedObjects.{ ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER }
 import model.ReminderNotice
-import org.joda.time.DateTime
 import play.api.Logger
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
@@ -32,13 +31,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait OnlineTestExpiryService {
   def processNextTestForReminder(reminder: ReminderNotice): Future[Unit]
   def processNextExpiredTest(): Future[Unit]
-  def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
-                                                     emailAddress: String, reminder: ReminderNotice): Future[Unit]
-  def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit]
-  def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit]
-  def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
-  val FirstReminder = ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
-  val SecondReminder = ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER)
 }
 
 class OnlineTestExpiryServiceImpl(
@@ -66,27 +58,26 @@ class OnlineTestExpiryServiceImpl(
     }
   }
 
-  override def processReminder(expiringTest: NotificationExpiringOnlineTest, reminder: ReminderNotice): Future[Unit] =
+  private def processReminder(expiringTest: NotificationExpiringOnlineTest, reminder: ReminderNotice): Future[Unit] =
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
-      //_ <- commitExpiredProgressStatus(expiringTest)
       _ <- emailCandidateForExpiringTestReminder(expiringTest, emailAddress, reminder)
-
+      _ <- commitNotificationExpiringTestProgressStatus(expiringTest, reminder)
     } yield ()
 
-  override def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =
+  private def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
       _ <- emailCandidate(expiringTest, emailAddress)
       _ <- commitExpiredProgressStatus(expiringTest)
     } yield ()
 
-  override def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit] =
+  private def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit] =
     emailClient.sendOnlineTestExpired(emailAddress, expiringTest.preferredName).map { _ =>
       audit("ExpiredOnlineTestNotificationEmailed", expiringTest, Some(emailAddress))
     }
 
-  override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
+  private def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
                                                      emailAddress: String, reminder: ReminderNotice): Future[Unit] = {
     emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
       reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
@@ -95,10 +86,25 @@ class OnlineTestExpiryServiceImpl(
     }
   }
 
-  override def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
+  private def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
     applicationRepository.updateProgressStatus(expiringTest.applicationId, PHASE1_TESTS_EXPIRED).map { _ =>
       audit("ExpiredOnlineTest", expiringTest)
     }
+
+  private def commitNotificationExpiringTestProgressStatus(
+                                                            expiringTest: NotificationExpiringOnlineTest,
+                                                            reminder: ReminderNotice): Future[Unit] = {
+
+    applicationRepository.updateProgressStatus(expiringTest.applicationId, reminder.progressStatuses).map { _ =>
+      reminder.progressStatuses match {
+        case PHASE1_TESTS_FIRST_REMINDER => audit(s"FirstReminderFor${reminder.hoursBeforeReminder}HoursAddedToProgress",
+          ExpiringOnlineTest(expiringTest.applicationId, expiringTest.userId, expiringTest.preferredName))
+        case PHASE1_TESTS_SECOND_REMINDER => audit(s"SecondReminderFor${reminder.hoursBeforeReminder}HoursAddedToProgress",
+          ExpiringOnlineTest(expiringTest.applicationId, expiringTest.userId, expiringTest.preferredName))
+      }
+    }
+  }
+
 
   private def candidateEmailAddress(userId: String): Future[String] =
     cdRepository.find(userId).map(_.email)

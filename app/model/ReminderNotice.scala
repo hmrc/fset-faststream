@@ -22,8 +22,12 @@ final case class ReminderNotice(hoursBeforeReminder: Int, progressStatuses: Prog
   require(hoursBeforeReminder > 0)
   require(progressStatuses == PHASE1_TESTS_FIRST_REMINDER || progressStatuses == PHASE1_TESTS_SECOND_REMINDER)
 
-  def timeUnit: String = progressStatuses match {
-    case PHASE1_TESTS_SECOND_REMINDER => "hours"
-    case PHASE1_TESTS_FIRST_REMINDER => "days"
+  def timeUnit: TimeUnit = progressStatuses match {
+    case PHASE1_TESTS_SECOND_REMINDER => HOURS
+    case PHASE1_TESTS_FIRST_REMINDER => DAYS
   }
 }
+
+sealed trait TimeUnit { def unit: String }
+case object DAYS extends TimeUnit { val unit = "days" }
+case object HOURS extends TimeUnit { val unit = "hours" }

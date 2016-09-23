@@ -27,11 +27,14 @@ import model.ProgressStatuses._
 import model.persisted.Phase1TestProfileWithAppId
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ GeneralApplicationMongoRepository, OnlineTestMongoRepository }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
+
+import scala.concurrent.Future
 
 class OnlineTestRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
@@ -106,7 +109,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     "return no application if there is only one and it is a fast pass candidate" in{
       createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true
-      )
+      ).futureValue
 
       val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
 
@@ -116,7 +119,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     "return one application if there is only one and it is not a fast pass candidate" in{
       createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false
-      )
+      ).futureValue
 
       val result = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
 
@@ -129,7 +132,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     "be correctly read from mongo" in {
        createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false, isGis = true
-      )
+      ).futureValue
 
       val onlineTestApplication = onlineTestRepo.nextApplicationReadyForOnlineTesting.futureValue
 
@@ -154,21 +157,21 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     "return one result" when {
       "there is an application in PHASE1_TESTS and should be expired" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         onlineTestRepo.nextExpiringApplication.futureValue must be (Some(ExpiringOnlineTest(AppId,UserId,"Georgy")))
       }
     }
     "return no results" when {
       "there are no application in PHASE1_TESTS" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS))
         onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
       "the date is not expired yet" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(
           AppId,
           Phase1TestProfile(expirationDate = new DateTime().plusHours(2), tests = List(phase1Test))).futureValue
@@ -176,7 +179,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       }
 
       "the test is already expired" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
@@ -187,7 +190,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       }
 
       "the test is completed" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
@@ -202,20 +205,31 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   "nextTestForReminder" should {
     "return one result" when {
       "there is an application in PHASE1_TESTS and is about to expiry in the next 72 hours" in {
-        val date = DateTime.now().plusHours(70)
+        val date = DateTime.now().plusHours(FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
-        onlineTestRepo.nextTestForReminder(FirstReminder).futureValue must be (Some(NotificationExpiringOnlineTest(AppId,UserId,"Georgy", date)))
-        onlineTestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
+        val notification = onlineTestRepo.nextTestForReminder(FirstReminder).futureValue
+        notification.isDefined must be (true)
+        notification.get.applicationId must be (AppId)
+        notification.get.userId must be (UserId)
+        notification.get.preferredName must be ("Georgy")
+        notification.get.expiryDate.getMillis must be (date.getMillis)
+        // Because we are far away from the 24h reminder's window
+        onlineTestRepo.nextTestForReminder(SecondReminder).futureValue must be (None)
       }
 
       "there is an application in PHASE1_TESTS and is about to expiry in the next 24 hours" in {
-        val date = DateTime.now().plusHours(22)
+        val date = DateTime.now().plusHours(SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
-        onlineTestRepo.nextTestForReminder(SecondReminder).futureValue must be (Some(NotificationExpiringOnlineTest(AppId,UserId,"Georgy",date)))
+        val notification = onlineTestRepo.nextTestForReminder(SecondReminder).futureValue
+        notification.isDefined must be (true)
+        notification.get.applicationId must be (AppId)
+        notification.get.userId must be (UserId)
+        notification.get.preferredName must be ("Georgy")
+        notification.get.expiryDate.getMillis must be (date.getMillis)
       }
     }
 
@@ -223,14 +237,14 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       val date = DateTime.now().plusHours(22)
       val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
       "there are no application in PHASE1_TESTS" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS))
         onlineTestRepo.nextTestForReminder(FirstReminder).futureValue must be(None)
       }
 
       "the expiration date is in 26h but we send the second reminder only after 24h" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(
           AppId,
           Phase1TestProfile(expirationDate = new DateTime().plusHours(30), tests = List(phase1Test))).futureValue
@@ -238,7 +252,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       }
 
       "the test is expired" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
@@ -249,7 +263,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       }
 
       "the test is completed" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
@@ -260,7 +274,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       }
 
       "we already sent a second reminder" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED")
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           s"progress-status.$PHASE1_TESTS_SECOND_REMINDER" -> true
@@ -272,7 +286,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
   "Update progress status" should {
     "update progress status to PHASE1_TESTS_STARTED" in {
-      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS)
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
       onlineTestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
 
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
@@ -368,7 +382,8 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   // scalastyle:off parameter.number
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String = "frameworkId",
                                      appStatus: String, needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
-                                     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false, isGis: Boolean = false) = {
+                                     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false,
+                                     isGis: Boolean = false): Future[WriteResult] = {
     helperRepo.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -406,7 +421,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments, isGis),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus()
-    )).futureValue
+    ))
   }
   // scalastyle:on parameter.number
 

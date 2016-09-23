@@ -17,6 +17,7 @@
 package mocks
 
 import connectors.EmailClient
+import model.TimeUnit
 import org.joda.time.{ DateTime, LocalDate }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -47,5 +48,8 @@ object EmailClientStub extends EmailClient {
   override def sendAssessmentCentrePassed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
 
   override def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
+
+  override def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
+                               timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
 
 }

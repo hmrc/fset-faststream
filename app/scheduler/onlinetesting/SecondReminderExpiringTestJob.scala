@@ -16,6 +16,39 @@
 
 package scheduler.onlinetesting
 
-object SecondReminderExpiringTestJob {
+import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
+import config.ScheduledJobConfig
+import connectors.CSREmailClient
+import model.ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER
+import model.ReminderNotice
+import repositories._
+import scheduler.clustering.SingleInstanceScheduledJob
+import services.AuditService
+import services.onlinetesting.{ OnlineTestExpiryService, OnlineTestExpiryServiceImpl }
+import uk.gov.hmrc.play.http.HeaderCarrier
+
+import scala.concurrent.{ ExecutionContext, Future }
+
+object SecondReminderExpiringTestJob extends SecondReminderExpiringTestJob {
+  val service = new OnlineTestExpiryServiceImpl(
+    applicationRepository, onlineTestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
+  )
+}
+
+trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob with SecondReminderExpiringTestJobConfig {
+  val service: OnlineTestExpiryService
+
+  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+
+  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] =
+    service.processNextTestForReminder(SecondReminder)
+}
+
+trait SecondReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  override val conf = config.MicroserviceAppConfig.secondReminderJobConfig
+  val configPrefix = "scheduling.online-testing.second-reminder-expiring-test-job."
+  val name = "SecondReminderExpiringTestJob"
+  val SecondReminder = ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER)
 }

@@ -18,6 +18,7 @@ package connectors
 
 import config.WSHttp
 import connectors.ExchangeObjects._
+import model.{ HOURS, TimeUnit }
 import org.joda.time.{ DateTime, LocalDate }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -52,15 +53,15 @@ trait CSREmailClient extends EmailClient {
     )
 
   override def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
-                                        timeUnit: String, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+                                        timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     sendEmail(
       to,
       "fset_faststream_app_online_test_reminder",
       Map("name" -> name,
           "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
-          "timeUnit" -> timeUnit,
-          "timeLeft" -> timeLeft.toString
+          "timeUnit" -> timeUnit.toString,
+          "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeft)
       )
     )
   }
@@ -85,6 +86,7 @@ trait CSREmailClient extends EmailClient {
         "confirmByDate" -> EmailDateFormatter.toDate(confirmByDate)
       )
     )
+
   override def sendReminderToConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime,
     confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(
@@ -113,6 +115,8 @@ trait CSREmailClient extends EmailClient {
     )
   }
 
+
+
 }
 
 trait EmailClient extends WSHttp {
@@ -120,7 +124,7 @@ trait EmailClient extends WSHttp {
   def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
   def sendOnlineTestExpired(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
   def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
-    timeUnit: String, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
+    timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
   def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
   def sendConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime,
     confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit]
@@ -142,5 +146,10 @@ object EmailDateFormatter {
   def toConfirmTime(dateTime: DateTime): String = {
     dateTime.toString("d MMMM yyyy, h:mma")
       .replace("AM", "am").replace("PM", "pm") // Joda time has no easy way to change the case of AM/PM
+  }
+
+  def convertToHoursOrDays(timeUnit: TimeUnit, timeLeft: Int): String = {
+    if(timeUnit == HOURS) { (timeLeft / 24).toString }
+    else { timeLeft.toString }
   }
 }

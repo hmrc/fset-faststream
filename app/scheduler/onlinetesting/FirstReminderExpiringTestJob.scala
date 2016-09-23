@@ -20,6 +20,8 @@ import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
 import connectors.CSREmailClient
+import model.ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER
+import model.ReminderNotice
 import repositories._
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.AuditService
@@ -40,7 +42,7 @@ trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob with First
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] =
-    service.processNextExpiredTest()
+    service.processNextTestForReminder(FirstReminder)
 }
 
 trait FirstReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
@@ -48,4 +50,5 @@ trait FirstReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConf
   override val conf = config.MicroserviceAppConfig.firstReminderJobConfig
   val configPrefix = "scheduling.online-testing.first-reminder-expiring-test-job."
   val name = "FirstReminderExpiringTestJob"
+  val FirstReminder = ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
 }
