@@ -83,3 +83,5 @@ PUT         /test-scores/accept/application/:applicationId               control
 GET         /application/:applicationId/issue                            controllers.FlagCandidateController.find(applicationId: String)
 PUT         /application/:applicationId/issue                            controllers.FlagCandidateController.save(applicationId: String)
 DELETE      /application/:applicationId/issue                            controllers.FlagCandidateController.remove(applicationId: String)
+
+GET         /schools                                                     controllers.SchoolsController.getSchools(term: String)
