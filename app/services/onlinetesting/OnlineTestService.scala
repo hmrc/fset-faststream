@@ -73,8 +73,7 @@ trait OnlineTestService extends ResetPhase1Test {
 
   def norms = Seq(
     gatewayConfig.competenceAssessment,
-    gatewayConfig.situationalAssessment,
-    gatewayConfig.verbalAndNumericalAssessment
+    gatewayConfig.situationalAssessment
   ).map(a => ReportNorm(a.assessmentId, a.normId)).toList
 
   def nextApplicationReadyForOnlineTesting() = {
@@ -103,9 +102,9 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  private def sjq = gatewayConfig.onlineTestConfig.scheduleIds("sjq")
+  private def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
 
-  private def bq = gatewayConfig.onlineTestConfig.scheduleIds("bq")
+  private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
@@ -275,7 +274,7 @@ trait OnlineTestService extends ResetPhase1Test {
 
   private def calcOnlineTestDates: (DateTime, DateTime) = {
     val invitationDate = dateTimeFactory.nowLocalTimeZone
-    val expirationDate = invitationDate.plusDays(gatewayConfig.onlineTestConfig.expiryTimeInDays)
+    val expirationDate = invitationDate.plusDays(gatewayConfig.phase1Tests.expiryTimeInDays)
     (invitationDate, expirationDate)
   }
 
@@ -290,38 +289,16 @@ trait OnlineTestService extends ResetPhase1Test {
 
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
-      gatewayConfig.onlineTestConfig.gis
+      gatewayConfig.phase1Tests.gis
     } else {
-      gatewayConfig.onlineTestConfig.standard
+      gatewayConfig.phase1Tests.standard
     }
   }
 
   private def scheduleIdByName(name: String): Int = {
-    gatewayConfig.onlineTestConfig.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
+    gatewayConfig.phase1Tests.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
-  private[services] def getTimeAdjustments(application: OnlineTestApplication): Option[TimeAdjustments] = {
-    if (application.timeAdjustments.isEmpty) {
-      None
-    } else {
-      val config = gatewayConfig.verbalAndNumericalAssessment
-      Some(TimeAdjustments(
-        config.assessmentId,
-        config.verbalSectionId,
-        config.numericalSectionId,
-        getAdjustedTime(
-          config.verbalTimeInMinutesMinimum,
-          config.verbalTimeInMinutesMaximum,
-          application.timeAdjustments.get.verbalTimeAdjustmentPercentage
-        ),
-        getAdjustedTime(
-          config.numericalTimeInMinutesMinimum,
-          config.numericalTimeInMinutesMaximum,
-          application.timeAdjustments.get.numericalTimeAdjustmentPercentage
-        )
-      ))
-    }
-  }
 
   private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {
     val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))
@@ -329,12 +306,21 @@ trait OnlineTestService extends ResetPhase1Test {
   }
 
   private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
-    val scheduleCompletionUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/$token"
+    val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase1"
     if (application.guaranteedInterview) {
-      InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None, timeAdjustments = None)
+      InviteApplicant(scheduleId,
+        userId,
+        s"$scheduleCompletionBaseUrl/complete/$token",
+        resultsURL = None
+      )
     } else {
-      val timeAdjustments = getTimeAdjustments(application)
-      InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None, timeAdjustments)
+      val scheduleCompletionUrl = if (scheduleIdByName("sjq") == scheduleId) {
+        s"$scheduleCompletionBaseUrl/continue/$token"
+      } else {
+        s"$scheduleCompletionBaseUrl/complete/$token"
+      }
+
+      InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None)
     }
   }
 
