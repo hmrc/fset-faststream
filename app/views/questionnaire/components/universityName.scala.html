@@ -4,17 +4,23 @@
 @import helpers.CSRSkinnyFieldConstructor._
 
 <section>
-    <div class="form-group">
-    @helper.input(questionnaireForm("university"),
+    @helper.input(questionnaireForm("universityAttended"),
         '_label -> "",
         'class -> "form-control",
         '_showConstraints -> false
     ) { (id, name, value, args) =>
         <label for="@id" class="form-label">@Messages("university.question")</label>
         <span>Your first degree or your current university if you haven't finished yet</span>
-        <input id="@{id}Attended" name="@{name}Attended" type="text" class="form-control" autocorrect="off">
+        <input id="@{id}" name="@{name}" type="text" class="form-control" value="@value">
+    }
 
-        <input id="@id" name="@name" type="hidden">
+    <div class="form-group">
+    @helper.input(questionnaireForm("university"),
+        '_label -> "",
+        'class -> "form-control",
+        '_showConstraints -> false
+    ) { (id, name, value, args) =>
+        <input id="@id" name="@name" type="hidden" class="form-control" value="@value">
     }
     </div>
 

@@ -414,24 +414,14 @@ $(function() {
 
     $( "#universityAttended" ).autocomplete({
         source: universities,
-        /*open: function (e, ui) {
-            var acData = $(this).data('ui-autocomplete');
-            acData
-                .menu
-                .element
-                .find('li')
-                .each(function () {
-                    var me = $(this);
-                    var keywords = acData.term.split(' ').join('|');
-                    me.html(me.text().replace(new RegExp("(" + keywords + ")", "gi"), '<b>$1</b>'));
-                });
-        },*/
+
         select: function(e, ui) {
+            $('#universityAttended').attr('value', ui.item.label)
             $('#university').attr('value', ui.item.hiddenValue)
         },
         response: function(event, ui) {
-            // ui.content is the array that's about to be sent to the response callback.
             if (ui.content.length === 0) {
+                $('#universityAttended').attr('value', 'Other');
                 $('#university').attr('value', 'Others');
             }
         }
