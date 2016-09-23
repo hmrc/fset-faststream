@@ -34,7 +34,8 @@ import model.command._
 import model.report.CandidateProgressReport
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ Format, JsNumber, JsObject }
+import play.api.Logger
+import play.api.libs.json.{Json, Format, JsNumber, JsObject}
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
@@ -54,6 +55,8 @@ import scala.concurrent.Future
 trait GeneralApplicationRepository {
 
   def create(userId: String, frameworkId: String): Future[ApplicationResponse]
+
+  def find(applicationId: String): Future[Option[Candidate]]
 
   def find(applicationIds: List[String]): Future[List[Candidate]]
 
@@ -117,7 +120,9 @@ trait GeneralApplicationRepository {
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
-  def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
+  def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
+
+  def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]) : Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -155,10 +160,13 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
   }
 
+  def find(applicationId: String): Future[Option[Candidate]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    collection.find(query).one[BSONDocument].map(x => x.map(docToCandidate))
+  }
+
   def find(applicationIds: List[String]): Future[List[Candidate]] = {
-
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map(docToCandidate))
   }
 
@@ -244,9 +252,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   def findCandidateByUserId(userId: String): Future[Option[Candidate]] = {
-
     val query = BSONDocument("userId" -> userId)
-
     collection.find(query).one[BSONDocument].map(_.map(docToCandidate))
   }
 
@@ -991,11 +997,25 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     }
   }
 
-  override def updateProgressStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
+  override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     collection.update(query, BSONDocument("$set" ->
       applicationStatusBSON(progressStatus))
     ) map { _ => }
+  }
+
+  override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val statusesToUnset = progressStatuses.flatMap { progressStatus =>
+        Map(s"progress-status.$progressStatus" -> BSONString(""),
+        s"progress-status-dates.$progressStatus" -> BSONString(""))
+    }
+
+    val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))
+
+    collection.update(query, unsetDoc)
+    .map { _ => () }
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

@@ -17,6 +17,7 @@
 package controllers
 
 import model.Commands
+import model.Exceptions.ApplicationNotFound
 import model.command.ResetOnlineTest
 import org.joda.time.DateTime
 import play.api.Logger
@@ -29,6 +30,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{ Failure, Success, Try }
 
 case class OnlineTestDetails(
   inviteDate: DateTime, expireDate: DateTime, onlineTestLink: String,
@@ -43,6 +45,10 @@ case class OnlineTest(
 case class OnlineTestStatus(status: String)
 
 case class OnlineTestExtension(extraDays: Int)
+
+object OnlineTestExtension {
+  implicit val onlineTestExtensionFormat = Json.format[OnlineTestExtension]
+}
 
 case class UserIdWrapper(userId: String)
 
@@ -62,10 +68,10 @@ trait OnlineTestController extends BaseController {
 
   import Commands.Implicits._
 
-  def getOnlineTest(userId: String) = Action.async { implicit request =>
-    onlineTestingService.getPhase1TestProfile(userId).map {
+  def getOnlineTest(applicationId: String) = Action.async { implicit request =>
+    onlineTestingService.getPhase1TestProfile(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
-      case None => Logger.error(s"No phase 1 test found for userID [$userId]")
+      case None => Logger.warn(s"No phase 1 tests found for applicationId '$applicationId'")
         NotFound
     }
   }
@@ -80,9 +86,7 @@ trait OnlineTestController extends BaseController {
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
       appRepository.getOnlineTestApplication(appId).flatMap {
         case Some(onlineTestApp) =>
-          onlineTestingService.registerAndInviteForTestGroup(onlineTestApp, resetOnlineTest.tests).map { _ =>
-            Ok
-          }
+          onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests) map (_ => Ok)
         case _ => Future.successful(NotFound)
       }
     }

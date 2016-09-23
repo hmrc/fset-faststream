@@ -122,7 +122,7 @@ trait TestDataGeneratorController extends BaseController {
 
     TestDataGeneratorService.createCandidatesInSpecificStatus(
       numberToGenerate,
-      StatusGeneratorFactory.getGenerator(applicationStatus, progressStatus.flatMap(ps => ProgressStatuses.nameToProgressStatus.get(ps))),
+      StatusGeneratorFactory.getGenerator(applicationStatus, progressStatus.map(ProgressStatuses.nameToProgressStatus), initialConfig),
       initialConfig
     ).map { candidates =>
       Ok(Json.toJson(candidates))
