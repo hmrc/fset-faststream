@@ -86,9 +86,7 @@ trait OnlineTestController extends BaseController {
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
       appRepository.getOnlineTestApplication(appId).flatMap {
         case Some(onlineTestApp) =>
-          onlineTestingService.registerAndInviteForTestGroup(onlineTestApp, resetOnlineTest.tests).map { _ =>
-            Ok
-          }
+          onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests) map (_ => Ok)
         case _ => Future.successful(NotFound)
       }
     }

@@ -56,8 +56,7 @@ object OnlineTestService extends OnlineTestService {
   case class TestExtensionException(message: String) extends Exception(message)
 }
 
-// TODO: Rename to something like: Phase1TestGroupService
-trait OnlineTestService {
+trait OnlineTestService extends ResetPhase1Test {
   implicit def headerCarrier = new HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -74,8 +73,7 @@ trait OnlineTestService {
 
   def norms = Seq(
     gatewayConfig.competenceAssessment,
-    gatewayConfig.situationalAssessment,
-    gatewayConfig.verbalAndNumericalAssessment
+    gatewayConfig.situationalAssessment
   ).map(a => ReportNorm(a.assessmentId, a.normId)).toList
 
   def nextApplicationReadyForOnlineTesting() = {
@@ -101,12 +99,23 @@ trait OnlineTestService {
     }
   }
 
-  private def sjq = gatewayConfig.onlineTestConfig.scheduleIds("sjq")
+  private def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
 
-  private def bq = gatewayConfig.onlineTestConfig.scheduleIds("bq")
+  private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
+  }
+
+  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String]): Future[Unit] = {
+    for {
+    - <- registerAndInviteForTestGroup(application, testNamesToRemove)
+    } yield {
+      auditService.logEventNoRequest(
+        "Phase1TestsReset",
+        Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))
+      )
+    }
   }
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String]): Future[Unit] = {
@@ -237,6 +246,7 @@ trait OnlineTestService {
     currentOnlineTestProfile <- otRepository.getPhase1TestGroup(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
     _ <- otRepository.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
+    _ <- otRepository.removePhase1TestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
   } yield {
     audit("OnlineTestInvited", application.userId)
   }
@@ -246,14 +256,14 @@ trait OnlineTestService {
       newProfile
     case Some(profile) =>
       val scheduleIdsToArchive = newProfile.tests.map(_.scheduleId)
-      val existingTests = profile.tests.map(t =>
+      val existingTestsAfterUpdate = profile.tests.map(t =>
         if (scheduleIdsToArchive.contains(t.scheduleId)) {
           t.copy(usedForResults = false)
         } else {
           t
         }
       )
-      Phase1TestProfile(newProfile.expirationDate, existingTests ++ newProfile.tests)
+      Phase1TestProfile(newProfile.expirationDate, existingTestsAfterUpdate ++ newProfile.tests)
   }
 
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
@@ -261,7 +271,7 @@ trait OnlineTestService {
 
   private def calcOnlineTestDates: (DateTime, DateTime) = {
     val invitationDate = dateTimeFactory.nowLocalTimeZone
-    val expirationDate = invitationDate.plusDays(gatewayConfig.onlineTestConfig.expiryTimeInDays)
+    val expirationDate = invitationDate.plusDays(gatewayConfig.phase1Tests.expiryTimeInDays)
     (invitationDate, expirationDate)
   }
 
@@ -276,38 +286,16 @@ trait OnlineTestService {
 
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
-      gatewayConfig.onlineTestConfig.gis
+      gatewayConfig.phase1Tests.gis
     } else {
-      gatewayConfig.onlineTestConfig.standard
+      gatewayConfig.phase1Tests.standard
     }
   }
 
   private def scheduleIdByName(name: String): Int = {
-    gatewayConfig.onlineTestConfig.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
+    gatewayConfig.phase1Tests.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
-  private[services] def getTimeAdjustments(application: OnlineTestApplication): Option[TimeAdjustments] = {
-    if (application.timeAdjustments.isEmpty) {
-      None
-    } else {
-      val config = gatewayConfig.verbalAndNumericalAssessment
-      Some(TimeAdjustments(
-        config.assessmentId,
-        config.verbalSectionId,
-        config.numericalSectionId,
-        getAdjustedTime(
-          config.verbalTimeInMinutesMinimum,
-          config.verbalTimeInMinutesMaximum,
-          application.timeAdjustments.get.verbalTimeAdjustmentPercentage
-        ),
-        getAdjustedTime(
-          config.numericalTimeInMinutesMinimum,
-          config.numericalTimeInMinutesMaximum,
-          application.timeAdjustments.get.numericalTimeAdjustmentPercentage
-        )
-      ))
-    }
-  }
 
   private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {
     val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))
@@ -315,12 +303,21 @@ trait OnlineTestService {
   }
 
   private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
-    val scheduleCompletionUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/complete/$token"
+    val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase1"
     if (application.guaranteedInterview) {
-      InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None, timeAdjustments = None)
+      InviteApplicant(scheduleId,
+        userId,
+        s"$scheduleCompletionBaseUrl/complete/$token",
+        resultsURL = None
+      )
     } else {
-      val timeAdjustments = getTimeAdjustments(application)
-      InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None, timeAdjustments)
+      val scheduleCompletionUrl = if (scheduleIdByName("sjq") == scheduleId) {
+        s"$scheduleCompletionBaseUrl/continue/$token"
+      } else {
+        s"$scheduleCompletionBaseUrl/complete/$token"
+      }
+
+      InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None)
     }
   }
 
@@ -399,5 +396,15 @@ trait OnlineTestService {
       tests.get(VerbalTestName),
       tests.get(SituationalTestName)
     )
+  }
+}
+
+trait ResetPhase1Test {
+  import ProgressStatuses._
+
+  def determineStatusesToRemove(testGroup: Phase1TestProfile): List[ProgressStatus] = {
+    (if (testGroup.hasNotStartedYet) List(PHASE1_TESTS_STARTED) else List()) ++
+    (if (testGroup.hasNotCompletedYet) List(PHASE1_TESTS_COMPLETED) else List()) ++
+    (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED) else List())
   }
 }
