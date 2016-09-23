@@ -45,11 +45,7 @@ class OnlineTestExtensionServiceImpl(
         for {
           _ <- otRepository.updateGroupExpiryTime(applicationId, DateTime.now().withDurationAdded(86400 * extraDays * 1000, 1))
           phase1TestGroup <- otRepository.getPhase1TestGroup(applicationId)
-          progressStatusToSet = if (phase1TestGroup.get.tests.exists(test => test.startedDateTime.isDefined)) {
-            PHASE1_TESTS_STARTED
-          } else {
-            PHASE1_TESTS_INVITED
-          }
+          progressStatusToSet = if (phase1TestGroup.get.hasNotStartedYet) { PHASE1_TESTS_INVITED } else { PHASE1_TESTS_STARTED }
           progressStatusesToRemove = List(PHASE1_TESTS_EXPIRED) ++ (if (progressStatusToSet == PHASE1_TESTS_INVITED) {
             List(PHASE1_TESTS_STARTED)
           } else {
