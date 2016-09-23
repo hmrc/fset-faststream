@@ -19,15 +19,12 @@ package repositories
 import java.util.UUID
 
 import factories.DateTimeFactory
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import model.Exceptions.CannotFindTestByCubiksId
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
-import model.PersistedObjects.ExpiringOnlineTest
-import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus }
-import model.persisted.Phase1TestProfileWithAppId
-import model.PersistedObjects.{ ApplicationIdWithUserIdAndStatus, ExpiringOnlineTest, NotificationExpiringOnlineTest }
-import model.ProgressStatuses._
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
+import model.PersistedObjects.ExpiringOnlineTest
+import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _ }
+import model.persisted.Phase1TestProfileWithAppId
+import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }

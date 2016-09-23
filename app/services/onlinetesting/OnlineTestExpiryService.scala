@@ -16,9 +16,7 @@
 
 package services.onlinetesting
 
-import connectors.{CSREmailClient, EmailClient}
-import model.PersistedObjects.ExpiringOnlineTest
-import model.ProgressStatuses.PHASE1_TESTS_EXPIRED
+import connectors.{ CSREmailClient, EmailClient }
 import model.PersistedObjects.{ ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER }
 import model.ReminderNotice
@@ -28,8 +26,8 @@ import repositories.application.{ GeneralApplicationRepository, OnlineTestReposi
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait OnlineTestExpiryService {
   def processNextTestForReminder(reminder: ReminderNotice): Future[Unit]
