@@ -15,9 +15,9 @@
             </div>
         </div>
     @if(user.isDefined){
-        <p><a href="@routes.HomeController.present">Return to home</a>. Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a>.</p>
+        <a href="@routes.HomeController.present" class="button">Continue</a>
     } else {
-        <p>You've been signed out. <a href="@routes.SignInController.signIn">Sign in</a> to return to your home page.</p>
+        <a href="@routes.SignInController.signIn" class="button">Continue</a>
     }
     </section>
 }
