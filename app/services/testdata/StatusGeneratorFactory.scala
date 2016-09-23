@@ -22,7 +22,7 @@ import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE1_TESTS_INVITED, PHASE
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
-  def getGenerator(applicationStatus: String, progressStatus: Option[ProgressStatus]) = {
+  def getGenerator(applicationStatus: String, progressStatus: Option[ProgressStatus], generatorConfig: GeneratorConfig) = {
 
     (applicationStatus, progressStatus) match {
       case (appStatus, None) => appStatus match {
@@ -51,7 +51,12 @@ object StatusGeneratorFactory {
       // TODO: Once all old string application statuses are removed convert this to a typed match
       case ("PHASE1_TESTS", Some(PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
       case ("PHASE1_TESTS", Some(PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
-      case ("PHASE1_TESTS", Some(PHASE1_TESTS_EXPIRED)) => Phase1TestsExpiredStatusGenerator
+      case ("PHASE1_TESTS", Some(PHASE1_TESTS_EXPIRED)) =>
+        if (generatorConfig.phase1StartTime.isDefined) {
+          Phase1TestsExpiredFromStartedStatusGenerator
+        } else {
+          Phase1TestsExpiredFromInvitedStatusGenerator
+        }
       case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
     }
   }

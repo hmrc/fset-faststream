@@ -24,14 +24,14 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1TestsExpiredStatusGenerator extends Phase1TestsExpiredStatusGenerator {
+object Phase1TestsExpiredFromStartedStatusGenerator extends Phase1TestsExpiredFromStartedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsStartedStatusGenerator
   override val otRepository = onlineTestRepository
   override val otService = OnlineTestService
   override val oteService = OnlineTestExpiryService
 }
 
-trait Phase1TestsExpiredStatusGenerator extends ConstructiveGenerator {
+trait Phase1TestsExpiredFromStartedStatusGenerator extends ConstructiveGenerator {
   val otRepository: OnlineTestRepository
   val otService: OnlineTestService
   val oteService: OnlineTestExpiryService
