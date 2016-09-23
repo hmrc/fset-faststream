@@ -17,6 +17,7 @@
 package services.testdata
 
 import model.ApplicationStatuses
+import model.exchange.Phase1TestResultReady
 import repositories._
 import repositories.application.OnlineTestRepository
 import services.onlinetesting.OnlineTestService
@@ -24,24 +25,32 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1TestsStartedStatusGenerator extends Phase1TestsStartedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
+object Phase1TestsResultsReceivedStatusGenerator extends Phase1TestsResultsReceivedStatusGenerator {
+  override val previousStatusGenerator = Phase1TestsCompletedStatusGenerator
   override val otRepository = onlineTestRepository
   override val otService = OnlineTestService
 }
 
-trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
+trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   val otRepository: OnlineTestRepository
   val otService: OnlineTestService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otService.markAsStarted(candidateInPreviousStatus.phase1TestGroup.get.tests.head.cubiksUserId)
+      _ <- otService.markAsReportReadyToDownload(
+        candidateInPreviousStatus.phase1TestGroup.get.tests.head.cubiksUserId,
+        Phase1TestResultReady(Some(123), "Ready", Some("http://fakeurl.com/report"))
+      )
     } yield {
       candidateInPreviousStatus.phase1TestGroup.get.tests.lift(1).map { secondTest =>
-        otService.markAsStarted(secondTest.cubiksUserId).map(_ => ())
+        otService.markAsReportReadyToDownload(
+          secondTest.cubiksUserId,
+          Phase1TestResultReady(Some(456), "Ready", Some("http://fakeurl.com/report2"))
+        ).map(_ => ())
       }
+
+      // TODO: Add a lot more to this generator once the report retrieval scheduler is complete
       candidateInPreviousStatus
     }
 

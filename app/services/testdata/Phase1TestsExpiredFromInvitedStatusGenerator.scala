@@ -16,32 +16,33 @@
 
 package services.testdata
 
-import model.ApplicationStatuses
+import model.PersistedObjects.ExpiringOnlineTest
 import repositories._
 import repositories.application.OnlineTestRepository
-import services.onlinetesting.OnlineTestService
+import services.onlinetesting.{OnlineTestExpiryService, OnlineTestService}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1TestsStartedStatusGenerator extends Phase1TestsStartedStatusGenerator {
+object Phase1TestsExpiredFromInvitedStatusGenerator extends Phase1TestsExpiredFromInvitedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
   override val otRepository = onlineTestRepository
   override val otService = OnlineTestService
+  override val oteService = OnlineTestExpiryService
 }
 
-trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
+trait Phase1TestsExpiredFromInvitedStatusGenerator extends ConstructiveGenerator {
   val otRepository: OnlineTestRepository
   val otService: OnlineTestService
+  val oteService: OnlineTestExpiryService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otService.markAsStarted(candidateInPreviousStatus.phase1TestGroup.get.tests.head.cubiksUserId)
+      _ <- oteService.commitExpiredProgressStatus(ExpiringOnlineTest(
+        candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId, candidateInPreviousStatus.preferredName
+      ))
     } yield {
-      candidateInPreviousStatus.phase1TestGroup.get.tests.lift(1).map { secondTest =>
-        otService.markAsStarted(secondTest.cubiksUserId).map(_ => ())
-      }
       candidateInPreviousStatus
     }
 

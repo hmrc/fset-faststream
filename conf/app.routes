@@ -63,7 +63,7 @@ GET         /report/candidate-progress/:frameworkId                      control
 
 GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getUserById(userId: String)
 
-GET         /online-test/candidate/:userId                               controllers.OnlineTestController.getOnlineTest(userId: String)
+GET         /online-test/candidate/:applicationId                        controllers.OnlineTestController.getOnlineTest(applicationId: String)
 POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
 POST        /online-test/reset/:appId                                    controllers.OnlineTestController.resetOnlineTests(appId: String)
 
@@ -74,7 +74,6 @@ PUT         /phase1-test/complete-by-token/:token                        control
 PUT         /phase1-test/:cubiksUserId/results-ready                     controllers.Phase1TestsController.markResultsReady(cubiksUserId: Int)
 
 POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
-GET         /phase1-test-group/:applicationId                            controllers.Phase1TestGroupController.getStatus(applicationId: String)
 
 GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
 PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)
@@ -83,3 +82,5 @@ PUT         /test-scores/accept/application/:applicationId               control
 GET         /application/:applicationId/issue                            controllers.FlagCandidateController.find(applicationId: String)
 PUT         /application/:applicationId/issue                            controllers.FlagCandidateController.save(applicationId: String)
 DELETE      /application/:applicationId/issue                            controllers.FlagCandidateController.remove(applicationId: String)
+
+GET         /schools                                                     controllers.SchoolsController.getSchools(term: String)
