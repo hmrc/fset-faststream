@@ -29,9 +29,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 object ExpireOnlineTestJob extends ExpireOnlineTestJob {
-  val service = new OnlineTestExpiryServiceImpl(
-    applicationRepository, onlineTestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
-  )
+  override val service = OnlineTestExpiryService
 }
 
 trait ExpireOnlineTestJob extends SingleInstanceScheduledJob with ExpireOnlineTestJobConfig {

@@ -840,7 +840,7 @@ def assessmentCentreRepoWithNoDates = {
 }
 
 def applicationRepositoryWithNoVenueDateCandidates = {
-  when(mockApplicationRepository.find(any())).thenReturn(Future.successful(
+  when(mockApplicationRepository.find(any[List[String]]())).thenReturn(Future.successful(
     List()
   ))
 }

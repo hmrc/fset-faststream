@@ -25,11 +25,13 @@ import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands.TestResult
 import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme }
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import model.SchemeType.SchemeType
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
 
 import scala.language.implicitConversions
 import model.command.{ AssessmentCentre, ProgressResponse }
+import model.report.CandidateProgressReport
 
 //scalastyle:off
 object Commands {
@@ -85,7 +87,7 @@ object Commands {
   )
 
   case class PhoneAndEmail(phone: Option[String], email: Option[String])
-  case class PassMarkReport(application: Report, questionnaire: PassMarkReportQuestionnaireData, testResults: PassMarkReportTestResults)
+  case class PassMarkReport(application: CandidateProgressReport, questionnaire: PassMarkReportQuestionnaireData, testResults: PassMarkReportTestResults)
   case class PassMarkReportWithPersonalData(application: ReportWithPersonalDetails,
     testResults: PassMarkReportTestResults, contactDetails: PhoneAndEmail)
 
@@ -262,7 +264,6 @@ object Commands {
     implicit val onlineTestDetailsFormat = Json.format[OnlineTestDetails]
     implicit val onlineTestFormat = Json.format[OnlineTest]
     implicit val onlineTestStatusFormats = Json.format[OnlineTestStatus]
-    implicit val onlineTestExtensionFormats = Json.format[OnlineTestExtension]
     implicit val userIdWrapperFormats = Json.format[UserIdWrapper]
 
     implicit val passMarkReportQuestionnaireDataFormat = Json.format[PassMarkReportQuestionnaireData]

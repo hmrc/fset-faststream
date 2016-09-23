@@ -16,7 +16,9 @@
 
 package services.onlinetesting
 
-import connectors.EmailClient
+import connectors.{CSREmailClient, EmailClient}
+import model.PersistedObjects.ExpiringOnlineTest
+import model.ProgressStatuses.PHASE1_TESTS_EXPIRED
 import model.PersistedObjects.{ ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER }
 import model.ReminderNotice
@@ -27,10 +29,12 @@ import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait OnlineTestExpiryService {
   def processNextTestForReminder(reminder: ReminderNotice): Future[Unit]
   def processNextExpiredTest(): Future[Unit]
+  def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
 }
 
 class OnlineTestExpiryServiceImpl(
@@ -58,6 +62,11 @@ class OnlineTestExpiryServiceImpl(
     }
   }
 
+  override def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
+    applicationRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, PHASE1_TESTS_EXPIRED).map { _ =>
+      audit("ExpiredOnlineTest", expiringTest)
+    }
+
   private def processReminder(expiringTest: NotificationExpiringOnlineTest, reminder: ReminderNotice): Future[Unit] =
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
@@ -78,7 +87,7 @@ class OnlineTestExpiryServiceImpl(
     }
 
   private def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
-                                                     emailAddress: String, reminder: ReminderNotice): Future[Unit] = {
+                                                    emailAddress: String, reminder: ReminderNotice): Future[Unit] = {
     emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
       reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
       audit(s"ReminderExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
@@ -86,16 +95,11 @@ class OnlineTestExpiryServiceImpl(
     }
   }
 
-  private def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
-    applicationRepository.updateProgressStatus(expiringTest.applicationId, PHASE1_TESTS_EXPIRED).map { _ =>
-      audit("ExpiredOnlineTest", expiringTest)
-    }
-
   private def commitNotificationExpiringTestProgressStatus(
                                                             expiringTest: NotificationExpiringOnlineTest,
                                                             reminder: ReminderNotice): Future[Unit] = {
 
-    applicationRepository.updateProgressStatus(expiringTest.applicationId, reminder.progressStatuses).map { _ =>
+    applicationRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, reminder.progressStatuses).map { _ =>
       reminder.progressStatuses match {
         case PHASE1_TESTS_FIRST_REMINDER => audit(s"FirstReminderFor${reminder.hoursBeforeReminder}HoursAddedToProgress",
           ExpiringOnlineTest(expiringTest.applicationId, expiringTest.userId, expiringTest.preferredName))
@@ -118,3 +122,7 @@ class OnlineTestExpiryServiceImpl(
     )
   }
 }
+
+object OnlineTestExpiryService extends OnlineTestExpiryServiceImpl(
+applicationRepository, onlineTestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
+)
