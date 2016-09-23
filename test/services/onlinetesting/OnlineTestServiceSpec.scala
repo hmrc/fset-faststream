@@ -24,8 +24,9 @@ import model.{ Address, ApplicationStatus, Commands, ProgressStatuses }
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
+import model.ProgressStatuses.ProgressStatus
 import model.persisted.Phase1TestProfileWithAppId
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.{ BeforeAndAfterEach, PrivateMethodTester }
@@ -94,6 +95,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val invitation = Invitation(cubiksUserId, emailCubiks, accessCode, logonUrl, authenticateUrl, sjqScheduleId)
 
   val invitationDate = DateTime.parse("2016-05-11")
+  val startedDate = invitationDate.plusDays(1)
   val expirationDate = invitationDate.plusDays(7)
   val phase1Test = Phase1Test(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("sjq"),
     usedForResults = true,
@@ -386,6 +388,29 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   }
 
 
+  "reset phase1 tests" should {
+    "remove progress and register for new tests" in new SuccessfulTestInviteFixture {
+      import ProgressStatuses._
+
+      when(appRepositoryMock.findCandidateByUserId(any[String])).thenReturn(Future.successful(Some(candidate)))
+      val phase1TestProfileWithStartedTests = phase1TestProfile.copy(tests = phase1TestProfile.tests
+        .map(t => t.copy(startedDateTime = Some(startedDate))))
+      when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfileWithStartedTests)))
+      when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
+      val result = onlineTestService.resetPhase1Tests(onlineTestApplication, List("sjq")).futureValue
+
+      verify(otRepositoryMock).removePhase1TestProfileProgresses(
+        "appId",
+        List(PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED))
+      val expectedTestsAfterReset = List(phase1TestProfileWithStartedTests.tests.head.copy(usedForResults = false),
+        phase1Test.copy(participantScheduleId = invitation.participantScheduleId))
+      verify(otRepositoryMock).insertOrUpdatePhase1TestGroup(
+        "appId",
+        phase1TestProfile.copy(tests = expectedTestsAfterReset)
+      )
+    }
+  }
+
   trait OnlineTest {
     implicit val hc = HeaderCarrier()
 
@@ -401,6 +426,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     when(tokenFactoryMock.generateUUID()).thenReturn(token)
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
+    when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
 
     val onlineTestService = new OnlineTestService {
       val appRepository = appRepositoryMock
@@ -430,5 +456,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     )).thenReturn(Future.successful(()))
     when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
     when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
+    when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
   }
 }

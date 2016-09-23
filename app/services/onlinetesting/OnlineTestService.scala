@@ -56,8 +56,7 @@ object OnlineTestService extends OnlineTestService {
   case class TestExtensionException(message: String) extends Exception(message)
 }
 
-// TODO: Rename to something like: Phase1TestGroupService
-trait OnlineTestService {
+trait OnlineTestService extends ResetPhase1Test {
   implicit def headerCarrier = new HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -109,6 +108,17 @@ trait OnlineTestService {
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
+  }
+
+  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String]): Future[Unit] = {
+    for {
+    - <- registerAndInviteForTestGroup(application, testNamesToRemove)
+    } yield {
+      auditService.logEventNoRequest(
+        "Phase1TestsReset",
+        Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))
+      )
+    }
   }
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String]): Future[Unit] = {
@@ -239,6 +249,7 @@ trait OnlineTestService {
     currentOnlineTestProfile <- otRepository.getPhase1TestProfile(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
     _ <- otRepository.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
+    _ <- otRepository.removePhase1TestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
   } yield {
     audit("OnlineTestInvited", application.userId)
   }
@@ -248,14 +259,14 @@ trait OnlineTestService {
       newProfile
     case Some(profile) =>
       val scheduleIdsToArchive = newProfile.tests.map(_.scheduleId)
-      val existingTests = profile.tests.map(t =>
+      val existingTestsAfterUpdate = profile.tests.map(t =>
         if (scheduleIdsToArchive.contains(t.scheduleId)) {
           t.copy(usedForResults = false)
         } else {
           t
         }
       )
-      Phase1TestProfile(newProfile.expirationDate, existingTests ++ newProfile.tests)
+      Phase1TestProfile(newProfile.expirationDate, existingTestsAfterUpdate ++ newProfile.tests)
   }
 
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
@@ -386,5 +397,15 @@ trait OnlineTestService {
       tests.get(VerbalTestName),
       tests.get(SituationalTestName)
     )
+  }
+}
+
+trait ResetPhase1Test {
+  import ProgressStatuses._
+
+  def determineStatusesToRemove(testGroup: Phase1TestProfile): List[ProgressStatus] = {
+    (if (testGroup.hasNotStartedYet) List(PHASE1_TESTS_STARTED) else List()) ++
+    (if (testGroup.hasNotCompletedYet) List(PHASE1_TESTS_COMPLETED) else List()) ++
+    (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED) else List())
   }
 }

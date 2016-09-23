@@ -49,6 +49,12 @@ object OnlineTestCommands {
     tests: List[Phase1Test]
   ) {
     def activeTests = tests filter (_.usedForResults)
+
+    def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
+
+    def hasNotCompletedYet =  activeTests.exists(_.completedDateTime.isEmpty)
+
+    def hasNotResultReadyToDownloadForAllTestsYet =  activeTests.exists(!_.resultsReadyToDownload)
   }
 
   object Phase1TestProfile {
