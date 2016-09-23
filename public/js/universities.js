@@ -115,7 +115,7 @@ $(function() {
         {"label":"City of London College", "hiddenValue":"C74-CLC"},
         {"label":"Colchester Institute", "hiddenValue":"C75-CINST"},
         {"label":"Cornwall College", "hiddenValue":"C78-CORN"},
-        {"label":"Courtauld Institute of Art (University of London", "hiddenValue":"C80-CRT"},
+        {"label":"Courtauld Institute of Art (University of London)", "hiddenValue":"C80-CRT"},
         {"label":"City College Plymouth", "hiddenValue":"C83-CPLYM"},
         {"label":"Coventry University", "hiddenValue":"C85-COVN"},
         {"label":"Craven College", "hiddenValue":"C88-CRAV"},
