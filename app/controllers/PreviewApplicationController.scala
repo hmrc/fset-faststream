@@ -16,11 +16,13 @@
 
 package controllers
 
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
 import security.Roles.PreviewApplicationRole
+
+import scala.concurrent.Future
 
 object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, SchemeClient)
 
@@ -29,9 +31,13 @@ class PreviewApplicationController(applicationClient: ApplicationClient, schemeC
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
+      val isCivilServant = user.application.fastPassDetails.exists(_.isCivilServant)
       val personalDetailsFut = applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
       val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
-      val partnerGraduateProgrammesFut = applicationClient.getPartnerGraduateProgrammes(user.application.applicationId)
+      val partnerGraduateProgrammesFut = isCivilServant match {
+        case true => Future.successful(None)
+        case false => applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
+      }
       val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
 
       (for {
@@ -42,8 +48,8 @@ class PreviewApplicationController(applicationClient: ApplicationClient, schemeC
       } yield {
         Ok(views.html.application.preview(gd, sp, pgp, ad, user.application))
       }).recover {
-        case e @ (_: PersonalDetailsNotFound | _: SchemePreferencesNotFound | _: PartnerGraduateProgrammesNotFound
-                  | _: AssistanceDetailsNotFound) =>
+        case _: PersonalDetailsNotFound | _: SchemePreferencesNotFound | _: PartnerGraduateProgrammesNotFound
+             | _: AssistanceDetailsNotFound =>
           Redirect(routes.HomeController.present()).flashing(warning("info.cannot.preview.yet"))
       }
   }
@@ -52,7 +58,7 @@ class PreviewApplicationController(applicationClient: ApplicationClient, schemeC
     implicit user =>
       applicationClient.updatePreview(user.application.applicationId).flatMap { _ =>
         updateProgress() { usr =>
-            Redirect(routes.SubmitApplicationController.present())
+          Redirect(routes.SubmitApplicationController.present())
         }
       }
   }

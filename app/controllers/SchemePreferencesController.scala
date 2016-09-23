@@ -39,15 +39,23 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
 
   def submit = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
+      val isCivilServant = user.application.fastPassDetails.exists(_.isCivilServant)
       form.bindFromRequest.fold(
         invalidForm => {
-          val civilServant = user.application.fastPassDetails.exists(_.isCivilServant)
-          Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(civilServant, invalidForm)))
+          Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(isCivilServant, invalidForm)))
         },
         selectedSchemes => {
           for {
             _ <- schemeClient.updateSchemePreferences(selectedSchemes)(user.application.applicationId)
-            redirect <- refreshCachedUser().map(_ => Redirect(routes.PartnerGraduateProgrammesController.present()))
+            redirect <- refreshCachedUser().map { _ =>
+                Redirect {
+                  if(isCivilServant) {
+                    routes.AssistanceDetailsController.present()
+                  } else {
+                    routes.PartnerGraduateProgrammesController.present()
+                  }
+                }
+            }
           } yield {
             redirect
           }
