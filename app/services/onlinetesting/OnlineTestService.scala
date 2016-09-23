@@ -329,11 +329,13 @@ trait OnlineTestService extends ResetPhase1Test {
   }
 
   def markAsCompleted(cubiksUserId: Int): Future[Unit] = {
+    Logger.warn("======= Marking as complete for " + cubiksUserId)
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
     updatedTestPhase1 flatMap { u =>
       require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
 
       if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
+        Logger.warn("======= Both tests complete! Adding progress status")
         otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED)
       } else {
         Future.successful(())
@@ -377,6 +379,7 @@ trait OnlineTestService extends ResetPhase1Test {
     for {
       p1TestProfile <- otRepository.getPhase1TestProfileByCubiksId(cubiksUserId)
       updated = createUpdateTestGroup(p1TestProfile)
+      _ = Logger.warn("Updated group = " + updated)
       _ <- otRepository.insertOrUpdatePhase1TestGroup(updated.applicationId, updated.phase1TestProfile)
     } yield {
       updated
