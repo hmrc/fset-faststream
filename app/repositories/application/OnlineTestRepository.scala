@@ -52,7 +52,7 @@ trait OnlineTestRepository {
 
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit]
 
-  def removeProgressStatuses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
+  def removePhase1TestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
 }
 
 // TODO: Rename to something like: Phase1TestGroupMongoRepository
@@ -186,7 +186,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
   }
 
-  override def removeProgressStatuses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
+  override def removePhase1TestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
     require(progressStatuses forall (_.applicationStatus == ApplicationStatus.PHASE1_TESTS), "Cannot remove non Phase 1 progress status")
 

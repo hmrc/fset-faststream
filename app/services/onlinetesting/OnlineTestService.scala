@@ -116,7 +116,7 @@ trait OnlineTestService extends ResetPhase1Test {
     - <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
       auditService.logEventNoRequest(
-        "Phase1TestsReseted",
+        "Phase1TestsReset",
         Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))
       )
     }
@@ -250,7 +250,7 @@ trait OnlineTestService extends ResetPhase1Test {
     currentOnlineTestProfile <- otRepository.getPhase1TestProfile(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
     _ <- otRepository.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
-    _ <- otRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
+    _ <- otRepository.removePhase1TestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
   } yield {
     audit("OnlineTestInvited", application.userId)
   }

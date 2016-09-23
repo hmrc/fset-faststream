@@ -213,7 +213,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     "remove progress statuses" in {
       createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true, ProgressStatuses.PHASE1_TESTS_COMPLETED -> true))
-      onlineTestRepo.removeProgressStatuses("appId", List(
+      onlineTestRepo.removePhase1TestProfileProgresses("appId", List(
         ProgressStatuses.PHASE1_TESTS_INVITED,
         ProgressStatuses.PHASE1_TESTS_COMPLETED)
       ).futureValue

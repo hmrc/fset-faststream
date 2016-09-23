@@ -419,11 +419,11 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val phase1TestProfileWithStartedTests = phase1TestProfile.copy(tests = phase1TestProfile.tests
         .map(t => t.copy(startedDateTime = Some(StartedDate))))
       when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfileWithStartedTests)))
-      when(otRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
+      when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
       val result = onlineTestService.resetPhase1Tests(
         applicationForOnlineTestingWithNoTimeAdjustments, List("sjq")).futureValue
 
-      verify(otRepositoryMock).removeProgressStatuses(
+      verify(otRepositoryMock).removePhase1TestProfileProgresses(
         "ApplicationId1",
         List(PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED))
       val expectedTestsAfterReset = List(phase1TestProfileWithStartedTests.tests.head.copy(usedForResults = false),
@@ -450,7 +450,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     when(tokenFactoryMock.generateUUID()).thenReturn(Token)
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(InvitationDate)
-    when(otRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
+    when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
 
     val onlineTestService = new OnlineTestService {
       val appRepository = appRepositoryMock
@@ -477,6 +477,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     )).thenReturn(Future.successful(()))
     when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
     when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-    when(otRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
+    when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
   }
 }
