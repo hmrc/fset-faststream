@@ -135,8 +135,6 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
     ))
 
-    Logger.warn(s" ========== Running with app id: $applicationId and $phase1TestProfile")
-
     collection.update(query, applicationStatusBSON, upsert = false) map { status =>
       if (status.n != 1) {
         val msg = s"${status.n} rows affected when inserting or updating instead of 1! (App Id: $applicationId)"

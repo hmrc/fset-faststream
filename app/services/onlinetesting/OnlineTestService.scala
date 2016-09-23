@@ -325,10 +325,8 @@ trait OnlineTestService {
   }
 
   def markAsStarted(cubiksUserId: Int): Future[Unit] = {
-    Logger.debug(s"====== Marking cubiks user $cubiksUserId as started")
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
     updatedTestPhase1 flatMap { u =>
-      Logger.debug(s"====== Updated object = $u")
       otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
     }
   }
