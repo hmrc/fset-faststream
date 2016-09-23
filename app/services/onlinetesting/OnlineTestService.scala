@@ -295,21 +295,21 @@ trait OnlineTestService {
   }
 
   private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
-    val scheduleCompletionUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase1"
+    val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase1"
     if (application.guaranteedInterview) {
       InviteApplicant(scheduleId,
         userId,
-        s"$scheduleCompletionUrl/complete/$token",
+        s"$scheduleCompletionBaseUrl/complete/$token",
         resultsURL = None
       )
     } else {
-      val completionUrl = if (scheduleIdByName("sjq") == scheduleId) {
-        s"$scheduleCompletionUrl/continue/$token"
+      val scheduleCompletionUrl = if (scheduleIdByName("sjq") == scheduleId) {
+        s"$scheduleCompletionBaseUrl/continue/$token"
       } else {
-        s"$scheduleCompletionUrl/complete/$token"
+        s"$scheduleCompletionBaseUrl/complete/$token"
       }
 
-      InviteApplicant(scheduleId, userId, completionUrl, resultsURL = None)
+      InviteApplicant(scheduleId, userId, scheduleCompletionUrl, resultsURL = None)
     }
   }
 

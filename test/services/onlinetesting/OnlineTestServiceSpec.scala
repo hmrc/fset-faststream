@@ -65,10 +65,11 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   val preferredName = "Preferred\tName"
   val preferredNameSanitized = "Preferred Name"
+  val userId = "userId"
 
   val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
     applicationStatus = ApplicationStatus.SUBMITTED,
-    userId = "userId",
+    userId = userId,
     guaranteedInterview = false,
     needsAdjustments = false,
     preferredName,
@@ -115,7 +116,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val emailContactDetails = "emailfjjfjdf@mailinator.com"
   val contactDetails = ContactDetails(Address("Aldwych road"), postcode, emailContactDetails, Some("111111"))
 
-  val auditDetails = Map("userId" -> "userId")
+  val auditDetails = Map("userId" -> userId)
   val auditDetailsWithEmail = auditDetails + ("email" -> emailContactDetails)
 
   val connectorErrorMessage = "Error in connector"
@@ -214,7 +215,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           .thenReturn(Future.successful(registration))
         when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(invitation))
-        when(cdRepositoryMock.find("userId"))
+        when(cdRepositoryMock.find(userId))
           .thenReturn(Future.failed(new Exception))
 
         val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
@@ -230,7 +231,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           .thenReturn(Future.successful(registration))
         when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(invitation))
-        when(cdRepositoryMock.find("userId"))
+        when(cdRepositoryMock.find(userId))
           .thenReturn(Future.successful(contactDetails))
 
         when(emailClientMock.sendOnlineTestInvitation(
@@ -252,7 +253,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           .thenReturn(Future.successful(registration))
         when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
           .thenReturn(Future.successful(invitation))
-        when(cdRepositoryMock.find("userId")).thenReturn(Future.successful(contactDetails))
+        when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
         when(emailClientMock.sendOnlineTestInvitation(
           eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
         ).thenReturn(Future.successful(()))
@@ -331,7 +332,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     "return an InviteApplication for a GIS candidate" in new OnlineTest {
       val result = onlineTestService.buildInviteApplication(
         onlineTestApplication.copy(guaranteedInterview = true),
-        "token", cubiksUserId, sjqScheduleId
+        token, cubiksUserId, sjqScheduleId
       )
 
       result mustBe inviteApplicant.copy(
@@ -341,7 +342,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     "return an InviteApplication for a non GIS candidate" in new OnlineTest {
       val sjqInvite = onlineTestService.buildInviteApplication(onlineTestApplication,
-        "token", cubiksUserId, testGatewayConfig.phase1Tests.scheduleIds("sjq"))
+        token, cubiksUserId, testGatewayConfig.phase1Tests.scheduleIds("sjq"))
 
       sjqInvite mustBe inviteApplicant.copy(
         scheduleID = sjqScheduleId,
@@ -349,7 +350,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       )
 
       val bqInvite = onlineTestService.buildInviteApplication(onlineTestApplication,
-        "token", cubiksUserId, bqScheduleId)
+        token, cubiksUserId, bqScheduleId)
 
       bqInvite mustBe inviteApplicant.copy(
         scheduleID = bqScheduleId,
