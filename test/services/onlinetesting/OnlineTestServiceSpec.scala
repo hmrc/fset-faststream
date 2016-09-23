@@ -24,6 +24,7 @@ import model.{ Address, ApplicationStatus, Commands, ProgressStatuses }
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
+import model.ProgressStatuses.ProgressStatus
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -94,6 +95,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val invitation = Invitation(cubiksUserId, emailCubiks, accessCode, logonUrl, authenticateUrl, sjqScheduleId)
 
   val invitationDate = DateTime.parse("2016-05-11")
+  val startedDate = invitationDate.plusDays(1)
   val expirationDate = invitationDate.plusDays(7)
   val phase1Test = Phase1Test(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("sjq"),
     usedForResults = true,
@@ -392,19 +394,18 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       when(appRepositoryMock.findCandidateByUserId(any[String])).thenReturn(Future.successful(Some(candidate)))
       val phase1TestProfileWithStartedTests = phase1TestProfile.copy(tests = phase1TestProfile.tests
-        .map(t => t.copy(startedDateTime = Some(StartedDate))))
+        .map(t => t.copy(startedDateTime = Some(startedDate))))
       when(otRepositoryMock.getPhase1TestProfile(any[String])).thenReturn(Future.successful(Some(phase1TestProfileWithStartedTests)))
       when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful())
-      val result = onlineTestService.resetPhase1Tests(
-        applicationForOnlineTestingWithNoTimeAdjustments, List("sjq")).futureValue
+      val result = onlineTestService.resetPhase1Tests(onlineTestApplication, List("sjq")).futureValue
 
       verify(otRepositoryMock).removePhase1TestProfileProgresses(
-        "ApplicationId1",
+        "appId",
         List(PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED))
       val expectedTestsAfterReset = List(phase1TestProfileWithStartedTests.tests.head.copy(usedForResults = false),
         phase1Test.copy(participantScheduleId = invitation.participantScheduleId))
       verify(otRepositoryMock).insertOrUpdatePhase1TestGroup(
-        "ApplicationId1",
+        "appId",
         phase1TestProfile.copy(tests = expectedTestsAfterReset)
       )
     }
