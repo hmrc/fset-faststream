@@ -821,6 +821,7 @@ $(function() {
         alert(data)
       }
     });
+  });
 
   $( "#schoolName14to16" ).autocomplete({
     source: function( request, response ) {
