@@ -52,6 +52,18 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
+  private lazy val firstReminderExpiringTestJob: Option[ScheduledJob] =
+    if (firstReminderJobConfigValues.enabled) Some(FirstReminderExpiringTestJob) else {
+      Logger.warn("First reminder for expiring test job is disabled")
+      None
+    }
+
+  private lazy val secondReminderExpiringTestJob: Option[ScheduledJob] =
+    if (secondReminderJobConfigValues.enabled) Some(SecondReminderExpiringTestJob) else {
+      Logger.warn("Second reminder for expiring test job is disabled")
+      None
+    }
+
   private lazy val expireOnlineTestJob: Option[ScheduledJob] =
     if (expireOnlineTestJobConfigValues.enabled) Some(ExpireOnlineTestJob) else {
       Logger.warn("Expire online test job is disabled")
@@ -102,6 +114,8 @@ trait Scheduler extends RunningOfScheduledJobs {
 
   private[config] def sendInvitationJobConfigValues = sendInvitationJobConfig
   private[config] def expireOnlineTestJobConfigValues = expireOnlineTestJobConfig
+  private[config] def firstReminderJobConfigValues = firstReminderJobConfig
+  private[config] def secondReminderJobConfigValues = secondReminderJobConfig
   private[config] def failedOnlineTestJobConfigValues = failedOnlineTestJobConfig
   private[config] def retrieveResultsJobConfigValues = retrieveResultsJobConfig
   private[config] def evaluateCandidateScoreJobConfigValues = evaluateCandidateScoreJobConfig
@@ -110,9 +124,9 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
 
-  lazy val scheduledJobs = List(sendInvitationJob, expireOnlineTestJob, failedOnlineTestJob, retrieveResultsJob,
-    evaluateCandidateScoreJob, diversityMonitoringJob, confirmAttendanceReminderJob, evaluateAssessmentScoreJob,
-    notifyAssessmentCentrePassedOrFailedJob).flatten
+  lazy val scheduledJobs = List(sendInvitationJob, firstReminderExpiringTestJob, secondReminderExpiringTestJob,
+    expireOnlineTestJob, failedOnlineTestJob, retrieveResultsJob, evaluateCandidateScoreJob, diversityMonitoringJob,
+    confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with Scheduler {

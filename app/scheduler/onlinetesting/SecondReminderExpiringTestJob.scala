@@ -19,21 +19,15 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import connectors.CSREmailClient
 import model.ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER
 import model.ReminderNotice
-import repositories._
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.AuditService
-import services.onlinetesting.{ OnlineTestExpiryService, OnlineTestExpiryServiceImpl }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import services.onlinetesting.OnlineTestExpiryService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object SecondReminderExpiringTestJob extends SecondReminderExpiringTestJob {
-  val service = new OnlineTestExpiryServiceImpl(
-    applicationRepository, onlineTestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
-  )
+  override val service = OnlineTestExpiryService
 }
 
 trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob with SecondReminderExpiringTestJobConfig {
@@ -41,8 +35,10 @@ trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob with Seco
 
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 
-  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] =
+  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     service.processNextTestForReminder(SecondReminder)
+  }
+
 }
 
 trait SecondReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {

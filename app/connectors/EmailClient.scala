@@ -18,7 +18,7 @@ package connectors
 
 import config.WSHttp
 import connectors.ExchangeObjects._
-import model.{ HOURS, TimeUnit }
+import model.{ DAYS, TimeUnit }
 import org.joda.time.{ DateTime, LocalDate }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -60,7 +60,7 @@ trait CSREmailClient extends EmailClient {
       "fset_faststream_app_online_test_reminder",
       Map("name" -> name,
           "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
-          "timeUnit" -> timeUnit.toString,
+          "timeUnit" -> timeUnit.unit,
           "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeft)
       )
     )
@@ -149,7 +149,7 @@ object EmailDateFormatter {
   }
 
   def convertToHoursOrDays(timeUnit: TimeUnit, timeLeft: Int): String = {
-    if(timeUnit == HOURS) { (timeLeft / 24).toString }
+    if(timeUnit == DAYS) { (timeLeft / 24).toString }
     else { timeLeft.toString }
   }
 }
