@@ -167,7 +167,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       "there are no application in PHASE1_TESTS" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS))
+        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS)).futureValue
         onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
@@ -186,7 +186,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
-        )))
+        ))).futureValue
         onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
@@ -197,7 +197,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
-        )))
+        ))).futureValue
         onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
     }
@@ -240,7 +240,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       "there are no application in PHASE1_TESTS" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS))
+        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS)).futureValue
         onlineTestRepo.nextTestForReminder(FirstReminder).futureValue must be(None)
       }
 
@@ -259,7 +259,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
-        )))
+        ))).futureValue
         onlineTestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
 
@@ -270,7 +270,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
-        )))
+        ))).futureValue
         onlineTestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
 
@@ -279,7 +279,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         onlineTestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           s"progress-status.$PHASE1_TESTS_SECOND_REMINDER" -> true
-        )))
+        ))).futureValue
         onlineTestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
     }
