@@ -16,7 +16,7 @@
 
 package services.testdata
 
-import model.ApplicationStatuses
+import common.FutureEx
 import repositories._
 import repositories.application.OnlineTestRepository
 import services.onlinetesting.OnlineTestService
@@ -36,14 +36,8 @@ trait Phase1TestsCompletedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
-      candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otService.markAsCompleted(candidateInPreviousStatus.phase1TestGroup.get.tests.head.cubiksUserId)
-    } yield {
-      candidateInPreviousStatus.phase1TestGroup.get.tests.lift(1).map { secondTest =>
-        otService.markAsCompleted(secondTest.cubiksUserId).map(_ => ())
-      }
-      candidateInPreviousStatus
-    }
-
+      candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
+      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))(id => otService.markAsCompleted(id))
+    } yield candidate
   }
 }

@@ -16,7 +16,7 @@
 
 package services.testdata
 
-import model.ApplicationStatuses
+import common.FutureEx
 import model.exchange.Phase1TestResultReady
 import repositories._
 import repositories.application.OnlineTestRepository
@@ -37,22 +37,11 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     for {
-      candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otService.markAsReportReadyToDownload(
-        candidateInPreviousStatus.phase1TestGroup.get.tests.head.cubiksUserId,
-        Phase1TestResultReady(Some(123), "Ready", Some("http://fakeurl.com/report"))
-      )
-    } yield {
-      candidateInPreviousStatus.phase1TestGroup.get.tests.lift(1).map { secondTest =>
-        otService.markAsReportReadyToDownload(
-          secondTest.cubiksUserId,
-          Phase1TestResultReady(Some(456), "Ready", Some("http://fakeurl.com/report2"))
-        ).map(_ => ())
-      }
-
-      // TODO: Add a lot more to this generator once the report retrieval scheduler is complete
-      candidateInPreviousStatus
-    }
-
+      candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
+      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests){test =>
+        val id = test.cubiksUserId
+        val result = Phase1TestResultReady(Some(id * 123), "Ready", Some(s"http://fakeurl.com/report$id"))
+        otService.markAsReportReadyToDownload(id, result)}
+    } yield candidate
   }
 }
