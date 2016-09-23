@@ -38,7 +38,7 @@ trait Phase1TestGroupController extends BaseController {
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>
-      phase1TestExtensionService.extendTestGroupExpiryTime("PHASE1", applicationId, extension.extraDays).map(_ => ())
+      phase1TestExtensionService.extendTestGroupExpiryTime(applicationId, extension.extraDays).map(_ => ())
       Future.successful(Ok)
     }
   }

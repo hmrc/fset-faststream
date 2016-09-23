@@ -29,7 +29,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait OnlineTestExtensionService {
-  def extendTestGroupExpiryTime(groupKey: String, applicationId: String, extraDays: Int): Future[Unit]
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Unit]
 }
 
 class OnlineTestExtensionServiceImpl(
@@ -38,7 +38,7 @@ class OnlineTestExtensionServiceImpl(
   auditService: AuditService
 ) extends OnlineTestExtensionService {
 
-  override def extendTestGroupExpiryTime(groupKey: String, applicationId: String, extraDays: Int): Future[Unit] = {
+  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Unit] = {
     // Check the state of this user
     appRepository.findProgress(applicationId).map { progressResponse =>
       if (progressResponse.phase1TestsExpired) {
