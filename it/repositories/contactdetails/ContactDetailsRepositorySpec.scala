@@ -39,7 +39,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
   "find contact details" should {
     "return an exception when user does not exist" in {
       val result = repository.find("IdWhichDoesNotExistForSure").failed.futureValue
-      result mustBe ContactDetailsNotFound(UserId)
+      result mustBe ContactDetailsNotFound("IdWhichDoesNotExistForSure")
     }
   }
 
