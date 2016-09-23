@@ -48,8 +48,8 @@ class PreviewApplicationController(applicationClient: ApplicationClient, schemeC
       } yield {
         Ok(views.html.application.preview(gd, sp, pgp, ad, user.application))
       }).recover {
-        case e@(_: PersonalDetailsNotFound | _: SchemePreferencesNotFound | _: PartnerGraduateProgrammesNotFound
-                | _: AssistanceDetailsNotFound) =>
+        case _: PersonalDetailsNotFound | _: SchemePreferencesNotFound | _: PartnerGraduateProgrammesNotFound
+             | _: AssistanceDetailsNotFound =>
           Redirect(routes.HomeController.present()).flashing(warning("info.cannot.preview.yet"))
       }
   }
