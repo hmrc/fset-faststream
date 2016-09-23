@@ -63,7 +63,7 @@ GET         /report/candidate-progress/:frameworkId                      control
 
 GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getUserById(userId: String)
 
-GET         /online-test/candidate/:userId                               controllers.OnlineTestController.getOnlineTest(userId: String)
+GET         /online-test/candidate/:applicationId                        controllers.OnlineTestController.getOnlineTest(applicationId: String)
 POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
 POST        /online-test/reset/:appId                                    controllers.OnlineTestController.resetOnlineTests(appId: String)
 
