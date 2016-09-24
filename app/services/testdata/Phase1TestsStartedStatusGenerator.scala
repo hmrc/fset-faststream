@@ -17,12 +17,16 @@
 package services.testdata
 
 import common.FutureEx
+import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.ApplicationStatuses
+import org.joda.time.DateTime
 import repositories._
 import repositories.application.OnlineTestRepository
 import services.onlinetesting.OnlineTestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object Phase1TestsStartedStatusGenerator extends Phase1TestsStartedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
@@ -34,10 +38,13 @@ trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
   val otRepository: OnlineTestRepository
   val otService: OnlineTestService
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int,
+               generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier): Future[DataGenerationResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))(id => otService.markAsStarted(id))
+      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))(id =>
+        otService.markAsStarted(id, generatorConfig.phase1StartTime.getOrElse(DateTime.now))
+      )
     } yield candidate
   }
 }

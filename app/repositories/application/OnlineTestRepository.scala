@@ -126,11 +126,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val applicationStatusBSON = BSONDocument("$unset" -> BSONDocument(
-      s"progress-status.$OnlineTestFailedProgress" -> "",
-      s"progress-status.$OnlineTestFailedNotifiedProgress" -> "",
-      s"progress-status.$AwaitingOnlineTestAllocationProgress" -> ""
-    )) ++ BSONDocument("$set" -> BSONDocument(
+    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
       s"progress-status.$PHASE1_TESTS_INVITED" -> true,
       "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
     )) ++ BSONDocument("$set" -> BSONDocument(
