@@ -35,11 +35,12 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
   val Withdrawer = "Candidate"
 
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
+    val application = cachedData.application.get
     val dashboard = for {
-      phase1TestsWithNames <- applicationClient.getPhase1TestProfile(cachedData.user.userID)
-      allocationDetails <- applicationClient.getAllocationDetails(cachedData.application.get.applicationId)
+      phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
+      allocationDetails <- applicationClient.getAllocationDetails(application.applicationId)
       // TODO Work out a better way to invalidate the cache across the site
-      app = CachedDataWithApp(cachedData.user, cachedData.application.get)
+      app = CachedDataWithApp(cachedData.user, application)
       updatedData <- refreshCachedUser()(app, hc, request)
     } yield {
       val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)))

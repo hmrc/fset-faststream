@@ -32,7 +32,7 @@ abstract class OnlineTestController(applicationClient: ApplicationClient) extend
 
   def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>
-     applicationClient.getPhase1TestProfile(cachedUserData.user.userID).flatMap { testProfile =>
+     applicationClient.getPhase1TestProfile(cachedUserData.application.applicationId).flatMap { testProfile =>
         // If we've started but not completed a test we still want to send them to that
         // test link to continue with it
         testProfile.tests.find(!_.completed).map { testToStart =>
