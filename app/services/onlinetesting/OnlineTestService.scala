@@ -321,15 +321,15 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def markAsStarted(cubiksUserId: Int): Future[Unit] = {
-    val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
+  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+    val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
     updatedTestPhase1 flatMap { u =>
       otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
     }
   }
 
   def markAsCompleted(cubiksUserId: Int): Future[Unit] = {
-    val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(DateTimeFactory.nowLocalTimeZone)))
+    val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)), "COMPLETED")
     updatedTestPhase1 flatMap { u =>
       require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
 
@@ -359,7 +359,10 @@ trait OnlineTestService extends ResetPhase1Test {
     )
   }
 
-  private def updateTestPhase1(cubiksUserId: Int, update: Phase1Test => Phase1Test): Future[Phase1TestProfileWithAppId] = {
+  // TODO: We need to stop updating the entire group here and use selective $set, this method of replacing the entire document
+  // invites race conditions
+  private def updateTestPhase1(cubiksUserId: Int, update: Phase1Test => Phase1Test, debugKey: String = "foo"):
+  Future[Phase1TestProfileWithAppId] = {
     def createUpdateTestGroup(p: Phase1TestProfileWithAppId): Phase1TestProfileWithAppId = {
       val testGroup = p.phase1TestProfile
       val requireUserIdOnOnlyOneTestCount = testGroup.tests.count(_.cubiksUserId == cubiksUserId)
