@@ -814,21 +814,13 @@ $(function() {
     window.print();
   });
 
-  $('#testajax').click(function(evt) {
-    var r = jsRoutes.controllers.SchoolsController.getSchools()
-    r.ajax({
-      success : function(data) {
-        alert(data)
-      }
-    });
-  });
-
-  $( "#schoolName14to16" ).autocomplete({
+  function addSchoolsDropdown(selector) {
+    $(selector).autocomplete({
     source: function( request, response ) {
       var r = jsRoutes.controllers.SchoolsController.getSchools(request.term)
       r.ajax({
         success : function(data) {
-          $('#schoolName14to16').removeClass('ui-autocomplete-loading');
+          $(selector).removeClass('ui-autocomplete-loading');
 
           response( $.map( data, function(item) {
             item.label = item.name
@@ -836,7 +828,7 @@ $(function() {
           }));
         },
         error: function(data) {
-          $('#schoolName14to16').removeClass('ui-autocomplete-loading');
+          $(selector).removeClass('ui-autocomplete-loading');
         }
       });
     },
@@ -853,6 +845,10 @@ $(function() {
     close: function() {},
     focus: function(event,ui) {},
     select: function(event, ui) {}
-  });
+    });
+  }
+
+  addSchoolsDropdown("#schoolName14to16");
+  addSchoolsDropdown("#schoolName16to18");
 
 });
