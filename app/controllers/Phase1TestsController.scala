@@ -16,11 +16,13 @@
 
 package controllers
 
+import model.Exceptions.{ CannotFindTestByCubiksId, NotFoundException }
 import model.exchange.Phase1TestResultReady
-import play.api.mvc.Action
+import play.api.mvc.{ Action, Result }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.Logger
 import services.onlinetesting.OnlineTestService
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase1TestsController extends Phase1TestsController {
@@ -32,12 +34,12 @@ trait Phase1TestsController extends BaseController {
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId started")
-    phase1TestService.markAsStarted(cubiksUserId).map(_ => Ok)
+    phase1TestService.markAsStarted(cubiksUserId).map(_ => Ok).recover(recoverNotFound)
   }
 
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId completed")
-    phase1TestService.markAsCompleted(cubiksUserId).map(_ => Ok)
+    phase1TestService.markAsCompleted(cubiksUserId).map(_ => Ok).recover(recoverNotFound)
   }
 
   /**
@@ -47,18 +49,21 @@ trait Phase1TestsController extends BaseController {
     */
   def completeTestByToken(token: String) = Action.async { implicit request =>
     Logger.info(s"Complete test by token $token")
-    phase1TestService.markAsCompleted(token).map(_ => Ok).recover {
-      case e =>
-        Logger.warn("Error in test completion by token", e)
-        Ok
-    }
+    phase1TestService.markAsCompleted(token).map(_ => Ok).recover(recoverNotFound)
   }
 
   def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    withJsonBody[Phase1TestResultReady] { phase1TestResultReady =>
-      Logger.info(s"Assessment $cubiksUserId has report [$phase1TestResultReady] ready to download")
-      phase1TestService.markAsReportReadyToDownload(cubiksUserId, phase1TestResultReady).map(_ => Ok)
+    withJsonBody[Phase1TestResultReady] { testResultReady =>
+      Logger.info(s"Assessment $cubiksUserId has report [$testResultReady] ready to download")
+      phase1TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
+        .map(_ => Ok).recover(recoverNotFound)
     }
   }
 
+  private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
+    case e @ CannotFindTestByCubiksId(msg) => {
+      Logger.warn(msg, e)
+      NotFound
+    }
+  }
 }
