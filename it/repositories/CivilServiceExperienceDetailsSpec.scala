@@ -1,28 +1,28 @@
 package repositories
 
 import model.ApplicationStatus._
-import model.Exceptions.{ CannotUpdateFastPassDetails, FastPassDetailsNotFound }
-import model.FastPassDetailsExamples._
+import model.Exceptions.{ CannotUpdateCivilServiceExperienceDetails, CivilServiceExperienceDetailsNotFound }
+import model.CivilServiceExperienceDetailsExamples._
 import reactivemongo.bson._
 import reactivemongo.json._
 import testkit.MongoRepositorySpec
 
-class FastPassDetailsRepositorySpec extends MongoRepositorySpec {
+class CivilServiceExperienceDetailsSpec extends MongoRepositorySpec {
 
   import ImplicitBSONHandlers._
 
   override val collectionName: String = "application"
 
-  def repository = new FastPassDetailsMongoRepository
+  def repository = new CivilServiceExperienceDetailsMongoRepository
 
   "update and find" should {
     "modify and find the fast pass details successfully" in {
-      val fastPassDetails = (for {
+      val civilServiceExperienceDetails = (for {
         _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED))
         _ <- repository.update(AppId, civilServant)
         fpDetails <- repository.find(AppId)
       } yield fpDetails).futureValue
-      fastPassDetails mustBe civilServant
+      civilServiceExperienceDetails mustBe civilServant
     }
 
     "return exception when fast pass details does not exist" in {
@@ -30,7 +30,7 @@ class FastPassDetailsRepositorySpec extends MongoRepositorySpec {
         _ <- repository.update(AppId, civilServant)
         fpDetails <- repository.find(AppId)
       } yield fpDetails).failed.futureValue
-      exception mustBe CannotUpdateFastPassDetails(AppId)
+      exception mustBe CannotUpdateCivilServiceExperienceDetails(AppId)
     }
   }
 
@@ -41,7 +41,7 @@ class FastPassDetailsRepositorySpec extends MongoRepositorySpec {
         _ <- repository.find(AppId)
       } yield ()).failed.futureValue
 
-      exception mustBe FastPassDetailsNotFound(AppId)
+      exception mustBe CivilServiceExperienceDetailsNotFound(AppId)
     }
   }
 

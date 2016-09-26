@@ -19,20 +19,20 @@ package model
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
-object FastPassType extends Enumeration {
+object CivilServiceExperienceType extends Enumeration {
 
-  type FastPassType = Value
+  type CivilServiceExperienceType = Value
 
   val CivilServant, CivilServantViaFastTrack, DiversityInternship = Value
 
-  implicit val fastPassTypeFormat = new Format[FastPassType] {
-    def reads(json: JsValue) = JsSuccess(FastPassType.withName(json.as[String]))
-    def writes(myEnum: FastPassType) = JsString(myEnum.toString)
+  implicit val civilServiceExperienceTypeFormat = new Format[CivilServiceExperienceType] {
+    def reads(json: JsValue) = JsSuccess(CivilServiceExperienceType.withName(json.as[String]))
+    def writes(myEnum: CivilServiceExperienceType) = JsString(myEnum.toString)
   }
 
-  implicit object BSONEnumHandler extends BSONHandler[BSONString, FastPassType] {
-    def read(doc: BSONString) = FastPassType.withName(doc.value)
-    def write(stats: FastPassType) = BSON.write(stats.toString)
+  implicit object BSONEnumHandler extends BSONHandler[BSONString, CivilServiceExperienceType] {
+    def read(doc: BSONString) = CivilServiceExperienceType.withName(doc.value)
+    def write(stats: CivilServiceExperienceType) = BSON.write(stats.toString)
   }
 
 }

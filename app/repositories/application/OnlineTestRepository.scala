@@ -60,7 +60,6 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   extends ReactiveRepository[OnlineTestDetails, BSONObjectID]("application", mongo,
     Commands.Implicits.onlineTestDetailsFormat, ReactiveMongoFormats.objectIdFormats) with OnlineTestRepository with RandomSelection {
 
-
   override def getPhase1TestGroup(applicationId: String): Future[Option[Phase1TestProfile]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     phaseTestProfileByQuery(query)
@@ -162,7 +161,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
-      BSONDocument("fastpass-details.fastPassReceived" -> BSONDocument("$ne" -> true))
+      BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
     ))
 
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))

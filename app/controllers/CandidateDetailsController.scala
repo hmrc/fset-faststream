@@ -45,7 +45,8 @@ trait CandidateDetailsController extends BaseController {
       } recover {
         case e: CannotUpdateContactDetails => BadRequest(s"cannot update contact details for user: ${e.userId}")
         case e: CannotUpdateRecord => BadRequest(s"cannot update personal details record with applicationId: ${e.applicationId}")
-        case e: CannotUpdateFastPassDetails => BadRequest(s"cannot update fast pass details record with applicationId: ${e.applicationId}")
+        case e: CannotUpdateCivilServiceExperienceDetails =>
+          BadRequest(s"cannot update fast pass details record with applicationId: ${e.applicationId}")
       }
     }
   }
@@ -57,7 +58,7 @@ trait CandidateDetailsController extends BaseController {
       case e: ContactDetailsNotFound => NotFound(s"Cannot find contact details for userId: ${e.userId}")
       case e: PersonalDetailsNotFound =>
         NotFound(s"Cannot find personal details for applicationId: ${e.applicationId}")
-      case e: FastPassDetailsNotFound =>
+      case e: CivilServiceExperienceDetailsNotFound =>
         NotFound(s"Cannot find fast pass details for applicationId: ${e.applicationId}")
     }
   }

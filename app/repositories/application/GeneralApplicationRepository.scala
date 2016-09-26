@@ -25,7 +25,7 @@ import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, Ap
 import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
-import model.FastPassType.FastPassType
+import model.CivilServiceExperienceType.CivilServiceExperienceType
 import model.InternshipType.InternshipType
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PersistedObjects.ApplicationForNotification
@@ -244,7 +244,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[String]("applicationStatus").get
-        val fastPassReceived = document.getAs[FastPassDetails]("fastpass-details")
+        val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
         findProgress(applicationId).map { progress =>
           ApplicationResponse(applicationId, applicationStatus, userId, progress, fastPassReceived)
         }
@@ -404,7 +404,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       "userId" -> "1",
       "scheme-preferences.schemes" -> "1",
       "assistance-details" -> "1",
-      "fastpass-details" -> "1",
+      "civil-service-experience-details" -> "1",
       "applicationId" -> "1",
       "progress-status" -> "2"
     )
@@ -424,13 +424,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
     val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview")).map(booleanTranslator)
 
-    val fpDoc = document.getAs[BSONDocument]("fastpass-details")
-    val fastPassType = (fpType: FastPassType) => fpDoc.map(_.getAs[FastPassType]("fastPassType").contains(fpType))
+    val fpDoc = document.getAs[BSONDocument]("civil-service-experience-details")
+    val civilServiceExperienceType = (fpType: CivilServiceExperienceType) => fpDoc.map(
+      _.getAs[CivilServiceExperienceType]("civilServiceExperienceType").contains(fpType)
+    )
     val internshipTypes = (internshipType: InternshipType) =>
       fpDoc.map(_.getAs[List[InternshipType]]("internshipTypes").getOrElse(List.empty[InternshipType]).contains(internshipType))
 
-    val civilServant = fastPassType(FastPassType.CivilServant).map(booleanTranslator)
-    val fastTrack = fastPassType(FastPassType.CivilServantViaFastTrack).map(booleanTranslator)
+    val civilServant = civilServiceExperienceType(CivilServiceExperienceType.CivilServant).map(booleanTranslator)
+    val fastTrack = civilServiceExperienceType(CivilServiceExperienceType.CivilServantViaFastTrack).map(booleanTranslator)
     val edip = internshipTypes(InternshipType.EDIP).map(booleanTranslator)
     val sdipPrevious = internshipTypes(InternshipType.SDIPPreviousYear).map(booleanTranslator)
     val sdip = internshipTypes(InternshipType.SDIPCurrentYear).map(booleanTranslator)

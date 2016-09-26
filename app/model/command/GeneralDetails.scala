@@ -16,7 +16,7 @@
 
 package model.command
 
-import model.{ Address, FastPassDetails }
+import model.{ Address, CivilServiceExperienceDetails }
 import model.Commands.{ PhoneNumber, PostCode }
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
@@ -31,7 +31,7 @@ case class GeneralDetails(firstName: String,
                           postCode: Option[PostCode],
                           country: Option[String],
                           phone: PhoneNumber,
-                          fastPassDetails: FastPassDetails,
+                          civilServiceExperienceDetails: CivilServiceExperienceDetails,
                           updateApplicationStatus: Option[Boolean] = None)
 
 object GeneralDetails {
