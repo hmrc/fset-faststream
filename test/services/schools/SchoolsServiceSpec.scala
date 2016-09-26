@@ -19,61 +19,88 @@ package services.schools
 import model.School
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
+import play.api.test.WithApplication
 import repositories.{ SchoolsCSVRepository, SchoolsRepository }
-import testkit.MockitoSugar
+import testkit.{ MockitoSugar, ShortTimeout }
 
-class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures {
-  val School1 = School("IRN", "542-0059", "Abbey Christian Brothers Grammar School",
-    Some("77a Ashgrove Road"), None, None, Some("Newry"), Some("BT34 2QN"), Some("Grammar"), Some("Voluntary"))
+import scala.concurrent.Future
+
+class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
   val sut = new SchoolsService {
     override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
   }
 
   "Schools Service" should {
-    "return simple 3 letter matches from beginning of school name" in {
+    "return simple 3 letter matches from beginning of school name" in new WithApplication {
       val term = "Abb"
+      val result = sut.getSchools(term).futureValue
 
-      sut.getSchools(term).futureValue mustBe List(School1)
+      expect23SchoolsContains("Abb", result)
     }
 
-    "return simple 3 letter matches from beginning of school name ignoring case" in {
+    "return simple 3 letter matches from beginning of school name ignoring case" in new WithApplication {
       val term = "aBB"
 
-      sut.getSchools(term).futureValue mustBe List(School1)
+      val result = sut.getSchools(term).futureValue
+
+      result.size mustBe 23
+      result.foreach(s => withClue(s"school name: ${s.name}") {
+        s.name.toLowerCase.contains("abb") mustBe true
+      })
     }
 
-    // TODO: Use real CSV to test
-//    "match on middle words" in {
-//      val term = "Grammar"
-//
-//      sut.getSchools(term).futureValue mustBe
-//        List(School("IRN", "542-0059", "Abbey Christian Brothers Grammar School", None, None, None, None, None, None, None),
-//        School("IRN", "341-0209", "Antrim Grammar School", None, None, None, None, None, None, None),
-//        School("IRN", "142-0277", "Aquinas Diocesan Grammar School", None, None, None, None, None, None, None),
-//        School("IRN", "442-0086", "Assumption Grammar School", None, None, None, None, None, None, None),
-//        School("IRN", "442-0015", "Bangor Grammar School", None, None, None, None, None, None, None),
-//        School("IRN", "341-0297", "Cambridge House Grammar School", None, None, None, None, None, None, None),
-//        School("IRN", "341-0098", "Carrickfergus Grammar School", None, None, None, None, None, None, None))
-//    }
+    "match on middle words" in {
+      val school1WithGrammarName = School("IRN", "341-0209", "Antrim Grammar School", None, None, None, None, None, None, None)
+      val school2WithGrammarName = School("IRN", "142-0277", "Aquinas Diocesan Grammar School", None, None, None, None, None, None, None)
+      val schoolWithoutGrammarName = School("IRN", "542-0059", "Abbey Christian Brothers School", None, None, None, None, None, None, None)
 
-    "ignore whitespace in term" in {
+      val sut = new SchoolsService {
+        override val schoolsRepo: SchoolsRepository = new SchoolsRepository {
+          def schools: Future[List[School]] =  Future.successful(List(
+            school1WithGrammarName,
+            schoolWithoutGrammarName,
+            school2WithGrammarName
+          ))
+        }
+      }
+
+      val term = "Grammar"
+
+      sut.getSchools(term).futureValue mustBe
+        List(school1WithGrammarName, school2WithGrammarName)
+    }
+
+    "ignore whitespace in term" in new WithApplication {
       val term = "A b b "
+      val result = sut.getSchools(term).futureValue
 
-      sut.getSchools(term).futureValue mustBe List(School1)
+      expect23SchoolsContains("Abb", result)
     }
 
-    "ignore punctuation in term" in {
+    "ignore punctuation in term" in new WithApplication {
       val term = "-A?(b_@'b,)&"
 
-      sut.getSchools(term).futureValue mustBe List(School1)
+      val result = sut.getSchools(term).futureValue
+
+      expect23SchoolsContains("Abb", result)
     }
 
-    // TODO: Use real CSV to test
-//    "ignore punctuation in school name" in {
-//      val term = "Girls High"
-//
-//      sut.getSchools(term).futureValue mustBe List(School("IRN", "121-0014", "Ashfield Girls' High School", Some("397 Holywood Road"),
-//        Some("Belfast"), Some("BT4 2LY"), Some("Secondary"), Some("Controlled"), None, None))
-//    }
+    "ignore punctuation in school name" in new WithApplication {
+      val term = "Girls High"
+
+      val result = sut.getSchools(term).futureValue
+
+      result.size mustBe 20
+      result.foreach(s => withClue(s"school name: ${s.name}") {
+        s.name.contains("Girls") && s.name.contains("High") mustBe true
+      })
+    }
+  }
+
+  private def expect23SchoolsContains(term: String, actualResult: List[School]) = {
+    actualResult.size mustBe 23
+    actualResult.foreach(s => withClue(s"school name: ${s.name}") {
+      s.name.contains(term) mustBe true
+    })
   }
 }
