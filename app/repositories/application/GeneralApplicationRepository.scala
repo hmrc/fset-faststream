@@ -17,6 +17,7 @@
 package repositories.application
 
 import java.util.UUID
+import java.util.regex.Pattern
 
 import model.ApplicationStatusOrder._
 import model.ApplicationStatuses._
@@ -35,7 +36,7 @@ import model.report.CandidateProgressReport
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Logger
-import play.api.libs.json.{Json, Format, JsNumber, JsObject}
+import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
@@ -262,7 +263,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     userIds: List[String]
   ): Future[List[Candidate]] = {
 
-    def matchIfSome(value: Option[String]) = value.map(v => BSONRegex("^" + v + "$", "i"))
+    def matchIfSome(value: Option[String]) = value.map(v => BSONRegex("^" + Pattern.quote(v) + "$", "i"))
 
     val innerQuery = BSONArray(
       BSONDocument("$or" -> BSONArray(

@@ -102,11 +102,35 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       applicationResponse.head.applicationId mustBe Some("appId123")
     }
 
+    "find by first/preferred name with special regex character" in {
+      createApplicationWithAllFields(userId = "userId", appId = "appId123", frameworkId = "FastStream-2016",
+        firstName = Some("Char+lie.+x123"))
+
+      val applicationResponse = repository.findByCriteria(
+        Some("Char+lie.+x123"), None, None
+      ).futureValue
+
+      applicationResponse.size mustBe 1
+      applicationResponse.head.applicationId mustBe Some("appId123")
+    }
+
     "find by lastname" in {
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
 
       val applicationResponse = repository.findByCriteria(
         None, Some(testCandidate("lastName")), None
+      ).futureValue
+
+      applicationResponse.size mustBe 1
+      applicationResponse.head.applicationId mustBe Some("appId123")
+    }
+
+    "find by lastname with special regex character" in {
+      createApplicationWithAllFields(userId = "userId", appId = "appId123", frameworkId = "FastStream-2016",
+        lastName = Some("Barr+y.+x123"))
+
+      val applicationResponse = repository.findByCriteria(
+        None, Some("Barr+y.+x123"), None
       ).futureValue
 
       applicationResponse.size mustBe 1
@@ -165,9 +189,11 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "dateOfBirth" -> "1986-05-01"
   )
 
+  // scalastyle:off parameter.number
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
                                      appStatus: String = "", hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
-                                     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false) = {
+                                     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
+                                     firstName: Option[String] = None, preferredName: Option[String] = None) = {
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -177,9 +203,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         "schemes" -> BSONArray(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService)
       ),
       "personal-details" -> BSONDocument(
-        "firstName" -> s"${testCandidate("firstName")}",
-        "lastName" -> s"${testCandidate("lastName")}",
-        "preferredName" -> s"${testCandidate("preferredName")}",
+        "firstName" -> firstName.getOrElse(s"${testCandidate("firstName")}"),
+        "lastName" -> lastName.getOrElse(s"${testCandidate("lastName")}"),
+        "preferredName" -> preferredName.getOrElse(s"${testCandidate("preferredName")}"),
         "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"
       ),
       "fastpass-details" -> BSONDocument(
@@ -201,6 +227,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       )
     )).futureValue
   }
+  // scalastyle:on
 
   def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
     repository.collection.insert(BSONDocument(
