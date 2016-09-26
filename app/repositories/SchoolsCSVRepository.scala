@@ -58,7 +58,7 @@ object SchoolsCSVRepository extends SchoolsRepository {
       require(sanitized.length == 3, "Line cannot have more than one value with quatation")
       require(!sanitized(1).contains("|"), "| is forbidden character")
 
-      val parsedLine = sanitized(0) + "\"" + sanitized(1).replaceAll(",", "|") + "\"" + sanitized(2)
+      val parsedLine = sanitized(0) + sanitized(1).replaceAll(",", "|") + sanitized(2)
       val fixedColumns = parsedLine.split(",")
       require(fixedColumns.length == ExpectedNumberOfHeaders,
         "Line with commas as values need to have space after each coma which is not a delimiter")
