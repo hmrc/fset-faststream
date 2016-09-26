@@ -20,7 +20,7 @@ import _root_.forms.GeneralDetailsForm
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.FastPassForm._
-import connectors.exchange.FastPassDetails
+import connectors.exchange.CivilServiceExperienceDetails
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.ApplicationData.ApplicationStatus._
@@ -68,7 +68,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
         gd.postCode,
         gd.country,
         gd.phone,
-        gd.fastPassDetails
+        gd.civilServiceExperienceDetails
       ))
       Ok(views.html.application.generalDetails(form, continueToTheNextStep))
 
@@ -84,7 +84,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
           postCode = None,
           country = None,
           phone = None,
-          fastPassDetails = EmptyFastPassDetails
+          civilServiceExperienceDetails = EmptyCivilServiceExperienceDetails
         ))
         Ok(views.html.application.generalDetails(formFromUser, continueToTheNextStep))
     }
@@ -98,7 +98,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
   def submitGeneralDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
       submit(GeneralDetailsForm.form(LocalDate.now, ignoreFastPassValidations = true), RedirectToTheDashboard,
-        Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")), user.application.fastPassDetails)
+        Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")), user.application.civilServiceExperienceDetails)
   }
 
   private def continuetoTheNextStep(onSuccess: OnSuccess) = onSuccess match {
@@ -107,7 +107,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
   }
 
   private def submit(generalDetailsForm: Form[GeneralDetailsForm.Data], onSuccess: OnSuccess, redirectOnSuccess: Result,
-                     overrideFastPassDetails: Option[FastPassDetails] = None)
+                     overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None)
                     (implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
 
     val handleFormWithErrors = (errorForm:Form[GeneralDetailsForm.Data]) => {
@@ -116,13 +116,14 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
       )
     }
     val handleValidForm = (form: GeneralDetailsForm.Data) => {
-      val fastPassDetails: FastPassDetails = overrideFastPassDetails.getOrElse(form.fastPassDetails)
+      val civilServiceExperienceDetails: CivilServiceExperienceDetails =
+        overrideCivilServiceExperienceDetails.getOrElse(form.civilServiceExperienceDetails)
       for {
         _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
-          toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideFastPassDetails))
+          toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideCivilServiceExperienceDetails))
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
         redirect <- updateProgress(data => {
-          val applicationCopy = data.application.map(_.copy(fastPassDetails = Some(fastPassDetails)))
+          val applicationCopy = data.application.map(_.copy(civilServiceExperienceDetails = Some(civilServiceExperienceDetails)))
           data.copy(user = cachedData.user.copy(firstName = form.firstName, lastName = form.lastName,
             preferredName = Some(form.preferredName)), application =
             if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)
@@ -139,11 +140,11 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
 trait GeneralDetailsToExchangeConverter {
 
   def toExchange(generalDetails: GeneralDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean],
-                 fastPassDetails: Option[FastPassDetails] = None) = {
+                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None) = {
     val gd = generalDetails.insideUk match {
       case true => generalDetails.copy(country = None)
       case false => generalDetails.copy(postCode = None)
     }
-    gd.toExchange(email, updateApplicationStatus, fastPassDetails)
+    gd.toExchange(email, updateApplicationStatus, civilServiceExperienceDetails)
   }
 }

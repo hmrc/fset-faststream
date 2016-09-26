@@ -4,11 +4,11 @@
 @import _root_.forms.FastPassForm
 @import views.html.widgets.checkboxGroupWithTogglePanels
 
-<div id="fastPassDetails_fastPassType_DiversityInternship-panel" class="toggle-content" aria-hidden="true">
+<div id="civilServiceExperienceDetails_civilServiceExperienceType_DiversityInternship-panel" class="toggle-content" aria-hidden="true">
     <h3 class="heading-medium">Summer/Early Diversity Internship Programme</h3>
     <fieldset>
-        @checkboxGroupWithTogglePanels(form("fastPassDetails.internshipTypes"), FastPassForm.InternshipTypes,
-        'id -> "fastPassDetails.internshipTypes",
+        @checkboxGroupWithTogglePanels(form("civilServiceExperienceDetails.internshipTypes"), FastPassForm.InternshipTypes,
+        'id -> "civilServiceExperienceDetails.internshipTypes",
         '_label -> "Which internship programme did you do?") {
             @fastPassCertificatePanel(form)
         }

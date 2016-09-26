@@ -31,7 +31,7 @@ class PreviewApplicationController(applicationClient: ApplicationClient, schemeC
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
-      val isCivilServant = user.application.fastPassDetails.exists(_.isCivilServant)
+      val isCivilServant = user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
       val personalDetailsFut = applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
       val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
       val partnerGraduateProgrammesFut = isCivilServant match {

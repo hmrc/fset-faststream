@@ -38,7 +38,7 @@ class GeneralDetailsToExchangeConverterSpec extends PlaySpec {
         postCode = ValidUKAddressForm.postCode,
         country = None,
         ValidUKAddressForm.phone,
-        ValidUKAddressForm.fastPassDetails,
+        ValidUKAddressForm.civilServiceExperienceDetails,
         Some(true)
       )
     }
@@ -57,7 +57,7 @@ class GeneralDetailsToExchangeConverterSpec extends PlaySpec {
         postCode = None,
         country = ValidNonUKAddressForm.country,
         ValidNonUKAddressForm.phone,
-        ValidNonUKAddressForm.fastPassDetails,
+        ValidNonUKAddressForm.civilServiceExperienceDetails,
         Some(true)
       )
     }

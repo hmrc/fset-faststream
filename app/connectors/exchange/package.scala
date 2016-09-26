@@ -45,14 +45,15 @@ package object exchange {
                             postCode: Option[PostCode],
                             country: Option[String],
                             phone: Option[PhoneNumber],
-                            fastPassDetails: FastPassDetails,
+                            civilServiceExperienceDetails: CivilServiceExperienceDetails,
                             updateApplicationStatus: Option[Boolean]
                                    )
 
   case class AddReferral(userId: UniqueIdentifier, media: String)
 
   case class ApplicationResponse(applicationId: UniqueIdentifier, applicationStatus: String,
-                                 userId: UniqueIdentifier, progressResponse: ProgressResponse, fastPassDetails: Option[FastPassDetails])
+                                 userId: UniqueIdentifier, progressResponse: ProgressResponse,
+                                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails])
 
   case class PersonalDetailsAdded(applicationId: UniqueIdentifier, userId: String)
 

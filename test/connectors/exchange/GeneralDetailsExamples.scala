@@ -21,5 +21,5 @@ import org.joda.time.LocalDate
 
 object GeneralDetailsExamples {
   val FullDetails = GeneralDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), None, Some("1234567"), FastPassDetails(false), None)
+    FullAddress, Some("postCode"), None, Some("1234567"), CivilServiceExperienceDetails(false), None)
 }

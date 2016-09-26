@@ -21,7 +21,7 @@ import config.CSRHttp
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
 import controllers.forms.GeneralDetailsFormExamples._
-import connectors.exchange.{ FastPassDetailsExamples, GeneralDetailsExamples }
+import connectors.exchange.{ CivilServiceExperienceDetailsExamples, GeneralDetailsExamples }
 import models.ApplicationData.ApplicationStatus
 import models.{ CachedData, ProgressResponseExamples }
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -56,7 +56,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
-      content must include(s"""<input name="fastPassDetails.applicable" type="radio" id="fastPassDetails_applicable-yes"""")
+      content must include
+      (s"""<input name="civilServiceExperienceDetails.applicable" type="radio" id="civilServiceExperienceDetails_applicable-yes"""")
       content must include(routes.PersonalDetailsController.submitGeneralDetailsAndContinue().url)
     }
 
@@ -69,7 +70,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${GeneralDetailsExamples.FullDetails.preferredName}"""")
-      content must include(s"""<input name="fastPassDetails.applicable" type="radio" id="fastPassDetails_applicable-yes"""")
+      content must include
+      (s"""<input name="civilServiceExperienceDetails.applicable" type="radio" id="civilServiceExperienceDetails_applicable-yes"""")
     }
   }
 
@@ -95,7 +97,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(ProgressResponseExamples.InProgress))
       val Application = currentCandidateWithApp.application
         .copy(progress = ProgressResponseExamples.InProgress, applicationStatus = ApplicationStatus.IN_PROGRESS,
-          fastPassDetails = Some(FastPassDetailsExamples.CivilServantFastPass))
+          civilServiceExperienceDetails = Some(CivilServiceExperienceDetailsExamples.CivilServantExperience))
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
       when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),

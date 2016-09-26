@@ -17,7 +17,7 @@
 package models
 
 import connectors.exchange.ApplicationResponse
-import connectors.exchange.FastPassDetails
+import connectors.exchange.CivilServiceExperienceDetails
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import play.api.libs.json._
 
@@ -27,7 +27,7 @@ case class ApplicationData(applicationId: UniqueIdentifier,
                            userId: UniqueIdentifier,
                            applicationStatus: ApplicationStatus,
                            progress: Progress,
-                           fastPassDetails: Option[FastPassDetails]
+                           civilServiceExperienceDetails: Option[CivilServiceExperienceDetails]
                           )
 
 object ApplicationData {
@@ -57,7 +57,7 @@ object ApplicationData {
 
   implicit def fromAppRespToAppData(resp: ApplicationResponse): ApplicationData =
     new ApplicationData(resp.applicationId, resp.userId, ApplicationStatus.withName(resp.applicationStatus),
-      resp.progressResponse, resp.fastPassDetails)
+      resp.progressResponse, resp.civilServiceExperienceDetails)
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
 
