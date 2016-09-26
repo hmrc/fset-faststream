@@ -25,27 +25,27 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
   "the education form" should {
     "be valid when all values are correct" in new Fixture {
       val (data, form) = FullValid
-      form.get must be(data)
+      form.get mustBe data
     }
 
     "be valid when all possible values are <<I don't know/ prefer not to say>>" in new Fixture {
       val (data, form) = AllPreferNotToSayValid
-      form.get must be(data)
+      form.get mustBe data
     }
 
     "be valid when not lived in UK and have degree" in new Fixture {
       val (data, form) = NoUkAndHaveDegreeValid
-      form.get must be(data)
+      form.get mustBe data
     }
 
     "be valid when live in UK and no degree" in new Fixture {
       val (data, form) = LiveInUKAndNoDegreeValid
-      form.get must be(data)
+      form.get mustBe data
     }
 
     "be valid when not lived in UK and no degree" in new Fixture {
       val (data, form) = NoUkLivedAndNoDegreeValid
-      form.get must be(data)
+      form.get mustBe data
     }
 
     "fail when all values are correct but not lived in UK" in new Fixture {
@@ -86,92 +86,92 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
 
     "transform form when form is full valid (has degree and lived in uk) to a question list" in new Fixture {
       val questionList = FullValidForm.exchange.questions
-      questionList.size must be(8)
-      questionList(0).answer.answer must be(Some("Yes"))
-      questionList(0).answer.unknown must be(None)
-      questionList(1).answer.answer must be(Some("AAA 111"))
-      questionList(1).answer.unknown must be(None)
-      questionList(2).answer.answer must be(Some("my school at 15"))
-      questionList(2).answer.unknown must be(None)
-      questionList(3).answer.answer must be(Some("my school at 17"))
-      questionList(3).answer.unknown must be(None)
-      questionList(4).answer.answer must be(Some("No"))
-      questionList(4).answer.unknown must be(None)
-      questionList(5).answer.answer must be(Some("Yes"))
-      questionList(5).answer.unknown must be(None)
-      questionList(6).answer.answer must be(Some("1"))
-      questionList(6).answer.unknown must be(None)
-      questionList(7).answer.answer must be(Some("(3)"))
-      questionList(7).answer.unknown must be(None)
+      questionList.size mustBe 8
+      questionList(0).answer.answer mustBe Some("Yes")
+      questionList(0).answer.unknown mustBe None
+      questionList(1).answer.answer mustBe Some("AAA 111")
+      questionList(1).answer.unknown mustBe None
+      questionList(2).answer.answer mustBe Some("my school at 15")
+      questionList(2).answer.unknown mustBe None
+      questionList(3).answer.answer mustBe Some("my school at 17")
+      questionList(3).answer.unknown mustBe None
+      questionList(4).answer.answer mustBe Some("No")
+      questionList(4).answer.unknown mustBe None
+      questionList(5).answer.answer mustBe Some("Yes")
+      questionList(5).answer.unknown mustBe None
+      questionList(6).answer.answer mustBe Some("1")
+      questionList(6).answer.unknown mustBe None
+      questionList(7).answer.answer mustBe Some("(3)")
+      questionList(7).answer.unknown mustBe None
     }
 
     "transform form when has degree with all possible fields with prefer not to say" in new Fixture {
       val questionList = AllPreferNotToSayValidForm.exchange.questions
-      questionList.size must be(8)
-      questionList(0).answer.answer must be(Some("Yes"))
-      questionList(0).answer.unknown must be(None)
-      questionList(1).answer.answer must be(None)
-      questionList(1).answer.unknown must be(Some(true))
-      questionList(2).answer.answer must be(None)
-      questionList(2).answer.unknown must be(Some(true))
-      questionList(3).answer.answer must be(None)
-      questionList(3).answer.unknown must be(Some(true))
-      questionList(4).answer.answer must be(None)
-      questionList(4).answer.unknown must be(Some(true))
-      questionList(5).answer.answer must be(Some("Yes"))
-      questionList(5).answer.unknown must be(None)
-      questionList(6).answer.answer must be(None)
-      questionList(6).answer.unknown must be(Some(true))
-      questionList(7).answer.answer must be(None)
-      questionList(7).answer.unknown must be(Some(true))
+      questionList.size mustBe 8
+      questionList(0).answer.answer mustBe Some("Yes")
+      questionList(0).answer.unknown mustBe None
+      questionList(1).answer.answer mustBe None
+      questionList(1).answer.unknown mustBe Some(true)
+      questionList(2).answer.answer mustBe None
+      questionList(2).answer.unknown mustBe Some(true)
+      questionList(3).answer.answer mustBe None
+      questionList(3).answer.unknown mustBe Some(true)
+      questionList(4).answer.answer mustBe None
+      questionList(4).answer.unknown mustBe Some(true)
+      questionList(5).answer.answer mustBe Some("Yes")
+      questionList(5).answer.unknown mustBe None
+      questionList(6).answer.answer mustBe None
+      questionList(6).answer.unknown mustBe Some(true)
+      questionList(7).answer.answer mustBe None
+      questionList(7).answer.unknown mustBe Some(true)
     }
 
     "transform form with no lived in uk and has not degree with valid fields to a question list" in new Fixture {
       val questionList = NotUkLivedAndNoDegreeValidForm.exchange.questions
-      questionList.size must be(2)
-      questionList(0).answer.answer must be(Some("No"))
-      questionList(0).answer.unknown must be(None)
-      questionList(1).answer.answer must be(Some("No"))
-      questionList(1).answer.unknown must be(None)
+      questionList.size mustBe 2
+      questionList(0).answer.answer mustBe Some("No")
+      questionList(0).answer.unknown mustBe None
+      questionList(1).answer.answer mustBe Some("No")
+      questionList(1).answer.unknown mustBe None
     }
 
     "transform form when has degree and no uk lived with all valid fields to a question list" in new Fixture {
       val questionList = NotUkLivedAndHaveDegreeValidForm.exchange.questions
-      questionList.size must be(4)
-      questionList(0).answer.answer must be(Some("No"))
-      questionList(0).answer.unknown must be(None)
-      questionList(1).answer.answer must be(Some("Yes"))
-      questionList(1).answer.unknown must be(None)
-      questionList(2).answer.answer must be(Some("1"))
-      questionList(2).answer.unknown must be(None)
-      questionList(3).answer.answer must be(Some("(3)"))
-      questionList(3).answer.unknown must be(None)
+      questionList.size mustBe 4
+      questionList(0).answer.answer mustBe Some("No")
+      questionList(0).answer.unknown mustBe None
+      questionList(1).answer.answer mustBe Some("Yes")
+      questionList(1).answer.unknown mustBe None
+      questionList(2).answer.answer mustBe Some("1")
+      questionList(2).answer.unknown mustBe None
+      questionList(3).answer.answer mustBe Some("(3)")
+      questionList(3).answer.unknown mustBe None
     }
 
     "transform form when no degree but lived in UK with all valid fields to a question list" in new Fixture {
       val questionList = LivedInUKAndNoDegreeValidForm.exchange.questions
-      questionList.size must be(6)
-      questionList(0).answer.answer must be(Some("Yes"))
-      questionList(0).answer.unknown must be(None)
-      questionList(1).answer.answer must be(Some("AAA 111"))
-      questionList(1).answer.unknown must be(None)
-      questionList(2).answer.answer must be(Some("my school at 15"))
-      questionList(2).answer.unknown must be(None)
-      questionList(3).answer.answer must be(Some("my school at 17"))
-      questionList(3).answer.unknown must be(None)
-      questionList(4).answer.answer must be(Some("No"))
-      questionList(4).answer.unknown must be(None)
-      questionList(5).answer.answer must be(Some("No"))
-      questionList(5).answer.unknown must be(None)
+      questionList.size mustBe 6
+      questionList(0).answer.answer mustBe Some("Yes")
+      questionList(0).answer.unknown mustBe None
+      questionList(1).answer.answer mustBe Some("AAA 111")
+      questionList(1).answer.unknown mustBe None
+      questionList(2).answer.answer mustBe Some("my school at 15")
+      questionList(2).answer.unknown mustBe None
+      questionList(3).answer.answer mustBe Some("my school at 17")
+      questionList(3).answer.unknown mustBe None
+      questionList(4).answer.answer mustBe Some("No")
+      questionList(4).answer.unknown mustBe None
+      questionList(5).answer.answer mustBe Some("No")
+      questionList(5).answer.unknown mustBe None
     }
 
     "sanitize data should respect values when liveInUKBetween14and18 is Yes and haveDegree is Yes" in new Fixture {
-      EducationQuestionnaireFormExamples.FullValidForm.sanitizeData must be (EducationQuestionnaireFormExamples.FullValidForm)
+      EducationQuestionnaireFormExamples.FullValidForm.sanitizeData mustBe EducationQuestionnaireFormExamples.FullValidForm
     }
 
     "sanitize data should sanitize values when liveInUKBetween14and18 is No and haveDegree is No" in new Fixture {
-      EducationQuestionnaireFormExamples.NotUkLivedAndNoHaveDegreeFullInvalidForm.sanitizeData must be
-      (EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm)
+      EducationQuestionnaireFormExamples.NotUkLivedAndNoHaveDegreeFullInvalidForm.sanitizeData mustBe
+        EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm
     }
   }
 
