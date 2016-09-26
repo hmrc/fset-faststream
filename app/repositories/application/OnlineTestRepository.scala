@@ -21,10 +21,10 @@ import factories.DateTimeFactory
 import model.Exceptions.{ CannotFindTestByCubiksId, UnexpectedException }
 import org.joda.time.DateTime
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
-import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest }
+import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.persisted.Phase1TestProfileWithAppId
-import model.{ ApplicationStatus, Commands }
+import model.{ ApplicationStatus, Commands, ReminderNotice }
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson._
@@ -45,6 +45,8 @@ trait OnlineTestRepository {
   def updateGroupExpiryTime(applicationId: String, newExpirationDate: DateTime): Future[Unit]
 
   def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
+
+  def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 
   def nextExpiringApplication: Future[Option[ExpiringOnlineTest]]
 
@@ -159,6 +161,24 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     selectRandom(query).map(_.map(bsonDocToExpiringOnlineTest))
   }
 
+  def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument(
+        "applicationStatus" -> ApplicationStatus.PHASE1_TESTS
+      ),
+      BSONDocument(
+        "testGroups.PHASE1.expirationDate" -> BSONDocument(
+          "$lte" -> dateTime.nowLocalTimeZone.plusHours(reminder.hoursBeforeReminder)) // Serialises to UTC.
+      ),
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument(s"progress-status.$PHASE1_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+        BSONDocument(s"progress-status.$PHASE1_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
+        BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
+      ))
+    ))
+    selectRandom(query).map(_.map(bsonDocToNotificationExpiringOnlineTest))
+  }
+
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
@@ -203,6 +223,17 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
     ExpiringOnlineTest(applicationId, userId, preferredName)
+  }
+
+  private def bsonDocToNotificationExpiringOnlineTest(doc: BSONDocument) = {
+    val applicationId = doc.getAs[String]("applicationId").get
+    val userId = doc.getAs[String]("userId").get
+    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
+    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
+    val testGroupsRoot = doc.getAs[BSONDocument]("testGroups").get
+    val PHASE1Root = testGroupsRoot.getAs[BSONDocument]("PHASE1").get
+    val expiryDate = PHASE1Root.getAs[DateTime]("expirationDate").get
+    NotificationExpiringOnlineTest(applicationId, userId, preferredName, expiryDate)
   }
 
   private def bsonDocToApplicationForNotification(doc: BSONDocument) = {

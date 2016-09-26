@@ -23,6 +23,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration.TimeUnit
 
 object CSREmailClient extends CSREmailClient
 
@@ -51,6 +52,20 @@ trait CSREmailClient extends EmailClient {
       Map("name" -> name)
     )
 
+  override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
+                                        timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+
+    sendEmail(
+      to,
+      "fset_faststream_app_online_test_reminder",
+      Map("name" -> name,
+          "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
+          "timeUnit" -> timeUnit.toString.toLowerCase,
+          "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeftInHours)
+      )
+    )
+  }
+
   override def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier) =
     sendEmail(
       to,
@@ -71,6 +86,7 @@ trait CSREmailClient extends EmailClient {
         "confirmByDate" -> EmailDateFormatter.toDate(confirmByDate)
       )
     )
+
   override def sendReminderToConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime,
     confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(
@@ -98,12 +114,15 @@ trait CSREmailClient extends EmailClient {
       Map("name" -> name)
     )
   }
+
 }
 
 trait EmailClient extends WSHttp {
   def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
   def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
   def sendOnlineTestExpired(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
+  def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
+    timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
   def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
   def sendConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime,
     confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit]
@@ -115,6 +134,8 @@ trait EmailClient extends WSHttp {
 
 object EmailDateFormatter {
 
+  import scala.concurrent.duration.DAYS
+
   def toDate(date: LocalDate): String = date.toString("d MMMM yyyy")
 
   def toExpiryTime(dateTime: DateTime): String = {
@@ -125,5 +146,10 @@ object EmailDateFormatter {
   def toConfirmTime(dateTime: DateTime): String = {
     dateTime.toString("d MMMM yyyy, h:mma")
       .replace("AM", "am").replace("PM", "pm") // Joda time has no easy way to change the case of AM/PM
+  }
+
+  def convertToHoursOrDays(timeUnit: TimeUnit, timeLeftInHours: Int): String = {
+    if(timeUnit == DAYS) { (timeLeftInHours / 24).toString }
+    else { timeLeftInHours.toString }
   }
 }
