@@ -35,31 +35,41 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
   val Withdrawer = "Candidate"
 
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
-    val application = cachedData.application.get
-    val dashboard = for {
-      phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
-      allocationDetails <- applicationClient.getAllocationDetails(application.applicationId)
-      // TODO Work out a better way to invalidate the cache across the site
-      app = CachedDataWithApp(cachedData.user, application)
-      updatedData <- refreshCachedUser()(app, hc, request)
-    } yield {
-      val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)))
-      Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))
-    }
+    cachedData.application.map { application =>
+      val dashboard = for {
+        phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
+        allocationDetails <- applicationClient.getAllocationDetails(application.applicationId)
+        // TODO Work out a better way to invalidate the cache across the site
+        app = CachedDataWithApp(cachedData.user, application)
+        updatedData <- refreshCachedUser()(app, hc, request)
+      } yield {
+        val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)))
+        Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))
+      }
 
-    dashboard recover {
-      case e: OnlineTestNotFound =>
-        val applicationSubmitted = !cachedData.application.forall { app =>
-          app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
-        }
-        val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled || applicationSubmitted
+      dashboard recover {
+        case e: OnlineTestNotFound =>
+          val applicationSubmitted = !cachedData.application.forall { app =>
+            app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
+          }
+          val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled || applicationSubmitted
 
-        if (isDashboardEnabled) {
-          val dashboardPage = DashboardPage(cachedData, None, None)
-          Ok(views.html.home.dashboard(cachedData, dashboardPage, None))
-        } else {
-          Ok(views.html.home.submit_disabled(cachedData))
-        }
+          if (isDashboardEnabled) {
+            val dashboardPage = DashboardPage(cachedData, None, None)
+            Ok(views.html.home.dashboard(cachedData, dashboardPage, None))
+          } else {
+            Ok(views.html.home.submit_disabled(cachedData))
+          }
+      }
+    }.getOrElse {
+      val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled
+
+      if (isDashboardEnabled) {
+        val dashboardPage = DashboardPage(cachedData, None, None)
+        Future.successful(Ok(views.html.home.dashboard(cachedData, dashboardPage, None)))
+      } else {
+        Future.successful(Ok(views.html.home.submit_disabled(cachedData)))
+      }
     }
   }
 
