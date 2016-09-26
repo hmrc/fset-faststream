@@ -26,14 +26,15 @@ import testkit.{ MockitoSugar, ShortTimeout }
 import scala.concurrent.Future
 
 class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
-  val sut = new SchoolsService {
+  val service = new SchoolsService {
     override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
+    override val MaxNumberOfSchools = Integer.MAX_VALUE
   }
 
   "Schools Service" should {
     "return simple 3 letter matches from beginning of school name" in new WithApplication {
       val term = "Abb"
-      val result = sut.getSchools(term).futureValue
+      val result = service.getSchools(term).futureValue
 
       expect23SchoolsContains("Abb", result)
     }
@@ -41,7 +42,7 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
     "return simple 3 letter matches from beginning of school name ignoring case" in new WithApplication {
       val term = "aBB"
 
-      val result = sut.getSchools(term).futureValue
+      val result = service.getSchools(term).futureValue
 
       result.size mustBe 23
       result.foreach(s => withClue(s"school name: ${s.name}") {
@@ -54,7 +55,7 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
       val school2WithGrammarName = School("IRN", "142-0277", "Aquinas Diocesan Grammar School", None, None, None, None, None, None, None)
       val schoolWithoutGrammarName = School("IRN", "542-0059", "Abbey Christian Brothers School", None, None, None, None, None, None, None)
 
-      val sut = new SchoolsService {
+      val service = new SchoolsService {
         override val schoolsRepo: SchoolsRepository = new SchoolsRepository {
           def schools: Future[List[School]] =  Future.successful(List(
             school1WithGrammarName,
@@ -66,13 +67,13 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
 
       val term = "Grammar"
 
-      sut.getSchools(term).futureValue mustBe
+      service.getSchools(term).futureValue mustBe
         List(school1WithGrammarName, school2WithGrammarName)
     }
 
     "ignore whitespace in term" in new WithApplication {
       val term = "A b b "
-      val result = sut.getSchools(term).futureValue
+      val result = service.getSchools(term).futureValue
 
       expect23SchoolsContains("Abb", result)
     }
@@ -80,7 +81,7 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
     "ignore punctuation in term" in new WithApplication {
       val term = "-A?(b_@'b,)&"
 
-      val result = sut.getSchools(term).futureValue
+      val result = service.getSchools(term).futureValue
 
       expect23SchoolsContains("Abb", result)
     }
@@ -88,12 +89,39 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
     "ignore punctuation in school name" in new WithApplication {
       val term = "Girls High"
 
-      val result = sut.getSchools(term).futureValue
+      val result = service.getSchools(term).futureValue
 
       result.size mustBe 20
       result.foreach(s => withClue(s"school name: ${s.name}") {
         s.name.contains("Girls") && s.name.contains("High") mustBe true
       })
+    }
+
+    "should limit number of results to 16" in new WithApplication {
+      val service = new SchoolsService {
+        override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
+      }
+      val term = "aBB"
+      val result = service.getSchools(term).futureValue
+
+      result.size mustBe 16
+      result.foreach(s => withClue(s"school name: ${s.name}") {
+        s.name.toLowerCase.contains("abb") mustBe true
+      })
+    }
+
+    "should return less than 16 if the criteria narrows down the result" in new WithApplication {
+      val service = new SchoolsService {
+        override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
+      }
+      val term = "Abbey Community"
+      val result = service.getSchools(term).futureValue
+
+      result.size mustBe 1
+      result.foreach(s => withClue(s"school name: ${s.name}") {
+        s.name.contains("Abbey Community") mustBe true
+      })
+
     }
   }
 

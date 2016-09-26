@@ -16,9 +16,9 @@
 
 package services.schools
 
+import model.School
 import repositories._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object SchoolsService extends SchoolsService{
@@ -26,6 +26,7 @@ object SchoolsService extends SchoolsService{
 }
 
 trait SchoolsService {
+  val MaxNumberOfSchools = 16
   val schoolsRepo : SchoolsRepository
 
   def getSchools(term: String) = {
@@ -34,7 +35,7 @@ trait SchoolsService {
       allSchools <- schoolsRepo.schools
     } yield {
       val sanitizedTerm = sanitize(term)
-      allSchools.filter(s => sanitize(s.name).contains(sanitizedTerm))
+      applyLimit(allSchools.filter(s => sanitize(s.name).contains(sanitizedTerm)))
     }
   }
 
@@ -43,4 +44,6 @@ trait SchoolsService {
         .replaceAll("""\s*""","")
         .toLowerCase()
   }
+
+  private def applyLimit(allSchools: List[School]) = allSchools.take(MaxNumberOfSchools)
 }
