@@ -17,18 +17,18 @@
 package model
 
 import model.InternshipType.InternshipType
-import model.FastPassType.FastPassType
+import model.CivilServiceExperienceType.CivilServiceExperienceType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 
-case class FastPassDetails(applicable:Boolean,
-                           fastPassType:Option[FastPassType] = None,
-                           internshipTypes:Option[Seq[InternshipType]] = None,
-                           fastPassReceived:Option[Boolean] = None,
-                           certificateNumber:Option[String] = None)
+case class CivilServiceExperienceDetails(applicable:Boolean,
+                                         civilServiceExperienceType:Option[CivilServiceExperienceType] = None,
+                                         internshipTypes:Option[Seq[InternshipType]] = None,
+                                         fastPassReceived:Option[Boolean] = None,
+                                         certificateNumber:Option[String] = None)
 
-object FastPassDetails {
-  implicit val fastPassDetailsFormat = Json.format[FastPassDetails]
-  implicit val fastPassDetailsHandler = Macros.handler[FastPassDetails]
+object CivilServiceExperienceDetails {
+  implicit val civilServiceExperienceDetailsFormat = Json.format[CivilServiceExperienceDetails]
+  implicit val civilServiceExperienceDetailsHandler = Macros.handler[CivilServiceExperienceDetails]
 }

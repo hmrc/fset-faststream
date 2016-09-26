@@ -73,7 +73,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       applicationResponse.userId mustBe userId
       applicationResponse.applicationId mustBe appId
-      applicationResponse.fastPassDetails.get mustBe FastPassDetails(applicable = true, Some(FastPassType.CivilServant),
+      applicationResponse.civilServiceExperienceDetails.get mustBe CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
         Some(List(InternshipType.SDIPCurrentYear, InternshipType.EDIP)), fastPassReceived = Some(true),
         certificateNumber = Some("1234567"))
     }
@@ -208,11 +208,11 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         "preferredName" -> preferredName.getOrElse(s"${testCandidate("preferredName")}"),
         "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"
       ),
-      "fastpass-details" -> BSONDocument(
+      "civil-service-experience-details" -> BSONDocument(
         "applicable" -> true,
         "fastPassReceived" -> true,
         "certificateNumber" -> "1234567",
-        "fastPassType" -> FastPassType.CivilServant,
+        "civilServiceExperienceType" -> CivilServiceExperienceType.CivilServant,
         "internshipTypes" -> BSONArray(InternshipType.SDIPCurrentYear, InternshipType.EDIP)
       ),
       "assistance-details" -> BSONDocument(

@@ -30,14 +30,14 @@ import scala.concurrent.Future
 object CandidateDetailsService extends CandidateDetailsService {
   val pdRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
-  val fpdRepository = fastPassDetailsRepository
+  val fpdRepository = civilServiceExperienceDetailsRepository
   val auditService = AuditService
 }
 
 trait CandidateDetailsService {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
-  val fpdRepository: FastPassDetailsRepository
+  val fpdRepository: CivilServiceExperienceDetailsRepository
   val auditService: AuditService
 
   def update(applicationId: String, userId: String, candidateDetails: GeneralDetails): Future[Unit] = {
@@ -53,27 +53,27 @@ trait CandidateDetailsService {
     }
 
     val contactDetailsFut = cdRepository.update(userId, contactDetails)
-    val fastPassDetailsFut = fpdRepository.update(applicationId, candidateDetails.fastPassDetails)
+    val civilServiceExperienceDetailsFut = fpdRepository.update(applicationId, candidateDetails.civilServiceExperienceDetails)
 
     for {
       _ <- updatePersonalDetailsFut
       _ <- contactDetailsFut
-      _ <- fastPassDetailsFut
+      _ <- civilServiceExperienceDetailsFut
     } yield {}
   }
 
   def find(applicationId: String, userId: String): Future[GeneralDetails] = {
     val personalDetailsFut = pdRepository.find(applicationId)
     val contactDetailsFut = cdRepository.find(userId)
-    val fastPassDetailsFut = fpdRepository.find(applicationId)
+    val civilServiceExperienceDetailsFut = fpdRepository.find(applicationId)
 
     for {
       personalDetails <- personalDetailsFut
       contactDetails <- contactDetailsFut
-      fastPassDetails <- fastPassDetailsFut
+      civilServiceExperienceDetails <- civilServiceExperienceDetailsFut
     } yield GeneralDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
       contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
-      contactDetails.country, contactDetails.phone, fastPassDetails)
+      contactDetails.country, contactDetails.phone, civilServiceExperienceDetails)
   }
 
 }

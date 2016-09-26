@@ -61,9 +61,9 @@ class CandidateDetailsControllerSpec extends BaseControllerSpec {
       verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
     }
 
-    "return Bad Request when CannotUpdateFastPassDetails is thrown" in {
+    "return Bad Request when CannotUpdateCivilServiceExperienceDetails is thrown" in {
       when(mockCandidateDetailsService.update(AppId, UserId, CandidateContactDetailsUK))
-        .thenReturn(Future.failed(CannotUpdateFastPassDetails(AppId)))
+        .thenReturn(Future.failed(CannotUpdateCivilServiceExperienceDetails(AppId)))
       reset(mockAuditService)
 
       val response = controller.updateDetails(UserId, AppId)(Request)
@@ -98,7 +98,7 @@ class CandidateDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "return Not Found when fast pass details cannot be found" in {
-      when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.failed(FastPassDetailsNotFound(AppId)))
+      when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.failed(CivilServiceExperienceDetailsNotFound(AppId)))
       val response = controller.find(UserId, AppId)(fakeRequest)
       status(response) mustBe NOT_FOUND
     }

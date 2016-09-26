@@ -320,7 +320,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
       "personal-details" -> BSONDocument("preferredName" -> "Test Preferred Name"),
-      "fastpass-details.applicable" -> fastPassApplicable,
+      "civil-service-experience-details.applicable" -> fastPassApplicable,
       "assistance-details" -> createAsistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments)
     )).futureValue
   }
@@ -429,7 +429,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         "aLevel" -> true,
         "stemLevel" -> true
       ),
-      "fastpass-details" -> BSONDocument(
+      "civil-service-experience-details" -> BSONDocument(
         "applicable" -> fastPassApplicable,
         "fastPassReceived" -> fastPassReceived
       ),

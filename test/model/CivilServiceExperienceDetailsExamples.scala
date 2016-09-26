@@ -16,6 +16,6 @@
 
 package model
 
-object FastPassDetailsExamples {
-  val civilServant = FastPassDetails(applicable = true, Some(FastPassType.CivilServant))
+object CivilServiceExperienceDetailsExamples {
+  val civilServant = CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant))
 }

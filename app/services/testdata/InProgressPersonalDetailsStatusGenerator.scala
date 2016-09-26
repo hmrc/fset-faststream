@@ -32,13 +32,13 @@ object InProgressPersonalDetailsStatusGenerator extends InProgressPersonalDetail
   override val previousStatusGenerator = CreatedStatusGenerator
   override val pdRepository = faststreamPersonalDetailsRepository
   override val cdRepository = faststreamContactDetailsRepository
-  override val fpdRepository = fastPassDetailsRepository
+  override val fpdRepository = civilServiceExperienceDetailsRepository
 }
 
 trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
-  val fpdRepository: FastPassDetailsRepository
+  val fpdRepository: CivilServiceExperienceDetailsRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
     def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
@@ -61,11 +61,11 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       )
     }
 
-    def getFastPassDetails(candidateInformation: DataGenerationResponse) = {
+    def getCivilServiceExperienceDetails(candidateInformation: DataGenerationResponse) = {
       if (generatorConfig.isCivilServant.contains(true)) {
-        FastPassDetails(true, Some(FastPassType.CivilServant), None, None, None)
+        CivilServiceExperienceDetails(true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
       } else {
-        FastPassDetails(applicable = false)
+        CivilServiceExperienceDetails(applicable = false)
       }
     }
 
@@ -73,7 +73,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       pd = getPersonalDetails(candidateInPreviousStatus)
       cd = getContactDetails(candidateInPreviousStatus)
-      fpd = getFastPassDetails(candidateInPreviousStatus)
+      fpd = getCivilServiceExperienceDetails(candidateInPreviousStatus)
       _ <- pdRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
         pd, List(model.ApplicationStatus.CREATED), model.ApplicationStatus.IN_PROGRESS)
       _ <- cdRepository.update(candidateInPreviousStatus.userId, cd)
