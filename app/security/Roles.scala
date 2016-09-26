@@ -220,13 +220,13 @@ object RoleUtils {
 
   def isCivilServant(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       user.application
-        .flatMap(_.fastPassDetails)
+        .flatMap(_.civilServiceExperienceDetails)
         .exists(_.isCivilServant)
 
   def hasReceivedFastPass(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
   activeUserWithApp(user) && statusIn(user)(SUBMITTED) &&
     user.application
-      .flatMap(_.fastPassDetails)
+      .flatMap(_.civilServiceExperienceDetails)
       .flatMap(_.fastPassReceived)
       .getOrElse(false)
 

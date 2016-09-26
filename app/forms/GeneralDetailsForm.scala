@@ -16,7 +16,7 @@
 
 package forms
 
-import connectors.exchange.{ FastPassDetails, GeneralDetails }
+import connectors.exchange.{ CivilServiceExperienceDetails, GeneralDetails }
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping._
@@ -114,7 +114,7 @@ object GeneralDetailsForm {
                   postCode: Option[PostCode],
                   country: Option[String],
                   phone: Option[PhoneNumber],
-                  fastPassDetails: FastPassForm.Data
+                  civilServiceExperienceDetails: FastPassForm.Data
                  ) {
 
     def insideUk = outsideUk match {
@@ -123,7 +123,7 @@ object GeneralDetailsForm {
     }
 
     def toExchange(email: String, updateApplicationStatus: Option[Boolean],
-                   overrideFastPassDetails: Option[FastPassDetails] = None) = GeneralDetails(
+                   overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None) = GeneralDetails(
       firstName,
       lastName,
       preferredName,
@@ -134,7 +134,7 @@ object GeneralDetailsForm {
       postCode.map(p => PostCodeMapping.formatPostcode(p)),
       country,
       phone,
-      overrideFastPassDetails.getOrElse(fastPassDetails),
+      overrideCivilServiceExperienceDetails.getOrElse(civilServiceExperienceDetails),
       updateApplicationStatus
     )
   }

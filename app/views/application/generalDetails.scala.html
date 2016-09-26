@@ -1,7 +1,7 @@
 @(details: Form[_root_.forms.GeneralDetailsForm.Data], updateStatus: Boolean)(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
 
 @import views.html.application.personalDetails.{contactDetails, nameAndDateOfBirth}
-@import views.html.application.fastPassDetails.fastPassDetailsPanel
+@import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
 @import views.html.widgets.{pageProgress, saveAndContinueButton}
 @import security.Roles.EditPersonalDetailsAndContinueRole
 
@@ -20,7 +20,7 @@
         @nameAndDateOfBirth(details)
         @contactDetails(details)
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData))){
-            @fastPassDetailsPanel(details)
+            @civilServiceExperienceDetailsPanel(details)
         }
         @saveAndContinueButton()
     }

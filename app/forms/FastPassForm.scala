@@ -24,7 +24,7 @@ import play.api.i18n.Messages
 
 object FastPassForm {
 
-  val EmptyFastPassDetails: Data = Data("", None, None, None, None)
+  val EmptyCivilServiceExperienceDetails: Data = Data("", None, None, None, None)
 
   val CivilServant = "CivilServant"
   val CivilServantViaFastTrack = "CivilServantViaFastTrack"
@@ -34,10 +34,10 @@ object FastPassForm {
   val SDIPPreviousYear = "SDIPPreviousYear"
   val SDIPCurrentYear = "SDIPCurrentYear"
 
-  val FastPassTypes = Seq(
-    CivilServant -> Messages("fastPassType.CivilServant"),
-    CivilServantViaFastTrack -> Messages("fastPassType.CivilServantViaFastTrack"),
-    DiversityInternship -> Messages("fastPassType.DiversityInternship")
+  val CivilServiceExperienceTypes = Seq(
+    CivilServant -> Messages("civilServiceExperienceType.CivilServant"),
+    CivilServantViaFastTrack -> Messages("civilServiceExperienceType.CivilServantViaFastTrack"),
+    DiversityInternship -> Messages("civilServiceExperienceType.DiversityInternship")
   )
 
   val InternshipTypes = Seq(
@@ -46,20 +46,20 @@ object FastPassForm {
     SDIPCurrentYear -> Messages("internshipType.SDIPCurrentYear")
   )
 
-  val fastPassTypeRequiredMsg = Messages("error.fastPassType.required")
+  val civilServiceExperienceTypeRequiredMsg = Messages("error.civilServiceExperienceType.required")
   val internshipTypeRequiredMsg = Messages("error.internshipTypes.required")
   val fastPassReceivedRequiredMsg = Messages("error.fastPassReceived.required")
   val certificateNumberRequiredMsg = Messages("error.certificateNumber.required")
 
-  val formQualifier = "fastPassDetails"
+  val formQualifier = "civilServiceExperienceDetails"
   val applicable = "applicable"
-  val fastPassType = "fastPassType"
+  val civilServiceExperienceType = "civilServiceExperienceType"
   val internshipTypes = "internshipTypes"
   val fastPassReceived = "fastPassReceived"
   val certificateNumber = "certificateNumber"
 
   case class Data(applicable: String,
-                  fastPassType: Option[String] = None,
+                  civilServiceExperienceType: Option[String] = None,
                   internshipTypes: Option[Seq[String]] = None,
                   fastPassReceived: Option[Boolean] = None,
                   certificateNumber: Option[String] = None)
@@ -67,7 +67,7 @@ object FastPassForm {
   def form = {
     Form(mapping(
       applicable -> nonemptyBooleanText("error.applicable.required"),
-      fastPassType -> of(fastPassTypeFormatter),
+      civilServiceExperienceType -> of(civilServiceExperienceTypeFormatter),
       internshipTypes -> of(internshipTypesFormatter),
       fastPassReceived -> of(fastPassReceivedFormatter),
       certificateNumber -> of(fastPassCertificateFormatter)
@@ -77,17 +77,17 @@ object FastPassForm {
   def ignoreForm = {
     Form(mapping(
       applicable -> ignored(""),
-      fastPassType -> ignored(Option("")),
+      civilServiceExperienceType -> ignored(Option("")),
       internshipTypes -> ignored(Option(Seq(""))),
       fastPassReceived -> ignored(Option(false)),
       certificateNumber -> ignored(Option(""))
     )(Data.apply)(Data.unapply))
   }
 
-  def fastPassTypeFormatter = new Formatter[Option[String]] {
+  def civilServiceExperienceTypeFormatter = new Formatter[Option[String]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      bindOptionalParam(request.isCivilServantOrFastTrackOrIntern, request.isValidFastPassTypeSelected,
-        fastPassTypeRequiredMsg)(key, request.fastPassTypeParam)
+      bindOptionalParam(request.isCivilServantOrFastTrackOrIntern, request.isValidCivilServiceExperienceTypeSelected,
+        civilServiceExperienceTypeRequiredMsg)(key, request.civilServiceExperienceTypeParam)
     }
 
     def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
@@ -150,7 +150,7 @@ object FastPassForm {
 
     def fastPassApplicableParam = param(applicable).getOrElse("")
 
-    def fastPassTypeParam = param(fastPassType).getOrElse("")
+    def civilServiceExperienceTypeParam = param(civilServiceExperienceType).getOrElse("")
 
     def internshipTypesParam = request.filterKeys(_.contains(internshipTypes)).values.toSeq
 
@@ -158,7 +158,7 @@ object FastPassForm {
 
     def certificateNumberParam = param(certificateNumber).getOrElse("")
 
-    def isValidFastPassTypeSelected = FastPassTypes.map(_._1).contains(fastPassTypeParam)
+    def isValidCivilServiceExperienceTypeSelected = CivilServiceExperienceTypes.map(_._1).contains(civilServiceExperienceTypeParam)
 
     def isValidInternshipTypesSelected = internshipTypesParam.nonEmpty && internshipTypesParam.diff(InternshipTypes.toMap.keys.toSeq).isEmpty
 
@@ -168,14 +168,14 @@ object FastPassForm {
 
     def isCivilServantOrFastTrackOrIntern = fastPassApplicableParam == "true"
 
-    def isDiversityInternshipSelected = isCivilServantOrFastTrackOrIntern && (fastPassTypeParam == DiversityInternship)
+    def isDiversityInternshipSelected = isCivilServantOrFastTrackOrIntern && (civilServiceExperienceTypeParam == DiversityInternship)
 
     def isSDIPCurrentYearSelected = isDiversityInternshipSelected && internshipTypesParam.contains(SDIPCurrentYear)
 
     def isFastPassReceived = isSDIPCurrentYearSelected && (fastPassReceivedParam == "true")
 
     def cleanupFastPassFields = request.filterKeys {
-      case key if key.endsWith(fastPassType) => isCivilServantOrFastTrackOrIntern
+      case key if key.endsWith(civilServiceExperienceType) => isCivilServantOrFastTrackOrIntern
       case key if key.contains(internshipTypes) => isDiversityInternshipSelected
       case key if key.endsWith(fastPassReceived) => isSDIPCurrentYearSelected
       case key if key.endsWith(certificateNumber) => isFastPassReceived

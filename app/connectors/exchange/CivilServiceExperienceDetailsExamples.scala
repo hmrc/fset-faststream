@@ -16,6 +16,6 @@
 
 package connectors.exchange
 
-object FastPassDetailsExamples {
-  val CivilServantFastPass = FastPassDetails(true, Some("CivilServant"), None, Some(true), None)
+object CivilServiceExperienceDetailsExamples {
+  val CivilServantExperience = CivilServiceExperienceDetails(true, Some("CivilServant"), None, Some(true), None)
 }

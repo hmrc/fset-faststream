@@ -16,7 +16,7 @@
 
 package controllers.forms
 
-import connectors.exchange.FastPassDetails
+import connectors.exchange.CivilServiceExperienceDetails
 import forms.GeneralDetailsForm
 import mappings.{ AddressExamples, DayMonthYear }
 import org.joda.time.{ DateTime, LocalDate }
@@ -33,7 +33,7 @@ object GeneralDetailsFormExamples {
     "outsideUk" -> "true",
     "country" -> "France",
     "phone" -> "123456789",
-    "fastPassDetails.applicable" -> "false"
+    "civilServiceExperienceDetails.applicable" -> "false"
   )
 
   val InvalidUKAddressWithoutPostCode = ValidOutsideUKDetails - "outsideUk"
@@ -52,14 +52,16 @@ object GeneralDetailsFormExamples {
     "address.line1",
     "postCode",
     "phone",
-    "fastPassDetails.applicable"
+    "civilServiceExperienceDetails.applicable"
   )
 
   val ValidUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
-    outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), None, Some("1234567890"), FastPassDetails(applicable = false))
+    outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), None, Some("1234567890"),
+    CivilServiceExperienceDetails(applicable = false))
 
   val ValidNonUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
-    outsideUk = Some(true), AddressExamples.FullAddress, None, Some("France"), Some("1234567890"), FastPassDetails(applicable = false))
+    outsideUk = Some(true), AddressExamples.FullAddress, None, Some("France"), Some("1234567890"),
+    CivilServiceExperienceDetails(applicable = false))
 
   val ValidFormUrlEncodedBody = Seq(
     "firstName" -> ValidUKAddressForm.firstName,
@@ -74,7 +76,7 @@ object GeneralDetailsFormExamples {
     "address.line4" -> ValidUKAddressForm.address.line4.getOrElse(""),
     "postCode" -> ValidUKAddressForm.postCode.getOrElse(""),
     "phone" -> ValidUKAddressForm.phone.map(_.toString).getOrElse(""),
-    "fastPassDetails.applicable" -> ValidUKAddressForm.fastPassDetails.applicable.toString
+    "civilServiceExperienceDetails.applicable" -> ValidUKAddressForm.civilServiceExperienceDetails.applicable.toString
   )
 
 

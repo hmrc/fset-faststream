@@ -22,29 +22,31 @@ import play.api.libs.json.Json
 
 import language.implicitConversions
 
-case class FastPassDetails(applicable: Boolean,
-                           fastPassType: Option[String] = None,
-                           internshipTypes: Option[Seq[String]] = None,
-                           fastPassReceived: Option[Boolean] = None,
-                           certificateNumber: Option[String] = None) {
-  def isCivilServant = fastPassType.exists {fpt => fpt == FastPassForm.CivilServant || fpt == FastPassForm.CivilServantViaFastTrack}
+case class CivilServiceExperienceDetails(applicable: Boolean,
+                                         civilServiceExperienceType: Option[String] = None,
+                                         internshipTypes: Option[Seq[String]] = None,
+                                         fastPassReceived: Option[Boolean] = None,
+                                         certificateNumber: Option[String] = None) {
+  def isCivilServant = civilServiceExperienceType.exists {
+    fpt => fpt == FastPassForm.CivilServant || fpt == FastPassForm.CivilServantViaFastTrack
+  }
 }
 
-object FastPassDetails {
+object CivilServiceExperienceDetails {
 
-  implicit val fastPassDetailsFormat = Json.format[FastPassDetails]
+  implicit val civilServiceExperienceDetailsFormat = Json.format[CivilServiceExperienceDetails]
 
-  implicit def toData(exchange: FastPassDetails): Data = Data(
+  implicit def toData(exchange: CivilServiceExperienceDetails): Data = Data(
     exchange.applicable.toString,
-    exchange.fastPassType,
+    exchange.civilServiceExperienceType,
     exchange.internshipTypes,
     exchange.fastPassReceived,
     exchange.certificateNumber
   )
 
-  implicit def toExchange(data: Data): FastPassDetails = FastPassDetails(
+  implicit def toExchange(data: Data): CivilServiceExperienceDetails = CivilServiceExperienceDetails(
     data.applicable.toBoolean,
-    data.fastPassType,
+    data.civilServiceExperienceType,
     data.internshipTypes,
     data.fastPassReceived,
     data.certificateNumber

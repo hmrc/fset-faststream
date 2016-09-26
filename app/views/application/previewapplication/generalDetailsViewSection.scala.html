@@ -14,8 +14,8 @@
     if(value) "Yes" else "No"
 }
 
-@getFastPassTypeDescription(fastPassType: String) = @{
-    FastPassForm.FastPassTypes.toMap.getOrElse(fastPassType, "")
+@getCivilServiceExperienceTypeDescription(civilServiceExperienceType: String) = @{
+    FastPassForm.CivilServiceExperienceTypes.toMap.getOrElse(civilServiceExperienceType, "")
 }
 
 @getInternshipTypeDescription(internshipType: String) = @{
@@ -61,19 +61,20 @@
     </section>
 
     @displayFastPassSection("fastPassApplicable", true, "Are you a civil servant or been on a diversity internship or the Fast Track?",
-        getYesOrNo(generalDetails.fastPassDetails.applicable))
-    @displayFastPassSection("fastPassType", generalDetails.fastPassDetails.fastPassType.isDefined, "Which of these applies?",
-        getFastPassTypeDescription(generalDetails.fastPassDetails.fastPassType.get))
-    @if(generalDetails.fastPassDetails.internshipTypes.isDefined){
+        getYesOrNo(generalDetails.civilServiceExperienceDetails.applicable))
+    @displayFastPassSection("civilServiceExperienceType" +
+            "", generalDetails.civilServiceExperienceDetails.civilServiceExperienceType.isDefined, "Which of these applies?",
+        getCivilServiceExperienceTypeDescription(generalDetails.civilServiceExperienceDetails.civilServiceExperienceType.get))
+    @if(generalDetails.civilServiceExperienceDetails.internshipTypes.isDefined){
         <section id="internshipTypes">
             <h3 class="heading-small">Which internship programme did you do?</h3>
-            @for(internshipType <- generalDetails.fastPassDetails.internshipTypes.get){
+            @for(internshipType <- generalDetails.civilServiceExperienceDetails.internshipTypes.get){
                 <p>@getInternshipTypeDescription(internshipType)</p>
             }
         </section>
     }
-    @displayFastPassSection("fastPassReceived", generalDetails.fastPassDetails.fastPassReceived.isDefined, "Did you receive a Fast Pass?",
-        getYesOrNo(generalDetails.fastPassDetails.fastPassReceived.get))
-    @displayFastPassSection("certificateNumber", generalDetails.fastPassDetails.certificateNumber.isDefined, "Fast Pass certificate number",
-        generalDetails.fastPassDetails.certificateNumber.get)
+    @displayFastPassSection("fastPassReceived", generalDetails.civilServiceExperienceDetails.fastPassReceived.isDefined, "Did you receive a Fast Pass?",
+        getYesOrNo(generalDetails.civilServiceExperienceDetails.fastPassReceived.get))
+    @displayFastPassSection("certificateNumber", generalDetails.civilServiceExperienceDetails.certificateNumber.isDefined, "Fast Pass certificate number",
+        generalDetails.civilServiceExperienceDetails.certificateNumber.get)
 </section>

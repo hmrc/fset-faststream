@@ -7,10 +7,10 @@
     <div class="text">
         <h2 class="heading-medium">Are you currently a civil servant, or have you been on a diversity internship, or the Fast Track?</h2>
     </div>
-    @yesNoRadioWithTogglePanel(form("fastPassDetails.applicable"),
-        'id -> "fastPassDetails.applicable",
+    @yesNoRadioWithTogglePanel(form("civilServiceExperienceDetails.applicable"),
+        'id -> "civilServiceExperienceDetails.applicable",
         '_help -> """The internships that apply are the Summer Diversity Internship Programme
         (SDIP) or the Early Diversity Internship Programme (EDIP)""") {
-        @fastPassTypesPanel(form)
+        @civilServiceExperienceTypesPanel(form)
     }
 </section>

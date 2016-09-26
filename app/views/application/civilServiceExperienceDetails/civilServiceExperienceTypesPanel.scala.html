@@ -3,9 +3,9 @@
 @import _root_.forms.FastPassForm
 @import views.html.widgets.radioGroupWithTogglePanels
 
-<div id="fastPassDetails_applicable-panel-yes" class="toggle-content">
-    @radioGroupWithTogglePanels(form("fastPassDetails.fastPassType"), FastPassForm.FastPassTypes,
-        'id -> "fastPassDetails.fastPassType",
+<div id="civilServiceExperienceDetails_applicable-panel-yes" class="toggle-content">
+    @radioGroupWithTogglePanels(form("civilServiceExperienceDetails.civilServiceExperienceType"), FastPassForm.CivilServiceExperienceTypes,
+        'id -> "civilServiceExperienceDetails.civilServiceExperienceType",
         '_label -> "Which of these applies?") {
         @civilServantsContent()
         @fastTrackContent()
