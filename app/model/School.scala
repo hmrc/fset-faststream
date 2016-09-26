@@ -18,7 +18,17 @@ package model
 
 import play.api.libs.json.Json
 
-case class School(id: String, name: String)
+case class School(typeId: String,
+                  id: String,
+                  name: String,
+                  address1: Option[String],
+                  address2: Option[String],
+                  address3: Option[String],
+                  address4: Option[String],
+                  postCode: Option[String],
+                  phaseOfEducation: Option[String],
+                  typeOfEstablishment: Option[String])
+
 
 object School {
   implicit val schoolFormat = Json.format[School]

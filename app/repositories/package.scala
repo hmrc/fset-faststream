@@ -51,7 +51,7 @@ package object repositories {
   lazy val fastPassDetailsRepository = new FastPassDetailsMongoRepository()
   lazy val faststreamPartnerGraduateProgrammesRepository = new partnergraduateprogrammes.PartnerGraduateProgrammesMongoRepository()
   lazy val faststreamAssistanceDetailsRepository = new assistancedetails.AssistanceDetailsMongoRepository()
-  lazy val schoolsRepository = new InMemorySchoolsRepository()
+  lazy val schoolsRepository = SchoolsCSVRepository
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
