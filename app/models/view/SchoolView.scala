@@ -24,7 +24,7 @@ import play.api.libs.json.Json
 case class SchoolView(id: String, name: String, label: String)
 
 object SchoolView {
-  val limitResults = 10
+  val limitResults = 15
   val narrowYourSearchHint = SchoolView("", "", "Please narrow down your search")
   implicit val schoolFormat = Json.format[SchoolView]
 

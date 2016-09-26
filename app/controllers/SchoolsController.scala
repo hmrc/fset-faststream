@@ -38,7 +38,7 @@ class SchoolsController(schoolsClient: SchoolsClient) extends FrontendController
         schoolsClient.getSchools(term).map { schools =>
           val schoolViewList = schools match {
             case _ if schools.size > limitResults => narrowYourSearchHint +: schools.map(_.toSchoolView).take(limitResults)
-            case _ => schools.map(_.toSchoolView).take(limitResults)
+            case _ => schools.map(_.toSchoolView)
           }
           Ok(Json.toJson(schoolViewList))
         }.recover {
