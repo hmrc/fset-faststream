@@ -175,8 +175,8 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
           "$lte" -> dateTime.nowLocalTimeZone.plusHours(reminder.hoursBeforeReminder)) // Serialises to UTC.
       ),
       BSONDocument("$and" -> BSONArray(
-        BSONDocument("progress-status.PHASE1_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
-        BSONDocument("progress-status.PHASE1_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
+        BSONDocument(s"progress-status.$PHASE1_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+        BSONDocument(s"progress-status.$PHASE1_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
         BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
       ))
     ))

@@ -68,8 +68,8 @@ class OnlineTestExpiryServiceImpl(
   private def processReminder(expiringTest: NotificationExpiringOnlineTest, reminder: ReminderNotice): Future[Unit] =
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
-      _ <- emailCandidateForExpiringTestReminder(expiringTest, emailAddress, reminder)
       _ <- commitNotificationExpiringTestProgressStatus(expiringTest, reminder)
+      _ <- emailCandidateForExpiringTestReminder(expiringTest, emailAddress, reminder)
     } yield ()
 
   private def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =

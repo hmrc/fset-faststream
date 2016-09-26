@@ -18,12 +18,12 @@ package connectors
 
 import config.WSHttp
 import connectors.ExchangeObjects._
-import model.{ DAYS, TimeUnit }
 import org.joda.time.{ DateTime, LocalDate }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration.TimeUnit
 
 object CSREmailClient extends CSREmailClient
 
@@ -52,7 +52,7 @@ trait CSREmailClient extends EmailClient {
       Map("name" -> name)
     )
 
-  override def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
+  override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
                                         timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     sendEmail(
@@ -60,8 +60,8 @@ trait CSREmailClient extends EmailClient {
       "fset_faststream_app_online_test_reminder",
       Map("name" -> name,
           "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
-          "timeUnit" -> timeUnit.unit,
-          "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeft)
+          "timeUnit" -> timeUnit.toString.toLowerCase,
+          "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeftInHours)
       )
     )
   }
@@ -115,8 +115,6 @@ trait CSREmailClient extends EmailClient {
     )
   }
 
-
-
 }
 
 trait EmailClient extends WSHttp {
@@ -136,6 +134,8 @@ trait EmailClient extends WSHttp {
 
 object EmailDateFormatter {
 
+  import scala.concurrent.duration.DAYS
+
   def toDate(date: LocalDate): String = date.toString("d MMMM yyyy")
 
   def toExpiryTime(dateTime: DateTime): String = {
@@ -148,8 +148,8 @@ object EmailDateFormatter {
       .replace("AM", "am").replace("PM", "pm") // Joda time has no easy way to change the case of AM/PM
   }
 
-  def convertToHoursOrDays(timeUnit: TimeUnit, timeLeft: Int): String = {
-    if(timeUnit == DAYS) { (timeLeft / 24).toString }
-    else { timeLeft.toString }
+  def convertToHoursOrDays(timeUnit: TimeUnit, timeLeftInHours: Int): String = {
+    if(timeUnit == DAYS) { (timeLeftInHours / 24).toString }
+    else { timeLeftInHours.toString }
   }
 }

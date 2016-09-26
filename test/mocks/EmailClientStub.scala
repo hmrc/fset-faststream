@@ -17,9 +17,9 @@
 package mocks
 
 import connectors.EmailClient
-import model.TimeUnit
 import org.joda.time.{ DateTime, LocalDate }
 import uk.gov.hmrc.play.http.HeaderCarrier
+import scala.concurrent.duration.TimeUnit
 
 import scala.concurrent.Future
 
