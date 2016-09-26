@@ -28,10 +28,9 @@ trait SchoolsService {
   val schoolsRepo : SchoolsRepository
 
   def getSchools(term: String) = {
-    val allSchools = schoolsRepo.getAllSchools
+    val allSchools = schoolsRepo.masterList
 
     Future.successful{
-
       val sanitizedTerm = sanitize(term)
       allSchools.filter(s => sanitize(s.name).contains(sanitizedTerm))
     }
