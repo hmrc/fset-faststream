@@ -16,7 +16,7 @@
 
 package models.page
 
-import org.joda.time.{ DateTime, Period }
+import org.joda.time.{ DateTime, Period, PeriodType }
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 
 case class Phase1TestPage(
@@ -53,6 +53,8 @@ case class Phase1TestsPage(
     val now = DateTime.now
     val date = expirationDate
 
+    val period = new Period(now, date).normalizedStandard(PeriodType.dayTime())
+
     val periodFormat = new PeriodFormatterBuilder().
       printZeroAlways().
       appendDays().
@@ -61,8 +63,6 @@ case class Phase1TestsPage(
       appendHours().
       appendSuffix(" hour ", " hours ").
       toFormatter
-
-    val period = new Period(now, date)
 
     periodFormat print period
   }
