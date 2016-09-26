@@ -52,7 +52,7 @@ object SchoolsCSVRepository extends SchoolsRepository {
     }
   }
 
-  private def parseLine(line: String): Array[String] = {
+  private[repositories] def parseLine(line: String): Array[String] = {
     if (line.split(",").length != ExpectedNumberOfHeaders) {
       val sanitized = line.split("\"")
       require(sanitized.length == 3, "Line cannot have more than one value with quatation")

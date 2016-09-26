@@ -14,4 +14,35 @@ class SchoolsCSVRepositorySpec extends PlaySpec with ScalaFutures with ShortTime
     }
   }
 
+  "Parse line" should {
+    "return 10 columns" in {
+      val result = SchoolsCSVRepository.parseLine("0,1,2,3,4,5,6,7,8,9")
+      result mustBe Array("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
+    }
+
+    "parse line with quatation and comma correctly" in {
+      val result = SchoolsCSVRepository.parseLine("0,\"1-1, 1-2\",2,3,4,5,6,7,8,9")
+      result mustBe Array("0", "\"1-1, 1-2\"", "2", "3", "4", "5", "6", "7", "8", "9")
+    }
+
+    "throw an exception when there is more than one column with quatation" in {
+      intercept[IllegalArgumentException] {
+        SchoolsCSVRepository.parseLine("0,\"1-1, 1-2\",2,3,4,\"5-1 5-2\",6,7,8,9")
+      }
+    }
+
+    "throw an exception when there is more column than 10" in {
+      intercept[IllegalArgumentException] {
+        SchoolsCSVRepository.parseLine("0,1,2,3,4,5,6,7,8,9,10")
+      }
+    }
+
+    "throw an exception when there is illegal character around quatation: |" in {
+      intercept[IllegalArgumentException] {
+        SchoolsCSVRepository.parseLine("0,1,2,3,\"4 ,| \",5,6,7,8,9")
+      }
+    }
+
+  }
+
 }
