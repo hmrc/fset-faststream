@@ -18,8 +18,9 @@ package forms
 
 import connectors.exchange._
 import mappings.PostCodeMapping._
-import play.api.data.Form
+import play.api.data.{ Form, FormError }
 import play.api.data.Forms._
+import play.api.data.format.Formatter
 import play.api.i18n.Messages
 
 object EducationQuestionnaireForm {
@@ -33,9 +34,11 @@ object EducationQuestionnaireForm {
       "preferNotSay_postcodeQ" -> optional(checked(Messages("error.required.postcodeQ"))),
       "schoolName14to16" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
         "schoolName14to16", "preferNotSay_schoolName14to16", Some(256))),
+      "schoolId14to16" -> of(schoolIdFormatter("schoolName14to16")),
       "preferNotSay_schoolName14to16" -> optional(checked(Messages("error.required.schoolName14to16"))),
       "schoolName16to18" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
         "schoolName16to18", "preferNotSay_schoolName16to18", Some(256))),
+      "schoolId16to18" -> of(schoolIdFormatter("schoolName16to18")),
       "preferNotSay_schoolName16to18" -> optional(checked(Messages("error.required.schoolName16to18"))),
       "freeSchoolMeals" -> of(requiredFormatterWithMaxLengthCheck("liveInUKBetween14and18", "freeSchoolMeals", Some(256))),
       "isCandidateCivilServant" -> Mappings.nonEmptyTrimmedText("error.isCandidateCivilServant.required", 31),
@@ -48,16 +51,31 @@ object EducationQuestionnaireForm {
       "preferNotSay_universityDegreeCategory" -> optional(checked(Messages("error.universityDegreeCategory.required")))
     )(Data.apply)(Data.unapply)
   )
+
+  def schoolIdFormatter(schoolNameKey:String) = new Formatter[Option[String]] {
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      val schoolId = request.getOrElse(key, "")
+      val schoolName = request.getOrElse(schoolNameKey, "")
+      (schoolName.trim.nonEmpty, schoolId.trim.nonEmpty) match {
+        case (true, true) => Right(Some(schoolId))
+        case _ => Right(None)
+      }
+    }
+
+    def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
+  }
+
   case class Data(
                    liveInUKBetween14and18: String,
                    postcode: Option[String],
                    preferNotSayPostcode: Option[Boolean],
                    schoolName14to16: Option[String],
+                   schoolId14to16: Option[String],
                    preferNotSaySchoolName14to16: Option[Boolean],
                    schoolName16to18: Option[String],
+                   schoolId16to18: Option[String],
                    preferNotSaySchoolName16to18: Option[Boolean],
                    freeSchoolMeals: Option[String],
-
                    isCandidateCivilServant: String,
                    haveDegree: Option[String],
                    university: Option[String],
@@ -68,10 +86,10 @@ object EducationQuestionnaireForm {
 
 
     def exchange(): Questionnaire = {
-      def getAnswer(field: Option[String], preferNotToSayField: Option[Boolean]) = {
+      def getAnswer(field: Option[String], preferNotToSayField: Option[Boolean], otherDetails: Option[String] = None) = {
         preferNotToSayField match {
-          case Some(true) => Answer(None, None, Some(true))
-          case _ => Answer(field, None, None)
+          case Some(true) => Answer(None, otherDetails, Some(true))
+          case _ => Answer(field, otherDetails, None)
         }
       }
 
@@ -83,8 +101,8 @@ object EducationQuestionnaireForm {
       def getOptionalSchoolList = {
         if (liveInUKBetween14and18 == "Yes") {
           List(Question(Messages("postcode.question"), getAnswer(postcode, preferNotSayPostcode)),
-            Question(Messages("schoolName14to16.question"), getAnswer(schoolName14to16, preferNotSaySchoolName14to16)),
-            Question(Messages("schoolName16to18.question"), getAnswer(schoolName16to18, preferNotSaySchoolName16to18)),
+            Question(Messages("schoolName14to16.question"), getAnswer(schoolName14to16, preferNotSaySchoolName14to16, schoolId14to16)),
+            Question(Messages("schoolName16to18.question"), getAnswer(schoolName16to18, preferNotSaySchoolName16to18, schoolId16to18)),
             Question(Messages("freeSchoolMeals.question"), freeSchoolMealAnswer))
         } else {
           List.empty
@@ -92,7 +110,7 @@ object EducationQuestionnaireForm {
       }
 
       def getOptionalUniversityList: List[Question] = {
-        haveDegree match  {
+        haveDegree match {
           case Some("Yes") => List(
             Question(Messages("university.question"), getAnswer(university, preferNotSayUniversity)),
             Question(Messages("universityDegreeCategory.question"), getAnswer(universityDegreeCategory,
