@@ -34,11 +34,11 @@ object EducationQuestionnaireForm {
       "preferNotSay_postcodeQ" -> optional(checked(Messages("error.required.postcodeQ"))),
       "schoolName14to16" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
         "schoolName14to16", "preferNotSay_schoolName14to16", Some(256))),
-      "schoolId14to16" -> of(schoolIdFormatter),
+      "schoolId14to16" -> of(schoolIdFormatter("schoolName14to16")),
       "preferNotSay_schoolName14to16" -> optional(checked(Messages("error.required.schoolName14to16"))),
       "schoolName16to18" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
         "schoolName16to18", "preferNotSay_schoolName16to18", Some(256))),
-      "schoolId16to18" -> of(schoolIdFormatter),
+      "schoolId16to18" -> of(schoolIdFormatter("schoolName16to18")),
       "preferNotSay_schoolName16to18" -> optional(checked(Messages("error.required.schoolName16to18"))),
       "freeSchoolMeals" -> of(requiredFormatterWithMaxLengthCheck("liveInUKBetween14and18", "freeSchoolMeals", Some(256))),
       "isCandidateCivilServant" -> Mappings.nonEmptyTrimmedText("error.isCandidateCivilServant.required", 31),
@@ -52,12 +52,13 @@ object EducationQuestionnaireForm {
     )(Data.apply)(Data.unapply)
   )
 
-  def schoolIdFormatter = new Formatter[Option[String]] {
+  def schoolIdFormatter(schoolNameKey:String) = new Formatter[Option[String]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val schoolId = request.getOrElse(key, "")
-      schoolId.trim.nonEmpty match {
-        case true => Right(Some(schoolId))
-        case false => Right(None)
+      val schoolName = request.getOrElse(schoolNameKey, "")
+      (schoolName.trim.nonEmpty, schoolId.trim.nonEmpty) match {
+        case (true, true) => Right(Some(schoolId))
+        case _ => Right(None)
       }
     }
 
