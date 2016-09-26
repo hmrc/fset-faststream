@@ -25,7 +25,6 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
 import model.ProgressStatuses
-import model.ProgressStatuses.ProgressStatus
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime

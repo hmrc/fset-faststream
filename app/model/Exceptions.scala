@@ -19,7 +19,7 @@ package model
 object Exceptions {
   sealed class ConnectorException(message: String) extends Exception(message)
 
-  case class NotFoundException(m: Option[String] = None) extends Exception(m.getOrElse("")) {
+  class NotFoundException(m: Option[String] = None) extends Exception(m.getOrElse("")) {
     def this(m: String) = this(Some(m))
   }
 
@@ -75,5 +75,5 @@ object Exceptions {
 
   case class DataGenerationException(message: String) extends Exception(message)
 
-  case class CannotFindTestByCubiksId(message: String) extends Exception(message)
+  case class CannotFindTestByCubiksId(message: String) extends NotFoundException(message)
 }
