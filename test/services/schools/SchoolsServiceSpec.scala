@@ -19,14 +19,14 @@ package services.schools
 import model.School
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
-import repositories.{ InMemorySchoolsRepository, SchoolsRepository }
+import repositories.{ SchoolsCSVRepository, SchoolsRepository }
 import testkit.MockitoSugar
 
 class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures {
   val School1 = School("IRN", "542-0059", "Abbey Christian Brothers Grammar School",
     Some("77a Ashgrove Road"), None, None, Some("Newry"), Some("BT34 2QN"), Some("Grammar"), Some("Voluntary"))
   val sut = new SchoolsService {
-    override val schoolsRepo: SchoolsRepository = new InMemorySchoolsRepository()
+    override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
   }
 
   "Schools Service" should {

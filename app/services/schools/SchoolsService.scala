@@ -19,6 +19,7 @@ package services.schools
 import repositories._
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object SchoolsService extends SchoolsService{
   val schoolsRepo = schoolsRepository
@@ -28,9 +29,10 @@ trait SchoolsService {
   val schoolsRepo : SchoolsRepository
 
   def getSchools(term: String) = {
-    val allSchools = schoolsRepo.masterList
 
-    Future.successful{
+    for {
+      allSchools <- schoolsRepo.schools
+    } yield {
       val sanitizedTerm = sanitize(term)
       allSchools.filter(s => sanitize(s.name).contains(sanitizedTerm))
     }
