@@ -43,7 +43,7 @@ object SchoolView {
         school.postCode.getOrElse("")
       ).filter(_.nonEmpty).mkString(", ")
 
-      SchoolView(school.id, school.name, label)
+      SchoolView(s"${school.typeId}_${school.id}", school.name, label)
     }
   }
 }
