@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package model.events
+package services.events.handler
 
-import model.events.EventTypes.EventType
+import model.events.AuditEvent
+import play.api.Logger
 
-sealed trait AuditEvent extends EventType {
-  lazy val detailsMap: Map[String, String] = Map()
+import scala.concurrent.Future
+
+object AuditEventHandler extends AuditEventHandler {
+
 }
 
-sealed trait AuditEventWithDetailsMap extends AuditEvent {
-  val details: Map[String, String]
-  override lazy val detailsMap: Map[String, String] = details
-}
-
-object AuditEvents {
-  case class ApplicationWithdrawn(details: Map[String, String]) extends AuditEvent
+trait AuditEventHandler extends EventHandler[AuditEvent] {
+  def handle(event: AuditEvent): Future[Unit] = Future.successful(Logger.info(s"Audit event $event"))
 }

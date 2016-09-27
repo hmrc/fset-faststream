@@ -19,7 +19,7 @@ package services.application
 import model.command.WithdrawApplication
 import model.Exceptions.NotFoundException
 import model.command.WithdrawApplication
-import model.events.EventTypes.{ Event, Events }
+import model.events.EventTypes.{ EventType, Events }
 import model.events.{ AuditEvents, MongoEvents }
 import model.events.MongoEvents.ApplicationWithdrawn
 import repositories._

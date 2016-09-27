@@ -25,6 +25,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.application.ApplicationService
+import services.events.EventService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,6 +34,7 @@ object ApplicationController extends ApplicationController {
   val appRepository = applicationRepository
   val auditService = AuditService
   val applicationService = ApplicationService
+  val eventService = EventService
 }
 
 trait ApplicationController extends BaseController {
@@ -41,6 +43,7 @@ trait ApplicationController extends BaseController {
   val appRepository: GeneralApplicationRepository
   val auditService: AuditService
   val applicationService: ApplicationService
+  val eventService: EventService
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
@@ -76,9 +79,12 @@ trait ApplicationController extends BaseController {
 
   def withdrawApplication(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[WithdrawApplication] { withdrawRequest =>
-      applicationService.withdraw(applicationId, withdrawRequest).map { _ =>
+      (for {
+        events <- applicationService.withdraw(applicationId, withdrawRequest)
+        _ <- eventService.handle(events)
+      } yield {
         Ok
-      }.recover {
+      }).recover {
         case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
       }
     }

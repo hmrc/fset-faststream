@@ -1,31 +1,29 @@
+/*
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package model.events
 
 import model.persisted.Event
 import org.joda.time.DateTime
 
 object EventTypes {
-  type Events = List[Event]
+  type Events = List[EventType]
 
-  sealed trait Event {
+  trait EventType {
     val eventName: String = getClass.getSimpleName
     val eventCreated: DateTime = DateTime.now()
   }
-
-  trait MongoEvent extends Event {
-    lazy val applicationId: Option[String] = None
-    lazy val userId: Option[String] = None
-
-    require(applicationId.isDefined || userId.isDefined)
-  }
-  object MongoEvent {
-    implicit def toMongoEventData(mongoEvent: MongoEvent): model.persisted.Event =
-      Event(mongoEvent.eventName, mongoEvent.eventCreated, mongoEvent.applicationId, mongoEvent.userId)
-  }
-
-  trait AuditEvent extends Event {
-    lazy val detailsMap: Map[String, String] = Map()
-  }
-
 }
-
-
