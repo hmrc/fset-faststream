@@ -19,12 +19,15 @@ package services.application
 import model.command.WithdrawApplication
 import model.Exceptions.NotFoundException
 import model.command.WithdrawApplication
+import model.events.EventTypes.{ Event, Events }
+import model.events.{ AuditEvents, MongoEvents }
+import model.events.MongoEvents.ApplicationWithdrawn
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.applicationassessment.ApplicationAssessmentService
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository
@@ -39,15 +42,11 @@ trait ApplicationService {
   val appAssessService: ApplicationAssessmentService
   val auditService: AuditService
 
-  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication) = {
-    appRepository.withdraw(applicationId, withdrawRequest).flatMap { result =>
-      auditService.logEventNoRequest(
-        "ApplicationWithdrawn",
-        Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)
-      )
-      appAssessService.deleteApplicationAssessment(applicationId).recover {
-        case ex: NotFoundException => {}
-      }
+  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication): Future[Events] = {
+    appRepository.withdraw(applicationId, withdrawRequest).map { _ =>
+      MongoEvents.ApplicationWithdrawn(applicationId) ::
+      AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
+      Nil
     }
   }
 }
