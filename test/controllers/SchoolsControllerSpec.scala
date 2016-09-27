@@ -85,7 +85,7 @@ class SchoolsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include(
-        s"""[{"id":"","name":"","label":"Please narrow down your search"},""" +
+        s"""[{"id":"","name":"","label":"More than 15 results found, enter more text"},""" +
           """{"id":"IRN_1","name":"School1","label":"School1"},""" +
           """{"id":"IRN_2","name":"School2","label":"School2"},""" +
           """{"id":"IRN_3","name":"School3","label":"School3"},""" +
