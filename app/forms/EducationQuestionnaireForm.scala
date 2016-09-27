@@ -18,9 +18,9 @@ package forms
 
 import connectors.exchange._
 import mappings.PostCodeMapping._
-import play.api.data.{ Form, FormError }
 import play.api.data.Forms._
 import play.api.data.format.Formatter
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 object EducationQuestionnaireForm {
@@ -52,7 +52,7 @@ object EducationQuestionnaireForm {
     )(Data.apply)(Data.unapply)
   )
 
-  def schoolIdFormatter(schoolNameKey:String) = new Formatter[Option[String]] {
+  def schoolIdFormatter(schoolNameKey: String) = new Formatter[Option[String]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val schoolId = request.getOrElse(key, "")
       val schoolName = request.getOrElse(schoolNameKey, "")
@@ -139,7 +139,11 @@ object EducationQuestionnaireForm {
 
     private def sanitizeLiveInUK = {
       if (liveInUKBetween14and18 == "Yes") {
-        this
+        this.copy(
+          postcode = sanitizeValueWithPreferNotToSay(postcode, preferNotSayPostcode),
+          schoolName14to16 = sanitizeValueWithPreferNotToSay(schoolName14to16, preferNotSaySchoolName14to16),
+          schoolName16to18 = sanitizeValueWithPreferNotToSay(schoolName16to18, preferNotSaySchoolName16to18)
+        )
       } else {
         this.copy(
           postcode = None,
@@ -154,13 +158,23 @@ object EducationQuestionnaireForm {
 
     private def sanitizeUniversity = {
       if (haveDegree.contains("Yes")) {
-        this
+        this.copy(
+          university = sanitizeValueWithPreferNotToSay(university, preferNotSayUniversity),
+          universityDegreeCategory = sanitizeValueWithPreferNotToSay(universityDegreeCategory, preferNotSayUniversityDegreeCategory)
+        )
       } else {
         this.copy(
           university = None,
           preferNotSayUniversity = None,
           universityDegreeCategory = None,
           preferNotSayUniversityDegreeCategory = None)
+      }
+    }
+
+    private def sanitizeValueWithPreferNotToSay(value: Option[String], preferNotToSayValue: Option[Boolean]): Option[String] = {
+      preferNotToSayValue match {
+        case Some(true) => None
+        case _ => value
       }
     }
   }
