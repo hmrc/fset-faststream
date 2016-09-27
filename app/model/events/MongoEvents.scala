@@ -24,9 +24,14 @@ sealed trait MongoEvent extends EventType {
   lazy val userId: Option[String] = None
 
   require(applicationId.isDefined || userId.isDefined)
+
+  // TODO equals & hashcode
+  override def toString: String = s"${super.toString}, applicationId=$applicationId, userId=$userId"
 }
 
 object MongoEvent {
+  import scala.language.implicitConversions
+  
   implicit def toMongoEventData(mongoEvent: MongoEvent): model.persisted.Event =
     Event(mongoEvent.eventName, mongoEvent.eventCreated, mongoEvent.applicationId, mongoEvent.userId)
 }

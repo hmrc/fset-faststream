@@ -21,9 +21,7 @@ import play.api.Logger
 
 import scala.concurrent.Future
 
-object AuditEventHandler extends AuditEventHandler {
-
-}
+object AuditEventHandler extends AuditEventHandler
 
 trait AuditEventHandler extends EventHandler[AuditEvent] {
   def handle(event: AuditEvent): Future[Unit] = Future.successful(Logger.info(s"Audit event $event"))

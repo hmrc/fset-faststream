@@ -25,5 +25,7 @@ object EventTypes {
   trait EventType {
     val eventName: String = getClass.getSimpleName
     val eventCreated: DateTime = DateTime.now()
+
+    override def toString: String = s"eventName=$eventName, eventCreated=$eventCreated"
   }
 }

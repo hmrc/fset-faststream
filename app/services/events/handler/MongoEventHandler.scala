@@ -21,9 +21,7 @@ import play.api.Logger
 
 import scala.concurrent.Future
 
-object MongoEventHandler extends MongoEventHandler {
-
-}
+object MongoEventHandler extends MongoEventHandler
 
 trait MongoEventHandler extends EventHandler[MongoEvent] {
   def handle(event: MongoEvent): Future[Unit] = Future.successful(Logger.info(s"Mongo event $event"))

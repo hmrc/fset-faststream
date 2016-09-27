@@ -21,9 +21,7 @@ import play.api.Logger
 
 import scala.concurrent.Future
 
-object EmailEventHandler extends EmailEventHandler {
-
-}
+object EmailEventHandler extends EmailEventHandler
 
 trait EmailEventHandler extends EventHandler[EmailEvent] {
   def handle(event: EmailEvent): Future[Unit] = Future.successful(Logger.info(s"Email event $event"))

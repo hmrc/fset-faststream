@@ -16,26 +16,31 @@
 
 package services.events
 
+import model.events.EmailEvents.EmailEvent
 import model.events.EventTypes.{ EventType, Events }
 import model.events.{ AuditEvent, MongoEvent }
 import play.api.Logger
-import services.events.handler.{ AuditEventHandler, MongoEventHandler }
+import services.events.handler.{ AuditEventHandler, EmailEventHandler, MongoEventHandler }
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EventService extends EventService {
   val mongoEventHandler: MongoEventHandler = MongoEventHandler
   val auditEventHandler: AuditEventHandler = AuditEventHandler
+  val emailEventHandler: EmailEventHandler = EmailEventHandler
 }
 
 trait EventService {
   val mongoEventHandler: MongoEventHandler
   val auditEventHandler: AuditEventHandler
+  val emailEventHandler: EmailEventHandler
 
   def handle(events: Events): Future[Unit] = {
     val result = events.collect {
       case event: MongoEvent => mongoEventHandler.handle(event)
       case event: AuditEvent => auditEventHandler.handle(event)
+      case event: EmailEvent => emailEventHandler.handle(event)
       case e => Future.successful {
         Logger.warn(s"Unknown event type: $e")
       }
