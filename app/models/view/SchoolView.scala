@@ -25,7 +25,7 @@ case class SchoolView(id: String, name: String, label: String)
 
 object SchoolView {
   val limitResults = 15
-  val narrowYourSearchHint = SchoolView("", "", "Please narrow down your search")
+  val narrowYourSearchHint = SchoolView("", "", "More than 15 results found, enter more text")
   implicit val schoolFormat = Json.format[SchoolView]
 
   implicit class SchoolImplicits(school:School) {
