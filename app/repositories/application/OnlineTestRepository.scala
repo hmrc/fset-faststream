@@ -19,7 +19,7 @@ package repositories.application
 import controllers.OnlineTestDetails
 import factories.DateTimeFactory
 import model.Exceptions.{ CannotFindTestByCubiksId, UnexpectedException }
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, LocalDate }
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
@@ -60,7 +60,8 @@ trait OnlineTestRepository {
 // TODO: Rename to something like: Phase1TestGroupMongoRepository
 class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[OnlineTestDetails, BSONObjectID]("application", mongo,
-    Commands.Implicits.onlineTestDetailsFormat, ReactiveMongoFormats.objectIdFormats) with OnlineTestRepository with RandomSelection {
+    Commands.Implicits.onlineTestDetailsFormat, ReactiveMongoFormats.objectIdFormats) with OnlineTestRepository with RandomSelection
+  with CommonBSONDocuments {
 
   override def getPhase1TestGroup(applicationId: String): Future[Option[Phase1TestProfile]] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -127,14 +128,13 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_INVITED" -> true,
-      "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
-    )) ++ BSONDocument("$set" -> BSONDocument(
+    val testBSON = BSONDocument("$set" ->
+      applicationStatusBSON(PHASE1_TESTS_INVITED)
+    ) ++ BSONDocument("$set" -> BSONDocument(
       "testGroups" -> BSONDocument("PHASE1" -> phase1TestProfile)
     ))
 
-    collection.update(query, applicationStatusBSON, upsert = false) map { status =>
+    collection.update(query, testBSON, upsert = false) map { status =>
       if (status.n != 1) {
         val msg = s"${status.n} rows affected when inserting or updating instead of 1! (App Id: $applicationId)"
         Logger.warn(msg)

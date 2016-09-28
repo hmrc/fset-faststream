@@ -24,7 +24,6 @@ import reactivemongo.bson.BSONDocument
 trait CommonBSONDocuments {
 
   def applicationStatusBSON(progressStatus: ProgressStatuses.ProgressStatus): BSONDocument = {
-
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
       s"progress-status.$progressStatus" -> true,
