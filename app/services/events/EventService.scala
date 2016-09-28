@@ -16,11 +16,12 @@
 
 package services.events
 
-import model.events.EmailEvents.EmailEvent
 import model.events.EventTypes.{ EventType, Events }
-import model.events.{ AuditEvent, MongoEvent }
+import model.events.{ AuditEvent, EmailEvent, MongoEvent }
 import play.api.Logger
+import play.api.mvc.RequestHeader
 import services.events.handler.{ AuditEventHandler, EmailEventHandler, MongoEventHandler }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -36,7 +37,8 @@ trait EventService {
   val auditEventHandler: AuditEventHandler
   val emailEventHandler: EmailEventHandler
 
-  def handle(events: Events): Future[Unit] = {
+  // TODO: Error handling
+  def handle(events: Events)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val result = events.collect {
       case event: MongoEvent => mongoEventHandler.handle(event)
       case event: AuditEvent => auditEventHandler.handle(event)
@@ -49,6 +51,6 @@ trait EventService {
     Future.sequence(result) map (_ => ())
   }
 
-  def handle(event: EventType): Future[Unit] = handle(List(event))
+  def handle(event: EventType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = handle(List(event))
 
 }

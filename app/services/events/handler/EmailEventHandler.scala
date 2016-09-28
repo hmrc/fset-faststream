@@ -16,13 +16,27 @@
 
 package services.events.handler
 
-import model.events.EmailEvents.EmailEvent
+import connectors.{ CSREmailClient, EmailClient }
+import model.events.{ EmailEvent, EmailEvents }
 import play.api.Logger
+import play.api.mvc.RequestHeader
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object EmailEventHandler extends EmailEventHandler
+object EmailEventHandler extends EmailEventHandler {
+  val emailClient: EmailClient = CSREmailClient
+}
 
 trait EmailEventHandler extends EventHandler[EmailEvent] {
-  def handle(event: EmailEvent): Future[Unit] = Future.successful(Logger.info(s"Email event $event"))
+  val emailClient: EmailClient
+
+  def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    // TODO: FSET-681 Can we log emails?
+    Logger.info(s"Email event $event")
+    event match {
+      case _: EmailEvents.ApplicationSubmitted => emailClient.sendApplicationSubmittedConfirmation(event.to, event.name)
+      case _ => throw new IllegalArgumentException(s"Unsupported Email Event: $event")
+    }
+  }
 }

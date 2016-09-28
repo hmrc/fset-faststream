@@ -17,11 +17,13 @@
 package services.events.handler
 
 import model.events.EventTypes.EventType
+import play.api.mvc.RequestHeader
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 trait EventHandler[T <: EventType] {
 
-  def handle(event: T): Future[Unit]
+  def handle(event: T)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
 }

@@ -16,14 +16,15 @@
 
 package controllers
 
-import connectors.{CSREmailClient, EmailClient}
 import model.ApplicationValidator
+import model.events.EventTypes.Events
+import model.events.{ AuditEvents, EmailEvents, MongoEvents }
 import play.api.mvc.Action
 import repositories.FrameworkRepository.CandidateHighestQualification
 import repositories._
-import repositories.application.{GeneralApplicationRepository, PersonalDetailsRepository}
+import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
 import repositories.assistancedetails.AssistanceDetailsRepository
-import services.AuditService
+import services.events.EventService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,8 +37,7 @@ object SubmitApplicationController extends SubmitApplicationController {
   override val frameworkPrefRepository: FrameworkPreferenceMongoRepository = frameworkPreferenceRepository
   override val frameworkRegionsRepository: FrameworkRepository = frameworkRepository
   override val appRepository: GeneralApplicationRepository = applicationRepository
-  override val emailClient = CSREmailClient
-  override val auditService = AuditService
+  val eventService: EventService = EventService
 }
 
 trait SubmitApplicationController extends BaseController {
@@ -48,8 +48,7 @@ trait SubmitApplicationController extends BaseController {
   val frameworkPrefRepository: FrameworkPreferenceRepository
   val frameworkRegionsRepository: FrameworkRepository
   val appRepository: GeneralApplicationRepository
-  val emailClient: EmailClient
-  val auditService: AuditService
+  val eventService: EventService
 
   def submitApplication(userId: String, applicationId: String) = Action.async { implicit request =>
     val generalDetailsFuture = pdRepository.find(applicationId)
@@ -64,18 +63,26 @@ trait SubmitApplicationController extends BaseController {
       sl <- schemesLocationsFuture
       availableRegions <- frameworkRegionsRepository.getFrameworksByRegionFilteredByQualification(CandidateHighestQualification.from(gd))
     } yield {
-        ApplicationValidator(gd, ad, sl, availableRegions).validate match {
-          case true => appRepository.submit(applicationId).flatMap { _ =>
-            emailClient.sendApplicationSubmittedConfirmation(cd.email, gd.preferredName).flatMap { _ =>
-              auditService.logEvent("ApplicationSubmitted")
-              Future.successful(Ok)
-            }
-          }
-          case false => Future.successful(BadRequest)
+      ApplicationValidator(gd, ad, sl, availableRegions).validate match {
+        case true => for {
+          events <- submit(applicationId, cd.email, gd.preferredName)
+          _ <- eventService.handle(events)
+        } yield {
+          Ok
         }
+        case false => Future.successful(BadRequest)
       }
+    }
 
     result flatMap identity
+  }
 
+  private def submit(applicationId: String, email: String, preferredName: String): Future[Events] = {
+    appRepository.submit(applicationId) map { _ =>
+      MongoEvents.ApplicationSubmitted(applicationId) ::
+      EmailEvents.ApplicationSubmitted(email, preferredName) ::
+      AuditEvents.ApplicationSubmitted() ::
+      Nil
+    }
   }
 }

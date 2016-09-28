@@ -18,8 +18,13 @@ package model.events
 
 import model.events.EventTypes.EventType
 
-object EmailEvents {
-  sealed trait EmailEvent extends EventType {
+sealed trait EmailEvent extends EventType {
+  val to: String
+  val name: String
 
-  }
+  require(to.contains("@"))
+}
+
+object EmailEvents {
+  case class ApplicationSubmitted(to: String, name: String) extends EmailEvent
 }

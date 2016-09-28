@@ -19,16 +19,16 @@ package model.events
 import model.events.EventTypes.EventType
 
 sealed trait AuditEvent extends EventType {
-  lazy val detailsMap: Map[String, String] = Map()
-
-  override def toString: String = s"${super.toString}, detailsMap=$detailsMap"
+  val details: Map[String, String] = Map()
+  override def toString: String = s"${super.toString}, details=$details"
 }
 
-sealed trait AuditEventWithDetailsMap extends AuditEvent {
-  val details: Map[String, String]
-  override lazy val detailsMap: Map[String, String] = details
+sealed trait AuditEventWithMap extends AuditEvent {
+  val detailsMap: Map[String, String]
+  override val details = detailsMap
 }
 
 object AuditEvents {
-  case class ApplicationWithdrawn(details: Map[String, String]) extends AuditEventWithDetailsMap
+  case class ApplicationSubmitted() extends AuditEvent
+  case class ApplicationWithdrawn(detailsMap: Map[String, String]) extends AuditEventWithMap
 }

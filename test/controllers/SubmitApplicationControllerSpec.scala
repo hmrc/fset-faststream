@@ -61,16 +61,17 @@ class SubmitApplicationControllerSpec extends PlaySpec with Results {
   }
 
   trait TestFixture extends TestFixtureBase {
-    object TestSubmitApplicationController extends SubmitApplicationController {
-      override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
-      override val pdRepository: PersonalDetailsRepository = PersonalDetailsInMemoryRepository
-      override val adRepository: AssistanceDetailsRepository = AssistanceDetailsInMemoryRepository
-      override val frameworkPrefRepository: FrameworkPreferenceRepository = FrameworkPreferenceInMemoryRepository
-      override val frameworkRegionsRepository: FrameworkRepository = FrameworkInMemoryRepository
-      override val cdRepository: ContactDetailsRepository = ContactDetailsInMemoryRepository
-      override val auditService: AuditService = mockAuditService
-      override val emailClient: EmailClient = EmailClientStub
-    }
+    // TODO: FSET-681
+//    object TestSubmitApplicationController extends SubmitApplicationController {
+//      override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
+//      override val pdRepository: PersonalDetailsRepository = PersonalDetailsInMemoryRepository
+//      override val adRepository: AssistanceDetailsRepository = AssistanceDetailsInMemoryRepository
+//      override val frameworkPrefRepository: FrameworkPreferenceRepository = FrameworkPreferenceInMemoryRepository
+//      override val frameworkRegionsRepository: FrameworkRepository = FrameworkInMemoryRepository
+//      override val cdRepository: ContactDetailsRepository = ContactDetailsInMemoryRepository
+//      override val auditService: AuditService = mockAuditService
+//      override val emailClient: EmailClient = EmailClientStub
+//    }
 
     def submitApplicationRequest(userId: String, applicationId: String) = {
       FakeRequest(Helpers.PUT, controllers.routes.SubmitApplicationController.submitApplication(userId, applicationId).url, FakeHeaders(), "")

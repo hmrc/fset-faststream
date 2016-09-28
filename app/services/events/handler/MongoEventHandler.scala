@@ -18,11 +18,15 @@ package services.events.handler
 
 import model.events.MongoEvent
 import play.api.Logger
+import play.api.mvc.RequestHeader
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 object MongoEventHandler extends MongoEventHandler
 
 trait MongoEventHandler extends EventHandler[MongoEvent] {
-  def handle(event: MongoEvent): Future[Unit] = Future.successful(Logger.info(s"Mongo event $event"))
+  def handle(event: MongoEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    Future.successful(Logger.info(s"Mongo event $event"))
+  }
 }
