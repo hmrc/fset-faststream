@@ -20,10 +20,10 @@ import controllers.OnlineTestDetails
 import factories.DateTimeFactory
 import model.Exceptions.{ CannotFindTestByCubiksId, UnexpectedException }
 import org.joda.time.DateTime
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
+import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
 import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
-import model.persisted.Phase1TestProfileWithAppId
+import model.persisted.{ Phase1TestProfileWithAppId, TestResult }
 import model.{ ApplicationStatus, Commands, ProgressStatuses, ReminderNotice }
 import play.api.Logger
 import play.api.libs.json.Json
@@ -58,6 +58,8 @@ trait OnlineTestRepository {
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit]
 
   def removePhase1TestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
+
+  def insertPhase1TestResult(phase1Test: Phase1Test, testResult: TestResult): Future[Unit]
 }
 
 // TODO: Rename to something like: Phase1TestGroupMongoRepository
@@ -145,6 +147,21 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       }
       ()
     }
+  }
+
+  override def insertPhase1TestResult(phase1Test: Phase1Test, testResult: TestResult): Future[Unit] = {
+
+    val query = BSONDocument("testGroups.PHASE1.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("cubiksUserId" -> phase1Test.cubiksUserId)
+    ))
+
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"progress-status.$PHASE1_TESTS_RESULTS_RECEIVED" -> true
+    )) ++ BSONDocument("$set" -> BSONDocument(
+      "testGroups.PHASE1.tests.$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
+    ))
+
+    collection.update(query, update, upsert = false) map( _ => () )
   }
 
   override def nextExpiringApplication: Future[Option[ExpiringOnlineTest]] = {
