@@ -151,14 +151,14 @@ $(function() {
       }
     }
 
-    if($disTarget && !$theTargetControl.attr('disabled')) {
+    if($disTarget && $this.is(':checked')) {
       $theTargetControl.attr('disabled', true);
       if($theTargetControl.attr('type') == 'text') {
         $theTargetControl.val('');
       } else if($theTargetControl.is('select')) {
         $theTargetControl.find('> option:first-of-type').attr('selected', true);
       }
-    } else if($disTarget && $theTargetControl.attr('disabled')) {
+    } else if($disTarget && !$this.is(':checked')) {
       $theTargetControl.attr('disabled', false);
     }
 

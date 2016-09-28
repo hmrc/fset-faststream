@@ -4,8 +4,11 @@
 @import views.html.widgets.{ checkbox, selectValueDifferentFromDisplayedText }
 
 <section>
-    @selectValueDifferentFromDisplayedText(questionnaireForm("universityDegreeCategory"),
-        models.view.questionnaire.UniversityDegreeCategories.seq.toList)(
+    @selectValueDifferentFromDisplayedText(
+        questionnaireForm("universityDegreeCategory"),
+        models.view.questionnaire.UniversityDegreeCategories.seq.toList,
+        '_disabled -> (questionnaireForm("preferNotSay_universityDegreeCategory").value.getOrElse("false"))
+    )(
         "Select one") {
         @Messages("universityDegreeCategory.question")
     }

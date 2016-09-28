@@ -1,11 +1,11 @@
-@(field : play.api.data.Field, options: List[(String, String)])(defaultChoice: String = "-- Choose method --")(labelContent: Html)(implicit hint: Html = Html(""))
+@(field : play.api.data.Field, options: List[(String, String)], args: (Symbol,Any)*)(defaultChoice: String = "-- Choose method --")(labelContent: Html)(implicit hint: Html = Html(""))
 
 @import helpers.CSRSkinnyFieldConstructor._
 
-@helper.input(field) { (id, name, value, args) =>
+@helper.input(field, args:_*) { (id, name, value, htmlArgs) =>
     <label for="@id" class="form-label">@labelContent</label>
     @hint
-    <select name="@name" id="@id">
+    <select name="@name" id="@id" @{if(args.toMap.exists(_._1 == '_disabled) && args.toMap.getOrElse('_disabled, "false")=="true") "disabled='disabled'"}>
         <option value="">@defaultChoice</option>
         @for((optionTextDisplayed, optionValue) <- options) {
             <option value="@optionValue"@if(value.contains(optionValue)) { selected="selected"}>@optionTextDisplayed</option>

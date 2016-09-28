@@ -1,47 +1,63 @@
 @(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit lang: play.api.i18n.Lang)
 
-@import helpers.CSRFieldConstructor._
-@import views.html.widgets.{ checkbox, radioBox }
+    @import helpers.CSRFieldConstructor._
+    @import views.html.widgets.{ checkbox, radioBox }
 
-<h2 class="heading-medium">School</h2>
-<div class="panel-indent text">
-    <p>This data helps us understand the socio-economic background of applicants because the schools attended by applicants between ages 14 to 18 is widely recognised as a key indicator.</p>
-</div>
-<section>
-    <div class="form-group form-group-compound">
-        <legend class="form-label text" for="schoolName14to16">@Messages("schoolName14to16.question")</legend>
-        @helper.inputText(questionnaireForm("schoolName14to16"),
-            '_label -> "",
-            'class -> "form-control",
-            '_showConstraints -> false)
-        <input type="hidden" id="schoolId14to16" name="schoolId14to16" value='@questionnaireForm.data.getOrElse("schoolId14to16", "")'>
+    <h2 class="heading-medium">School</h2>
+    <div class="panel-indent text">
+        <p>This data helps us understand the socio-economic background of applicants because the schools attended by applicants between ages 14 to 18 is widely recognised as a key indicator.</p>
     </div>
-    <div class="form-group">
-    @checkbox(questionnaireForm("preferNotSay_schoolName14to16"), Some("schoolName14to16")) {
-        I don't know/prefer not to say
-    }
-    </div>
-</section>
-<section>
-    <div class="form-group form-group-compound">
-        <legend class="form-label text" for="schoolName16to18">@Messages("schoolName16to18.question")</legend>
-        @helper.inputText(questionnaireForm("schoolName16to18"),
-            '_label -> "",
-            'class -> "form-control",
-            '_showConstraints -> false)
-        <input type="hidden" id="schoolId16to18" name="schoolId16to18" value='@questionnaireForm.data.getOrElse("schoolId16to18", "")'>
-    </div>
-    <div class="form-group">
-    @checkbox(questionnaireForm("preferNotSay_schoolName16to18"), Some("schoolName16to18")) {
-        I don't know/prefer not to say
-    }
-    </div>
-</section>
-<section>
-    <div class="text">
-        <legend class="form-label text" for="schoolMeals-ques">@Messages("freeSchoolMeals.question")</legend>
-        <span class="form-hint">We ask this as another key indicator of socio-economic background</span>
-        @radioBox(questionnaireForm("freeSchoolMeals"), options = Seq("Yes" -> "Yes", "No" -> "No",
-            "Unknown/prefer not to say" -> "I don't know/prefer not to say"))
-    </div>
-</section>
+    <section>
+        <div class="form-group form-group-compound">
+            <legend class="form-label text" for="schoolName14to16">@Messages("schoolName14to16.question")</legend>
+            @if(questionnaireForm("preferNotSay_schoolName14to16").value.getOrElse("false") == "true") {
+                @helper.inputText(questionnaireForm("schoolName14to16"),
+                    '_label -> "",
+                    'class -> "form-control",
+                    '_showConstraints -> false,
+                    'disabled -> "disabled")
+            } else {
+                @helper.inputText(questionnaireForm("schoolName14to16"),
+                    '_label -> "",
+                    'class -> "form-control",
+                    '_showConstraints -> false)
+            }
+            <input type="hidden" id="schoolId14to16" name="schoolId14to16" value='@questionnaireForm.data.getOrElse("schoolId14to16", "")'>
+        </div>
+        <div class="form-group">
+        @checkbox(questionnaireForm("preferNotSay_schoolName14to16"), Some("schoolName14to16")) {
+            I don't know/prefer not to say
+        }
+        </div>
+    </section>
+    <section>
+        <div class="form-group form-group-compound">
+            <legend class="form-label text" for="schoolName16to18">@Messages("schoolName16to18.question")</legend>
+            @if(questionnaireForm("preferNotSay_schoolName16to18").value.getOrElse("false") == "true") {
+                @helper.inputText(questionnaireForm("schoolName16to18"),
+                    '_label -> "",
+                    'class -> "form-control",
+                    '_showConstraints -> false,
+                    'disabled -> "disabled")
+            } else {
+                @helper.inputText(questionnaireForm("schoolName16to18"),
+                    '_label -> "",
+                    'class -> "form-control",
+                    '_showConstraints -> false)
+            }
+            <input type="hidden" id="schoolId16to18" name="schoolId16to18" value='@questionnaireForm.data.getOrElse("schoolId16to18", "")'>
+        </div>
+        <div class="form-group">
+        @checkbox(questionnaireForm("preferNotSay_schoolName16to18"), Some("schoolName16to18")) {
+            I don't know/prefer not to say
+        }
+        </div>
+    </section>
+    <section>
+        <div class="text">
+            <legend class="form-label text" for="schoolMeals-ques">@Messages("freeSchoolMeals.question")</legend>
+            <span class="form-hint">We ask this as another key indicator of socio-economic background</span>
+            @radioBox(questionnaireForm("freeSchoolMeals"), options = Seq("Yes" -> "Yes", "No" -> "No",
+                "Unknown/prefer not to say" -> "I don't know/prefer not to say"))
+        </div>
+    </section>

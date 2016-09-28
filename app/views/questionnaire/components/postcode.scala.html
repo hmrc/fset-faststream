@@ -7,10 +7,20 @@
     <div class="form-group form-group-compound">
         <label class="form-label" for="postcodeQ">@Messages("postcode.question")</label>
         <span class="form-hint text">The areas candidates lived in the UK at the age of 14 are used in our research to understand socio-economic background</span>
-        @helper.inputText(questionnaireForm("postcodeQ"),
-            '_label -> "",
-            'class -> "form-control",
-            '_showConstraints -> false)
+        @if(questionnaireForm("preferNotSay_postcodeQ").value.getOrElse("false")=="true") {
+            @helper.inputText(questionnaireForm("postcodeQ"),
+                '_label -> "",
+                'class -> "form-control",
+                '_showConstraints -> false,
+                'disabled -> "disabled"
+            )
+        } else {
+            @helper.inputText(questionnaireForm("postcodeQ"),
+                '_label -> "",
+                'class -> "form-control",
+                '_showConstraints -> false
+            )
+        }
     </div>
     <div class="form-group">
     @checkbox(questionnaireForm("preferNotSay_postcodeQ"), Some("postcodeQ")) {
