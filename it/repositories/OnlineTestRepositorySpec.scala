@@ -288,7 +288,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   "Progress status" should {
     "update progress status to PHASE1_TESTS_STARTED" in {
       createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
-      onlineTestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
+      helperRepo.addProgressStatusAndUpdateAppStatus("appId", PHASE1_TESTS_STARTED).futureValue
 
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1TestsStarted mustBe true

@@ -1011,8 +1011,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val query = BSONDocument("applicationId" -> applicationId)
 
     val statusesToUnset = progressStatuses.flatMap { progressStatus =>
-        Map(s"progress-status.$progressStatus" -> BSONString(""),
-        s"progress-status-dates.$progressStatus" -> BSONString(""))
+        Map(s"progress-status.$progressStatus" -> BSONString(""))
     }
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))
