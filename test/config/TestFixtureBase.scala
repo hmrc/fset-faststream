@@ -17,11 +17,17 @@
 package config
 
 import org.scalatest.mock.MockitoSugar
+import play.api.mvc.{ Request, RequestHeader }
+import play.api.test.FakeRequest
 import services.AuditService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.util.Random
 
 abstract class TestFixtureBase extends MockitoSugar {
+  implicit val hc = HeaderCarrier()
+  implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
+
   val mockAuditService = mock[AuditService]
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
