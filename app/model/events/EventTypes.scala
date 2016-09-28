@@ -16,15 +16,12 @@
 
 package model.events
 
-import org.joda.time.DateTime
-
 object EventTypes {
   type Events = List[EventType]
 
   trait EventType {
-    val eventName: String = getClass.getSimpleName
-    val eventCreated: DateTime = DateTime.now()
+    final val eventName: String = getClass.getSimpleName
 
-    override def toString: String = s"eventName=$eventName, eventCreated=$eventCreated"
+    override def toString: String = s"eventName=$eventName"
   }
 }

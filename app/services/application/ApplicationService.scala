@@ -22,13 +22,11 @@ import model.events.{ AuditEvents, MongoEvents }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
-import services.applicationassessment.ApplicationAssessmentService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository
-  val appAssessService = ApplicationAssessmentService
   val auditService = AuditService
 }
 

@@ -18,15 +18,17 @@ package model.events
 
 import model.events.EventTypes.EventType
 import model.persisted.Event
+import org.joda.time.DateTime
 
 sealed trait MongoEvent extends EventType {
+  final val eventCreated: DateTime = DateTime.now()
   lazy val applicationId: Option[String] = None
   lazy val userId: Option[String] = None
 
   require(applicationId.isDefined || userId.isDefined)
 
   // TODO equals & hashcode
-  override def toString: String = s"${super.toString}, applicationId=$applicationId, userId=$userId"
+  override def toString: String = s"${super.toString}, applicationId=$applicationId, userId=$userId, eventCreated=$eventCreated"
 }
 
 object MongoEvent {
