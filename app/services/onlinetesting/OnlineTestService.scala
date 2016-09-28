@@ -347,7 +347,7 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: Phase1TestResultReady): Future[Phase1TestProfileWithAppId] = {
+  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: Phase1TestResultReady): Future[Unit] = {
     updateTestPhase1(cubiksUserId,
       t => t.copy(
         resultsReadyToDownload = reportReady.reportStatus == "Ready",
@@ -355,7 +355,14 @@ trait OnlineTestService extends ResetPhase1Test {
         reportLinkURL = reportReady.reportLinkURL,
         reportStatus = Some(reportReady.reportStatus)
       )
-    )
+    ).flatMap { updated =>
+
+      if (updated.phase1TestProfile.activeTests forall (_.resultsReadyToDownload)) {
+        otRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
+      } else {
+        Future.successful(())
+      }
+    }
   }
 
   // TODO: We need to stop updating the entire group here and use selective $set, this method of replacing the entire document

@@ -26,6 +26,7 @@ import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PH
 import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import play.api.libs.json.Json
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
@@ -126,6 +127,36 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
       result.get.applicationId mustBe "appId"
       result.get.userId mustBe "userId"
+    }
+  }
+
+  "Next phase1 test group with report ready" should {
+    "not return a test group if the progress status is not appropriately set" in {
+       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS",
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, false))
+      ).futureValue
+
+      val result = onlineTestRepo.nextPhase1TestGroupWithReportReady.futureValue
+
+      result.isDefined mustBe false
+    }
+
+    "return a test group if the progress status is set to PHASE1_TEST_RESULTS_READY" in {
+
+      val resultsReadyGroup = TestProfile.copy(tests = List(
+        phase1Test.copy(usedForResults = true, resultsReadyToDownload = true),
+        phase1Test.copy(usedForResults = true, resultsReadyToDownload = true))
+      )
+
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
+        phase1TestProfile = Some(resultsReadyGroup)
+      ).futureValue
+
+      val phase1TestResultsReady = onlineTestRepo.nextPhase1TestGroupWithReportReady.futureValue
+      phase1TestResultsReady.isDefined mustBe true
+      phase1TestResultsReady.get mustBe resultsReadyGroup
     }
   }
 
@@ -398,8 +429,10 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     appStatus: String, needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false,
     fastPassReceived: Boolean = false, isGis: Boolean = false,
-    additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty): Future[WriteResult] = {
-    helperRepo.collection.insert(BSONDocument(
+    additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
+    phase1TestProfile: Option[Phase1TestProfile] = None
+  ): Future[WriteResult] = {
+    val doc = BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
       "userId" -> userId,
@@ -435,10 +468,17 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
       ),
       "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments, isGis),
       "issue" -> "this candidate has changed the email",
-      "progress-status" -> progressStatus(additionalProgressStatuses)
-    ))
+      "progress-status" -> progressStatus(additionalProgressStatuses),
+      "testGroups" -> phase1TestGroup(phase1TestProfile)
+    )
+
+    helperRepo.collection.insert(doc)
   }
   // scalastyle:on parameter.number
+
+  private def phase1TestGroup(o: Option[Phase1TestProfile]): BSONDocument = {
+    BSONDocument("PHASE1" -> o.map(Phase1TestProfile.phase1TestProfileHandler.write))
+  }
 
   private def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(

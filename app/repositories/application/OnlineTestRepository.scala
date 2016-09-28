@@ -24,8 +24,9 @@ import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.persisted.Phase1TestProfileWithAppId
-import model.{ ApplicationStatus, Commands, ReminderNotice }
+import model.{ ApplicationStatus, Commands, ProgressStatuses, ReminderNotice }
 import play.api.Logger
+import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.bson._
 import repositories._
@@ -51,6 +52,8 @@ trait OnlineTestRepository {
   def nextExpiringApplication: Future[Option[ExpiringOnlineTest]]
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
+
+  def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfile]]
 
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit]
 
@@ -185,6 +188,22 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
 
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
+  }
+
+
+  override def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfile]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_READY}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" ->
+        BSONDocument("$ne" -> true)
+      )
+    ))
+
+    selectRandom(query).map(_.map { doc =>
+      val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument]("PHASE1").get
+      Phase1TestProfile.phase1TestProfileHandler.read(group)
+    })
   }
 
   override def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = {
