@@ -16,7 +16,6 @@
 
 package model.events
 
-import model.persisted.Event
 import org.joda.time.DateTime
 
 object EventTypes {

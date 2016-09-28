@@ -17,11 +17,13 @@
 package model.persisted
 
 import org.joda.time.DateTime
-import reactivemongo.bson.Macros
+import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class Event(name: String, created: DateTime, applicationId: Option[String], userId: Option[String])
 
 object Event {
   import repositories.BSONDateTimeHandler
-  implicit val eventHandler = Macros.handler[Event]
+  implicit val eventFormat = Json.format[Event]
+  implicit val eventHandler: BSONHandler[BSONDocument, Event] = Macros.handler[Event]
 }

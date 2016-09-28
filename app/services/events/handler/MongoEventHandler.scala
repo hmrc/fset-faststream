@@ -19,14 +19,21 @@ package services.events.handler
 import model.events.MongoEvent
 import play.api.Logger
 import play.api.mvc.RequestHeader
+import repositories.event.EventRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
+import repositories.eventMongoRepository
 
 import scala.concurrent.Future
 
-object MongoEventHandler extends MongoEventHandler
+object MongoEventHandler extends MongoEventHandler {
+  val eventRepository: EventRepository = eventMongoRepository
+}
 
 trait MongoEventHandler extends EventHandler[MongoEvent] {
+  val eventRepository: EventRepository
+
   def handle(event: MongoEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    Future.successful(Logger.info(s"Mongo event $event"))
+    Logger.info(s"Mongo event $event")
+    eventRepository.create(event)
   }
 }
