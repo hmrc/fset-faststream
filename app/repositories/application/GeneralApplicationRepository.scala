@@ -258,9 +258,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   def findByCriteria(firstOrPreferredNameOpt: Option[String],
-    lastNameOpt: Option[String],
-    dateOfBirth: Option[LocalDate],
-    userIds: List[String]
+                     lastNameOpt: Option[String],
+                     dateOfBirth: Option[LocalDate],
+                     limitToUserIds: List[String]
   ): Future[List[Candidate]] = {
 
     def matchIfSome(value: Option[String]) = value.map(v => BSONRegex("^" + Pattern.quote(v) + "$", "i"))
@@ -274,10 +274,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       BSONDocument("personal-details.dateOfBirth" -> dateOfBirth)
     )
 
-    val fullQuery = if (userIds.isEmpty) {
+    val fullQuery = if (limitToUserIds.isEmpty) {
       innerQuery
     } else {
-      innerQuery ++ BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+      innerQuery ++ BSONDocument("userId" -> BSONDocument("$in" -> limitToUserIds))
     }
 
     val query = BSONDocument("$and" -> fullQuery)

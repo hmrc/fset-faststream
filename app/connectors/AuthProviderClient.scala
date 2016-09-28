@@ -19,7 +19,7 @@ package connectors
 import config.WSHttp
 import connectors.AuthProviderClient._
 import connectors.ExchangeObjects.Implicits._
-import connectors.ExchangeObjects.{ ActivateEmailRequest, AddUserRequest, Candidate, UserResponse }
+import connectors.ExchangeObjects._
 import model.Exceptions.{ ConnectorException, EmailTakenException }
 import play.api.Logger
 import play.api.http.Status._
@@ -100,28 +100,24 @@ trait AuthProviderClient {
       }
 
   def findByFirstName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    val rolesString = roles.mkString("&roles=")
-    WSHttp.GET(s"$url/service/$ServiceName/findByFirstName/$name?roles=$rolesString").map { response =>
-      if (response.status == OK) {
-        response.json.as[List[Candidate]]
-      } else if (response.status == REQUEST_ENTITY_TOO_LARGE) {
+    WSHttp.POST(s"$url/service/$ServiceName/findByFirstName", FindByFirstNameRequest(roles, name)).map { response =>
+      response.json.as[List[Candidate]]
+    }.recover {
+      case Upstream4xxResponse(_, 413, _, _) =>
         throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
-      } else {
-        throw new ConnectorException(s"Bad response received when getting token for user: $response")
-      }
+      case errorResponse =>
+        throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
     }
   }
 
   def findByLastName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    val rolesString = roles.mkString("&roles=")
-    WSHttp.GET(s"$url/service/$ServiceName/findByLastName/$name?roles=$rolesString").map { response =>
-      if (response.status == OK) {
-        response.json.as[List[Candidate]]
-      } else if (response.status == REQUEST_ENTITY_TOO_LARGE) {
+    WSHttp.POST(s"$url/service/$ServiceName/findByLastName", FindByLastNameRequest(roles, name)).map { response =>
+      response.json.as[List[Candidate]]
+    }.recover {
+      case Upstream4xxResponse(_, 413, _, _) =>
         throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
-      } else {
-        throw new ConnectorException(s"Bad response received when getting token for user: $response")
-      }
+      case errorResponse =>
+        throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
     }
   }
 }
