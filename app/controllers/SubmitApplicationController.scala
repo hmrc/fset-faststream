@@ -78,6 +78,7 @@ trait SubmitApplicationController extends BaseController {
   }
 
   private def submit(applicationId: String, email: String, preferredName: String): Future[Events] = {
+    // Usually events are created in Service layer. Due to lack of Service layer for submit, they are created here
     appRepository.submit(applicationId) map { _ =>
       MongoEvents.ApplicationSubmitted(applicationId) ::
       EmailEvents.ApplicationSubmitted(email, preferredName) ::

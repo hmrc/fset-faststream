@@ -24,11 +24,16 @@ sealed trait AuditEvent extends EventType {
 }
 
 sealed trait AuditEventWithMap extends AuditEvent {
-  val detailsMap: Map[String, String]
+  private[events] val detailsMap: Map[String, String]
   override val details = detailsMap
 }
+
+sealed trait AuditEventNoRequest extends AuditEventWithMap
 
 object AuditEvents {
   case class ApplicationSubmitted() extends AuditEvent
   case class ApplicationWithdrawn(detailsMap: Map[String, String]) extends AuditEventWithMap
+  case class ExpiredTestsExtended(detailsMap: Map[String, String]) extends AuditEventNoRequest
+  case class NonExpiredTestsExtended(detailsMap: Map[String, String]) extends AuditEventNoRequest
+  case class Phase1TestsReset(detailsMap: Map[String, String]) extends AuditEventNoRequest
 }

@@ -25,6 +25,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import services.events.EventService
 import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -57,14 +58,15 @@ object OnlineTestController extends OnlineTestController {
   override val onlineRepository: OnlineTestRepository = onlineTestRepository
   override val onlineTestingService: OnlineTestService = OnlineTestService
   override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
+  val eventService: EventService = EventService
 }
 
 trait OnlineTestController extends BaseController {
-
   val appRepository: GeneralApplicationRepository
   val onlineRepository: OnlineTestRepository
   val onlineTestingService: OnlineTestService
   val onlineTestExtensionService: OnlineTestExtensionService
+  val eventService: EventService
 
   import Commands.Implicits._
 
@@ -86,7 +88,10 @@ trait OnlineTestController extends BaseController {
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
       appRepository.getOnlineTestApplication(appId).flatMap {
         case Some(onlineTestApp) =>
-          onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests) map (_ => Ok)
+          for {
+            events <- onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests)
+            _ <- eventService.handle(events)
+          } yield Ok
         case _ => Future.successful(NotFound)
       }
     }

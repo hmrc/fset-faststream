@@ -20,8 +20,8 @@ import model.events.MongoEvent
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.event.EventRepository
-import uk.gov.hmrc.play.http.HeaderCarrier
 import repositories.eventMongoRepository
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 

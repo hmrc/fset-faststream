@@ -48,7 +48,7 @@ object MongoEvents {
   case class ApplicationWithdrawn(appId: String) extends MongoEventWithAppId
 
   case class OnlineExerciseStarted(appId: String) extends MongoEventWithAppId
-  case class OnlineExerciseCompleted(appId: String) extends MongoEventWithAppId
+  case class AllOnlineExercisesCompleted(appId: String) extends MongoEventWithAppId
   case class OnlineExerciseExtended(appId: String) extends MongoEventWithAppId
   case class OnlineExerciseReset(appId: String) extends MongoEventWithAppId
   case class OnlineExerciseResultSent(appId: String) extends MongoEventWithAppId
@@ -68,6 +68,4 @@ object MongoEvents {
   case class ManageAdjustmentsUpdated(appId: String) extends MongoEventWithAppId
   case class FastPassApproved(appId: String) extends MongoEventWithAppId
   case class FastPassRejected(appId: String) extends MongoEventWithAppId
-  case class CandidateLockedAccount(appId: String) extends MongoEventWithAppId
-  case class CandidateUnlockedAccount(appId: String) extends MongoEventWithAppId
 }

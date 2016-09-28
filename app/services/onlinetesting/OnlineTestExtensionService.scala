@@ -16,31 +16,29 @@
 
 package services.onlinetesting
 
-import factories.DateTimeFactory
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, ProgressStatus }
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED }
+import model.events.EventTypes.Events
+import model.events.{ AuditEvents, MongoEvents }
 import org.joda.time.DateTime
-import play.api.Logger
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
-import services.AuditService
 import services.onlinetesting.OnlineTestService.TestExtensionException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait OnlineTestExtensionService {
-  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Unit]
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Events]
 }
 
 class OnlineTestExtensionServiceImpl(
   appRepository: GeneralApplicationRepository,
-  otRepository: OnlineTestRepository,
-  auditService: AuditService
+  otRepository: OnlineTestRepository
 ) extends OnlineTestExtensionService {
 
-  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Unit] = {
+  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Events] = {
     // Check the state of this user
-    appRepository.findProgress(applicationId).map { progressResponse =>
+    appRepository.findProgress(applicationId) flatMap { progressResponse =>
       if (progressResponse.phase1TestsExpired) {
         for {
           _ <- otRepository.updateGroupExpiryTime(applicationId, DateTime.now().withDurationAdded(86400 * extraDays * 1000, 1))
@@ -54,7 +52,9 @@ class OnlineTestExtensionServiceImpl(
           _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, progressStatusToSet)
           _ <- appRepository.removeProgressStatuses(applicationId, progressStatusesToRemove)
         } yield {
-          audit("ExpiredTestsExtended", applicationId)
+          AuditEvents.ExpiredTestsExtended(Map("applicationId" -> applicationId)) ::
+          MongoEvents.OnlineExerciseExtended(applicationId) ::
+          Nil
         }
       } else if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) {
         for {
@@ -62,23 +62,17 @@ class OnlineTestExtensionServiceImpl(
           existingExpiry = phase1TestProfile.get.expirationDate
           _ <- otRepository.updateGroupExpiryTime(applicationId, existingExpiry.withDurationAdded(86400 * extraDays * 1000, 1))
         } yield {
-          audit("NonExpiredTestsExtended", applicationId)
+          AuditEvents.NonExpiredTestsExtended(Map("applicationId" -> applicationId)) ::
+          MongoEvents.OnlineExerciseExtended(applicationId) ::
+          Nil
         }
       } else {
         throw TestExtensionException("Application is in an invalid status for test extension")
       }
     }
   }
-
-  private def audit(eventName: String, applicationId: String): Unit = {
-    Logger.info(s"$eventName for applicationId '$applicationId'")
-
-    auditService.logEventNoRequest(eventName, Map(
-      "applicationId" -> applicationId
-    ))
-  }
 }
 
 object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(
-  applicationRepository, onlineTestRepository, AuditService
+  applicationRepository, onlineTestRepository
 )
