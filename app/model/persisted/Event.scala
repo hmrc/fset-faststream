@@ -20,7 +20,11 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class Event(name: String, created: DateTime, applicationId: Option[String], userId: Option[String])
+case class Event(name: String,
+                 created: DateTime,
+                 applicationId: Option[String],
+                 userId: Option[String],
+                 additionalData: Option[String] = None)
 
 object Event {
   import repositories.BSONDateTimeHandler

@@ -36,7 +36,7 @@ trait ApplicationService {
 
   def withdraw(applicationId: String, withdrawRequest: WithdrawApplication): Future[Events] = {
     appRepository.withdraw(applicationId, withdrawRequest) map { _ =>
-      MongoEvents.ApplicationWithdrawn(applicationId) ::
+      MongoEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
       AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
       Nil
     }
