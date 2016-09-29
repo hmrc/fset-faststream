@@ -45,7 +45,7 @@ case class OnlineTest(
 
 case class OnlineTestStatus(status: String)
 
-case class OnlineTestExtension(extraDays: Int)
+case class OnlineTestExtension(extraDays: Int, issuerUserId: String)
 
 object OnlineTestExtension {
   implicit val onlineTestExtensionFormat = Json.format[OnlineTestExtension]
@@ -89,7 +89,7 @@ trait OnlineTestController extends BaseController {
       appRepository.getOnlineTestApplication(appId).flatMap {
         case Some(onlineTestApp) =>
           for {
-            events <- onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests)
+            events <- onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests, resetOnlineTest.issuerUserId)
             _ <- eventService.handle(events)
           } yield Ok
         case _ => Future.successful(NotFound)

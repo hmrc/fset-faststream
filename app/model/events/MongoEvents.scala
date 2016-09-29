@@ -45,22 +45,22 @@ sealed trait MongoEventWithAppId extends MongoEvent {
   override lazy val applicationId = Some(appId)
 }
 
-sealed trait MongoEventWithExtraInfo extends MongoEvent {
+sealed trait MongoEventWithIssuer extends MongoEvent {
   val appId: String
-  val extraData: String
+  val issuerUserId: String
   override lazy val applicationId = Some(appId)
-  override lazy val issuer = Some(extraData)
+  override lazy val issuer = Some(issuerUserId)
 }
 
 // format: OFF
 object MongoEvents {
   case class ApplicationSubmitted(appId: String) extends MongoEventWithAppId
-  case class ApplicationWithdrawn(appId: String, extraData: String) extends MongoEventWithExtraInfo
+  case class ApplicationWithdrawn(appId: String, issuerUserId: String) extends MongoEventWithIssuer
 
   case class OnlineExerciseStarted(appId: String) extends MongoEventWithAppId
   case class AllOnlineExercisesCompleted(appId: String) extends MongoEventWithAppId
-  case class OnlineExerciseExtended(appId: String) extends MongoEventWithAppId
-  case class OnlineExerciseReset(appId: String) extends MongoEventWithAppId
+  case class OnlineExerciseExtended(appId: String, issuerUserId: String) extends MongoEventWithIssuer
+  case class OnlineExerciseReset(appId: String, issuerUserId: String) extends MongoEventWithIssuer
   case class OnlineExerciseResultSent(appId: String) extends MongoEventWithAppId
 
   case class ETrayStarted(appId: String) extends MongoEventWithAppId

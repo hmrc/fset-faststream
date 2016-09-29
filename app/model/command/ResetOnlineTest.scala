@@ -18,7 +18,7 @@ package model.command
 
 import play.api.libs.json.Json
 
-case class ResetOnlineTest(tests: List[String])
+case class ResetOnlineTest(tests: List[String], issuerUserId: String)
 
 object ResetOnlineTest {
   implicit val resetOnlineTestFormat = Json.format[ResetOnlineTest]

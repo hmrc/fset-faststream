@@ -108,12 +108,12 @@ trait OnlineTestService extends ResetPhase1Test {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
   }
 
-  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String]): Future[Events] = {
+  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String], issuerUserId: String): Future[Events] = {
     for {
     - <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
       AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))) ::
-      MongoEvents.OnlineExerciseReset(application.applicationId) ::
+      MongoEvents.OnlineExerciseReset(application.applicationId, issuerUserId) ::
       Nil
     }
   }
