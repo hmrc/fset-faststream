@@ -20,7 +20,7 @@ import config._
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.{ Address, ApplicationStatus, Commands, ProgressStatuses }
+import model._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
@@ -409,6 +409,57 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         "appId",
         phase1TestProfile.copy(tests = expectedTestsAfterReset)
       )
+    }
+  }
+
+  "retrieve phase 1 test report" should {
+    "return an exception if no report Id is set" in new OnlineTest {
+
+        an[Exception] must be thrownBy onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
+          "appId", phase1TestProfile
+        ))
+
+    }
+
+    "return an exception if there is an error retrieving one of the reports" in new OnlineTest {
+      val failedTest = phase1Test.copy(scheduleId = 555, reportId = Some(2))
+      val successfulTest = phase1Test.copy(scheduleId = 444, reportId = Some(1))
+
+       when(cubiksGatewayClientMock.downloadXmlReport(eqTo(successfulTest.reportId.get))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(OnlineTestCommands.TestResult(status = "Completed",
+          norm = "some norm",
+          tScore = Some(23.9999d),
+          percentile = Some(22.4d),
+          raw = Some(66.9999d),
+          sten = Some(1.333d)
+        )))
+
+      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new Exception))
+
+      val result = onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
+        "appId", phase1TestProfile.copy(tests = List(successfulTest, failedTest))
+      ))
+    }
+
+    "save a phase1 report for a candidate" in new OnlineTest {
+      when(cubiksGatewayClientMock.downloadXmlReport(any[Int])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(OnlineTestCommands.TestResult(status = "Completed",
+          norm = "some norm",
+          tScore = Some(23.9999d),
+          percentile = Some(22.4d),
+          raw = Some(66.9999d),
+          sten = Some(1.333d)
+        )))
+
+      when(otRepositoryMock.insertPhase1TestResult(any[String], any[Phase1Test], any[persisted.TestResult]))
+        .thenReturn(Future.successful(()))
+
+      val result = onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
+        "appId", phase1TestProfile.copy(tests = List(phase1Test.copy(reportId = Some(123))))
+      )).futureValue
+
+      verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
     }
   }
 

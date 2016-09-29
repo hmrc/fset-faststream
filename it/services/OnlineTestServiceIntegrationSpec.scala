@@ -16,15 +16,16 @@
 
 package services
 
-import _root_.services.onlinetesting.{CubiksSanitizer, OnlineTestService}
+import _root_.services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
 import config.MicroserviceAppConfig._
-import connectors.{CSREmailClient, CubiksGatewayClient}
-import factories.{DateTimeFactory, UUIDFactory}
+import connectors.{ CSREmailClient, CubiksGatewayClient }
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
+import org.joda.time.DateTime
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.time.{Seconds, Span}
+import org.scalatest.time.{ Seconds, Span }
 import play.api.test.WithApplication
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.DefaultDB
@@ -61,19 +62,7 @@ class OnlineTestServiceIntegrationSpec extends IntegrationSpec with MockitoSugar
     .thenReturn(Future.successful(OnlineTestReportAvailability(1, false)))
 
   when(gatewayClientMock.downloadXmlReport(any[Int])(any[HeaderCarrier]))
-    .thenReturn(Future.successful {
-      val VerbalTestName = "Logiks Verbal and Numerical - Verbal"
-      val NumericalTestName = "Logiks Verbal and Numerical - Numerical"
-      val CompetencyTestName = "Cubiks Factors"
-      val SituationalTestName = "Civil Service Fast Track Apprentice SJQ"
-
-      Map(
-        CompetencyTestName -> TestResult("Completed", "competency norm", Some(20.1d), Some(20.2d), Some(20.3d), Some(20.4d)),
-        NumericalTestName -> TestResult("Completed", "numerical norm", Some(30.1d), Some(30.2d), Some(30.3d), Some(30.4d)),
-        VerbalTestName -> TestResult("Completed", "verbal norm", Some(40.1d), Some(40.2d), Some(40.3d), Some(40.4d)),
-        SituationalTestName -> TestResult("Completed", "situational norm", Some(50.1d), Some(50.2d), Some(50.3d), Some(50.4d))
-      )}
-    )
+    .thenReturn(Future.successful(testResult))
 
   val gatewayFailingClientMock = mock[CubiksGatewayClient]
 
@@ -81,15 +70,7 @@ class OnlineTestServiceIntegrationSpec extends IntegrationSpec with MockitoSugar
     .thenReturn(Future.successful(OnlineTestReportAvailability(1, false)))
 
   when(gatewayFailingClientMock.downloadXmlReport(any[Int])(any[HeaderCarrier]))
-    .thenReturn(Future.successful {
-      val CompetencyTestName = "Cubiks Factors"
-      val SituationalTestName = "Civil Service Fast Track Apprentice SJQ"
-
-      Map(
-        CompetencyTestName -> TestResult("Completed", "competency norm", Some(20.1d), Some(20.2d), Some(20.3d), Some(20.4d)),
-        SituationalTestName -> TestResult("Completed", "situational norm", Some(50.1d), Some(50.2d), Some(50.3d), Some(50.4d))
-      )}
-    )
+    .thenReturn(Future.successful(testResult))
 
 
   lazy val service = new OnlineTestService {
@@ -120,32 +101,42 @@ class OnlineTestServiceIntegrationSpec extends IntegrationSpec with MockitoSugar
     val gatewayConfig = cubiksGatewayConfig
   }
 
+  val phase1Test = Phase1Test(scheduleId = 123,
+    usedForResults = true,
+    cubiksUserId = 2222,
+    token = "",
+    testUrl = "www.test.com",
+    invitationDate = DateTime.parse("2016-05-11"),
+    participantScheduleId = 333
+  )
+  val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.parse("2016-05-18"),
+    tests = List(phase1Test)
+  )
+
+  val testResult = TestResult("Completed", "situational norm", Some(50.1d), Some(50.2d), Some(50.3d), Some(50.4d))
+
   "Online test service" should {
 
-    // TODO FAST STREAM FIX ME
-    /*"retrieve online test result" in new WithApplication {
+    "retrieve online test result" in new WithApplication {
       clearDatabase()
       val application = mock[OnlineTestApplicationWithCubiksUser]
       when(application.applicationId).thenReturn("appId")
       when(application.userId).thenReturn("userId")
 
       createApplication("appId", "userId", "frameworkId", "CREATED")
-      service.retrieveTestResult(application, waitSecs = Some(0)).futureValue
 
-      val reportOpt = service.trRepository.getReportByApplicationId("appId").futureValue
+      val result = service.retrievePhase1TestResult(phase1TestProfile)
+
+      val reportOpt = service.otRepository.getPhase1TestGroup("appId").futureValue
 
       reportOpt must not be None
-      val report = reportOpt.get
 
-      report.numerical mustBe Some(TestResult("Completed", "numerical norm", Some(30.1d), Some(30.2d), Some(30.3d), Some(30.4d)))
-      report.verbal mustBe Some(TestResult("Completed", "verbal norm", Some(40.1d), Some(40.2d), Some(40.3d), Some(40.4d)))
-      report.situational mustBe Some(TestResult("Completed", "situational norm", Some(50.1d), Some(50.2d), Some(50.3d), Some(50.4d)))
-      report.competency mustBe Some(TestResult("Completed", "competency norm", Some(20.1d), Some(20.2d), Some(20.3d), Some(20.4d)))
-
-      report.reportType mustBe "XML"
+      reportOpt.foreach { report =>
+        report.tests mustBe List(testResult)
+      }
 
       verify(auditMock).logEventNoRequest("OnlineTestXmlReportSaved", Map("userId" -> "userId"))
-    }*/
+    }
 
     // TODO: Broken test. This works in isolation, but somehow the mongo connections get reset if run after another test
 //    "expect exception" in new WithApplication {

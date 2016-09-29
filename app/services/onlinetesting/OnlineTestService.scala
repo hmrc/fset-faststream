@@ -24,6 +24,7 @@ import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
+import model.persisted
 import model.ProgressStatuses
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
 import model.persisted.Phase1TestProfileWithAppId
@@ -32,6 +33,7 @@ import play.api.Logger
 import play.libs.Akka
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import services.onlinetesting.OnlineTestService.ReportIdNotDefinedException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
@@ -53,10 +55,11 @@ object OnlineTestService extends OnlineTestService {
   val gatewayConfig = cubiksGatewayConfig
 
   case class TestExtensionException(message: String) extends Exception(message)
+  case class ReportIdNotDefinedException(message: String) extends Exception(message)
 }
 
 trait OnlineTestService extends ResetPhase1Test {
-  implicit def headerCarrier = new HeaderCarrier()
+  implicit val headerCarrier = new HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val appRepository: GeneralApplicationRepository
@@ -80,7 +83,7 @@ trait OnlineTestService extends ResetPhase1Test {
   }
 
 
-  def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfile]] = {
+  def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfileWithAppId]] = {
     otRepository.nextPhase1TestGroupWithReportReady
   }
 
@@ -176,15 +179,22 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def retrieveTestResult(testGroup: Phase1TestProfile): Future[Unit] = {
+  def retrievePhase1TestResult(testProfile: Phase1TestProfileWithAppId): Future[Unit] = {
 
-    Future.sequence(testGroup.tests.flatMap { test =>  test.reportId.map { reportId =>
-      cubiksGatewayClient.downloadXmlReport(reportId).flatMap { testResult =>
-        otRepository.insertPhase1TestResult(test,
-          model.persisted.TestResult.apply(testResult)
+    val testResults = Future.sequence(testProfile.phase1TestProfile.activeTests.map { test =>
+      cubiksGatewayClient.downloadXmlReport(
+        test.reportId.getOrElse(throw ReportIdNotDefinedException(s"no report id defined on test for schedule ${test.scheduleId}"))
+      ).map(_ -> test)
+    })
+
+    testResults.flatMap { x => Future.sequence(
+      x.map {
+        case (result, phase1Test) => otRepository.insertPhase1TestResult(testProfile.applicationId,
+          phase1Test,
+          model.persisted.TestResult.apply(result)
         )
       }
-    }})
+    )}.map(_ => audit(s"ResultsRetrievedForSchedule", testProfile.applicationId))
   }
 
   def registerApplicant(application: OnlineTestApplication, token: String): Future[Int] = {

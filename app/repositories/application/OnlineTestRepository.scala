@@ -53,13 +53,13 @@ trait OnlineTestRepository {
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
-  def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfile]]
+  def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfileWithAppId]]
 
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit]
 
   def removePhase1TestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
 
-  def insertPhase1TestResult(phase1Test: Phase1Test, testResult: TestResult): Future[Unit]
+  def insertPhase1TestResult(appId: String, phase1Test: Phase1Test, testResult: TestResult): Future[Unit]
 }
 
 // TODO: Rename to something like: Phase1TestGroupMongoRepository
@@ -149,11 +149,14 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
   }
 
-  override def insertPhase1TestResult(phase1Test: Phase1Test, testResult: TestResult): Future[Unit] = {
+  override def insertPhase1TestResult(appId: String, phase1Test: Phase1Test, testResult: TestResult): Future[Unit] = {
 
-    val query = BSONDocument("testGroups.PHASE1.tests" -> BSONDocument(
-      "$elemMatch" -> BSONDocument("cubiksUserId" -> phase1Test.cubiksUserId)
-    ))
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      "testGroups.PHASE1.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("cubiksUserId" -> phase1Test.cubiksUserId)
+      )
+    )
 
     val update = BSONDocument("$set" -> BSONDocument(
       s"progress-status.$PHASE1_TESTS_RESULTS_RECEIVED" -> true
@@ -208,7 +211,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
 
-  override def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfile]] = {
+  override def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfileWithAppId]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_READY}" -> true),
@@ -219,7 +222,10 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     selectRandom(query).map(_.map { doc =>
       val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument]("PHASE1").get
-      Phase1TestProfile.phase1TestProfileHandler.read(group)
+      Phase1TestProfileWithAppId(
+        applicationId = doc.getAs[String]("applicationId").get,
+        Phase1TestProfile.phase1TestProfileHandler.read(group)
+      )
     })
   }
 

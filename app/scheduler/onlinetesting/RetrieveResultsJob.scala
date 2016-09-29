@@ -33,7 +33,7 @@ trait RetrieveResultsJob extends SingleInstanceScheduledJob with RetrieveResults
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextPhase1TestGroupWithReportReady.flatMap {
       case Some(phase1TestProfile) =>
-        onlineTestingService.retrieveTestResults(phase1TestProfile)
+        onlineTestingService.retrievePhase1TestResult(phase1TestProfile)
       case None => Future.successful(())
     }
   }
