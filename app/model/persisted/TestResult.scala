@@ -17,6 +17,7 @@
 package model.persisted
 
 import controllers.OnlineTest
+import play.api.libs.json.{ Format, Json }
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class TestResult(status: String,
@@ -29,7 +30,7 @@ case class TestResult(status: String,
 
 object TestResult {
 
-  def apply(o: model.OnlineTestCommands.TestResult): TestResult = {
+  def fromCommandObject(o: model.OnlineTestCommands.TestResult): TestResult = {
     TestResult(status = o.status,
       norm = o.norm,
       tScore = o.tScore,
@@ -39,5 +40,6 @@ object TestResult {
     )
   }
 
+  implicit def testResultFormat = Json.format[TestResult]
   implicit def testResultBsonHandler: BSONHandler[BSONDocument, TestResult] = Macros.handler[TestResult]
 }

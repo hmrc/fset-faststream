@@ -26,7 +26,7 @@ import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PH
 import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
-import play.api.libs.json.Json
+import model.persisted
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
@@ -61,6 +61,13 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   )
 
   val TestProfile = Phase1TestProfile(expirationDate = DatePlus7Days, tests = List(phase1Test))
+  val testProfileWithAppId = Phase1TestProfileWithAppId(
+    "appId",
+    TestProfile.copy(tests = List(
+      phase1Test.copy(usedForResults = true, resultsReadyToDownload = true),
+      phase1Test.copy(usedForResults = true, resultsReadyToDownload = true))
+    )
+  )
 
   "Get online test" should {
     "return None if there is no test for the specific user id" in {
@@ -142,21 +149,38 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
     }
 
     "return a test group if the progress status is set to PHASE1_TEST_RESULTS_READY" in {
-
-      val resultsReadyGroup = TestProfile.copy(tests = List(
-        phase1Test.copy(usedForResults = true, resultsReadyToDownload = true),
-        phase1Test.copy(usedForResults = true, resultsReadyToDownload = true))
-      )
-
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
-        phase1TestProfile = Some(resultsReadyGroup)
+        phase1TestProfile = Some(testProfileWithAppId.phase1TestProfile)
       ).futureValue
 
       val phase1TestResultsReady = onlineTestRepo.nextPhase1TestGroupWithReportReady.futureValue
       phase1TestResultsReady.isDefined mustBe true
-      phase1TestResultsReady.get mustBe resultsReadyGroup
+      phase1TestResultsReady.get mustBe testProfileWithAppId
+    }
+
+    "correctly update a test group with results" in {
+       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
+        phase1TestProfile = Some(testProfileWithAppId.phase1TestProfile)
+      ).futureValue
+
+
+      val testResult = persisted.TestResult(status = "completed", norm = "some norm",
+          tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
+
+      onlineTestRepo.insertPhase1TestResult("appId", testProfileWithAppId.phase1TestProfile.tests.head,
+        testResult
+      ).futureValue
+
+      val phase1TestProfile = onlineTestRepo.getPhase1TestGroup("appId").futureValue
+      phase1TestProfile.foreach { profile =>
+        profile.tests.head.testResult.isDefined mustBe true
+        profile.tests.head.testResult.get mustBe testResult
+      }
+
     }
   }
 

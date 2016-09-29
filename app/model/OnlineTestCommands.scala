@@ -25,19 +25,21 @@ import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
 object OnlineTestCommands {
   case class Phase1Test(scheduleId: Int,
-                        usedForResults: Boolean,
-                        cubiksUserId: Int,
-                        testProvider: String = "cubiks",
-                        token: String,
-                        testUrl: String,
-                        invitationDate: DateTime,
-                        participantScheduleId: Int,
-                        startedDateTime: Option[DateTime] = None,
-                        completedDateTime: Option[DateTime] = None,
-                        resultsReadyToDownload: Boolean = false,
-                        reportId: Option[Int] = None,
-                        reportLinkURL: Option[String] = None,
-                        reportStatus: Option[String] = None)
+    usedForResults: Boolean,
+    cubiksUserId: Int,
+    testProvider: String = "cubiks",
+    token: String,
+    testUrl: String,
+    invitationDate: DateTime,
+    participantScheduleId: Int,
+    startedDateTime: Option[DateTime] = None,
+    completedDateTime: Option[DateTime] = None,
+    resultsReadyToDownload: Boolean = false,
+    reportId: Option[Int] = None,
+    reportLinkURL: Option[String] = None,
+    reportStatus: Option[String] = None,
+    testResult: Option[model.persisted.TestResult] = None
+  )
 
   object Phase1Test {
     import repositories.BSONDateTimeHandler

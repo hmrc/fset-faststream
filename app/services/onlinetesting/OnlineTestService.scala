@@ -191,7 +191,7 @@ trait OnlineTestService extends ResetPhase1Test {
       x.map {
         case (result, phase1Test) => otRepository.insertPhase1TestResult(testProfile.applicationId,
           phase1Test,
-          model.persisted.TestResult.apply(result)
+          model.persisted.TestResult.fromCommandObject(result)
         )
       }
     )}.map(_ => audit(s"ResultsRetrievedForSchedule", testProfile.applicationId))
