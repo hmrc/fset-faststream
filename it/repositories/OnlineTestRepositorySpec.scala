@@ -292,6 +292,9 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1TestsStarted mustBe true
+
+      val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
+      appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
 
     "remove progress statuses" in {
