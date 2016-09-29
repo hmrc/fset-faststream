@@ -33,17 +33,18 @@ import org.scalatest.mock.MockitoSugar
 import play.Logger
 import play.api.libs.json._
 import play.api.test.WithApplication
-import reactivemongo.bson.{BSONDocument, BSONString}
+import reactivemongo.bson.{ BSONDocument, BSONString }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.applicationassessment.ApplicationAssessmentService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.MongoRepositorySpec
 
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoSugar {
 

@@ -21,7 +21,8 @@ import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_INVITED, PHAS
 import org.joda.time.DateTime
 import play.api.Logger
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.AuditService
 import services.onlinetesting.OnlineTestService.TestExtensionException
 

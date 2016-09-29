@@ -24,7 +24,8 @@ import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 

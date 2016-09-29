@@ -22,7 +22,8 @@ import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDE
 import model.ReminderNotice
 import play.api.Logger
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 

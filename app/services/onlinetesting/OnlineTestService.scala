@@ -30,9 +30,9 @@ import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
 import play.api.Logger
-import play.libs.Akka
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.onlinetesting.OnlineTestService.ReportIdNotDefinedException
 import uk.gov.hmrc.play.http.HeaderCarrier
 

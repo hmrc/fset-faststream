@@ -18,7 +18,7 @@ package services.testdata
 
 import common.FutureEx
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.onlinetesting.OnlineTestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 

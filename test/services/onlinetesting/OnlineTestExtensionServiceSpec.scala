@@ -25,7 +25,7 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.OnlineTestRepository
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
 

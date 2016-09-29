@@ -18,7 +18,7 @@ package services.testdata
 
 import model.PersistedObjects.ExpiringOnlineTest
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.onlinetesting.{OnlineTestExpiryService, OnlineTestService}
 import uk.gov.hmrc.play.http.HeaderCarrier
 

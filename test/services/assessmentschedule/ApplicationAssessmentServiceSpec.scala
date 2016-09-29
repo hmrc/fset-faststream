@@ -33,7 +33,8 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.PlaySpec
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.OnlineTestRepository
 import repositories.{ApplicationAssessmentScoresRepository, _}
 import services.AuditService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine

@@ -21,7 +21,7 @@ import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatuses
 import org.joda.time.DateTime
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.onlinetesting.OnlineTestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 

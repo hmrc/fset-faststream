@@ -20,7 +20,7 @@ import mocks.PassMarkSettingsInMemoryRepository
 import model.PersistedObjects.CandidateTestReport
 import model.Preferences
 import org.scalatest.mock.MockitoSugar
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.OnlineTestRepository
 import repositories.{ FrameworkPreferenceRepository, FrameworkRepository, PassMarkSettingsRepository, TestReportRepository }
 import services.onlinetesting.OnlineTestPassmarkService
 import services.passmarksettings.PassMarkSettingsService

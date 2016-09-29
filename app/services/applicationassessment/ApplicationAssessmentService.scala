@@ -24,8 +24,9 @@ import model.EvaluationResults._
 import model.Exceptions.IncorrectStatusInApplicationException
 import model.PersistedObjects.ApplicationForNotification
 import play.api.Logger
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
 import repositories._
+import repositories.onlinetesting.OnlineTestRepository
 import services.AuditService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService

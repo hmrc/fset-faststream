@@ -23,7 +23,7 @@ import connectors.testdata.ExchangeObjects.{ Phase1TestGroupResponse, Phase1Test
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import org.joda.time.DateTime
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 import config.MicroserviceAppConfig.cubiksGatewayConfig

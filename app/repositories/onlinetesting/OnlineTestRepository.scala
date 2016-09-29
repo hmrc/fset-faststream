@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package repositories.application
+package repositories.onlinetesting
 
 import controllers.OnlineTestDetails
 import factories.DateTimeFactory

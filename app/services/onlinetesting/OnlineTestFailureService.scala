@@ -21,11 +21,12 @@ import model.ApplicationStatuses
 import model.PersistedObjects.ApplicationForNotification
 import play.api.Logger
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait OnlineTestFailureService {
   def processNextFailedTest(): Future[Unit]

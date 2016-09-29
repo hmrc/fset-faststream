@@ -20,7 +20,7 @@ import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 
 import scala.concurrent.ExecutionContext.Implicits.global
