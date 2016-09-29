@@ -59,7 +59,7 @@ object OnlineTestService extends OnlineTestService {
 }
 
 trait OnlineTestService extends ResetPhase1Test {
-  implicit val headerCarrier = new HeaderCarrier()
+  implicit def headerCarrier = new HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val appRepository: GeneralApplicationRepository
