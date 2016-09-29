@@ -24,20 +24,20 @@ sealed trait MongoEvent extends EventType {
   final val eventCreated: DateTime = DateTime.now()
   lazy val applicationId: Option[String] = None
   lazy val userId: Option[String] = None
-  lazy val additionalData: Option[String] = None
+  lazy val issuer: Option[String] = None
 
   require(applicationId.isDefined || userId.isDefined)
 
   // TODO equals & hashcode
   override def toString: String = s"${super.toString}, applicationId=$applicationId, userId=$userId," +
-    s"eventCreated=$eventCreated, additionalData=$additionalData"
+    s"eventCreated=$eventCreated, issuer=$issuer"
 }
 
 object MongoEvent {
   import scala.language.implicitConversions
-  
+
   implicit def toMongoEventData(mongoEvent: MongoEvent): model.persisted.Event =
-    Event(mongoEvent.eventName, mongoEvent.eventCreated, mongoEvent.applicationId, mongoEvent.userId, mongoEvent.additionalData)
+    Event(mongoEvent.eventName, mongoEvent.eventCreated, mongoEvent.applicationId, mongoEvent.userId, mongoEvent.issuer)
 }
 
 sealed trait MongoEventWithAppId extends MongoEvent {
@@ -49,7 +49,7 @@ sealed trait MongoEventWithExtraInfo extends MongoEvent {
   val appId: String
   val extraData: String
   override lazy val applicationId = Some(appId)
-  override lazy val additionalData = Some(extraData)
+  override lazy val issuer = Some(extraData)
 }
 
 // format: OFF
