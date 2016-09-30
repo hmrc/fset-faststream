@@ -53,6 +53,8 @@ trait OnlineTestRepository {
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
 
+  def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit]
+
   def removePhase1TestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
 }
 
@@ -182,6 +184,19 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
 
     selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
+  }
+
+  override def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = {
+    require(progressStatus.applicationStatus == ApplicationStatus.PHASE1_TESTS, "Forbidden progress status update")
+
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      "applicationStatus" -> ApplicationStatus.PHASE1_TESTS
+    )
+
+    val applicationStatusDocument = BSONDocument("$set" -> applicationStatusBSON(progressStatus))
+
+    collection.update(query, applicationStatusDocument, upsert = false) map ( _ => () )
   }
 
   override def removePhase1TestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {

@@ -323,7 +323,7 @@ trait OnlineTestService extends ResetPhase1Test {
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
     updatedTestPhase1 flatMap { u =>
-      appRepository.addProgressStatusAndUpdateAppStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
+      otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
     }
   }
 
@@ -333,7 +333,7 @@ trait OnlineTestService extends ResetPhase1Test {
       require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
 
       if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
-        appRepository.addProgressStatusAndUpdateAppStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED)
+        otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED)
       } else {
         Future.successful(())
       }
