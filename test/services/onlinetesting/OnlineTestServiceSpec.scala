@@ -27,13 +27,12 @@ import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.Phase1TestProfileWithAppId
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.{ BeforeAndAfterEach, PrivateMethodTester }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatestplus.play.PlaySpec
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
 import repositories.{ ContactDetailsRepository, TestReportRepository }
@@ -42,7 +41,6 @@ import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.Failure
 
 class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout
   with PrivateMethodTester {
