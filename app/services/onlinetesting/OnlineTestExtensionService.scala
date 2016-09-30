@@ -65,7 +65,7 @@ class OnlineTestExtensionServiceImpl(
     for {
       Extension(date, expired, profile, progress) <- extension
       _ <- otRepository.updateGroupExpiryTime(applicationId, date)
-      _ <- getProgressStatusesToRemove(profile, progress).fold(NoOp)(p => appRepository.removeProgressStatuses(applicationId, p))
+      _ <- getProgressStatusesToRemove(date, profile, progress).fold(NoOp)(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
       audit(expired, applicationId)
     }
@@ -93,23 +93,16 @@ object OnlineTestExtensionServiceImpl {
 
   val NoOp: Future[Unit] = Future.successful(())
 
-  def getProgressStatusesToRemove(profile: Phase1TestProfile,
+  def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
+                                  profile: Phase1TestProfile,
                                   progress: ProgressResponse): Option[List[ProgressStatus]] = {
+
     val today = DateTime.now()
     val progressList = (Set.empty[ProgressStatus]
         ++ cond(progress.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
-        ++ cond(progress.phase1TestsExpired, PHASE1_TESTS_FIRST_REMINDER)
-        ++ cond(progress.phase1TestsExpired, PHASE1_TESTS_SECOND_REMINDER)
         ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)
-        ++ cond(
-            profile.expirationDate.minusHours(SecondReminder.hoursBeforeReminder).isBefore(today) && !progress.phase1TestsExpired,
-            PHASE1_TESTS_SECOND_REMINDER)
-        ++ cond(
-            profile.expirationDate.minusHours(SecondReminder.hoursBeforeReminder).isBefore(today) && !progress.phase1TestsExpired,
-            PHASE1_TESTS_FIRST_REMINDER)
-        ++ cond(
-            profile.expirationDate.minusHours(FirstReminder.hoursBeforeReminder).isBefore(today) && !progress.phase1TestsExpired,
-            PHASE1_TESTS_FIRST_REMINDER)).toList
+        ++ cond(extendedExpiryDate.minusHours(SecondReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_SECOND_REMINDER)
+        ++ cond(extendedExpiryDate.minusHours(FirstReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_FIRST_REMINDER)).toList
     if(progressList.isEmpty) { None } else { Some(progressList) }
   }
 
