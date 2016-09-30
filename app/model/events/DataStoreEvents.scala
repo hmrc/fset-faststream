@@ -53,11 +53,14 @@ sealed trait DataStoreEventWithIssuer extends DataStoreEvent {
 }
 
 object DataStoreEvents {
-  // TODO: the name for the event: Make it more explicit - or put comment
+  // NOTICE. The name for the case class is important and is used when the event is emitted.
+  // In other words: Renaming the case class here, impacts in renaming the event name in database.
+
   case class ApplicationSubmitted(appId: String) extends DataStoreEventWithAppId
   case class ApplicationWithdrawn(appId: String, issuerUserId: String) extends DataStoreEventWithIssuer
 
   case class OnlineExerciseStarted(appId: String) extends DataStoreEventWithAppId
+  case class OnlineExercisesCompleted(appId: String) extends DataStoreEventWithAppId
   case class AllOnlineExercisesCompleted(appId: String) extends DataStoreEventWithAppId
   case class OnlineExerciseExtended(appId: String, issuerUserId: String) extends DataStoreEventWithIssuer
   case class OnlineExerciseReset(appId: String, issuerUserId: String) extends DataStoreEventWithIssuer

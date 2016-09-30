@@ -33,7 +33,7 @@ trait DataStoreEventHandler extends EventHandler[DataStoreEvent] {
   val eventRepository: EventRepository
 
   def handle(event: DataStoreEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    Logger.debug(s"Data store event $event")
+    Logger.info(s"Data store event $event")
     eventRepository.create(event)
   }
 }

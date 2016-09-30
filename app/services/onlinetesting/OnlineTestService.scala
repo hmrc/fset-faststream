@@ -337,10 +337,12 @@ trait OnlineTestService extends ResetPhase1Test {
 
       if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
         otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
-          DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) :: Nil
+          DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
+          DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
+          Nil
         }
       } else {
-        Future.successful(Nil)
+        Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
       }
     }
   }

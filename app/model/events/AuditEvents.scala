@@ -33,6 +33,9 @@ sealed trait AuditEventWithAppId extends AuditEvent {
 sealed trait AuditEventNoRequest extends AuditEvent
 
 object AuditEvents {
+  // NOTICE. The name for the case class is important and is used when the event is emitted.
+  // In other words: Renaming the case class here, impacts in renaming the event name in Audit service.
+
   case class ApplicationSubmitted(applicationId: String) extends AuditEventWithAppId
   case class ApplicationWithdrawn(details: Map[String, String]) extends AuditEvent
   case class ExpiredTestsExtended(details: Map[String, String]) extends AuditEventNoRequest
