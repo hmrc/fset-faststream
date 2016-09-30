@@ -16,22 +16,19 @@
 
 package services.application
 
-import factories.DateTimeFactory
 import model.command.WithdrawApplication
 import model.events.{ AuditEvents, DataStoreEvents }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import repositories.application.GeneralApplicationRepository
+import testkit.IntegrationSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ApplicationServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures {
+class ApplicationServiceSpec extends IntegrationSpec with MockitoSugar {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val ApplicationId = "1111-1111"
