@@ -21,6 +21,7 @@ import connectors.EmailClient
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
 import model.CandidateScoresCommands.{CandidateScores, CandidateScoresAndFeedback}
 import model.Commands._
+import model.ApplicationStatus._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.{IncorrectStatusInApplicationException, NotFoundException}
 import model.PassmarkPersistedObjects.{AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold}
@@ -144,11 +145,11 @@ class ApplicationAssessmentServiceSpec extends PlaySpec with MockitoSugar with S
       val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, None, None)
       val result = AssessmentRuleCategoryResult(None, Some(EvaluationResults.Green), None, None, None, None, None, None)
       when(passmarkRulesEngineMock.evaluate(scores, config)).thenReturn(result)
-      when(aRepositoryMock.saveAssessmentScoreEvaluation("app1", "1", result, "ASSESSMENT_CENTRE_PASSED")).thenReturn(Future.successful(()))
+      when(aRepositoryMock.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_CENTRE_PASSED)).thenReturn(Future.successful(()))
 
       applicationAssessmentService.evaluateAssessmentCandidateScore(scores, config).futureValue
 
-      verify(aRepositoryMock).saveAssessmentScoreEvaluation("app1", "1", result, "ASSESSMENT_CENTRE_PASSED")
+      verify(aRepositoryMock).saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_CENTRE_PASSED)
       verify(auditServiceMock).logEventNoRequest(
         "ApplicationAssessmentEvaluated",
         Map("applicationId" -> "app1", "applicationStatus" -> "ASSESSMENT_CENTRE_PASSED")
@@ -166,16 +167,16 @@ class ApplicationAssessmentServiceSpec extends PlaySpec with MockitoSugar with S
       "ASSESSMENT_CENTRE_PASSED_NOTIFIED and audit AssessmentCentrePassedEmailed event and audit new status " +
       "with event ApplicationAssessmentPassedNotified" in new ApplicationAssessmentServiceFixture {
         when(aRepositoryMock.nextAssessmentCentrePassedOrFailedApplication()).thenReturn(Future.successful(
-          Some(ApplicationForNotification("appId1", "userId1", "preferredName1", "ASSESSMENT_CENTRE_PASSED"))
+          Some(ApplicationForNotification("appId1", "userId1", "preferredName1", ASSESSMENT_CENTRE_PASSED))
         ))
         when(emailClientMock.sendAssessmentCentrePassed(eqTo("email@mailinator.com"), eqTo("preferredName1"))(any[HeaderCarrier]))
           .thenReturn(Future.successful(()))
-        when(aRepositoryMock.updateStatus(eqTo("appId1"), eqTo("ASSESSMENT_CENTRE_PASSED_NOTIFIED"))).thenReturn(Future.successful(()))
+        when(aRepositoryMock.updateStatus(eqTo("appId1"), eqTo(ASSESSMENT_CENTRE_PASSED_NOTIFIED))).thenReturn(Future.successful(()))
 
         applicationAssessmentService.processNextAssessmentCentrePassedOrFailedApplication.futureValue must be(())
 
         verify(emailClientMock).sendAssessmentCentrePassed(eqTo("email@mailinator.com"), eqTo("preferredName1"))(any[HeaderCarrier])
-        verify(aRepositoryMock).updateStatus("appId1", "ASSESSMENT_CENTRE_PASSED_NOTIFIED")
+        verify(aRepositoryMock).updateStatus("appId1", ASSESSMENT_CENTRE_PASSED_NOTIFIED)
         val auditDetails = Map("userId" -> "userId1", "email" -> "email@mailinator.com")
         verify(auditServiceMock).logEventNoRequest(eqTo("AssessmentCentrePassedEmailed"), eqTo(auditDetails))
         val auditDetailsNewStatus = Map("applicationId" -> "appId1", "applicationStatus" -> "ASSESSMENT_CENTRE_PASSED_NOTIFIED")
@@ -186,16 +187,16 @@ class ApplicationAssessmentServiceSpec extends PlaySpec with MockitoSugar with S
       "ASSESSMENT_CENTRE_FAILED_NOTIFIED and audit AssessmentCentreFailedEmailed event and audit new status with event " +
       "ApplicationAssessmentPassedNotified" in new ApplicationAssessmentServiceFixture {
         when(aRepositoryMock.nextAssessmentCentrePassedOrFailedApplication()).thenReturn(Future.successful(
-          Some(ApplicationForNotification("appId1", "userId1", "preferredName1", "ASSESSMENT_CENTRE_FAILED"))
+          Some(ApplicationForNotification("appId1", "userId1", "preferredName1", ASSESSMENT_CENTRE_FAILED))
         ))
         when(emailClientMock.sendAssessmentCentreFailed(eqTo("email@mailinator.com"), eqTo("preferredName1"))(any[HeaderCarrier]))
           .thenReturn(Future.successful(()))
-        when(aRepositoryMock.updateStatus(eqTo("appId1"), eqTo("ASSESSMENT_CENTRE_FAILED_NOTIFIED"))).thenReturn(Future.successful(()))
+        when(aRepositoryMock.updateStatus(eqTo("appId1"), eqTo(ASSESSMENT_CENTRE_FAILED_NOTIFIED))).thenReturn(Future.successful(()))
 
         applicationAssessmentService.processNextAssessmentCentrePassedOrFailedApplication.futureValue must be(())
 
         verify(emailClientMock).sendAssessmentCentreFailed(eqTo("email@mailinator.com"), eqTo("preferredName1"))(any[HeaderCarrier])
-        verify(aRepositoryMock).updateStatus("appId1", "ASSESSMENT_CENTRE_FAILED_NOTIFIED")
+        verify(aRepositoryMock).updateStatus("appId1", ASSESSMENT_CENTRE_FAILED_NOTIFIED)
         val auditDetails = Map("userId" -> "userId1", "email" -> "email@mailinator.com")
         verify(auditServiceMock).logEventNoRequest(eqTo("AssessmentCentreFailedEmailed"), eqTo(auditDetails))
         val auditDetailsNewStatus = Map("applicationId" -> "appId1", "applicationStatus" -> "ASSESSMENT_CENTRE_FAILED_NOTIFIED")
@@ -205,7 +206,7 @@ class ApplicationAssessmentServiceSpec extends PlaySpec with MockitoSugar with S
 
   "email candidate" should {
     "throw IncorrectStatusInApplicationException when we pass ONLINE_TEST_COMPLETED" in new ApplicationAssessmentServiceFixture {
-      val application = ApplicationForNotification("appId1", "userId1", "preferredName1", "ONLINE_TEST_COMPLETED")
+      val application = ApplicationForNotification("appId1", "userId1", "preferredName1", ONLINE_TEST_FAILED)
       val result = applicationAssessmentService.emailCandidate(application, "email@mailinator.com")
       result.failed.futureValue mustBe a[IncorrectStatusInApplicationException]
     }

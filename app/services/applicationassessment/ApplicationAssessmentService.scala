@@ -18,12 +18,12 @@ package services.applicationassessment
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
 import connectors.{ CSREmailClient, EmailClient }
-import model.ApplicationStatuses
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
 import model.EvaluationResults._
 import model.Exceptions.IncorrectStatusInApplicationException
 import model.PersistedObjects.ApplicationForNotification
 import play.api.Logger
+import model.ApplicationStatus._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
 import repositories._
 import services.AuditService
@@ -145,26 +145,26 @@ trait ApplicationAssessmentService {
     }
   }
 
-  private def determineStatus(result: AssessmentRuleCategoryResult): String = result.passedMinimumCompetencyLevel match {
+  private def determineStatus(result: AssessmentRuleCategoryResult) = result.passedMinimumCompetencyLevel match {
     case Some(false) =>
-      ApplicationStatuses.AssessmentCentreFailed
+      ASSESSMENT_CENTRE_FAILED
     case _ =>
       val allResults = List(result.location1Scheme1, result.location1Scheme2, result.location2Scheme1, result.location2Scheme2,
         result.alternativeScheme).flatten
 
       allResults match {
-        case _ if allResults.forall(_ == Red) => ApplicationStatuses.AssessmentCentreFailed
-        case _ if allResults.contains(Green) => ApplicationStatuses.AssessmentCentrePassed
-        case _ => ApplicationStatuses.AwaitingAssessmentCentreReevaluation
+        case _ if allResults.forall(_ == Red) => ASSESSMENT_CENTRE_FAILED
+        case _ if allResults.contains(Green) => ASSESSMENT_CENTRE_PASSED
+        case _ => AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION
       }
   }
 
   private def auditNewStatus(appId: String, newStatus: String): Unit = {
-    val event = newStatus match {
-      case ApplicationStatuses.AssessmentCentrePassedNotified => "ApplicationAssessmentPassedNotified"
-      case ApplicationStatuses.AssessmentCentreFailedNotified => "ApplicationAssessmentFailedNotified"
-      case ApplicationStatuses.AssessmentCentreFailed | ApplicationStatuses.AssessmentCentrePassed |
-        ApplicationStatuses.AwaitingAssessmentCentreReevaluation => "ApplicationAssessmentEvaluated"
+    val event = withName(newStatus) match {
+      case ASSESSMENT_CENTRE_PASSED_NOTIFIED => "ApplicationAssessmentPassedNotified"
+      case ASSESSMENT_CENTRE_FAILED_NOTIFIED => "ApplicationAssessmentFailedNotified"
+      case ASSESSMENT_CENTRE_FAILED | ASSESSMENT_CENTRE_PASSED |
+        AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION => "ApplicationAssessmentEvaluated"
     }
     Logger.info(s"$event for $appId. The new status: $newStatus")
     auditService.logEventNoRequest(
@@ -175,11 +175,11 @@ trait ApplicationAssessmentService {
 
   private[applicationassessment] def emailCandidate(application: ApplicationForNotification, emailAddress: String): Future[Unit] = {
     application.applicationStatus match {
-      case ApplicationStatuses.AssessmentCentrePassed =>
+      case ASSESSMENT_CENTRE_PASSED =>
         emailClient.sendAssessmentCentrePassed(emailAddress, application.preferredName).map { _ =>
           auditNotified("AssessmentCentrePassedEmailed", application, Some(emailAddress))
         }
-      case ApplicationStatuses.AssessmentCentreFailed =>
+      case ASSESSMENT_CENTRE_FAILED =>
         emailClient.sendAssessmentCentreFailed(emailAddress, application.preferredName).map { _ =>
           auditNotified("AssessmentCentreFailedEmailed", application, Some(emailAddress))
         }
@@ -193,7 +193,7 @@ trait ApplicationAssessmentService {
   }
 
   private def commitNotifiedStatus(application: ApplicationForNotification): Future[Unit] =
-    aRepository.updateStatus(application.applicationId, s"${application.applicationStatus}_NOTIFIED").map { _ =>
+    aRepository.updateStatus(application.applicationId, withName(s"${application.applicationStatus}_NOTIFIED")).map { _ =>
       auditNewStatus(application.applicationId, s"${application.applicationStatus}_NOTIFIED")
     }
 

@@ -16,10 +16,10 @@
 
 package services.testdata
 
-import model.ApplicationStatuses
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.ApplicationStatus._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,8 +34,9 @@ trait WithdrawnStatusGenerator extends BaseGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
 
     for {
-      candidateInPreviousStatus <- StatusGeneratorFactory.getGenerator(generatorConfig.previousStatus.getOrElse(
-        ApplicationStatuses.Submitted
+      candidateInPreviousStatus <- StatusGeneratorFactory.getGenerator(generatorConfig.previousStatus
+        .map(appStatus => withName(appStatus)).getOrElse(
+        SUBMITTED
       ), None, generatorConfig).generate(generationId, generatorConfig)
       _ <- appRepository.withdraw(candidateInPreviousStatus.applicationId.get, model.command.WithdrawApplication("test", Some("test"),
         "test"))

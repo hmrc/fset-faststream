@@ -16,9 +16,9 @@
 
 package services.onlinetesting
 
-import model.ApplicationStatuses
 import model.EvaluationResults.{ RuleCategoryResult, _ }
 import model.OnlineTestCommands._
+import model.ApplicationStatus._
 import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
 import play.api.Logger
 import repositories._
@@ -104,7 +104,7 @@ trait OnlineTestPassmarkService {
     }
 
     if (totalFailure) {
-      ApplicationStatuses.OnlineTestFailed
+      ONLINE_TEST_FAILED
     } else {
       provideResult(
         Seq(rule1, rule2, rule3)
@@ -116,8 +116,8 @@ trait OnlineTestPassmarkService {
   }
 
   def provideResult(rules: Seq[Result], ruleCategoryResult: RuleCategoryResult) = {
-    val AC = ApplicationStatuses.AwaitingAllocation
-    val ARE = ApplicationStatuses.AwaitingOnlineTestReevaluation
+    val AC = AWAITING_ALLOCATION
+    val ARE = AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION
 
     if (rules.contains(Green)) {
       AC

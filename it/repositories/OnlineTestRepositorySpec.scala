@@ -26,6 +26,7 @@ import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PH
 import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import org.scalatest.time.{ Seconds, Span }
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
@@ -40,6 +41,8 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
   import TextFixture._
 
   override val collectionName = "application"
+
+  override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(15, Seconds)))
 
   def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
   def onlineTestRepo = new OnlineTestMongoRepository(DateTimeFactory)
@@ -185,7 +188,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
+          s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
         ))).futureValue
         onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
@@ -196,7 +199,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
+          s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
         ))).futureValue
         onlineTestRepo.nextExpiringApplication.futureValue must be(None)
       }
@@ -258,7 +261,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
+          s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
         ))).futureValue
         onlineTestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
@@ -269,7 +272,7 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
+          s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
         ))).futureValue
         onlineTestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }

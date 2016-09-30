@@ -17,10 +17,10 @@
 package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.ApplicationStatuses
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.ApplicationStatus._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -36,7 +36,7 @@ trait AssessmentScoresAcceptedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier): Future[DataGenerationResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ApplicationStatuses.AssessmentScoresAccepted)
+      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_SCORES_ACCEPTED)
     } yield {
       candidateInPreviousStatus
     }

@@ -18,7 +18,6 @@ package services.testdata
 
 import common.FutureEx
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.ApplicationStatuses
 import org.joda.time.DateTime
 import repositories._
 import repositories.application.OnlineTestRepository

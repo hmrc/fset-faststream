@@ -17,9 +17,9 @@
 package controllers
 
 import model.Commands
-import model.Exceptions.ApplicationNotFound
 import model.command.ResetOnlineTest
 import org.joda.time.DateTime
+import model.ApplicationStatus._
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -30,7 +30,6 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
 
 case class OnlineTestDetails(
   inviteDate: DateTime, expireDate: DateTime, onlineTestLink: String,
@@ -78,7 +77,7 @@ trait OnlineTestController extends BaseController {
 
   def onlineTestStatusUpdate(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestStatus] { onlineTestStatus =>
-      appRepository.updateStatus(applicationId, onlineTestStatus.status).map(_ => Ok)
+      appRepository.updateStatus(applicationId, withName(onlineTestStatus.status)).map(_ => Ok)
     }
   }
 

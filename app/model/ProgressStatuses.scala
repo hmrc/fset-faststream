@@ -16,9 +16,10 @@
 
 package model
 
-import model.ApplicationStatus.ApplicationStatus
+import model.ApplicationStatus._
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+import scala.language.implicitConversions
 
 object ProgressStatuses {
   val RegisteredProgress = "registered"
@@ -44,14 +45,14 @@ object ProgressStatuses {
   val AwaitingOnlineTestAllocationProgress = "awaiting_online_test_allocation"
   val AllocationConfirmedProgress = "allocation_confirmed"
   val AllocationUnconfirmedProgress = "allocation_unconfirmed"
-  val FailedToAttendProgress = ApplicationStatuses.FailedToAttend.toLowerCase()
-  val AssessmentScoresEnteredProgress = ApplicationStatuses.AssessmentScoresEntered.toLowerCase()
-  val AssessmentScoresAcceptedProgress = ApplicationStatuses.AssessmentScoresAccepted.toLowerCase()
-  val AwaitingAssessmentCentreReevaluationProgress = ApplicationStatuses.AwaitingAssessmentCentreReevaluation.toLowerCase()
-  val AssessmentCentrePassedProgress = ApplicationStatuses.AssessmentCentrePassed.toLowerCase()
-  val AssessmentCentreFailedProgress = ApplicationStatuses.AssessmentCentreFailed.toLowerCase()
-  val AssessmentCentrePassedNotifiedProgress = ApplicationStatuses.AssessmentCentrePassedNotified.toLowerCase()
-  val AssessmentCentreFailedNotifiedProgress = ApplicationStatuses.AssessmentCentreFailedNotified.toLowerCase()
+  val FailedToAttendProgress = FAILED_TO_ATTEND.toLowerCase()
+  val AssessmentScoresEnteredProgress = ASSESSMENT_SCORES_ENTERED.toLowerCase()
+  val AssessmentScoresAcceptedProgress = ASSESSMENT_SCORES_ACCEPTED.toLowerCase()
+  val AwaitingAssessmentCentreReevaluationProgress = AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.toLowerCase()
+  val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toLowerCase()
+  val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toLowerCase()
+  val AssessmentCentrePassedNotifiedProgress = ASSESSMENT_CENTRE_PASSED_NOTIFIED.toLowerCase()
+  val AssessmentCentreFailedNotifiedProgress = ASSESSMENT_CENTRE_FAILED_NOTIFIED.toLowerCase()
 
   sealed abstract class ProgressStatus(val applicationStatus: ApplicationStatus)
 
@@ -65,6 +66,8 @@ object ProgressStatuses {
       def read(doc: BSONString) = nameToProgressStatus(doc.value)
       def write(progressStatusName: ProgressStatus) = BSON.write(progressStatusName.toString)
     }
+
+    implicit def progressStatusToString(progressStatus: ProgressStatus): String = progressStatus.getClass.getSimpleName
   }
 
   case object PHASE1_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)

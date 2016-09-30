@@ -17,11 +17,11 @@
 package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.ApplicationStatuses
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.ApplicationStatus._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -53,8 +53,8 @@ trait AssessmentScoresEnteredStatusGenerator extends ConstructiveGenerator {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- aasRepository.save(getScoresAndFeedback(candidateInPreviousStatus.applicationId.get))
-      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ApplicationStatuses.AssessmentScoresEntered)
-      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ApplicationStatuses.AssessmentScoresEntered)
+      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_SCORES_ACCEPTED)
+      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_SCORES_ENTERED)
     } yield {
       candidateInPreviousStatus
     }

@@ -29,6 +29,7 @@ import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson._
 import repositories._
+import model.ApplicationStatus._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -220,7 +221,7 @@ class OnlineTestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   private def bsonDocToApplicationForNotification(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val userId = doc.getAs[String]("userId").get
-    val applicationStatus = doc.getAs[String]("applicationStatus").get
+    val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
     ApplicationForNotification(applicationId, userId, preferredName, applicationStatus)

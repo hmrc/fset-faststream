@@ -17,9 +17,9 @@
 package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.ApplicationStatuses
 import model.Commands.ApplicationAssessment
 import repositories._
+import model.ApplicationStatus._
 import repositories.application.OnlineTestRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -57,9 +57,9 @@ trait AllocationStatusGenerator extends ConstructiveGenerator {
     }
 
     val newStatus = if (generatorConfig.confirmedAllocation) {
-      ApplicationStatuses.AllocationConfirmed
+      ALLOCATION_CONFIRMED
     } else {
-      ApplicationStatuses.AllocationUnconfirmed
+      ALLOCATION_UNCONFIRMED
     }
 
     AllocationStatusGenerator.SlotFindingLockObj.synchronized {

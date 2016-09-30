@@ -17,8 +17,8 @@
 package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.ApplicationStatuses
 import repositories._
+import model.ApplicationStatus._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -28,13 +28,13 @@ import scala.concurrent.Future
 object AssessmentCentrePassedNotifiedStatusGenerator extends AssessmentResultNotifiedStatusGenerator {
   override val previousStatusGenerator = AssessmentCentrePassedStatusGenerator
   override val aRepository = applicationRepository
-  override val status = ApplicationStatuses.AssessmentCentrePassedNotified
+  override val status: String = ASSESSMENT_CENTRE_PASSED_NOTIFIED
 }
 
 object AssessmentCentreFailedNotifiedStatusGenerator extends AssessmentResultNotifiedStatusGenerator {
   override val previousStatusGenerator = AssessmentCentreFailedStatusGenerator
   override val aRepository = applicationRepository
-  override val status = ApplicationStatuses.AssessmentCentreFailedNotified
+  override val status: String = ASSESSMENT_CENTRE_FAILED_NOTIFIED
 }
 
 trait AssessmentResultNotifiedStatusGenerator extends ConstructiveGenerator {
@@ -44,7 +44,7 @@ trait AssessmentResultNotifiedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier): Future[DataGenerationResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, status)
+      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, withName(status))
     } yield {
       candidateInPreviousStatus
     }

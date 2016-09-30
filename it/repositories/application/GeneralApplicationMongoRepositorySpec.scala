@@ -18,6 +18,7 @@ package repositories.application
 
 import factories.UUIDFactory
 import model._
+import model.ApplicationStatus._
 import model.SchemeType.SchemeType
 import model.report.CandidateProgressReport
 import org.joda.time.LocalDate
@@ -73,7 +74,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       applicationResponse.userId mustBe userId
       applicationResponse.applicationId mustBe appId
-      applicationResponse.civilServiceExperienceDetails.get mustBe CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
+      applicationResponse.civilServiceExperienceDetails.get mustBe
+        CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
         Some(List(InternshipType.SDIPCurrentYear, InternshipType.EDIP)), fastPassReceived = Some(true),
         certificateNumber = Some("1234567"))
     }
@@ -191,9 +193,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   // scalastyle:off parameter.number
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-                                     appStatus: String = "", hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
-                                     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
-                                     firstName: Option[String] = None, preferredName: Option[String] = None) = {
+     appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
+     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
+     firstName: Option[String] = None, preferredName: Option[String] = None) = {
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,

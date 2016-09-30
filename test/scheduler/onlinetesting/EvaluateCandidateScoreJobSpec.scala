@@ -19,7 +19,7 @@ package scheduler.onlinetesting
 import connectors.PassMarkExchangeObjects.Settings
 import model.OnlineTestCommands.CandidateScoresWithPreferencesAndPassmarkSettings
 import model.PersistedObjects.CandidateTestReport
-import model.{ApplicationStatuses, LocationPreference, Preferences}
+import model.{LocationPreference, Preferences}
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures

@@ -17,9 +17,9 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
-import model.ApplicationStatuses
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestPassmarkService
+import model.ApplicationStatus._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,8 +32,8 @@ trait EvaluateCandidateScoreJob extends SingleInstanceScheduledJob with Evaluate
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     passmarkService.nextCandidateScoreReadyForEvaluation.flatMap { applicationScoreOpt =>
-      applicationScoreOpt.map { applicationScore => applicationScore.applicationStatus match {
-        case ApplicationStatuses.AssessmentScoresAccepted =>
+      applicationScoreOpt.map { applicationScore => withName(applicationScore.applicationStatus) match {
+        case ASSESSMENT_SCORES_ACCEPTED =>
           passmarkService.evaluateCandidateScoreWithoutChangingApplicationStatus(applicationScore)
         case _ =>
           passmarkService.evaluateCandidateScore(applicationScore)
