@@ -26,6 +26,8 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
 import model.ProgressStatuses
+import model.events.EventTypes.Events
+import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
@@ -109,14 +111,13 @@ trait OnlineTestService extends ResetPhase1Test {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
   }
 
-  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String]): Future[Unit] = {
+  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String], actionTriggeredBy: String): Future[Events] = {
     for {
     - <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
-      auditService.logEventNoRequest(
-        "Phase1TestsReset",
-        Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))
-      )
+      AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))) ::
+      DataStoreEvents.OnlineExerciseReset(application.applicationId, actionTriggeredBy) ::
+      Nil
     }
   }
 
@@ -328,27 +329,33 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Events] = {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
     updatedTestPhase1 flatMap { u =>
-      otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
+      otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
+        DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
+      }
     }
   }
 
-  def markAsCompleted(cubiksUserId: Int): Future[Unit] = {
+  def markAsCompleted(cubiksUserId: Int): Future[Events] = {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)), "COMPLETED")
     updatedTestPhase1 flatMap { u =>
       require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
 
       if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
-        otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED)
+        otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
+          DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
+          DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
+          Nil
+        }
       } else {
-        Future.successful(())
+        Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
       }
     }
   }
 
-  def markAsCompleted(token: String): Future[Unit] = {
+  def markAsCompleted(token: String): Future[Events] = {
     otRepository.getPhase1TestProfileByToken(token).flatMap { p =>
       val test = p.tests.find(_.token == token).get
       markAsCompleted(test.cubiksUserId)

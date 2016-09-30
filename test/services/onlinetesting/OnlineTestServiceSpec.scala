@@ -398,7 +398,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         .map(t => t.copy(startedDateTime = Some(startedDate))))
       when(otRepositoryMock.getPhase1TestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfileWithStartedTests)))
       when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
-      val result = onlineTestService.resetPhase1Tests(onlineTestApplication, List("sjq")).futureValue
+      val result = onlineTestService.resetPhase1Tests(onlineTestApplication, List("sjq"), "createdBy").futureValue
 
       verify(otRepositoryMock).removePhase1TestProfileProgresses(
         "appId",

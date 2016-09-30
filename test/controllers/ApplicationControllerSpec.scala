@@ -19,6 +19,7 @@ package controllers
 import config.TestFixtureBase
 import mocks.application.DocumentRootInMemoryRepository
 import model.command.WithdrawApplication
+import model.events.EventTypes.Events
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -30,6 +31,7 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.application.ApplicationService
+import services.events.EventService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -152,12 +154,15 @@ class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results 
 
   trait TestFixture extends TestFixtureBase {
     val mockApplicationService = mock[ApplicationService]
-    when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))).thenReturn(Future.successful(()))
+    when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))).thenReturn(Future.successful(List()))
+    val mockEventService = mock[EventService]
+    when(mockEventService.handle(any[Events])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful())
 
     object TestApplicationController extends ApplicationController {
       override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
       override val auditService: AuditService = mockAuditService
       override val applicationService: ApplicationService = mockApplicationService
+      override val eventService: EventService = mockEventService
     }
 
     def applicationProgressRequest(applicationId: String) = {

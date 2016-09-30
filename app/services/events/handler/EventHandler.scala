@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package model.command
+package services.events.handler
 
-import play.api.libs.json.Json
+import model.events.EventTypes.EventType
+import play.api.mvc.RequestHeader
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-case class ResetOnlineTest(tests: List[String], actionTriggeredBy: String)
+import scala.concurrent.Future
 
-object ResetOnlineTest {
-  implicit val resetOnlineTestFormat = Json.format[ResetOnlineTest]
+trait EventHandler[T <: EventType] {
+
+  def handle(event: T)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+
 }
