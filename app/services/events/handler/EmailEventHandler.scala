@@ -32,7 +32,7 @@ trait EmailEventHandler extends EventHandler[EmailEvent] {
   val emailClient: EmailClient
 
   def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    Logger.info(s"Email event ${event.to}")
+    Logger.info(s"Email event ${event.name}")
     event match {
       case _: EmailEvents.ApplicationSubmitted => emailClient.sendApplicationSubmittedConfirmation(event.to, event.name)
     }
