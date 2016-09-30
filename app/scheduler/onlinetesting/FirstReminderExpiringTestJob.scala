@@ -19,8 +19,7 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import model.ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER
-import model.ReminderNotice
+import model.FirstReminder
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestExpiryService
 
@@ -46,5 +45,4 @@ trait FirstReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConf
   override val conf = config.MicroserviceAppConfig.firstReminderJobConfig
   val configPrefix = "scheduling.online-testing.first-reminder-expiring-test-job."
   val name = "FirstReminderExpiringTestJob"
-  val FirstReminder = ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
 }

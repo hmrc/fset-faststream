@@ -16,63 +16,99 @@
 
 package services.onlinetesting
 
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED }
-import model.events.EventTypes.Events
-import model.events.{ AuditEvents, DataStoreEvents }
+import factories.DateTimeFactory
+import model.{ FirstReminder, SecondReminder }
+import model.OnlineTestCommands.Phase1TestProfile
+import model.ProgressStatuses._
+import model.command.ProgressResponse
 import org.joda.time.DateTime
+import play.api.Logger
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import services.AuditService
 import services.onlinetesting.OnlineTestService.TestExtensionException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait OnlineTestExtensionService {
-  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTrigerredBy: String): Future[Events]
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Unit]
 }
 
 class OnlineTestExtensionServiceImpl(
   appRepository: GeneralApplicationRepository,
-  otRepository: OnlineTestRepository
+  otRepository: OnlineTestRepository,
+  auditService: AuditService,
+  dateTimeFactory: DateTimeFactory
 ) extends OnlineTestExtensionService {
 
-  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTrigerredBy: String): Future[Events] = {
-    // Check the state of this user
-    appRepository.findProgress(applicationId) flatMap { progressResponse =>
-      if (progressResponse.phase1TestsExpired) {
-        for {
-          _ <- otRepository.updateGroupExpiryTime(applicationId, DateTime.now().withDurationAdded(86400 * extraDays * 1000, 1))
-          phase1TestGroup <- otRepository.getPhase1TestGroup(applicationId)
-          progressStatusToSet = if (phase1TestGroup.get.hasNotStartedYet) { PHASE1_TESTS_INVITED } else { PHASE1_TESTS_STARTED }
-          progressStatusesToRemove = List(PHASE1_TESTS_EXPIRED) ++ (if (progressStatusToSet == PHASE1_TESTS_INVITED) {
-            List(PHASE1_TESTS_STARTED)
-          } else {
-            Nil
-          })
-          _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, progressStatusToSet)
-          _ <- appRepository.removeProgressStatuses(applicationId, progressStatusesToRemove)
-        } yield {
-          AuditEvents.ExpiredTestsExtended(Map("applicationId" -> applicationId)) ::
-          DataStoreEvents.OnlineExerciseExtended(applicationId, actionTrigerredBy) ::
-          Nil
-        }
-      } else if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) {
-        for {
-          phase1TestProfile <- otRepository.getPhase1TestGroup(applicationId)
-          existingExpiry = phase1TestProfile.get.expirationDate
-          _ <- otRepository.updateGroupExpiryTime(applicationId, existingExpiry.withDurationAdded(86400 * extraDays * 1000, 1))
-        } yield {
-          AuditEvents.NonExpiredTestsExtended(Map("applicationId" -> applicationId)) ::
-          DataStoreEvents.OnlineExerciseExtended(applicationId, actionTrigerredBy) ::
-          Nil
-        }
-      } else {
-        throw TestExtensionException("Application is in an invalid status for test extension")
+  import OnlineTestExtensionServiceImpl._
+
+  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Unit] = {
+
+    val extension = for {
+      progressResponse <- appRepository.findProgress(applicationId)
+      phase1TestGroup <- otRepository.getPhase1TestGroup(applicationId)
+    } yield {
+      (progressResponse, phase1TestGroup) match {
+        case (progress, Some(group)) if progress.phase1TestsExpired =>
+          Extension(dateTimeFactory.nowLocalTimeZone.plusDays(extraDays), true, group, progressResponse)
+        case (progress, Some(group)) if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) =>
+          Extension(group.expirationDate.plusDays(extraDays), false, group, progressResponse)
+        case (progress, None) =>
+          throw TestExtensionException("No Phase1TestGroupAvailable for the given application")
+        case _ =>
+          throw TestExtensionException("Application is in an invalid status for test extension")
       }
     }
+
+    for {
+      Extension(date, expired, profile, progress) <- extension
+      _ <- otRepository.updateGroupExpiryTime(applicationId, date)
+      _ <- getProgressStatusesToRemove(date, profile, progress).fold(NoOp)(p => appRepository.removeProgressStatuses(applicationId, p))
+    } yield {
+      audit(expired, applicationId)
+    }
+
   }
+
+  private def audit(expired: Boolean, applicationId: String): Unit = {
+    if (expired) { auditEvent("ExpiredTestsExtended", applicationId) }
+    else { auditEvent("NonExpiredTestsExtended", applicationId) }
+  }
+
+  private def auditEvent(eventName: String, applicationId: String): Unit = {
+    Logger.info(s"$eventName for applicationId '$applicationId'")
+
+    auditService.logEventNoRequest(eventName, Map(
+      "applicationId" -> applicationId
+    ))
+  }
+
+}
+
+private final case class Extension(extendedExpiryDate: DateTime, expired: Boolean, profile: Phase1TestProfile, progress: ProgressResponse)
+
+object OnlineTestExtensionServiceImpl {
+
+  val NoOp: Future[Unit] = Future.successful(())
+
+  def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
+                                  profile: Phase1TestProfile,
+                                  progress: ProgressResponse): Option[List[ProgressStatus]] = {
+
+    val today = DateTime.now()
+    val progressList = (Set.empty[ProgressStatus]
+        ++ cond(progress.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
+        ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)
+        ++ cond(extendedExpiryDate.minusHours(SecondReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_SECOND_REMINDER)
+        ++ cond(extendedExpiryDate.minusHours(FirstReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_FIRST_REMINDER)).toList
+    if(progressList.isEmpty) { None } else { Some(progressList) }
+  }
+
+  private[this] def cond[T]( lazyCondition : => Boolean, value : T ) : Set[T] = if(lazyCondition) Set(value) else Set.empty
 }
 
 object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(
-  applicationRepository, onlineTestRepository
+  applicationRepository, onlineTestRepository, AuditService, DateTimeFactory
 )
