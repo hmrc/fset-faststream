@@ -455,6 +455,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       when(otRepositoryMock.insertPhase1TestResult(any[String], any[Phase1Test], any[persisted.TestResult]))
         .thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
+        .thenReturn(Future.successful(()))
 
       val result = onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
         "appId", phase1TestProfile.copy(tests = List(phase1Test.copy(reportId = Some(123))))
