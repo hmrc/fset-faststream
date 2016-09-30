@@ -136,10 +136,12 @@ trait OnlineTestService extends ResetPhase1Test {
     // going on in the background.
     // The approach to fixing it here is to generate futures that return Try[A] and then all futures will be
     // traversed. Afterward, we look at the results and clear up the mess
-    // TODO we space out calls to Cubiks because it appears they fail when they are too close together.
-    val registerAndInvite = FutureEx.traverseToTry(scheduleNames){ sn =>
-      val scheduleId = scheduleIdByName(sn)
-      akka.pattern.after(1.second, actor.scheduler)(
+    // We space out calls to Cubiks because it appears they fail when they are too close together.
+    val registerAndInvite = FutureEx.traverseToTry(scheduleNames.zipWithIndex){
+      case (scheduleName, delayModifier) =>
+      val scheduleId = scheduleIdByName(scheduleName)
+      val delay = (delayModifier * 1).second
+      akka.pattern.after(delay, actor.scheduler)(
         registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
       )
     }
