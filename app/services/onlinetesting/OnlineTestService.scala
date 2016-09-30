@@ -17,6 +17,7 @@
 package services.onlinetesting
 
 import _root_.services.AuditService
+import akka.actor.ActorSystem
 import common.FutureEx
 import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
@@ -51,6 +52,7 @@ object OnlineTestService extends OnlineTestService {
   val emailClient = CSREmailClient
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
+  val actor = ActorSystem()
 
   case class TestExtensionException(message: String) extends Exception(message)
 }
@@ -58,6 +60,7 @@ object OnlineTestService extends OnlineTestService {
 trait OnlineTestService extends ResetPhase1Test {
   implicit def headerCarrier = new HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  val actor: ActorSystem
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
@@ -133,9 +136,12 @@ trait OnlineTestService extends ResetPhase1Test {
     // going on in the background.
     // The approach to fixing it here is to generate futures that return Try[A] and then all futures will be
     // traversed. Afterward, we look at the results and clear up the mess
+    // TODO we space out calls to Cubiks because it appears they fail when they are too close together.
     val registerAndInvite = FutureEx.traverseToTry(scheduleNames){ sn =>
       val scheduleId = scheduleIdByName(sn)
-      registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
+      akka.pattern.after(1.second, actor.scheduler)(
+        registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
+      )
     }
 
     val registerAndInviteProcess = registerAndInvite.flatMap { phase1TestsRegs =>

@@ -16,6 +16,7 @@
 
 package services.onlinetesting
 
+import akka.actor.ActorSystem
 import config._
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
@@ -32,6 +33,7 @@ import org.mockito.Mockito._
 import org.scalatest.{ BeforeAndAfterEach, PrivateMethodTester }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatestplus.play.PlaySpec
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
 import repositories.{ ContactDetailsRepository, TestReportRepository }
@@ -40,11 +42,11 @@ import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Failure
 
 class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout
   with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
-
   val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
 
   val testGatewayConfig = CubiksGatewayConfig(
@@ -440,7 +442,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
-
+      val actor = ActorSystem()
 
     }
   }
