@@ -71,7 +71,7 @@ trait AuthProviderClient {
     WSHttp.POST(s"$url/add", AddUserRequest(email.toLowerCase, password, firstName, lastName, role.name, ServiceName)).map { response =>
       response.json.as[UserResponse]
     }.recover {
-      case Upstream4xxResponse(_, 409, _, _) => throw new EmailTakenException()
+      case Upstream4xxResponse(_, CONFLICT, _, _) => throw EmailTakenException()
     }
 
   def removeAllUsers()(implicit hc: HeaderCarrier): Future[Unit] =
@@ -95,7 +95,7 @@ trait AuthProviderClient {
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] =
     WSHttp.POST(s"$url/activate", ActivateEmailRequest(email.toLowerCase, token, ServiceName)).map(_ => (): Unit)
       .recover {
-        case Upstream4xxResponse(_, 410, _, _) => throw new TokenExpiredException()
+        case Upstream4xxResponse(_, GONE, _, _) => throw new TokenExpiredException()
         case e: NotFoundException => throw new TokenEmailPairInvalidException()
       }
 
@@ -103,7 +103,7 @@ trait AuthProviderClient {
     WSHttp.POST(s"$url/service/$ServiceName/findByFirstName", FindByFirstNameRequest(roles, name)).map { response =>
       response.json.as[List[Candidate]]
     }.recover {
-      case Upstream4xxResponse(_, 413, _, _) =>
+      case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
         throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
       case errorResponse =>
         throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
@@ -114,7 +114,7 @@ trait AuthProviderClient {
     WSHttp.POST(s"$url/service/$ServiceName/findByLastName", FindByLastNameRequest(roles, name)).map { response =>
       response.json.as[List[Candidate]]
     }.recover {
-      case Upstream4xxResponse(_, 413, _, _) =>
+      case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
         throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
       case errorResponse =>
         throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
