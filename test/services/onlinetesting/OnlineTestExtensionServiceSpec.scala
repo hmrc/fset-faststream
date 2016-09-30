@@ -68,12 +68,10 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
 
         underTest.extendTestGroupExpiryTime(applicationId, extraDays).futureValue(timeout(Span(1, Seconds))) mustBe (())
 
-        verify(mockAppRepository).findProgress(eqTo(applicationId))
-        verify(mockOtRepository).getPhase1TestGroup(eqTo(applicationId))
         verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.plusDays(extraDays)))
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenAlmostExpired))
         verify(mockAuditService).logEventNoRequest(eqTo("NonExpiredTestsExtended"), eqTo(Map("applicationId" -> applicationId)))
-        verifyNoMoreInteractions(mockAppRepository, mockOtRepository, mockAuditService, mockDateFactory)
+        verifyNoMoreInteractions(mockAuditService, mockDateFactory)
       }
       "remove first reminder and started status when not expired and second reminder has not been sent" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
@@ -87,12 +85,8 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
 
         underTest.extendTestGroupExpiryTime(applicationId, extraDays).futureValue(timeout(Span(1, Seconds))) mustBe (())
 
-        verify(mockAppRepository).findProgress(eqTo(applicationId))
-        verify(mockOtRepository).getPhase1TestGroup(eqTo(applicationId))
         verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InTwentyFiveHours.plusDays(extraDays)))
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenNotStartedAndFirstReminderSent))
-        verify(mockAuditService).logEventNoRequest(eqTo("NonExpiredTestsExtended"), eqTo(Map("applicationId" -> applicationId)))
-        verifyNoMoreInteractions(mockAppRepository, mockOtRepository, mockAuditService, mockDateFactory)
       }
       "remove no status when no reminder has been sent and the test is not started" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
@@ -106,12 +100,11 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
 
         underTest.extendTestGroupExpiryTime(applicationId, extraDays).futureValue(timeout(Span(1, Seconds))) mustBe (())
 
-        verify(mockAppRepository).findProgress(eqTo(applicationId))
-        verify(mockOtRepository).getPhase1TestGroup(eqTo(applicationId))
+
         verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InMoreThanThreeDays.plusDays(extraDays)))
         verify(mockAppRepository, times(0)).removeProgressStatuses(eqTo(applicationId), any())
         verify(mockAuditService).logEventNoRequest(eqTo("NonExpiredTestsExtended"), eqTo(Map("applicationId" -> applicationId)))
-        verifyNoMoreInteractions(mockAppRepository, mockOtRepository, mockAuditService, mockDateFactory)
+        verifyNoMoreInteractions(mockAuditService, mockDateFactory)
       }
     }
     "return a failed Future" when {
