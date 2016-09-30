@@ -73,7 +73,6 @@ trait SearchForApplicantsController extends BaseController {
     }
   }
 
-
   private def createResult(answer: Future[List[Candidate]]) = answer.map {
     case lst if lst.size > MAX_RESULTS => EntityTooLarge
     case lst if lst.isEmpty => NotFound
