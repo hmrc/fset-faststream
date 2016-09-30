@@ -17,34 +17,33 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import model.{ FirstReminder, SecondReminder }
 import model.OnlineTestCommands.Phase1TestProfile
 import model.ProgressStatuses._
 import model.command.ProgressResponse
+import model.events.EventTypes.Events
+import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
+import model.{ FirstReminder, SecondReminder }
 import org.joda.time.DateTime
-import play.api.Logger
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
-import services.AuditService
 import services.onlinetesting.OnlineTestService.TestExtensionException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait OnlineTestExtensionService {
-  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Unit]
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String): Future[Events]
 }
 
 class OnlineTestExtensionServiceImpl(
   appRepository: GeneralApplicationRepository,
   otRepository: OnlineTestRepository,
-  auditService: AuditService,
   dateTimeFactory: DateTimeFactory
 ) extends OnlineTestExtensionService {
 
   import OnlineTestExtensionServiceImpl._
 
-  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int): Future[Unit] = {
+  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String): Future[Events] = {
 
     val extension = for {
       progressResponse <- appRepository.findProgress(applicationId)
@@ -52,9 +51,9 @@ class OnlineTestExtensionServiceImpl(
     } yield {
       (progressResponse, phase1TestGroup) match {
         case (progress, Some(group)) if progress.phase1TestsExpired =>
-          Extension(dateTimeFactory.nowLocalTimeZone.plusDays(extraDays), true, group, progressResponse)
-        case (progress, Some(group)) if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) =>
-          Extension(group.expirationDate.plusDays(extraDays), false, group, progressResponse)
+          Extension(dateTimeFactory.nowLocalTimeZone.plusDays(extraDays), expired = true, group, progressResponse)
+        case (progress, Some(group)) if progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted =>
+          Extension(group.expirationDate.plusDays(extraDays), expired = false, group, progressResponse)
         case (progress, None) =>
           throw TestExtensionException("No Phase1TestGroupAvailable for the given application")
         case _ =>
@@ -67,24 +66,23 @@ class OnlineTestExtensionServiceImpl(
       _ <- otRepository.updateGroupExpiryTime(applicationId, date)
       _ <- getProgressStatusesToRemove(date, profile, progress).fold(NoOp)(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
-      audit(expired, applicationId)
+      audit(expired, applicationId) ::
+      DataStoreEvents.OnlineExerciseExtended(applicationId, actionTriggeredBy) ::
+      Nil
+
+
     }
 
   }
 
-  private def audit(expired: Boolean, applicationId: String): Unit = {
-    if (expired) { auditEvent("ExpiredTestsExtended", applicationId) }
-    else { auditEvent("NonExpiredTestsExtended", applicationId) }
+  private def audit(expired: Boolean, applicationId: String): AuditEvent = {
+    val details = Map("applicationId" -> applicationId)
+    if (expired) {
+      AuditEvents.ExpiredTestsExtended(details)
+    } else {
+      AuditEvents.NonExpiredTestsExtended(details)
+    }
   }
-
-  private def auditEvent(eventName: String, applicationId: String): Unit = {
-    Logger.info(s"$eventName for applicationId '$applicationId'")
-
-    auditService.logEventNoRequest(eventName, Map(
-      "applicationId" -> applicationId
-    ))
-  }
-
 }
 
 private final case class Extension(extendedExpiryDate: DateTime, expired: Boolean, profile: Phase1TestProfile, progress: ProgressResponse)
@@ -110,5 +108,5 @@ object OnlineTestExtensionServiceImpl {
 }
 
 object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(
-  applicationRepository, onlineTestRepository, AuditService, DateTimeFactory
+  applicationRepository, onlineTestRepository, DateTimeFactory
 )

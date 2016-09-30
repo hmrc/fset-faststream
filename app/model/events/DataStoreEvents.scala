@@ -28,7 +28,6 @@ sealed trait DataStoreEvent extends EventType {
 
   require(applicationId.isDefined || userId.isDefined)
 
-  // TODO equals & hashcode
   override def toString: String = s"${super.toString}, applicationId=$applicationId, userId=$userId," +
     s"eventCreated=$eventCreated, createdBy=$createdBy"
 }
