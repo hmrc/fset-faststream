@@ -31,12 +31,7 @@ object EmailEventHandler extends EmailEventHandler {
 trait EmailEventHandler extends EventHandler[EmailEvent] {
   val emailClient: EmailClient
 
-  def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    // TODO: FSET-681 Can we log emails?
-    Logger.info(s"Email event $event")
-    event match {
-      case _: EmailEvents.ApplicationSubmitted => emailClient.sendApplicationSubmittedConfirmation(event.to, event.name)
-      case _ => throw new IllegalArgumentException(s"Unsupported Email Event: $event")
-    }
+  def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = event match {
+    case _: EmailEvents.ApplicationSubmitted => emailClient.sendApplicationSubmittedConfirmation(event.to, event.name)
   }
 }

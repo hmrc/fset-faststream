@@ -16,7 +16,7 @@
 
 package services.events.handler
 
-import model.events.{ AuditEvent, AuditEventNoRequest, AuditEventWithMap }
+import model.events.{ AuditEvent, AuditEventNoRequest, AuditEventWithAppId }
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import services.AuditService
@@ -35,10 +35,9 @@ trait AuditEventHandler extends EventHandler[AuditEvent] {
     Logger.info(s"Audit event $event")
     Future.successful {
       event match {
-        case e: AuditEvent => auditService.logEvent(e.eventName)
-        case e: AuditEventWithMap => auditService.logEvent(e.eventName, e.details)
+        case e: AuditEventWithAppId => auditService.logEvent(e.eventName, e.details)
         case e: AuditEventNoRequest => auditService.logEventNoRequest(e.eventName, e.details)
-        case _ => throw new IllegalArgumentException(s"Unsupported event type: $event")
+        case e: AuditEvent => auditService.logEvent(e.eventName)
       }
     }
   }

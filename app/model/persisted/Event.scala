@@ -24,7 +24,7 @@ case class Event(name: String,
                  created: DateTime,
                  applicationId: Option[String],
                  userId: Option[String],
-                 issuer: Option[String] = None)
+                 createdBy: Option[String] = None)
 
 object Event {
   import repositories.BSONDateTimeHandler

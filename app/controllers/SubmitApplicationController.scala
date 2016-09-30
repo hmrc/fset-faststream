@@ -18,7 +18,7 @@ package controllers
 
 import model.ApplicationValidator
 import model.events.EventTypes.Events
-import model.events.{ AuditEvents, EmailEvents, MongoEvents }
+import model.events.{ AuditEvents, EmailEvents, DataStoreEvents }
 import play.api.mvc.Action
 import repositories.FrameworkRepository.CandidateHighestQualification
 import repositories._
@@ -80,9 +80,9 @@ trait SubmitApplicationController extends BaseController {
   private def submit(applicationId: String, email: String, preferredName: String): Future[Events] = {
     // Usually events are created in Service layer. Due to lack of Service layer for submit, they are created here
     appRepository.submit(applicationId) map { _ =>
-      MongoEvents.ApplicationSubmitted(applicationId) ::
+      DataStoreEvents.ApplicationSubmitted(applicationId) ::
       EmailEvents.ApplicationSubmitted(email, preferredName) ::
-      AuditEvents.ApplicationSubmitted() ::
+      AuditEvents.ApplicationSubmitted(applicationId) ::
       Nil
     }
   }

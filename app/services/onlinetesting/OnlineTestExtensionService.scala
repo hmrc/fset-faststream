@@ -18,7 +18,7 @@ package services.onlinetesting
 
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED }
 import model.events.EventTypes.Events
-import model.events.{ AuditEvents, MongoEvents }
+import model.events.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import repositories._
 import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
@@ -53,7 +53,7 @@ class OnlineTestExtensionServiceImpl(
           _ <- appRepository.removeProgressStatuses(applicationId, progressStatusesToRemove)
         } yield {
           AuditEvents.ExpiredTestsExtended(Map("applicationId" -> applicationId)) ::
-          MongoEvents.OnlineExerciseExtended(applicationId, issuerUserId) ::
+          DataStoreEvents.OnlineExerciseExtended(applicationId, issuerUserId) ::
           Nil
         }
       } else if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) {
@@ -63,7 +63,7 @@ class OnlineTestExtensionServiceImpl(
           _ <- otRepository.updateGroupExpiryTime(applicationId, existingExpiry.withDurationAdded(86400 * extraDays * 1000, 1))
         } yield {
           AuditEvents.NonExpiredTestsExtended(Map("applicationId" -> applicationId)) ::
-          MongoEvents.OnlineExerciseExtended(applicationId, issuerUserId) ::
+          DataStoreEvents.OnlineExerciseExtended(applicationId, issuerUserId) ::
           Nil
         }
       } else {

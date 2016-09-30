@@ -18,7 +18,7 @@ package services.application
 
 import model.command.WithdrawApplication
 import model.events.EventTypes.Events
-import model.events.{ AuditEvents, MongoEvents }
+import model.events.{ AuditEvents, DataStoreEvents }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
@@ -36,7 +36,7 @@ trait ApplicationService {
 
   def withdraw(applicationId: String, withdrawRequest: WithdrawApplication): Future[Events] = {
     appRepository.withdraw(applicationId, withdrawRequest) map { _ =>
-      MongoEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
+      DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
       AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
       Nil
     }

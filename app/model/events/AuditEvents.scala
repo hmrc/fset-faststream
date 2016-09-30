@@ -18,22 +18,24 @@ package model.events
 
 import model.events.EventTypes.EventType
 
+// rename AuditEvent
 sealed trait AuditEvent extends EventType {
-  val details: Map[String, String] = Map()
+  val details: Map[String, String]
   override def toString: String = s"${super.toString}, details=$details"
 }
 
-sealed trait AuditEventWithMap extends AuditEvent {
-  private[events] val detailsMap: Map[String, String]
-  override val details = detailsMap
+sealed trait AuditEventWithAppId extends AuditEvent {
+  val applicationId: String
+  val details: Map[String, String] = Map("applicationId" -> applicationId)
+  override def toString: String = s"${super.toString}, details=$details"
 }
 
-sealed trait AuditEventNoRequest extends AuditEventWithMap
+sealed trait AuditEventNoRequest extends AuditEvent
 
 object AuditEvents {
-  case class ApplicationSubmitted() extends AuditEvent
-  case class ApplicationWithdrawn(detailsMap: Map[String, String]) extends AuditEventWithMap
-  case class ExpiredTestsExtended(detailsMap: Map[String, String]) extends AuditEventNoRequest
-  case class NonExpiredTestsExtended(detailsMap: Map[String, String]) extends AuditEventNoRequest
-  case class Phase1TestsReset(detailsMap: Map[String, String]) extends AuditEventNoRequest
+  case class ApplicationSubmitted(applicationId: String) extends AuditEventWithAppId
+  case class ApplicationWithdrawn(details: Map[String, String]) extends AuditEvent
+  case class ExpiredTestsExtended(details: Map[String, String]) extends AuditEventNoRequest
+  case class NonExpiredTestsExtended(details: Map[String, String]) extends AuditEventNoRequest
+  case class Phase1TestsReset(details: Map[String, String]) extends AuditEventNoRequest
 }

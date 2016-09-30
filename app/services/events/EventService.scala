@@ -17,30 +17,29 @@
 package services.events
 
 import model.events.EventTypes.{ EventType, Events }
-import model.events.{ AuditEvent, EmailEvent, MongoEvent }
+import model.events.{ AuditEvent, DataStoreEvent, EmailEvent }
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import services.events.handler.{ AuditEventHandler, EmailEventHandler, MongoEventHandler }
+import services.events.handler.{ AuditEventHandler, EmailEventHandler, DataStoreEventHandler }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EventService extends EventService {
-  val mongoEventHandler: MongoEventHandler = MongoEventHandler
+  val dataStoreEventHandler: DataStoreEventHandler = DataStoreEventHandler
   val auditEventHandler: AuditEventHandler = AuditEventHandler
   val emailEventHandler: EmailEventHandler = EmailEventHandler
 }
 
 trait EventService {
-  val mongoEventHandler: MongoEventHandler
+  val dataStoreEventHandler: DataStoreEventHandler
   val auditEventHandler: AuditEventHandler
   val emailEventHandler: EmailEventHandler
 
-  // TODO: Error handling
   def handle(events: Events)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val result = events.collect {
-      case event: MongoEvent => mongoEventHandler.handle(event)
+      case event: DataStoreEvent => dataStoreEventHandler.handle(event)
       case event: AuditEvent => auditEventHandler.handle(event)
       case event: EmailEvent => emailEventHandler.handle(event)
       case e => Future.successful {

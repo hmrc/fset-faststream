@@ -26,7 +26,7 @@ import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
 import model.ProgressStatuses
 import model.events.EventTypes.Events
-import model.events.{ AuditEvents, MongoEvents }
+import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
@@ -113,7 +113,7 @@ trait OnlineTestService extends ResetPhase1Test {
     - <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
       AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))) ::
-      MongoEvents.OnlineExerciseReset(application.applicationId, issuerUserId) ::
+      DataStoreEvents.OnlineExerciseReset(application.applicationId, issuerUserId) ::
       Nil
     }
   }
@@ -325,7 +325,7 @@ trait OnlineTestService extends ResetPhase1Test {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
     updatedTestPhase1 flatMap { u =>
       otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
-        MongoEvents.OnlineExerciseStarted(u.applicationId) :: Nil
+        DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
       }
     }
   }
@@ -337,7 +337,7 @@ trait OnlineTestService extends ResetPhase1Test {
 
       if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
         otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
-          MongoEvents.AllOnlineExercisesCompleted(u.applicationId) :: Nil
+          DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) :: Nil
         }
       } else {
         Future.successful(Nil)

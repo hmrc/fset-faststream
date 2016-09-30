@@ -16,8 +16,9 @@
 
 package services.application
 
+import factories.DateTimeFactory
 import model.command.WithdrawApplication
-import model.events.{ AuditEvents, MongoEvents }
+import model.events.{ AuditEvents, DataStoreEvents }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
@@ -43,7 +44,7 @@ class ApplicationServiceSpec extends PlaySpec with BeforeAndAfterEach with Mocki
       val result = applicationService.withdraw(ApplicationId, withdrawApplicationRequest).futureValue
 
       result.size mustBe 2
-      val actualMongoEvent = result.head.asInstanceOf[MongoEvents.ApplicationWithdrawn]
+      val actualMongoEvent = result.head.asInstanceOf[DataStoreEvents.ApplicationWithdrawn]
       actualMongoEvent.applicationId mustBe Some(ApplicationId)
       result(1) mustBe AuditEvents.ApplicationWithdrawn(auditDetails)
     }
