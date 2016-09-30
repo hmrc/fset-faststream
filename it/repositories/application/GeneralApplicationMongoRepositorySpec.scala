@@ -21,7 +21,7 @@ import model._
 import model.ApplicationStatus._
 import model.SchemeType.SchemeType
 import model.report.CandidateProgressReport
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
@@ -78,6 +78,19 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
         Some(List(InternshipType.SDIPCurrentYear, InternshipType.EDIP)), fastPassReceived = Some(true),
         certificateNumber = Some("1234567"))
+    }
+
+    "Find application status" in {
+      val userId = "fastPassUser"
+      val appId = "fastPassApp"
+      val frameworkId = "FastStream-2016"
+      createApplicationWithAllFields(userId, appId, frameworkId, appStatus = SUBMITTED)
+
+      val applicationStatusDetails = repository.findStatus(appId).futureValue
+
+      applicationStatusDetails.status mustBe SUBMITTED.toString
+      applicationStatusDetails.statusDate.get mustBe LocalDate.now().toDateTimeAtStartOfDay
+
     }
   }
 
@@ -196,6 +209,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
      appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
      needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
      firstName: Option[String] = None, preferredName: Option[String] = None) = {
+    import repositories.BSONLocalDateHandler
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -226,6 +240,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       "issue" -> "this candidate has changed the email",
       "progress-status" -> BSONDocument(
         "registered" -> "true"
+      ),
+      "progress-status-dates" -> BSONDocument(
+        "submitted" -> LocalDate.now()
       )
     )).futureValue
   }

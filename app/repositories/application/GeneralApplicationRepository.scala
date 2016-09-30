@@ -210,9 +210,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
           getProgress(ASSESSMENT_CENTRE_FAILED_NOTIFIED.toString)
         )
       )
-    }).getOrElse {
-      ProgressResponse(applicationId)
-    }
+    }).getOrElse(ProgressResponse(applicationId))
   }
 
   override def findProgress(applicationId: String): Future[ProgressResponse] = {
@@ -236,7 +234,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
             .flatMap(_.getAs[DateTime](applicationStatus))
             .orElse(
               document.getAs[BSONDocument]("progress-status-dates")
-                .flatMap(_.getAs[LocalDate](applicationStatus).map(_.toDateTimeAtStartOfDay))
+                .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))
             )
         ApplicationStatusDetails(applicationStatus, progressStatusTimeStamp)
 
