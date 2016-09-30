@@ -42,8 +42,6 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = "application"
 
-  override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(15, Seconds)))
-
   def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
   def onlineTestRepo = new OnlineTestMongoRepository(DateTimeFactory)
 
