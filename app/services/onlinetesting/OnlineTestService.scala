@@ -181,20 +181,28 @@ trait OnlineTestService extends ResetPhase1Test {
 
   def retrievePhase1TestResult(testProfile: Phase1TestProfileWithAppId): Future[Unit] = {
 
+    def insertTests(testResults: List[(TestResult, Phase1Test)]): Future[Unit] = {
+      Future.sequence(testResults.map {
+        case (result, phase1Test) => otRepository.insertPhase1TestResult(testProfile.applicationId,
+          phase1Test, model.persisted.TestResult.fromCommandObject(result)
+        )
+      }).map(_ => ())
+    }
+
     val testResults = Future.sequence(testProfile.phase1TestProfile.activeTests.map { test =>
       cubiksGatewayClient.downloadXmlReport(
         test.reportId.getOrElse(throw ReportIdNotDefinedException(s"no report id defined on test for schedule ${test.scheduleId}"))
       ).map(_ -> test)
     })
 
-    testResults.flatMap { x => Future.sequence(
-      x.map {
-        case (result, phase1Test) => otRepository.insertPhase1TestResult(testProfile.applicationId,
-          phase1Test,
-          model.persisted.TestResult.fromCommandObject(result)
-        )
-      }
-    )}.map(_ => audit(s"ResultsRetrievedForSchedule", testProfile.applicationId))
+    for {
+      eventualTestResults <- testResults
+      _ <- insertTests(eventualTestResults)
+      _ <- otRepository.updateProgressStatus(testProfile.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
+    } yield {
+      audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
+    }
+
   }
 
   def registerApplicant(application: OnlineTestApplication, token: String): Future[Int] = {

@@ -181,6 +181,9 @@ class OnlineTestRepositorySpec extends MongoRepositorySpec {
         profile.tests.head.testResult.get mustBe testResult
       }
 
+      val status = helperRepo.findProgress("appId").futureValue
+      status.phase1TestsResultsReceived mustBe true
+
     }
   }
 
