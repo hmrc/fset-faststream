@@ -16,15 +16,16 @@
 
 package services
 
-import _root_.services.onlinetesting.{CubiksSanitizer, OnlineTestService}
+import _root_.services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
+import akka.actor.ActorSystem
 import config.MicroserviceAppConfig._
-import connectors.{CSREmailClient, CubiksGatewayClient}
-import factories.{DateTimeFactory, UUIDFactory}
+import connectors.{ CSREmailClient, CubiksGatewayClient }
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.time.{Seconds, Span}
+import org.scalatest.time.{ Seconds, Span }
 import play.api.test.WithApplication
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.DefaultDB
@@ -104,6 +105,7 @@ class OnlineTestServiceIntegrationSpec extends IntegrationSpec with MockitoSugar
     val emailClient = CSREmailClient
     val auditService = auditMock
     val gatewayConfig = cubiksGatewayConfig
+    val actor = ActorSystem()
   }
 
   lazy val failingService = new OnlineTestService {
@@ -118,6 +120,7 @@ class OnlineTestServiceIntegrationSpec extends IntegrationSpec with MockitoSugar
     val emailClient = CSREmailClient
     val auditService = auditMock
     val gatewayConfig = cubiksGatewayConfig
+    val actor = ActorSystem()
   }
 
   "Online test service" should {
