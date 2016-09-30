@@ -24,20 +24,20 @@ sealed trait DataStoreEvent extends EventType {
   final val eventCreated: DateTime = DateTime.now()
   lazy val applicationId: Option[String] = None
   lazy val userId: Option[String] = None
-  lazy val issuer: Option[String] = None
+  lazy val createdBy: Option[String] = None
 
   require(applicationId.isDefined || userId.isDefined)
 
   // TODO equals & hashcode
   override def toString: String = s"${super.toString}, applicationId=$applicationId, userId=$userId," +
-    s"eventCreated=$eventCreated, issuer=$issuer"
+    s"eventCreated=$eventCreated, createdBy=$createdBy"
 }
 
 object DataStoreEvent {
   import scala.language.implicitConversions
 
   implicit def toDataStoreEvent(dataStoreEvent: DataStoreEvent): model.persisted.Event =
-    Event(dataStoreEvent.eventName, dataStoreEvent.eventCreated, dataStoreEvent.applicationId, dataStoreEvent.userId, dataStoreEvent.issuer)
+    Event(dataStoreEvent.eventName, dataStoreEvent.eventCreated, dataStoreEvent.applicationId, dataStoreEvent.userId, dataStoreEvent.createdBy)
 }
 
 sealed trait DataStoreEventWithAppId extends DataStoreEvent {
@@ -45,11 +45,11 @@ sealed trait DataStoreEventWithAppId extends DataStoreEvent {
   override lazy val applicationId = Some(appId)
 }
 
-sealed trait DataStoreEventWithIssuer extends DataStoreEvent {
+sealed trait DataStoreEventWithCreatedBy extends DataStoreEvent {
   val appId: String
-  val issuerUserId: String
+  val createdByUser: String
   override lazy val applicationId = Some(appId)
-  override lazy val issuer = Some(issuerUserId)
+  override lazy val createdBy = Some(createdByUser)
 }
 
 object DataStoreEvents {
@@ -57,13 +57,13 @@ object DataStoreEvents {
   // In other words: Renaming the case class here, impacts in renaming the event name in database.
 
   case class ApplicationSubmitted(appId: String) extends DataStoreEventWithAppId
-  case class ApplicationWithdrawn(appId: String, issuerUserId: String) extends DataStoreEventWithIssuer
+  case class ApplicationWithdrawn(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
 
   case class OnlineExerciseStarted(appId: String) extends DataStoreEventWithAppId
   case class OnlineExercisesCompleted(appId: String) extends DataStoreEventWithAppId
   case class AllOnlineExercisesCompleted(appId: String) extends DataStoreEventWithAppId
-  case class OnlineExerciseExtended(appId: String, issuerUserId: String) extends DataStoreEventWithIssuer
-  case class OnlineExerciseReset(appId: String, issuerUserId: String) extends DataStoreEventWithIssuer
+  case class OnlineExerciseExtended(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
+  case class OnlineExerciseReset(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class OnlineExerciseResultSent(appId: String) extends DataStoreEventWithAppId
 
   case class ETrayStarted(appId: String) extends DataStoreEventWithAppId

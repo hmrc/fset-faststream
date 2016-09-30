@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait OnlineTestExtensionService {
-  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, issuerUserId: String): Future[Events]
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTrigerredBy: String): Future[Events]
 }
 
 class OnlineTestExtensionServiceImpl(
@@ -36,7 +36,7 @@ class OnlineTestExtensionServiceImpl(
   otRepository: OnlineTestRepository
 ) extends OnlineTestExtensionService {
 
-  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, issuerUserId: String): Future[Events] = {
+  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTrigerredBy: String): Future[Events] = {
     // Check the state of this user
     appRepository.findProgress(applicationId) flatMap { progressResponse =>
       if (progressResponse.phase1TestsExpired) {
@@ -53,7 +53,7 @@ class OnlineTestExtensionServiceImpl(
           _ <- appRepository.removeProgressStatuses(applicationId, progressStatusesToRemove)
         } yield {
           AuditEvents.ExpiredTestsExtended(Map("applicationId" -> applicationId)) ::
-          DataStoreEvents.OnlineExerciseExtended(applicationId, issuerUserId) ::
+          DataStoreEvents.OnlineExerciseExtended(applicationId, actionTrigerredBy) ::
           Nil
         }
       } else if (progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted) {
@@ -63,7 +63,7 @@ class OnlineTestExtensionServiceImpl(
           _ <- otRepository.updateGroupExpiryTime(applicationId, existingExpiry.withDurationAdded(86400 * extraDays * 1000, 1))
         } yield {
           AuditEvents.NonExpiredTestsExtended(Map("applicationId" -> applicationId)) ::
-          DataStoreEvents.OnlineExerciseExtended(applicationId, issuerUserId) ::
+          DataStoreEvents.OnlineExerciseExtended(applicationId, actionTrigerredBy) ::
           Nil
         }
       } else {
