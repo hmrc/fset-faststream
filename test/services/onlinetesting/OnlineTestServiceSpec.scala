@@ -486,7 +486,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     val onlineTestService = new OnlineTestService {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
-      val otRepository = otRepositoryMock
+      val phase1TestRepo = otRepositoryMock
       val trRepository = trRepositoryMock
       val cubiksGatewayClient = cubiksGatewayClientMock
       val emailClient = emailClientMock

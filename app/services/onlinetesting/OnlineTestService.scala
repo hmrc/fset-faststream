@@ -45,7 +45,7 @@ object OnlineTestService extends OnlineTestService {
   import config.MicroserviceAppConfig._
   val appRepository = applicationRepository
   val cdRepository = contactDetailsRepository
-  val otRepository = phase1TestRepository
+  val phase1TestRepo = phase1TestRepository
   val trRepository = testReportRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
@@ -64,7 +64,7 @@ trait OnlineTestService extends ResetPhase1Test {
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
-  val otRepository: Phase1TestRepository
+  val phase1TestRepo: Phase1TestRepository
   val trRepository: TestReportRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val emailClient: EmailClient
@@ -79,17 +79,17 @@ trait OnlineTestService extends ResetPhase1Test {
   ).map(a => ReportNorm(a.assessmentId, a.normId)).toList
 
   def nextApplicationReadyForOnlineTesting() = {
-    otRepository.nextApplicationReadyForOnlineTesting
+    phase1TestRepo.nextApplicationReadyForOnlineTesting
   }
 
 
   def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfileWithAppId]] = {
-    otRepository.nextPhase1TestGroupWithReportReady
+    phase1TestRepo.nextPhase1TestGroupWithReportReady
   }
 
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfileWithNames]] = {
     for {
-      phase1Opt <- otRepository.getPhase1TestGroup(applicationId)
+      phase1Opt <- phase1TestRepo.getPhase1TestGroup(applicationId)
     } yield {
       phase1Opt.map { phase1 =>
         val sjqTests = phase1.activeTests filter (_.scheduleId == sjq)
@@ -183,7 +183,7 @@ trait OnlineTestService extends ResetPhase1Test {
 
     def insertTests(testResults: List[(TestResult, Phase1Test)]): Future[Unit] = {
       Future.sequence(testResults.map {
-        case (result, phase1Test) => otRepository.insertPhase1TestResult(testProfile.applicationId,
+        case (result, phase1Test) => phase1TestRepo.insertPhase1TestResult(testProfile.applicationId,
           phase1Test, model.persisted.TestResult.fromCommandObject(result)
         )
       }).map(_ => ())
@@ -198,7 +198,7 @@ trait OnlineTestService extends ResetPhase1Test {
     for {
       eventualTestResults <- testResults
       _ <- insertTests(eventualTestResults)
-      _ <- otRepository.updateProgressStatus(testProfile.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
+      _ <- phase1TestRepo.updateProgressStatus(testProfile.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
     } yield {
       audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
     }
@@ -233,10 +233,10 @@ trait OnlineTestService extends ResetPhase1Test {
 
   private def markAsInvited(application: OnlineTestApplication)
                            (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
-    currentOnlineTestProfile <- otRepository.getPhase1TestGroup(application.applicationId)
+    currentOnlineTestProfile <- phase1TestRepo.getPhase1TestGroup(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- otRepository.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
-    _ <- otRepository.removePhase1TestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
+    _ <- phase1TestRepo.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
+    _ <- phase1TestRepo.removePhase1TestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
   } yield {
     audit("OnlineTestInvited", application.userId)
   }
@@ -314,7 +314,7 @@ trait OnlineTestService extends ResetPhase1Test {
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
     updatedTestPhase1 flatMap { u =>
-      otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
+      phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
     }
   }
 
@@ -324,7 +324,7 @@ trait OnlineTestService extends ResetPhase1Test {
       require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
 
       if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
-        otRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED)
+        phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED)
       } else {
         Future.successful(())
       }
@@ -332,7 +332,7 @@ trait OnlineTestService extends ResetPhase1Test {
   }
 
   def markAsCompleted(token: String): Future[Unit] = {
-    otRepository.getPhase1TestProfileByToken(token).flatMap { p =>
+    phase1TestRepo.getPhase1TestProfileByToken(token).flatMap { p =>
       val test = p.tests.find(_.token == token).get
       markAsCompleted(test.cubiksUserId)
     }
@@ -349,7 +349,7 @@ trait OnlineTestService extends ResetPhase1Test {
     ).flatMap { updated =>
 
       if (updated.phase1TestProfile.activeTests forall (_.resultsReadyToDownload)) {
-        otRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
+        phase1TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
       } else {
         Future.successful(())
       }
@@ -375,9 +375,9 @@ trait OnlineTestService extends ResetPhase1Test {
     }
 
     for {
-      p1TestProfile <- otRepository.getPhase1TestProfileByCubiksId(cubiksUserId)
+      p1TestProfile <- phase1TestRepo.getPhase1TestProfileByCubiksId(cubiksUserId)
       updated = createUpdateTestGroup(p1TestProfile)
-      _ <- otRepository.insertOrUpdatePhase1TestGroup(updated.applicationId, updated.phase1TestProfile)
+      _ <- phase1TestRepo.insertOrUpdatePhase1TestGroup(updated.applicationId, updated.phase1TestProfile)
     } yield {
       updated
     }

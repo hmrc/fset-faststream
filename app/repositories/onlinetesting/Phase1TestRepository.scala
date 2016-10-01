@@ -35,7 +35,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait Phase1TestRepository extends OnlineTestRepository {
+trait Phase1TestRepository extends OnlineTestRepository[Phase1TestProfile] {
   this: ReactiveRepository[_, _] =>
 
   def getPhase1TestGroup(applicationId: String): Future[Option[Phase1TestProfile]]
@@ -67,7 +67,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE1_TESTS
   val dateTimeFactory = dateTime
 
-  override def testProfileBsonHandler[T <: TestProfile] = Phase1TestProfile.bsonHandler
+  override implicit def bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Phase1TestProfile.bsonHandler
 
   override def getPhase1TestGroup(applicationId: String): Future[Option[Phase1TestProfile]] = {
     getTestGroup(applicationId, "PHASE1")

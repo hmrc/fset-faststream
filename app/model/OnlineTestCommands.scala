@@ -47,7 +47,7 @@ object OnlineTestCommands {
     implicit val phase1TestFormat = Json.format[Phase1Test]
   }
 
-  sealed trait TestProfile {
+  trait TestProfile {
     def expirationDate: DateTime
     def tests: List[Phase1Test]
   }

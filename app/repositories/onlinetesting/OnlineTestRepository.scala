@@ -32,23 +32,24 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestRepository extends RandomSelection {
+trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
   val dateTimeFactory: DateTimeFactory
-  def testProfileBsonHandler[T <: TestProfile]: BSONHandler[BSONDocument, T]
+  implicit def bsonHandler: BSONHandler[BSONDocument, T]
 
-  def getTestGroup[T <: TestProfile](applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
+  def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     phaseTestProfileByQuery(query)
   }
 
-  def getTestProfileByToken[T <: TestProfile](token: String, phase: String = "PHASE1"): Future[T] = {
+  def getTestProfileByToken(token: String, phase: String = "PHASE1"): Future[T] = {
     val query = BSONDocument(s"testGroups.$phase.tests" -> BSONDocument(
       "$elemMatch" -> BSONDocument("token" -> token)
     ))
-    phaseTestProfileByQuery[T](query).map { x =>
+
+    phaseTestProfileByQuery(query).map { x =>
       x.getOrElse(cannotFindTestByToken(token))
     }
   }
@@ -61,13 +62,13 @@ trait OnlineTestRepository extends RandomSelection {
     throw CannotFindTestByCubiksId(s"Cannot find test group by token: $token")
   }
 
-  private def phaseTestProfileByQuery[T <: TestProfile](query: BSONDocument, phase: String = "PHASE1"): Future[Option[T]] = {
+  private def phaseTestProfileByQuery(query: BSONDocument, phase: String = "PHASE1"): Future[Option[T]] = {
     val projection = BSONDocument(s"testGroups.$phase" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(doc) =>
         val bson = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phase).get)
-        bson.map(x => testProfileBsonHandler.read(x)): Option[T]
+        bson.map(x => bsonHandler.read(x))
       case _ => None
     }
   }
