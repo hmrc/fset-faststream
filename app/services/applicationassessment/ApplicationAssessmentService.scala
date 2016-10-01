@@ -26,7 +26,7 @@ import model.PersistedObjects.ApplicationForNotification
 import play.api.Logger
 import repositories.application.GeneralApplicationRepository
 import repositories._
-import repositories.onlinetesting.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
@@ -37,7 +37,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 object ApplicationAssessmentService extends ApplicationAssessmentService {
 
   val appAssessRepository = applicationAssessmentRepository
-  val otRepository = onlineTestRepository
+  val otRepository = phase1TestRepository
   val aRepository = applicationRepository
   val aasRepository = applicationAssessmentScoresRepository
   val fpRepository = frameworkPreferenceRepository
@@ -57,7 +57,7 @@ trait ApplicationAssessmentService {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val appAssessRepository: ApplicationAssessmentRepository
-  val otRepository: OnlineTestRepository
+  val otRepository: Phase1TestRepository
   val aRepository: GeneralApplicationRepository
   val aasRepository: ApplicationAssessmentScoresRepository
   val fpRepository: FrameworkPreferenceRepository

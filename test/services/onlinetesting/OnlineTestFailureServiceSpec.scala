@@ -26,7 +26,7 @@ import org.scalatest.time.{ Millis, Span }
 import org.scalatestplus.play.PlaySpec
 import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
@@ -145,7 +145,7 @@ class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with Mocki
 
     val ec = scala.concurrent.ExecutionContext.Implicits.global
     val applicationRepository = mock[GeneralApplicationRepository]
-    val otRepository = mock[OnlineTestRepository]
+    val otRepository = mock[Phase1TestRepository]
     val cdRepository = mock[ContactDetailsRepository]
     val emailClient = mock[EmailClient]
     val audit = mock[AuditService]

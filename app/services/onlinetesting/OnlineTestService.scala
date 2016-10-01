@@ -32,7 +32,7 @@ import org.joda.time.DateTime
 import play.api.Logger
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.onlinetesting.OnlineTestService.ReportIdNotDefinedException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -45,7 +45,7 @@ object OnlineTestService extends OnlineTestService {
   import config.MicroserviceAppConfig._
   val appRepository = applicationRepository
   val cdRepository = contactDetailsRepository
-  val otRepository = onlineTestRepository
+  val otRepository = phase1TestRepository
   val trRepository = testReportRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
@@ -64,7 +64,7 @@ trait OnlineTestService extends ResetPhase1Test {
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
-  val otRepository: OnlineTestRepository
+  val otRepository: Phase1TestRepository
   val trRepository: TestReportRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val emailClient: EmailClient

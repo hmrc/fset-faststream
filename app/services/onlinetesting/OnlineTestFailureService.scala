@@ -22,7 +22,7 @@ import model.PersistedObjects.ApplicationForNotification
 import play.api.Logger
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -37,7 +37,7 @@ trait OnlineTestFailureService {
 
 class OnlineTestFailureServiceImpl(
   appRepository: GeneralApplicationRepository,
-  otRepository: OnlineTestRepository,
+  otRepository: Phase1TestRepository,
   cdRepository: ContactDetailsRepository,
   emailClient: EmailClient,
   auditService: AuditService,

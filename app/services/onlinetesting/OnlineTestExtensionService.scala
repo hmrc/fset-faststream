@@ -22,7 +22,7 @@ import org.joda.time.DateTime
 import play.api.Logger
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.onlinetesting.OnlineTestService.TestExtensionException
 
@@ -35,7 +35,7 @@ trait OnlineTestExtensionService {
 
 class OnlineTestExtensionServiceImpl(
   appRepository: GeneralApplicationRepository,
-  otRepository: OnlineTestRepository,
+  otRepository: Phase1TestRepository,
   auditService: AuditService
 ) extends OnlineTestExtensionService {
 
@@ -81,5 +81,5 @@ class OnlineTestExtensionServiceImpl(
 }
 
 object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(
-  applicationRepository, onlineTestRepository, AuditService
+  applicationRepository, phase1TestRepository, AuditService
 )

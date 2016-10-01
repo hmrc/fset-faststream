@@ -20,7 +20,7 @@ import mocks.PassMarkSettingsInMemoryRepository
 import model.PersistedObjects.CandidateTestReport
 import model.Preferences
 import org.scalatest.mock.MockitoSugar
-import repositories.onlinetesting.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import repositories.{ FrameworkPreferenceRepository, FrameworkRepository, PassMarkSettingsRepository, TestReportRepository }
 import services.onlinetesting.OnlineTestPassmarkService
 import services.passmarksettings.PassMarkSettingsService
@@ -37,7 +37,7 @@ class OnlineTestPassmarkServiceSpec extends IntegrationSpec with MockitoSugar {
 
     val fpRepository = mock[FrameworkPreferenceRepository]
     val trRepository = mock[TestReportRepository]
-    val oRepository = mock[OnlineTestRepository]
+    val oRepository = mock[Phase1TestRepository]
     val passmarkRulesEngine = OnlineTestPassmarkService.passmarkRulesEngine
     val pmsRepository: PassMarkSettingsRepository = PassMarkSettingsInMemoryRepository
     val passMarkSettingsService = new PassMarkSettingsService {

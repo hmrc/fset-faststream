@@ -37,7 +37,7 @@ import reactivemongo.bson.{ BSONDocument, BSONString }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.applicationassessment.ApplicationAssessmentService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
@@ -55,7 +55,7 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
     val appAssessRepository: ApplicationAssessmentRepository = mock[ApplicationAssessmentRepository]
     val aasRepository: ApplicationAssessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
     val fpRepository: FrameworkPreferenceRepository = mock[FrameworkPreferenceRepository]
-    val otRepository: OnlineTestRepository = mock[OnlineTestRepository]
+    val otRepository: Phase1TestRepository = mock[Phase1TestRepository]
     val aRepository: GeneralApplicationRepository = applicationRepository
     val cdRepository: ContactDetailsRepository = mock[ContactDetailsRepository]
     val passmarkService: AssessmentCentrePassMarkSettingsService = mock[AssessmentCentrePassMarkSettingsService]

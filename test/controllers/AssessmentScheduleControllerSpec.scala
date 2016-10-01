@@ -39,7 +39,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.AssessmentCentreLocation._
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
-import repositories.onlinetesting.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import repositories.{ AssessmentCentreLocation, _ }
 import services.applicationassessment.ApplicationAssessmentService
 import testkit.MockitoSugar
@@ -485,7 +485,7 @@ trait TestFixture extends TestFixtureBase {
 
 val mockApplicationAssessmentRepository = mock[ApplicationAssessmentRepository]
 val mockApplicationRepository = mock[GeneralApplicationRepository]
-val mockOnlineTestRepository = mock[OnlineTestRepository]
+val mockOnlineTestRepository = mock[Phase1TestRepository]
 val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
 val mockContactDetailsRepository = mock[ContactDetailsRepository]
 val mockEmailClient = mock[EmailClient]

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package repositories
+package repositories.onlinetesting
 
 import java.util.UUID
 
@@ -24,13 +24,12 @@ import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestP
 import model.PersistedObjects.ExpiringOnlineTest
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _ }
 import model.persisted.Phase1TestProfileWithAppId
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
+import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
-import model.persisted
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, OnlineTestMongoRepository }
+import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 

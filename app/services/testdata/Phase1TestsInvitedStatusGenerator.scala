@@ -23,7 +23,7 @@ import connectors.testdata.ExchangeObjects.{ Phase1TestGroupResponse, Phase1Test
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import org.joda.time.DateTime
 import repositories._
-import repositories.onlinetesting.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 import config.MicroserviceAppConfig.cubiksGatewayConfig
@@ -32,12 +32,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase1TestsInvitedStatusGenerator extends Phase1TestsInvitedStatusGenerator {
   override val previousStatusGenerator = SubmittedStatusGenerator
-  override val otRepository = onlineTestRepository
+  override val otRepository = phase1TestRepository
   override val gatewayConfig = cubiksGatewayConfig
 }
 
 trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: OnlineTestRepository
+  val otRepository: Phase1TestRepository
   val gatewayConfig: CubiksGatewayConfig
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
