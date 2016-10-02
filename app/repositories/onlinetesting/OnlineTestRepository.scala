@@ -88,22 +88,24 @@ trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
     }
   }
 
-  def nextExpiringApplication(progressStatusQuery: BSONDocument): Future[Option[ExpiringOnlineTest]] = {
+  def nextExpiringApplication(progressStatusQuery: BSONDocument, phase: String = "PHASE1"): Future[Option[ExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(
         "applicationStatus" -> thisApplicationStatus
       ),
       BSONDocument(
-        "testGroups.PHASE1.expirationDate" -> BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone) // Serialises to UTC.
+        s"testGroups.$phase.expirationDate" -> BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone) // Serialises to UTC.
       ), progressStatusQuery))
 
     selectRandom(query).map(_.map(bsonDocToExpiringOnlineTest))
   }
 
-  def nextTestForReminder(reminder: ReminderNotice, progressStatusQuery: BSONDocument): Future[Option[NotificationExpiringOnlineTest]] = {
+  def nextTestForReminder(reminder: ReminderNotice, phase: String = "PHASE1",
+    progressStatusQuery: BSONDocument
+  ): Future[Option[NotificationExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
-      BSONDocument("testGroups.PHASE1.expirationDate" ->
+      BSONDocument(s"testGroups.$phase.expirationDate" ->
         BSONDocument( "$lte" -> dateTimeFactory.nowLocalTimeZone.plusHours(reminder.hoursBeforeReminder)) // Serialises to UTC.
       ),
       progressStatusQuery

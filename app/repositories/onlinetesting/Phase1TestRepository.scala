@@ -38,9 +38,9 @@ import scala.concurrent.Future
 trait Phase1TestRepository extends OnlineTestRepository[Phase1TestProfile] {
   this: ReactiveRepository[_, _] =>
 
-  def getPhase1TestGroup(applicationId: String): Future[Option[Phase1TestProfile]]
+  def getTestGroup(applicationId: String): Future[Option[Phase1TestProfile]]
 
-  def getPhase1TestProfileByToken(token: String): Future[Phase1TestProfile]
+  def getTestProfileByToken(token: String): Future[Phase1TestProfile]
 
   def getPhase1TestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestProfileWithAppId]
 
@@ -69,11 +69,11 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override implicit def bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Phase1TestProfile.bsonHandler
 
-  override def getPhase1TestGroup(applicationId: String): Future[Option[Phase1TestProfile]] = {
+  override def getTestGroup(applicationId: String): Future[Option[Phase1TestProfile]] = {
     getTestGroup(applicationId, "PHASE1")
   }
 
-  override def getPhase1TestProfileByToken(token: String): Future[Phase1TestProfile] = {
+  override def getTestProfileByToken(token: String): Future[Phase1TestProfile] = {
     getTestProfileByToken(token, "PHASE1")
   }
 
@@ -141,7 +141,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       BSONDocument("progress-status.PHASE1_TESTS_EXPIRED" -> BSONDocument("$ne" -> true))
     ))
 
-  nextExpiringApplication(progressStatusQuery)
+  nextExpiringApplication(progressStatusQuery, "PHASE1")
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
@@ -151,7 +151,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
       ))
 
-    nextTestForReminder(reminder, progressStatusQuery)
+    nextTestForReminder(reminder, "PHASE1", progressStatusQuery)
   }
 
   override def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfileWithAppId]] = {

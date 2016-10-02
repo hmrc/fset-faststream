@@ -71,28 +71,28 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
 
   "Get online test" should {
     "return None if there is no test for the specific user id" in {
-      val result = phase1TestRepo.getPhase1TestGroup("userId").futureValue
+      val result = phase1TestRepo.getTestGroup("userId").futureValue
       result mustBe None
     }
 
     "return an online test for the specific user id" in {
       insertApplication("appId")
       phase1TestRepo.insertOrUpdatePhase1TestGroup("appId", TestProfile).futureValue
-      val result = phase1TestRepo.getPhase1TestGroup("appId").futureValue
+      val result = phase1TestRepo.getTestGroup("appId").futureValue
       result mustBe Some(TestProfile)
     }
   }
 
   "Get online test by token" should {
     "return None if there is no test with the token" in {
-      val result = phase1TestRepo.getPhase1TestProfileByToken("token").failed.futureValue
+      val result = phase1TestRepo.getTestProfileByToken("token").failed.futureValue
       result mustBe a[CannotFindTestByCubiksId]
     }
 
     "return an online tet for the specific token" in {
       insertApplication("appId")
       phase1TestRepo.insertOrUpdatePhase1TestGroup("appId", TestProfile).futureValue
-      val result = phase1TestRepo.getPhase1TestProfileByToken(Token).futureValue
+      val result = phase1TestRepo.getTestProfileByToken(Token).futureValue
       result mustBe TestProfile
     }
   }
@@ -175,7 +175,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
         testResult
       ).futureValue
 
-      val phase1TestProfile = phase1TestRepo.getPhase1TestGroup("appId").futureValue
+      val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue
       phase1TestProfile.foreach { profile =>
         profile.tests.head.testResult.isDefined mustBe true
         profile.tests.head.testResult.get mustBe testResult

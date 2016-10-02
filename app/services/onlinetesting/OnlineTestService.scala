@@ -82,14 +82,13 @@ trait OnlineTestService extends ResetPhase1Test {
     phase1TestRepo.nextApplicationReadyForOnlineTesting
   }
 
-
   def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfileWithAppId]] = {
     phase1TestRepo.nextPhase1TestGroupWithReportReady
   }
 
   def getPhase1TestProfile(applicationId: String): Future[Option[Phase1TestProfileWithNames]] = {
     for {
-      phase1Opt <- phase1TestRepo.getPhase1TestGroup(applicationId)
+      phase1Opt <- phase1TestRepo.getTestGroup(applicationId)
     } yield {
       phase1Opt.map { phase1 =>
         val sjqTests = phase1.activeTests filter (_.scheduleId == sjq)
@@ -233,7 +232,7 @@ trait OnlineTestService extends ResetPhase1Test {
 
   private def markAsInvited(application: OnlineTestApplication)
                            (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
-    currentOnlineTestProfile <- phase1TestRepo.getPhase1TestGroup(application.applicationId)
+    currentOnlineTestProfile <- phase1TestRepo.getTestGroup(application.applicationId)
     updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
     _ <- phase1TestRepo.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
     _ <- phase1TestRepo.removePhase1TestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
@@ -332,7 +331,7 @@ trait OnlineTestService extends ResetPhase1Test {
   }
 
   def markAsCompleted(token: String): Future[Unit] = {
-    phase1TestRepo.getPhase1TestProfileByToken(token).flatMap { p =>
+    phase1TestRepo.getTestProfileByToken(token).flatMap { p =>
       val test = p.tests.find(_.token == token).get
       markAsCompleted(test.cubiksUserId)
     }
