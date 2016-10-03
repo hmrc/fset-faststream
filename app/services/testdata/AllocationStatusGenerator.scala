@@ -20,7 +20,7 @@ import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatuses
 import model.Commands.ApplicationAssessment
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -29,14 +29,14 @@ import scala.concurrent.Future
 
 object AllocationStatusGenerator extends AllocationStatusGenerator {
   override val previousStatusGenerator = AwaitingAllocationStatusGenerator
-  override val otRepository = onlineTestRepository
+  override val otRepository = phase1TestRepository
   override val aaRepository = applicationAssessmentRepository
 
   val SlotFindingLockObj = new Object()
 }
 
 trait AllocationStatusGenerator extends ConstructiveGenerator {
-  val otRepository: OnlineTestRepository
+  val otRepository: Phase1TestRepository
   val aaRepository: ApplicationAssessmentRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier): Future[DataGenerationResponse] = {

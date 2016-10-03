@@ -24,9 +24,9 @@ import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Seconds, Span }
 import org.scalatestplus.play.PlaySpec
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.onlinetesting.Phase1TestRepository
+import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.onlinetesting.OnlineTestService.TestExtensionException
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
@@ -40,11 +40,11 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
     "return a successful Future" when {
       "add extra days onto expiry, from today's date, if expired" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
-        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1TestsExpired).thenReturn(true)
         when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
-        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
+        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
 
         val result = underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").futureValue
@@ -53,18 +53,18 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
         result(1).eventName mustBe "OnlineExerciseExtended"
 
         verify(mockAppRepository).findProgress(eqTo(applicationId))
-        verify(mockOtRepository).getPhase1TestGroup(eqTo(applicationId))
+        verify(mockOtRepository).getTestGroup(eqTo(applicationId))
         verify(mockDateFactory).nowLocalTimeZone
-        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(Now.plusDays(twoExtraDays)))
+        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(Now.plusDays(twoExtraDays)), any())
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanOneDayExpired))
       }
       "add extra days onto expiry, from the expiry time, if not expired" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
-        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1TestsExpired).thenReturn(false)
         when(mockProgressResponse.phase1TestsStarted).thenReturn(true)
         when(mockProfile.expirationDate).thenReturn(InFiveHours)
-        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
+        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
 
         val result = underTest.extendTestGroupExpiryTime(applicationId, threeExtraDays, "triggeredBy").futureValue
@@ -72,20 +72,20 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
         result(0).eventName mustBe "NonExpiredTestsExtended"
         result(1).eventName mustBe "OnlineExerciseExtended"
 
-        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.plusDays(threeExtraDays)))
+        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.plusDays(threeExtraDays)), any())
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanThreeDays))
       }
     }
     "return a failed Future" when {
       "the application status doesn't allow an extension" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
-        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         whenReady(underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").failed) { e =>
           e mustBe (invalidStatusError)
         }
 
         verify(mockAppRepository).findProgress(eqTo(applicationId))
-        verify(mockOtRepository).getPhase1TestGroup(eqTo(applicationId))
+        verify(mockOtRepository).getTestGroup(eqTo(applicationId))
         verifyNoMoreInteractions(mockAppRepository, mockOtRepository, mockAuditService, mockDateFactory)
       }
       "find progress fails" in new TestFixture {
@@ -97,20 +97,20 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
       }
       "No test phase 1 profile is available" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
-        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(None)
+        when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(None)
         whenReady(underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").failed) { e =>
           e mustBe (noTestProfileFoundError)
         }
         verify(mockAppRepository).findProgress(eqTo(applicationId))
-        verify(mockOtRepository).getPhase1TestGroup(eqTo(applicationId))
+        verify(mockOtRepository).getTestGroup(eqTo(applicationId))
       }
       "remove status return an error and no audit event is emitted" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
-        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1TestsExpired).thenReturn(true)
         when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
-        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
+        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturn(Future.failed(genericError))
 
         whenReady(underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").failed) { e =>
@@ -171,8 +171,8 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
     val successfulProgressResponse = mockProgressResponse
     val successfulTestProfile = Some(mockProfile)
     val mockAppRepository = mock[GeneralApplicationRepository]
-    val mockOtRepository = mock[OnlineTestRepository]
+    val mockOtRepository = mock[Phase1TestRepository]
     val mockAuditService = mock[AuditService]
-    val underTest = new OnlineTestExtensionServiceImpl(mockAppRepository, mockOtRepository, mockDateFactory)
+    val underTest = new OnlineTestExtensionServiceImpl(mockAppRepository, mockOtRepository, mockAuditService, mockDateFactory)
   }
 }

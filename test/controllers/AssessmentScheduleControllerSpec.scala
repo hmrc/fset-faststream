@@ -23,23 +23,24 @@ import config._
 import connectors.EmailClient
 import model.Address
 import model.AssessmentScheduleCommands.Implicits._
-import model.AssessmentScheduleCommands.{ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult}
+import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.command._
 import model.Exceptions.NotFoundException
-import model.PersistedObjects.{ContactDetails, PersonalDetails}
-import org.joda.time.{DateTime, LocalDate}
-import org.mockito.Matchers.{eq => eqTo, _}
+import model.PersistedObjects.{ ContactDetails, PersonalDetails }
+import org.joda.time.{ DateTime, LocalDate }
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{JsArray, JsString, JsValue, Json}
+import play.api.libs.json.{ JsArray, JsString, JsValue, Json }
 import play.api.mvc.Results
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.AssessmentCentreLocation._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository, PersonalDetailsRepository}
-import repositories.{AssessmentCentreLocation, _}
+import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.onlinetesting.Phase1TestRepository
+import repositories.{ AssessmentCentreLocation, _ }
 import services.applicationassessment.ApplicationAssessmentService
 import testkit.MockitoSugar
 
@@ -484,7 +485,7 @@ trait TestFixture extends TestFixtureBase {
 
 val mockApplicationAssessmentRepository = mock[ApplicationAssessmentRepository]
 val mockApplicationRepository = mock[GeneralApplicationRepository]
-val mockOnlineTestRepository = mock[OnlineTestRepository]
+val mockOnlineTestRepository = mock[Phase1TestRepository]
 val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
 val mockContactDetailsRepository = mock[ContactDetailsRepository]
 val mockEmailClient = mock[EmailClient]
