@@ -31,6 +31,7 @@ import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
 import repositories.application._
 import repositories.onlinetesting._
+import repositories.event.EventMongoRepository
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculatorTrait
 
@@ -72,6 +73,7 @@ package object repositories {
   lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
+  lazy val eventMongoRepository = new EventMongoRepository
 
   /** Create indexes */
   Await.result(Future.sequence(List(

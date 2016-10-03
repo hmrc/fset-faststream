@@ -17,6 +17,7 @@
 package services.onlinetesting
 
 import _root_.services.AuditService
+import akka.actor.ActorSystem
 import common.FutureEx
 import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
@@ -26,6 +27,8 @@ import model.OnlineTestCommands._
 import model.PersistedObjects.CandidateTestReport
 import model.persisted
 import model.ProgressStatuses
+import model.events.EventTypes.Events
+import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
@@ -53,6 +56,7 @@ object OnlineTestService extends OnlineTestService {
   val emailClient = CSREmailClient
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
+  val actor = ActorSystem()
 
   case class TestExtensionException(message: String) extends Exception(message)
   case class ReportIdNotDefinedException(message: String) extends Exception(message)
@@ -61,6 +65,7 @@ object OnlineTestService extends OnlineTestService {
 trait OnlineTestService extends ResetPhase1Test {
   implicit def headerCarrier = new HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  val actor: ActorSystem
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
@@ -113,14 +118,13 @@ trait OnlineTestService extends ResetPhase1Test {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
   }
 
-  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String]): Future[Unit] = {
+  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String], actionTriggeredBy: String): Future[Events] = {
     for {
     - <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
-      auditService.logEventNoRequest(
-        "Phase1TestsReset",
-        Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))
-      )
+      AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))) ::
+      DataStoreEvents.OnlineExerciseReset(application.applicationId, actionTriggeredBy) ::
+      Nil
     }
   }
 
@@ -140,9 +144,14 @@ trait OnlineTestService extends ResetPhase1Test {
     // going on in the background.
     // The approach to fixing it here is to generate futures that return Try[A] and then all futures will be
     // traversed. Afterward, we look at the results and clear up the mess
-    val registerAndInvite = FutureEx.traverseToTry(scheduleNames){ sn =>
-      val scheduleId = scheduleIdByName(sn)
-      registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
+    // We space out calls to Cubiks because it appears they fail when they are too close together.
+    val registerAndInvite = FutureEx.traverseToTry(scheduleNames.zipWithIndex){
+      case (scheduleName, delayModifier) =>
+      val scheduleId = scheduleIdByName(scheduleName)
+      val delay = (delayModifier * 1).second
+      akka.pattern.after(delay, actor.scheduler)(
+        registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
+      )
     }
 
     val registerAndInviteProcess = registerAndInvite.flatMap { phase1TestsRegs =>
@@ -310,27 +319,33 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Events] = {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
     updatedTestPhase1 flatMap { u =>
-      phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED).map(_ => ())
+      phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
+        DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
+      }
     }
   }
 
-  def markAsCompleted(cubiksUserId: Int): Future[Unit] = {
+  def markAsCompleted(cubiksUserId: Int): Future[Events] = {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)), "COMPLETED")
     updatedTestPhase1 flatMap { u =>
       require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
 
       if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
-        phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED)
+        phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
+          DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
+          DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
+          Nil
+        }
       } else {
-        Future.successful(())
+        Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
       }
     }
   }
 
-  def markAsCompleted(token: String): Future[Unit] = {
+  def markAsCompleted(token: String): Future[Events] = {
     phase1TestRepo.getTestProfileByToken(token).flatMap { p =>
       val test = p.tests.find(_.token == token).get
       markAsCompleted(test.cubiksUserId)

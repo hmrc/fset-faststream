@@ -16,30 +16,34 @@
 
 package controllers
 
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.libs.json.JsValue
+import play.api.mvc.Action
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
+import services.events.EventService
+import services.onlinetesting.OnlineTestExtensionService
+import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object Phase1TestGroupController extends Phase1TestGroupController {
   override val phase1Repository = phase1TestRepository
   override val phase1TestExtensionService = OnlineTestExtensionService
+  val eventService: EventService = EventService
 }
 
 trait Phase1TestGroupController extends BaseController {
 
   val phase1Repository: Phase1TestRepository
   val phase1TestExtensionService: OnlineTestExtensionService
+  val eventService: EventService
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>
-      phase1TestExtensionService.extendTestGroupExpiryTime(applicationId, extension.extraDays).map(_ => ())
-      Future.successful(Ok)
+      for {
+        events <- phase1TestExtensionService.extendTestGroupExpiryTime(applicationId, extension.extraDays, extension.actionTriggeredBy)
+        _ <- eventService.handle(events)
+      } yield Ok
     }
   }
 }

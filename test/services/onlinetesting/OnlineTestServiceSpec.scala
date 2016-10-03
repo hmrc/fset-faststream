@@ -16,6 +16,7 @@
 
 package services.onlinetesting
 
+import akka.actor.ActorSystem
 import config._
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
@@ -26,7 +27,7 @@ import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.Phase1TestProfileWithAppId
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.{ BeforeAndAfterEach, PrivateMethodTester }
@@ -45,7 +46,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout
   with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
-
   val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
 
   val testGatewayConfig = CubiksGatewayConfig(
@@ -399,7 +399,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         .map(t => t.copy(startedDateTime = Some(startedDate))))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfileWithStartedTests)))
       when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
-      val result = onlineTestService.resetPhase1Tests(onlineTestApplication, List("sjq")).futureValue
+      val result = onlineTestService.resetPhase1Tests(onlineTestApplication, List("sjq"), "createdBy").futureValue
 
       verify(otRepositoryMock).removePhase1TestProfileProgresses(
         "appId",
@@ -494,7 +494,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
-
+      val actor = ActorSystem()
 
     }
   }
