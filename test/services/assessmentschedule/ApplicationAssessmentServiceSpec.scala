@@ -24,7 +24,8 @@ import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.{IncorrectStatusInApplicationException, NotFoundException}
 import model.PassmarkPersistedObjects.{AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold}
-import model.PersistedObjects.{ApplicationForNotification, ContactDetails}
+import model.PersistedObjects.ContactDetails
+import model.persisted.ApplicationForNotification
 import model.{Address, EvaluationResults, LocationPreference, Preferences}
 import org.joda.time.DateTime
 import org.mockito.Matchers.{eq => eqTo, _}

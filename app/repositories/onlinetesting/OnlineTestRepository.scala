@@ -21,7 +21,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ CannotFindTestByCubiksId, UnexpectedException }
 import org.joda.time.DateTime
 import model.OnlineTestCommands.{ OnlineTestApplication, TestProfile }
-import model.PersistedObjects.{ ApplicationForNotification, ExpiringOnlineTest, NotificationExpiringOnlineTest }
+import model.persisted.{ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.ProgressStatus
 import model._
 import play.api.Logger
@@ -36,12 +36,13 @@ trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
+  val phaseName: String
   val dateTimeFactory: DateTimeFactory
   implicit def bsonHandler: BSONHandler[BSONDocument, T]
 
   def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    phaseTestProfileByQuery(query)
+    phaseTestProfileByQuery(query, phase)
   }
 
   def getTestProfileByToken(token: String, phase: String = "PHASE1"): Future[T] = {
@@ -97,7 +98,7 @@ trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
         s"testGroups.$phase.expirationDate" -> BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone) // Serialises to UTC.
       ), progressStatusQuery))
 
-    selectRandom(query).map(_.map(bsonDocToExpiringOnlineTest))
+    selectRandom(query).map(_.map(ExpiringOnlineTest.fromBson))
   }
 
   def nextTestForReminder(reminder: ReminderNotice, phase: String = "PHASE1",
@@ -111,7 +112,7 @@ trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
       progressStatusQuery
     ))
 
-    selectRandom(query).map(_.map(bsonDocToNotificationExpiringOnlineTest))
+    selectRandom(query).map(_.map(NotificationExpiringOnlineTest.fromBson))
   }
 
   def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
@@ -136,33 +137,4 @@ trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
     ))
     collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
   }
-
-  private def bsonDocToExpiringOnlineTest(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val userId = doc.getAs[String]("userId").get
-    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
-    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
-    ExpiringOnlineTest(applicationId, userId, preferredName)
-  }
-
-  private def bsonDocToNotificationExpiringOnlineTest(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val userId = doc.getAs[String]("userId").get
-    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
-    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
-    val testGroupsRoot = doc.getAs[BSONDocument]("testGroups").get
-    val PHASE1Root = testGroupsRoot.getAs[BSONDocument]("PHASE1").get
-    val expiryDate = PHASE1Root.getAs[DateTime]("expirationDate").get
-    NotificationExpiringOnlineTest(applicationId, userId, preferredName, expiryDate)
-  }
-
-  private def bsonDocToApplicationForNotification(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val userId = doc.getAs[String]("userId").get
-    val applicationStatus = doc.getAs[String]("applicationStatus").get
-    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
-    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
-    ApplicationForNotification(applicationId, userId, preferredName, applicationStatus)
-  }
-
 }

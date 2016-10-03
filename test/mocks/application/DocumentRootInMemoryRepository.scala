@@ -23,7 +23,7 @@ import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
 import model._
-import model.PersistedObjects.ApplicationForNotification
+import model.persisted.ApplicationForNotification
 import model.report.CandidateProgressReport
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository

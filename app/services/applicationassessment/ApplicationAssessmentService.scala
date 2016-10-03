@@ -22,7 +22,7 @@ import model.ApplicationStatuses
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
 import model.EvaluationResults._
 import model.Exceptions.IncorrectStatusInApplicationException
-import model.PersistedObjects.ApplicationForNotification
+import model.persisted.ApplicationForNotification
 import play.api.Logger
 import repositories.application.GeneralApplicationRepository
 import repositories._

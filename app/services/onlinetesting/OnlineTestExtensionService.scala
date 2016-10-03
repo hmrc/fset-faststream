@@ -66,7 +66,7 @@ class OnlineTestExtensionServiceImpl(
 
     for {
       Extension(date, expired, profile, progress) <- extension
-      _ <- otRepository.updateGroupExpiryTime(applicationId, date)
+      _ <- otRepository.updateGroupExpiryTime(applicationId, date, otRepository.phaseName)
       _ <- getProgressStatusesToRemove(date, profile, progress).fold(NoOp)(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
       audit(expired, applicationId) ::

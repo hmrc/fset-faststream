@@ -28,7 +28,7 @@ import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.CivilServiceExperienceType.CivilServiceExperienceType
 import model.InternshipType.InternshipType
 import model.OnlineTestCommands.OnlineTestApplication
-import model.PersistedObjects.ApplicationForNotification
+import model.persisted.ApplicationForNotification
 import model.SchemeType._
 import model._
 import model.command._

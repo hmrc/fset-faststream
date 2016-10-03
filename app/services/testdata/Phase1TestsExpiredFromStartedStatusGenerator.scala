@@ -16,7 +16,7 @@
 
 package services.testdata
 
-import model.PersistedObjects.ExpiringOnlineTest
+import model.persisted.ExpiringOnlineTest
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.onlinetesting.{OnlineTestExpiryService, OnlineTestService}

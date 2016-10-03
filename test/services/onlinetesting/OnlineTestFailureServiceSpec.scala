@@ -18,7 +18,8 @@ package services.onlinetesting
 
 import connectors.EmailClient
 import model.Address
-import model.PersistedObjects.{ ApplicationForNotification, ContactDetails }
+import model.PersistedObjects.ContactDetails
+import model.persisted.ApplicationForNotification
 import org.mockito.Matchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures

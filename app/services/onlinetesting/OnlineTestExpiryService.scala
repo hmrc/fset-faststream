@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import connectors.{ CSREmailClient, EmailClient }
-import model.PersistedObjects.{ ExpiringOnlineTest, NotificationExpiringOnlineTest }
+import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER }
 import model.ReminderNotice
 import play.api.Logger

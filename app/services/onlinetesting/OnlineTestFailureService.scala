@@ -18,7 +18,7 @@ package services.onlinetesting
 
 import connectors.EmailClient
 import model.ApplicationStatuses
-import model.PersistedObjects.ApplicationForNotification
+import model.persisted.ApplicationForNotification
 import play.api.Logger
 import repositories._
 import repositories.application.GeneralApplicationRepository
