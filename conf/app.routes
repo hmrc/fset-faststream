@@ -52,7 +52,7 @@ POST        /search/find-by-criteria                                     control
 GET         /report/diversity-monitoring                                 controllers.ReportingController.retrieveDiversityReport
 GET         /report/adjustments/:frameworkId                             controllers.ReportingController.createAdjustmentReports(frameworkId: String)
 GET         /report/assessment-centre-allocation/:frameworkId            controllers.ReportingController.createAssessmentCentreAllocationReport(frameworkId: String)
-GET         /report/pass-mark-modelling/:frameworkId                     controllers.ReportingController.createPassMarkModellingReport(frameworkId: String)
+GET         /report/online-test-pass-mark/:frameworkId                   controllers.ReportingController.createOnlineTestPassMarkReport(frameworkId: String)
 GET         /report/pass-mark-personal-data/:frameworkId                 controllers.ReportingController.createPassMarkWithPersonalDataReport(frameworkId: String)
 GET         /report/non-submitted-applications/:frameworkId              controllers.ReportingController.createNonSubmittedAppsReports(frameworkId: String)
 GET         /report/preferences-and-contact/:frameworkId                 controllers.ReportingController.createPreferencesAndContactReports(frameworkId: String)

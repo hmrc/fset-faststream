@@ -21,10 +21,10 @@ import java.util.regex.Pattern
 
 import model.ApplicationStatusOrder._
 import model.ApplicationStatuses._
-import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
+import model.AssessmentScheduleCommands.{ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult}
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
+import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
 import model.CivilServiceExperienceType.CivilServiceExperienceType
 import model.InternshipType.InternshipType
 import model.OnlineTestCommands.OnlineTestApplication
@@ -32,13 +32,13 @@ import model.PersistedObjects.ApplicationForNotification
 import model.SchemeType._
 import model._
 import model.command._
-import model.report.CandidateProgressReport
+import model.report.{ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
 import play.api.Logger
-import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
-import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, _ }
+import play.api.libs.json.{Format, JsNumber, JsObject, Json}
+import reactivemongo.api.{DB, QueryOpts, ReadPreference}
+import reactivemongo.bson.{BSONDocument, _}
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -85,6 +85,8 @@ trait GeneralApplicationRepository {
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
 
   def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]]
+
+  def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]]
 
   def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]]
 
@@ -384,6 +386,27 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   }
 
+  override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("frameworkId" -> frameworkId),
+      BSONDocument(s"progress-status.phase1_tests_results_received" -> true)
+    ))
+
+    val projection = BSONDocument(
+      "userId" -> "1",
+      "applicationId" -> "1",
+      "scheme-preferences.schemes" -> "1",
+      "assistance-details" -> "1",
+      "progress-status" -> "2"
+    )
+
+    reportQueryWithProjections[BSONDocument](query, projection) map { lst =>
+      lst.map(docToOnlineTestPassMarkReport)
+    }
+
+  }
+
+
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] =
     candidateProgressReport(BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
@@ -412,6 +435,25 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     reportQueryWithProjections[BSONDocument](query, projection) map { lst =>
       lst.map(docToCandidateProgressReport)
     }
+  }
+
+  private def docToOnlineTestPassMarkReport(document: BSONDocument) = {
+    val applicationId = document.getAs[String]("applicationId").getOrElse("")
+
+    val schemesDoc = document.getAs[BSONDocument]("scheme-preferences")
+    val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+
+    val adDoc = document.getAs[BSONDocument]("assistance-details")
+    val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
+    val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
+    val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
+
+    ApplicationForOnlineTestPassMarkReportItem(
+      applicationId,
+      schemes.getOrElse(List.empty[SchemeType]),
+      disability,
+      onlineAdjustments,
+      assessmentCentreAdjustments)
   }
 
   private def docToCandidateProgressReport(document: BSONDocument) = {

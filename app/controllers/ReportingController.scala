@@ -21,10 +21,11 @@ import model.ApplicationStatusOrder
 import model.Commands._
 import model.PersistedObjects.ContactDetailsWithId
 import model.PersistedObjects.Implicits._
+import model.report.{PassMarkReport, PassMarkReportWithPersonalData}
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, Request }
+import play.api.mvc.{Action, AnyContent, Request}
 import repositories.application.GeneralApplicationRepository
-import repositories.{ QuestionnaireRepository, _ }
+import repositories.{QuestionnaireRepository, _}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -112,7 +113,7 @@ trait ReportingController extends BaseController {
   def createAssessmentResultsReport(frameworkId: String) = Action.async { implicit request =>
 
     val applications = appRepository.applicationsWithAssessmentScoresAccepted(frameworkId)
-    val allQuestions = questionnaireRepository.passMarkReport
+    val allQuestions = questionnaireRepository.onlineTestPassMarkReport
     val allScores = assessmentScoresRepository.allScores
 
     val reports = for {
@@ -160,11 +161,12 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def createPassMarkModellingReport(frameworkId: String) = Action.async { implicit request =>
+  def createOnlineTestPassMarkReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
       for {
-        applications <- appRepository.candidateProgressReportNotWithdrawn(frameworkId)
-        questionnaires <- questionnaireRepository.passMarkReport
+       // applications <- appRepository.candidateProgressReportNotWithdrawn(frameworkId)
+        applications <- appRepository.onlineTestPassMarkReport(frameworkId)
+        questionnaires <- questionnaireRepository.onlineTestPassMarkReport
         testResults <- testReportRepository.getOnlineTestReports
       } yield {
         for {

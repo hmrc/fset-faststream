@@ -16,8 +16,8 @@
 
 package mocks
 
-import model.Commands.PassMarkReportQuestionnaireData
 import model.PersistedObjects.PersistedQuestion
+import model.report.PassMarkReportQuestionnaireData
 import repositories.QuestionnaireRepository
 
 import scala.concurrent.Future
@@ -33,7 +33,7 @@ object QuestionnaireInMemoryRepository extends QuestionnaireRepository with InMe
 
   override def findQuestions(applicationId: String): Future[Map[String, String]] = Future.successful(Map.empty[String, String])
 
-  override def passMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]] =
+  override def onlineTestPassMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]] =
     Future.successful(Map.empty[String, PassMarkReportQuestionnaireData])
 }
 

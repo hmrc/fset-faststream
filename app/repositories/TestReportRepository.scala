@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.Commands.PassMarkReportTestResults
+import model.report.PassMarkReportTestResults
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.CandidateTestReport
 import model.PersistedObjects.Implicits._

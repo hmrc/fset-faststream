@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.Commands.PassMarkReportQuestionnaireData
+import model.report.PassMarkReportQuestionnaireData
 import model.PersistedObjects
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import play.api.libs.json._
@@ -34,7 +34,7 @@ import scala.language.postfixOps
 trait QuestionnaireRepository {
   def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit]
   def findQuestions(applicationId: String): Future[Map[String, String]]
-  def passMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]]
+  def onlineTestPassMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]]
 }
 
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculatorTrait)(implicit mongo: () => DB)
@@ -65,7 +65,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     }
   }
 
-  override def passMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]] = {
+  override def onlineTestPassMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]] = {
     // We need to ensure that the candidates have completed the last page of the questionnaire
     // however, only the first question on the employment page is mandatory, as if the answer is
     // unemployed, they don't need to answer other questions

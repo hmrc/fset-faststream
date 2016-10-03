@@ -16,8 +16,8 @@
 
 package repositories
 
-import model.Commands.PassMarkReportQuestionnaireData
 import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
+import model.report.PassMarkReportQuestionnaireData
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -63,7 +63,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaires()
 
-      val report = questionnaireRepo.passMarkReport.futureValue
+      val report = questionnaireRepo.onlineTestPassMarkReport.futureValue
 
       report mustBe Map(
         applicationId1 -> PassMarkReportQuestionnaireData(
@@ -79,7 +79,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaire()
 
-      questionnaireRepo.passMarkReport.futureValue
+      questionnaireRepo.onlineTestPassMarkReport.futureValue
 
       verify(socioEconomicCalculator).calculate(Map(
         "What is your gender identity?" -> "Male",

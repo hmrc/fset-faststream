@@ -22,23 +22,24 @@ import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
 import mocks._
 import mocks.application.DocumentRootInMemoryRepository
-import model.{ Address, SchemeType }
-import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
+import model.{Address, SchemeType}
+import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback}
 import model.Commands._
+import model.report._
 import model.Commands.Implicits._
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.ContactDetailsWithId
-import model.report.CandidateProgressReport
+import model.report.{CandidateProgressReport, PassMarkReport}
 import org.joda.time.LocalDate
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{ JsArray, JsValue }
+import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories.application.GeneralApplicationRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, QuestionnaireRepository, ReportingRepository, TestReportRepository }
+import repositories.{ApplicationAssessmentScoresRepository, ContactDetailsRepository, QuestionnaireRepository, ReportingRepository, TestReportRepository}
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.MockitoSugar
 
@@ -231,11 +232,12 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
 
   "Pass mark modelling report" should {
     "return nothing if no applications exist" in new PassMarkReportTestFixture {
-      when(appRepo.candidateProgressReportNotWithdrawn(any())).thenReturnAsync(Nil)
-      when(questionRepo.passMarkReport).thenReturnAsync(Map.empty)
+//      when(appRepo.candidateProgressReportNotWithdrawn(any())).thenReturnAsync(Nil)
+      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(Nil)
+      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(Map.empty)
       when(testResultRepo.getOnlineTestReports).thenReturnAsync(Map.empty)
 
-      val response = controller.createPassMarkModellingReport(frameworkId)(request).run
+      val response = controller.createOnlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[PassMarkReport]]
 
       status(response) mustBe OK
@@ -243,11 +245,12 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     }
 
     "return nothing if applications exist, but no questionnaires" in new PassMarkReportTestFixture {
-      when(appRepo.candidateProgressReportNotWithdrawn(any())).thenReturnAsync(reports)
-      when(questionRepo.passMarkReport).thenReturnAsync(Map.empty)
+      //when(appRepo.candidateProgressReportNotWithdrawn(any())).thenReturnAsync(reports)
+      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(onlineTestPassMarkReports)
+      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(Map.empty)
       when(testResultRepo.getOnlineTestReports).thenReturnAsync(Map.empty)
 
-      val response = controller.createPassMarkModellingReport(frameworkId)(request).run
+      val response = controller.createOnlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[PassMarkReport]]
 
       status(response) mustBe OK
@@ -255,11 +258,13 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     }
 
     "return nothing if applications and questionnaires exist, but no test results" in new PassMarkReportTestFixture {
-      when(appRepo.candidateProgressReportNotWithdrawn(any())).thenReturnAsync(reports)
-      when(questionRepo.passMarkReport).thenReturnAsync(questionnaires)
+      //when(appRepo.candidateProgressReportNotWithdrawn(any())).thenReturnAsync(reports)
+      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(onlineTestPassMarkReports)
+
+      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(questionnaires)
       when(testResultRepo.getOnlineTestReports).thenReturnAsync(Map.empty)
 
-      val response = controller.createPassMarkModellingReport(frameworkId)(request).run
+      val response = controller.createOnlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[PassMarkReport]]
 
       status(response) mustBe OK
@@ -267,17 +272,19 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     }
 
     "return applications with questionnaire and test results" in new PassMarkReportTestFixture {
-      when(appRepo.candidateProgressReportNotWithdrawn(any())).thenReturnAsync(reports)
-      when(questionRepo.passMarkReport).thenReturnAsync(questionnaires)
+//      when(appRepo.candidateProgressReportNotWithdrawn(any())).thenReturnAsync(reports)
+      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(onlineTestPassMarkReports)
+
+      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(questionnaires)
       when(testResultRepo.getOnlineTestReports).thenReturnAsync(testResults)
 
-      val response = controller.createPassMarkModellingReport(frameworkId)(request).run
+      val response = controller.createOnlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[PassMarkReport]]
 
       status(response) mustBe OK
       result mustBe List(
-        PassMarkReport(report1, questionnaire1, testResults1),
-        PassMarkReport(report2, questionnaire2, testResults2)
+        PassMarkReport(onlineTestPassMarkReport1, questionnaire1, testResults1),
+        PassMarkReport(onlineTestPassMarkReport2, questionnaire2, testResults2)
       )
     }
   }
@@ -285,7 +292,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
   "Assessment results report" should {
     "return results report" in new AssessmentResultsReportTestFixture {
       when(appRepo.applicationsWithAssessmentScoresAccepted(any())).thenReturnAsync(appPreferences)
-      when(questionRepo.passMarkReport).thenReturnAsync(passMarks)
+      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(passMarks)
       when(assessmentScoresRepo.allScores).thenReturnAsync(scores)
 
       val response = controller.createAssessmentResultsReport(frameworkId)(request).run
@@ -298,7 +305,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return nothing if no applications exist" in new AssessmentResultsReportTestFixture {
       when(appRepo.applicationsWithAssessmentScoresAccepted(any())).thenReturnAsync(Nil)
-      when(questionRepo.passMarkReport).thenReturnAsync(passMarks)
+      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(passMarks)
       when(assessmentScoresRepo.allScores).thenReturnAsync(scores)
 
       val response = controller.createAssessmentResultsReport(frameworkId)(request).run
@@ -311,7 +318,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return nothing if no questionnaires exist" in new AssessmentResultsReportTestFixture {
       when(appRepo.applicationsWithAssessmentScoresAccepted(any())).thenReturnAsync(appPreferences)
-      when(questionRepo.passMarkReport).thenReturnAsync(Map.empty)
+      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(Map.empty)
       when(assessmentScoresRepo.allScores).thenReturnAsync(scores)
 
       val response = controller.createAssessmentResultsReport(frameworkId)(request).run
@@ -324,7 +331,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     "return nothing if no scores exist" in new AssessmentResultsReportTestFixture {
       when(appRepo.applicationsWithAssessmentScoresAccepted(any())).thenReturnAsync(appPreferences)
-      when(questionRepo.passMarkReport).thenReturnAsync(passMarks)
+      when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(passMarks)
       when(assessmentScoresRepo.allScores).thenReturnAsync(Map.empty)
 
       val response = controller.createAssessmentResultsReport(frameworkId)(request).run
@@ -468,7 +475,10 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     lazy val report1 = newReport
     lazy val report2 = newReport
+    lazy val onlineTestPassMarkReport1 = newOnlineTestPassMarkReport
+    lazy val onlineTestPassMarkReport2 = newOnlineTestPassMarkReport
     lazy val reports = List(report1, report2)
+    lazy val onlineTestPassMarkReports = List(onlineTestPassMarkReport1, onlineTestPassMarkReport2)
 
     lazy val questionnaire1 = newQuestionnaire
     lazy val questionnaire2 = newQuestionnaire
@@ -482,6 +492,14 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
       CandidateProgressReport(rnd("AppId"), Some("ONLINE_TEST_COMPLETE"),
         List(SchemeType.Commercial, SchemeType.DigitalAndTechnology), None, None, None, None, None, None, None, None, None, None)
 
+    def newOnlineTestPassMarkReport =
+      ApplicationForOnlineTestPassMarkReportItem(
+        rnd("AppId"),
+        List(SchemeType.Commercial, SchemeType.DigitalAndTechnology),
+        None,
+        None,
+        None)
+
     def newQuestionnaire =
       PassMarkReportQuestionnaireData(someRnd("Gender"), someRnd("Orientation"), someRnd("Ethnicity"),
         someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"), rnd("SES"))
@@ -494,7 +512,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     def newTestResult = TestResult("Completed", "Example Norm", someDouble, someDouble, someDouble, someDouble)
 
     def request = {
-      FakeRequest(Helpers.GET, controllers.routes.ReportingController.createPassMarkModellingReport(frameworkId).url, FakeHeaders(), "")
+      FakeRequest(Helpers.GET, controllers.routes.ReportingController.createOnlineTestPassMarkReport(frameworkId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
   }
