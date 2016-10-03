@@ -14,66 +14,165 @@
  * limitations under the License.
  */
 
-/* TODO FAST STREAM FIX ME
 package services.onlinetesting
 
-import controllers.OnlineTestDetails
 import factories.DateTimeFactory
-import model.OnlineTestCommands.OnlineTestApplication
+import model.OnlineTestCommands.Phase1TestProfile
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED }
+import model.command.ProgressResponse
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{ Seconds, Span }
 import org.scalatestplus.play.PlaySpec
-import repositories.application.OnlineTestRepository
+import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import services.AuditService
+import services.onlinetesting.OnlineTestService.TestExtensionException
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
 
+import scala.concurrent.Future
+
 class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with MockitoSugar {
-  "when extending the expiration time of a test" should {
 
-    "add extra days onto expiry, from the expiry time, if not expired" in new TestFixture {
-      when(dateTime.nowLocalTimeZone).thenReturn(now)
-      when(repository.getOnlineTestDetails(any())).thenReturnAsync(onlineTest)
-      when(repository.updateExpiryTime(any(), any())).thenReturnAsync()
+  "extendTestGroupExpiryTime" should {
+    "return a successful Future" when {
+      "add extra days onto expiry, from today's date, if expired" in new TestFixture {
+        when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
+        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockProgressResponse.phase1TestsExpired).thenReturn(true)
+        when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
+        when(mockProfile.expirationDate).thenReturn(OneHourAgo)
+        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
+        when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
 
-      service.extendExpiryTime(onlineTestApp, extraDays).futureValue mustBe (())
+        val result = underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").futureValue
 
-      verify(repository).updateExpiryTime(userId, expirationDate.plusDays(extraDays))
+        result(0).eventName mustBe "ExpiredTestsExtended"
+        result(1).eventName mustBe "OnlineExerciseExtended"
+
+        verify(mockAppRepository).findProgress(eqTo(applicationId))
+        verify(mockOtRepository).getPhase1TestGroup(eqTo(applicationId))
+        verify(mockDateFactory).nowLocalTimeZone
+        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(Now.plusDays(twoExtraDays)))
+        verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanOneDayExpired))
+      }
+      "add extra days onto expiry, from the expiry time, if not expired" in new TestFixture {
+        when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
+        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockProgressResponse.phase1TestsExpired).thenReturn(false)
+        when(mockProgressResponse.phase1TestsStarted).thenReturn(true)
+        when(mockProfile.expirationDate).thenReturn(InFiveHours)
+        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
+        when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
+
+        val result = underTest.extendTestGroupExpiryTime(applicationId, threeExtraDays, "triggeredBy").futureValue
+
+        result(0).eventName mustBe "NonExpiredTestsExtended"
+        result(1).eventName mustBe "OnlineExerciseExtended"
+
+        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.plusDays(threeExtraDays)))
+        verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanThreeDays))
+      }
     }
+    "return a failed Future" when {
+      "the application status doesn't allow an extension" in new TestFixture {
+        when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
+        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        whenReady(underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").failed) { e =>
+          e mustBe (invalidStatusError)
+        }
 
-    "add extra days onto expiry, from today, if already expired" in new TestFixture {
-      val nowBeyondExpiry = expirationDate.plusDays(10)
-      when(dateTime.nowLocalTimeZone).thenReturn(nowBeyondExpiry)
-      when(repository.getOnlineTestDetails(any())).thenReturnAsync(onlineTest)
-      when(repository.updateExpiryTime(any(), any())).thenReturnAsync()
+        verify(mockAppRepository).findProgress(eqTo(applicationId))
+        verify(mockOtRepository).getPhase1TestGroup(eqTo(applicationId))
+        verifyNoMoreInteractions(mockAppRepository, mockOtRepository, mockAuditService, mockDateFactory)
+      }
+      "find progress fails" in new TestFixture {
+        when(mockAppRepository.findProgress(any())).thenReturn(Future.failed(genericError))
+        whenReady(underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").failed) { e =>
+          e mustBe (genericError)
+        }
+        verify(mockAppRepository).findProgress(eqTo(applicationId))
+      }
+      "No test phase 1 profile is available" in new TestFixture {
+        when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
+        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(None)
+        whenReady(underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").failed) { e =>
+          e mustBe (noTestProfileFoundError)
+        }
+        verify(mockAppRepository).findProgress(eqTo(applicationId))
+        verify(mockOtRepository).getPhase1TestGroup(eqTo(applicationId))
+      }
+      "remove status return an error and no audit event is emitted" in new TestFixture {
+        when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
+        when(mockOtRepository.getPhase1TestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockProgressResponse.phase1TestsExpired).thenReturn(true)
+        when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
+        when(mockProfile.expirationDate).thenReturn(OneHourAgo)
+        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
+        when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturn(Future.failed(genericError))
 
-      service.extendExpiryTime(onlineTestApp, extraDays).futureValue mustBe (())
+        whenReady(underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").failed) { e =>
+          e mustBe (genericError)
+        }
 
-      verify(repository).updateExpiryTime(userId, nowBeyondExpiry.plusDays(extraDays))
+        verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanOneDayExpired))
+      }
+    }
+  }
+
+  "getProgressStatusesToRemove" should {
+    "return a list of status to remove" when {
+      import OnlineTestExtensionServiceImpl.getProgressStatusesToRemove
+      "the new expiry date is more than 3 days ahead" in new TestFixture {
+         val result = getProgressStatusesToRemove(InMoreThanThreeDays, mockProfile, mockProgressResponse)
+         result mustBe(Some(statusToRemoveWhenExpiryInMoreThanThreeDays))
+      }
+      "the new expiry date is more than 3 days ahead and the test was expired and not started" in new TestFixture {
+        when(mockProfile.hasNotStartedYet).thenReturn(true)
+        when(mockProgressResponse.phase1TestsExpired).thenReturn(true)
+
+        val result = getProgressStatusesToRemove(InMoreThanThreeDays, mockProfile, mockProgressResponse)
+        result mustBe(Some(statusToRemoveWhenExpiryInMoreThanThreeDaysExpiredNotStarted))
+      }
+      "the new expiry date is more than 1 day but less than 3 days ahead" in new TestFixture {
+        val result = getProgressStatusesToRemove(InTwentyFiveHours, mockProfile, mockProgressResponse)
+        result mustBe(Some(statusToRemoveWhenExpiryInMoreThanOneDay))
+      }
+      "the new expiry date is less than 1 day ahead" in new TestFixture {
+        val result = getProgressStatusesToRemove(InFiveHours, mockProfile, mockProgressResponse)
+        result mustBe(None)
+      }
     }
   }
 
   trait TestFixture {
-    val applicationStatus = "ONLINE_TEST_EXPIRED"
     val applicationId = "abc"
-    val userId = "xyz"
-    val preferredName = "Jon"
-    val emailAddress = "jon@test.com"
-    val cubiksEmail = "123@test.com"
-    val extraDays = 3
-    val now = DateTime.now()
-    val invitationDate = now.minusDays(4)
-    val expirationDate = now.plusDays(3)
-    val onlineTest = OnlineTestDetails(invitationDate, expirationDate, "http://example.com/", cubiksEmail, isOnlineTestEnabled = true)
-    val numericalTimeAdjustmentPercentage = 0
-    val verbalTimeAdjustmentPercentage = 0
-    val onlineTestApp = OnlineTestApplication(
-      applicationId, applicationStatus, userId,
-      guaranteedInterview = true, needsAdjustments = true, preferredName, None
-    )
-    val repository = mock[OnlineTestRepository]
-    val dateTime = mock[DateTimeFactory]
-    val service = new OnlineTestExtensionServiceImpl(repository, dateTime)
+    val twoExtraDays = 2
+    val threeExtraDays = 3
+    val statusToRemoveWhenNotStartedAndFirstReminderSent = List(PHASE1_TESTS_STARTED, PHASE1_TESTS_FIRST_REMINDER)
+    val statusToRemoveWhenExpiryInMoreThanOneDayExpired = List(PHASE1_TESTS_EXPIRED, PHASE1_TESTS_SECOND_REMINDER)
+    val statusToRemoveWhenExpiryInMoreThanThreeDays = List(PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_FIRST_REMINDER)
+    val statusToRemoveWhenExpiryInMoreThanOneDay = List(PHASE1_TESTS_SECOND_REMINDER)
+    val statusToRemoveWhenExpiryInMoreThanThreeDaysExpiredNotStarted = List(
+      PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_FIRST_REMINDER)
+    val invalidStatusError = new TestExtensionException("Application is in an invalid status for test extension")
+    val noTestProfileFoundError = TestExtensionException("No Phase1TestGroupAvailable for the given application")
+    val genericError = new Exception("Dummy error!")
+    val mockDateFactory = mock[DateTimeFactory]
+    val Now = DateTime.now()
+    val OneHourAgo = Now.minusHours(1)
+    val InFiveHours = Now.plusHours(5)
+    val InTwentyFiveHours = Now.plusHours(25)
+    val InMoreThanThreeDays = Now.plusHours(73)
+    val mockProfile = mock[Phase1TestProfile]
+    val mockProgressResponse = mock[ProgressResponse]
+    val successfulProgressResponse = mockProgressResponse
+    val successfulTestProfile = Some(mockProfile)
+    val mockAppRepository = mock[GeneralApplicationRepository]
+    val mockOtRepository = mock[OnlineTestRepository]
+    val mockAuditService = mock[AuditService]
+    val underTest = new OnlineTestExtensionServiceImpl(mockAppRepository, mockOtRepository, mockDateFactory)
   }
-} */
+}

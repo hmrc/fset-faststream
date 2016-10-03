@@ -19,7 +19,7 @@ package connectors
 import config.WSHttp
 import connectors.AuthProviderClient._
 import connectors.ExchangeObjects.Implicits._
-import connectors.ExchangeObjects.{ ActivateEmailRequest, AddUserRequest, Candidate, UserResponse }
+import connectors.ExchangeObjects._
 import model.Exceptions.{ ConnectorException, EmailTakenException }
 import play.api.Logger
 import play.api.http.Status._
@@ -71,7 +71,7 @@ trait AuthProviderClient {
     WSHttp.POST(s"$url/add", AddUserRequest(email.toLowerCase, password, firstName, lastName, role.name, ServiceName)).map { response =>
       response.json.as[UserResponse]
     }.recover {
-      case Upstream4xxResponse(_, 409, _, _) => throw new EmailTakenException()
+      case Upstream4xxResponse(_, CONFLICT, _, _) => throw EmailTakenException()
     }
 
   def removeAllUsers()(implicit hc: HeaderCarrier): Future[Unit] =
@@ -95,33 +95,29 @@ trait AuthProviderClient {
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] =
     WSHttp.POST(s"$url/activate", ActivateEmailRequest(email.toLowerCase, token, ServiceName)).map(_ => (): Unit)
       .recover {
-        case Upstream4xxResponse(_, 410, _, _) => throw new TokenExpiredException()
+        case Upstream4xxResponse(_, GONE, _, _) => throw new TokenExpiredException()
         case e: NotFoundException => throw new TokenEmailPairInvalidException()
       }
 
   def findByFirstName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    val rolesString = roles.mkString("&roles=")
-    WSHttp.GET(s"$url/service/$ServiceName/findByFirstName/$name?roles=$rolesString").map { response =>
-      if (response.status == OK) {
-        response.json.as[List[Candidate]]
-      } else if (response.status == REQUEST_ENTITY_TOO_LARGE) {
+    WSHttp.POST(s"$url/service/$ServiceName/findByFirstName", FindByFirstNameRequest(roles, name)).map { response =>
+      response.json.as[List[Candidate]]
+    }.recover {
+      case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
         throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
-      } else {
-        throw new ConnectorException(s"Bad response received when getting token for user: $response")
-      }
+      case errorResponse =>
+        throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
     }
   }
 
   def findByLastName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    val rolesString = roles.mkString("&roles=")
-    WSHttp.GET(s"$url/service/$ServiceName/findByLastName/$name?roles=$rolesString").map { response =>
-      if (response.status == OK) {
-        response.json.as[List[Candidate]]
-      } else if (response.status == REQUEST_ENTITY_TOO_LARGE) {
+    WSHttp.POST(s"$url/service/$ServiceName/findByLastName", FindByLastNameRequest(roles, name)).map { response =>
+      response.json.as[List[Candidate]]
+    }.recover {
+      case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
         throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
-      } else {
-        throw new ConnectorException(s"Bad response received when getting token for user: $response")
-      }
+      case errorResponse =>
+        throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
     }
   }
 }

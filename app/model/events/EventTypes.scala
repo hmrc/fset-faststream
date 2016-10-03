@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package model.command
+package model.events
 
-import play.api.libs.json.Json
+object EventTypes {
+  type Events = List[EventType]
 
-case class ResetOnlineTest(tests: List[String], actionTriggeredBy: String)
+  trait EventType {
+    final val eventName: String = getClass.getSimpleName
 
-object ResetOnlineTest {
-  implicit val resetOnlineTestFormat = Json.format[ResetOnlineTest]
+    override def toString: String = s"eventName=$eventName"
+  }
 }
