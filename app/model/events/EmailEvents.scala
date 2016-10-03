@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package model.command
+package model.events
 
-import play.api.libs.json.Json
+import model.events.EventTypes.EventType
 
-case class ResetOnlineTest(tests: List[String], actionTriggeredBy: String)
+sealed trait EmailEvent extends EventType {
+  val to: String
+  val name: String
 
-object ResetOnlineTest {
-  implicit val resetOnlineTestFormat = Json.format[ResetOnlineTest]
+  require(to.contains("@"))
+}
+
+object EmailEvents {
+  case class ApplicationSubmitted(to: String, name: String) extends EmailEvent
 }

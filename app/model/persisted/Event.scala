@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package model.command
+package model.persisted
 
+import org.joda.time.DateTime
 import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class ResetOnlineTest(tests: List[String], actionTriggeredBy: String)
+case class Event(name: String,
+                 created: DateTime,
+                 applicationId: Option[String],
+                 userId: Option[String],
+                 createdBy: Option[String] = None)
 
-object ResetOnlineTest {
-  implicit val resetOnlineTestFormat = Json.format[ResetOnlineTest]
+object Event {
+  import repositories.BSONDateTimeHandler
+  implicit val eventFormat = Json.format[Event]
+  implicit val eventHandler: BSONHandler[BSONDocument, Event] = Macros.handler[Event]
 }

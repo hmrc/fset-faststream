@@ -16,9 +16,10 @@
 
 package services.application
 
-import model.Commands._
-import model.Exceptions.NotFoundException
+import factories.DateTimeFactory
 import model.command.WithdrawApplication
+import model.events.{ AuditEvents, DataStoreEvents }
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -26,8 +27,6 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.application.GeneralApplicationRepository
-import services.AuditService
-import services.applicationassessment.ApplicationAssessmentService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -38,28 +37,16 @@ class ApplicationServiceSpec extends PlaySpec with BeforeAndAfterEach with Mocki
   val ApplicationId = "1111-1111"
   val withdrawApplicationRequest = WithdrawApplication("reason", Some("other reason"), "Candidate")
   val auditDetails = Map("applicationId" -> ApplicationId, "withdrawRequest" -> withdrawApplicationRequest.toString)
+  val Now = DateTime.now(DateTimeZone.UTC)
 
   "withdraw an application" should {
     "work and log audit event" in new ApplicationServiceFixture {
-      val result = applicationService.withdraw(ApplicationId, withdrawApplicationRequest)
-      result.futureValue mustBe (())
+      val result = applicationService.withdraw(ApplicationId, withdrawApplicationRequest).futureValue
 
-      verify(appAssessServiceMock).deleteApplicationAssessment(eqTo(ApplicationId))
-      verify(auditServiceMock).logEventNoRequest("ApplicationWithdrawn", auditDetails)
-    }
-  }
-
-  "withdraw an application" should {
-    "work when there is a not found exception deleting application assessment and log audit event" in new ApplicationServiceFixture {
-      when(appAssessServiceMock.removeFromApplicationAssessmentSlot(eqTo(ApplicationId))).thenReturn(
-        Future.failed(new NotFoundException(s"No application assessments were found with applicationId $ApplicationId"))
-      )
-
-      val result = applicationService.withdraw(ApplicationId, withdrawApplicationRequest)
-      result.futureValue mustBe (())
-
-      verify(appAssessServiceMock).deleteApplicationAssessment(eqTo(ApplicationId))
-      verify(auditServiceMock).logEventNoRequest("ApplicationWithdrawn", auditDetails)
+      result.size mustBe 2
+      val actualMongoEvent = result.head.asInstanceOf[DataStoreEvents.ApplicationWithdrawn]
+      actualMongoEvent.applicationId mustBe Some(ApplicationId)
+      result(1) mustBe AuditEvents.ApplicationWithdrawn(auditDetails)
     }
   }
 
@@ -67,17 +54,11 @@ class ApplicationServiceSpec extends PlaySpec with BeforeAndAfterEach with Mocki
     implicit val hc = HeaderCarrier()
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
-    val appAssessServiceMock = mock[ApplicationAssessmentService]
-    val auditServiceMock = mock[AuditService]
 
     when(appRepositoryMock.withdraw(eqTo(ApplicationId), eqTo(withdrawApplicationRequest))).thenReturn(Future.successful(()))
-    when(appAssessServiceMock.removeFromApplicationAssessmentSlot(eqTo(ApplicationId))).thenReturn(Future.successful(()))
-    when(appAssessServiceMock.deleteApplicationAssessment(eqTo(ApplicationId))).thenReturn(Future.successful(()))
 
     val applicationService = new ApplicationService {
       val appRepository = appRepositoryMock
-      val appAssessService = appAssessServiceMock
-      val auditService = auditServiceMock
     }
   }
 }

@@ -21,25 +21,34 @@ import model.exchange.Phase1TestResultReady
 import play.api.mvc.{ Action, Result }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.Logger
+import services.events.EventService
 import services.onlinetesting.OnlineTestService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase1TestsController extends Phase1TestsController {
   override val phase1TestService = OnlineTestService
+  val eventService = EventService
 }
 
 trait Phase1TestsController extends BaseController {
   val phase1TestService: OnlineTestService
+  val eventService: EventService
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId started")
-    phase1TestService.markAsStarted(cubiksUserId).map(_ => Ok).recover(recoverNotFound)
+    (for {
+      events <- phase1TestService.markAsStarted(cubiksUserId)
+      _ <- eventService.handle(events)
+    } yield Ok).recover(recoverNotFound)
   }
 
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId completed")
-    phase1TestService.markAsCompleted(cubiksUserId).map(_ => Ok).recover(recoverNotFound)
+    (for {
+      events <- phase1TestService.markAsCompleted(cubiksUserId)
+      _ <- eventService.handle(events)
+    } yield Ok).recover(recoverNotFound)
   }
 
   /**
@@ -49,7 +58,10 @@ trait Phase1TestsController extends BaseController {
     */
   def completeTestByToken(token: String) = Action.async { implicit request =>
     Logger.info(s"Complete test by token $token")
-    phase1TestService.markAsCompleted(token).map(_ => Ok).recover(recoverNotFound)
+    (for {
+      events <- phase1TestService.markAsCompleted(token)
+      _ <- eventService.handle(events)
+    } yield Ok).recover(recoverNotFound)
   }
 
   def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>

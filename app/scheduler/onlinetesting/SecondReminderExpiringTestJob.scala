@@ -19,8 +19,7 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import model.ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER
-import model.ReminderNotice
+import model.SecondReminder
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestExpiryService
 
@@ -46,5 +45,4 @@ trait SecondReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobCon
   override val conf = config.MicroserviceAppConfig.secondReminderJobConfig
   val configPrefix = "scheduling.online-testing.second-reminder-expiring-test-job."
   val name = "SecondReminderExpiringTestJob"
-  val SecondReminder = ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER)
 }
