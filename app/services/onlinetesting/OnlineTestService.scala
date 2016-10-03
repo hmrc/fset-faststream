@@ -361,7 +361,6 @@ trait OnlineTestService extends ResetPhase1Test {
         reportStatus = Some(reportReady.reportStatus)
       )
     ).flatMap { updated =>
-
       if (updated.phase1TestProfile.activeTests forall (_.resultsReadyToDownload)) {
         phase1TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
       } else {
