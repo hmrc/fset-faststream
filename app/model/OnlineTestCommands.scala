@@ -64,7 +64,7 @@ object OnlineTestCommands {
 
   object Phase1TestProfile {
     import repositories.BSONDateTimeHandler
-    implicit def bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Macros.handler[Phase1TestProfile]
+    implicit val bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Macros.handler[Phase1TestProfile]
     implicit val phase1TestProfileFormat = Json.format[Phase1TestProfile]
   }
 

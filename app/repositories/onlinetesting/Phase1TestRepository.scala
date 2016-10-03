@@ -66,7 +66,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE1_TESTS
   val dateTimeFactory = dateTime
 
-  override implicit def bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Phase1TestProfile.bsonHandler
+  override implicit val bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Phase1TestProfile.bsonHandler
 
   override def getTestGroup(applicationId: String): Future[Option[Phase1TestProfile]] = {
     getTestGroup(applicationId, phaseName)

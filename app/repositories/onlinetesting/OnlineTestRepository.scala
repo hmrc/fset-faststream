@@ -38,7 +38,7 @@ trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
   val thisApplicationStatus: ApplicationStatus
   val phaseName: String
   val dateTimeFactory: DateTimeFactory
-  implicit def bsonHandler: BSONHandler[BSONDocument, T]
+  implicit val bsonHandler: BSONHandler[BSONDocument, T]
 
   def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
     val query = BSONDocument("applicationId" -> applicationId)
