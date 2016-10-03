@@ -30,7 +30,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object FailedOnlineTestJob extends FailedOnlineTestJob {
   val service = new OnlineTestFailureServiceImpl(
-    applicationRepository, onlineTestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
+    applicationRepository, phase1TestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
   )
 }
 

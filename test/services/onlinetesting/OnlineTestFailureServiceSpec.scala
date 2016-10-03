@@ -18,16 +18,18 @@ package services.onlinetesting
 
 import connectors.EmailClient
 import model.Address
-import model.PersistedObjects.{ApplicationForNotification, ContactDetails}
-import org.mockito.Matchers.{any, eq => eqTo}
+import model.PersistedObjects.ContactDetails
+import model.persisted.ApplicationForNotification
+import org.mockito.Matchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Span}
+import org.scalatest.time.{ Millis, Span }
 import org.scalatestplus.play.PlaySpec
 import repositories.ContactDetailsRepository
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import testkit.MockitoImplicits.{OngoingStubbingExtension, OngoingStubbingExtensionUnit}
+import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -144,7 +146,7 @@ class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with Mocki
 
     val ec = scala.concurrent.ExecutionContext.Implicits.global
     val applicationRepository = mock[GeneralApplicationRepository]
-    val otRepository = mock[OnlineTestRepository]
+    val otRepository = mock[Phase1TestRepository]
     val cdRepository = mock[ContactDetailsRepository]
     val emailClient = mock[EmailClient]
     val audit = mock[AuditService]

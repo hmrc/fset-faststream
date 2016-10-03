@@ -25,7 +25,9 @@ import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.{ FirstReminder, SecondReminder }
 import org.joda.time.DateTime
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase1TestRepository
+import services.AuditService
 import services.onlinetesting.OnlineTestService.TestExtensionException
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -37,7 +39,8 @@ trait OnlineTestExtensionService {
 
 class OnlineTestExtensionServiceImpl(
   appRepository: GeneralApplicationRepository,
-  otRepository: OnlineTestRepository,
+  otRepository: Phase1TestRepository,
+  auditService: AuditService,
   dateTimeFactory: DateTimeFactory
 ) extends OnlineTestExtensionService {
 
@@ -47,7 +50,7 @@ class OnlineTestExtensionServiceImpl(
 
     val extension = for {
       progressResponse <- appRepository.findProgress(applicationId)
-      phase1TestGroup <- otRepository.getPhase1TestGroup(applicationId)
+      phase1TestGroup <- otRepository.getTestGroup(applicationId)
     } yield {
       (progressResponse, phase1TestGroup) match {
         case (progress, Some(group)) if progress.phase1TestsExpired =>
@@ -63,7 +66,7 @@ class OnlineTestExtensionServiceImpl(
 
     for {
       Extension(date, expired, profile, progress) <- extension
-      _ <- otRepository.updateGroupExpiryTime(applicationId, date)
+      _ <- otRepository.updateGroupExpiryTime(applicationId, date, otRepository.phaseName)
       _ <- getProgressStatusesToRemove(date, profile, progress).fold(NoOp)(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
       audit(expired, applicationId) ::
@@ -108,5 +111,5 @@ object OnlineTestExtensionServiceImpl {
 }
 
 object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(
-  applicationRepository, onlineTestRepository, DateTimeFactory
+  applicationRepository, phase1TestRepository, AuditService, DateTimeFactory
 )

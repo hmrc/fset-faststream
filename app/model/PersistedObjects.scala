@@ -53,26 +53,6 @@ object PersistedObjects {
     phone: Option[PhoneNumber]
   )
 
-  case class ExpiringOnlineTest(
-    applicationId: String,
-    userId: String,
-    preferredName: String
-  )
-
-  case class NotificationExpiringOnlineTest(
-    applicationId: String,
-    userId: String,
-    preferredName: String,
-    expiryDate: DateTime
-  )
-
-  case class ApplicationForNotification(
-    applicationId: String,
-    userId: String,
-    preferredName: String,
-    applicationStatus: String
-  )
-
   case class ApplicationIdWithUserIdAndStatus(applicationId: String, userId: String, applicationStatus: String)
 
   case class PersistedAnswer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
@@ -128,9 +108,6 @@ object PersistedObjects {
     implicit val addressFormats = Json.format[Address]
     implicit val contactDetailsFormats = Json.format[ContactDetails]
     implicit val contactDetailsIdFormats = Json.format[ContactDetailsWithId]
-    implicit val expiringOnlineTestFormats = Json.format[ExpiringOnlineTest]
-    implicit val notificationExpiringOnlineTestFormats = Json.format[NotificationExpiringOnlineTest]
-    implicit val applicationForNotificationFormats = Json.format[ApplicationForNotification]
     implicit val answerFormats = Json.format[PersistedAnswer]
     implicit val questionFormats = Json.format[PersistedQuestion]
     implicit val personalDetailsWithUserIdFormats = Json.format[PersonalDetailsWithUserId]

@@ -22,7 +22,7 @@ import model.OnlineTestCommands._
 import model.PersistedObjects.ApplicationIdWithUserIdAndStatus
 import play.api.Logger
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.evaluation._
 import services.passmarksettings.PassMarkSettingsService
 
@@ -33,7 +33,7 @@ object OnlineTestPassmarkService extends OnlineTestPassmarkService {
   val pmsRepository = passMarkSettingsRepository
   val fpRepository = frameworkPreferenceRepository
   val trRepository = testReportRepository
-  val oRepository = onlineTestRepository
+  val oRepository = phase1TestRepository
   val passmarkRulesEngine = OnlineTestPassmarkRulesEngine
   val passMarkSettingsService = PassMarkSettingsService
 }
@@ -41,7 +41,7 @@ object OnlineTestPassmarkService extends OnlineTestPassmarkService {
 trait OnlineTestPassmarkService {
   val fpRepository: FrameworkPreferenceRepository
   val trRepository: TestReportRepository
-  val oRepository: OnlineTestRepository
+  val oRepository: Phase1TestRepository
   val passmarkRulesEngine: OnlineTestPassmarkRulesEngine
   val pmsRepository: PassMarkSettingsRepository
   val passMarkSettingsService: PassMarkSettingsService
