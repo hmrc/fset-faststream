@@ -22,7 +22,7 @@ import repositories.BSONLocalDateHandler
 import factories.DateTimeFactory
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
-import model.PersistedObjects.ExpiringOnlineTest
+import model.persisted.ExpiringOnlineTest
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _ }
 import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
