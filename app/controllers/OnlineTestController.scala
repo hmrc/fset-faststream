@@ -88,11 +88,8 @@ trait OnlineTestController extends BaseController {
   def resetOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
       appRepository.getOnlineTestApplication(appId).flatMap {
-        case Some(onlineTestApp) =>
-          for {
-            events <- onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests, resetOnlineTest.actionTriggeredBy)
-            _ <- eventService.handle(events)
-          } yield Ok
+        case Some(onlineTestApp) => onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests,
+          resetOnlineTest.actionTriggeredBy).map ( _ => Ok )
         case _ => Future.successful(NotFound)
       }
     }

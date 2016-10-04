@@ -24,29 +24,36 @@ import model.events.EventTypes.Events
 import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.{ FirstReminder, SecondReminder }
 import org.joda.time.DateTime
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
+import services.events.{ EventService, EventSink }
 import services.onlinetesting.OnlineTestService.TestExtensionException
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestExtensionService {
-  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String): Future[Events]
+object OnlineTestExtensionService extends OnlineTestExtensionService {
+  val appRepository = applicationRepository
+  val otRepository = phase1TestRepository
+  val auditService = AuditService
+  val dateTimeFactory = DateTimeFactory
+  val eventService = EventService
 }
 
-class OnlineTestExtensionServiceImpl(
-  appRepository: GeneralApplicationRepository,
-  otRepository: Phase1TestRepository,
-  auditService: AuditService,
-  dateTimeFactory: DateTimeFactory
-) extends OnlineTestExtensionService {
-
+trait OnlineTestExtensionService extends EventSink {
+  val appRepository: GeneralApplicationRepository
+  val otRepository: Phase1TestRepository
+  val auditService: AuditService
+  val dateTimeFactory: DateTimeFactory
+  val eventService: EventService
   import OnlineTestExtensionServiceImpl._
 
-  override def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String): Future[Events] = {
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
 
     val extension = for {
       progressResponse <- appRepository.findProgress(applicationId)
@@ -72,8 +79,6 @@ class OnlineTestExtensionServiceImpl(
       audit(expired, applicationId) ::
       DataStoreEvents.OnlineExerciseExtended(applicationId, actionTriggeredBy) ::
       Nil
-
-
     }
 
   }
@@ -109,7 +114,3 @@ object OnlineTestExtensionServiceImpl {
 
   private[this] def cond[T]( lazyCondition : => Boolean, value : T ) : Set[T] = if(lazyCondition) Set(value) else Set.empty
 }
-
-object OnlineTestExtensionService extends OnlineTestExtensionServiceImpl(
-  applicationRepository, phase1TestRepository, AuditService, DateTimeFactory
-)

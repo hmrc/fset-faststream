@@ -21,6 +21,7 @@ import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 import config.ScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -36,6 +37,7 @@ trait SendInvitationJob extends SingleInstanceScheduledJob with SendInvitationJo
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationReadyForOnlineTesting().flatMap {
       case Some(application) =>
+        implicit val hc = new HeaderCarrier()
         onlineTestingService.registerAndInviteForTestGroup(application)
       case None =>
         Future.successful(Unit)

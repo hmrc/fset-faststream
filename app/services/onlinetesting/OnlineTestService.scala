@@ -24,18 +24,17 @@ import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.PersistedObjects.CandidateTestReport
-import model.persisted
 import model.ProgressStatuses
-import model.events.EventTypes.Events
 import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
 import play.api.Logger
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
+import services.events.{ EventService, EventSink }
 import services.onlinetesting.OnlineTestService.ReportIdNotDefinedException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -57,15 +56,17 @@ object OnlineTestService extends OnlineTestService {
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
+  val eventService = EventService
 
   case class TestExtensionException(message: String) extends Exception(message)
   case class ReportIdNotDefinedException(message: String) extends Exception(message)
 }
 
-trait OnlineTestService extends ResetPhase1Test {
-  implicit def headerCarrier = new HeaderCarrier()
+trait OnlineTestService extends ResetPhase1Test with EventSink {
+  //implicit def headerCarrier = new HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val actor: ActorSystem
+  val eventService: EventService
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
@@ -114,11 +115,12 @@ trait OnlineTestService extends ResetPhase1Test {
 
   private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
 
-  def registerAndInviteForTestGroup(application: OnlineTestApplication): Future[Unit] = {
+  def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
   }
 
-  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String], actionTriggeredBy: String): Future[Events] = {
+  def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String], actionTriggeredBy: String)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
     - <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
@@ -128,7 +130,8 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String]): Future[Unit] = {
+  def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String])
+    (implicit hc: HeaderCarrier): Future[Unit] = {
     val (invitationDate, expirationDate) = calcOnlineTestDates
 
     def mapValue[T]( f: Future[T] ): Future[Try[T]] = {
@@ -167,8 +170,9 @@ trait OnlineTestService extends ResetPhase1Test {
     } yield audit("OnlineTestInvitationProcessComplete", application.userId)
   }
 
-  private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int,
-                                         invitationDate: DateTime, expirationDate: DateTime): Future[Phase1Test] = {
+  private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int, invitationDate: DateTime,
+    expirationDate: DateTime
+  )(implicit hc: HeaderCarrier): Future[Phase1Test] = {
     val authToken = tokenFactory.generateUUID()
 
     for {
@@ -187,7 +191,7 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def retrievePhase1TestResult(testProfile: Phase1TestProfileWithAppId): Future[Unit] = {
+  def retrievePhase1TestResult(testProfile: Phase1TestProfileWithAppId)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     def insertTests(testResults: List[(TestResult, Phase1Test)]): Future[Unit] = {
       Future.sequence(testResults.map {
@@ -213,7 +217,7 @@ trait OnlineTestService extends ResetPhase1Test {
 
   }
 
-  def registerApplicant(application: OnlineTestApplication, token: String): Future[Int] = {
+  def registerApplicant(application: OnlineTestApplication, token: String)(implicit hc: HeaderCarrier): Future[Int] = {
     val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
     val registerApplicant = RegisterApplicant(preferredName, "", token + "@" + gatewayConfig.emailDomain)
     cubiksGatewayClient.registerApplicant(registerApplicant).map { registration =>
@@ -222,7 +226,8 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  private def inviteApplicant(application: OnlineTestApplication, authToken: String, userId: Int, scheduleId: Int): Future[Invitation] = {
+  private def inviteApplicant(application: OnlineTestApplication, authToken: String, userId: Int, scheduleId: Int)
+    (implicit hc: HeaderCarrier): Future[Invitation] = {
 
     val inviteApplicant = buildInviteApplication(application, authToken, userId, scheduleId)
     cubiksGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
@@ -232,7 +237,8 @@ trait OnlineTestService extends ResetPhase1Test {
   }
 
   private def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-                                     invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = {
+    invitationDate: DateTime, expirationDate: DateTime
+  )(implicit hc: HeaderCarrier): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
       audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))
@@ -319,7 +325,8 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Events] = {
+  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]= eventSink {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
     updatedTestPhase1 flatMap { u =>
       phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
@@ -328,7 +335,7 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def markAsCompleted(cubiksUserId: Int): Future[Events] = {
+  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)), "COMPLETED")
     updatedTestPhase1 flatMap { u =>
       require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
@@ -345,7 +352,7 @@ trait OnlineTestService extends ResetPhase1Test {
     }
   }
 
-  def markAsCompleted(token: String): Future[Events] = {
+  def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     phase1TestRepo.getTestProfileByToken(token).flatMap { p =>
       val test = p.tests.find(_.token == token).get
       markAsCompleted(test.cubiksUserId)

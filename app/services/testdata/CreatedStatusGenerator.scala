@@ -16,8 +16,9 @@
 
 package services.testdata
 
-import connectors.{AuthProviderClient, ExchangeObjects}
-import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
+import connectors.{ AuthProviderClient, ExchangeObjects }
+import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.testdata.faker.DataFaker._
@@ -34,7 +35,7 @@ object CreatedStatusGenerator extends CreatedStatusGenerator {
 trait CreatedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       applicationId <- createApplication(candidateInPreviousStatus.userId)

@@ -28,6 +28,7 @@ import org.scalatestplus.play.PlaySpec
 import repositories.onlinetesting.Phase1TestRepository
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
+import services.events.EventServiceSpec
 import services.onlinetesting.OnlineTestService.TestExtensionException
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
@@ -48,9 +49,6 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
 
         val result = underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").futureValue
-
-        result(0).eventName mustBe "ExpiredTestsExtended"
-        result(1).eventName mustBe "OnlineExerciseExtended"
 
         verify(mockAppRepository).findProgress(eqTo(applicationId))
         verify(mockOtRepository).getTestGroup(eqTo(applicationId))
@@ -173,6 +171,11 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
     val mockAppRepository = mock[GeneralApplicationRepository]
     val mockOtRepository = mock[Phase1TestRepository]
     val mockAuditService = mock[AuditService]
-    val underTest = new OnlineTestExtensionServiceImpl(mockAppRepository, mockOtRepository, mockAuditService, mockDateFactory)
+    val underTest = new OnlineTestExtensionService with EventServiceSpec {
+      val appRepository = mockAppRepository
+      val otRepository = mockOtRepository
+      val auditService = mockAuditService
+      val dateTimeFactory = mockDateFactory
+    }
   }
 }
