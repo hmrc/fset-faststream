@@ -444,6 +444,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
 
     val adDoc = document.getAs[BSONDocument]("assistance-details")
+    val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
     val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
     val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
     val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
@@ -460,6 +461,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       applicationId,
       schemes.getOrElse(List.empty[SchemeType]),
       disability,
+      gis,
       onlineAdjustments,
       assessmentCentreAdjustments,
       testResults)

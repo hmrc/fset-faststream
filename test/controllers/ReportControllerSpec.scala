@@ -492,6 +492,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
         None,
         None,
         None,
+        None,
         testsResult)
 
     def newQuestionnaire =

@@ -30,6 +30,7 @@ case class PassMarkReport(
 case class ApplicationForOnlineTestPassMarkReportItem(applicationId: String,
                                                       schemes: List[SchemeType],
                                                       disability: Option[String],
+                                                      gis: Option[Boolean],
                                                       onlineAdjustments: Option[String],
                                                       assessmentCentreAdjustments: Option[String],
                                                       testResults: PassMarkReportTestResults)
