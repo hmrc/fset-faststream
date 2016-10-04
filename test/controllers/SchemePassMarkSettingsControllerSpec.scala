@@ -22,7 +22,8 @@ import model.Commands.PassMarkSettingsCreateResponse
 import model.SchemeType._
 import model.exchange.passmarksettings.{ PassMarkThreshold, SchemePassMark, SchemePassMarkSettings, SchemePassMarkThresholds }
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -35,7 +36,7 @@ import repositories.PassMarkSettingsRepository
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results with MockitoSugar {
+class SchemePassMarkSettingsControllerSpec extends PlaySpec with Results with MockitoSugar {
   "Try and get latest settings" should {
     "Return a settings objects with schemes but no thresholds if there are no settings saved" in new TestFixture {
       val passMarkSettingsRepositoryMockWithNoSettings = mock[PassMarkSettingsRepository]
@@ -63,7 +64,7 @@ class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results wit
 
       val result = passMarkSettingsControllerWithSettings.getLatestVersion()(FakeRequest())
 
-      status(result) must be(200)
+      status(result) mustBe OK
 
       contentAsJson(result) mustBe Json.toJson(mockSettings)
     }
@@ -89,7 +90,16 @@ class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results wit
 
       status(result) mustBe OK
 
-      verify(passMarkSettingsRepositoryWithExpectations).create(eqTo(mockSettings))
+      val passMarkSettingCaptor = ArgumentCaptor.forClass(classOf[SchemePassMarkSettings])
+
+      verify(passMarkSettingsRepositoryWithExpectations).create(passMarkSettingCaptor.capture)
+
+      val settingsParam = passMarkSettingCaptor.getValue
+
+      settingsParam.schemes mustBe mockSettings.schemes
+      settingsParam.createdByUser mustBe mockSettings.createdByUser
+      settingsParam.version mustBe mockSettings.version
+      settingsParam.setting mustBe mockSettings.setting
     }
   }
 
@@ -120,7 +130,7 @@ class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results wit
 
     when(mockUUIDFactory.generateUUID()).thenReturn("uuid-1")
 
-    def buildPMS(mockRepository: PassMarkSettingsRepository) = new OnlineTestPassMarkSettingsController {
+    def buildPMS(mockRepository: PassMarkSettingsRepository) = new SchemePassMarkSettingsController {
       val pmsRepository = mockRepository
       val auditService = mockAuditService
       val uuidFactory = mockUUIDFactory
@@ -128,7 +138,7 @@ class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results wit
 
     def createPassMarkSettingsRequest(jsonString: String) = {
       val json = Json.parse(jsonString)
-      FakeRequest(Helpers.PUT, controllers.routes.OnlineTestPassMarkSettingsController.createPassMarkSettings().url, FakeHeaders(), json)
+      FakeRequest(Helpers.PUT, controllers.routes.SchemePassMarkSettingsController.createPassMarkSettings().url, FakeHeaders(), json)
         .withHeaders("Content-Type" -> "application/json")
     }
 
@@ -136,7 +146,7 @@ class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results wit
                      |{
                      |    "createDate": 1459504800000,
                      |    "createdByUser": "TestUser",
-                     |    "version" : "bbbbbbb",
+                     |    "version" : "version-0",
                      |    "schemes": [
                      |        {
                      |            "schemeName": "Finance",

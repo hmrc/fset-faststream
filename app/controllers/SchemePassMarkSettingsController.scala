@@ -19,6 +19,7 @@ package controllers
 import factories.UUIDFactory
 import model.Commands.Implicits._
 import model.exchange.passmarksettings.SchemePassMarkSettings
+import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories._
@@ -27,14 +28,13 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object OnlineTestPassMarkSettingsController extends OnlineTestPassMarkSettingsController {
+object SchemePassMarkSettingsController extends SchemePassMarkSettingsController {
   val pmsRepository = passMarkSettingsRepository
-  val fwRepository = frameworkRepository
   val auditService = AuditService
   val uuidFactory = UUIDFactory
 }
 
-trait OnlineTestPassMarkSettingsController extends BaseController {
+trait SchemePassMarkSettingsController extends BaseController {
 
   val pmsRepository: PassMarkSettingsRepository
   val auditService: AuditService
@@ -43,8 +43,9 @@ trait OnlineTestPassMarkSettingsController extends BaseController {
   def createPassMarkSettings = Action.async(parse.json) { implicit request =>
     withJsonBody[SchemePassMarkSettings] { passMarkSettings => {
         val newVersionUUID = uuidFactory.generateUUID()
+        val newPassMarkSettings = passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
         for {
-          createResult <- pmsRepository.create(passMarkSettings.copy(version = newVersionUUID))
+          createResult <- pmsRepository.create(newPassMarkSettings)
         } yield {
           auditService.logEvent("PassMarkSettingsCreated", Map(
             "Version" -> newVersionUUID,

@@ -17,8 +17,7 @@
 package repositories
 
 import model.Commands._
-import model.SchemeType
-import model.exchange.passmarksettings.{ SchemePassMark, SchemePassMarkSettings }
+import model.exchange.passmarksettings.SchemePassMarkSettings
 import org.joda.time.DateTime
 import play.api.libs.json.{ JsNumber, JsObject }
 import reactivemongo.api.DB
@@ -40,15 +39,7 @@ class PassMarkSettingsMongoRepository(implicit mongo: () => DB)
     SchemePassMarkSettings.schemePassMarkSettings, ReactiveMongoFormats.objectIdFormats) with PassMarkSettingsRepository {
 
   override def create(schemePassMarkSettings: SchemePassMarkSettings): Future[PassMarkSettingsCreateResponse] = {
-
-    val ifValidScheme = (schemePassMark: SchemePassMark) => SchemeType.values.contains(schemePassMark.schemeName)
-
-    val modifiedSchemePassMarkSettings = schemePassMarkSettings.copy(
-      schemes = schemePassMarkSettings.schemes.filter(ifValidScheme),
-      createDate = DateTime.now()
-    )
-
-    collection.insert(modifiedSchemePassMarkSettings) flatMap { _ =>
+    collection.insert(schemePassMarkSettings) flatMap { _ =>
       tryGetLatestVersion.map(createResponse =>
         PassMarkSettingsCreateResponse(
           createResponse.map(_.version).get,
