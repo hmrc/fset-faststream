@@ -41,7 +41,8 @@ trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob with Evaluat
 
 trait EvaluateAssessmentScoreJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
-  val conf = config.MicroserviceAppConfig.evaluateCandidateScoreJobConfig
+  // // TODO: FSET-696 Remove this scheduler or replace the configuration to use one from assessment not phase1
+  val conf = config.MicroserviceAppConfig.evaluatePhase1ResultJobConfig
   val configPrefix = "scheduling.evaluate-assessment-score-job."
   val name = "EvaluateAssessmentScoreJob"
   val minimumCompetencyLevelConfig = config.MicroserviceAppConfig.assessmentEvaluationMinimumCompetencyLevelConfig
