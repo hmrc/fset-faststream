@@ -230,7 +230,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     }
   }
 
-  "Pass mark modelling report" should {
+  "Online test pass mark report" should {
     "return nothing if no applications exist" in new PassMarkReportTestFixture {
       when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(Nil)
       when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(Map.empty)
@@ -256,10 +256,13 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     }
 
     "return nothing if applications and questionnaires exist, but no test results" in new PassMarkReportTestFixture {
-      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(reports)
+      val emptyTestResults = PassMarkReportTestResults(None, None)
+      val emptyTestResultsReports = List(newOnlineTestPassMarkReport(emptyTestResults), newOnlineTestPassMarkReport(emptyTestResults))
+
+      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(emptyTestResultsReports)
 
       when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(questionnaires)
-      when(testResultRepo.getOnlineTestReports).thenReturnAsync(Map.empty)
+      //when(testResultRepo.getOnlineTestReports).thenReturnAsync(Map.empty)
 
       val response = controller.createOnlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[PassMarkReport]]
@@ -279,8 +282,8 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
 
       status(response) mustBe OK
       result mustBe List(
-        PassMarkReport(report1, questionnaire1, testResults1),
-        PassMarkReport(report2, questionnaire2, testResults2)
+        PassMarkReport(report1, questionnaire1),
+        PassMarkReport(report2, questionnaire2)
       )
     }
   }
@@ -469,8 +472,12 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
     }
 
-    lazy val report1 = newOnlineTestPassMarkReport
-    lazy val report2 = newOnlineTestPassMarkReport
+    lazy val testResults1 = newTestResults
+    lazy val testResults2 = newTestResults
+    lazy val testResults = Map(report1.applicationId -> testResults1, report2.applicationId -> testResults2)
+
+    lazy val report1 = newOnlineTestPassMarkReport(testResults1)
+    lazy val report2 = newOnlineTestPassMarkReport(testResults2)
     lazy val reports = List(report1, report2)
 
     lazy val questionnaire1 = newQuestionnaire
@@ -478,26 +485,22 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     lazy val questionnaires = Map(report1.applicationId -> questionnaire1,
       report2.applicationId -> questionnaire2)
 
-
-    lazy val testResults1 = newTestResults
-    lazy val testResults2 = newTestResults
-    lazy val testResults = Map(report1.applicationId -> testResults1, report2.applicationId -> testResults2)
-
-
-    def newOnlineTestPassMarkReport =
+    def newOnlineTestPassMarkReport(testsResult: PassMarkReportTestResults) =
       ApplicationForOnlineTestPassMarkReportItem(
         rnd("AppId"),
         List(SchemeType.Commercial, SchemeType.DigitalAndTechnology),
         None,
         None,
-        None)
+        None,
+        testsResult)
 
     def newQuestionnaire =
       PassMarkReportQuestionnaireData(someRnd("Gender"), someRnd("Orientation"), someRnd("Ethnicity"),
-        someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"), rnd("SES"))
+        someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"), rnd("SES"),
+        someRnd("university"))
 
     def newTestResults =
-      PassMarkReportTestResults(maybe(newTestResult), maybe(newTestResult), maybe(newTestResult), maybe(newTestResult))
+      PassMarkReportTestResults(maybe(newTestResult), maybe(newTestResult))
 
     private def someDouble = Some(Random.nextDouble())
 
@@ -589,7 +592,8 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     def newQuestionnaire =
       PassMarkReportQuestionnaireData(someRnd("Gender"), someRnd("Orientation"), someRnd("Ethnicity"),
-        someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"), rnd("SES"))
+        someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"), rnd("SES"),
+        someRnd("university"))
 
     def newScores = CandidateScoresAndFeedback(applicationId = appId, attendancy = maybe(true),
       assessmentIncomplete = false,

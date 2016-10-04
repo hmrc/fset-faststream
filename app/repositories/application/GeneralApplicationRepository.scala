@@ -22,21 +22,20 @@ import java.util.regex.Pattern
 import model.ApplicationStatusOrder._
 import model.ApplicationStatuses._
 import model.AssessmentScheduleCommands.{ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult}
+import model.CivilServiceExperienceType.CivilServiceExperienceType
 import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
-import model.CivilServiceExperienceType.CivilServiceExperienceType
 import model.InternshipType.InternshipType
-import model.OnlineTestCommands.OnlineTestApplication
+import model.OnlineTestCommands.{OnlineTestApplication, TestResult}
 import model.PersistedObjects.ApplicationForNotification
 import model.SchemeType._
 import model._
 import model.command._
-import model.report.{ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport}
+import model.report.{ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, PassMarkReportTestResults}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}
-import play.api.Logger
-import play.api.libs.json.{Format, JsNumber, JsObject, Json}
+import play.api.libs.json.{Format, JsNumber, JsObject}
 import reactivemongo.api.{DB, QueryOpts, ReadPreference}
 import reactivemongo.bson.{BSONDocument, _}
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
@@ -70,7 +69,7 @@ trait GeneralApplicationRepository {
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
 
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
-    dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
+                     dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
 
   def findApplicationIdsByLocation(location: String): Future[List[String]]
 
@@ -123,9 +122,9 @@ trait GeneralApplicationRepository {
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
 
-  def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus) : Future[Unit]
+  def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
 
-  def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]) : Future[Unit]
+  def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -263,7 +262,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
                      lastNameOpt: Option[String],
                      dateOfBirth: Option[LocalDate],
                      filterToUserIds: List[String]
-  ): Future[List[Candidate]] = {
+                    ): Future[List[Candidate]] = {
 
     def matchIfSome(value: Option[String]) = value.map(v => BSONRegex("^" + Pattern.quote(v) + "$", "i"))
 
@@ -352,10 +351,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationBSON = BSONDocument("$set" -> BSONDocument(
-        "withdraw" -> reason
-      ).add(
-        applicationStatusBSON(Withdrawn)
-      )
+      "withdraw" -> reason
+    ).add(
+      applicationStatusBSON(Withdrawn)
+    )
     )
     collection.update(query, applicationBSON, upsert = false) map { _ => }
   }
@@ -389,7 +388,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
-      BSONDocument(s"progress-status.phase1_tests_results_received" -> true)
+      BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
     ))
 
     val projection = BSONDocument(
@@ -397,6 +396,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       "applicationId" -> "1",
       "scheme-preferences.schemes" -> "1",
       "assistance-details" -> "1",
+      "testGroups" -> "1",
       "progress-status" -> "2"
     )
 
@@ -448,12 +448,21 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
     val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
+    //    val tgDoc = document.getAs[BSONDocument]
+    val testResults = PassMarkReportTestResults(
+      behavioural = Some(TestResult("Completed", "behavioral norm", Some(50.1d), Some(50.2d), Some(50.3d), Some(50.4d))),
+      situational = Some(TestResult("Completed", "situational norm", Some(50.1d), Some(50.2d), Some(50.3d), Some(50.4d)))
+    )
+
+
+
     ApplicationForOnlineTestPassMarkReportItem(
       applicationId,
       schemes.getOrElse(List.empty[SchemeType]),
       disability,
       onlineAdjustments,
-      assessmentCentreAdjustments)
+      assessmentCentreAdjustments,
+      testResults)
   }
 
   private def docToCandidateProgressReport(document: BSONDocument) = {
@@ -1053,14 +1062,14 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val query = BSONDocument("applicationId" -> applicationId)
 
     val statusesToUnset = progressStatuses.flatMap { progressStatus =>
-        Map(s"progress-status.$progressStatus" -> BSONString(""),
+      Map(s"progress-status.$progressStatus" -> BSONString(""),
         s"progress-status-dates.$progressStatus" -> BSONString(""))
     }
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))
 
     collection.update(query, unsetDoc)
-    .map { _ => () }
+      .map { _ => () }
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

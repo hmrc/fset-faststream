@@ -21,18 +21,21 @@ import model.OnlineTestCommands.TestResult
 import play.api.libs.json.Json
 import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
+import model.SchemeType._
 
 case class PassMarkReport(
-                           //application: CandidateProgressReport,
                            application: ApplicationForOnlineTestPassMarkReportItem,
-                           questionnaire: PassMarkReportQuestionnaireData,
-                           testResults: PassMarkReportTestResults)
+                           questionnaire: PassMarkReportQuestionnaireData)
 
+case class ApplicationForOnlineTestPassMarkReportItem(applicationId: String,
+                                                      schemes: List[SchemeType],
+                                                      disability: Option[String],
+                                                      onlineAdjustments: Option[String],
+                                                      assessmentCentreAdjustments: Option[String],
+                                                      testResults: PassMarkReportTestResults)
 
 case class PassMarkReportTestResults(
-                                      competency: Option[TestResult],
-                                      numerical: Option[TestResult],
-                                      verbal: Option[TestResult],
+                                      behavioural: Option[TestResult],
                                       situational: Option[TestResult]
                                     )
 
@@ -48,8 +51,12 @@ case class PassMarkReportQuestionnaireData(
                                             parentOccupation: Option[String],
                                             parentEmployedOrSelf: Option[String],
                                             parentCompanySize: Option[String],
-                                            socioEconomicScore: String
+                                            socioEconomicScore: String,
+                                            university: Option[String]
                                           )
+
+
+
 
 object PassMarkReportTestResults {
   implicit val passMarkReportTestDataFormat = Json.format[PassMarkReportTestResults]
@@ -61,6 +68,10 @@ object PassMarkReportWithPersonalData {
 
 object PassMarkReportQuestionnaireData {
   implicit val passMarkReportQuestionnaireDataFormat = Json.format[PassMarkReportQuestionnaireData]
+}
+
+object ApplicationForOnlineTestPassMarkReportItem {
+  implicit val applicationForOnlineTestReportItemFormat = Json.format[ApplicationForOnlineTestPassMarkReportItem]
 }
 
 object PassMarkReport {

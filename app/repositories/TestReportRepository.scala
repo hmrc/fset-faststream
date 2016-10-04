@@ -133,9 +133,7 @@ class TestReportMongoRepository(implicit mongo: () => DB)
     val applicationId = document.getAs[String]("applicationId").get
 
     (applicationId, PassMarkReportTestResults(
-      getTest("competency"),
-      getTest("numerical"),
-      getTest("verbal"),
+      getTest("behavioural"),
       getTest("situational")
     ))
   }

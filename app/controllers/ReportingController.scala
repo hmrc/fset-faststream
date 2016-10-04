@@ -164,16 +164,13 @@ trait ReportingController extends BaseController {
   def createOnlineTestPassMarkReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
       for {
-       // applications <- appRepository.candidateProgressReportNotWithdrawn(frameworkId)
         applications <- appRepository.onlineTestPassMarkReport(frameworkId)
         questionnaires <- questionnaireRepository.onlineTestPassMarkReport
-        testResults <- testReportRepository.getOnlineTestReports
       } yield {
         for {
           a <- applications
           q <- questionnaires.get(a.applicationId)
-          t <- testResults.get(a.applicationId)
-        } yield PassMarkReport(a, q, t)
+        } yield PassMarkReport(a, q)
       }
 
     reports.map { list =>
@@ -181,6 +178,7 @@ trait ReportingController extends BaseController {
     }
   }
 
+  /*
   def createPassMarkWithPersonalDataReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
       for {
@@ -199,6 +197,7 @@ trait ReportingController extends BaseController {
       Ok(Json.toJson(list))
     }
   }
+*/
 
   def createNonSubmittedAppsReports(frameworkId: String) =
     preferencesAndContactReports(nonSubmittedOnly = true)(frameworkId)

@@ -69,7 +69,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     // We need to ensure that the candidates have completed the last page of the questionnaire
     // however, only the first question on the employment page is mandatory, as if the answer is
     // unemployed, they don't need to answer other questions
-    val firstEmploymentQuestion = "Which type of occupation did they have?"
+    val firstEmploymentQuestion = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
     val query = BSONDocument(s"questions.$firstEmploymentQuestion" -> BSONDocument("$exists" -> BSONBoolean(true)))
     val queryResult = collection.find(query).cursor[BSONDocument](ReadPreference.nearest).collect[List]()
     queryResult.map(_.map(docToReport).toMap)
@@ -108,8 +108,11 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     val sexualOrientation = getAnswer("What is your sexual orientation?")
     val ethnicity = getAnswer("What is your ethnic group?")
 
-    val employmentStatus = getAnswer("Which type of occupation did they have?")
+    val university = getAnswer("What is the name of the university you received your degree from?")
+
+    val employmentStatus = getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?")
     val isEmployed = employmentStatus.exists(s => !s.startsWith("Unemployed"))
+
     val parentEmploymentStatus = if (isEmployed) Some("Employed") else employmentStatus
     val parentOccupation = if (isEmployed) employmentStatus else None
 
@@ -122,7 +125,8 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
         (question, answer)
     }.toMap
 
-    val socioEconomicScore = socioEconomicCalculator.calculate(qAndA)
+    val socioEconomicScore = "TODO-100"
+      //socioEconomicCalculator.calculate(qAndA)
 
     (applicationId, PassMarkReportQuestionnaireData(
       gender,
@@ -132,7 +136,8 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
       parentOccupation,
       parentEmployedOrSelf,
       parentCompanySize,
-      socioEconomicScore
+      socioEconomicScore,
+      university
     ))
   }
 }
