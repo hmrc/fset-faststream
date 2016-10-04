@@ -38,8 +38,7 @@ trait LockKeeper {
     repo.lock(lockId, serverId, forceLockReleaseAfter)
       .flatMap { acquired =>
         if (acquired) {
-          body.flatMap {
-            case x =>
+          body.flatMap { x =>
               if (greedyLockingEnabled) {
                 Future.successful(Some(x))
               } else {

@@ -16,10 +16,9 @@
 
 package controllers
 
-import connectors.PassMarkExchangeObjects.Implicits._
-import connectors.PassMarkExchangeObjects._
 import factories.UUIDFactory
 import model.Commands.Implicits._
+import model.exchange.passmarksettings.SchemePassMarkSettings
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories._
@@ -38,31 +37,19 @@ object OnlineTestPassMarkSettingsController extends OnlineTestPassMarkSettingsCo
 trait OnlineTestPassMarkSettingsController extends BaseController {
 
   val pmsRepository: PassMarkSettingsRepository
-  val fwRepository: FrameworkRepository
   val auditService: AuditService
   val uuidFactory: UUIDFactory
 
   def createPassMarkSettings = Action.async(parse.json) { implicit request =>
-    withJsonBody[SettingsCreateRequest] { passMarkSettingsRequest =>
-      {
+    withJsonBody[SchemePassMarkSettings] { passMarkSettings => {
         val newVersionUUID = uuidFactory.generateUUID()
-
-        val builtSettingsObject = Settings(
-          schemes = passMarkSettingsRequest.schemes,
-          version = newVersionUUID,
-          createDate = passMarkSettingsRequest.createDate,
-          createdByUser = passMarkSettingsRequest.createdByUser,
-          setting = passMarkSettingsRequest.setting
-        )
-
         for {
-          names <- fwRepository.getFrameworkNames
-          createResult <- pmsRepository.create(builtSettingsObject, names)
+          createResult <- pmsRepository.create(passMarkSettings.copy(version = newVersionUUID))
         } yield {
           auditService.logEvent("PassMarkSettingsCreated", Map(
             "Version" -> newVersionUUID,
-            "CreatedByUserId" -> passMarkSettingsRequest.createdByUser,
-            "StoredCreateDate" -> passMarkSettingsRequest.createDate.toString
+            "CreatedByUserId" -> passMarkSettings.createdByUser,
+            "StoredCreateDate" -> passMarkSettings.createDate.toString
           ))
           Ok(Json.toJson(createResult))
         }
@@ -72,27 +59,13 @@ trait OnlineTestPassMarkSettingsController extends BaseController {
 
   def getLatestVersion = Action.async { implicit request =>
     for {
-      schemeNames <- fwRepository.getFrameworkNames
-      latestVersionOpt <- pmsRepository.tryGetLatestVersion(schemeNames)
+      latestVersionOpt <- pmsRepository.tryGetLatestVersion
     } yield {
-      latestVersionOpt.map(latestVersion => {
-        val responseSchemes = latestVersion.schemes.map(scheme => SchemeResponse(scheme.schemeName, Some(scheme.schemeThresholds)))
-
-        val exchangeObject = SettingsResponse(
-          schemes = responseSchemes,
-          createDate = Some(latestVersion.createDate),
-          createdByUser = Some(latestVersion.createdByUser),
-          setting = latestVersion.setting
-        )
-
-        Ok(Json.toJson(exchangeObject))
-      }).getOrElse({
-        val emptyPassMarkSchemes = schemeNames.map(schemeName => SchemeResponse(schemeName, None))
-
-        val emptySettingsExchangeObject = SettingsResponse(emptyPassMarkSchemes, None, None, "location1Scheme1")
-
-        Ok(Json.toJson(emptySettingsExchangeObject))
-      })
+      latestVersionOpt.map {
+        passMarkSettings => Ok(Json.toJson(passMarkSettings))
+      } getOrElse {
+        NotFound("Pass mark settings not found")
+      }
     }
   }
 }

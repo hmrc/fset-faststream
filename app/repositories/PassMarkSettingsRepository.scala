@@ -16,11 +16,9 @@
 
 package repositories
 
-import java.util.UUID
-
-import connectors.PassMarkExchangeObjects
-import connectors.PassMarkExchangeObjects.{ Scheme, SchemeThreshold, SchemeThresholds, Settings }
 import model.Commands._
+import model.SchemeType
+import model.exchange.passmarksettings.{ SchemePassMark, SchemePassMarkSettings }
 import org.joda.time.DateTime
 import play.api.libs.json.{ JsNumber, JsObject }
 import reactivemongo.api.DB
@@ -32,104 +30,37 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait PassMarkSettingsRepository {
-  def create(settings: Settings, schemeNames: List[String]): Future[PassMarkSettingsCreateResponse]
+  def create(schemePassMarkSettings: SchemePassMarkSettings): Future[PassMarkSettingsCreateResponse]
 
-  def tryGetLatestVersion(schemeNames: List[String]): Future[Option[Settings]]
+  def tryGetLatestVersion: Future[Option[SchemePassMarkSettings]]
 }
 
 class PassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Settings, BSONObjectID]("pass-mark-settings", mongo,
-    PassMarkExchangeObjects.Implicits.passMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats) with PassMarkSettingsRepository {
+  extends ReactiveRepository[SchemePassMarkSettings, BSONObjectID]("pass-mark-settings", mongo,
+    SchemePassMarkSettings.schemePassMarkSettings, ReactiveMongoFormats.objectIdFormats) with PassMarkSettingsRepository {
 
-  override def create(settings: Settings, schemeNames: List[String]): Future[PassMarkSettingsCreateResponse] = {
+  override def create(schemePassMarkSettings: SchemePassMarkSettings): Future[PassMarkSettingsCreateResponse] = {
 
-    def schemesToFieldMappings(schemes: List[Scheme]): List[(String, BSONValue)] = {
-      schemes.flatMap(scheme => {
-        val schemeThresholds = scheme.schemeThresholds
-        val fixedMappings = List(
-          s"schemes.${scheme.schemeName}.competency.pass" -> BSONDouble(schemeThresholds.competency.passThreshold),
-          s"schemes.${scheme.schemeName}.competency.fail" -> BSONDouble(schemeThresholds.competency.failThreshold),
-          s"schemes.${scheme.schemeName}.verbal.pass" -> BSONDouble(schemeThresholds.verbal.passThreshold),
-          s"schemes.${scheme.schemeName}.verbal.fail" -> BSONDouble(schemeThresholds.verbal.failThreshold),
-          s"schemes.${scheme.schemeName}.numerical.pass" -> BSONDouble(schemeThresholds.numerical.passThreshold),
-          s"schemes.${scheme.schemeName}.numerical.fail" -> BSONDouble(schemeThresholds.numerical.failThreshold),
-          s"schemes.${scheme.schemeName}.situational.pass" -> BSONDouble(schemeThresholds.situational.passThreshold),
-          s"schemes.${scheme.schemeName}.situational.fail" -> BSONDouble(schemeThresholds.situational.failThreshold)
-        )
+    val ifValidScheme = (schemePassMark: SchemePassMark) => SchemeType.values.contains(schemePassMark.schemeName)
 
-        schemeThresholds.combination match {
-          case Some(thresholds) => fixedMappings ++ List(
-            s"schemes.${scheme.schemeName}.combination.pass" -> BSONDouble(schemeThresholds.combination.get.passThreshold),
-            s"schemes.${scheme.schemeName}.combination.fail" -> BSONDouble(schemeThresholds.combination.get.failThreshold)
-          )
-          case _ => fixedMappings
-        }
-      })
-    }
-
-    val fieldMappings = schemesToFieldMappings(settings.schemes)
-
-    val baseBSON = BSONDocument(
-      "version" -> UUID.randomUUID().toString,
-      "createDate" -> BSONDateTime(settings.createDate.getMillis),
-      "createdByUser" -> settings.createdByUser,
-      "setting" -> settings.setting
+    val modifiedSchemePassMarkSettings = schemePassMarkSettings.copy(
+      schemes = schemePassMarkSettings.schemes.filter(ifValidScheme),
+      createDate = DateTime.now()
     )
 
-    val settingsBSON = fieldMappings.foldLeft(baseBSON)(_ ++ _)
-
-    collection.insert(settingsBSON) flatMap { _ =>
-      tryGetLatestVersion(schemeNames).map(createResponse =>
-        PassMarkSettingsCreateResponse(createResponse.get.version, createResponse.get.createDate))
+    collection.insert(modifiedSchemePassMarkSettings) flatMap { _ =>
+      tryGetLatestVersion.map(createResponse =>
+        PassMarkSettingsCreateResponse(
+          createResponse.map(_.version).get,
+          createResponse.map(_.createDate).get
+        )
+      )
     }
   }
 
-  override def tryGetLatestVersion(schemeNames: List[String]): Future[Option[Settings]] = {
-
+  override def tryGetLatestVersion: Future[Option[SchemePassMarkSettings]] = {
     val query = BSONDocument()
-    val sort = new JsObject(Seq("createDate" -> JsNumber(-1)))
-
-    collection.find(query).sort(sort).one[BSONDocument] map { docOpt =>
-      docOpt.map(constructPassMarkSettingsFromBSONDocument(_, schemeNames))
-    }
+    val sort = JsObject(Seq("createDate" -> JsNumber(-1)))
+    collection.find(query).sort(sort).one[SchemePassMarkSettings]
   }
-
-  def constructPassMarkSettingsFromBSONDocument(doc: BSONDocument, schemeNames: List[String]): Settings =
-    Settings(
-      schemes = schemeNames.map { schemeName =>
-        Scheme(
-          schemeName,
-          schemeThresholds =
-            SchemeThresholds(
-              competency = constructThreshold(doc, schemeName, "competency"),
-              verbal = constructThreshold(doc, schemeName, "verbal"),
-              numerical = constructThreshold(doc, schemeName, "numerical"),
-              situational = constructThreshold(doc, schemeName, "situational"),
-              combination = (
-                doc.getAs[Double](s"schemes.$schemeName.combination.fail"),
-                doc.getAs[Double](s"schemes.$schemeName.combination.pass")
-              ) match {
-                  case (Some(fail), Some(pass)) =>
-                    Some(SchemeThreshold(
-                      fail,
-                      pass
-                    ))
-                  case _ => None
-                }
-            )
-        )
-      },
-      version = doc.getAs[String]("version").get,
-      createDate = doc.getAs[DateTime]("createDate").get,
-      createdByUser = doc.getAs[String]("createdByUser").get,
-      setting = doc.getAs[String]("setting").get
-    )
-
-  def constructThreshold(doc: BSONDocument, schemeName: String, testType: String) = {
-    SchemeThreshold(
-      doc.getAs[Double](s"schemes.$schemeName.$testType.fail").get,
-      doc.getAs[Double](s"schemes.$schemeName.$testType.pass").get
-    )
-  }
-
 }

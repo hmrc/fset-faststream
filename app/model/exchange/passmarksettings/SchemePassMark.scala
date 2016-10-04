@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package services.passmarksettings
+package model.exchange.passmarksettings
 
-import model.exchange.passmarksettings.SchemePassMarkSettings
-import repositories._
-import scala.concurrent.Future
+import model.SchemeType.SchemeType
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-object PassMarkSettingsService extends PassMarkSettingsService {
-  val pmsRepository = passMarkSettingsRepository
-}
+case class SchemePassMark(schemeName: SchemeType, schemeThresholds: SchemePassMarkThresholds)
 
-trait PassMarkSettingsService {
-  val pmsRepository: PassMarkSettingsRepository
-
-  def tryGetLatestVersion: Future[Option[SchemePassMarkSettings]] = pmsRepository.tryGetLatestVersion
+object SchemePassMark {
+  implicit val schemePassMark = Json.format[SchemePassMark]
+  implicit val schemePassMarkHandler = Macros.handler[SchemePassMark]
 }

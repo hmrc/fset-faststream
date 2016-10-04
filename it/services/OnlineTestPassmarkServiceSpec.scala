@@ -41,7 +41,6 @@ class OnlineTestPassmarkServiceSpec extends IntegrationSpec with MockitoSugar {
     val passmarkRulesEngine = OnlineTestPassmarkService.passmarkRulesEngine
     val pmsRepository: PassMarkSettingsRepository = PassMarkSettingsInMemoryRepository
     val passMarkSettingsService = new PassMarkSettingsService {
-      override val fwRepository = mock[FrameworkRepository]
       override val pmsRepository = PassMarkSettingsInMemoryRepository
     }
   }

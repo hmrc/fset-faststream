@@ -47,7 +47,7 @@ trait OnlineTestPassmarkService {
   val passMarkSettingsService: PassMarkSettingsService
 
   def nextCandidateScoreReadyForEvaluation: Future[Option[CandidateScoresWithPreferencesAndPassmarkSettings]] = {
-    passMarkSettingsService.tryGetLatestVersion().flatMap {
+    passMarkSettingsService.tryGetLatestVersion.flatMap {
       case Some(settings) =>
         //TODO FAST STREAM FIX ME
         Future.successful(None)

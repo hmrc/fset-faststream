@@ -16,15 +16,15 @@
 
 package services.passmarksettings
 
-import connectors.PassMarkExchangeObjects.{ Scheme, SchemeThreshold, SchemeThresholds, Settings }
+import model.SchemeType._
+import model.exchange.passmarksettings.{ PassMarkThreshold, SchemePassMark, SchemePassMarkSettings, SchemePassMarkThresholds }
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import repositories.{ FrameworkRepository, PassMarkSettingsRepository }
+import repositories.PassMarkSettingsRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -34,18 +34,18 @@ class PassMarkSettingsServiceSpec extends PlaySpec with BeforeAndAfterEach with 
 
   "try and getting the latest pass mark settings" should {
     "be none if there are no settings" in {
-      Fixtures.passMarkSettingsServiceNoSettings.tryGetLatestVersion().map(resultOpt =>
+      Fixtures.passMarkSettingsServiceNoSettings.tryGetLatestVersion.map(resultOpt =>
         assert(resultOpt.isEmpty))
     }
 
     "be a valid settings object if there are stored settings" in {
-      Fixtures.passMarkSettingsServiceWithSettings.tryGetLatestVersion().map { resultOpt =>
+      Fixtures.passMarkSettingsServiceWithSettings.tryGetLatestVersion.map { resultOpt =>
         assert(resultOpt.nonEmpty)
         val result = resultOpt.get
         assert(result.schemes.size == 1)
-        assert(result.schemes.head.schemeName == "TestScheme")
-        assert(result.schemes.head.schemeThresholds.competency.failThreshold == 20d)
-        assert(result.schemes.head.schemeThresholds.competency.passThreshold == 80d)
+        assert(result.schemes.head.schemeName == Finance)
+        assert(result.schemes.head.schemeThresholds.situational.failThreshold == 20d)
+        assert(result.schemes.head.schemeThresholds.situational.passThreshold == 80d)
         assert(result.version == "aVersion")
         assert(result.createDate == DateTime.parse("2016-04-13T10:00:00Z"))
         assert(result.createdByUser == "TestUser")
@@ -56,25 +56,19 @@ class PassMarkSettingsServiceSpec extends PlaySpec with BeforeAndAfterEach with 
   object Fixtures {
     implicit val hc = HeaderCarrier()
 
-    val fwRepositoryMock = mock[FrameworkRepository]
     val pmsRepositoryMockNoSettings = mock[PassMarkSettingsRepository]
     val pmsRepositoryMockWithSettings = mock[PassMarkSettingsRepository]
 
-    when(fwRepositoryMock.getFrameworkNames).thenReturn(Future.successful(List("TestScheme")))
-
-    when(pmsRepositoryMockNoSettings.tryGetLatestVersion(any())).thenReturn(Future.successful(None))
-    when(pmsRepositoryMockWithSettings.tryGetLatestVersion(any())).thenReturn(Future.successful(
+    when(pmsRepositoryMockNoSettings.tryGetLatestVersion).thenReturn(Future.successful(None))
+    when(pmsRepositoryMockWithSettings.tryGetLatestVersion).thenReturn(Future.successful(
       Some(
-        Settings(
+        SchemePassMarkSettings(
           List(
-            Scheme(
-              "TestScheme",
-              SchemeThresholds(
-                competency = SchemeThreshold(20d, 80d),
-                verbal = SchemeThreshold(20d, 80d),
-                numerical = SchemeThreshold(20d, 80d),
-                situational = SchemeThreshold(20d, 80d),
-                None
+            SchemePassMark(
+              Finance,
+              SchemePassMarkThresholds(
+                behavioural = PassMarkThreshold(20d, 80d),
+                situational = PassMarkThreshold(20d, 80d)
               )
             )
           ),
@@ -88,12 +82,10 @@ class PassMarkSettingsServiceSpec extends PlaySpec with BeforeAndAfterEach with 
 
     val passMarkSettingsServiceNoSettings = new PassMarkSettingsService {
       val pmsRepository: PassMarkSettingsRepository = pmsRepositoryMockNoSettings
-      val fwRepository: FrameworkRepository = fwRepositoryMock
     }
 
     val passMarkSettingsServiceWithSettings = new PassMarkSettingsService {
       val pmsRepository: PassMarkSettingsRepository = pmsRepositoryMockWithSettings
-      val fwRepository: FrameworkRepository = fwRepositoryMock
     }
   }
 

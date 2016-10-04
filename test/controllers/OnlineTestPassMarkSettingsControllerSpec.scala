@@ -17,10 +17,10 @@
 package controllers
 
 import config.TestFixtureBase
-import connectors.PassMarkExchangeObjects.Implicits._
-import connectors.PassMarkExchangeObjects._
 import factories.UUIDFactory
 import model.Commands.PassMarkSettingsCreateResponse
+import model.SchemeType._
+import model.exchange.passmarksettings.{ PassMarkThreshold, SchemePassMark, SchemePassMarkSettings, SchemePassMarkThresholds }
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -30,7 +30,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.{ FrameworkRepository, PassMarkSettingsRepository }
+import repositories.PassMarkSettingsRepository
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -40,33 +40,20 @@ class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results wit
     "Return a settings objects with schemes but no thresholds if there are no settings saved" in new TestFixture {
       val passMarkSettingsRepositoryMockWithNoSettings = mock[PassMarkSettingsRepository]
 
-      when(passMarkSettingsRepositoryMockWithNoSettings.tryGetLatestVersion(any())).thenReturn(Future.successful(None))
+      when(passMarkSettingsRepositoryMockWithNoSettings.tryGetLatestVersion).thenReturn(Future.successful(None))
 
       val passMarkSettingsControllerWithNoSettings = buildPMS(passMarkSettingsRepositoryMockWithNoSettings)
 
-      val expectedEmptySettingsResponse = SettingsResponse(
-        schemes = List(
-          SchemeResponse(mockSchemes.head.schemeName, None),
-          SchemeResponse(mockSchemes(1).schemeName, None),
-          SchemeResponse(mockSchemes(2).schemeName, None)
-        ),
-        None,
-        None,
-        "location1Scheme1"
-      )
-
       val result = passMarkSettingsControllerWithNoSettings.getLatestVersion()(FakeRequest())
 
-      status(result) must be(200)
-
-      contentAsJson(result) must be(Json.toJson(expectedEmptySettingsResponse))
+      status(result) mustBe NOT_FOUND
     }
 
     "Return a complete settings object if there are saved settings" in new TestFixture {
 
       val passMarkSettingsRepositoryMockWithSettings = mock[PassMarkSettingsRepository]
 
-      when(passMarkSettingsRepositoryMockWithSettings.tryGetLatestVersion(any())).thenReturn(Future.successful(
+      when(passMarkSettingsRepositoryMockWithSettings.tryGetLatestVersion).thenReturn(Future.successful(
         Some(
           mockSettings
         )
@@ -74,83 +61,59 @@ class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results wit
 
       val passMarkSettingsControllerWithSettings = buildPMS(passMarkSettingsRepositoryMockWithSettings)
 
-      val expectedSettingsResponse = SettingsResponse(
-        schemes = List(
-          SchemeResponse(mockSchemes.head.schemeName, Some(mockSchemes.head.schemeThresholds)),
-          SchemeResponse(mockSchemes(1).schemeName, Some(mockSchemes(1).schemeThresholds)),
-          SchemeResponse(mockSchemes(2).schemeName, Some(mockSchemes(2).schemeThresholds))
-        ),
-        Some(mockCreateDate),
-        Some(mockCreatedByUser),
-        "location1Scheme1"
-      )
-
       val result = passMarkSettingsControllerWithSettings.getLatestVersion()(FakeRequest())
 
       status(result) must be(200)
 
-      contentAsJson(result) must be(Json.toJson(expectedSettingsResponse))
+      contentAsJson(result) mustBe Json.toJson(mockSettings)
     }
   }
 
   "Save new settings" should {
-    def isValid(value: Settings) = true
+    def isValid(value: SchemePassMarkSettings) = true
 
     "Send a complete settings object to the repository with a version UUID appended" in new TestFixture {
 
       val passMarkSettingsRepositoryWithExpectations = mock[PassMarkSettingsRepository]
 
-      when(passMarkSettingsRepositoryWithExpectations.create(any(), any())).thenReturn(Future.successful(
+      when(passMarkSettingsRepositoryWithExpectations.create(any())).thenReturn(Future.successful(
         PassMarkSettingsCreateResponse(
           "uuid-1",
           new DateTime()
         )
       ))
 
-      // Call controller
       val passMarkSettingsController = buildPMS(passMarkSettingsRepositoryWithExpectations)
 
       val result = passMarkSettingsController.createPassMarkSettings()(createPassMarkSettingsRequest(validSettingsCreateRequestJSON))
 
-      status(result) must be(200)
+      status(result) mustBe OK
 
-      verify(passMarkSettingsRepositoryWithExpectations).create(eqTo(mockSettings), eqTo(testSchemeNames))
+      verify(passMarkSettingsRepositoryWithExpectations).create(eqTo(mockSettings))
     }
   }
 
   trait TestFixture extends TestFixtureBase {
 
-    val testSchemeNames = List(
-      "TestScheme1",
-      "TestScheme2",
-      "TestScheme3"
-    )
+    val defaultSchemeThreshold = PassMarkThreshold(20d, 80d)
 
-    val mockFrameworkRepository = mock[FrameworkRepository]
-
-    when(mockFrameworkRepository.getFrameworkNames).thenReturn(Future.successful(testSchemeNames))
-
-    val defaultSchemeThreshold = SchemeThreshold(20d, 80d)
-
-    val defaultSchemeThresholds = SchemeThresholds(
-      defaultSchemeThreshold, defaultSchemeThreshold, defaultSchemeThreshold, defaultSchemeThreshold, None
-    )
+    val defaultSchemeThresholds = SchemePassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold)
 
     val mockSchemes = List(
-      Scheme(testSchemeNames.head, defaultSchemeThresholds),
-      Scheme(testSchemeNames(1), defaultSchemeThresholds),
-      Scheme(testSchemeNames(2), defaultSchemeThresholds)
+      SchemePassMark(Finance, defaultSchemeThresholds),
+      SchemePassMark(Commercial, defaultSchemeThresholds),
+      SchemePassMark(Generalist, defaultSchemeThresholds)
     )
     val mockVersion = "uuid-1"
     val mockCreateDate = new DateTime(1459504800000L)
     val mockCreatedByUser = "TestUser"
 
-    val mockSettings = Settings(
+    val mockSettings = SchemePassMarkSettings(
       schemes = mockSchemes,
       version = mockVersion,
       createDate = mockCreateDate,
       createdByUser = mockCreatedByUser,
-      setting = "location1Scheme1"
+      setting = "schemes"
     )
 
     val mockUUIDFactory = mock[UUIDFactory]
@@ -159,14 +122,13 @@ class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results wit
 
     def buildPMS(mockRepository: PassMarkSettingsRepository) = new OnlineTestPassMarkSettingsController {
       val pmsRepository = mockRepository
-      val fwRepository = mockFrameworkRepository
       val auditService = mockAuditService
       val uuidFactory = mockUUIDFactory
     }
 
     def createPassMarkSettingsRequest(jsonString: String) = {
       val json = Json.parse(jsonString)
-      FakeRequest(Helpers.PUT, controllers.routes.OnlineTestPassMarkSettingsController.createPassMarkSettings.url, FakeHeaders(), json)
+      FakeRequest(Helpers.PUT, controllers.routes.OnlineTestPassMarkSettingsController.createPassMarkSettings().url, FakeHeaders(), json)
         .withHeaders("Content-Type" -> "application/json")
     }
 
@@ -174,72 +136,49 @@ class OnlineTestPassMarkSettingsControllerSpec extends PlaySpec with Results wit
                      |{
                      |    "createDate": 1459504800000,
                      |    "createdByUser": "TestUser",
+                     |    "version" : "bbbbbbb",
                      |    "schemes": [
                      |        {
-                     |            "schemeName": "TestScheme1",
+                     |            "schemeName": "Finance",
                      |            "schemeThresholds": {
-                     |                "competency": {
-                     |                    "failThreshold": 20.0,
-                     |                    "passThreshold": 80.0
-                     |                },
-                     |                "numerical": {
-                     |                    "failThreshold": 20.0,
-                     |                    "passThreshold": 80.0
-                     |                },
                      |                "situational": {
                      |                    "failThreshold": 20.0,
                      |                    "passThreshold": 80.0
                      |                },
-                     |                "verbal": {
+                     |                "behavioural": {
                      |                    "failThreshold": 20.0,
                      |                    "passThreshold": 80.0
                      |                }
                      |            }
                      |        },
                      |        {
-                     |            "schemeName": "TestScheme2",
+                     |            "schemeName": "Commercial",
                      |            "schemeThresholds": {
-                     |                "competency": {
-                     |                    "failThreshold": 20.0,
-                     |                    "passThreshold": 80.0
-                     |                },
-                     |                "numerical": {
-                     |                    "failThreshold": 20.0,
-                     |                    "passThreshold": 80.0
-                     |                },
                      |                "situational": {
                      |                    "failThreshold": 20.0,
                      |                    "passThreshold": 80.0
                      |                },
-                     |                "verbal": {
+                     |                "behavioural": {
                      |                    "failThreshold": 20.0,
                      |                    "passThreshold": 80.0
                      |                }
                      |            }
                      |        },
                      |        {
-                     |            "schemeName": "TestScheme3",
+                     |            "schemeName": "Generalist",
                      |            "schemeThresholds": {
-                     |                "competency": {
-                     |                    "failThreshold": 20.0,
-                     |                    "passThreshold": 80.0
-                     |                },
-                     |                "numerical": {
-                     |                    "failThreshold": 20.0,
-                     |                    "passThreshold": 80.0
-                     |                },
                      |                "situational": {
                      |                    "failThreshold": 20.0,
                      |                    "passThreshold": 80.0
                      |                },
-                     |                "verbal": {
+                     |                "behavioural": {
                      |                    "failThreshold": 20.0,
                      |                    "passThreshold": 80.0
                      |                }
                      |            }
                      |        }
                      |    ],
-                     |    "setting": "location1Scheme1"
+                     |    "setting": "schemes"
                      |}
         """.stripMargin
   }

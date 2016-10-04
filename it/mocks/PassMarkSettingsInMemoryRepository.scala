@@ -16,9 +16,9 @@
 
 package mocks
 
-import connectors.PassMarkExchangeObjects.{Scheme, SchemeThreshold, SchemeThresholds, Settings}
 import model.Commands.PassMarkSettingsCreateResponse
-import model.Schemes._
+import model.SchemeType._
+import model.exchange.passmarksettings.{ PassMarkThreshold, SchemePassMark, SchemePassMarkSettings, SchemePassMarkThresholds }
 import org.joda.time.DateTime
 import repositories.PassMarkSettingsRepository
 
@@ -27,69 +27,46 @@ import scala.concurrent.Future
 object PassMarkSettingsInMemoryRepository extends PassMarkSettingsInMemoryRepository
 
 class PassMarkSettingsInMemoryRepository extends PassMarkSettingsRepository {
-  val mockSchemes = Scheme(
-    Business,
-    SchemeThresholds(
-      competency = SchemeThreshold(20.0, 80.0),
-      verbal = SchemeThreshold(20.0, 80.0),
-      numerical = SchemeThreshold(20.0, 80.0),
-      situational = SchemeThreshold(20.0, 90.0),
-      combination = None
-    )
-  ) :: Scheme(
-    Commercial,
-    SchemeThresholds(
-      competency = SchemeThreshold(20.0, 80.0),
-      verbal = SchemeThreshold(20.0, 80.0),
-      numerical = SchemeThreshold(20.0, 80.0),
-      situational = SchemeThreshold(20.0, 80.0),
-      combination = None
-    )
-  ) :: Scheme(
-    DigitalAndTechnology,
-    SchemeThresholds(
-      competency = SchemeThreshold(20.0, 80.0),
-      verbal = SchemeThreshold(20.0, 80.0),
-      numerical = SchemeThreshold(20.0, 80.0),
-      situational = SchemeThreshold(20.0, 80.0),
-      combination = None
-    )
-  ) :: Scheme(
+  val mockSchemes = SchemePassMark(
     Finance,
-    SchemeThresholds(
-      competency = SchemeThreshold(20.0, 80.0),
-      verbal = SchemeThreshold(20.0, 80.0),
-      numerical = SchemeThreshold(20.0, 80.0),
-      situational = SchemeThreshold(20.0, 80.0),
-      combination = None
+    SchemePassMarkThresholds(
+      behavioural = PassMarkThreshold(20.0, 80.0),
+      situational = PassMarkThreshold(20.0, 80.0)
     )
-  ) :: Scheme(
+  ) :: SchemePassMark(
+    Commercial,
+    SchemePassMarkThresholds(
+      behavioural = PassMarkThreshold(20.0, 80.0),
+      situational = PassMarkThreshold(20.0, 80.0)
+    )
+  ) :: SchemePassMark(
+    DigitalAndTechnology,
+    SchemePassMarkThresholds(
+      behavioural = PassMarkThreshold(20.0, 80.0),
+      situational = PassMarkThreshold(20.0, 80.0)
+    )
+  ) :: SchemePassMark(
+    Finance,
+    SchemePassMarkThresholds(
+      behavioural = PassMarkThreshold(20.0, 80.0),
+      situational = PassMarkThreshold(20.0, 80.0)
+    )
+  ) :: SchemePassMark(
     ProjectDelivery,
-    SchemeThresholds(
-      competency = SchemeThreshold(20.0, 80.0),
-      verbal = SchemeThreshold(20.0, 80.0),
-      numerical = SchemeThreshold(20.0, 80.0),
-      situational = SchemeThreshold(20.0, 80.0),
-      combination = None
-    )
-  ) :: Scheme(
-    "TestSchemeSTEM",
-    SchemeThresholds(
-      competency = SchemeThreshold(20.0, 80.0),
-      verbal = SchemeThreshold(20.0, 80.0),
-      numerical = SchemeThreshold(20.0, 80.0),
-      situational = SchemeThreshold(20.0, 80.0),
-      combination = None
+    SchemePassMarkThresholds(
+      behavioural = PassMarkThreshold(20.0, 80.0),
+      situational = PassMarkThreshold(20.0, 80.0)
     )
   ) :: Nil
 
-  override def create(settings: Settings, schemeNames: List[String]): Future[PassMarkSettingsCreateResponse] = ???
+  override def create(passMarkSettings: SchemePassMarkSettings): Future[PassMarkSettingsCreateResponse] = ???
 
-  override def tryGetLatestVersion(schemeNames: List[String]): Future[Option[Settings]] = {
+  override def tryGetLatestVersion: Future[Option[SchemePassMarkSettings]] = {
     val currentVersion = "Version-UUID-like-string"
     val createdByUser = "User-UUID-like-string"
     val setting = "location1Scheme1"
 
-    Future.successful(Some(Settings(mockSchemes, currentVersion, new DateTime(), createdByUser, setting)))
+    Future.successful(Some(SchemePassMarkSettings(mockSchemes, currentVersion, new DateTime(),
+      createdByUser, setting)))
   }
 }
