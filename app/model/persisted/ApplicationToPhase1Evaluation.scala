@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package model
+package model.persisted
 
-import org.scalatest.FunSuite
+import model.OnlineTestCommands.Phase1TestProfile
+import model.SelectedSchemes
+import play.api.libs.json._
 
-class Phase1TestTestExamples extends FunSuite {
+case class ApplicationToPhase1Evaluation(
+  applicationId: String,
+  isGis: Boolean,
+  phase1: Phase1TestProfile,
+  preferences: SelectedSchemes
+)
 
+object ApplicationToPhase1Evaluation {
+  implicit val applicationToPhase1EvaluationFormats = Json.format[ApplicationToPhase1Evaluation]
 }
