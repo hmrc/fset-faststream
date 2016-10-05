@@ -23,7 +23,8 @@ import scala.language.implicitConversions
 object ApplicationStatus extends Enumeration {
   type ApplicationStatus = Value
   val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED = Value
-  val PHASE1_TESTS = Value
+  val PHASE1_TESTS, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED = Value
+  val PHASE2_TESTS = Value
 
   implicit def toString(applicationStatus: ApplicationStatus): String = applicationStatus.toString
 

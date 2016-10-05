@@ -17,10 +17,10 @@
 package repositories.onlinetesting
 
 import model.OnlineTestCommands.Phase1TestProfile
-import model.SelectedSchemes
+import model.{ ApplicationStatus, ApplicationStatuses, ProgressStatuses, SelectedSchemes }
 import model.persisted.ApplicationToPhase1Evaluation
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONBoolean, BSONDocument, BSONObjectID }
 import repositories.RandomSelection
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -38,7 +38,17 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with RandomSelection {
 
   def nextApplicationReadyForPhase1ResultEvaluation: Future[Option[ApplicationToPhase1Evaluation]] = {
-    val query = BSONDocument()
+    // TODO: Add BSONDocument("passmarkEvaluation.passmarkVersion" -> BSONDocument("$exists" -> false))
+    val query = BSONDocument("$or" -> BSONArray(
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
+      )),
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS),
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
+      ))
+    ))
 
     selectRandom(query).map(_.map { doc =>
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
