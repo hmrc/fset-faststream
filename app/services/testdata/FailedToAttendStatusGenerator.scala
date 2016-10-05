@@ -19,10 +19,9 @@ package services.testdata
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatuses
 import model.CandidateScoresCommands.CandidateScoresAndFeedback
-import model.Commands.ApplicationAssessment
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,7 +37,8 @@ trait FailedToAttendStatusGenerator extends ConstructiveGenerator {
   val aRepository: GeneralApplicationRepository
   val aasRepository: ApplicationAssessmentScoresRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier): Future[DataGenerationResponse] = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- aasRepository.save(CandidateScoresAndFeedback(candidateInPreviousStatus.applicationId.get, Some(false), true))

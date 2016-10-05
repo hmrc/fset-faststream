@@ -17,6 +17,7 @@
 package services.testdata
 
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.testdata.faker.DataFaker._
@@ -35,7 +36,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
   val qRepository: QuestionnaireRepository
 
   // scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     val didYouLiveInUkBetween14and18Answer = Random.yesNo
     def getWhatWasYourHomePostCodeWhenYouWere14 = {

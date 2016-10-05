@@ -21,6 +21,7 @@ import java.util.UUID
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatuses
 import model.EvaluationResults.RuleCategoryResult
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.testdata.faker.DataFaker.Random
@@ -36,7 +37,7 @@ object AwaitingAllocationStatusGenerator extends AwaitingAllocationStatusGenerat
 trait AwaitingAllocationStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     def getEvaluationResult(candidate: DataGenerationResponse): RuleCategoryResult = {
       RuleCategoryResult(

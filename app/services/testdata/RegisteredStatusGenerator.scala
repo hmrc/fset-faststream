@@ -18,8 +18,8 @@ package services.testdata
 
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -32,7 +32,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
 
   val authProviderClient: AuthProviderClient.type
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val firstName = generatorConfig.firstName.getOrElse(Random.getFirstname(generationId))
     val lastName = generatorConfig.lastName.getOrElse(Random.getLastname(generationId + 4000))
     val preferredName = generatorConfig.preferredName.getOrElse(s"Pref$firstName")

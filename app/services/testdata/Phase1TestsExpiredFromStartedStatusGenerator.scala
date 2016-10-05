@@ -17,9 +17,10 @@
 package services.testdata
 
 import model.persisted.ExpiringOnlineTest
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-import services.onlinetesting.{OnlineTestExpiryService, OnlineTestService}
+import services.onlinetesting.{ OnlineTestExpiryService, OnlineTestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,7 +37,7 @@ trait Phase1TestsExpiredFromStartedStatusGenerator extends ConstructiveGenerator
   val otService: OnlineTestService
   val oteService: OnlineTestExpiryService
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- oteService.commitExpiredProgressStatus(ExpiringOnlineTest(

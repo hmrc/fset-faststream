@@ -177,6 +177,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
       ).futureValue
 
       val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue
+      phase1TestProfile.isDefined mustBe true
       phase1TestProfile.foreach { profile =>
         profile.tests.head.testResult.isDefined mustBe true
         profile.tests.head.testResult.get mustBe testResult

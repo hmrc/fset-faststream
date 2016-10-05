@@ -19,22 +19,26 @@ package services.application
 import model.command.WithdrawApplication
 import model.events.EventTypes.Events
 import model.events.{ AuditEvents, DataStoreEvents }
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
+import services.events.{ EventService, EventSink }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository
-  val auditService = AuditService
+  val eventService = EventService
 }
 
-trait ApplicationService {
+trait ApplicationService extends EventSink {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val appRepository: GeneralApplicationRepository
 
-  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication): Future[Events] = {
+  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     appRepository.withdraw(applicationId, withdrawRequest) map { _ =>
       DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
       AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::

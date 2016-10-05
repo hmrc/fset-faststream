@@ -20,6 +20,7 @@ import connectors.AuthProviderClient
 import connectors.AuthProviderClient.UserRole
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import play.api.Play.current
+import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -34,7 +35,7 @@ object TestDataGeneratorService extends TestDataGeneratorService {
 
 trait TestDataGeneratorService {
 
-  def clearDatabase()(implicit hc: HeaderCarrier): Future[Unit] = {
+  def clearDatabase()(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       dropMainDatabase <- ReactiveMongoPlugin.mongoConnector.db().drop()
       removeAllUsers <- AuthProviderClient.removeAllUsers()
@@ -65,11 +66,10 @@ trait TestDataGeneratorService {
     }
   }
 
-  def createCandidatesInSpecificStatus(
-                                        numberToGenerate: Int,
-                                        generatorForStatus: BaseGenerator,
-                                        generatorConfig: GeneratorConfig
-                                      )(implicit hc: HeaderCarrier): Future[List[DataGenerationResponse]] = {
+  def createCandidatesInSpecificStatus(numberToGenerate: Int,
+    generatorForStatus: BaseGenerator,
+    generatorConfig: GeneratorConfig
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
     Future.successful {
       val parNumbers = (1 to numberToGenerate).par
       parNumbers.tasksupport = new ForkJoinTaskSupport(

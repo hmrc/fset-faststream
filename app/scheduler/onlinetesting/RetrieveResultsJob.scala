@@ -17,9 +17,15 @@
 // TODO FIX ME!!! Once Cubiks callbacks are implemented
 package scheduler.onlinetesting
 
+import java.util
+
 import config.WaitingScheduledJobConfig
+import play.api.http.MediaRange
+import play.i18n.Lang
+import play.mvc.Http.{ Cookies, RequestHeader }
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -33,6 +39,7 @@ trait RetrieveResultsJob extends SingleInstanceScheduledJob with RetrieveResults
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextPhase1TestGroupWithReportReady.flatMap {
       case Some(phase1TestProfile) =>
+        implicit val hc = new HeaderCarrier()
         onlineTestingService.retrievePhase1TestResult(phase1TestProfile)
       case None => Future.successful(())
     }
