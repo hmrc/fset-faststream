@@ -65,7 +65,7 @@ trait CubiksGatewayClient {
   }
 
   def downloadXmlReport(reportId: Int)(implicit hc: HeaderCarrier): Future[TestResult] = {
-    http.GET(s"$url/csr-cubiks-gateway/report-xml/$reportId").map { response =>
+    http.GET(s"$url/csr-cubiks-gateway/faststream/report-xml/$reportId").map { response =>
       if (response.status == OK) {
         response.json.as[TestResult]
       } else {

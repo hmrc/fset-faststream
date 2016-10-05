@@ -44,11 +44,11 @@ trait LockKeeper {
               } else {
                 repo.releaseLock(lockId, serverId).map(_ => Some(x))
               }
-          }
+          }.recoverWith { case ex if !greedyLockingEnabled => repo.releaseLock(lockId, serverId).flatMap(_ => Future.failed(ex)) }
         } else {
           Future.successful(None)
         }
-      }.recoverWith { case ex => repo.releaseLock(lockId, serverId).flatMap(_ => Future.failed(ex)) }
+      }
   }
 
 }
