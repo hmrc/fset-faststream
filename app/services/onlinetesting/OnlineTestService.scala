@@ -66,7 +66,6 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
   //implicit def headerCarrier = new HeaderCarrier()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val actor: ActorSystem
-  val eventService: EventService
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository

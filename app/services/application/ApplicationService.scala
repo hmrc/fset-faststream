@@ -36,7 +36,6 @@ object ApplicationService extends ApplicationService {
 trait ApplicationService extends EventSink {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val appRepository: GeneralApplicationRepository
-  val eventService: EventService
 
   def withdraw(applicationId: String, withdrawRequest: WithdrawApplication)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {

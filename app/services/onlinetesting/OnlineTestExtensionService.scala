@@ -49,7 +49,6 @@ trait OnlineTestExtensionService extends EventSink {
   val otRepository: Phase1TestRepository
   val auditService: AuditService
   val dateTimeFactory: DateTimeFactory
-  val eventService: EventService
   import OnlineTestExtensionServiceImpl._
 
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
