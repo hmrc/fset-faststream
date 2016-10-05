@@ -17,12 +17,13 @@
 package services.onlinetesting
 
 import connectors.{ CSREmailClient, EmailClient }
-import model.PersistedObjects.{ ExpiringOnlineTest, NotificationExpiringOnlineTest }
+import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER }
 import model.ReminderNotice
 import play.api.Logger
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -37,7 +38,7 @@ trait OnlineTestExpiryService {
 
 class OnlineTestExpiryServiceImpl(
   appRepository: GeneralApplicationRepository,
-  otRepository: OnlineTestRepository,
+  otRepository: Phase1TestRepository,
   cdRepository: ContactDetailsRepository,
   emailClient: EmailClient,
   auditService: AuditService,
@@ -122,5 +123,5 @@ class OnlineTestExpiryServiceImpl(
 }
 
 object OnlineTestExpiryService extends OnlineTestExpiryServiceImpl(
-applicationRepository, onlineTestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
+applicationRepository, phase1TestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
 )

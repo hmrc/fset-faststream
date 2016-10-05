@@ -20,8 +20,9 @@ import java.util.UUID
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.EvaluationResults.RuleCategoryResult
+import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.OnlineTestRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -29,13 +30,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object AwaitingAllocationStatusGenerator extends AwaitingAllocationStatusGenerator {
   override val previousStatusGenerator = CreatedStatusGenerator // TODO: Fix this in faststream once the appropriate prior stage is complete
-  override val otRepository = onlineTestRepository
+  override val otRepository = phase1TestRepository
 }
 
 trait AwaitingAllocationStatusGenerator extends ConstructiveGenerator {
-  val otRepository: OnlineTestRepository
+  val otRepository: Phase1TestRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     def getEvaluationResult(candidate: DataGenerationResponse): RuleCategoryResult = {
       RuleCategoryResult(

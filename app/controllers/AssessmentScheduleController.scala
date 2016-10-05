@@ -33,10 +33,11 @@ import model.Exceptions.NotFoundException
 import model.{ ApplicationStatusOrder, Commands }
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
-import play.api.mvc.{Action, Result}
+import play.api.mvc.{ Action, Result }
 import repositories.AssessmentCentreLocation.assessmentCentreVenueFormat
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository, PersonalDetailsRepository}
+import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.applicationassessment.ApplicationAssessmentService
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -49,7 +50,7 @@ object AssessmentScheduleController extends AssessmentScheduleController {
   val aaRepository = applicationAssessmentRepository
   val acRepository = AssessmentCentreYamlRepository
   val aRepository = applicationRepository
-  val otRepository = onlineTestRepository
+  val otRepository = phase1TestRepository
   val auditService = AuditService
   val pdRepository: PersonalDetailsRepository = personalDetailsRepository
   val cdRepository: ContactDetailsRepository = contactDetailsRepository
@@ -61,7 +62,7 @@ trait AssessmentScheduleController extends BaseController {
   val aaRepository: ApplicationAssessmentRepository
   val acRepository: AssessmentCentreRepository
   val aRepository: GeneralApplicationRepository
-  val otRepository: OnlineTestRepository
+  val otRepository: Phase1TestRepository
   val auditService: AuditService
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository

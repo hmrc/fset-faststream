@@ -17,37 +17,32 @@
 package services.application
 
 import model.command.WithdrawApplication
-import model.Exceptions.NotFoundException
-import model.command.WithdrawApplication
+import model.events.EventTypes.Events
+import model.events.{ AuditEvents, DataStoreEvents }
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
-import services.applicationassessment.ApplicationAssessmentService
+import services.events.{ EventService, EventSink }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository
-  val appAssessService = ApplicationAssessmentService
-  val auditService = AuditService
+  val eventService = EventService
 }
 
-trait ApplicationService {
+trait ApplicationService extends EventSink {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-
   val appRepository: GeneralApplicationRepository
-  val appAssessService: ApplicationAssessmentService
-  val auditService: AuditService
 
-  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication) = {
-    appRepository.withdraw(applicationId, withdrawRequest).flatMap { result =>
-      auditService.logEventNoRequest(
-        "ApplicationWithdrawn",
-        Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)
-      )
-      appAssessService.deleteApplicationAssessment(applicationId).recover {
-        case ex: NotFoundException => {}
-      }
+  def withdraw(applicationId: String, withdrawRequest: WithdrawApplication)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    appRepository.withdraw(applicationId, withdrawRequest) map { _ =>
+      DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
+      AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
+      Nil
     }
   }
 }

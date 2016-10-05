@@ -17,15 +17,16 @@
 package services.onlinetesting
 
 import connectors.EmailClient
-import model.PersistedObjects.ApplicationForNotification
+import model.ApplicationStatus._
+import model.persisted.ApplicationForNotification
 import play.api.Logger
 import repositories._
-import model.ApplicationStatus._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait OnlineTestFailureService {
   def processNextFailedTest(): Future[Unit]
@@ -36,7 +37,7 @@ trait OnlineTestFailureService {
 
 class OnlineTestFailureServiceImpl(
   appRepository: GeneralApplicationRepository,
-  otRepository: OnlineTestRepository,
+  otRepository: Phase1TestRepository,
   cdRepository: ContactDetailsRepository,
   emailClient: EmailClient,
   auditService: AuditService,

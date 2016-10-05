@@ -28,7 +28,7 @@ import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.InternshipType.InternshipType
 import model.OnlineTestCommands.OnlineTestApplication
-import model.PersistedObjects.ApplicationForNotification
+import model.persisted.ApplicationForNotification
 import model.ProgressStatuses.ProgressStatus
 import model.SchemeType._
 import model._
@@ -263,9 +263,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   def findByCriteria(firstOrPreferredNameOpt: Option[String],
-    lastNameOpt: Option[String],
-    dateOfBirth: Option[LocalDate],
-    userIds: List[String]
+                     lastNameOpt: Option[String],
+                     dateOfBirth: Option[LocalDate],
+                     filterToUserIds: List[String]
   ): Future[List[Candidate]] = {
 
     def matchIfSome(value: Option[String]) = value.map(v => BSONRegex("^" + Pattern.quote(v) + "$", "i"))
@@ -279,10 +279,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       BSONDocument("personal-details.dateOfBirth" -> dateOfBirth)
     )
 
-    val fullQuery = if (userIds.isEmpty) {
+    val fullQuery = if (filterToUserIds.isEmpty) {
       innerQuery
     } else {
-      innerQuery ++ BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+      innerQuery ++ BSONDocument("userId" -> BSONDocument("$in" -> filterToUserIds))
     }
 
     val query = BSONDocument("$and" -> fullQuery)

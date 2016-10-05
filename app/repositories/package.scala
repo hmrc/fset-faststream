@@ -30,6 +30,8 @@ import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
 import repositories.application._
+import repositories.onlinetesting._
+import repositories.event.EventMongoRepository
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculatorTrait
 
@@ -51,6 +53,7 @@ package object repositories {
   lazy val civilServiceExperienceDetailsRepository = new CivilServiceExperienceDetailsMongoRepository()
   lazy val faststreamPartnerGraduateProgrammesRepository = new partnergraduateprogrammes.PartnerGraduateProgrammesMongoRepository()
   lazy val faststreamAssistanceDetailsRepository = new assistancedetails.AssistanceDetailsMongoRepository()
+  lazy val faststreamPhase1EvaluationRepository = new onlinetesting.Phase1EvaluationMongoRepository()
   lazy val schoolsRepository = SchoolsCSVRepository
 
   // Below repositories will be deleted as they are valid only for Fasttrack
@@ -61,7 +64,7 @@ package object repositories {
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculatorTrait {})
-  lazy val onlineTestRepository = new OnlineTestMongoRepository(DateTimeFactory)
+  lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val testReportRepository = new TestReportMongoRepository()
   lazy val diversityReportRepository = new ReportingMongoRepository()
   lazy val passMarkSettingsRepository = new PassMarkSettingsMongoRepository()
@@ -71,6 +74,7 @@ package object repositories {
   lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
+  lazy val eventMongoRepository = new EventMongoRepository
 
   /** Create indexes */
   Await.result(Future.sequence(List(

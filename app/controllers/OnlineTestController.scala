@@ -24,7 +24,9 @@ import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase1TestRepository
+import services.events.EventService
 import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -43,7 +45,7 @@ case class OnlineTest(
 
 case class OnlineTestStatus(status: String)
 
-case class OnlineTestExtension(extraDays: Int)
+case class OnlineTestExtension(extraDays: Int, actionTriggeredBy: String)
 
 object OnlineTestExtension {
   implicit val onlineTestExtensionFormat = Json.format[OnlineTestExtension]
@@ -53,17 +55,18 @@ case class UserIdWrapper(userId: String)
 
 object OnlineTestController extends OnlineTestController {
   override val appRepository: GeneralApplicationRepository = applicationRepository
-  override val onlineRepository: OnlineTestRepository = onlineTestRepository
+  override val onlineRepository: Phase1TestRepository = phase1TestRepository
   override val onlineTestingService: OnlineTestService = OnlineTestService
   override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
+  val eventService: EventService = EventService
 }
 
 trait OnlineTestController extends BaseController {
-
   val appRepository: GeneralApplicationRepository
-  val onlineRepository: OnlineTestRepository
+  val onlineRepository: Phase1TestRepository
   val onlineTestingService: OnlineTestService
   val onlineTestExtensionService: OnlineTestExtensionService
+  val eventService: EventService
 
   import Commands.Implicits._
 
@@ -84,8 +87,8 @@ trait OnlineTestController extends BaseController {
   def resetOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
       appRepository.getOnlineTestApplication(appId).flatMap {
-        case Some(onlineTestApp) =>
-          onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests) map (_ => Ok)
+        case Some(onlineTestApp) => onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests,
+          resetOnlineTest.actionTriggeredBy).map ( _ => Ok )
         case _ => Future.successful(NotFound)
       }
     }

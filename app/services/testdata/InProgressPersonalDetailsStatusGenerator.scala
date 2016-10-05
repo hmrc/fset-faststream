@@ -20,6 +20,7 @@ import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model._
 import model.persisted.{ ContactDetails, PersonalDetails }
 import org.joda.time.LocalDate
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
@@ -40,7 +41,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
   val cdRepository: ContactDetailsRepository
   val fpdRepository: CivilServiceExperienceDetailsRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
       PersonalDetails(
         candidateInformation.firstName,

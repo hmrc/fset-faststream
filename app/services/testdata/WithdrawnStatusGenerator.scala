@@ -16,10 +16,11 @@
 
 package services.testdata
 
+import model.ApplicationStatus._
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.ApplicationStatus._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -31,7 +32,7 @@ object WithdrawnStatusGenerator extends WithdrawnStatusGenerator {
 trait WithdrawnStatusGenerator extends BaseGenerator {
   val appRepository: GeneralApplicationRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     for {
       candidateInPreviousStatus <- StatusGeneratorFactory.getGenerator(generatorConfig.previousStatus

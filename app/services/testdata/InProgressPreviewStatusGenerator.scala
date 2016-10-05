@@ -16,6 +16,7 @@
 
 package services.testdata
 
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -30,7 +31,7 @@ object InProgressPreviewStatusGenerator extends InProgressPreviewStatusGenerator
 trait InProgressPreviewStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.preview(candidateInPreviousStatus.applicationId.get)

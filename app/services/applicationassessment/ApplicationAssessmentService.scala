@@ -18,14 +18,15 @@ package services.applicationassessment
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
 import connectors.{ CSREmailClient, EmailClient }
+import model.ApplicationStatus._
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
 import model.EvaluationResults._
 import model.Exceptions.IncorrectStatusInApplicationException
-import model.PersistedObjects.ApplicationForNotification
+import model.persisted.ApplicationForNotification
 import play.api.Logger
-import model.ApplicationStatus._
-import repositories.application.{ GeneralApplicationRepository, OnlineTestRepository }
 import repositories._
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
@@ -36,7 +37,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 object ApplicationAssessmentService extends ApplicationAssessmentService {
 
   val appAssessRepository = applicationAssessmentRepository
-  val otRepository = onlineTestRepository
+  val otRepository = phase1TestRepository
   val aRepository = applicationRepository
   val aasRepository = applicationAssessmentScoresRepository
   val fpRepository = frameworkPreferenceRepository
@@ -56,7 +57,7 @@ trait ApplicationAssessmentService {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val appAssessRepository: ApplicationAssessmentRepository
-  val otRepository: OnlineTestRepository
+  val otRepository: Phase1TestRepository
   val aRepository: GeneralApplicationRepository
   val aasRepository: ApplicationAssessmentScoresRepository
   val fpRepository: FrameworkPreferenceRepository
@@ -174,7 +175,7 @@ trait ApplicationAssessmentService {
   }
 
   private[applicationassessment] def emailCandidate(application: ApplicationForNotification, emailAddress: String): Future[Unit] = {
-    application.applicationStatus match {
+    withName(application.applicationStatus) match {
       case ASSESSMENT_CENTRE_PASSED =>
         emailClient.sendAssessmentCentrePassed(emailAddress, application.preferredName).map { _ =>
           auditNotified("AssessmentCentrePassedEmailed", application, Some(emailAddress))

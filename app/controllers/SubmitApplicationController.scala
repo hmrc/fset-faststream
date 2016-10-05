@@ -16,14 +16,16 @@
 
 package controllers
 
-import connectors.{CSREmailClient, EmailClient}
 import model.ApplicationValidator
-import play.api.mvc.Action
+import model.events.EventTypes.Events
+import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
+import play.api.mvc.{ Action, RequestHeader }
 import repositories.FrameworkRepository.CandidateHighestQualification
 import repositories._
-import repositories.application.{GeneralApplicationRepository, PersonalDetailsRepository}
+import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
 import repositories.assistancedetails.AssistanceDetailsRepository
-import services.AuditService
+import services.events.{ EventService, EventSink }
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,11 +38,10 @@ object SubmitApplicationController extends SubmitApplicationController {
   override val frameworkPrefRepository: FrameworkPreferenceMongoRepository = frameworkPreferenceRepository
   override val frameworkRegionsRepository: FrameworkRepository = frameworkRepository
   override val appRepository: GeneralApplicationRepository = applicationRepository
-  override val emailClient = CSREmailClient
-  override val auditService = AuditService
+  override val eventService: EventService = EventService
 }
 
-trait SubmitApplicationController extends BaseController {
+trait SubmitApplicationController extends BaseController with EventSink {
 
   val pdRepository: PersonalDetailsRepository
   val adRepository: AssistanceDetailsRepository
@@ -48,8 +49,6 @@ trait SubmitApplicationController extends BaseController {
   val frameworkPrefRepository: FrameworkPreferenceRepository
   val frameworkRegionsRepository: FrameworkRepository
   val appRepository: GeneralApplicationRepository
-  val emailClient: EmailClient
-  val auditService: AuditService
 
   def submitApplication(userId: String, applicationId: String) = Action.async { implicit request =>
     val generalDetailsFuture = pdRepository.find(applicationId)
@@ -64,18 +63,23 @@ trait SubmitApplicationController extends BaseController {
       sl <- schemesLocationsFuture
       availableRegions <- frameworkRegionsRepository.getFrameworksByRegionFilteredByQualification(CandidateHighestQualification.from(gd))
     } yield {
-        ApplicationValidator(gd, ad, sl, availableRegions).validate match {
-          case true => appRepository.submit(applicationId).flatMap { _ =>
-            emailClient.sendApplicationSubmittedConfirmation(cd.email, gd.preferredName).flatMap { _ =>
-              auditService.logEvent("ApplicationSubmitted")
-              Future.successful(Ok)
-            }
-          }
-          case false => Future.successful(BadRequest)
-        }
+      ApplicationValidator(gd, ad, sl, availableRegions).validate match {
+        case true => submit(applicationId, cd.email, gd.preferredName).map(_ =>  Ok )
+        case false => Future.successful(BadRequest)
       }
+    }
 
     result flatMap identity
+  }
 
+  private def submit(applicationId: String, email: String, preferredName: String)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    // Usually events are created in Service layer. Due to lack of Service layer for submit, they are created here
+    appRepository.submit(applicationId) map { _ =>
+      DataStoreEvents.ApplicationSubmitted(applicationId) ::
+      EmailEvents.ApplicationSubmitted(email, preferredName) ::
+      AuditEvents.ApplicationSubmitted(applicationId) ::
+      Nil
+    }
   }
 }

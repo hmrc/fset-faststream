@@ -33,17 +33,18 @@ import org.scalatest.mock.MockitoSugar
 import play.Logger
 import play.api.libs.json._
 import play.api.test.WithApplication
-import reactivemongo.bson.{BSONDocument, BSONString}
+import reactivemongo.bson.{ BSONDocument, BSONString }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.applicationassessment.ApplicationAssessmentService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.MongoRepositorySpec
 
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoSugar {
 
@@ -54,7 +55,7 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
     val appAssessRepository: ApplicationAssessmentRepository = mock[ApplicationAssessmentRepository]
     val aasRepository: ApplicationAssessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
     val fpRepository: FrameworkPreferenceRepository = mock[FrameworkPreferenceRepository]
-    val otRepository: OnlineTestRepository = mock[OnlineTestRepository]
+    val otRepository: Phase1TestRepository = mock[Phase1TestRepository]
     val aRepository: GeneralApplicationRepository = applicationRepository
     val cdRepository: ContactDetailsRepository = mock[ContactDetailsRepository]
     val passmarkService: AssessmentCentrePassMarkSettingsService = mock[AssessmentCentrePassMarkSettingsService]
