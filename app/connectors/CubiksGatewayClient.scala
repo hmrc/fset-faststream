@@ -64,12 +64,10 @@ trait CubiksGatewayClient {
     }
   }
 
-  def downloadXmlReport(reportId: Int)(implicit hc: HeaderCarrier): Future[Map[String, TestResult]] = {
-    http.GET(s"$url/csr-cubiks-gateway/report-xml/$reportId").map { response =>
+  def downloadXmlReport(reportId: Int)(implicit hc: HeaderCarrier): Future[TestResult] = {
+    http.GET(s"$url/csr-cubiks-gateway/faststream/report-xml/$reportId").map { response =>
       if (response.status == OK) {
-        response.json.as[Map[String, TestResult]]
-      } else if (response.status == NOT_FOUND) {
-        Map.empty
+        response.json.as[TestResult]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
       }

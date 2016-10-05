@@ -15,28 +15,30 @@
  */
 
 import factories.DateTimeFactory
-import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
+import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback}
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication }
+import model.OnlineTestCommands.{OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication}
 import model.PassmarkPersistedObjects._
-import model.PersistedObjects.{ ContactDetails, PersistedAnswer, PersonalDetails, _ }
+import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
 import repositories.application._
+import repositories.onlinetesting._
 import repositories.event.EventMongoRepository
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculatorTrait
+import config.MicroserviceAppConfig._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 package object repositories {
@@ -56,13 +58,13 @@ package object repositories {
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)
   lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
   lazy val mediaRepository = new MediaMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculatorTrait {})
-  lazy val onlineTestRepository = new OnlineTestMongoRepository(DateTimeFactory)
+  lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val testReportRepository = new TestReportMongoRepository()
   lazy val diversityReportRepository = new ReportingMongoRepository()
   lazy val passMarkSettingsRepository = new PassMarkSettingsMongoRepository()

@@ -22,6 +22,7 @@ import model.FlagCandidatePersistedObject.FlagCandidate
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
 
 class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
@@ -29,7 +30,7 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
 
   val collectionName = "application"
   def repository = new FlagCandidateMongoRepository
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
 
   "Flag Candidate repository" should {
     "create and get an issue for the candidate" in {

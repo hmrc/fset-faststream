@@ -125,8 +125,8 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
         (question, answer)
     }.toMap
 
-    val socioEconomicScore = "TODO-100"
-      //socioEconomicCalculator.calculate(qAndA)
+//    val socioEconomicScore = "TODO-100"
+val socioEconomicScore = socioEconomicCalculator.calculate(qAndA)
 
     (applicationId, PassMarkReportQuestionnaireData(
       gender,

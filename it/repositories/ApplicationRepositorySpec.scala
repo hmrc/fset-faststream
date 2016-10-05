@@ -16,6 +16,7 @@
 
 package repositories
 
+import config.MicroserviceAppConfig
 import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
@@ -23,17 +24,17 @@ import model.command.WithdrawApplication
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.persisted.AssistanceDetails
-import model.{ ApplicationStatuses, EvaluationResults }
+import model.{ApplicationStatuses, EvaluationResults}
 import org.joda.time.LocalDate
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, TestDataMongoRepository }
+import repositories.application.{GeneralApplicationMongoRepository, TestDataMongoRepository}
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Await
-
+import MicroserviceAppConfig.cubiksGatewayConfig
 
 class ApplicationRepositorySpec extends MongoRepositorySpec {
 
@@ -43,7 +44,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val collectionName = "application"
 
-  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def assistanceRepo = new AssistanceDetailsMongoRepository()
 
   "Application repository" should {

@@ -19,6 +19,7 @@ package scheduler
 import org.joda.time.Duration
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.LockRepository
@@ -28,7 +29,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.language.postfixOps
 
-class LockKeeperSpec extends PlaySpec with MockitoSugar {
+class LockKeeperSpec extends PlaySpec with MockitoSugar with ScalaFutures {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val lockRepository = mock[LockRepository]
@@ -43,50 +44,57 @@ class LockKeeperSpec extends PlaySpec with MockitoSugar {
 
   val lockKeeper = new TestableLockKeeper
   val timeout = 5 seconds
-  def testMethodForTheLockKeeper()(implicit ec: ExecutionContext): Future[String] = Future.successful("test result")
 
-  "lockKeeper is locked" should {
+  val workException = new Exception("failed")
+  val workResult = "success"
+  def successfulWorkMethod()(implicit ec: ExecutionContext): Future[String] = Future.successful(workResult)
+  def failedWorkMethod()(implicit ec: ExecutionContext): Future[String] = Future.failed(workException)
+
+  "lockKeeper is locked" must {
     "return true if a lock exists in the repo" in {
       when(lockRepository.isLocked("lockId", "serverId")).thenReturn(Future.successful(true))
-      val result = Await.result(lockKeeper.isLocked, timeout)
-      result must be(true)
+      lockKeeper.isLocked.futureValue mustBe true
     }
 
     "return false if a lock does not exist in the repo" in {
       when(lockRepository.isLocked("lockId", "serverId")).thenReturn(Future.successful(false))
-      val result = Await.result(lockKeeper.isLocked, timeout)
-      result must be(false)
+      lockKeeper.isLocked.futureValue mustBe false
     }
   }
 
-  "lockKeeper lock" should {
-    "be acquired if the lock does not exist" in {
+  "Greedy lockKeeper lock" must {
+    "not do work work if the lock is not taken" in {
       when(lockRepository.lock(eqTo("lockId"), eqTo("serverId"), any[Duration])(any[ExecutionContext]))
         .thenReturn(Future.successful(false))
 
-      val result = Await.result(lockKeeper.tryLock(testMethodForTheLockKeeper)(ec), timeout)
-      result must be(None)
+      lockKeeper.tryLock(successfulWorkMethod)(ec).futureValue mustBe None
     }
 
-    "be acquired if the lock exists but it has expired already" in {
+    "do work if the lock can be taken and not release the lock" in {
       when(lockRepository.lock(eqTo("lockId"), eqTo("serverId"), any[Duration])(any[ExecutionContext]))
         .thenReturn(Future.successful(true))
-      when(lockRepository.releaseLock("lockId", "serverId")).thenReturn(Future.successful(()))
 
-      val result = Await.result(lockKeeper.tryLock(testMethodForTheLockKeeper)(ec), timeout)
-      result must be(Some("test result"))
+      lockKeeper.tryLock(successfulWorkMethod)(ec).futureValue mustBe Some(workResult)
+      verify(lockRepository, times(0)).releaseLock("lockId", "serverId")(ec)
     }
 
-    "fail when the repo throws an exception" in {
+    "fail when the lock method throws an exception" in {
+      val lockAquiringException = new RuntimeException("test exception")
       when(lockRepository.lock(eqTo("lockId"), eqTo("serverId"), any[Duration])(any[ExecutionContext]))
-        .thenReturn(Future.failed(new RuntimeException("test exception")))
-      when(lockRepository.releaseLock("lockId", "serverId")).thenReturn(Future.successful(()))
+        .thenReturn(Future.failed(lockAquiringException))
 
-      val result = Await.result(lockKeeper.tryLock(testMethodForTheLockKeeper)(ec).failed, timeout)
+      lockKeeper.tryLock(successfulWorkMethod)(ec).failed.futureValue mustBe lockAquiringException
 
-      verify(lockRepository, atLeastOnce()).releaseLock("lockId", "serverId")(ec)
-      result.isInstanceOf[RuntimeException] must be(true)
-      result.getMessage must be("test exception")
+      verify(lockRepository, times(0)).releaseLock("lockId", "serverId")(ec)
+    }
+
+    "not release the lock when the work method throws an exception" in {
+      when(lockRepository.lock(eqTo("lockId"), eqTo("serverId"), any[Duration])(any[ExecutionContext]))
+        .thenReturn(Future.successful(true))
+
+      lockKeeper.tryLock(failedWorkMethod)(ec).failed.futureValue mustBe workException
+
+      verify(lockRepository, times(0)).releaseLock("lockId", "serverId")(ec)
     }
   }
 }

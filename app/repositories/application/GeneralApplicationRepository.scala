@@ -27,8 +27,8 @@ import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
 import model.InternshipType.InternshipType
-import model.OnlineTestCommands.{OnlineTestApplication, TestResult}
-import model.PersistedObjects.ApplicationForNotification
+import model.OnlineTestCommands.{OnlineTestApplication, Phase1TestProfile, TestResult}
+import model.persisted.ApplicationForNotification
 import model.SchemeType._
 import model._
 import model.command._
@@ -41,6 +41,8 @@ import reactivemongo.bson.{BSONDocument, _}
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
+import config.MicroserviceAppConfig._
+import _root_.config.CubiksGatewayConfig
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -129,7 +131,7 @@ trait GeneralApplicationRepository {
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
-class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
+class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments {
@@ -385,7 +387,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   }
 
-  override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = {
+  override def onlineTestPassMarkReport(frameworkId: String):
+  Future[List[ApplicationForOnlineTestPassMarkReportItem]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
       BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
@@ -436,8 +439,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       lst.map(docToCandidateProgressReport)
     }
   }
-
+  //scalastyle:off method.length
   private def docToOnlineTestPassMarkReport(document: BSONDocument) = {
+    import config.MicroserviceAppConfig._
+
     val applicationId = document.getAs[String]("applicationId").getOrElse("")
 
     val schemesDoc = document.getAs[BSONDocument]("scheme-preferences")
@@ -449,13 +454,23 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
     val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
-    //    val tgDoc = document.getAs[BSONDocument]
-    val testResults = PassMarkReportTestResults(
-      behavioural = Some(TestResult("Completed", "behavioral norm", Some(50.1d), Some(50.2d), Some(50.3d), Some(50.4d))),
-      situational = Some(TestResult("Completed", "situational norm", Some(50.1d), Some(50.2d), Some(50.3d), Some(50.4d)))
-    )
+    val testGroupsDoc = document.getAs[BSONDocument]("testGroups")
+    val phase1Doc  = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE1"))
 
+    val profile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
 
+    val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
+    val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
+
+    def getTestResult(profile: Phase1TestProfile, scheduleId: Int) = {
+      profile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
+        phase1Test.testResult.map{ tr =>
+          TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
+        }
+      }
+    }
+    val behaviouralTestResult = getTestResult(profile, behaviouralScheduleId)
+    val situationalTestResult = getTestResult(profile, situationalScheduleId)
 
     ApplicationForOnlineTestPassMarkReportItem(
       applicationId,
@@ -464,8 +479,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       gis,
       onlineAdjustments,
       assessmentCentreAdjustments,
-      testResults)
+      PassMarkReportTestResults(behaviouralTestResult, situationalTestResult))
   }
+  //scalastyle:on method.length
 
   private def docToCandidateProgressReport(document: BSONDocument) = {
     val schemesDoc = document.getAs[BSONDocument]("scheme-preferences")

@@ -89,6 +89,7 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
     } else {
       "N/A"
     }
+    "TODO-100" // TODO
   }
 
   def calculateSocioEconomicScore(employmentStatusSizeValue: Int, typeOfOccupation: Int): String = {

@@ -8,6 +8,7 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
 
 class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
@@ -16,7 +17,7 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
   override val collectionName = "application"
 
   def repository = new PersonalDetailsMongoRepository
-  def appRepository = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def appRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
 
   "update candidate" should {
     "modify the details and find the personal details successfully" in {

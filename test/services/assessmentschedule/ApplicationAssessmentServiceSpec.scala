@@ -24,7 +24,8 @@ import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.{IncorrectStatusInApplicationException, NotFoundException}
 import model.PassmarkPersistedObjects.{AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold}
-import model.PersistedObjects.{ApplicationForNotification, ContactDetails}
+import model.PersistedObjects.ContactDetails
+import model.persisted.ApplicationForNotification
 import model.{Address, EvaluationResults, LocationPreference, Preferences}
 import org.joda.time.DateTime
 import org.mockito.Matchers.{eq => eqTo, _}
@@ -33,7 +34,8 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.PlaySpec
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase1TestRepository
 import repositories.{ApplicationAssessmentScoresRepository, _}
 import services.AuditService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
@@ -46,7 +48,7 @@ class ApplicationAssessmentServiceSpec extends PlaySpec with MockitoSugar with S
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val applicationAssessmentRepositoryMock = mock[ApplicationAssessmentRepository]
-  val onlineTestRepositoryMock = mock[OnlineTestRepository]
+  val onlineTestRepositoryMock = mock[Phase1TestRepository]
   val auditServiceMock = mock[AuditService]
   val emailClientMock = mock[EmailClient]
   val aRepositoryMock = mock[GeneralApplicationRepository]

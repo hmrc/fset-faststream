@@ -67,11 +67,11 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
 
       report mustBe Map(
         applicationId1 -> PassMarkReportQuestionnaireData(
-          Some("Male"), Some("Straight"), Some("Black"), Some("Unemployed"), None, Some("Self-employed"),
-          None, "SES Score"),
+          Some("Male"), Some("Straight"), Some("Black"), Some("Unemployed"), None, None,
+          None, "SES Score", Some("W01-USW")),
         applicationId2 -> PassMarkReportQuestionnaireData(
           Some("Female"), Some("Lesbian"), Some("White"), Some("Employed"), Some("Modern professional"), Some("Part-time employed"),
-          Some("Large (26-500)"), "SES Score")
+          Some("Large (26-500)"), "SES Score", Some("W17-WARR"))
       )
     }
 
@@ -85,7 +85,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         "What is your gender identity?" -> "Male",
         "What is your sexual orientation?" -> "Straight",
         "What is your ethnic group?" -> "Black",
-        "Which type of occupation did they have?" -> "Unemployed",
+        "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed",
         "Did they work as an employee or were they self-employed?" -> "Self-employed",
         "Which size would best describe their place of work?" -> "Unknown"
       ))
@@ -100,15 +100,19 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       PersistedQuestion("What is your gender identity?", PersistedAnswer(Some("Male"), None, None)),
       PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some("Straight"), None, None)),
       PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some("Black"), None, None)),
-      PersistedQuestion("Which type of occupation did they have?", PersistedAnswer(Some("Unemployed"), None, None)),
-      PersistedQuestion("Did they work as an employee or were they self-employed?", PersistedAnswer(Some("Self-employed"), None, None)),
-      PersistedQuestion("Which size would best describe their place of work?", PersistedAnswer(None, None, Some(true)))
+      PersistedQuestion("What is the name of the university you received your degree from?", PersistedAnswer(Some("W01-USW"), None, None)),
+      PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+        PersistedAnswer(Some("Unemployed"), None, None))//,
+     // PersistedQuestion("Did they work as an employee or were they self-employed?", PersistedAnswer(Some("Self-employed"), None, None)),
+     // PersistedQuestion("Which size would best describe their place of work?", PersistedAnswer(None, None, Some(true)))
     )
     val submittedQuestionnaire2 = List(
       PersistedQuestion("What is your gender identity?", PersistedAnswer(Some("Female"), None, None)),
       PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some("Lesbian"), None, None)),
       PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some("White"), None, None)),
-      PersistedQuestion("Which type of occupation did they have?", PersistedAnswer(Some("Modern professional"), None, None)),
+      PersistedQuestion("What is the name of the university you received your degree from?", PersistedAnswer(Some("W17-WARR"), None, None)),
+      PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+        PersistedAnswer(Some("Modern professional"), None, None)),
       PersistedQuestion("Did they work as an employee or were they self-employed?", PersistedAnswer(Some("Part-time employed"), None, None)),
       PersistedQuestion("Which size would best describe their place of work?", PersistedAnswer(Some("Large (26-500)"), None, None))
     )

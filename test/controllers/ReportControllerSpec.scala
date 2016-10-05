@@ -221,8 +221,8 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
       )
 
       def toReport(candidate: CandidateAwaitingAllocation, contact: ContactDetailsWithId) = {
-        import candidate._
-        import contact._
+       import candidate._
+       import contact._
         AssessmentCentreAllocationReport(firstName, lastName, preferredName, email, phone.getOrElse(""),
           preferredLocation1, adjustments, dateOfBirth)
       }

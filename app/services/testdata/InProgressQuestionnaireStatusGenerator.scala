@@ -107,7 +107,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
         Some(PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
           PersistedAnswer(Some(Random.parentsOccupationDetails), None, None)))
       } else {
-        None
+        None // TODO. Set unemployeed?
       }
     }
 
@@ -154,7 +154,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       getUniversityDegreeCategoryAnswer,
       Some(PersistedQuestion("Do you have a parent or guardian that has completed a university degree course or equivalent?",
         PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None))),
-      Some(PersistedQuestion("When you were 14, was your highest-earning parent or guardian?",
+      Some(PersistedQuestion("When you were 14, was your highest-earning parent or guardian employeed?",
         PersistedAnswer(Some(Random.parentsOccupation), None, None))),
       getParentsOccupationDetail,
       getEmployeedOrSelfEmployeed,

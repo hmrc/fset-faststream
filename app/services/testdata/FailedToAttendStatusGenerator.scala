@@ -21,7 +21,7 @@ import model.ApplicationStatuses
 import model.CandidateScoresCommands.CandidateScoresAndFeedback
 import model.Commands.ApplicationAssessment
 import repositories._
-import repositories.application.{GeneralApplicationRepository, OnlineTestRepository}
+import repositories.application.GeneralApplicationRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 
