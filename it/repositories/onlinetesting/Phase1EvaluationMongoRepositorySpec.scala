@@ -14,6 +14,7 @@ import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.schemepreferences
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
+import config.MicroserviceAppConfig._
 
 class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
@@ -23,7 +24,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository
 
-  def helperAppRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def helperAppRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def helperAssistanceDetailsRepo = new AssistanceDetailsMongoRepository
   def helperPhase1TestMongoRepoo = new Phase1TestMongoRepository(DateTimeFactory)
   def helperSchemePreferencesRepo = new schemepreferences.SchemePreferencesMongoRepository
