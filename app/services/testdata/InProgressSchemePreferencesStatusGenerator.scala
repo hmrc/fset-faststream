@@ -21,6 +21,7 @@ import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import model._
 import model.persisted.{ AssistanceDetails, ContactDetails, PersonalDetails }
 import org.joda.time.LocalDate
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
@@ -42,7 +43,7 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
   val spRepository: SchemePreferencesRepository
 
   // scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getSchemePreferences: Future[SelectedSchemes] = {
        Future.successful(SelectedSchemes(Random.schemeTypes, true, true))
     }

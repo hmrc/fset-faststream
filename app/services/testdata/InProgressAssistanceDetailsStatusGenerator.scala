@@ -16,12 +16,10 @@
 
 package services.testdata
 
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
-import model.persisted.{ AssistanceDetails }
+import model.persisted.AssistanceDetails
+import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
-import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,7 +32,7 @@ object InProgressAssistanceDetailsStatusGenerator extends InProgressAssistanceDe
 trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
   val adRepository: AssistanceDetailsRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getAssistanceDetails(gis: Boolean) = {
       if (gis) {
         AssistanceDetails("Yes", Some("disability"), Some(true), true, Some("adjustment online"), true, Some("adjustment at venue"))

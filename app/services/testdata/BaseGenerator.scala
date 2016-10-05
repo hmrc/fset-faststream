@@ -17,10 +17,12 @@
 package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 trait BaseGenerator {
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier): Future[DataGenerationResponse]
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse]
 }

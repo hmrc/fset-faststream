@@ -26,6 +26,7 @@ import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
+import model.events.EventTypes.{ toString => _, _ }
 import model.exchange.Phase1TestResultReady
 import model.persisted.Phase1TestProfileWithAppId
 import org.joda.time.DateTime
@@ -35,10 +36,12 @@ import org.scalatest.{ BeforeAndAfterEach, PrivateMethodTester }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import repositories.{ ContactDetailsRepository, TestReportRepository }
 import services.AuditService
+import services.events.{ EventService, EventServiceFixture }
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -521,6 +524,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   trait OnlineTest {
     implicit val hc = HeaderCarrier()
+    implicit val rh = mock[RequestHeader]
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
@@ -531,12 +535,13 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     var auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
+    val eventServiceMock = mock[EventService]
 
     when(tokenFactoryMock.generateUUID()).thenReturn(token)
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
     when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
 
-    val onlineTestService = new OnlineTestService {
+    val onlineTestService = new OnlineTestService with EventServiceFixture {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val phase1TestRepo = otRepositoryMock
@@ -548,9 +553,10 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
       val actor = ActorSystem()
-
     }
   }
+
+
 
   trait SuccessfulTestInviteFixture extends OnlineTest {
     when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))

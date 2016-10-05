@@ -40,10 +40,9 @@ trait Phase1TestGroupController extends BaseController {
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>
-      for {
-        events <- phase1TestExtensionService.extendTestGroupExpiryTime(applicationId, extension.extraDays, extension.actionTriggeredBy)
-        _ <- eventService.handle(events)
-      } yield Ok
+      phase1TestExtensionService.extendTestGroupExpiryTime(applicationId, extension.extraDays,
+        extension.actionTriggeredBy
+      ).map( _ => Ok )
     }
   }
 }
