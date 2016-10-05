@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.{ CannotFindTestByCubiksId, NotFoundException }
+import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.Phase1TestResultReady
 import play.api.mvc.{ Action, Result }
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -37,18 +37,14 @@ trait Phase1TestsController extends BaseController {
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId started")
-    (for {
-      events <- phase1TestService.markAsStarted(cubiksUserId)
-      _ <- eventService.handle(events)
-    } yield Ok).recover(recoverNotFound)
+    phase1TestService.markAsStarted(cubiksUserId).map( _ => Ok )
+      .recover(recoverNotFound)
   }
 
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId completed")
-    (for {
-      events <- phase1TestService.markAsCompleted(cubiksUserId)
-      _ <- eventService.handle(events)
-    } yield Ok).recover(recoverNotFound)
+    phase1TestService.markAsCompleted(cubiksUserId).map( _ => Ok )
+      .recover(recoverNotFound)
   }
 
   /**
@@ -58,10 +54,8 @@ trait Phase1TestsController extends BaseController {
     */
   def completeTestByToken(token: String) = Action.async { implicit request =>
     Logger.info(s"Complete test by token $token")
-    (for {
-      events <- phase1TestService.markAsCompleted(token)
-      _ <- eventService.handle(events)
-    } yield Ok).recover(recoverNotFound)
+    phase1TestService.markAsCompleted(token).map ( _ => Ok )
+      .recover(recoverNotFound)
   }
 
   def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>

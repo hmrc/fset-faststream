@@ -154,15 +154,13 @@ class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results 
 
   trait TestFixture extends TestFixtureBase {
     val mockApplicationService = mock[ApplicationService]
-    when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))).thenReturn(Future.successful(List()))
-    val mockEventService = mock[EventService]
-    when(mockEventService.handle(any[Events])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful())
+    when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))(any[HeaderCarrier], any[RequestHeader]))
+      .thenReturn(Future.successful(()))
 
     object TestApplicationController extends ApplicationController {
       override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
       override val auditService: AuditService = mockAuditService
       override val applicationService: ApplicationService = mockApplicationService
-      override val eventService: EventService = mockEventService
     }
 
     def applicationProgressRequest(applicationId: String) = {

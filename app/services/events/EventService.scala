@@ -22,6 +22,7 @@ import play.api.Logger
 import play.api.mvc.RequestHeader
 import services.events.handler.{ AuditEventHandler, EmailEventHandler, DataStoreEventHandler }
 import uk.gov.hmrc.play.http.HeaderCarrier
+import scala.language.implicitConversions
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -37,6 +38,9 @@ trait EventService {
   val auditEventHandler: AuditEventHandler
   val emailEventHandler: EmailEventHandler
 
+  implicit def toEvents(e: EventType): Events = List(e)
+
+  // TODO: Error handling
   def handle(events: Events)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val result = events.collect {
       case event: DataStoreEvent => dataStoreEventHandler.handle(event)
@@ -51,5 +55,13 @@ trait EventService {
   }
 
   def handle(event: EventType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = handle(List(event))
-
 }
+
+trait EventSink {
+  val eventService: EventService
+
+  def eventSink(block: => Future[Events])(implicit hc: HeaderCarrier, rh: RequestHeader) = block.flatMap { events =>
+    eventService.handle(events)
+  }
+}
+

@@ -16,13 +16,10 @@
 
 package services.testdata
 
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
-import model.persisted.{ AssistanceDetails, PartnerGraduateProgrammes }
+import model.persisted.PartnerGraduateProgrammes
+import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
-import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.partnergraduateprogrammes.PartnerGraduateProgrammesRepository
-import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +32,7 @@ object InProgressPartnerGraduateProgrammesStatusGenerator extends InProgressPart
 trait InProgressPartnerGraduateProgrammesStatusGenerator extends ConstructiveGenerator {
   val pgpRepository: PartnerGraduateProgrammesRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- pgpRepository.update(candidateInPreviousStatus.applicationId.get, PartnerGraduateProgrammes(true,

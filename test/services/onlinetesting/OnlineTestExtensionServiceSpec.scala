@@ -25,12 +25,15 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
+import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase1TestRepository
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
+import services.events.EventServiceFixture
 import services.onlinetesting.OnlineTestService.TestExtensionException
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -49,9 +52,6 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
 
         val result = underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").futureValue
 
-        result(0).eventName mustBe "ExpiredTestsExtended"
-        result(1).eventName mustBe "OnlineExerciseExtended"
-
         verify(mockAppRepository).findProgress(eqTo(applicationId))
         verify(mockOtRepository).getTestGroup(eqTo(applicationId))
         verify(mockDateFactory).nowLocalTimeZone
@@ -67,10 +67,9 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
 
-        val result = underTest.extendTestGroupExpiryTime(applicationId, threeExtraDays, "triggeredBy").futureValue
-
-        result(0).eventName mustBe "NonExpiredTestsExtended"
-        result(1).eventName mustBe "OnlineExerciseExtended"
+        underTest.extendTestGroupExpiryTime(applicationId, threeExtraDays, "triggeredBy").futureValue
+        underTest.verifyAuditEvents(1, "NonExpiredTestsExtended")
+        underTest.verifyDataStoreEvents(1, "OnlineExerciseExtended")
 
         verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.plusDays(threeExtraDays)), any())
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanThreeDays))
@@ -148,6 +147,8 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
   }
 
   trait TestFixture {
+    implicit val hc = HeaderCarrier()
+    implicit val rh = mock[RequestHeader]
     val applicationId = "abc"
     val twoExtraDays = 2
     val threeExtraDays = 3
@@ -173,6 +174,11 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
     val mockAppRepository = mock[GeneralApplicationRepository]
     val mockOtRepository = mock[Phase1TestRepository]
     val mockAuditService = mock[AuditService]
-    val underTest = new OnlineTestExtensionServiceImpl(mockAppRepository, mockOtRepository, mockAuditService, mockDateFactory)
+    val underTest = new OnlineTestExtensionService with EventServiceFixture {
+      val appRepository = mockAppRepository
+      val otRepository = mockOtRepository
+      val auditService = mockAuditService
+      val dateTimeFactory = mockDateFactory
+    }
   }
 }

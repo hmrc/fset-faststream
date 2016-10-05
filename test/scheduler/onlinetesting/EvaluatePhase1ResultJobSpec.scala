@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package services.testdata
+package scheduler.onlinetesting
 
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.http.HeaderCarrier
+import org.scalatestplus.play.PlaySpec
 
-import scala.concurrent.Future
-
-trait BaseGenerator {
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse]
+class EvaluatePhase1ResultJobSpec extends PlaySpec {
+  // TODO: FSET-696
 }

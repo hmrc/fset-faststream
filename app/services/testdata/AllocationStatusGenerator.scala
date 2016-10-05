@@ -19,6 +19,7 @@ package services.testdata
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatuses
 import model.Commands.ApplicationAssessment
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.testdata.faker.DataFaker.Random
@@ -39,7 +40,8 @@ trait AllocationStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
   val aaRepository: ApplicationAssessmentRepository
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier): Future[DataGenerationResponse] = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
 
     def getApplicationAssessment(candidate: DataGenerationResponse) = {
       for {
