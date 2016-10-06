@@ -16,11 +16,11 @@
 
 package services.onlinetesting
 
-import org.scalatest.Matchers
 import org.scalatest.mock.MockitoSugar
+import org.scalatest.Matchers
 import org.scalatestplus.play.PlaySpec
 
-class OnlineTestServiceSpec extends PlaySpec with MockitoSugar {
+class Phase2TestServiceSpec extends PlaySpec with MockitoSugar {
 
   "some tests" should {
     "pass" in {

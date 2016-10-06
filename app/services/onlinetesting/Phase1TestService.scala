@@ -59,8 +59,6 @@ object Phase1TestService extends Phase1TestService {
 }
 
 trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
-  //implicit def headerCarrier = new HeaderCarrier()
-  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val actor: ActorSystem
 
   val appRepository: GeneralApplicationRepository
@@ -222,15 +220,6 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     }
   }
 
-  private def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-    invitationDate: DateTime, expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[Unit] = {
-    val preferredName = application.preferredName
-    emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
-      audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))
-    }
-  }
-
   private def markAsInvited(application: OnlineTestApplication)
                            (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
     currentOnlineTestProfile <- phase1TestRepo.getTestGroup(application.applicationId)
@@ -263,15 +252,6 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     val invitationDate = dateTimeFactory.nowLocalTimeZone
     val expirationDate = invitationDate.plusDays(gatewayConfig.phase1Tests.expiryTimeInDays)
     (invitationDate, expirationDate)
-  }
-
-  private def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
-    Logger.info(s"$event for user $userId")
-
-    auditService.logEventNoRequest(
-      event,
-      Map("userId" -> userId) ++ emailAddress.map("email" -> _).toMap
-    )
   }
 
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {

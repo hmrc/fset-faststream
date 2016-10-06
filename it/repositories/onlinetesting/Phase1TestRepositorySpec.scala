@@ -19,32 +19,19 @@ package repositories.onlinetesting
 import java.util.UUID
 
 import repositories.BSONLocalDateHandler
-import factories.DateTimeFactory
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.persisted.ExpiringOnlineTest
-import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _ }
+import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
 import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument }
-import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.GeneralApplicationMongoRepository
-import services.GBTimeZoneService
+import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.Future
-
-class Phase1TestRepositorySpec extends MongoRepositorySpec {
-  import ImplicitBSONHandlers._
+class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
   import TextFixture._
-
-  override val collectionName = "application"
-
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
-  def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
 
   val Token = UUID.randomUUID.toString
   val Now =  DateTime.now(DateTimeZone.UTC)
@@ -227,7 +214,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
       "there are no application in PHASE1_TESTS" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS)).futureValue
+        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
         phase1TestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
@@ -247,7 +234,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now
-        ))).futureValue
+        )), AppId).futureValue
         phase1TestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
@@ -258,7 +245,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
-        ))).futureValue
+        )), AppId).futureValue
         phase1TestRepo.nextExpiringApplication.futureValue must be(None)
       }
     }
@@ -301,7 +288,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
       "there are no application in PHASE1_TESTS" in {
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS)).futureValue
+        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
         phase1TestRepo.nextTestForReminder(FirstReminder).futureValue must be(None)
       }
 
@@ -320,7 +307,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
-        ))).futureValue
+        )), AppId).futureValue
         phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
 
@@ -331,7 +318,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
-        ))).futureValue
+        )), AppId).futureValue
         phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
 
@@ -340,7 +327,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           s"progress-status.$PHASE1_TESTS_SECOND_REMINDER" -> true
-        ))).futureValue
+        )), AppId).futureValue
         phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
     }
@@ -368,228 +355,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
       app.progressResponse.phase1TestsInvited mustBe false
       app.progressResponse.phase1TestsCompleted mustBe false
     }
-  }
-
-  def updateApplication(doc: BSONDocument) = phase1TestRepo.collection.update(BSONDocument("applicationId" -> AppId), doc)
-
-  def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String,
-    needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean,
-    fastPassApplicable: Boolean = false) = {
-
-    helperRepo.collection.insert(BSONDocument(
-      "userId" -> userId,
-      "frameworkId" -> frameworkId,
-      "applicationId" -> appId,
-      "applicationStatus" -> appStatus,
-      "personal-details" -> BSONDocument("preferredName" -> "Test Preferred Name"),
-      "civil-service-experience-details.applicable" -> fastPassApplicable,
-      "assistance-details" -> createAsistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments)
-    )).futureValue
-  }
-
-  private def createAsistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments:Boolean) = {
-    if (needsAdjustment) {
-      if (adjustmentsConfirmed) {
-        if (timeExtensionAdjustments) {
-          BSONDocument(
-            "needsAdjustment" -> "Yes",
-            "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-            "adjustments-confirmed" -> true,
-            "verbalTimeAdjustmentPercentage" -> 9,
-            "numericalTimeAdjustmentPercentage" -> 11
-          )
-        } else {
-          BSONDocument(
-            "needsAdjustment" -> "Yes",
-            "typeOfAdjustments" -> BSONArray("room alone"),
-            "adjustments-confirmed" -> true
-          )
-        }
-      } else {
-        BSONDocument(
-          "needsAdjustment" -> "Yes",
-          "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-          "adjustments-confirmed" -> false
-        )
-      }
-    } else {
-      BSONDocument(
-        "needsAdjustment" -> "No"
-      )
-    }
-  }
-
-
-
-  def createOnlineTestApplication(appId: String, applicationStatus: String, xmlReportSavedOpt: Option[Boolean] = None,
-                                  alreadyEvaluatedAgainstPassmarkVersionOpt: Option[String] = None): String = {
-    val result = (xmlReportSavedOpt, alreadyEvaluatedAgainstPassmarkVersionOpt) match {
-      case (None, None ) =>
-        helperRepo.collection.insert(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus
-        ))
-      case (Some(xmlReportSaved), None) =>
-        helperRepo.collection.insert(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus,
-          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved)
-        ))
-      case (None, Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
-        helperRepo.collection.insert(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus,
-          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
-        ))
-      case (Some(xmlReportSaved), Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
-        helperRepo.collection.insert(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus,
-          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved),
-          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
-        ))
-    }
-
-    result.futureValue
-
-    appId
-  }
-
-  // scalastyle:off parameter.number
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String = "frameworkId",
-    appStatus: String, needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
-    timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false,
-    fastPassReceived: Boolean = false, isGis: Boolean = false,
-    additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
-    phase1TestProfile: Option[Phase1TestProfile] = None
-  ): Future[WriteResult] = {
-    val doc = BSONDocument(
-      "applicationId" -> appId,
-      "applicationStatus" -> appStatus,
-      "userId" -> userId,
-      "frameworkId" -> frameworkId,
-      "framework-preferences" -> BSONDocument(
-        "firstLocation" -> BSONDocument(
-          "region" -> "Region1",
-          "location" -> "Location1",
-          "firstFramework" -> "Commercial",
-          "secondFramework" -> "Digital and technology"
-        ),
-        "secondLocation" -> BSONDocument(
-          "location" -> "Location2",
-          "firstFramework" -> "Business",
-          "secondFramework" -> "Finance"
-        ),
-        "alternatives" -> BSONDocument(
-          "location" -> true,
-          "framework" -> true
-        )
-      ),
-      "personal-details" -> BSONDocument(
-        "firstName" -> s"${testCandidate("firstName")}",
-        "lastName" -> s"${testCandidate("lastName")}",
-        "preferredName" -> s"${testCandidate("preferredName")}",
-        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}",
-        "aLevel" -> true,
-        "stemLevel" -> true
-      ),
-      "civil-service-experience-details" -> BSONDocument(
-        "applicable" -> fastPassApplicable,
-        "fastPassReceived" -> fastPassReceived
-      ),
-      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments, isGis),
-      "issue" -> "this candidate has changed the email",
-      "progress-status" -> progressStatus(additionalProgressStatuses),
-      "testGroups" -> phase1TestGroup(phase1TestProfile)
-    )
-
-    helperRepo.collection.insert(doc)
-  }
-  // scalastyle:on parameter.number
-
-  private def phase1TestGroup(o: Option[Phase1TestProfile]): BSONDocument = {
-    BSONDocument("PHASE1" -> o.map(Phase1TestProfile.bsonHandler.write))
-  }
-
-  private def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
-    val baseDoc = BSONDocument(
-      "personal-details" -> true,
-      "in_progress" -> true,
-      "scheme-preferences" -> true,
-      "partner-graduate-programmes" -> true,
-      "assistance-details" -> true,
-      "questionnaire" -> questionnaire(),
-      "preview" -> true,
-      "submitted" -> true
-    )
-
-    args.foldLeft(baseDoc)((acc, v) => acc.++(v._1.toString -> v._2))
-  }
-
-  private def questionnaire() = {
-    BSONDocument(
-      "start_questionnaire" -> true,
-      "diversity_questionnaire" -> true,
-      "education_questionnaire" -> true,
-      "occupation_questionnaire" -> true
-    )
-  }
-
-  private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
-                                      timeExtensionAdjustments:Boolean, isGis: Boolean = false) = {
-    if (needsAdjustment) {
-      if (adjustmentsConfirmed) {
-        if (timeExtensionAdjustments) {
-          BSONDocument(
-            "needsAdjustment" -> "Yes",
-            "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-            "adjustments-confirmed" -> true,
-            "verbalTimeAdjustmentPercentage" -> 9,
-            "numericalTimeAdjustmentPercentage" -> 11,
-            "guaranteedInterview" -> isGis
-          )
-        } else {
-          BSONDocument(
-            "needsAdjustment" -> "Yes",
-            "typeOfAdjustments" -> BSONArray("room alone"),
-            "adjustments-confirmed" -> true,
-            "guaranteedInterview" -> isGis
-          )
-        }
-      } else {
-        BSONDocument(
-          "needsAdjustment" -> "Yes",
-          "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-          "adjustments-confirmed" -> false,
-          "guaranteedInterview" -> isGis
-        )
-      }
-    } else {
-      BSONDocument(
-        "needsAdjustment" -> "No",
-        "guaranteedInterview" -> isGis
-      )
-    }
-  }
-
-  val testCandidate = Map(
-    "firstName" -> "George",
-    "lastName" -> "Jetson",
-    "preferredName" -> "Georgy",
-    "dateOfBirth" -> "1986-05-01"
-  )
-
-  private def insertApplication(appId: String) = {
-    helperRepo.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "personal-details" -> BSONDocument(
-        "firstName" -> s"${testCandidate("firstName")}",
-        "lastName" -> s"${testCandidate("lastName")}",
-        "preferredName" -> s"${testCandidate("preferredName")}",
-        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}",
-        "aLevel" -> true,
-        "stemLevel" -> true
-    ))).futureValue
   }
 
 }

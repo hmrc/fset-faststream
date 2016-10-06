@@ -51,7 +51,6 @@ object Phase2TestService extends Phase2TestService {
 }
 
 trait Phase2TestService extends OnlineTestService {
-  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   val actor: ActorSystem
 
   val appRepository: GeneralApplicationRepository
@@ -63,7 +62,6 @@ trait Phase2TestService extends OnlineTestService {
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     phase2TestRepo.nextApplicationReadyForOnlineTesting
   }
-
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit] = {
     registerAndInviteForTestGroup(application)
@@ -110,15 +108,6 @@ trait Phase2TestService extends OnlineTestService {
   //  }
   //}
 
-  private def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-    invitationDate: DateTime, expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[Unit] = {
-    val preferredName = application.preferredName
-    emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
-      audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))
-    }
-  }
-
   //private def markAsInvited(application: OnlineTestApplication)
   //                         (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
   //  currentOnlineTestProfile <- phase1TestRepo.getTestGroup(application.applicationId)
@@ -138,14 +127,7 @@ trait Phase2TestService extends OnlineTestService {
     (invitationDate, expirationDate)
   }
 
-  private def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
-    Logger.info(s"$event for user $userId")
 
-    auditService.logEventNoRequest(
-      event,
-      Map("userId" -> userId) ++ emailAddress.map("email" -> _).toMap
-    )
-  }
 
   private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {
     val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))
