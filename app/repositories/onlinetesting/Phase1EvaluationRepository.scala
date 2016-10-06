@@ -17,9 +17,11 @@
 package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
+import model.EvaluationResults.Result
 import model.OnlineTestCommands.Phase1TestProfile
+import model.SchemeType.SchemeType
 import model.persisted.ApplicationPhase1Evaluation
-import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
+import model.{ ApplicationStatus, ProgressStatuses, SchemeType, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.RandomSelection
@@ -63,5 +65,23 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     })
   }
 
+  def savePassmarkEvaluation(applicationId: String, passmarkVersion: String, result: List[(SchemeType, Result)],
+                             newApplicationStatus: ApplicationStatus): Future[Unit] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument("or" -> BSONArray(
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
+      ))
+    ))
 
+    val passMarkEvaluation = BSONDocument("$set" ->
+      BSONDocument("phase1PassmarkEvaluation" ->
+        BSONDocument("passmarkVersion" -> passmarkVersion, "result" -> result)
+      )
+    )
+
+    collection.update(query, passMarkEvaluation, upsert = false) map ( _ => () )
+  }
 }
