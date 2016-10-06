@@ -457,20 +457,20 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
     val testGroupsDoc = document.getAs[BSONDocument]("testGroups")
     val phase1Doc  = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE1"))
 
-    val profile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
+    val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
 
     val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
     val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
 
-    def getTestResult(profile: Phase1TestProfile, scheduleId: Int) = {
-      profile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
+    def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
+      phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
         phase1Test.testResult.map{ tr =>
           TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
         }
       }
     }
-    val behaviouralTestResult = getTestResult(profile, behaviouralScheduleId)
-    val situationalTestResult = getTestResult(profile, situationalScheduleId)
+    val behaviouralTestResult = getTestResult(phase1TestProfile, behaviouralScheduleId)
+    val situationalTestResult = getTestResult(phase1TestProfile, situationalScheduleId)
 
     ApplicationForOnlineTestPassMarkReportItem(
       applicationId,
