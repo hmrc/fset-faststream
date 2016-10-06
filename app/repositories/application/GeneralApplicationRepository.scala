@@ -687,24 +687,28 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
+        // TO DO: confirm with Mike the exit status
         BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "IN_PROGRESS")),
         BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN")),
         BSONDocument("$or" ->
           BSONArray(
-            BSONDocument("assistance-details.needsAdjustment" -> "Yes"),
-            BSONDocument("assistance-details.guaranteedInterview" -> "Yes")
+            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+            BSONDocument("assistance-details.needsSupportAtVenue" -> true)
           ))
       ))
 
     val projection = BSONDocument(
       "userId" -> "1",
+      "applicationStatus" -> "1",
+      "applicationId" -> "1",
       "personal-details.firstName" -> "1",
       "personal-details.lastName" -> "1",
       "personal-details.preferredName" -> "1",
+      "assistance-details.hasDisability" -> "1",
+      "assistance-details.needsSupportAtVenueDescription" -> "1",
+      "assistance-details.needsSupportForOnlineAssessmentDescription" -> "1",
       "assistance-details.guaranteedInterview" -> "1",
-      "assistance-details.typeOfAdjustments" -> "1",
-      "assistance-details.otherAdjustments" -> "1",
-      "assistance-details.adjustments-confirmed" -> "1"
+      "assistance-details.hasDisabilityDescription" -> "1"
     )
 
     reportQueryWithProjections[BSONDocument](query, projection).map { list =>
@@ -712,19 +716,33 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
         val personalDetails = document.getAs[BSONDocument]("personal-details")
         val userId = document.getAs[String]("userId").getOrElse("")
+        val applicationId = document.getAs[String]("applicationId")
+        val applicationStatus = document.getAs[String]("applicationStatus")
         val firstName = extract("firstName")(personalDetails)
         val lastName = extract("lastName")(personalDetails)
         val preferredName = extract("preferredName")(personalDetails)
 
         val assistance = document.getAs[BSONDocument]("assistance-details")
-        val gis = extract("guaranteedInterview")(assistance)
-        val typesOfAdjustments = assistance.flatMap(_.getAs[List[String]]("typeOfAdjustments"))
-        val otherAdjustments = extract("otherAdjustments")(assistance)
-        val adjustmentsConfirmed = getAdjustmentsConfirmed(assistance)
-        val adjustments = typesOfAdjustments.getOrElse(Nil) ::: otherAdjustments.toList
-        val finalTOA = if (adjustments.isEmpty) None else Some(adjustments.mkString("|"))
+        val gis = assistance.flatMap(_.getAs[Boolean]("guaranteedInterview")).flatMap(b => Some(booleanTranslator(b)))
+        val needsSupportForOnlineAssessmentDescription = extract("needsSupportForOnlineAssessmentDescription")(assistance)
+        val needsSupportAtVenueDescription = extract("needsSupportAtVenueDescription")(assistance)
+        val hasDisability = extract("hasDisability")(assistance)
+        val hasDisabilityDescription = extract("hasDisabilityDescription")(assistance)
 
-        AdjustmentReport(userId, firstName, lastName, preferredName, None, None, finalTOA, gis, adjustmentsConfirmed)
+        AdjustmentReport(
+          userId,
+          applicationId,
+          firstName,
+          lastName,
+          preferredName,
+          None,
+          None,
+          gis,
+          applicationStatus,
+          needsSupportForOnlineAssessmentDescription,
+          needsSupportAtVenueDescription,
+          hasDisability,
+          hasDisabilityDescription)
       }
     }
   }
@@ -839,12 +857,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
 
-  private def getAdjustmentsConfirmed(assistance: Option[BSONDocument]): Option[String] = {
+  /*private def getAdjustmentsConfirmed(assistance: Option[BSONDocument]): Option[String] = {
     assistance.flatMap(_.getAs[Boolean]("adjustments-confirmed")).getOrElse(false) match {
       case false => Some("Unconfirmed")
       case true => Some("Confirmed")
     }
-  }
+  }*/
 
   def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit] = {
 

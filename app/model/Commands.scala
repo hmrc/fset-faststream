@@ -62,8 +62,20 @@ object Commands {
     hasAdjustments: Option[String], guaranteedInterview: Option[String], firstName: Option[String], lastName: Option[String],
     preferredName: Option[String], dateOfBirth: Option[String], cubiksUserId: Option[Int])
 
-  case class AdjustmentReport(userId: String, firstName: Option[String], lastName: Option[String], preferredName: Option[String],
-    email: Option[String], telephone: Option[String], adjustments: Option[String], gis: Option[String], adjustmentsConfirmed: Option[String])
+  final case class AdjustmentReport(
+    userId: String,
+    applicationId: Option[String],
+    firstName: Option[String],
+    lastName: Option[String],
+    preferredName: Option[String],
+    email: Option[String],
+    telephone: Option[String],
+    gis: Option[String],
+    applicationStatus: Option[String],
+    needsSupportForOnlineAssessmentDescription: Option[String],
+    needsSupportAtVenueDescription: Option[String],
+    hasDisability: Option[String],
+    hasDisabilityDescription: Option[String])
 
   case class CandidateAwaitingAllocation(
     userId: String,
