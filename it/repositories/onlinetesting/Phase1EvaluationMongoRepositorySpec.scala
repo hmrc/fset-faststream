@@ -32,23 +32,20 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
   "next Application Ready For Evaluation" should {
     "return nothing if there is no PHASE1_TESTS and PHASE2_TESTS applications" in {
       insertApp("appId", ApplicationStatus.SUBMITTED)
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation.futureValue
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
       result mustBe None
     }
 
     "return nothing if application does not have online exercise results" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
-      insertApp("app2", ApplicationStatus.PHASE2_TESTS, Some(phase1Tests))
-
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation.futureValue
-
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
       result mustBe None
     }
 
     "return application in PHASE1_TESTS with results" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
 
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation.futureValue
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
 
       result mustBe Some(ApplicationPhase1Evaluation(
         "app1",
@@ -61,7 +58,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     "return GIS application in PHASE1_TESTS with results" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult), isGis = true)
 
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation.futureValue
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
 
       result mustBe Some(ApplicationPhase1Evaluation(
         "app1",
@@ -73,9 +70,10 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
   }
 
   "save passmark evaluation" should {
+    val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+
     "save result and update the status" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
-      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
 
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS_PASSED).futureValue
@@ -87,6 +85,47 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
       result.evaluation mustBe Some(PassmarkEvaluation("version1", List(
         SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString)
       )))
+    }
+
+    "return nothing when candidate has been already evaluated" in {
+      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      val evaluation = PassmarkEvaluation("version1", resultToSave)
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS).futureValue
+      getOnePhase1Profile("app1") mustBe defined
+
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
+      result mustBe None
+    }
+
+    "return the candidate in PHASE1_TESTS if the passmark has changed" in {
+      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      val evaluation = PassmarkEvaluation("version1", resultToSave)
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS).futureValue
+      getOnePhase1Profile("app1") mustBe defined
+
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
+      result mustBe defined
+    }
+
+
+    "return the candidate to re-evaluation in PHASE1_TESTS_PASSED if the passmark has changed" in {
+      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      val evaluation = PassmarkEvaluation("version1", resultToSave)
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS_PASSED).futureValue
+      getOnePhase1Profile("app1") mustBe defined
+
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
+      result mustBe defined
+    }
+
+    "return the candidate to re-evaluation in PHASE2_TESTS if the passmark has changed" in {
+      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      val evaluation = PassmarkEvaluation("version1", resultToSave)
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE2_TESTS).futureValue
+      getOnePhase1Profile("app1") mustBe defined
+
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
+      result mustBe defined
     }
   }
 
@@ -118,7 +157,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
   private def getOnePhase1Profile(appId: String) = {
     phase1EvaluationRepo.collection.find(BSONDocument("applicationId" -> appId)).one[BSONDocument].map(_.map { doc =>
-      val applicationStatus = doc.getAs[String]("applicationStatus").get
+      val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
       val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE1"))
       val phase1 = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
       (applicationStatus, phase1)

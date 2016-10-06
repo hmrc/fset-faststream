@@ -32,7 +32,7 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
   val phase1EvaluationRepository: Phase1EvaluationRepository
 
   def nextCandidateReadyForEvaluation: Future[Option[ApplicationPhase1Evaluation]] = {
-    phase1EvaluationRepository.nextApplicationReadyForPhase1ResultEvaluation
+    phase1EvaluationRepository.nextApplicationReadyForPhase1ResultEvaluation("version1")
   }
 
   def evaluate(application: ApplicationPhase1Evaluation): Future[Unit] = {
