@@ -16,11 +16,11 @@
 
 package controllers
 
-import model.ApplicationStatuses
 import model.CandidateScoresCommands.Implicits._
 import model.CandidateScoresCommands.{ ApplicationScores, CandidateScoresAndFeedback, RecordCandidateScores }
 import play.api.libs.json.Json
 import play.api.mvc.Action
+import model.ApplicationStatus._
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
 import repositories.{ ApplicationAssessmentRepository, ApplicationAssessmentScoresRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -62,7 +62,7 @@ trait CandidateScoresController extends BaseController {
     withJsonBody[CandidateScoresAndFeedback] { candidateScoresAndFeedback =>
       candidateScoresAndFeedback.attendancy match {
         case Some(attendancy) =>
-          val newStatus = if (attendancy) ApplicationStatuses.AssessmentScoresEntered else ApplicationStatuses.FailedToAttend
+          val newStatus = if (attendancy) ASSESSMENT_SCORES_ENTERED else FAILED_TO_ATTEND
           for {
             _ <- aasRepository.save(candidateScoresAndFeedback)
             _ <- aRepository.updateStatus(applicationId, newStatus)
@@ -79,7 +79,7 @@ trait CandidateScoresController extends BaseController {
 
   def acceptCandidateScoresAndFeedback(applicationId: String) = Action.async { implicit request =>
 
-    aRepository.updateStatus(applicationId, ApplicationStatuses.AssessmentScoresAccepted).map(_ =>
+    aRepository.updateStatus(applicationId, ASSESSMENT_SCORES_ACCEPTED).map(_ =>
       Ok(""))
   }
 }
