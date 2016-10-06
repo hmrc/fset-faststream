@@ -33,7 +33,7 @@ import repositories.application._
 import repositories.onlinetesting._
 import repositories.event.EventMongoRepository
 import services.GBTimeZoneService
-import services.reporting.SocioEconomicScoreCalculatorTrait
+import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -64,7 +64,7 @@ package object repositories {
   lazy val mediaRepository = new MediaMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
-  lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculatorTrait {})
+  lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val testReportRepository = new TestReportMongoRepository()
   lazy val diversityReportRepository = new ReportingMongoRepository()

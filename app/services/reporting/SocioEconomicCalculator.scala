@@ -20,7 +20,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import model.PersistedObjects.DiversitySocioEconomic
 
 class SocioEconomicCalculator(aggregator: ActorRef) extends Actor with AnswerProcessorTrait
-  with SocioEconomicScoreCalculatorTrait with SocioEconomicCollector {
+  with SocioEconomicScoreCalculator with SocioEconomicCollector {
 
   override def receive: Receive = {
     case QuestionnaireProfile(answers) =>
@@ -30,6 +30,19 @@ class SocioEconomicCalculator(aggregator: ActorRef) extends Actor with AnswerPro
       aggregator ! calculationMessage
       context.stop(self)
   }
+}
+
+object SocioEconomicCalculator {
+  val NotApplicable = 0
+  val EmployersLargeOrnanisations = 1
+  val EmployersSmallOrganisations = 2
+  val SelfEmployedNoEmployees = 3
+  val ManagersLargeOrganisations = 4
+  val ManagersSmallOrganisations = 5
+  val Supervisors = 6
+  val OtherEmployees = 7
+
+  def props(aggregator: ActorRef) = Props(new SocioEconomicCalculator(aggregator))
 }
 
 trait SocioEconomicCollector extends Collector {
@@ -47,11 +60,17 @@ trait SocioEconomicCollector extends Collector {
   override def createMessage: DiversitySocioEconomic = new DiversitySocioEconomic(collectorMap.toMap)
 }
 
-trait SocioEconomicScoreCalculatorTrait extends Calculable {
+trait SocioEconomicScoreCalculator extends Calculable {
+  import services.reporting.SocioEconomicCalculator._
 
   def calculate(answers: Map[String, String]): String = {
     //    Logger.debug("## SocioEconomicScoreCalculatorTrait: " + answer)
-    calculateSocioEconomicScore(calculateEmploymentStatusSize(answers), getTypeOfOccupation(answers))
+    val employmentStatusSize = calculateEmploymentStatusSize(answers)
+    if (employmentStatusSize != NotApplicable) {
+      calculateSocioEconomicScore(employmentStatusSize, getTypeOfOccupation(answers))
+    } else {
+      "N/A"
+    }
   }
 
   case class ParentalOccupationQuestionnaire(
@@ -69,15 +88,6 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
         isSupervisor = questionnaire.getOrElse("Did they supervise employees?", ""))
     }
   }
-
-  val NotApplicable = 0
-  val EmployersLargeOrnanisations = 1
-  val EmployersSmallOrganisations = 2
-  val SelfEmployedNoEmployees = 3
-  val ManagersLargeOrganisations = 4
-  val ManagersSmallOrganisations = 5
-  val Supervisors = 6
-  val OtherEmployees = 7
 
   //scalastyle:off line.size.limit
   private[reporting] def calculateEmploymentStatusSize(answer: Map[String, String]): Int = {
@@ -130,6 +140,4 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
   }
 }
 
-object SocioEconomicCalculator {
-  def props(aggregator: ActorRef) = Props(new SocioEconomicCalculator(aggregator))
-}
+
