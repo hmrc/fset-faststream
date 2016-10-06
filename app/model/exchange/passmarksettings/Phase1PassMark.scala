@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package repositories
+package model.exchange.passmarksettings
 
-import testkit.MongoRepositorySpec
+import model.SchemeType.SchemeType
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-class PassMarkSettingsRepositorySpec extends MongoRepositorySpec {
-  val collectionName = "pass-mark-settings"
+case class Phase1PassMark(schemeName: SchemeType, schemeThresholds: Phase1PassMarkThresholds)
 
-  "Pass-mark-settings collection" should {
-    "create indexes for the repository" in {
-      val repo = repositories.passMarkSettingsRepository
-
-      val indexes = indexesWithFields(repo)
-      indexes must contain (List("_id"))
-      indexes must contain (List("createDate"))
-      indexes.size must be (2)
-    }
-  }
+object Phase1PassMark {
+  implicit val phase1PassMark = Json.format[Phase1PassMark]
+  implicit val phase1PassMarkHandler = Macros.handler[Phase1PassMark]
 }
