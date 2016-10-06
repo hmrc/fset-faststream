@@ -16,7 +16,6 @@
 
 package model
 
-import connectors.PassMarkExchangeObjects.Settings
 import controllers._
 import model.CandidateScoresCommands.CandidateScoresAndFeedback
 import model.CandidateScoresCommands.Implicits._
@@ -31,6 +30,7 @@ import play.api.libs.json._
 
 import scala.language.implicitConversions
 import model.command.{ AssessmentCentre, ProgressResponse }
+import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.report.CandidateProgressReport
 
 //scalastyle:off
@@ -39,8 +39,6 @@ object Commands {
   case class AddMedia(userId: String, media: String)
 
   case class CreateApplicationRequest(userId: String, frameworkId: String)
-
-  case class PassMarkSettingsRequest(settings: Settings)
 
   case class ApplicationCreated(applicationId: String, applicationStatus: String, userId: String)
 
