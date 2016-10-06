@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import connectors.EmailClient
-import model.ApplicationStatuses
+import model.ApplicationStatus._
 import model.persisted.ApplicationForNotification
 import play.api.Logger
 import repositories._
@@ -68,7 +68,7 @@ class OnlineTestFailureServiceImpl(
     }
 
   override def commitNotifiedStatus(failedTest: ApplicationForNotification): Future[Unit] = {
-    appRepository.updateStatus(failedTest.userId, ApplicationStatuses.OnlineTestFailedNotified).map { _ =>
+    appRepository.updateStatus(failedTest.userId, ONLINE_TEST_FAILED_NOTIFIED).map { _ =>
       audit("FailedOnlineTest", failedTest)
     }
   }

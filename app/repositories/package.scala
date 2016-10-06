@@ -19,7 +19,7 @@ import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, 
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication }
+import model.OnlineTestCommands.{ OnlineTestApplication, TimeAdjustmentsOnlineTestApplication }
 import model.PassmarkPersistedObjects._
 import model.PersistedObjects.{ ContactDetails, PersistedAnswer, PersonalDetails, _ }
 import model.command.WithdrawApplication

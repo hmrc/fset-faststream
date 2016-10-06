@@ -20,7 +20,7 @@ import fixture.PreferencesFixture
 import fixture.TestReportFixture._
 import model.EvaluationResults.{RuleCategoryResult, _}
 import model.OnlineTestCommands._
-import model.{ApplicationStatuses, Schemes}
+import model.Schemes
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 

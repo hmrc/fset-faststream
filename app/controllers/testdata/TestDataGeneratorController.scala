@@ -22,11 +22,12 @@ import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
-import model.{ ApplicationStatuses, ProgressStatuses }
+import model.ProgressStatuses
 import model.EvaluationResults.Result
 import org.joda.time.{ DateTime, LocalDate }
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
+import model.ApplicationStatus._
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.testdata._
@@ -108,9 +109,9 @@ trait TestDataGeneratorController extends BaseController {
       loc1scheme1Passmark = loc1scheme1EvaluationResult.map(Result(_)),
       loc1scheme2Passmark = loc1scheme2EvaluationResult.map(Result(_)),
       previousStatus = previousStatus,
-      confirmedAllocation = applicationStatus match {
-        case ApplicationStatuses.AllocationUnconfirmed => false
-        case ApplicationStatuses.AllocationConfirmed => true
+      confirmedAllocation = withName(applicationStatus) match {
+        case ALLOCATION_UNCONFIRMED => false
+        case ALLOCATION_CONFIRMED => true
         case _ => confirmedAllocation
       },
       dob = dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),
@@ -122,7 +123,8 @@ trait TestDataGeneratorController extends BaseController {
 
     TestDataGeneratorService.createCandidatesInSpecificStatus(
       numberToGenerate,
-      StatusGeneratorFactory.getGenerator(applicationStatus, progressStatus.flatMap(ps => ProgressStatuses.nameToProgressStatus.get(ps)),
+      StatusGeneratorFactory.getGenerator(withName(applicationStatus),
+        progressStatus.flatMap(ps => ProgressStatuses.nameToProgressStatus.get(ps)),
         initialConfig),
       initialConfig
     ).map { candidates =>
