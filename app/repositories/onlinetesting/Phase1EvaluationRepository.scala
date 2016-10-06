@@ -20,7 +20,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.OnlineTestCommands.Phase1TestProfile
 import model.SchemeType.SchemeType
-import model.persisted.ApplicationPhase1Evaluation
+import model.persisted.{ ApplicationPhase1Evaluation, PassmarkEvaluation }
 import model.{ ApplicationStatus, ProgressStatuses, SchemeType, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
@@ -46,10 +46,12 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
+        // passmarkEvaluation
       )),
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS),
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
+        // passmarkEvaluation
       ))
     ))
 
@@ -65,23 +67,19 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     })
   }
 
-  def savePassmarkEvaluation(applicationId: String, passmarkVersion: String, result: List[(SchemeType, Result)],
+  def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
                              newApplicationStatus: ApplicationStatus): Future[Unit] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId),
-      BSONDocument("or" -> BSONArray(
-        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
-        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
-        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
-      ))
-    ))
+//    val query = BSONDocument("$and" -> BSONArray(
+//      BSONDocument("applicationId" -> applicationId),
+//      BSONDocument("or" -> BSONArray(
+//        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+//        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
+//        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
+//      ))
+//    ))
+    val query = BSONDocument("applicationId" -> applicationId)
+    val passMarkEvaluation = BSONDocument("$set" -> BSONDocument("testGroups.PHASE1.evaluation" -> evaluation))
 
-    val passMarkEvaluation = BSONDocument("$set" ->
-      BSONDocument("phase1PassmarkEvaluation" ->
-        BSONDocument("passmarkVersion" -> passmarkVersion, "result" -> result)
-      )
-    )
-
-    collection.update(query, passMarkEvaluation, upsert = false) map ( _ => () )
+    collection.update(query, passMarkEvaluation) map ( r => require(r.n == 1, "Passmark evaluation for PHASE1 was not saved") )
   }
 }

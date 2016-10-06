@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package services.onlinetesting.phase1
+package model.persisted
 
-import config.CubiksGatewayConfig
-import model.OnlineTestCommands.Phase1Test
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-trait Phase1TestSelector {
-  val gatewayConfig: CubiksGatewayConfig
+case class PassmarkEvaluation(passmarkVersion: String,
+                              result: List[SchemeEvaluationResult])
 
-  def findFirstSjqTest(tests: List[Phase1Test]): Option[Phase1Test] = tests find (_.scheduleId == sjq)
-
-  def findFirstBqTest(tests: List[Phase1Test]): Option[Phase1Test] = tests find (_.scheduleId == bq)
-
-  private def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
-
-  private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
-
+object PassmarkEvaluation {
+  implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
+  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
 }

@@ -2,10 +2,11 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
+import model.EvaluationResults.Green
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.SchemeType._
-import model.persisted.{ ApplicationPhase1Evaluation$, AssistanceDetails, TestResult }
-import model.{ ApplicationStatus, SelectedSchemes }
+import model.persisted._
+import model.{ ApplicationStatus, SchemeType, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -71,6 +72,21 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  "save passmark evaluation" should {
+    "save result and update the status" in {
+      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      val evaluation = PassmarkEvaluation("version1", List(
+        SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString)
+      ))
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS_PASSED).futureValue
+      val result = getOnePhase1Profile("app1")
+      result mustBe defined
+      result.get.passmarkEvaluation mustBe Some(PassmarkEvaluation("version1", List(
+        SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString)
+      )))
+    }
+  }
+
   private def insertApp(appId: String, applicationStatus: ApplicationStatus, tests: Option[List[Phase1Test]] = None,
                         isGis: Boolean = false): Unit = {
     val gis = if (isGis) Some(true) else None
@@ -95,6 +111,13 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     helperAppRepo.collection.update(
       BSONDocument("applicationId" -> appId),
       BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus))).futureValue
+  }
+
+  private def getOnePhase1Profile(appId: String) = {
+    phase1EvaluationRepo.collection.find(BSONDocument("applicationId" -> appId)).one[BSONDocument].map(_.map { doc =>
+      val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE1"))
+      bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
+    }).futureValue
   }
 
 }

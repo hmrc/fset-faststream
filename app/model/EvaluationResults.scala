@@ -61,8 +61,6 @@ object EvaluationResults {
   @deprecated("Use SchemeEvaluationResult with SchemeType")
   case class PerSchemeEvaluation(schemeName: String, result: Result)
 
-  case class SchemeEvaluationResult(scheme: SchemeType, result: Result)
-
   case class AssessmentRuleCategoryResult(
     passedMinimumCompetencyLevel: Option[Boolean],
     location1Scheme1: Option[Result], location1Scheme2: Option[Result],

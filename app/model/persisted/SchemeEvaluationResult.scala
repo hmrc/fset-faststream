@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package services.onlinetesting.phase1
+package model.persisted
 
-import config.CubiksGatewayConfig
-import model.OnlineTestCommands.Phase1Test
+import model.SchemeType._
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-trait Phase1TestSelector {
-  val gatewayConfig: CubiksGatewayConfig
+case class SchemeEvaluationResult(scheme: SchemeType,
+                                  result: String)
 
-  def findFirstSjqTest(tests: List[Phase1Test]): Option[Phase1Test] = tests find (_.scheduleId == sjq)
-
-  def findFirstBqTest(tests: List[Phase1Test]): Option[Phase1Test] = tests find (_.scheduleId == bq)
-
-  private def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
-
-  private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
-
+object SchemeEvaluationResult {
+  implicit val schemeEvaluationResultFormat = Json.format[SchemeEvaluationResult]
+  implicit val schemeEvaluationResultHandler = Macros.handler[SchemeEvaluationResult]
 }
