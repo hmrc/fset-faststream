@@ -76,6 +76,18 @@ class SocioEconomicCalculatorSpec extends PlaySpec {
         calculator.calculateEmploymentStatusSize(employers_1_Variant2) must be ("1- Employers-large organisations")
         calculator.calculateEmploymentStatusSize(employers_1_Variant3) must be ("1- Employers-large organisations")
       }
+
+      "calculate the socio-economic score of unemployed" in {
+        calculator.calculate(unemployed) must be(0)
+      }
+
+      "calculate the employment status size of unemployed but seeking work" in {
+        calculator.calculateEmploymentStatusSize(unemployedSeekingWork) must be(0)
+      }
+
+      "calculate the employment status size of Unknown" in {
+        calculator.calculateEmploymentStatusSize(prefersNotToSay) must be(0)
+      }
     }
 
   object SocioEconomicCalculatorSpec {
