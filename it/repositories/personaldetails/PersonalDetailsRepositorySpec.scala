@@ -3,7 +3,7 @@ package repositories.personaldetails
 import model.ApplicationStatus._
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetailsExamples._
-import org.joda.time.{ DateTime, LocalDate, Seconds }
+import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
@@ -27,12 +27,10 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
       } yield pd).futureValue
 
       val applicationStatus = appRepository.findStatus(AppId).futureValue
-      val hasCorrectStatusDate = Seconds.secondsBetween(DateTime.now(), applicationStatus.statusDate.get)
-        .isLessThan(Seconds.ONE)
 
       personalDetails mustBe JohnDoe
       applicationStatus.status mustBe IN_PROGRESS.toString
-      hasCorrectStatusDate mustBe true
+      timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
 
     "do not update the application in different status than required" in {

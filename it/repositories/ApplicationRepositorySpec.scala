@@ -47,9 +47,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
   def assistanceRepo = new AssistanceDetailsMongoRepository()
 
-  val timesApproximatelyEqual = (time1: DateTime, time2: DateTime) => secondsBetween(time1, time2)
-    .isLessThan(seconds(5))
-
   "Application repository" should {
     "create indexes for the repository" in {
       val repo = repositories.applicationRepository
