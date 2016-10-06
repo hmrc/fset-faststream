@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import model.OnlineTestCommands.Phase1TestProfile
+import model.persisted.Phase1TestProfile
 import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.events.EventTypes.Events

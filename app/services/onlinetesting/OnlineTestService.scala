@@ -27,7 +27,7 @@ import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
-import model.persisted.Phase1TestProfileWithAppId
+import model.persisted.{ Phase1TestProfile, Phase1TestProfileWithAppId, CubiksTest }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -171,7 +171,7 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, scheduleId: Int, invitationDate: DateTime,
     expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[Phase1Test] = {
+  )(implicit hc: HeaderCarrier): Future[CubiksTest] = {
     val authToken = tokenFactory.generateUUID()
 
     for {
@@ -179,7 +179,7 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
       invitation <- inviteApplicant(application, authToken, userId, scheduleId)
       _ <- trRepository.remove(application.applicationId)
     } yield {
-      Phase1Test(scheduleId = scheduleId,
+      CubiksTest(scheduleId = scheduleId,
         usedForResults = true,
         cubiksUserId = invitation.userId,
         token = authToken,
@@ -192,7 +192,7 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
 
   def retrievePhase1TestResult(testProfile: Phase1TestProfileWithAppId)(implicit hc: HeaderCarrier): Future[Unit] = {
 
-    def insertTests(testResults: List[(TestResult, Phase1Test)]): Future[Unit] = {
+    def insertTests(testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
       Future.sequence(testResults.map {
         case (result, phase1Test) => phase1TestRepo.insertPhase1TestResult(testProfile.applicationId,
           phase1Test, model.persisted.TestResult.fromCommandObject(result)
@@ -377,7 +377,7 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
 
   // TODO: We need to stop updating the entire group here and use selective $set, this method of replacing the entire document
   // invites race conditions
-  private def updateTestPhase1(cubiksUserId: Int, update: Phase1Test => Phase1Test, debugKey: String = "foo"):
+  private def updateTestPhase1(cubiksUserId: Int, update: CubiksTest => CubiksTest, debugKey: String = "foo"):
   Future[Phase1TestProfileWithAppId] = {
     def createUpdateTestGroup(p: Phase1TestProfileWithAppId): Phase1TestProfileWithAppId = {
       val testGroup = p.phase1TestProfile

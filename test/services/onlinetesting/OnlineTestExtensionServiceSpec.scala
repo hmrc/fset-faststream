@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import model.OnlineTestCommands.Phase1TestProfile
+import model.persisted.Phase1TestProfile
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED }
 import model.command.ProgressResponse
 import org.joda.time.DateTime

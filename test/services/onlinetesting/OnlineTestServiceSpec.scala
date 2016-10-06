@@ -28,7 +28,7 @@ import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
 import model.events.EventTypes.{ toString => _, _ }
 import model.exchange.Phase1TestResultReady
-import model.persisted.Phase1TestProfileWithAppId
+import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestProfileWithAppId }
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -103,7 +103,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val startedDate = invitationDate.plusDays(1)
   val expirationDate = invitationDate.plusDays(7)
 
-  val phase1TestBq = Phase1Test(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("bq"),
+  val phase1TestBq = CubiksTest(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("bq"),
     usedForResults = true,
     cubiksUserId = cubiksUserId,
     token = token,
@@ -112,7 +112,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     participantScheduleId = 235
   )
 
-  val phase1Test = Phase1Test(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("sjq"),
+  val phase1Test = CubiksTest(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("sjq"),
     usedForResults = true,
     cubiksUserId = cubiksUserId,
     token = token,
@@ -509,7 +509,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           sten = Some(1.333d)
         )))
 
-      when(otRepositoryMock.insertPhase1TestResult(any[String], any[Phase1Test], any[persisted.TestResult]))
+      when(otRepositoryMock.insertPhase1TestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))

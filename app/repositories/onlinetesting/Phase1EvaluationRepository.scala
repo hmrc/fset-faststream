@@ -16,7 +16,7 @@
 
 package repositories.onlinetesting
 
-import model.OnlineTestCommands.Phase1TestProfile
+import model.persisted.Phase1TestProfile
 import model.{ ApplicationStatus, ApplicationStatuses, ProgressStatuses, SelectedSchemes }
 import model.persisted.ApplicationToPhase1Evaluation
 import reactivemongo.api.DB

@@ -20,8 +20,8 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ CannotFindTestByCubiksId, UnexpectedException }
 import org.joda.time.DateTime
-import model.OnlineTestCommands.{ OnlineTestApplication, TestProfile }
-import model.persisted.{ExpiringOnlineTest, NotificationExpiringOnlineTest }
+import model.OnlineTestCommands.OnlineTestApplication
+import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Test, TestProfile }
 import model.ProgressStatuses.ProgressStatus
 import model._
 import play.api.Logger
@@ -32,7 +32,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
+trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelection {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
