@@ -19,13 +19,13 @@ package repositories
 import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
-import model.ApplicationStatus._
-import model.command.WithdrawApplication
+import model.EvaluationResults
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
+import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import model.EvaluationResults
-import org.joda.time.{ DateTime, LocalDate, Seconds }
+import org.joda.time.DateTime
+import org.joda.time.Seconds._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{ GeneralApplicationMongoRepository, TestDataMongoRepository }
@@ -46,6 +46,9 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
   def assistanceRepo = new AssistanceDetailsMongoRepository()
+
+  val timesApproximatelyEqual = (time1: DateTime, time2: DateTime) => secondsBetween(time1, time2)
+    .isLessThan(seconds(5))
 
   "Application repository" should {
     "create indexes for the repository" in {
@@ -116,11 +119,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
-      val hasCorrectStatusDate = Seconds.secondsBetween(DateTime.now(), applicationStatus.statusDate.get)
-        .isLessThan(Seconds.ONE)
-
       applicationStatus.status mustBe SUBMITTED.toString
-      hasCorrectStatusDate mustBe true
+      timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
   }
 
@@ -132,11 +132,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
-      val hasCorrectStatusDate = Seconds.secondsBetween(DateTime.now(), applicationStatus.statusDate.get)
-        .isLessThan(Seconds.ONE)
-
       applicationStatus.status mustBe WITHDRAWN.toString
-      hasCorrectStatusDate mustBe true
+      timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
   }
 

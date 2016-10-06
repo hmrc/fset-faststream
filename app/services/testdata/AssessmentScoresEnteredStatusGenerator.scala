@@ -55,7 +55,6 @@ trait AssessmentScoresEnteredStatusGenerator extends ConstructiveGenerator {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- aasRepository.save(getScoresAndFeedback(candidateInPreviousStatus.applicationId.get))
-      _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_SCORES_ACCEPTED)
       _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, ASSESSMENT_SCORES_ENTERED)
     } yield {
       candidateInPreviousStatus
