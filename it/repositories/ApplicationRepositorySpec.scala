@@ -226,14 +226,11 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val result = Await.result(listFut, timeout)
 
       result mustBe a[List[_]]
-      result must not be empty
+      result.size mustBe 3
       result.head mustBe a[AdjustmentReport]
-      result.head.userId must not be empty
 
       val adjustmentReport = result.head
-      adjustmentReport.adjustments must not be empty
-      //Making sure the separator of adjustments is a pipe instead of a new line
-      adjustmentReport.adjustments.get.contains("|") mustBe true
+      adjustmentReport.userId mustBe "1"
     }
   }
   "find applications for assessment allocation" should {
