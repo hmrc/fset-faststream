@@ -16,7 +16,6 @@
 
 package services.evaluation
 
-import connectors.PassMarkExchangeObjects.{Scheme, SchemeThreshold, SchemeThresholds, Settings}
 import fixture.PreferencesFixture
 import fixture.TestReportFixture._
 import model.EvaluationResults.{RuleCategoryResult, _}
