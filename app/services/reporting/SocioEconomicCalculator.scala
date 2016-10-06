@@ -70,17 +70,17 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
     }
   }
 
-  //scalastyle:off line.size.limit
-  def calculateEmploymentStatusSize(answer: Map[String, String]): Int = {
-    val NotApplicable = 0
-    val EmployersLargeOrnanisations = 1
-    val EmployersSmallOrganisations = 2
-    val SelfEmployedNoEmployees = 3
-    val ManagersLargeOrganisations = 4
-    val ManagersSmallOrganisations = 5
-    val Supervisors = 6
-    val OtherEmployees = 7
+  val NotApplicable = 0
+  val EmployersLargeOrnanisations = 1
+  val EmployersSmallOrganisations = 2
+  val SelfEmployedNoEmployees = 3
+  val ManagersLargeOrganisations = 4
+  val ManagersSmallOrganisations = 5
+  val Supervisors = 6
+  val OtherEmployees = 7
 
+  //scalastyle:off line.size.limit
+  private[reporting] def calculateEmploymentStatusSize(answer: Map[String, String]): Int = {
     ParentalOccupationQuestionnaire(answer) match {
       case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Small (1 - 24 employees)", _) => ManagersSmallOrganisations
       case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Large (over 24 employees)", _) => ManagersLargeOrganisations
@@ -96,7 +96,7 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
 
 
 
-  protected def getTypeOfOccupation(answers: Map[String, String]): Int = {
+  private[reporting] def getTypeOfOccupation(answers: Map[String, String]): Int = {
     val TypeOfOccupation: Map[String, Int] = Map(
       "Modern professional" -> 1,
       "Clerical (office work) and intermediate" -> 2,
@@ -111,7 +111,7 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
     TypeOfOccupation(answers("When you were 14, what kind of work did your highest-earning parent or guardian do?"))
   }
 
-  protected def calculateSocioEconomicScore(employmentStatusSizeValue: Int, typeOfOccupation: Int): String = {
+  private[reporting] def calculateSocioEconomicScore(employmentStatusSizeValue: Int, typeOfOccupation: Int): String = {
     val socioEconomicScoreMatrix: Array[Array[Int]] = Array(
       Array(1, 1, 1, 1, 1, 1, 1),
       Array(1, 3, 3, 1, 1, 1, 2),
