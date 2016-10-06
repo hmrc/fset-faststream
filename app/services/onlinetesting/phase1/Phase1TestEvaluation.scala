@@ -18,22 +18,24 @@ package services.onlinetesting.phase1
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.SchemeType._
-import model.persisted.TestResult
+import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.persisted.{ SchemeEvaluationResult, TestResult }
 
 trait Phase1TestEvaluation {
 
-  def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult, passmark: Any) = {
+  def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult, passmark: Phase1PassMarkSettings) = {
     schemes map { scheme =>
-      scheme -> evaluateResultsForExercise(sjqTestResult, scheme, passmark)
+      val result = evaluateResultsForExercise(sjqTestResult, scheme, passmark)
+      SchemeEvaluationResult(scheme, result.toString)
     }
   }
 
-  def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult, passmark: Any) = {
+  def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult, passmark: Phase1PassMarkSettings) = {
     schemes map { scheme =>
       val sjqResult = evaluateResultsForExercise(sjqTestResult, scheme, passmark)
       val bqResult = evaluateResultsForExercise(bqTestResult, scheme, passmark)
       // TODO do the math here
-      val schemeResult = (sjqResult, bqResult) match {
+      val result = (sjqResult, bqResult) match {
         case (Red, _) => Red
         case (_, Red) => Red
         case (Amber, _) => Amber
@@ -41,7 +43,7 @@ trait Phase1TestEvaluation {
         case (Green, Green) => Green
       }
 
-      scheme -> schemeResult
+      SchemeEvaluationResult(scheme, result.toString)
     }
   }
 

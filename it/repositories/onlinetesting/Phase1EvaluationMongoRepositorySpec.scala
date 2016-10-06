@@ -76,7 +76,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
 
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS_PASSED).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS_PASSED)).futureValue
 
       val resultWithAppStatus = getOnePhase1Profile("app1")
       resultWithAppStatus mustBe defined
@@ -90,7 +90,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     "return nothing when candidate has been already evaluated" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
@@ -100,7 +100,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     "return the candidate in PHASE1_TESTS if the passmark has changed" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
@@ -111,7 +111,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     "return the candidate to re-evaluation in PHASE1_TESTS_PASSED if the passmark has changed" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS_PASSED).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS_PASSED)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
@@ -121,7 +121,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     "return the candidate to re-evaluation in PHASE2_TESTS if the passmark has changed" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE2_TESTS).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE2_TESTS)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue

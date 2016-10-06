@@ -33,6 +33,9 @@ import scala.concurrent.Future
 
 trait Phase1EvaluationRepository {
   def nextApplicationReadyForPhase1ResultEvaluation(currentPassmarkVersion: String): Future[Option[ApplicationPhase1Evaluation]]
+
+  def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
+                             newApplicationStatus: Option[ApplicationStatus]): Future[Unit]
 }
 
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
@@ -69,15 +72,16 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   }
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
-                             newApplicationStatus: ApplicationStatus): Future[Unit] = {
+                             newApplicationStatus: Option[ApplicationStatus]): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
       BSONDocumentPhase1OrPhase2AppStatus
     ))
+
     val passMarkEvaluation = BSONDocument("$set" -> BSONDocument(
       "testGroups.PHASE1.evaluation" -> evaluation
     ).add(
-      applicationStatusBSON(newApplicationStatus)
+      if (newApplicationStatus.isDefined) applicationStatusBSON(newApplicationStatus.get) else BSONDocument.empty
     ))
 
     collection.update(query, passMarkEvaluation) map ( r => require(r.n >= 1, "Passmark evaluation for PHASE1 was not saved") )
