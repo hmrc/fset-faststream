@@ -16,6 +16,7 @@
 
 package repositories.onlinetesting
 
+import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.Phase1TestProfile
 import model.{ ApplicationStatus, ApplicationStatuses, ProgressStatuses, SelectedSchemes }
 import model.persisted.ApplicationToPhase1Evaluation
@@ -51,13 +52,14 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     ))
 
     selectRandom(query).map(_.map { doc =>
-      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
+      val applicationId = doc.getAs[String]("applicationId").get
+      val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
       val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
       val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE1"))
       val phase1 = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
       val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
 
-      ApplicationToPhase1Evaluation(applicationId, isGis, phase1, preferences)
+      ApplicationToPhase1Evaluation(applicationId, applicationStatus, isGis, phase1, preferences)
     })
   }
 }

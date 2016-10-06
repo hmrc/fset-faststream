@@ -51,6 +51,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
       result mustBe Some(ApplicationToPhase1Evaluation(
         "app1",
+        ApplicationStatus.PHASE1_TESTS,
         isGis = false,
         Phase1TestProfile(now, testsWithResult),
         selectedSchemes))
@@ -63,6 +64,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
       result mustBe Some(ApplicationToPhase1Evaluation(
         "app1",
+        ApplicationStatus.PHASE1_TESTS,
         isGis = true,
         Phase1TestProfile(now, testsWithResult),
         selectedSchemes))

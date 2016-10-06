@@ -16,12 +16,14 @@
 
 package model.persisted
 
+import model.ApplicationStatus._
 import model.OnlineTestCommands.Phase1TestProfile
 import model.SelectedSchemes
 import play.api.libs.json._
 
 case class ApplicationToPhase1Evaluation(
   applicationId: String,
+  applicationStatus: ApplicationStatus,
   isGis: Boolean,
   phase1: Phase1TestProfile,
   preferences: SelectedSchemes

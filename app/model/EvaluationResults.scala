@@ -16,6 +16,8 @@
 
 package model
 
+import model.SchemeType.SchemeType
+
 object EvaluationResults {
   sealed trait Result {
     def toPassmark: String
@@ -56,7 +58,10 @@ object EvaluationResults {
 
   }
 
+  @deprecated("Use SchemeEvaluationResult with SchemeType")
   case class PerSchemeEvaluation(schemeName: String, result: Result)
+
+  case class SchemeEvaluationResult(scheme: SchemeType, result: Result)
 
   case class AssessmentRuleCategoryResult(
     passedMinimumCompetencyLevel: Option[Boolean],
