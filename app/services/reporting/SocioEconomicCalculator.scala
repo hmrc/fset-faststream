@@ -65,20 +65,69 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
     }
   }
 
-  //scalastyle:off line.size.limit
   def calculate(answer: Map[String, String]): String = {
+    //    Logger.debug("## SocioEconomicScoreCalculatorTrait: " + answer)
+    calculateSocioEconomicScore(calculateEmploymentStatusSize(answer), getTypeOfOccupation(answer))
+  }
+
+  //scalastyle:off line.size.limit
+  protected def calculateEmploymentStatusSize(answer: Map[String, String]): Int = {
+    val NotApplicable = 0
+    val EmployersLargeOrnanisations = 1
+    val EmployersSmallOrganisations = 2
+    val SelfEmployedNoEmployees = 3
+    val ManagersLargeOrganisations = 4
+    val ManagersSmallOrganisations = 5
+    val Supervisors = 6
+    val OtherEmployees = 7
+
     ParentalOccupationQuestionnaire(answer) match {
-      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Small (1 - 24 employees)", _) => "5- Managers-small organisations"
-      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Large (over 24 employees)", _) => "4- Managers-large organisations"
-      case ParentalOccupationQuestionnaire("Employee", _, _, "No" | "I don't know/prefer not to say") => "7- Other employees"
-      case ParentalOccupationQuestionnaire("Employee", _, _, "Yes") => "6- Supervisors"
-      case ParentalOccupationQuestionnaire("Self-employed/freelancer without employees", _, _, _) => "3- Self-employed, no employees"
-      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Small (1 - 24 employees)", _) => "2- Employers-small organisations"
-      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Large (over 24 employees)", _) => "1- Employers-large organisations"
-      case _ => "N/A"
+      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Small (1 - 24 employees)", _) => ManagersSmallOrganisations
+      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Large (over 24 employees)", _) => ManagersLargeOrganisations
+      case ParentalOccupationQuestionnaire("Employee", _, _, "No" | "I don't know/prefer not to say") => OtherEmployees
+      case ParentalOccupationQuestionnaire("Employee", _, _, "Yes") => Supervisors
+      case ParentalOccupationQuestionnaire("Self-employed/freelancer without employees", _, _, _) => SelfEmployedNoEmployees
+      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Small (1 - 24 employees)", _) => EmployersSmallOrganisations
+      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Large (over 24 employees)", _) => EmployersLargeOrnanisations
+      case _ => NotApplicable
     }
   }
   //scalastyle:on line.size.limit
+
+
+
+  protected def getTypeOfOccupation(answer: Map[String, String]): Int = {
+    val TypeOfOccupation: Map[String, Int] = Map(
+      "Modern professional" -> 1,
+      "Clerical and intermediate" -> 2,
+      "Senior managers and administrators" -> 3,
+      "Technical and craft" -> 4,
+      "Semi-routine manual and service" -> 5,
+      "Routine manual and service" -> 6,
+      "Middle or junior managers" -> 7,
+      "Traditional professional" -> 8
+    )
+
+    TypeOfOccupation(answer("Which type of occupation did they have?"))
+  }
+
+  protected def calculateSocioEconomicScore(employmentStatusSizeValue: Int, typeOfOccupation: Int): String = {
+    val socioEconomicScoreMatrix: Array[Array[Int]] = Array(
+      Array(1, 1, 1, 1, 1, 1, 1),
+      Array(1, 3, 3, 1, 1, 1, 2),
+      Array(1, 3, 3, 1, 1, 1, 1),
+      Array(1, 3, 3, 1, 1, 4, 4),
+      Array(1, 3, 3, 1, 1, 4, 5),
+      Array(1, 3, 3, 1, 1, 4, 5),
+      Array(1, 3, 3, 1, 1, 1, 1),
+      Array(1, 1, 1, 1, 1, 1, 1)
+    )
+
+    employmentStatusSizeValue match {
+      case 0 => "N/A"
+      case _ => s"SE-${socioEconomicScoreMatrix(typeOfOccupation - 1)(employmentStatusSizeValue - 1)}"
+    }
+  }
 }
 
 object SocioEconomicCalculator {
