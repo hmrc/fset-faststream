@@ -19,6 +19,7 @@ package repositories.onlinetesting
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
+import model.OnlineTestCommands.OnlineTestApplication
 import org.joda.time.DateTime
 import model.persisted.{ CubiksTest, Phase2TestProfile }
 import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase2TestProfileWithAppId, TestResult }
@@ -76,6 +77,15 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     getTestProfileByToken(token, phaseName)
   }
 
+  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
+      BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
+    ))
+
+    selectRandom(query).map(_.map(repositories.bsonDocToOnlineTestApplication))
+  }
+
   override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase2TestProfileWithAppId] = {
     val query = BSONDocument("testGroups.PHASE2.tests" -> BSONDocument(
       "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
@@ -100,8 +110,8 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument("applicationId" -> applicationId)
 
     val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_INVITED" -> true,
-      "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
+      s"progress-status.$PHASE2_TESTS_INVITED" -> true,
+      "applicationStatus" -> PHASE2_TESTS_INVITED.applicationStatus
     )) ++ BSONDocument("$set" -> BSONDocument(
       "testGroups" -> BSONDocument(phaseName -> phase2TestProfile)
     ))
@@ -125,8 +135,6 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     )
 
     val update = BSONDocument("$set" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_RESULTS_RECEIVED" -> true // TODO: FSET-696 This shouldn't be updated here. As not all results are saved
-    )) ++ BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
     ))
 
@@ -144,8 +152,8 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
       val progressStatusQuery = BSONDocument("$and" -> BSONArray(
-        BSONDocument(s"progress-status.$PHASE1_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
-        BSONDocument(s"progress-status.$PHASE1_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
+        BSONDocument(s"progress-status.$PHASE2_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+        BSONDocument(s"progress-status.$PHASE2_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
         BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
       ))
 
@@ -155,8 +163,8 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestProfileWithAppId]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_READY}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" ->
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_READY}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" ->
         BSONDocument("$ne" -> true)
       )
     ))

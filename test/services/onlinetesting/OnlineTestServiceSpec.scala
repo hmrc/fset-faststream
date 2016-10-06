@@ -141,7 +141,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   "get online test" should {
     "return None if the application id does not exist" in new OnlineTest {
       when(otRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
-      val result = onlineTestService.getPhase1TestProfile("nonexistent-userid").futureValue
+      val result = onlineTestService.getTestProfile("nonexistent-userid").futureValue
       result mustBe None
     }
 
@@ -158,7 +158,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         ))
       ))
 
-      val result = onlineTestService.getPhase1TestProfile("valid-userid").futureValue
+      val result = onlineTestService.getTestProfile("valid-userid").futureValue
 
       result.get.expirationDate must equal(validExpireDate)
 //      result.get.activeTests.head.invitationDate must equal(InvitationDate)
@@ -457,7 +457,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         .map(t => t.copy(startedDateTime = Some(startedDate))))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfileWithStartedTests)))
       when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
-      val result = onlineTestService.resetPhase1Tests(onlineTestApplication, List("sjq"), "createdBy").futureValue
+      val result = onlineTestService.resetTests(onlineTestApplication, List("sjq"), "createdBy").futureValue
 
       verify(otRepositoryMock).removeTestProfileProgresses(
         "appId",
@@ -473,7 +473,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   "retrieve phase 1 test report" should {
     "return an exception if no report Id is set" in new OnlineTest {
-        an[Exception] must be thrownBy onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
+        an[Exception] must be thrownBy onlineTestService.retrieveTestResult(Phase1TestProfileWithAppId(
           "appId", phase1TestProfile
         ))
     }
@@ -494,7 +494,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(cubiksGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new Exception))
 
-      val result = onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
+      val result = onlineTestService.retrieveTestResult(Phase1TestProfileWithAppId(
         "appId", phase1TestProfile.copy(tests = List(successfulTest, failedTest))
       ))
     }
@@ -514,7 +514,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))
 
-      val result = onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
+      val result = onlineTestService.retrieveTestResult(Phase1TestProfileWithAppId(
         "appId", phase1TestProfile.copy(tests = List(phase1Test.copy(reportId = Some(123))))
       )).futureValue
 
@@ -541,10 +541,10 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
     when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
 
-    val onlineTestService = new OnlineTestService with EventServiceFixture {
+    val onlineTestService = new Phase1TestService with EventServiceFixture {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
-      val testRepo = otRepositoryMock
+      val phase1TestRepo = otRepositoryMock
       val trRepository = trRepositoryMock
       val cubiksGatewayClient = cubiksGatewayClientMock
       val emailClient = emailClientMock

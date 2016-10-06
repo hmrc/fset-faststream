@@ -38,7 +38,6 @@ object SendPhase2InvitationJob extends SendInvitationJob with SendPhase2Invitati
 trait SendInvitationJob extends SingleInstanceScheduledJob {
   val onlineTestingService: OnlineTestService
 
-
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationReadyForOnlineTesting.flatMap {
       case Some(application) =>

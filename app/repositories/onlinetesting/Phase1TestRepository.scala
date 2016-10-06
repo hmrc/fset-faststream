@@ -19,6 +19,7 @@ package repositories.onlinetesting
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
+import model.OnlineTestCommands.OnlineTestApplication
 import org.joda.time.DateTime
 import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase1TestProfileWithAppId, TestResult }
@@ -74,6 +75,15 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def getTestProfileByToken(token: String): Future[Phase1TestProfile] = {
     getTestProfileByToken(token, phaseName)
+  }
+
+  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+      BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
+    ))
+
+    selectRandom(query).map(_.map(repositories.bsonDocToOnlineTestApplication))
   }
 
   override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestProfileWithAppId] = {

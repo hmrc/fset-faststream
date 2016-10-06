@@ -40,6 +40,8 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
   val dateTimeFactory: DateTimeFactory
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
 
+  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
+
   def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     phaseTestProfileByQuery(query, phase)
@@ -115,14 +117,6 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
     selectRandom(query).map(_.map(NotificationExpiringOnlineTest.fromBson))
   }
 
-  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
-      BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
-    ))
-
-    selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
-  }
 
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = {
     require(progressStatus.applicationStatus == thisApplicationStatus, "Forbidden progress status update")
