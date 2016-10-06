@@ -21,7 +21,8 @@ import java.util.UUID
 import repositories.BSONLocalDateHandler
 import factories.DateTimeFactory
 import model.Exceptions.CannotFindTestByCubiksId
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
+import model.OnlineTestCommands.OnlineTestApplication
+import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.persisted.ExpiringOnlineTest
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _ }
 import model.persisted.Phase1TestProfileWithAppId
@@ -50,7 +51,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
   val DatePlus7Days = Now.plusDays(7)
   val CubiksUserId = 999
 
-  val phase1Test = Phase1Test(
+  val phase1Test = CubiksTest(
     scheduleId = 123,
     usedForResults = true,
     cubiksUserId = CubiksUserId,

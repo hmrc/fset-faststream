@@ -2,7 +2,7 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
+import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.SchemeType._
 import model.persisted.{ ApplicationToPhase1Evaluation, AssistanceDetails, TestResult }
 import model.{ ApplicationStatus, SelectedSchemes }
@@ -69,7 +69,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  private def insertApp(appId: String, applicationStatus: ApplicationStatus, tests: Option[List[Phase1Test]] = None,
+  private def insertApp(appId: String, applicationStatus: ApplicationStatus, tests: Option[List[CubiksTest]] = None,
                         isGis: Boolean = false): Unit = {
     val gis = if (isGis) Some(true) else None
     helperAppRepo.collection.insert(BSONDocument(
@@ -100,8 +100,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 object Phase1EvaluationMongoRepositorySpec {
   val now = DateTime.now().withZone(DateTimeZone.UTC)
   val phase1Tests = List(
-    Phase1Test(1, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000),
-    Phase1Test(2, usedForResults = true, 101, "cubiks", "token2", "http://localhost", now, 2001)
+    CubiksTest(1, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000),
+    CubiksTest(2, usedForResults = true, 101, "cubiks", "token2", "http://localhost", now, 2001)
   )
   val selectedSchemes = SelectedSchemes(List(Commercial, DigitalAndTechnology), orderAgreed = true, eligible = true)
   val testsWithResult = phase1TestsWithResults(TestResult("Ready", "norm", Some(20.5), None, None, None))
