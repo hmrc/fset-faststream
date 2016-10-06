@@ -18,38 +18,38 @@ package controllers
 
 import factories.UUIDFactory
 import model.Commands.Implicits._
-import model.exchange.passmarksettings.SchemePassMarkSettings
+import model.exchange.passmarksettings.Phase1PassMarkSettings
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc.Action
-import repositories._
 import services.AuditService
+import services.passmarksettings.PassMarkSettingsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SchemePassMarkSettingsController extends SchemePassMarkSettingsController {
-  val pmsRepository = passMarkSettingsRepository
+object Phase1PassMarkSettingsController extends Phase1PassMarkSettingsController {
+  val passMarkService = PassMarkSettingsService
   val auditService = AuditService
   val uuidFactory = UUIDFactory
 }
 
-trait SchemePassMarkSettingsController extends BaseController {
+trait Phase1PassMarkSettingsController extends BaseController {
 
-  val pmsRepository: PassMarkSettingsRepository
+  val passMarkService: PassMarkSettingsService
   val auditService: AuditService
   val uuidFactory: UUIDFactory
 
-  def createPassMarkSettings = Action.async(parse.json) { implicit request =>
-    withJsonBody[SchemePassMarkSettings] { passMarkSettings => {
+  def create = Action.async(parse.json) { implicit request =>
+    withJsonBody[Phase1PassMarkSettings] { passMarkSettings => {
         val newVersionUUID = uuidFactory.generateUUID()
         val newPassMarkSettings = passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
         for {
-          createResult <- pmsRepository.create(newPassMarkSettings)
+          createResult <- passMarkService.createPhase1PassMarkSettings(newPassMarkSettings)
         } yield {
           auditService.logEvent("PassMarkSettingsCreated", Map(
             "Version" -> newVersionUUID,
-            "CreatedByUserId" -> passMarkSettings.createdByUser,
+            "CreatedByUserId" -> passMarkSettings.createdBy,
             "StoredCreateDate" -> passMarkSettings.createDate.toString
           ))
           Ok(Json.toJson(createResult))
@@ -60,7 +60,7 @@ trait SchemePassMarkSettingsController extends BaseController {
 
   def getLatestVersion = Action.async { implicit request =>
     for {
-      latestVersionOpt <- pmsRepository.tryGetLatestVersion
+      latestVersionOpt <- passMarkService.getLatestPhase1PassMarkSettings
     } yield {
       latestVersionOpt.map {
         passMarkSettings => Ok(Json.toJson(passMarkSettings))

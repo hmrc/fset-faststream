@@ -24,8 +24,8 @@ PUT         /application/confirm/adjustment/:applicationId               control
 
 PUT         /media/create                                                controllers.MediaController.addMedia()
 
-PUT         /pass-mark-settings/create                                   controllers.SchemePassMarkSettingsController.createPassMarkSettings
-GET         /pass-mark-settings/getLatestVersion                         controllers.SchemePassMarkSettingsController.getLatestVersion
+PUT         /phase1/pass-mark-settings/create                            controllers.Phase1PassMarkSettingsController.create
+GET         /phase1/pass-mark-settings/getLatestVersion                  controllers.Phase1PassMarkSettingsController.getLatestVersion
 
 GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 PUT         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.create

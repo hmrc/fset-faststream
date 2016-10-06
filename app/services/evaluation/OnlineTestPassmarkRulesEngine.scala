@@ -17,10 +17,10 @@
 package services.evaluation
 
 import model.EvaluationResults._
-import model.OnlineTestCommands.{ CandidateScoresWithPreferencesAndPassmarkSettings, TestResult }
+import model.OnlineTestCommands.CandidateScoresWithPreferencesAndPassmarkSettings
 import model.PersistedObjects.CandidateTestReport
 import model.Schemes
-import model.exchange.passmarksettings.SchemePassMarkThresholds
+import model.exchange.passmarksettings.Phase1PassMarkThresholds
 
 trait OnlineTestPassmarkRulesEngine {
 
@@ -79,7 +79,7 @@ object OnlineTestPassmarkRulesEngine extends OnlineTestPassmarkRulesEngine {
 
 trait ScoreProcessor {
 
-  def determineResult(scores: CandidateTestReport, passmarkThreshholds: SchemePassMarkThresholds): Result
+  def determineResult(scores: CandidateTestReport, passmarkThreshholds: Phase1PassMarkThresholds): Result
 
 }
 

@@ -20,9 +20,9 @@ import model.SchemeType.SchemeType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class SchemePassMark(schemeName: SchemeType, schemeThresholds: SchemePassMarkThresholds)
+case class Phase1PassMark(schemeName: SchemeType, schemeThresholds: Phase1PassMarkThresholds)
 
-object SchemePassMark {
-  implicit val schemePassMark = Json.format[SchemePassMark]
-  implicit val schemePassMarkHandler = Macros.handler[SchemePassMark]
+object Phase1PassMark {
+  implicit val phase1PassMark = Json.format[Phase1PassMark]
+  implicit val phase1PassMarkHandler = Macros.handler[Phase1PassMark]
 }

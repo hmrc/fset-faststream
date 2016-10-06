@@ -16,22 +16,17 @@
 
 package model.exchange.passmarksettings
 
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 // format: OFF
-case class SchemePassMarkSettings(
-  schemes: List[SchemePassMark],
-  version: String,
-  createDate: DateTime,
-  createdByUser: String,
-  setting: String
+case class Phase1PassMarkThresholds(
+  situational: PassMarkThreshold,
+  behavioural: PassMarkThreshold
 )
 
 // format: ON
-object SchemePassMarkSettings {
-  import repositories.BSONDateTimeHandler
-  implicit val schemePassMarkSettings = Json.format[SchemePassMarkSettings]
-  implicit val schemePassMarkSettingsHandler = Macros.handler[SchemePassMarkSettings]
+object Phase1PassMarkThresholds {
+  implicit val phase1PassMarkThresholds = Json.format[Phase1PassMarkThresholds]
+  implicit val phase1PassMarkThresholdsHandler = Macros.handler[Phase1PassMarkThresholds]
 }
