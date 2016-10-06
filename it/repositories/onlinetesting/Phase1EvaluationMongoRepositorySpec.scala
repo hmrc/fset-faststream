@@ -4,7 +4,7 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.SchemeType._
-import model.persisted.{ ApplicationToPhase1Evaluation, AssistanceDetails, TestResult }
+import model.persisted.{ ApplicationPhase1Evaluation$, AssistanceDetails, TestResult }
 import model.{ ApplicationStatus, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
@@ -49,7 +49,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
       val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation.futureValue
 
-      result mustBe Some(ApplicationToPhase1Evaluation(
+      result mustBe Some(ApplicationPhase1Evaluation(
         "app1",
         ApplicationStatus.PHASE1_TESTS,
         isGis = false,
@@ -62,7 +62,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
       val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation.futureValue
 
-      result mustBe Some(ApplicationToPhase1Evaluation(
+      result mustBe Some(ApplicationPhase1Evaluation(
         "app1",
         ApplicationStatus.PHASE1_TESTS,
         isGis = true,

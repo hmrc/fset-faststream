@@ -18,27 +18,27 @@ package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.Phase1TestProfile
-import model.{ ApplicationStatus, ApplicationStatuses, ProgressStatuses, SelectedSchemes }
-import model.persisted.ApplicationToPhase1Evaluation
+import model.persisted.ApplicationPhase1Evaluation
+import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONBoolean, BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.RandomSelection
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait Phase1EvaluationRepository {
-  def nextApplicationReadyForPhase1ResultEvaluation: Future[Option[ApplicationToPhase1Evaluation]]
+  def nextApplicationReadyForPhase1ResultEvaluation: Future[Option[ApplicationPhase1Evaluation]]
 }
 
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationToPhase1Evaluation, BSONObjectID]("application", mongo,
-    ApplicationToPhase1Evaluation.applicationToPhase1EvaluationFormats,
+  extends ReactiveRepository[ApplicationPhase1Evaluation, BSONObjectID]("application", mongo,
+    ApplicationPhase1Evaluation.applicationPhase1EvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with RandomSelection {
 
-  def nextApplicationReadyForPhase1ResultEvaluation: Future[Option[ApplicationToPhase1Evaluation]] = {
+  def nextApplicationReadyForPhase1ResultEvaluation: Future[Option[ApplicationPhase1Evaluation]] = {
     // TODO: Add BSONDocument("passmarkEvaluation.passmarkVersion" -> BSONDocument("$exists" -> false))
     val query = BSONDocument("$or" -> BSONArray(
       BSONDocument("$and" -> BSONArray(
@@ -59,7 +59,9 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       val phase1 = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
       val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
 
-      ApplicationToPhase1Evaluation(applicationId, applicationStatus, isGis, phase1, preferences)
+      ApplicationPhase1Evaluation(applicationId, applicationStatus, isGis, phase1, preferences)
     })
   }
+
+
 }

@@ -21,7 +21,7 @@ import model.OnlineTestCommands.Phase1TestProfile
 import model.SelectedSchemes
 import play.api.libs.json._
 
-case class ApplicationToPhase1Evaluation(
+case class ApplicationPhase1Evaluation(
   applicationId: String,
   applicationStatus: ApplicationStatus,
   isGis: Boolean,
@@ -29,6 +29,6 @@ case class ApplicationToPhase1Evaluation(
   preferences: SelectedSchemes
 )
 
-object ApplicationToPhase1Evaluation {
-  implicit val applicationToPhase1EvaluationFormats = Json.format[ApplicationToPhase1Evaluation]
+object ApplicationPhase1Evaluation {
+  implicit val applicationPhase1EvaluationFormats = Json.format[ApplicationPhase1Evaluation]
 }
