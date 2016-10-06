@@ -75,13 +75,16 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
   "save passmark evaluation" should {
     "save result and update the status" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
-      val evaluation = PassmarkEvaluation("version1", List(
-        SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString)
-      ))
+      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+      val evaluation = PassmarkEvaluation("version1", resultToSave)
+
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, ApplicationStatus.PHASE1_TESTS_PASSED).futureValue
-      val result = getOnePhase1Profile("app1")
-      result mustBe defined
-      result.get.passmarkEvaluation mustBe Some(PassmarkEvaluation("version1", List(
+
+      val resultWithAppStatus = getOnePhase1Profile("app1")
+      resultWithAppStatus mustBe defined
+      val (appStatus, result) = resultWithAppStatus.get
+      appStatus mustBe ApplicationStatus.PHASE1_TESTS_PASSED
+      result.evaluation mustBe Some(PassmarkEvaluation("version1", List(
         SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString)
       )))
     }
@@ -115,8 +118,10 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
   private def getOnePhase1Profile(appId: String) = {
     phase1EvaluationRepo.collection.find(BSONDocument("applicationId" -> appId)).one[BSONDocument].map(_.map { doc =>
+      val applicationStatus = doc.getAs[String]("applicationStatus").get
       val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE1"))
-      bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
+      val phase1 = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
+      (applicationStatus, phase1)
     }).futureValue
   }
 

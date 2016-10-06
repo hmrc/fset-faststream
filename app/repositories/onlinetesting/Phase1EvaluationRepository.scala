@@ -78,7 +78,10 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
 //      ))
 //    ))
     val query = BSONDocument("applicationId" -> applicationId)
-    val passMarkEvaluation = BSONDocument("$set" -> BSONDocument("testGroups.PHASE1.evaluation" -> evaluation))
+    val passMarkEvaluation = BSONDocument("$set" -> BSONDocument(
+      "applicationStatus" -> newApplicationStatus,
+      "testGroups.PHASE1.evaluation" -> evaluation)
+    )
 
     collection.update(query, passMarkEvaluation) map ( r => require(r.n == 1, "Passmark evaluation for PHASE1 was not saved") )
   }

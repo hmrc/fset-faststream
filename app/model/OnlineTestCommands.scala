@@ -54,9 +54,8 @@ object OnlineTestCommands {
   }
 
   case class Phase1TestProfile(expirationDate: DateTime,
-    tests: List[Phase1Test],
-    passmarkEvaluation: Option[PassmarkEvaluation] = None
-  ) extends TestProfile {
+                               tests: List[Phase1Test],
+                               evaluation: Option[PassmarkEvaluation] = None) extends TestProfile {
 
     def activeTests = tests filter (_.usedForResults)
     def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
