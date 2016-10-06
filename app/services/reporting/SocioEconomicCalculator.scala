@@ -58,24 +58,24 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
   object ParentalOccupationQuestionnaire {
     def apply(questionnaire: Map[String, String]):ParentalOccupationQuestionnaire  = {
       ParentalOccupationQuestionnaire(
-        typeOfWork = questionnaire("Did they work as an employee or were they self-employed?"),
-        typeOfOccupation = questionnaire("When you were 14, what kind of work did your highest-earning parent or guardian do?"),
-        sizeOfCompany = questionnaire("Which size would best describe their place of work?"),
-        isSupervisor = questionnaire("Did they supervise employees?"))
+        typeOfWork = questionnaire.getOrElse("Did they work as an employee or were they self-employed?", ""),
+        typeOfOccupation = questionnaire.getOrElse("When you were 14, what kind of work did your highest-earning parent or guardian do?", ""),
+        sizeOfCompany = questionnaire.getOrElse("Which size would best describe their place of work?",""),
+        isSupervisor = questionnaire.getOrElse("Did they supervise employees?", ""))
     }
   }
 
   //scalastyle:off line.size.limit
   def calculate(answer: Map[String, String]): String = {
-    ParentalOccupationQuestionnaire.apply(answer) match {
-      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Small (1 - 24 employees)", _) => "5 - Managers-small organisations"
-      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Large (over 24 employees)", _) => "4 - Managers-large organisations"
-      case ParentalOccupationQuestionnaire("Employee", _, _, "No") => "7 - Other employees"
-      case ParentalOccupationQuestionnaire("Employee", _, _, "Yes") => "6 - Supervisors"
-      case ParentalOccupationQuestionnaire("Self-employed/freelancer without employees", _, _, _) => "3 - Self-employeed, no employees"
-      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Small (1 - 24 employees)", _) => "2 - Employeers-small organisations"
-      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Large (over 24 employees)", _) => "1 - Employeers-large organisations"
-      case _ => ""
+    ParentalOccupationQuestionnaire(answer) match {
+      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Small (1 - 24 employees)", _) => "5- Managers-small organisations"
+      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Large (over 24 employees)", _) => "4- Managers-large organisations"
+      case ParentalOccupationQuestionnaire("Employee", _, _, "No" | "I don't know/prefer not to say") => "7- Other employees"
+      case ParentalOccupationQuestionnaire("Employee", _, _, "Yes") => "6- Supervisors"
+      case ParentalOccupationQuestionnaire("Self-employed/freelancer without employees", _, _, _) => "3- Self-employed, no employees"
+      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Small (1 - 24 employees)", _) => "2- Employers-small organisations"
+      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Large (over 24 employees)", _) => "1- Employers-large organisations"
+      case _ => "N/A"
     }
   }
   //scalastyle:on line.size.limit

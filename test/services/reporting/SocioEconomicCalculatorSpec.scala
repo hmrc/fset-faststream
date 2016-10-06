@@ -23,77 +23,7 @@ class SocioEconomicCalculatorSpec extends PlaySpec {
   import SocioEconomicCalculatorSpec._
   val calculator = new SocioEconomicScoreCalculatorTrait {}
 
-  "The employment status/size calculator" should {
-
-    "calculate the score of a self employed with 24 or more employees" in {
-      calculator.calculateEmploymentStatusSize(employersLargeOrnanisations) must be(calculator.EmployersLargeOrnanisations)
-    }
-
-    "calculate the score of a self employed with less than 24 employees" in {
-      calculator.calculateEmploymentStatusSize(employersSmallOrganisations) must be(calculator.EmployersSmallOrganisations)
-    }
-
-    "calculate the score of a self employed/freelancer without employees" in {
-      calculator.calculateEmploymentStatusSize(selfEmployedNoEmployees) must be(calculator.SelfEmployedNoEmployees)
-    }
-
-    "calculate the score of managers of large organizations" in {
-      calculator.calculateEmploymentStatusSize(managersLargeOrganisations) must be(calculator.ManagersLargeOrganisations)
-    }
-
-    "calculate the score of managers of small organizations" in {
-      calculator.calculateEmploymentStatusSize(managersSmallOrganisations) must be(calculator.ManagersSmallOrganisations)
-    }
-
-    "calculate the score of supervisors" in {
-      calculator.calculateEmploymentStatusSize(supervisors) must be(calculator.Supervisors)
-    }
-
-    "calculate the score of other employees" in {
-      calculator.calculateEmploymentStatusSize(otherEmployees) must be(calculator.OtherEmployees)
-    }
-
-    "calculate the score of unemployed as a N/A" in {
-      calculator.calculateEmploymentStatusSize(unemployed) must be(calculator.NotApplicable)
-    }
-
-    "calculate the score of unemployed but seeking work" in {
-      calculator.calculateEmploymentStatusSize(unemployedSeekingWork) must be(calculator.NotApplicable)
-    }
-
-    "calculate the score of Unknown" in {
-      calculator.calculateEmploymentStatusSize(prefersNotToSay) must be(calculator.NotApplicable)
-    }
-
     "The socio-economic score calculator" should {
-
-      "calculate the score of a self employed with 24 or more employees on a Modern professional occupation" in {
-        calculator.calculate(employersLargeOrnanisations) must be("SE-1")
-      }
-
-      "calculate the score of a self employed with less than 24 employees on a Clerical and intermediate occupation" in {
-        calculator.calculate(employersSmallOrganisations) must be("SE-3")
-      }
-
-      "calculate the score of a self employed/freelancer without employees on a Technical and craft occupation" in {
-        calculator.calculate(selfEmployedNoEmployees) must be("SE-3")
-      }
-
-      "calculate the score of managers of large organizations on a Senior managers and administrators occupation" in {
-        calculator.calculate(managersLargeOrganisations) must be("SE-1")
-      }
-
-      "calculate the score of managers of small organizations on a Senior managers and administrators occupation" in {
-        calculator.calculate(managersSmallOrganisations) must be("SE-1")
-      }
-
-      "calculate the score of supervisors on a Semi-routine manual and service occupation" in {
-        calculator.calculate(supervisors) must be("SE-4")
-      }
-
-      "calculate the score of other employees on a routine manual and service occupation" in {
-        calculator.calculate(otherEmployees) must be("SE-5")
-      }
 
       "calculate the score of unemployed" in {
         calculator.calculate(unemployed) must be("N/A")
@@ -106,71 +36,193 @@ class SocioEconomicCalculatorSpec extends PlaySpec {
       "calculate the score of Unknown" in {
         calculator.calculate(prefersNotToSay) must be("N/A")
       }
+
+      "calculate the score of '7- Other employees" in {
+        calculator.calculate(otherEmployees_7_Variant1) must be ("7- Other employees")
+        calculator.calculate(otherEmployees_7_Variant2) must be ("7- Other employees")
+      }
+
+      "calculate the score of '6- Supervisors" in {
+        calculator.calculate(supervisors_6_Variant1) must be ("6- Supervisors")
+        calculator.calculate(supervisors_6_Variant2) must be ("6- Supervisors")
+      }
+
+      "calculate the score of '5- Managers-small organisations" in {
+        calculator.calculate(managers_5_Variant1) must be ("5- Managers-small organisations")
+        calculator.calculate(managers_5_Variant2) must be ("5- Managers-small organisations")
+        calculator.calculate(managers_5_Variant2) must be ("5- Managers-small organisations")
+      }
+
+      "calculate the score of '4- Managers-large organisations" in {
+        calculator.calculate(managers_4_Variant1) must be ("4- Managers-large organisations")
+        calculator.calculate(managers_4_Variant2) must be ("4- Managers-large organisations")
+        calculator.calculate(managers_4_Variant2) must be ("4- Managers-large organisations")
+      }
+
+      "calculate the score of '3- Self-employed, no employees" in {
+        calculator.calculate(self_employed_3_Variant1) must be ("3- Self-employed, no employees")
+        calculator.calculate(self_employed_3_Variant2) must be ("3- Self-employed, no employees")
+        calculator.calculate(self_employed_3_Variant3) must be ("3- Self-employed, no employees")
+      }
+
+      "calculate the score of '2- Employers-small organisations" in {
+        calculator.calculate(employers_2_Variant1) must be ("2- Employers-small organisations")
+        calculator.calculate(employers_2_Variant2) must be ("2- Employers-small organisations")
+        calculator.calculate(employers_2_Variant3) must be ("2- Employers-small organisations")
+      }
+
+      "calculate the score of '1- Employers-large organisations" in {
+        calculator.calculate(employers_1_Variant1) must be ("1- Employers-large organisations")
+        calculator.calculate(employers_1_Variant2) must be ("1- Employers-large organisations")
+        calculator.calculate(employers_1_Variant3) must be ("1- Employers-large organisations")
+      }
     }
-  }
 
   object SocioEconomicCalculatorSpec {
-    val employersLargeOrnanisations: Map[String, String] = Map(
-      "Parent/guardian work status" -> "Employed",
-      "Did they work as an employee or were they self-employed?" -> "Self-employed with employees",
-      "Which type of occupation did they have?" -> "Modern professional",
-      "Which size would best describe their place of work?" -> "Large (over 24 employees)"
+    val otherEmployees_7_Variant1: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Traditional professional",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "I don't know/prefer not to say",
+      "Did they supervise employees?" -> "No"
     )
 
-    val employersSmallOrganisations: Map[String, String] = Map(
-      "Parent/guardian work status" -> "Employed",
-      "Did they work as an employee or were they self-employed?" -> "Self-employed with employees",
-      "Which type of occupation did they have?" -> "Clerical and intermediate",
-      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)"
+    val otherEmployees_7_Variant2: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Modern professional",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "I don't know/prefer not to say",
+      "Did they supervise employees?" -> "I don't know/prefer not to say"
     )
 
-    val selfEmployedNoEmployees: Map[String, String] = Map(
-      "Parent/guardian work status" -> "Employed",
+
+    val supervisors_6_Variant1: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Traditional professional",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)",
+      "Did they supervise employees?" -> "Yes"
+    )
+
+    val supervisors_6_Variant2: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Modern professional",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "Large (over 24 employees)",
+      "Did they supervise employees?" -> "Yes"
+    )
+
+    val managers_5_Variant1: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)",
+      "Did they supervise employees?" -> "I don't know/prefer not to say"
+    )
+
+    val managers_5_Variant2: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)",
+      "Did they supervise employees?" -> "Yes"
+    )
+
+    val managers_5_Variant3: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)",
+      "Did they supervise employees?" -> "No"
+    )
+
+    val managers_4_Variant1: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "Large (over 24 employees)",
+      "Did they supervise employees?" -> "I don't know/prefer not to say"
+    )
+
+    val managers_4_Variant2: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "Large (over 24 employees)",
+      "Did they supervise employees?" -> "Yes"
+    )
+
+    val managers_4_Variant3: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Employee",
+      "Which size would best describe their place of work?" -> "Large (over 24 employees)",
+      "Did they supervise employees?" -> "No"
+    )
+
+    val self_employed_3_Variant1: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
       "Did they work as an employee or were they self-employed?" -> "Self-employed/freelancer without employees",
-      "Which type of occupation did they have?" -> "Technical and craft"
+      "Which size would best describe their place of work?" -> "Large (over 24 employees)",
+      "Did they supervise employees?" -> "No"
     )
 
-    val managersLargeOrganisations: Map[String, String] = Map(
-      "Parent/guardian work status" -> "Employed",
-      "Did they work as an employee or were they self-employed?" -> "Employee",
-      "Which type of occupation did they have?" -> "Senior managers and administrators",
-      "Which size would best describe their place of work?" -> "Large (over 24 employees)"
+    val self_employed_3_Variant2: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Modern professional",
+      "Did they work as an employee or were they self-employed?" -> "Self-employed/freelancer without employees",
+      "Which size would best describe their place of work?" -> "I don't know/prefer not to say",
+      "Did they supervise employees?" -> "I don't know/prefer not to say"
     )
 
-    val managersSmallOrganisations: Map[String, String] = Map(
-      "Parent/guardian work status" -> "Employed",
-      "Did they work as an employee or were they self-employed?" -> "Employee",
-      "Which type of occupation did they have?" -> "Senior managers and administrators",
-      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)"
+    val self_employed_3_Variant3: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Modern professional",
+      "Did they work as an employee or were they self-employed?" -> "Self-employed/freelancer without employees",
+      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)",
+      "Did they supervise employees?" -> "Yes"
     )
 
-    val supervisors: Map[String, String] = Map(
-      "Parent/guardian work status" -> "Employed",
-      "Did they work as an employee or were they self-employed?" -> "Employee",
-      "Which type of occupation did they have?" -> "Semi-routine manual and service",
-      "Which size would best describe their place of work?" -> "N/A",
-      "Did they supervise any other employees?" -> "Yes"
+    val employers_2_Variant1: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Self-employed with employees",
+      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)",
+      "Did they supervise employees?" -> "I don't know/prefer not to say"
     )
 
-    val otherEmployees: Map[String, String] = Map(
-      "Parent/guardian work status" -> "Employed",
-      "Did they work as an employee or were they self-employed?" -> "Employee",
-      "Which type of occupation did they have?" -> "Routine manual and service",
-      "Which size would best describe their place of work?" -> "N/A",
-      "Did they supervise any other employees?" -> "No"
+    val employers_2_Variant2: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Modern professional",
+      "Did they work as an employee or were they self-employed?" -> "Self-employed with employees",
+      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)",
+      "Did they supervise employees?" -> "No"
+    )
+
+    val employers_2_Variant3: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Self-employed with employees",
+      "Which size would best describe their place of work?" -> "Small (1 - 24 employees)",
+      "Did they supervise employees?" -> "Yes"
+    )
+
+    val employers_1_Variant1: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Self-employed with employees",
+      "Which size would best describe their place of work?" -> "Large (over 24 employees)",
+      "Did they supervise employees?" -> "I don't know/prefer not to say"
+    )
+
+    val employers_1_Variant2: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Modern professional",
+      "Did they work as an employee or were they self-employed?" -> "Self-employed with employees",
+      "Which size would best describe their place of work?" -> "Large (over 24 employees)",
+      "Did they supervise employees?" -> "No"
+    )
+
+    val employers_1_Variant3: Map[String, String] = Map(
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Senior managers and administrators",
+      "Did they work as an employee or were they self-employed?" -> "Self-employed with employees",
+      "Which size would best describe their place of work?" -> "Large (over 24 employees)",
+      "Did they supervise employees?" -> "Yes"
     )
 
     val unemployed: Map[String, String] = Map(
-      "Which type of occupation did they have?" -> "Unemployed"
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed"
     )
 
     val unemployedSeekingWork: Map[String, String] = Map(
-      "Which type of occupation did they have?" -> "Unemployed but seeking work"
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed but seeking work"
     )
 
     val prefersNotToSay: Map[String, String] = Map(
-      "Which type of occupation did they have?" -> "Unknown"
+      "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unknown"
     )
   }
-
 }
