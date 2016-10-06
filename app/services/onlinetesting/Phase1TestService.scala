@@ -29,7 +29,6 @@ import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
 import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestProfileWithAppId }
 import org.joda.time.DateTime
-import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -38,7 +37,7 @@ import services.events.EventService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.{ Future, Promise }
 import scala.language.postfixOps
 import scala.util.{ Failure, Success, Try }
 
@@ -98,6 +97,13 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   private def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
 
   private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
+
+  override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
+    (implicit hc: HeaderCarrier): Future[Unit] = {
+    Future.sequence(applications.map { application =>
+      registerAndInviteForTestGroup(application)
+    }).map(_ => ())
+  }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))

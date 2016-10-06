@@ -52,6 +52,7 @@ case class WaitingScheduledJobConfig(
 
 case class CubiksGatewayConfig(url: String,
   phase1Tests: Phase1TestsConfig,
+  phase2Tests: Phase2TestsConfig,
   competenceAssessment: CubiksGatewayStandardAssessment,
   situationalAssessment: CubiksGatewayStandardAssessment,
   reportConfig: ReportConfig,
@@ -63,6 +64,11 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
                                   scheduleIds: Map[String, Int],
                                   standard: List[String],
                                   gis: List[String])
+
+case class Phase2TestsConfig(expiryTimeInDays: Int,
+  scheduleName: String,
+  scheduleId: Int
+)
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int

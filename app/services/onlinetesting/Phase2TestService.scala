@@ -63,8 +63,24 @@ trait Phase2TestService extends OnlineTestService {
     phase2TestRepo.nextApplicationReadyForOnlineTesting
   }
 
-  override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit] = {
-    registerAndInviteForTestGroup(application)
+  override def registerAndInviteForTestGroup(application: OnlineTestApplication)
+    (implicit hc: HeaderCarrier): Future[Unit] = {
+    registerAndInviteForTestGroup(List(application))
+  }
+
+  override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
+    (implicit hc: HeaderCarrier): Future[Unit] = {
+
+    val registrations = cubiksGatewayClient.batchRegisterApplicants
+  }
+
+  def registerApplicant(application: OnlineTestApplication, token: String)(implicit hc: HeaderCarrier): Future[Int] = {
+    val preferredName = CubiksSanitizer.sanitizeFreeText(application.preferredName)
+    val registerApplicant = RegisterApplicant(preferredName, "", token + "@" + gatewayConfig.emailDomain)
+    cubiksGatewayClient.registerApplicant(registerApplicant).map { registration =>
+      audit("UserRegisteredForOnlineTest", application.userId)
+      registration.userId
+    }
   }
 
 
