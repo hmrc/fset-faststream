@@ -21,7 +21,7 @@ import org.scalatestplus.play.PlaySpec
 class SocioEconomicCalculatorSpec extends PlaySpec {
 
   import SocioEconomicCalculatorSpec._
-  val calculator = new SocioEconomicScoreCalculatorTrait {}
+  val calculator = new SocioEconomicScoreCalculator {}
 
     "The socio-economic score calculator" should {
 

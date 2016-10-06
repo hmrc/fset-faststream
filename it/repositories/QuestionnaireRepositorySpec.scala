@@ -21,7 +21,7 @@ import model.report.PassMarkReportQuestionnaireData
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import services.reporting.SocioEconomicScoreCalculatorTrait
+import services.reporting.SocioEconomicScoreCalculator
 import testkit.MongoRepositorySpec
 
 class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar {
@@ -122,7 +122,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some("White"), None, None))
     )
 
-    val socioEconomicCalculator = mock[SocioEconomicScoreCalculatorTrait]
+    val socioEconomicCalculator = mock[SocioEconomicScoreCalculator]
     def questionnaireRepo = new QuestionnaireMongoRepository(socioEconomicCalculator)
 
     def submitQuestionnaire(): Unit =
