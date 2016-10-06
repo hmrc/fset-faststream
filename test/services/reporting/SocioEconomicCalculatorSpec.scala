@@ -25,56 +25,56 @@ class SocioEconomicCalculatorSpec extends PlaySpec {
 
     "The socio-economic score calculator" should {
 
-      "calculate the score of unemployed" in {
-        calculator.calculate(unemployed) must be("N/A")
+      "calculate the employment status size of unemployed" in {
+        calculator.calculateEmploymentStatusSize(unemployed) must be("N/A")
       }
 
-      "calculate the score of unemployed but seeking work" in {
-        calculator.calculate(unemployedSeekingWork) must be("N/A")
+      "calculate the employment status size of unemployed but seeking work" in {
+        calculator.calculateEmploymentStatusSize(unemployedSeekingWork) must be("N/A")
       }
 
-      "calculate the score of Unknown" in {
-        calculator.calculate(prefersNotToSay) must be("N/A")
+      "calculate the employment status size of Unknown" in {
+        calculator.calculateEmploymentStatusSize(prefersNotToSay) must be("N/A")
       }
 
-      "calculate the score of '7- Other employees" in {
-        calculator.calculate(otherEmployees_7_Variant1) must be ("7- Other employees")
-        calculator.calculate(otherEmployees_7_Variant2) must be ("7- Other employees")
+      "calculate the employment status size of '7- Other employees" in {
+        calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant1) must be ("7- Other employees")
+        calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant2) must be ("7- Other employees")
       }
 
-      "calculate the score of '6- Supervisors" in {
-        calculator.calculate(supervisors_6_Variant1) must be ("6- Supervisors")
-        calculator.calculate(supervisors_6_Variant2) must be ("6- Supervisors")
+      "calculate the employment status size of '6- Supervisors" in {
+        calculator.calculateEmploymentStatusSize(supervisors_6_Variant1) must be ("6- Supervisors")
+        calculator.calculateEmploymentStatusSize(supervisors_6_Variant2) must be ("6- Supervisors")
       }
 
-      "calculate the score of '5- Managers-small organisations" in {
-        calculator.calculate(managers_5_Variant1) must be ("5- Managers-small organisations")
-        calculator.calculate(managers_5_Variant2) must be ("5- Managers-small organisations")
-        calculator.calculate(managers_5_Variant2) must be ("5- Managers-small organisations")
+      "calculate the employment status size of '5- Managers-small organisations" in {
+        calculator.calculateEmploymentStatusSize(managers_5_Variant1) must be ("5- Managers-small organisations")
+        calculator.calculateEmploymentStatusSize(managers_5_Variant2) must be ("5- Managers-small organisations")
+        calculator.calculateEmploymentStatusSize(managers_5_Variant2) must be ("5- Managers-small organisations")
       }
 
-      "calculate the score of '4- Managers-large organisations" in {
-        calculator.calculate(managers_4_Variant1) must be ("4- Managers-large organisations")
-        calculator.calculate(managers_4_Variant2) must be ("4- Managers-large organisations")
-        calculator.calculate(managers_4_Variant2) must be ("4- Managers-large organisations")
+      "calculate the employment status size of '4- Managers-large organisations" in {
+        calculator.calculateEmploymentStatusSize(managers_4_Variant1) must be ("4- Managers-large organisations")
+        calculator.calculateEmploymentStatusSize(managers_4_Variant2) must be ("4- Managers-large organisations")
+        calculator.calculateEmploymentStatusSize(managers_4_Variant2) must be ("4- Managers-large organisations")
       }
 
-      "calculate the score of '3- Self-employed, no employees" in {
-        calculator.calculate(self_employed_3_Variant1) must be ("3- Self-employed, no employees")
-        calculator.calculate(self_employed_3_Variant2) must be ("3- Self-employed, no employees")
-        calculator.calculate(self_employed_3_Variant3) must be ("3- Self-employed, no employees")
+      "calculate the employment status size of '3- Self-employed, no employees" in {
+        calculator.calculateEmploymentStatusSize(self_employed_3_Variant1) must be ("3- Self-employed, no employees")
+        calculator.calculateEmploymentStatusSize(self_employed_3_Variant2) must be ("3- Self-employed, no employees")
+        calculator.calculateEmploymentStatusSize(self_employed_3_Variant3) must be ("3- Self-employed, no employees")
       }
 
-      "calculate the score of '2- Employers-small organisations" in {
-        calculator.calculate(employers_2_Variant1) must be ("2- Employers-small organisations")
-        calculator.calculate(employers_2_Variant2) must be ("2- Employers-small organisations")
-        calculator.calculate(employers_2_Variant3) must be ("2- Employers-small organisations")
+      "calculate the employment status size of '2- Employers-small organisations" in {
+        calculator.calculateEmploymentStatusSize(employers_2_Variant1) must be ("2- Employers-small organisations")
+        calculator.calculateEmploymentStatusSize(employers_2_Variant2) must be ("2- Employers-small organisations")
+        calculator.calculateEmploymentStatusSize(employers_2_Variant3) must be ("2- Employers-small organisations")
       }
 
-      "calculate the score of '1- Employers-large organisations" in {
-        calculator.calculate(employers_1_Variant1) must be ("1- Employers-large organisations")
-        calculator.calculate(employers_1_Variant2) must be ("1- Employers-large organisations")
-        calculator.calculate(employers_1_Variant3) must be ("1- Employers-large organisations")
+      "calculate the employment status size of '1- Employers-large organisations" in {
+        calculator.calculateEmploymentStatusSize(employers_1_Variant1) must be ("1- Employers-large organisations")
+        calculator.calculateEmploymentStatusSize(employers_1_Variant2) must be ("1- Employers-large organisations")
+        calculator.calculateEmploymentStatusSize(employers_1_Variant3) must be ("1- Employers-large organisations")
       }
     }
 

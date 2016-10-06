@@ -50,13 +50,13 @@ trait SocioEconomicCollector extends Collector {
 
 trait SocioEconomicScoreCalculatorTrait extends Calculable {
 
-  def calculate(answer: Map[String, String]): String = {
+  def calculate(answers: Map[String, String]): String = {
     //    Logger.debug("## SocioEconomicScoreCalculatorTrait: " + answer)
-    calculateSocioEconomicScore(calculateEmploymentStatusSize(answer), getTypeOfOccupation(answer))
+    calculateSocioEconomicScore(calculateEmploymentStatusSize(answers), getTypeOfOccupation(answers))
   }
 
   //scalastyle:off line.size.limit
-  protected def calculateEmploymentStatusSize(answer: Map[String, String]): Int = {
+  def calculateEmploymentStatusSize(answer: Map[String, String]): Int = {
     val NotApplicable = 0
     val EmployersLargeOrnanisations = 1
     val EmployersSmallOrganisations = 2
@@ -97,10 +97,10 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
 
 
 
-  protected def getTypeOfOccupation(answer: Map[String, String]): Int = {
+  protected def getTypeOfOccupation(answers: Map[String, String]): Int = {
     val TypeOfOccupation: Map[String, Int] = Map(
       "Modern professional" -> 1,
-      "Clerical and intermediate" -> 2,
+      "Clerical (office work) and intermediate" -> 2,
       "Senior managers and administrators" -> 3,
       "Technical and craft" -> 4,
       "Semi-routine manual and service" -> 5,
@@ -109,7 +109,7 @@ trait SocioEconomicScoreCalculatorTrait extends Calculable {
       "Traditional professional" -> 8
     )
 
-    TypeOfOccupation(answer("Which type of occupation did they have?"))
+    TypeOfOccupation(answers("When you were 14, what kind of work did your highest-earning parent or guardian do?"))
   }
 
   protected def calculateSocioEconomicScore(employmentStatusSizeValue: Int, typeOfOccupation: Int): String = {
