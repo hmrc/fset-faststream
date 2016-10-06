@@ -26,7 +26,7 @@ class SocioEconomicCalculatorSpec extends PlaySpec {
     "The socio-economic score calculator" should {
 
       "calculate the employment status size of unemployed" in {
-        calculator.calculateEmploymentStatusSize(unemployed) must be("N/A")
+        calculator.calculateEmploymentStatusSize(unemployed) must be()
       }
 
       "calculate the employment status size of unemployed but seeking work" in {
@@ -78,15 +78,15 @@ class SocioEconomicCalculatorSpec extends PlaySpec {
       }
 
       "calculate the socio-economic score of unemployed" in {
-        calculator.calculate(unemployed) must be(0)
+        calculator.calculate(unemployed) must be("N/A")
       }
 
-      "calculate the employment status size of unemployed but seeking work" in {
-        calculator.calculateEmploymentStatusSize(unemployedSeekingWork) must be(0)
+      "calculate the socio-economic score of unemployed but seeking work" in {
+        calculator.calculate(unemployed) must be("N/A")
       }
 
       "calculate the employment status size of Unknown" in {
-        calculator.calculateEmploymentStatusSize(prefersNotToSay) must be(0)
+        calculator.calculateEmploymentStatusSize(prefersNotToSay) must be("N/A")
       }
     }
 
