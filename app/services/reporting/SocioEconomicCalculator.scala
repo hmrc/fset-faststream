@@ -34,7 +34,7 @@ class SocioEconomicCalculator(aggregator: ActorRef) extends Actor with AnswerPro
 
 object SocioEconomicCalculator {
   val NotApplicable = 0
-  val EmployersLargeOrnanisations = 1
+  val EmployersLargeOrganisations = 1
   val EmployersSmallOrganisations = 2
   val SelfEmployedNoEmployees = 3
   val ManagersLargeOrganisations = 4
@@ -98,7 +98,7 @@ trait SocioEconomicScoreCalculator extends Calculable {
       case ParentalOccupationQuestionnaire("Employee", _, _, "Yes") => Supervisors
       case ParentalOccupationQuestionnaire("Self-employed/freelancer without employees", _, _, _) => SelfEmployedNoEmployees
       case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Small (1 - 24 employees)", _) => EmployersSmallOrganisations
-      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Large (over 24 employees)", _) => EmployersLargeOrnanisations
+      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Large (over 24 employees)", _) => EmployersLargeOrganisations
       case _ => NotApplicable
     }
   }
