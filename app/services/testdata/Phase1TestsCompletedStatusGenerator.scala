@@ -20,7 +20,7 @@ import common.FutureEx
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-import services.onlinetesting.OnlineTestService
+import services.onlinetesting.Phase1TestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,12 +28,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Phase1TestsCompletedStatusGenerator extends Phase1TestsCompletedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsStartedStatusGenerator
   override val otRepository = phase1TestRepository
-  override val otService = OnlineTestService
+  override val otService = Phase1TestService
 }
 
 trait Phase1TestsCompletedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
-  val otService: OnlineTestService
+  val otService: Phase1TestService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {

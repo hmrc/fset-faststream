@@ -18,12 +18,11 @@ package services.testdata
 
 import common.FutureEx
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.ApplicationStatuses
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-import services.onlinetesting.OnlineTestService
+import services.onlinetesting.Phase1TestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,12 +31,12 @@ import scala.concurrent.Future
 object Phase1TestsStartedStatusGenerator extends Phase1TestsStartedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
   override val otRepository = phase1TestRepository
-  override val otService = OnlineTestService
+  override val otService = Phase1TestService
 }
 
 trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
-  val otService: OnlineTestService
+  val otService: Phase1TestService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
       (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {

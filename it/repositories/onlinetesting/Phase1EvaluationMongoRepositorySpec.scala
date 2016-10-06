@@ -82,7 +82,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     helperSchemePreferencesRepo.save(appId, selectedSchemes).futureValue
 
     tests.foreach { t =>
-      helperPhase1TestMongoRepoo.insertOrUpdatePhase1TestGroup(appId, Phase1TestProfile(now, t)).futureValue
+      helperPhase1TestMongoRepoo.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t)).futureValue
       t.foreach { oneTest =>
         oneTest.testResult.map { result =>
           helperPhase1TestMongoRepoo.insertPhase1TestResult(appId, oneTest, result)

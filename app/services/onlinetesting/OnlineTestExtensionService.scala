@@ -20,7 +20,6 @@ import factories.DateTimeFactory
 import model.persisted.Phase1TestProfile
 import model.ProgressStatuses._
 import model.command.ProgressResponse
-import model.events.EventTypes.Events
 import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.{ FirstReminder, SecondReminder }
 import org.joda.time.DateTime
@@ -30,7 +29,6 @@ import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.events.{ EventService, EventSink }
-import services.onlinetesting.OnlineTestService.TestExtensionException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global

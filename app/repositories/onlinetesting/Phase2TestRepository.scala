@@ -154,7 +154,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestProfileWithAppId]] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS),
+      BSONDocument("applicationStatus" -> thisApplicationStatus),
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_READY}" -> true),
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" ->
         BSONDocument("$ne" -> true)
@@ -172,11 +172,11 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
-    require(progressStatuses forall (_.applicationStatus == ApplicationStatus.PHASE2_TESTS), "Cannot remove non Phase 1 progress status")
+    require(progressStatuses forall (_.applicationStatus == thisApplicationStatus), "Cannot remove non Phase 1 progress status")
 
     val query = BSONDocument(
       "applicationId" -> appId,
-      "applicationStatus" -> ApplicationStatus.PHASE2_TESTS
+      "applicationStatus" -> thisApplicationStatus
     )
     val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
 

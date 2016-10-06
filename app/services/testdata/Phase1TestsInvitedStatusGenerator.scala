@@ -69,7 +69,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.insertOrUpdatePhase1TestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
+      _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
     } yield {
       val sjq = phase1TestProfile.tests.find(t => t.cubiksUserId == sjqTest.cubiksUserId).get
       val bq = phase1TestProfile.tests.find(t => t.cubiksUserId == bqTest.cubiksUserId)
