@@ -82,7 +82,7 @@ trait SocioEconomicScoreCalculator extends Calculable {
   object ParentalOccupationQuestionnaire {
     def apply(questionnaire: Map[String, String]):ParentalOccupationQuestionnaire  = {
       ParentalOccupationQuestionnaire(
-        typeOfWork = questionnaire.getOrElse("Did they work as an employee or were they self-employed?", ""),
+        typeOfWork = questionnaire.getOrElse("Did they work as an employee or were they self employed?", ""),
         typeOfOccupation = questionnaire.getOrElse("When you were 14, what kind of work did your highest-earning parent or guardian do?", ""),
         sizeOfCompany = questionnaire.getOrElse("Which size would best describe their place of work?",""),
         isSupervisor = questionnaire.getOrElse("Did they supervise employees?", ""))

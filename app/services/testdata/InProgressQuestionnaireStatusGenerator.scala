@@ -86,7 +86,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
     def getUniversityAnswer = {
       if (generatorConfig.hasDegree.contains(true)) {
         Some(PersistedQuestion("What is the name of the university you received your degree from?",
-          PersistedAnswer(Some(Random.university._1), None, None)))
+          PersistedAnswer(Some(Random.university._2), None, None)))
       } else {
         None
       }
@@ -101,19 +101,20 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-    def parentsOccupation = Random.parentsOccupation
+    def getParentsOccupation = Random.parentsOccupation
 
-    def getParentsOccupationDetail = {
-      if (parentsOccupation == "Employeed/Self-employeed") {
+    def getParentsOccupationDetail(parentsOccupation: String) = {
+      if (parentsOccupation == "Employed") {
         Some(PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
           PersistedAnswer(Some(Random.parentsOccupationDetails), None, None)))
       } else {
-        None // TODO. Set unemployeed?
+        Some(PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+          PersistedAnswer(Some(parentsOccupation), None, None)))
       }
     }
 
-    def getEmployeedOrSelfEmployeed = {
-      if (parentsOccupation == "Employeed/Self-employeed") {
+    def getEmployeedOrSelfEmployeed(parentsOccupation: String) = {
+      if (parentsOccupation == "Employed") {
         Some(PersistedQuestion("Did they work as an employee or were they self employed?",
           PersistedAnswer(Some(Random.employeeOrSelf), None, None)))
       } else {
@@ -121,8 +122,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-    def getSizeParentsEmployeer = {
-      if (parentsOccupation == "Employeed/Self-employeed") {
+    def getSizeParentsEmployeer(parentsOccupation: String) = {
+      if (parentsOccupation == "Employed") {
         Some(PersistedQuestion("Which size would best describe their place of work?",
           PersistedAnswer(Some(Random.sizeParentsEmployeer), None, None)))
       } else {
@@ -130,8 +131,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-    def getSuperviseEmployees = {
-      if (parentsOccupation == "Employeed/Self-employeed") {
+    def getSuperviseEmployees(parentsOccupation: String) = {
+      if (parentsOccupation == "Employed") {
         Some(PersistedQuestion("Did they supervise employees?",
           PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
       } else {
@@ -139,7 +140,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-    def getAllQuestionnaireQuestions = List(
+    def getAllQuestionnaireQuestions(parentsOccupation: String) = List(
       Some(PersistedQuestion("I understand this won't affect my application", PersistedAnswer(Some(Random.yesNo), None, None))),
       Some(PersistedQuestion("What is your gender identity?", PersistedAnswer(Some(Random.gender), None, None))),
       Some(PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some(Random.sexualOrientation), None, None))),
@@ -155,18 +156,15 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       getUniversityDegreeCategoryAnswer,
       Some(PersistedQuestion("Do you have a parent or guardian that has completed a university degree course or equivalent?",
         PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None))),
-      Some(PersistedQuestion("When you were 14, was your highest-earning parent or guardian employeed?",
-        PersistedAnswer(Some(Random.parentsOccupation), None, None))),
-      getParentsOccupationDetail,
-      getEmployeedOrSelfEmployeed,
-      getSizeParentsEmployeer,
-      getSuperviseEmployees
+      getParentsOccupationDetail(parentsOccupation),
+      getEmployeedOrSelfEmployeed(parentsOccupation),
+      getSizeParentsEmployeer(parentsOccupation),
+      getSuperviseEmployees(parentsOccupation)
     ).filter(_.isDefined).map { someItem => someItem.get }
-
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- qRepository.addQuestions(candidateInPreviousStatus.applicationId.get, getAllQuestionnaireQuestions)
+      _ <- qRepository.addQuestions(candidateInPreviousStatus.applicationId.get, getAllQuestionnaireQuestions(getParentsOccupation))
       _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "start_questionnaire")
       _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "education_questionnaire")
       _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "diversity_questionnaire")
