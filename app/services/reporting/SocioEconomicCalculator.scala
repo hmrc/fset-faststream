@@ -104,8 +104,6 @@ trait SocioEconomicScoreCalculator extends Calculable {
   }
   //scalastyle:on line.size.limit
 
-
-
   private[reporting] def getTypeOfOccupation(answers: Map[String, String]): Int = {
     val TypeOfOccupation: Map[String, Int] = Map(
       "Modern professional" -> 1,

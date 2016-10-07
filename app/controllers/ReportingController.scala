@@ -178,27 +178,6 @@ trait ReportingController extends BaseController {
     }
   }
 
-  /*
-  def createPassMarkWithPersonalDataReport(frameworkId: String) = Action.async { implicit request =>
-    val reports =
-      for {
-        applications <- appRepository.overallReportNotWithdrawnWithPersonalDetails(frameworkId)
-        testResults <- testReportRepository.getOnlineTestReports
-        contactDetails <- cdRepository.findAll
-        cDetails = contactDetails.map(c => c.userId -> c).toMap
-      } yield {
-        for {
-          a <- applications
-          t <- testResults.get(a.applicationId)
-          c <- cDetails.get(a.userId)
-        } yield PassMarkReportWithPersonalData(a, t, PhoneAndEmail(c.phone, Some(c.email)))
-      }
-    reports.map { list =>
-      Ok(Json.toJson(list))
-    }
-  }
-*/
-
   def createNonSubmittedAppsReports(frameworkId: String) =
     preferencesAndContactReports(nonSubmittedOnly = true)(frameworkId)
 

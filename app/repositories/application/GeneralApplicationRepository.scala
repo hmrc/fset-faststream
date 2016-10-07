@@ -406,7 +406,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
     reportQueryWithProjections[BSONDocument](query, projection) map { lst =>
       lst.map(docToOnlineTestPassMarkReport)
     }
-
   }
 
 
