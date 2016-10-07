@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package model.command
+package model.exchange.passmarksettings
 
 import org.joda.time.DateTime
 import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
+// format: OFF
+case class Phase1PassMarkSettings(
+                                   schemes: List[Phase1PassMark],
+                                   version: String,
+                                   createDate: DateTime,
+                                   createdBy: String
+)
 
-case class ApplicationStatusDetails(status: String, statusDate: Option[DateTime] = None)
-
-object ApplicationStatusDetails {
-  implicit val applicationStatusDetailsFormat = Json.format[ApplicationStatusDetails]
+// format: ON
+object Phase1PassMarkSettings {
+  import repositories.BSONDateTimeHandler
+  implicit val phase1PassMarkSettings = Json.format[Phase1PassMarkSettings]
+  implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase1PassMarkSettings]
 }

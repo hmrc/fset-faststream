@@ -111,7 +111,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     val university = getAnswer("What is the name of the university you received your degree from?")
 
     val employmentStatus = getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?")
-    val isEmployed = employmentStatus.exists(s => !s.startsWith("Unemployed"))
+    val isEmployed = employmentStatus.exists (s => !s.startsWith("Unemployed") && !s.startsWith("Unknown"))
 
     val parentEmploymentStatus = if (isEmployed) Some("Employed") else employmentStatus
     val parentOccupation = if (isEmployed) employmentStatus else None
@@ -125,8 +125,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
         (question, answer)
     }.toMap
 
-//    val socioEconomicScore = "TODO-100"
-val socioEconomicScore = socioEconomicCalculator.calculate(qAndA)
+    val socioEconomicScore = socioEconomicCalculator.calculate(qAndA)
 
     (applicationId, PassMarkReportQuestionnaireData(
       gender,

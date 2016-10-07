@@ -16,11 +16,13 @@
 
 package testkit
 
+import org.joda.time.DateTime
+import org.joda.time.Seconds._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Span}
+import org.scalatest.time.{ Millis, Span }
 import org.scalatestplus.play.PlaySpec
-import play.api.test.{FakeApplication, Helpers}
+import play.api.test.{ FakeApplication, Helpers }
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.DefaultDB
 import reactivemongo.bson.BSONDocument
@@ -29,7 +31,7 @@ import reactivemongo.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{ Await, ExecutionContext }
 import scala.language.postfixOps
 
 trait MongoRepositorySpec extends PlaySpec with Inside with Inspectors with ScalaFutures with IndexesReader {
@@ -42,6 +44,9 @@ trait MongoRepositorySpec extends PlaySpec with Inside with Inspectors with Scal
   val AppId = "AppId"
   val UserId = "UserId"
   val FrameworkId = "FrameworkId"
+
+  val timesApproximatelyEqual = (time1: DateTime, time2: DateTime) => secondsBetween(time1, time2)
+    .isLessThan(seconds(5))
 
   override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(timeout.toMillis, Millis)))
 

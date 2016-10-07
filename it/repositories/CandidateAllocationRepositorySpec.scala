@@ -17,7 +17,6 @@
 package repositories
 
 import factories.DateTimeFactory
-import model.ApplicationStatuses
 import org.joda.time.{DateTime, LocalDate}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -25,6 +24,7 @@ import repositories.application.{CandidateAllocationMongoRepository, GeneralAppl
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
+import model.ApplicationStatus._
 
 
 class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
@@ -38,32 +38,32 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
   "Next unconfirmed candidate to send a reminder" should {
     "return the unconfirmed candidate who's expiration date is today" in {
-      createApplication("user1", "app1", ApplicationStatuses.AllocationUnconfirmed, "John", Some(LocalDate.now()))
+      createApplication("user1", "app1", ALLOCATION_UNCONFIRMED, "John", Some(LocalDate.now()))
       val candidate = candidateAllocationRepo.nextUnconfirmedCandidateToSendReminder(3).futureValue
 
       candidate must not be empty
     }
 
     "return the unconfirmed candidate who's expiration date is tomorrow" in {
-      createApplication("user1", "app1", ApplicationStatuses.AllocationUnconfirmed, "John", Some(LocalDate.now().plusDays(3)))
+      createApplication("user1", "app1", ALLOCATION_UNCONFIRMED, "John", Some(LocalDate.now().plusDays(3)))
       val candidate = candidateAllocationRepo.nextUnconfirmedCandidateToSendReminder(3).futureValue
 
       candidate must not be empty
     }
 
     "return nothing when the candidate's expiration date is in more than 1 day" in {
-      createApplication("user1", "app1", ApplicationStatuses.AllocationUnconfirmed, "John", Some(LocalDate.now().plusDays(4)))
+      createApplication("user1", "app1", ALLOCATION_UNCONFIRMED, "John", Some(LocalDate.now().plusDays(4)))
       val candidate = candidateAllocationRepo.nextUnconfirmedCandidateToSendReminder(3).futureValue
 
       candidate must be(empty)
     }
 
     "return one candidate which expire date is between 0 to 3 day from now" in {
-      createApplication("user1", "app1", ApplicationStatuses.AllocationUnconfirmed, "Bob", Some(LocalDate.now()))
-      createApplication("user2", "app2", ApplicationStatuses.AllocationUnconfirmed, "Carol", Some(LocalDate.now().plusDays(1)))
-      createApplication("user3", "app3", ApplicationStatuses.AllocationUnconfirmed, "Eve", Some(LocalDate.now().minusDays(2)))
-      createApplication("user4", "app4", ApplicationStatuses.AllocationUnconfirmed, "Alice", Some(LocalDate.now().plusDays(3)))
-      createApplication("user5", "app5", ApplicationStatuses.AllocationUnconfirmed, "John", Some(LocalDate.now().plusDays(4)))
+      createApplication("user1", "app1", ALLOCATION_UNCONFIRMED, "Bob", Some(LocalDate.now()))
+      createApplication("user2", "app2", ALLOCATION_UNCONFIRMED, "Carol", Some(LocalDate.now().plusDays(1)))
+      createApplication("user3", "app3", ALLOCATION_UNCONFIRMED, "Eve", Some(LocalDate.now().minusDays(2)))
+      createApplication("user4", "app4", ALLOCATION_UNCONFIRMED, "Alice", Some(LocalDate.now().plusDays(3)))
+      createApplication("user5", "app5", ALLOCATION_UNCONFIRMED, "John", Some(LocalDate.now().plusDays(4)))
 
       (1 to 100).foreach { _ =>
         val allocation = candidateAllocationRepo.nextUnconfirmedCandidateToSendReminder(3).futureValue
@@ -73,8 +73,8 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "return nothing when all candidates have confirmed the allocation" in {
-      createApplication("user1", "app1", ApplicationStatuses.AllocationConfirmed, "Alice", Some(LocalDate.now().plusDays(3)))
-      createApplication("user2", "app2", ApplicationStatuses.AllocationConfirmed, "Bob", Some(LocalDate.now()))
+      createApplication("user1", "app1", ALLOCATION_CONFIRMED, "Alice", Some(LocalDate.now().plusDays(3)))
+      createApplication("user2", "app2", ALLOCATION_CONFIRMED, "Bob", Some(LocalDate.now()))
       val candidate = candidateAllocationRepo.nextUnconfirmedCandidateToSendReminder(3).futureValue
 
       candidate must be(empty)
@@ -83,7 +83,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
   "Save allocation reminder sent date" should {
     "save the current date" in {
-      createApplication("user1", "app1", ApplicationStatuses.AllocationUnconfirmed, "John", Some(LocalDate.now()))
+      createApplication("user1", "app1", ALLOCATION_UNCONFIRMED, "John", Some(LocalDate.now()))
 
       candidateAllocationRepo.saveAllocationReminderSentDate("app1", DateTime.now()).futureValue
 
@@ -92,7 +92,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "mark candidate as contacted even if the date was sent in the past" in {
-      createApplication("user1", "app1", ApplicationStatuses.AllocationUnconfirmed, "John", Some(LocalDate.now()))
+      createApplication("user1", "app1", ALLOCATION_UNCONFIRMED, "John", Some(LocalDate.now()))
 
       candidateAllocationRepo.saveAllocationReminderSentDate("app1", DateTime.now().minusDays(3)).futureValue
 

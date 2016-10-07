@@ -85,9 +85,8 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         "What is your gender identity?" -> "Male",
         "What is your sexual orientation?" -> "Straight",
         "What is your ethnic group?" -> "Black",
-        "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed",
-        "Did they work as an employee or were they self-employed?" -> "Self-employed",
-        "Which size would best describe their place of work?" -> "Unknown"
+        "What is the name of the university you received your degree from?" -> "W01-USW",
+        "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed"
       ))
     }
   }
@@ -102,9 +101,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some("Black"), None, None)),
       PersistedQuestion("What is the name of the university you received your degree from?", PersistedAnswer(Some("W01-USW"), None, None)),
       PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-        PersistedAnswer(Some("Unemployed"), None, None))//,
-     // PersistedQuestion("Did they work as an employee or were they self-employed?", PersistedAnswer(Some("Self-employed"), None, None)),
-     // PersistedQuestion("Which size would best describe their place of work?", PersistedAnswer(None, None, Some(true)))
+        PersistedAnswer(Some("Unemployed"), None, None))
     )
     val submittedQuestionnaire2 = List(
       PersistedQuestion("What is your gender identity?", PersistedAnswer(Some("Female"), None, None)),

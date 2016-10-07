@@ -54,7 +54,7 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
         "progress-status.personal-details" -> true,
         PersonalDetailsCollection -> personalDetails
       ).add(
-        applicationStatusBSON(newApplicationStatus.toString)
+        applicationStatusBSON(newApplicationStatus)
       )
     )
 

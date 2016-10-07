@@ -16,18 +16,23 @@
 
 package model
 
-import connectors.PassMarkExchangeObjects.Settings
 import controllers._
 import model.CandidateScoresCommands.CandidateScoresAndFeedback
-import model.Exceptions.{NoResultsReturned, TooManyEntries}
-import model.PassmarkPersistedObjects.{AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme}
-import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
-import model.command.ProgressResponse
-import model.report._
-import org.joda.time.{DateTime, LocalDate, LocalTime}
+import model.CandidateScoresCommands.Implicits._
+import model.Exceptions.{ NoResultsReturned, TooManyEntries }
+import model.OnlineTestCommands.Implicits._
+import model.OnlineTestCommands.TestResult
+import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme }
+import model.PassmarkPersistedObjects.Implicits._
+import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import model.SchemeType.SchemeType
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
 
 import scala.language.implicitConversions
+import model.command.{ AssessmentCentre, ProgressResponse }
+import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.report.{ CandidateProgressReport, PassMarkReportQuestionnaireData }
 
 //scalastyle:off
 object Commands {
@@ -35,8 +40,6 @@ object Commands {
   case class AddMedia(userId: String, media: String)
 
   case class CreateApplicationRequest(userId: String, frameworkId: String)
-
-  case class PassMarkSettingsRequest(settings: Settings)
 
   case class ApplicationCreated(applicationId: String, applicationStatus: String, userId: String)
 
@@ -248,13 +251,9 @@ object Commands {
     implicit val applicationAssessmentFormat = Json.format[ApplicationAssessment]
     implicit val phoneAndEmailFormat = Json.format[PhoneAndEmail]
     implicit val reportWithPersonalDetailsFormat = Json.format[ReportWithPersonalDetails]
-
-    import model.PassmarkPersistedObjects.Implicits._
     implicit val assessmentCentrePassMarkSettingsResponseFormat = Json.format[AssessmentCentrePassMarkSettingsResponse]
     implicit val passMarkEvaluationSchemes = Json.format[OnlineTestPassmarkEvaluationSchemes]
     implicit val applicationPreferencesFormat = Json.format[ApplicationPreferences]
-
-    import model.CandidateScoresCommands.Implicits._
     implicit val assessmentResultsReportFormat = Json.format[AssessmentResultsReport]
     implicit val personalInfoFormat = Json.format[PersonalInfo]
     implicit val schemeEvaluation = Json.format[SchemeEvaluation]

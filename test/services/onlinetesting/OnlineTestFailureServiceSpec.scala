@@ -31,6 +31,7 @@ import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
+import model.ApplicationStatus._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with MockitoSugar {
@@ -141,7 +142,7 @@ class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with Mocki
     val preferredName = "Jon"
     val emailAddress = "jon@test.com"
     val contactDetails = ContactDetails(Address("line 1"), "HP27 9JU", emailAddress, None)
-    val failedTest = ApplicationForNotification(applicationId, userId, preferredName, "ONLINE_TEST_FAILED")
+    val failedTest = ApplicationForNotification(applicationId, userId, preferredName, ONLINE_TEST_FAILED)
     def hc = HeaderCarrier()
 
     val ec = scala.concurrent.ExecutionContext.Implicits.global

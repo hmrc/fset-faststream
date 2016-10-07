@@ -262,7 +262,6 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
       when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(emptyTestResultsReports)
 
       when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(questionnaires)
-      //when(testResultRepo.getOnlineTestReports).thenReturnAsync(Map.empty)
 
       val response = controller.createOnlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[PassMarkReport]]
