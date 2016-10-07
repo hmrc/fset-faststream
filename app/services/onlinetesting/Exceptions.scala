@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package services
+package services.onlinetesting
 
-package object onlinetesting {
-
+object Exceptions {
   case class TestExtensionException(message: String) extends Exception(message)
   case class ReportIdNotDefinedException(message: String) extends Exception(message)
 }
