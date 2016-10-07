@@ -123,13 +123,9 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         "$elemMatch" -> BSONDocument("cubiksUserId" -> phase1Test.cubiksUserId)
       )
     )
-
     val update = BSONDocument("$set" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_RESULTS_RECEIVED" -> true // TODO: FSET-696 This shouldn't be updated here. As not all results are saved
-    )) ++ BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
     ))
-
     collection.update(query, update, upsert = false) map( _ => () )
   }
 

@@ -482,7 +482,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val failedTest = phase1Test.copy(scheduleId = 555, reportId = Some(2))
       val successfulTest = phase1Test.copy(scheduleId = 444, reportId = Some(1))
 
-       when(cubiksGatewayClientMock.downloadXmlReport(eqTo(successfulTest.reportId.get))(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(successfulTest.reportId.get))(any[HeaderCarrier]))
         .thenReturn(Future.successful(OnlineTestCommands.TestResult(status = "Completed",
           norm = "some norm",
           tScore = Some(23.9999d),
@@ -494,9 +494,42 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(cubiksGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new Exception))
 
-      val result = onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
-        "appId", phase1TestProfile.copy(tests = List(successfulTest, failedTest))
-      ))
+      an[Exception] mustBe thrownBy {
+        onlineTestService.retrievePhase1TestResult(
+          Phase1TestProfileWithAppId("appId", phase1TestProfile.copy(tests = List(successfulTest, failedTest)))
+        ).futureValue
+      }
+      verify(otRepositoryMock, never()).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
+    }
+
+    "return an exception if there is an error inserting one of the phase1 test results" in new OnlineTest {
+      val appId = "appId"
+      val failedTest = phase1Test.copy(scheduleId = 555, reportId = Some(2))
+      val successfulTest = phase1Test.copy(scheduleId = 444, reportId = Some(1))
+      val testResult = OnlineTestCommands.TestResult(status = "Completed",
+        norm = "some norm",
+        tScore = Some(23.9999d),
+        percentile = Some(22.4d),
+        raw = Some(66.9999d),
+        sten = Some(1.333d)
+      )
+      val persistedTestResult = model.persisted.TestResult.fromCommandObject(testResult)
+
+      when(cubiksGatewayClientMock.downloadXmlReport(any[Int])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(testResult))
+
+      when(otRepositoryMock.insertPhase1TestResult(eqTo(appId), eqTo(failedTest), eqTo(persistedTestResult)))
+        .thenReturn(Future.successful(()))
+
+      when(otRepositoryMock.insertPhase1TestResult(eqTo(appId), eqTo(successfulTest), eqTo(persistedTestResult)))
+        .thenReturn(Future.failed(new Exception))
+
+      an[Exception] mustBe thrownBy {
+        onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(appId,
+          phase1TestProfile.copy(tests = List(successfulTest, failedTest)))).futureValue
+      }
+
+      verify(otRepositoryMock, never()).updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
     }
 
     "save a phase1 report for a candidate" in new OnlineTest {
@@ -518,6 +551,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         "appId", phase1TestProfile.copy(tests = List(phase1Test.copy(reportId = Some(123))))
       )).futureValue
 
+      verify(otRepositoryMock, times(1)).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
       verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
     }
   }
@@ -555,7 +589,6 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val actor = ActorSystem()
     }
   }
-
 
 
   trait SuccessfulTestInviteFixture extends OnlineTest {
