@@ -78,15 +78,15 @@ class SocioEconomicCalculatorSpec extends PlaySpec {
       }
 
       "calculate the socio-economic score of unemployed" in {
-        calculator.calculate(unemployed) must be("N/A")
+        calculator.calculate(unemployed) must be("")
       }
 
       "calculate the socio-economic score of unemployed but seeking work" in {
-        calculator.calculate(unemployed) must be("N/A")
+        calculator.calculate(unemployed) must be("")
       }
 
       "calculate the socio-economic score of Unknown" in {
-        calculator.calculate(prefersNotToSay) must be("N/A")
+        calculator.calculate(prefersNotToSay) must be("")
       }
 
       "calculate the socio-economic score of modern professionals" in {

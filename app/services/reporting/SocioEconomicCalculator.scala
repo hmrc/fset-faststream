@@ -69,7 +69,7 @@ trait SocioEconomicScoreCalculator extends Calculable {
     if (employmentStatusSize != NotApplicable) {
       calculateSocioEconomicScore(employmentStatusSize, getTypeOfOccupation(answers))
     } else {
-      "N/A"
+      ""
     }
   }
 
