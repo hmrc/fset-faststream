@@ -18,17 +18,33 @@ package services.onlinetesting.phase1
 
 import model.ApplicationStatus
 import model.ApplicationStatus._
+import model.EvaluationResults.{ Result, _ }
 import model.persisted.SchemeEvaluationResult
+import ApplicationStatus._
 
 trait ApplicationStatusCalculator {
 
   def determineApplicationStatus(originalApplicationStatus: ApplicationStatus,
                                  evaluatedSchemes: List[SchemeEvaluationResult]): Option[ApplicationStatus] = {
-    if (originalApplicationStatus == ApplicationStatus.PHASE1_TESTS) {
-      // TODO: do the logic
-      Some(ApplicationStatus.PHASE1_TESTS_PASSED)
-    } else {
-      None
+    originalApplicationStatus match {
+      case ApplicationStatus.PHASE1_TESTS =>
+        val results = evaluatedSchemes.map(s => Result(s.result))
+
+        if (results.forall(_ == Red)) {
+          Some(PHASE1_TESTS_FAILED)
+        } else if (results.contains(Green)) {
+          Some(PHASE1_TESTS_PASSED)
+        } else {
+          None
+        }
+      case _ =>
+        // Because failmark cannot be decreased,
+        // and passmark cannot be increased, we are sure that
+        // applications after PHASE1_TESTS (in eTray)
+        // will need to be only evaluated for removing ambers.
+        // Application status should not be changed by Phase1 evaluation
+        // after PHASE1_TESTS.
+        None
     }
   }
 }
