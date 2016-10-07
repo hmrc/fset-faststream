@@ -115,7 +115,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getEmployeedOrSelfEmployeed(parentsOccupation: String) = {
       if (parentsOccupation == "Employed") {
-        Some(PersistedQuestion("Did they work as an employee or were they self employed?",
+        Some(PersistedQuestion("Did they work as an employee or were they self-employed?",
           PersistedAnswer(Some(Random.employeeOrSelf), None, None)))
       } else {
         None
