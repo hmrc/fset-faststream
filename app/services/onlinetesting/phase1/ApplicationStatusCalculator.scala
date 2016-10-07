@@ -20,7 +20,6 @@ import model.ApplicationStatus
 import model.ApplicationStatus._
 import model.EvaluationResults.{ Result, _ }
 import model.persisted.SchemeEvaluationResult
-import ApplicationStatus._
 
 trait ApplicationStatusCalculator {
 

@@ -36,12 +36,6 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
       result mustBe None
     }
 
-    "return nothing if application does not have online exercise results" in {
-      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
-      result mustBe None
-    }
-
     "return application in PHASE1_TESTS with results" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
 
