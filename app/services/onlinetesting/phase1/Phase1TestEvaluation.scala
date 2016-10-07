@@ -18,24 +18,26 @@ package services.onlinetesting.phase1
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.SchemeType._
-import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings }
 import model.persisted.{ SchemeEvaluationResult, TestResult }
 
 trait Phase1TestEvaluation {
 
   def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult, passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     schemes map { scheme =>
-      val result = evaluateResultsForExercise(sjqTestResult, scheme, passmark)
-      SchemeEvaluationResult(scheme, result.toString)
+      val schemePassmark = passmark.findPassmarkForScheme(scheme)
+      val sjqResult = evaluateResultsForExercise(sjqTestResult, schemePassmark.schemeThresholds.situational)
+      SchemeEvaluationResult(scheme, sjqResult.toString)
     }
   }
 
   def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult,
                         passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     schemes map { scheme =>
-      val sjqResult = evaluateResultsForExercise(sjqTestResult, scheme, passmark)
-      val bqResult = evaluateResultsForExercise(bqTestResult, scheme, passmark)
-      // TODO do the math here
+      val schemePassmark = passmark.findPassmarkForScheme(scheme)
+      val sjqResult = evaluateResultsForExercise(sjqTestResult, schemePassmark.schemeThresholds.situational)
+      val bqResult = evaluateResultsForExercise(bqTestResult, schemePassmark.schemeThresholds.behavioural)
+
       val result = (sjqResult, bqResult) match {
         case (Red, _) => Red
         case (_, Red) => Red
@@ -48,16 +50,12 @@ trait Phase1TestEvaluation {
     }
   }
 
-  private def evaluateResultsForExercise(testResult: TestResult, scheme: SchemeType, passmarkSettings: Any): Result = {
-    val tScore = testResult.tScore.get
-    // TODO Integrate with Passmark
-    val failmark = 20.0
-    val passmark = 80.0
-    determineResult(tScore, failmark, passmark)
+  private def evaluateResultsForExercise(testResult: TestResult, threshhold: PassMarkThreshold): Result = {
+    determineResult(testResult.tScore.get, threshhold.failThreshold, threshhold.passThreshold)
   }
 
   private def determineResult(tScore: Double, failmark: Double, passmark: Double): Result = {
-    def determineResultWithoutAmbers = {
+    def determineResultWithAmbers = {
       if (tScore <= failmark) {
         Red
       } else if (tScore >= passmark) {
@@ -67,7 +65,7 @@ trait Phase1TestEvaluation {
       }
     }
 
-    def determineResultWithAmbers = {
+    def determineResultWithoutAmbers = {
       if (tScore >= passmark) {
         Green
       } else {
