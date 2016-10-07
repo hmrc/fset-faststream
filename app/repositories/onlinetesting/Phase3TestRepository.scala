@@ -42,7 +42,7 @@ trait Phase3TestRepository extends OnlineTestRepository[Phase3Test, Phase3TestGr
 
   def getTestGroupByToken(token: String): Future[Phase3TestGroup]
 
-  def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup)
+  def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -58,7 +58,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = Future.successful(None)
 
-  override def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup) = {
+  override def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
 

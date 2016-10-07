@@ -16,36 +16,47 @@
 
 package services.testdata
 
-import java.util.UUID
-
-import config.CubiksGatewayConfig
-import connectors.testdata.ExchangeObjects.{ Phase1TestGroupResponse, Phase1TestResponse }
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
-import org.joda.time.DateTime
+import repositories._
+import config.LaunchpadGatewayConfig
+import config.MicroserviceAppConfig._
+import model.ApplicationStatus._
 import play.api.mvc.RequestHeader
-import repositories.onlinetesting.Phase1TestRepository
+import repositories.onlinetesting.{ Phase1TestRepository, Phase3TestRepository }
+import _root_.services.onlinetesting.Phase3TestService
+import model.persisted.phase3tests.Phase3TestApplication
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase3TestsInvitedStatusGenerator extends Phase3TestsInvitedStatusGenerator {
   override val previousStatusGenerator = SubmittedStatusGenerator
-  // override val otRepository = phase1TestRepository
-  // override val gatewayConfig = cubiksGatewayConfig
+  override val p3Repository = phase3TestRepository
+  override val p3TestService = Phase3TestService
+  override val gatewayConfig = launchpadGatewayConfig
 }
 
 trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
-  // val otRepository: Phase1TestRepository
-  // val gatewayConfig: CubiksGatewayConfig
+  val p3Repository: Phase3TestRepository
+  val p3TestService: Phase3TestService
+  val gatewayConfig: LaunchpadGatewayConfig
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.insertOrUpdatePhase1TestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
+      p3TestApplication = Phase3TestApplication(
+        candidateInPreviousStatus.applicationId.get,
+        PHASE2_TESTS,
+        candidateInPreviousStatus.userId,
+        candidateInPreviousStatus.preferredName,
+        candidateInPreviousStatus.lastName
+      )
+      _ <- p3TestService.registerAndInviteForTestGroup(p3TestApplication)
+      testGroup <- p3Repository.getTestGroup(p3TestApplication.applicationId)
     } yield {
-
-      candidateInPreviousStatus
+      candidateInPreviousStatus.copy(
+        phase3TestUrl = Some(testGroup.get.tests.find(_.usedForResults).get.testUrl)
+      )
     }
   }
 }

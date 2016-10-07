@@ -16,6 +16,7 @@
 
 package model.persisted.phase3tests
 
+import model.persisted.Test
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
@@ -27,7 +28,10 @@ case class Phase3Test(interviewId: Int,
                       token: String,
                       candidateId: String,
                       customCandidateId: String,
-                      invitationDate: DateTime)
+                      invitationDate: DateTime,
+                      startedDateTime: Option[DateTime],
+                      completedDateTime: Option[DateTime]
+                     ) extends Test
 
 object Phase3Test {
   implicit val phase3TestFormat = Json.format[Phase3Test]

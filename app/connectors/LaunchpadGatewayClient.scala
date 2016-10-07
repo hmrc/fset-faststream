@@ -21,7 +21,7 @@ import config.MicroserviceAppConfig._
 import connectors.LaunchpadGatewayClient._
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
-import play.api.libs.json.{ Format, Json, Reads }
+import play.api.libs.json.{ Json, Reads }
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -53,7 +53,7 @@ trait LaunchpadGatewayClient {
   val http: WSHttp
   val url: String
 
-  val urlWithPathPrefix = s"$url/fset-launchpad-gateway/faststream"
+  lazy val urlWithPathPrefix = s"$url/fset-launchpad-gateway/faststream"
 
   import InviteApplicantResponse._
   import RegisterApplicantResponse._

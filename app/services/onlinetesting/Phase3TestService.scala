@@ -32,7 +32,6 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.{ EventService, EventSink }
-import services.onlinetesting.OnlineTestService.ReportIdNotDefinedException
 import services.onlinetesting.Phase3TestService.InviteLinkCouldNotBeCreatedSuccessfully
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -78,9 +77,9 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
 
     for {
       emailAddress <- candidateEmailAddress(application)
-      candidateId <- registerAndInviteApplicant(application, emailAddress, interviewId, invitationDate, expirationDate)
+      phase3Test <- registerAndInviteApplicant(application, emailAddress, interviewId, invitationDate, expirationDate)
       // _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
-      _ <- markAsInvited(application)(Phase1TestProfile(expirationDate = expirationDate, tests = successfullyRegisteredTests))
+      _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
     } yield audit("Phase3TestInvitationProcessComplete", application.userId)
   }
 
@@ -91,7 +90,7 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
 
     for {
       candidateId <- registerApplicant(application, emailAddress, customCandidateId)
-      invitation <- inviteApplicant(application, interviewId, customCandidateId)
+      invitation <- inviteApplicant(application, interviewId, candidateId)
     } yield {
       Phase3Test(interviewId = interviewId,
         usedForResults = true,
@@ -99,7 +98,9 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
         token = invitation.custom_invite_id,
         candidateId = candidateId,
         customCandidateId = invitation.custom_candidate_id,
-        invitationDate = invitationDate
+        invitationDate = invitationDate,
+        startedDateTime = None,
+        completedDateTime = None
       )
     }
   }
@@ -107,8 +108,10 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
   def registerApplicant(application: Phase3TestApplication,
                         emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
+    print("RA = " + registerApplicant + "\n")
     launchpadGatewayClient.registerApplicant(registerApplicant).map { registration =>
       audit("UserRegisteredForPhase3Test", application.userId)
+      print("RCND = " + registration.candidate_id + "\n")
       registration.candidate_id
     }
   }
