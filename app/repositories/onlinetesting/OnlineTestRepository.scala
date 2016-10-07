@@ -32,7 +32,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
+trait OnlineTestRepository[T <: TestProfile] extends RandomSelection with CommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
@@ -132,9 +132,7 @@ trait OnlineTestRepository[T <: TestProfile] extends RandomSelection {
       "applicationStatus" -> thisApplicationStatus
     )
 
-    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      s"progress-status.$progressStatus" -> true
-    ))
-    collection.update(query, applicationStatusBSON, upsert = false) map ( _ => () )
+    val update = BSONDocument("$set" -> applicationStatusBSON(progressStatus))
+    collection.update(query, update, upsert = false) map ( _ => () )
   }
 }

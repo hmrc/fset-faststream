@@ -6,7 +6,7 @@ import model.EvaluationResults.Green
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.SchemeType._
 import model.persisted._
-import model.{ ApplicationStatus, SchemeType, SelectedSchemes }
+import model.{ ApplicationStatus, ProgressStatuses, SchemeType, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -144,9 +144,12 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     tests.foreach { t =>
       helperPhase1TestMongoRepoo.insertOrUpdatePhase1TestGroup(appId, Phase1TestProfile(now, t)).futureValue
       t.foreach { oneTest =>
-        oneTest.testResult.map { result =>
-          helperPhase1TestMongoRepoo.insertPhase1TestResult(appId, oneTest, result)
+        oneTest.testResult.foreach { result =>
+          helperPhase1TestMongoRepoo.insertPhase1TestResult(appId, oneTest, result).futureValue
         }
+      }
+      if(t.exists(_.testResult.isDefined)) {
+        helperPhase1TestMongoRepoo.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
       }
     }
 
