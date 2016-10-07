@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package model.command
+package model.exchange.passmarksettings
 
-import org.joda.time.DateTime
 import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
+case class PassMarkThreshold(failThreshold: Double, passThreshold: Double)
 
-case class ApplicationStatusDetails(status: String, statusDate: Option[DateTime] = None)
-
-object ApplicationStatusDetails {
-  implicit val applicationStatusDetailsFormat = Json.format[ApplicationStatusDetails]
+object PassMarkThreshold {
+  implicit val passMarkThreshold = Json.format[PassMarkThreshold]
+  implicit val passMarkThresholdHandler = Macros.handler[PassMarkThreshold]
 }

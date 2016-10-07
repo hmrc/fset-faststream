@@ -16,7 +16,7 @@
 
 package services.testdata
 
-import model.ApplicationStatuses
+import model.ApplicationStatus._
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -35,8 +35,9 @@ trait WithdrawnStatusGenerator extends BaseGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     for {
-      candidateInPreviousStatus <- StatusGeneratorFactory.getGenerator(generatorConfig.previousStatus.getOrElse(
-        ApplicationStatuses.Submitted
+      candidateInPreviousStatus <- StatusGeneratorFactory.getGenerator(generatorConfig.previousStatus
+        .map(appStatus => withName(appStatus)).getOrElse(
+        SUBMITTED
       ), None, generatorConfig).generate(generationId, generatorConfig)
       _ <- appRepository.withdraw(candidateInPreviousStatus.applicationId.get, model.command.WithdrawApplication("test", Some("test"),
         "test"))

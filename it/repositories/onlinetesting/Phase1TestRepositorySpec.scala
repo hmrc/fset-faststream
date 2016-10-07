@@ -19,6 +19,7 @@ package repositories.onlinetesting
 import java.util.UUID
 
 import repositories.BSONLocalDateHandler
+import factories.DateTimeFactory
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.{ CubiksTest, Phase1TestProfile }
@@ -28,6 +29,12 @@ import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import reactivemongo.bson.BSONDocument
+import org.joda.time.{ DateTime, DateTimeZone }
+import reactivemongo.api.commands.WriteResult
+import reactivemongo.bson.{ BSONArray, BSONDocument }
+import reactivemongo.json.ImplicitBSONHandlers
+import repositories.application.GeneralApplicationMongoRepository
+import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
@@ -233,19 +240,20 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now
-        )), AppId).futureValue
+          s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
+        ))).futureValue
         phase1TestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
       "the test is completed" in {
+        import repositories.BSONDateTimeHandler
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
-        )), AppId).futureValue
+          s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
+        ))).futureValue
         phase1TestRepo.nextExpiringApplication.futureValue must be(None)
       }
     }
@@ -301,24 +309,26 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       }
 
       "the test is expired" in {
+        import repositories.BSONDateTimeHandler
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
-        )), AppId).futureValue
+          s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
+        ))).futureValue
         phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
 
       "the test is completed" in {
+        import repositories.BSONDateTimeHandler
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
-        )), AppId).futureValue
+          s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
+        ))).futureValue
         phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
 
@@ -340,6 +350,9 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1TestsStarted mustBe true
+
+      val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
+      appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
 
     "remove progress statuses" in {

@@ -16,6 +16,7 @@
 
 package mocks.application
 
+import model.ApplicationStatus.ApplicationStatus
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.command._
@@ -100,7 +101,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findCandidateByUserId(userId: String): Future[Option[Candidate]] = Future.successful(None)
 
-  override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] = candidateProgressReport(frameworkId)
+  override def candidateProgressReportNotWithdrawn(frameworkId: String):
+  Future[List[CandidateProgressReport]] = candidateProgressReport(frameworkId)
 
   override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]] = Future.successful(List(
     CandidateProgressReport("", Some("registered"),
@@ -137,7 +139,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def allocationExpireDateByApplicationId(applicationId: String): Future[Option[LocalDate]] = ???
 
-  override def updateStatus(applicationId: String, status: String): Future[Unit] = ???
+  override def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = ???
 
   override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] = ???
 
@@ -150,7 +152,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]] = ???
 
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String, evaluationResult: AssessmentRuleCategoryResult,
-    newApplicationStatus: String): Future[Unit] = ???
+    newApplicationStatus: ApplicationStatus): Future[Unit] = ???
 
   def addProgressStatusAndUpdateAppStatus(appId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = ???
 

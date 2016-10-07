@@ -18,9 +18,10 @@ package repositories.application
 
 import factories.DateTimeFactory
 import model.PersistedObjects.{ AllocatedCandidate, PersonalDetailsWithUserId }
-import model.{ ApplicationStatuses, PersistedObjects }
+import model.PersistedObjects
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.api.DB
+import model.ApplicationStatus._
 import reactivemongo.bson.{ BSONArray, BSONBoolean, BSONDocument, BSONObjectID }
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -42,7 +43,7 @@ class CandidateAllocationMongoRepository(dateTime: DateTimeFactory)(implicit mon
   def nextUnconfirmedCandidateToSendReminder(daysBeforeExpiration: Int): Future[Option[AllocatedCandidate]] = {
     val now = dateTime.nowLocalDate
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatuses.AllocationUnconfirmed),
+      BSONDocument("applicationStatus" -> ALLOCATION_UNCONFIRMED),
       BSONDocument("allocation-reminder-sent-date" -> BSONDocument("$exists" -> BSONBoolean(false))),
       BSONDocument("allocation-expire-date" -> BSONDocument("$gte" -> now)),
       BSONDocument("allocation-expire-date" -> BSONDocument("$lte" -> now.plusDays(daysBeforeExpiration)))
@@ -59,7 +60,7 @@ class CandidateAllocationMongoRepository(dateTime: DateTimeFactory)(implicit mon
     ))
 
     collection.update(query, result, upsert = false) map {
-      case _ => ()
+       _ => ()
     }
   }
 

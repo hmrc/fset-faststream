@@ -23,11 +23,11 @@ import common.FutureEx
 import connectors.AssessmentScheduleExchangeObjects.Implicits._
 import connectors.AssessmentScheduleExchangeObjects._
 import connectors.ExchangeObjects.AllocationDetails
-import connectors.{ CSREmailClient, EmailClient }
-import model.ApplicationStatuses._
+import connectors.{CSREmailClient, EmailClient}
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.AssessmentScheduleCommands.Implicits.ApplicationForAssessmentAllocationResultFormats
 import model.Commands.ApplicationAssessment
+import model.ApplicationStatus._
 import model.Commands.Implicits.applicationAssessmentFormat
 import model.Exceptions.NotFoundException
 import model.{ ApplicationStatusOrder, Commands }
@@ -253,7 +253,7 @@ trait AssessmentScheduleController extends BaseController {
   def confirmAllocation(applicationId: String) = Action.async { implicit request =>
 
     aaRepository.confirmAllocation(applicationId).flatMap { _ =>
-      aRepository.updateStatus(applicationId, AllocationConfirmed).map { _ =>
+      aRepository.updateStatus(applicationId, ALLOCATION_CONFIRMED).map { _ =>
         auditService.logEvent("AssessmentCentreAllocationConfirmed")
         Ok("")
       }

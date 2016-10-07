@@ -17,8 +17,8 @@
 package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.ApplicationStatuses
 import model.Commands.ApplicationAssessment
+import model.ApplicationStatus._
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
@@ -59,9 +59,9 @@ trait AllocationStatusGenerator extends ConstructiveGenerator {
     }
 
     val newStatus = if (generatorConfig.confirmedAllocation) {
-      ApplicationStatuses.AllocationConfirmed
+      ALLOCATION_CONFIRMED
     } else {
-      ApplicationStatuses.AllocationUnconfirmed
+      ALLOCATION_UNCONFIRMED
     }
 
     AllocationStatusGenerator.SlotFindingLockObj.synchronized {

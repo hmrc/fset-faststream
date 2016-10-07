@@ -20,13 +20,13 @@ import model.persisted.Phase1TestProfile
 import model.{ ApplicationStatus, ApplicationStatuses, ProgressStatuses, SelectedSchemes }
 import model.persisted.ApplicationToPhase1Evaluation
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONBoolean, BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.RandomSelection
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait Phase1EvaluationRepository {
   def nextApplicationReadyForPhase1ResultEvaluation: Future[Option[ApplicationToPhase1Evaluation]]

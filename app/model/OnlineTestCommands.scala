@@ -17,11 +17,11 @@
 package model
 
 import connectors.ExchangeObjects.ReportNorm
-import connectors.PassMarkExchangeObjects.Settings
 import model.PersistedObjects.CandidateTestReport
+import model.exchange.passmarksettings.Phase1PassMarkSettings
 import org.joda.time.DateTime
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 object OnlineTestCommands {
 
@@ -36,10 +36,10 @@ object OnlineTestCommands {
   case class OnlineTestReport(xml: Option[String])
 
   case class CandidateScoresWithPreferencesAndPassmarkSettings(
-    passmarkSettings: Settings, // pass and fail mark
-    preferences: Preferences, // preferences which scheme candidates like
-    scores: CandidateTestReport, // applicationId + scores
-    applicationStatus: String
+                                                                passmarkSettings: Phase1PassMarkSettings, // pass and fail mark
+                                                                preferences: Preferences, // preferences which scheme candidates like
+                                                                scores: CandidateTestReport, // applicationId + scores
+                                                                applicationStatus: String
   )
 
   case class TimeAdjustmentsOnlineTestApplication(verbalTimeAdjustmentPercentage: Int, numericalTimeAdjustmentPercentage: Int)

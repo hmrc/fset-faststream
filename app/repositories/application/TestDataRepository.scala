@@ -98,10 +98,9 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       (0 until num).map { i => createSingleApplication(i, onlyAwaitingAllocation, locationsAndRegions) }
     ).map(_ => ())
 
-  private def createSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false, locationsAndRegions: Seq[(String, String)]): Future[Unit] = {
-
+  private def createSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false,
+                                      locationsAndRegions: Seq[(String, String)]): Future[Unit] = {
     val document = buildSingleApplication(id, onlyAwaitingAllocation, locationsAndRegions)
-
     collection.update(BSONDocument("userId" -> id.toString), document, upsert = true) map (_ => ())
   }
 

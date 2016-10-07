@@ -17,10 +17,10 @@
 package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.ApplicationStatuses
 import model.EvaluationResults._
 import play.api.mvc.RequestHeader
 import repositories._
+import model.ApplicationStatus._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -30,7 +30,7 @@ import scala.concurrent.Future
 object AwaitingAssessmentCentreReevalationStatusGenerator extends AssessmentResultStatusGenerator {
   override val previousStatusGenerator = AssessmentScoresAcceptedStatusGenerator
   override val aRepository = applicationRepository
-  override val status = ApplicationStatuses.AwaitingAssessmentCentreReevaluation
+  override val applicationStatus = AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION
   override def getAssessmentRuleCategoryResult = AssessmentRuleCategoryResult(Some(true), Some(Amber), Some(Amber), Some(Amber), Some(Amber),
     Some(Amber), None, None)
 }
@@ -38,7 +38,7 @@ object AwaitingAssessmentCentreReevalationStatusGenerator extends AssessmentResu
 object AssessmentCentreFailedStatusGenerator extends AssessmentResultStatusGenerator {
   override val previousStatusGenerator = AssessmentScoresAcceptedStatusGenerator
   override val aRepository = applicationRepository
-  override val status = ApplicationStatuses.AssessmentCentreFailed
+  override val applicationStatus = ASSESSMENT_CENTRE_FAILED
   override def getAssessmentRuleCategoryResult = AssessmentRuleCategoryResult(Some(true), Some(Red), Some(Red), Some(Red), Some(Red),
     Some(Red), None, None)
 }
@@ -46,14 +46,14 @@ object AssessmentCentreFailedStatusGenerator extends AssessmentResultStatusGener
 object AssessmentCentrePassedStatusGenerator extends AssessmentResultStatusGenerator {
   override val previousStatusGenerator = AssessmentScoresAcceptedStatusGenerator
   override val aRepository = applicationRepository
-  override val status = ApplicationStatuses.AssessmentCentrePassed
+  override val applicationStatus = ASSESSMENT_CENTRE_PASSED
   override def getAssessmentRuleCategoryResult = AssessmentRuleCategoryResult(Some(true), Some(Green), Some(Green), Some(Green), Some(Green),
     Some(Green), None, None)
 }
 
 trait AssessmentResultStatusGenerator extends ConstructiveGenerator {
   val aRepository: GeneralApplicationRepository
-  val status: String
+  val applicationStatus: ApplicationStatus
   def getAssessmentRuleCategoryResult: AssessmentRuleCategoryResult
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
@@ -61,7 +61,7 @@ trait AssessmentResultStatusGenerator extends ConstructiveGenerator {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- aRepository.saveAssessmentScoreEvaluation(candidateInPreviousStatus.applicationId.get, "version1", getAssessmentRuleCategoryResult,
-        status)
+        applicationStatus)
 
     } yield {
       candidateInPreviousStatus

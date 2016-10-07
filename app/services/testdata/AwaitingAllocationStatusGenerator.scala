@@ -19,7 +19,6 @@ package services.testdata
 import java.util.UUID
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.ApplicationStatuses
 import model.EvaluationResults.RuleCategoryResult
 import play.api.mvc.RequestHeader
 import repositories._
