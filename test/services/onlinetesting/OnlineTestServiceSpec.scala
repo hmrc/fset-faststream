@@ -499,6 +499,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           Phase1TestProfileWithAppId("appId", phase1TestProfile.copy(tests = List(successfulTest, failedTest)))
         ).futureValue
       }
+      verify(otRepositoryMock, never()).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
     }
 
     "return an exception if there is an error inserting one of the phase1 test results" in new OnlineTest {
@@ -527,6 +528,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(appId,
           phase1TestProfile.copy(tests = List(successfulTest, failedTest)))).futureValue
       }
+
+      verify(otRepositoryMock, never()).updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
     }
 
     "save a phase1 report for a candidate" in new OnlineTest {
@@ -548,6 +551,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         "appId", phase1TestProfile.copy(tests = List(phase1Test.copy(reportId = Some(123))))
       )).futureValue
 
+      verify(otRepositoryMock, times(1)).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
       verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
     }
   }
