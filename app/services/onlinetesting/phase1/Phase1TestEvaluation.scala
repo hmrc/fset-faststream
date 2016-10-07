@@ -23,14 +23,15 @@ import model.persisted.{ SchemeEvaluationResult, TestResult }
 
 trait Phase1TestEvaluation {
 
-  def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult, passmark: Phase1PassMarkSettings) = {
+  def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult, passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     schemes map { scheme =>
       val result = evaluateResultsForExercise(sjqTestResult, scheme, passmark)
       SchemeEvaluationResult(scheme, result.toString)
     }
   }
 
-  def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult, passmark: Phase1PassMarkSettings) = {
+  def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult,
+                        passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     schemes map { scheme =>
       val sjqResult = evaluateResultsForExercise(sjqTestResult, scheme, passmark)
       val bqResult = evaluateResultsForExercise(bqTestResult, scheme, passmark)

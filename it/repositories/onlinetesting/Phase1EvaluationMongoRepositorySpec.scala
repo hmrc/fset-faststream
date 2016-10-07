@@ -173,7 +173,7 @@ object Phase1EvaluationMongoRepositorySpec {
   implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
   import model.Phase1TestExamples._
 
-  val phase1Tests = List(oneTest, oneTest)
+  val phase1Tests = List(firstTest, firstTest)
   val selectedSchemes = SelectedSchemes(List(Commercial, DigitalAndTechnology), orderAgreed = true, eligible = true)
   val testsWithResult = phase1TestsWithResults(TestResult("Ready", "norm", Some(20.5), None, None, None))
 

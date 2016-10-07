@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package model
+package services.onlinetesting.phase1
 
-import model.OnlineTestCommands.Phase1Test
-import model.persisted.TestResult
-import org.joda.time.DateTime
+import model.ApplicationStatus
+import model.ApplicationStatus._
+import model.persisted.SchemeEvaluationResult
 
-object Phase1TestExamples {
-  val testResult = TestResult("Ready", "norm", Some(12.5), None, None, None)
+trait ApplicationStatusCalculator {
 
-  def firstTest(implicit now: DateTime) = Phase1Test(1, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
-    testResult = Some(testResult))
-
-  def secondTest(implicit now: DateTime) = firstTest.copy(scheduleId = 2)
-
-  def thirdTest(implicit now: DateTime) = firstTest.copy(scheduleId = 3)
+  def determineApplicationStatus(originalApplicationStatus: ApplicationStatus,
+                                 evaluatedSchemes: List[SchemeEvaluationResult]): Option[ApplicationStatus] = {
+    if (originalApplicationStatus == ApplicationStatus.PHASE1_TESTS) {
+      // TODO: do the logic
+      Some(ApplicationStatus.PHASE1_TESTS_PASSED)
+    } else {
+      None
+    }
+  }
 }

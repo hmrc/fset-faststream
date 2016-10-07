@@ -18,7 +18,6 @@ package model.persisted
 
 import model.{ ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples }
 import org.joda.time.DateTime
-import org.scalatest.FunSuite
 
 object ApplicationPhase1EvaluationExamples {
   def application(implicit now: DateTime) = ApplicationPhase1ReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS, isGis = false,

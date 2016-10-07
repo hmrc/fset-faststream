@@ -16,15 +16,13 @@
 
 package services.onlinetesting
 
-import services.onlinetesting.phase1.{ Phase1TestEvaluation, Phase1TestSelector }
-import config.MicroserviceAppConfig._
-import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
-import repositories.onlinetesting.Phase1EvaluationRepository
 import _root_.services.passmarksettings.PassMarkSettingsService
-import model.ApplicationStatus
-import model.ApplicationStatus.ApplicationStatus
+import services.onlinetesting.phase1.{ ApplicationStatusCalculator, Phase1TestEvaluation, Phase1TestSelector }
+import config.MicroserviceAppConfig._
 import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
 import repositories._
+import repositories.onlinetesting.Phase1EvaluationRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -35,7 +33,8 @@ object EvaluatePhase1ResultService extends EvaluatePhase1ResultService {
   val phase1PMSRepository = phase1PassMarkSettingsRepository
 }
 
-trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEvaluation with PassMarkSettingsService {
+trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEvaluation with PassMarkSettingsService
+  with ApplicationStatusCalculator {
   val phase1EvaluationRepository: Phase1EvaluationRepository
 
   def nextCandidateReadyForEvaluation: Future[Option[(ApplicationPhase1ReadyForEvaluation, Phase1PassMarkSettings)]] = {
@@ -58,7 +57,7 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
     val schemeResults = (sjqTestOpt, bqTestOpt) match {
       case (Some(sjqTest), None) if application.isGis && sjqTest.testResult.isDefined =>
         evaluateForGis(application.preferences.schemes, sjqTest.testResult.get, passmark)
-      case (Some(sjqTest), Some(bqTest)) if sjqTest.testResult.isDefined && bqTest.testResult.isDefined =>
+      case (Some(sjqTest), Some(bqTest)) if application.nonGis && sjqTest.testResult.isDefined && bqTest.testResult.isDefined =>
         evaluateForNonGis(application.preferences.schemes, sjqTest.testResult.get, bqTest.testResult.get, passmark)
       case _ =>
         throw new IllegalStateException(s"Illegal number of active tests with results for this application: ${application.applicationId}")
@@ -67,16 +66,9 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
     phase1EvaluationRepository.savePassmarkEvaluation(
       application.applicationId,
       PassmarkEvaluation(passmark.version, schemeResults),
-      determineApplicationStatus(application)
+      determineApplicationStatus(application.applicationStatus, schemeResults)
     )
   }
 
-  private def determineApplicationStatus(application: ApplicationPhase1ReadyForEvaluation): Option[ApplicationStatus] = {
-    if (application.applicationStatus == ApplicationStatus.PHASE1_TESTS) {
-      // TODO: do the logic
-      Some(ApplicationStatus.PHASE1_TESTS_FAILED)
-    } else {
-      None
-    }
-  }
+
 }

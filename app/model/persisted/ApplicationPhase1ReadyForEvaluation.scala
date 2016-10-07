@@ -27,7 +27,9 @@ case class ApplicationPhase1ReadyForEvaluation(
   isGis: Boolean,
   phase1: Phase1TestProfile,
   preferences: SelectedSchemes
-)
+) {
+  def nonGis = !isGis
+}
 
 object ApplicationPhase1ReadyForEvaluation {
   implicit val applicationPhase1ReadyForEvaluationFormats = Json.format[ApplicationPhase1ReadyForEvaluation]
