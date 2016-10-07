@@ -18,7 +18,7 @@ package services.onlinetesting
 
 import services.onlinetesting.phase1.{ Phase1TestEvaluation, Phase1TestSelector }
 import config.MicroserviceAppConfig._
-import model.persisted.{ ApplicationPhase1Evaluation, PassmarkEvaluation }
+import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
 import repositories.onlinetesting.Phase1EvaluationRepository
 import _root_.services.passmarksettings.PassMarkSettingsService
 import model.ApplicationStatus
@@ -35,22 +35,21 @@ object EvaluatePhase1ResultService extends EvaluatePhase1ResultService {
   val phase1PMSRepository = phase1PassMarkSettingsRepository
 }
 
-//scalastyle:off
 trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEvaluation with PassMarkSettingsService {
   val phase1EvaluationRepository: Phase1EvaluationRepository
 
-  def nextCandidateReadyForEvaluation: Future[Option[(ApplicationPhase1Evaluation, Phase1PassMarkSettings)]] = {
+  def nextCandidateReadyForEvaluation: Future[Option[(ApplicationPhase1ReadyForEvaluation, Phase1PassMarkSettings)]] = {
     getLatestPhase1PassMarkSettings flatMap {
       case Some(passmark) =>
-        phase1EvaluationRepository.nextApplicationReadyForPhase1ResultEvaluation("version1").map { candidateOpt =>
-          candidateOpt.map(e => (e, passmark))
+        phase1EvaluationRepository.nextApplicationReadyForPhase1ResultEvaluation(passmark.version).map { candidateOpt =>
+          candidateOpt map (currentEvaluation => (currentEvaluation, passmark))
         }
       case _ =>
         Future.successful(None)
     }
   }
 
-  def evaluate(application: ApplicationPhase1Evaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
+  def evaluate(application: ApplicationPhase1ReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
     val tests = application.phase1.activeTests
     require(tests.nonEmpty && tests.length <= 2, "Allowed active number of tests is 1 or 2")
     val sjqTestOpt = findFirstSjqTest(tests)
@@ -72,7 +71,7 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
     )
   }
 
-  private def determineApplicationStatus(application: ApplicationPhase1Evaluation): Option[ApplicationStatus] = {
+  private def determineApplicationStatus(application: ApplicationPhase1ReadyForEvaluation): Option[ApplicationStatus] = {
     if (application.applicationStatus == ApplicationStatus.PHASE1_TESTS) {
       // TODO: do the logic
       Some(ApplicationStatus.PHASE1_TESTS_FAILED)

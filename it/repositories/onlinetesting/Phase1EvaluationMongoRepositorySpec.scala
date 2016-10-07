@@ -6,7 +6,7 @@ import model.EvaluationResults.Green
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.SchemeType._
 import model.persisted._
-import model.{ ApplicationStatus, SchemeType, SelectedSchemes }
+import model.{ ApplicationStatus, Phase1TestExamples, SchemeType, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -47,7 +47,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
       val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
 
-      result mustBe Some(ApplicationPhase1Evaluation(
+      result mustBe Some(ApplicationPhase1ReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE1_TESTS,
         isGis = false,
@@ -60,7 +60,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
       val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
 
-      result mustBe Some(ApplicationPhase1Evaluation(
+      result mustBe Some(ApplicationPhase1ReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE1_TESTS,
         isGis = true,
@@ -167,11 +167,10 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 }
 
 object Phase1EvaluationMongoRepositorySpec {
-  val now = DateTime.now().withZone(DateTimeZone.UTC)
-  val phase1Tests = List(
-    Phase1Test(1, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000),
-    Phase1Test(2, usedForResults = true, 101, "cubiks", "token2", "http://localhost", now, 2001)
-  )
+  implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
+  import Phase1TestExamples._
+
+  val phase1Tests = List(oneTest, oneTest)
   val selectedSchemes = SelectedSchemes(List(Commercial, DigitalAndTechnology), orderAgreed = true, eligible = true)
   val testsWithResult = phase1TestsWithResults(TestResult("Ready", "norm", Some(20.5), None, None, None))
 
