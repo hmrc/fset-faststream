@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase3TestsInvitedStatusGenerator extends Phase3TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = SubmittedStatusGenerator
+  override val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
   override val p3Repository = phase3TestRepository
   override val p3TestService = Phase3TestService
   override val gatewayConfig = launchpadGatewayConfig
@@ -46,7 +46,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       p3TestApplication = Phase3TestApplication(
         candidateInPreviousStatus.applicationId.get,
-        PHASE2_TESTS,
+        PHASE3_TESTS,
         candidateInPreviousStatus.userId,
         candidateInPreviousStatus.preferredName,
         candidateInPreviousStatus.lastName
@@ -54,6 +54,9 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       _ <- p3TestService.registerAndInviteForTestGroup(p3TestApplication)
       testGroup <- p3Repository.getTestGroup(p3TestApplication.applicationId)
     } yield {
+      print("========= TG = " + testGroup + "\n")
+      val tg = testGroup.get.tests
+      val tgt = testGroup.get.tests.find(_.usedForResults).get
       candidateInPreviousStatus.copy(
         phase3TestUrl = Some(testGroup.get.tests.find(_.usedForResults).get.testUrl)
       )

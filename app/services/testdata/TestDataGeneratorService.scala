@@ -61,7 +61,7 @@ trait TestDataGeneratorService {
           s"test_service_manager_$emailPrefix$candidateGenerationId@mailinator.com", "CSR Test", "Service Manager",
           "TestServiceManager", role
         )
-        Await.result(fut, 5 seconds)
+        Await.result(fut, 10 seconds)
       }.toList
     }
   }

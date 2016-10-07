@@ -62,7 +62,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument("applicationId" -> applicationId)
 
 
-    val appStatusBSON = BSONDocument("$set" -> applicationStatusBSON(PHASE1_TESTS_INVITED)
+    val appStatusBSON = BSONDocument("$set" -> applicationStatusBSON(PHASE3_TESTS_INVITED)
     ) ++ BSONDocument("$set" -> BSONDocument(
       "testGroups" -> BSONDocument(phaseName -> phase3TestGroup)
     ))

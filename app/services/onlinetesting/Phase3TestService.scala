@@ -163,13 +163,17 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
   }
 
   private def markAsInvited(application: Phase3TestApplication)
-                           (newPhase3TestGroup: Phase3TestGroup): Future[Unit] = for {
-    currentPhase3TestGroup <- p3TestRepository.getTestGroup(application.applicationId)
-    updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
-    _ <- p3TestRepository.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
-    _ <- appRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(updatedPhase3TestGroup))
-  } yield {
-    audit("Phase3TestInvited", application.userId)
+                           (newPhase3TestGroup: Phase3TestGroup): Future[Unit] = {
+    Logger.debug("====== In Invited!")
+    for {
+      currentPhase3TestGroup <- p3TestRepository.getTestGroup(application.applicationId)
+      updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
+      _ <- p3TestRepository.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
+      _ <- appRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(updatedPhase3TestGroup))
+    } yield {
+      Logger.debug("====== Wrote PHASE 3 " + updatedPhase3TestGroup)
+      audit("Phase3TestInvited", application.userId)
+    }
   }
 
   private def candidateEmailAddress(application: Phase3TestApplication): Future[String] =
