@@ -56,7 +56,7 @@ object Phase3TestService extends Phase3TestService {
   case class InviteLinkCouldNotBeCreatedSuccessfully(message: String) extends Exception(message)
 }
 
-trait Phase3TestService extends EventSink {
+trait Phase3TestService extends ResetPhase3Test with EventSink {
   val appRepository: GeneralApplicationRepository
   val p3TestRepository: Phase3TestRepository
   val cdRepository: contactdetails.ContactDetailsMongoRepository
@@ -143,27 +143,28 @@ trait Phase3TestService extends EventSink {
     }
   }
 
-  private def merge(currentProfile: Option[Phase3TestGroup], newProfile: Phase3TestGroup): Phase3TestGroup = currentProfile match {
+  private def merge(currentTestGroup: Option[Phase3TestGroup],
+                    newTestGroup: Phase3TestGroup): Phase3TestGroup = currentTestGroup match {
     case None =>
-      newProfile
+      newTestGroup
     case Some(profile) =>
-      val scheduleIdsToArchive = newProfile.tests.map(_.scheduleId)
-      val existingTestsAfterUpdate = profile.tests.map(t =>
-        if (scheduleIdsToArchive.contains(t.scheduleId)) {
+      val interviewIdsToArchive = newTestGroup.tests.map(_.interviewId)
+      val existingTestsAfterUpdate = profile.tests.map { t =>
+        if (interviewIdsToArchive.contains(t.interviewId)) {
           t.copy(usedForResults = false)
         } else {
           t
         }
-      )
-      Phase1TestProfile(newProfile.expirationDate, existingTestsAfterUpdate ++ newProfile.tests)
+      }
+      Phase3TestGroup(newTestGroup.expirationDate, existingTestsAfterUpdate ++ newTestGroup.tests)
   }
 
   private def markAsInvited(application: Phase3TestApplication)
                            (newPhase3TestGroup: Phase3TestGroup): Future[Unit] = for {
-    currentp3TestGroup <- p3TestRepository.getTestGroup(application.applicationId)
-    updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- phase1TestRepo.insertOrUpdatePhase1TestGroup(application.applicationId, updatedOnlineTestProfile)
-    _ <- phase1TestRepo.removePhase1TestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
+    currentPhase3TestGroup <- p3TestRepository.getTestGroup(application.applicationId)
+    updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
+    _ <- p3TestRepository.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
+    _ <- appRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(updatedPhase3TestGroup))
   } yield {
     audit("Phase3TestInvited", application.userId)
   }
@@ -186,3 +187,15 @@ trait Phase3TestService extends EventSink {
   }
 }
 
+trait ResetPhase3Test {
+  import ProgressStatuses._
+
+  // TODO: Implement
+  def determineStatusesToRemove(testGroup: Phase3TestGroup): List[ProgressStatus] = {
+    /*(if (testGroup.hasNotStartedYet) List(PHASE1_TESTS_STARTED) else List()) ++
+      (if (testGroup.hasNotCompletedYet) List(PHASE1_TESTS_COMPLETED) else List()) ++
+      (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED) else List())
+      */
+      List(PHASE1_TESTS_INVITED)
+    }
+}
