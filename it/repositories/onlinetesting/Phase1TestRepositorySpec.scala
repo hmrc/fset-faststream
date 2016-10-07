@@ -182,7 +182,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
       }
 
       val status = helperRepo.findProgress("appId").futureValue
-      status.phase1TestsResultsReceived mustBe true
+      status.phase1TestsResultsReceived mustBe false
 
     }
   }
