@@ -324,7 +324,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
           "applicationId" -> 1,
           "personal-details.firstName" -> 1,
           "personal-details.lastName" -> 1,
-          "assistance-details.needsAdjustment" -> 1,
+          "assistance-details.needsSupportAtVenue" -> 1,
           "online-tests.invitationDate" -> 1
         )
         val sort = JsObject(Seq("online-tests.invitationDate" -> JsNumber(1)))
@@ -1069,7 +1069,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val firstName = personalDetails.getAs[String]("firstName").get
     val lastName = personalDetails.getAs[String]("lastName").get
     val assistanceDetails = doc.getAs[BSONDocument]("assistance-details").get
-    val needsAdjustment = assistanceDetails.getAs[String]("needsAdjustment").get
+    val needsAdjustment = assistanceDetails.getAs[Boolean]("needsSupportAtVenue").flatMap(b => Some(booleanTranslator(b))).get
     val onlineTestDetails = doc.getAs[BSONDocument]("online-tests").get
     val invitationDate = onlineTestDetails.getAs[DateTime]("invitationDate").get
     ApplicationForAssessmentAllocation(firstName, lastName, userId, applicationId, needsAdjustment, invitationDate)
