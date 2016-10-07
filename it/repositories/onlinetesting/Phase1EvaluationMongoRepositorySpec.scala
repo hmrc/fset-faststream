@@ -5,8 +5,8 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.SchemeType._
-import model.persisted._
-import model.{ ApplicationStatus, ProgressStatuses, SchemeType, SelectedSchemes }
+import model.persisted.{ ApplicationToPhase1Evaluation, AssistanceDetails, TestResult }
+import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
