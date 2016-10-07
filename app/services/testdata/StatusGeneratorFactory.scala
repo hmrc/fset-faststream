@@ -16,49 +16,48 @@
 
 package services.testdata
 
-import model.{ ApplicationStatus, ApplicationStatuses }
+import model.ApplicationStatus._
 import model.Exceptions.InvalidStatusException
 import model.ProgressStatuses._
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
-  def getGenerator(applicationStatus: String, progressStatus: Option[ProgressStatus], generatorConfig: GeneratorConfig) = {
+  def getGenerator(applicationStatus: ApplicationStatus, progressStatus: Option[ProgressStatus], generatorConfig: GeneratorConfig) = {
 
     (applicationStatus, progressStatus) match {
       case (appStatus, None) => appStatus match {
-        case "REGISTERED" => RegisteredStatusGenerator
-        case ApplicationStatuses.Created => CreatedStatusGenerator
-        case "IN_PROGRESS_PERSONAL_DETAILS" => InProgressPersonalDetailsStatusGenerator
-        case "IN_PROGRESS_SCHEME_PREFERENCES" => InProgressSchemePreferencesStatusGenerator
-        case "IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES" => InProgressPartnerGraduateProgrammesStatusGenerator
-        case "IN_PROGRESS_ASSISTANCE_DETAILS" => InProgressAssistanceDetailsStatusGenerator
-        case "IN_PROGRESS_QUESTIONNAIRE" => InProgressQuestionnaireStatusGenerator
-        case "IN_PROGRESS_PREVIEW" => InProgressPreviewStatusGenerator
-        case ApplicationStatuses.Submitted => SubmittedStatusGenerator
-        case ApplicationStatuses.AwaitingAllocation => AwaitingAllocationStatusGenerator
-        case ApplicationStatuses.AllocationConfirmed => AllocationStatusGenerator
-        case ApplicationStatuses.AllocationUnconfirmed => AllocationStatusGenerator
-        case ApplicationStatuses.FailedToAttend => FailedToAttendStatusGenerator
-        case ApplicationStatuses.AssessmentScoresEntered => AssessmentScoresEnteredStatusGenerator
-        case ApplicationStatuses.AssessmentScoresAccepted => AssessmentScoresAcceptedStatusGenerator
-        case ApplicationStatuses.AwaitingAssessmentCentreReevaluation => AwaitingAssessmentCentreReevalationStatusGenerator
-        case ApplicationStatuses.AssessmentCentrePassed => AssessmentCentrePassedStatusGenerator
-        case ApplicationStatuses.AssessmentCentreFailed => AssessmentCentreFailedStatusGenerator
-        case ApplicationStatuses.AssessmentCentrePassedNotified => AssessmentCentrePassedNotifiedStatusGenerator
-        case ApplicationStatuses.AssessmentCentreFailedNotified => AssessmentCentreFailedNotifiedStatusGenerator
-        case ApplicationStatuses.Withdrawn => WithdrawnStatusGenerator
+        case REGISTERED => RegisteredStatusGenerator
+        case CREATED => CreatedStatusGenerator
+        case IN_PROGRESS_PERSONAL_DETAILS => InProgressPersonalDetailsStatusGenerator
+        case IN_PROGRESS_SCHEME_PREFERENCES => InProgressSchemePreferencesStatusGenerator
+        case IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES => InProgressPartnerGraduateProgrammesStatusGenerator
+        case IN_PROGRESS_ASSISTANCE_DETAILS => InProgressAssistanceDetailsStatusGenerator
+        case IN_PROGRESS_QUESTIONNAIRE => InProgressQuestionnaireStatusGenerator
+        case IN_PROGRESS_PREVIEW => InProgressPreviewStatusGenerator
+        case SUBMITTED => SubmittedStatusGenerator
+        case AWAITING_ALLOCATION => AwaitingAllocationStatusGenerator
+        case ALLOCATION_CONFIRMED => AllocationStatusGenerator
+        case ALLOCATION_UNCONFIRMED => AllocationStatusGenerator
+        case FAILED_TO_ATTEND => FailedToAttendStatusGenerator
+        case ASSESSMENT_SCORES_ENTERED => AssessmentScoresEnteredStatusGenerator
+        case ASSESSMENT_SCORES_ACCEPTED => AssessmentScoresAcceptedStatusGenerator
+        case AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION => AwaitingAssessmentCentreReevalationStatusGenerator
+        case ASSESSMENT_CENTRE_PASSED => AssessmentCentrePassedStatusGenerator
+        case ASSESSMENT_CENTRE_FAILED => AssessmentCentreFailedStatusGenerator
+        case ASSESSMENT_CENTRE_PASSED_NOTIFIED => AssessmentCentrePassedNotifiedStatusGenerator
+        case ASSESSMENT_CENTRE_FAILED_NOTIFIED => AssessmentCentreFailedNotifiedStatusGenerator
+        case WITHDRAWN => WithdrawnStatusGenerator
       }
-      // TODO: Once all old string application statuses are removed convert this to a typed match
-      case ("PHASE1_TESTS", Some(PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
-      case ("PHASE1_TESTS", Some(PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
-      case ("PHASE1_TESTS", Some(PHASE1_TESTS_EXPIRED)) =>
+      case (PHASE1_TESTS, Some(PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
+      case (PHASE1_TESTS, Some(PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
+      case (PHASE1_TESTS, Some(PHASE1_TESTS_EXPIRED)) =>
         if (generatorConfig.phase1StartTime.isDefined) {
           Phase1TestsExpiredFromStartedStatusGenerator
         } else {
           Phase1TestsExpiredFromInvitedStatusGenerator
         }
-      case ("PHASE1_TESTS", Some(PHASE1_TESTS_COMPLETED)) => Phase1TestsCompletedStatusGenerator
-      case ("PHASE1_TESTS", Some(PHASE1_TESTS_RESULTS_RECEIVED)) => Phase1TestsResultsReceivedStatusGenerator
+      case (PHASE1_TESTS, Some(PHASE1_TESTS_COMPLETED)) => Phase1TestsCompletedStatusGenerator
+      case (PHASE1_TESTS, Some(PHASE1_TESTS_RESULTS_RECEIVED)) => Phase1TestsResultsReceivedStatusGenerator
       case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
     }
   }

@@ -16,23 +16,21 @@
 
 package services.passmarksettings
 
-import connectors.PassMarkExchangeObjects.Settings
+import model.Commands.PassMarkSettingsCreateResponse
+import model.exchange.passmarksettings.Phase1PassMarkSettings
 import repositories._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object PassMarkSettingsService extends PassMarkSettingsService {
-  val fwRepository = frameworkRepository
-  val pmsRepository = passMarkSettingsRepository
+  val phase1PMSRepository = phase1PassMarkSettingsRepository
 }
 
 trait PassMarkSettingsService {
-  val fwRepository: FrameworkRepository
-  val pmsRepository: PassMarkSettingsRepository
+  val phase1PMSRepository: Phase1PassMarkSettingsRepository
 
-  def tryGetLatestVersion(): Future[Option[Settings]] =
-    fwRepository.getFrameworkNames.flatMap(schemeNames => {
-      pmsRepository.tryGetLatestVersion(schemeNames)
-    })
+  def getLatestPhase1PassMarkSettings: Future[Option[Phase1PassMarkSettings]] = phase1PMSRepository.getLatestVersion
+
+  def createPhase1PassMarkSettings(phase1PassMarkSettings: Phase1PassMarkSettings):Future[PassMarkSettingsCreateResponse]
+      = phase1PMSRepository.create(phase1PassMarkSettings)
 }

@@ -16,12 +16,12 @@
 
 package controllers
 
-import model.ApplicationStatuses
 import model.CandidateScoresCommands.Implicits._
 import model.CandidateScoresCommands.{ ApplicationScores, CandidateScores, CandidateScoresAndFeedback, RecordCandidateScores }
 import model.Commands.ApplicationAssessment
 import model.PersistedObjects.PersonalDetails
 import org.joda.time.LocalDate
+import model.ApplicationStatus
 import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatestplus.play.PlaySpec
@@ -79,7 +79,7 @@ class CandidateScoresControllerSpec extends PlaySpec with Results with MockitoSu
   "Save Candidate Scores" should {
     "save candidate scores & feedback and update application status" in new TestFixture {
       when(mockApplicationAssessmentScoresRepository.save(CandidateScoresWithFeedback)).thenReturn(Future.successful(()))
-      when(mockApplicationRepository.updateStatus("app1", ApplicationStatuses.AssessmentScoresEntered)).thenReturn(Future.successful(()))
+      when(mockApplicationRepository.updateStatus("app1", ApplicationStatus.ASSESSMENT_SCORES_ENTERED)).thenReturn(Future.successful(()))
 
       val result = TestCandidateScoresController.createCandidateScoresAndFeedback("app1")(
         createSaveCandidateScoresAndFeedback("app1", Json.toJson(CandidateScoresWithFeedback).toString())
@@ -87,13 +87,13 @@ class CandidateScoresControllerSpec extends PlaySpec with Results with MockitoSu
 
       status(result) must be(CREATED)
       verify(mockApplicationAssessmentScoresRepository).save(CandidateScoresWithFeedback)
-      verify(mockApplicationRepository).updateStatus("app1", ApplicationStatuses.AssessmentScoresEntered)
+      verify(mockApplicationRepository).updateStatus("app1", ApplicationStatus.ASSESSMENT_SCORES_ENTERED)
     }
 
     "mark application status as FAILED_TO_ATTEND when candidate didn't show and save the score" in new TestFixture {
       val candidateScores = CandidateScoresAndFeedback("app1", Some(false), assessmentIncomplete = false)
       when(mockApplicationAssessmentScoresRepository.save(candidateScores)).thenReturn(Future.successful(()))
-      when(mockApplicationRepository.updateStatus("app1", ApplicationStatuses.FailedToAttend)).thenReturn(Future.successful(()))
+      when(mockApplicationRepository.updateStatus("app1", ApplicationStatus.FAILED_TO_ATTEND)).thenReturn(Future.successful(()))
 
       val result = TestCandidateScoresController.createCandidateScoresAndFeedback("app1")(
         createSaveCandidateScoresAndFeedback("app1", Json.toJson(candidateScores).toString())
@@ -101,7 +101,7 @@ class CandidateScoresControllerSpec extends PlaySpec with Results with MockitoSu
 
       status(result) must be(CREATED)
       verify(mockApplicationAssessmentScoresRepository).save(candidateScores)
-      verify(mockApplicationRepository).updateStatus("app1", ApplicationStatuses.FailedToAttend)
+      verify(mockApplicationRepository).updateStatus("app1", ApplicationStatus.FAILED_TO_ATTEND)
     }
 
     "return Bad Request when attendancy is not set" in new TestFixture {
