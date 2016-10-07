@@ -60,9 +60,9 @@ case class CubiksGatewayConfig(url: String,
 )
 
 case class Phase1TestsConfig(expiryTimeInDays: Int,
-                                  scheduleIds: Map[String, Int],
-                                  standard: List[String],
-                                  gis: List[String])
+                             scheduleIds: Map[String, Int],
+                             standard: List[String],
+                             gis: List[String])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
@@ -72,6 +72,13 @@ trait CubiksGatewayAssessment {
 case class CubiksGatewayStandardAssessment(assessmentId: Int, normId: Int) extends CubiksGatewayAssessment
 
 case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, suppressValidation: Boolean = false)
+
+case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
+
+case class Phase3TestsConfig(timeToExpireInDays: Int,
+                             candidateCompletionRedirectUrl: String,
+                             mainInterviewId: Int,
+                             tenPercentInterviewId: Int)
 
 case class DiversityMonitoringJobConfig(enabled: Boolean, lockId: Option[String], initialDelaySecs: Option[Int],
   intervalSecs: Option[Int], forceStopActorsSecs: Option[Int])
@@ -93,6 +100,7 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val frameworksConfig = configuration.underlying.as[FrameworksConfig]("microservice.frameworks")
   lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
   lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val launchpadGatewayConfig = configuration.underlying.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
   lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
   lazy val sendInvitationJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-invitation-job")
