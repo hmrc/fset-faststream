@@ -30,7 +30,7 @@ import model.InternshipType.InternshipType
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.ApplicationForNotification
 import model.SchemeType._
-import model._
+import model.{ ApplicationStatus, _ }
 import model.command._
 import model.report.CandidateProgressReport
 import org.joda.time.format.DateTimeFormat
@@ -687,9 +687,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
-        // TO DO: confirm with Mike the exit status
-        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "IN_PROGRESS")),
-        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN")),
+        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.CREATED)),
+        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.IN_PROGRESS)),
+        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN)),
         BSONDocument("$or" ->
           BSONArray(
             BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
