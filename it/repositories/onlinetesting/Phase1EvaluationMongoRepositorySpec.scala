@@ -171,7 +171,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
 object Phase1EvaluationMongoRepositorySpec {
   implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
-  import Phase1TestExamples._
+  import model.Phase1TestExamples._
 
   val phase1Tests = List(oneTest, oneTest)
   val selectedSchemes = SelectedSchemes(List(Commercial, DigitalAndTechnology), orderAgreed = true, eligible = true)
