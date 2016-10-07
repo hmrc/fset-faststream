@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package model.exchange
+package services.onlinetesting
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.Matchers
+import org.scalatestplus.play.PlaySpec
 
-case class Phase1TestProfileWithNames(expirationDate: DateTime, activeTests: Map[String, CubiksTest])
+class Phase2TestServiceSpec extends PlaySpec with MockitoSugar {
 
-object Phase1TestProfileWithNames {
-  implicit val phase1TestProfileWithNamesFormat = Json.format[Phase1TestProfileWithNames]
+  "some tests" should {
+    "pass" in {
+      pending
+    }
+  }
+
 }

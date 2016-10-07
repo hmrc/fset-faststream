@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package model.exchange
+package services
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+package object onlinetesting {
 
-case class Phase1TestProfileWithNames(expirationDate: DateTime, activeTests: Map[String, CubiksTest])
-
-object Phase1TestProfileWithNames {
-  implicit val phase1TestProfileWithNamesFormat = Json.format[Phase1TestProfileWithNames]
+  case class TestExtensionException(message: String) extends Exception(message)
+  case class ReportIdNotDefinedException(message: String) extends Exception(message)
 }

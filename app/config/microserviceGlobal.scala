@@ -46,9 +46,15 @@ object MicroserviceLoggingFilter extends LoggingFilter {
 trait Scheduler extends RunningOfScheduledJobs {
   import config.MicroserviceAppConfig._
 
-  private lazy val sendInvitationJob: Option[ScheduledJob] =
-    if (sendInvitationJobConfigValues.enabled) Some(SendInvitationJob) else {
-      Logger.warn("Send invitation job is disabled")
+  private lazy val sendPhase1InvitationJob: Option[ScheduledJob] =
+    if (sendPhase1InvitationJobConfigValues.enabled) Some(SendPhase1InvitationJob) else {
+      Logger.warn("Send phase 1 invitation job is disabled")
+      None
+    }
+
+  private lazy val sendPhase2InvitationJob: Option[ScheduledJob] =
+    if (sendPhase2InvitationJobConfigValues.enabled) Some(SendPhase2InvitationJob) else {
+      Logger.warn("Send phase 2 invitation job is disabled")
       None
     }
 
@@ -112,7 +118,8 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
-  private[config] def sendInvitationJobConfigValues = sendInvitationJobConfig
+  private[config] def sendPhase1InvitationJobConfigValues = sendPhase1InvitationJobConfig
+  private[config] def sendPhase2InvitationJobConfigValues = sendPhase2InvitationJobConfig
   private[config] def expireOnlineTestJobConfigValues = expireOnlineTestJobConfig
   private[config] def firstReminderJobConfigValues = firstReminderJobConfig
   private[config] def secondReminderJobConfigValues = secondReminderJobConfig
@@ -124,7 +131,7 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
 
-  lazy val scheduledJobs = List(sendInvitationJob, firstReminderExpiringTestJob, secondReminderExpiringTestJob,
+  lazy val scheduledJobs = List(sendPhase1InvitationJob,sendPhase2InvitationJob, firstReminderExpiringTestJob, secondReminderExpiringTestJob,
     expireOnlineTestJob, failedOnlineTestJob, retrieveResultsJob, evaluatePhase1ResultJob, diversityMonitoringJob,
     confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }

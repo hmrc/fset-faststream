@@ -22,7 +22,8 @@ import model.Commands._
 import model.command._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
+import model.OnlineTestCommands.OnlineTestApplication
+import model.persisted.Phase1TestProfile
 import model._
 import model.persisted.ApplicationForNotification
 import model.report.CandidateProgressReport

@@ -34,6 +34,16 @@ trait CubiksGatewayClient {
   val http: WSHttp
   val url: String
 
+  def batchRegisterApplicant()(implicit hc: HeaderCarrier): Future[Registration] = {
+    http.POST(s"$url/csr-cubiks-gateway/faststream/register", registerApplicant).map { response =>
+      if (response.status == OK) {
+        response.json.as[Registration]
+      } else {
+        throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
+      }
+    }
+  }
+
   def registerApplicant(registerApplicant: RegisterApplicant)(implicit hc: HeaderCarrier): Future[Registration] = {
     http.POST(s"$url/csr-cubiks-gateway/faststream/register", registerApplicant).map { response =>
       if (response.status == OK) {

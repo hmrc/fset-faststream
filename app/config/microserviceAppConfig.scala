@@ -52,6 +52,7 @@ case class WaitingScheduledJobConfig(
 
 case class CubiksGatewayConfig(url: String,
   phase1Tests: Phase1TestsConfig,
+  phase2Tests: Phase2TestsConfig,
   competenceAssessment: CubiksGatewayStandardAssessment,
   situationalAssessment: CubiksGatewayStandardAssessment,
   reportConfig: ReportConfig,
@@ -63,6 +64,11 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
                              scheduleIds: Map[String, Int],
                              standard: List[String],
                              gis: List[String])
+
+case class Phase2TestsConfig(expiryTimeInDays: Int,
+  scheduleName: String,
+  scheduleId: Int
+)
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
@@ -102,8 +108,11 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
   lazy val launchpadGatewayConfig = configuration.underlying.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
   lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
-  lazy val sendInvitationJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-invitation-job")
+  lazy val sendPhase1InvitationJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase1-invitation-job")
+
+  lazy val sendPhase2InvitationJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase2-invitation-job")
 
   lazy val firstReminderJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-reminder-expiring-test-job")

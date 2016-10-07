@@ -40,6 +40,12 @@ object ProgressStatuses {
   val Phase1TestsExpired = "phase1_tests_expired"
   val Phase1TestsResultsReady = "phase1_tests_ready"
   val Phase1TestsResultsReceived = "phase1_tests_results_received"
+  val Phase2TestsInvited = "phase2_tests_invited"
+  val Phase2TestsStarted = "phase2_tests_started"
+  val Phase2TestsCompleted = "phase2_tests_completed"
+  val Phase2TestsExpired = "phase2_tests_expired"
+  val Phase2TestsResultsReady = "phase2_tests_ready"
+  val Phase2TestsResultsReceived = "phase2_tests_results_received"
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
   val OnlineTestFailedNotifiedProgress = "online_test_failed_notified"
@@ -72,20 +78,22 @@ object ProgressStatuses {
   }
 
   case object PHASE1_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
   case object PHASE1_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
   case object PHASE1_TESTS_FIRST_REMINDER extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
   case object PHASE1_TESTS_SECOND_REMINDER extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
   case object PHASE1_TESTS_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
   case object PHASE1_TESTS_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
   case object PHASE1_TESTS_RESULTS_READY extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
-
   case object PHASE1_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+
+  case object PHASE2_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+  case object PHASE2_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+  case object PHASE2_TESTS_FIRST_REMINDER extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+  case object PHASE2_TESTS_SECOND_REMINDER extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+  case object PHASE2_TESTS_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+  case object PHASE2_TESTS_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+  case object PHASE2_TESTS_RESULTS_READY extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+  case object PHASE2_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
 
   case object PHASE3_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
 
@@ -95,6 +103,13 @@ object ProgressStatuses {
     PHASE1_TESTS_COMPLETED,
     PHASE1_TESTS_EXPIRED,
     PHASE1_TESTS_RESULTS_READY,
+    PHASE1_TESTS_RESULTS_RECEIVED,
+    PHASE2_TESTS_INVITED,
+    PHASE2_TESTS_STARTED,
+    PHASE2_TESTS_COMPLETED,
+    PHASE2_TESTS_EXPIRED,
+    PHASE2_TESTS_RESULTS_READY,
+    PHASE2_TESTS_RESULTS_RECEIVED
     PHASE1_TESTS_RESULTS_RECEIVED,
     PHASE3_TESTS_INVITED
   ).map { value =>
