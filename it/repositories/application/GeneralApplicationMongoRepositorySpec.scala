@@ -25,6 +25,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
@@ -33,7 +34,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   val collectionName = "application"
 
-  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
 
   "General Application repository" should {
     "Get overall report for an application with all fields" in {

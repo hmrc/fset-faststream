@@ -22,8 +22,10 @@ import model.Commands._
 import model.command._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile }
+import model.OnlineTestCommands.{OnlineTestApplication, Phase1TestProfile}
 import model._
+import model.report.{ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport}
+import org.joda.time.{DateTime, LocalDate}
 import model.persisted.ApplicationForNotification
 import model.report.CandidateProgressReport
 import org.joda.time.{ DateTime, LocalDate }
@@ -100,13 +102,15 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findCandidateByUserId(userId: String): Future[Option[Candidate]] = Future.successful(None)
 
-  override def candidateProgressReportNotWithdrawn(frameworkId: String):
-  Future[List[CandidateProgressReport]] = candidateProgressReport(frameworkId)
+  override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] =
+    candidateProgressReport(frameworkId)
 
   override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]] = Future.successful(List(
     CandidateProgressReport("", Some("registered"),
       List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None))
   )
+
+  override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = ???
 
   override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReport]] =
     Future.successful(

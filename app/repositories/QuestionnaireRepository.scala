@@ -16,14 +16,15 @@
 
 package repositories
 
-import model.Commands.PassMarkReportQuestionnaireData
+import model.report.PassMarkReportQuestionnaireData
 import model.PersistedObjects
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import play.api.libs.json._
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
-import services.reporting.SocioEconomicScoreCalculatorTrait
+import services.reporting.SocioEconomicScoreCalculator
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -34,12 +35,15 @@ import scala.language.postfixOps
 trait QuestionnaireRepository {
   def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit]
   def findQuestions(applicationId: String): Future[Map[String, String]]
-  def passMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]]
+  def onlineTestPassMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]]
 }
 
-class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculatorTrait)(implicit mongo: () => DB)
+class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
   extends ReactiveRepository[PersistedAnswer, BSONObjectID]("questionnaire", mongo,
     PersistedObjects.Implicits.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository {
+
+  // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
+  lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
 
   override def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit] = {
 
@@ -65,14 +69,16 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     }
   }
 
-  override def passMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]] = {
+  override def onlineTestPassMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]] = {
     // We need to ensure that the candidates have completed the last page of the questionnaire
     // however, only the first question on the employment page is mandatory, as if the answer is
     // unemployed, they don't need to answer other questions
-    val firstEmploymentQuestion = "Which type of occupation did they have?"
+    val firstEmploymentQuestion = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
     val query = BSONDocument(s"questions.$firstEmploymentQuestion" -> BSONDocument("$exists" -> BSONBoolean(true)))
-    val queryResult = collection.find(query).cursor[BSONDocument](ReadPreference.nearest).collect[List]()
-    queryResult.map(_.map(docToReport).toMap)
+    implicit val reader = bsonReader(docToReport)
+    val queryResult = bsonCollection.find(query)
+      .cursor[(String, PassMarkReportQuestionnaireData)](ReadPreference.nearest).collect[List]()
+    queryResult.map(_.toMap)
   }
 
   def find(applicationId: String): Future[List[PersistedQuestion]] = {
@@ -95,6 +101,12 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     }
   }
 
+  private def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
+    new BSONDocumentReader[T] {
+      def read(bson: BSONDocument) = f(bson)
+    }
+  }
+
   private def docToReport(document: BSONDocument): (String, PassMarkReportQuestionnaireData) = {
     val questionsDoc = document.getAs[BSONDocument]("questions")
     def getAnswer(question: String): Option[String] = {
@@ -108,8 +120,11 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     val sexualOrientation = getAnswer("What is your sexual orientation?")
     val ethnicity = getAnswer("What is your ethnic group?")
 
-    val employmentStatus = getAnswer("Which type of occupation did they have?")
-    val isEmployed = employmentStatus.exists(s => !s.startsWith("Unemployed"))
+    val university = getAnswer("What is the name of the university you received your degree from?")
+
+    val employmentStatus = getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?")
+    val isEmployed = employmentStatus.exists (s => !s.startsWith("Unemployed") && !s.startsWith("Unknown"))
+
     val parentEmploymentStatus = if (isEmployed) Some("Employed") else employmentStatus
     val parentOccupation = if (isEmployed) employmentStatus else None
 
@@ -132,7 +147,8 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
       parentOccupation,
       parentEmployedOrSelf,
       parentCompanySize,
-      socioEconomicScore
+      socioEconomicScore,
+      university
     ))
   }
 }

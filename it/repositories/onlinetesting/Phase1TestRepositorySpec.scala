@@ -20,17 +20,18 @@ import java.util.UUID
 
 import factories.DateTimeFactory
 import model.Exceptions.CannotFindTestByCubiksId
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
+import model.OnlineTestCommands.{OnlineTestApplication, Phase1Test, Phase1TestProfile}
 import model.persisted.ExpiringOnlineTest
-import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _ }
+import model.ProgressStatuses.{PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _}
 import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future
@@ -41,7 +42,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = "application"
 
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
 
   val Token = UUID.randomUUID.toString
