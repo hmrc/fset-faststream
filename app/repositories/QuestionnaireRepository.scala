@@ -20,6 +20,7 @@ import model.report.PassMarkReportQuestionnaireData
 import model.PersistedObjects
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import play.api.libs.json._
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
@@ -40,6 +41,9 @@ trait QuestionnaireRepository {
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
   extends ReactiveRepository[PersistedAnswer, BSONObjectID]("questionnaire", mongo,
     PersistedObjects.Implicits.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository {
+
+  // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
+  lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
 
   override def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit] = {
 
@@ -71,8 +75,10 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     // unemployed, they don't need to answer other questions
     val firstEmploymentQuestion = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
     val query = BSONDocument(s"questions.$firstEmploymentQuestion" -> BSONDocument("$exists" -> BSONBoolean(true)))
-    val queryResult = collection.find(query).cursor[BSONDocument](ReadPreference.nearest).collect[List]()
-    queryResult.map(_.map(docToReport).toMap)
+    implicit val reader = bsonReader(docToReport)
+    val queryResult = bsonCollection.find(query)
+      .cursor[(String, PassMarkReportQuestionnaireData)](ReadPreference.nearest).collect[List]()
+    queryResult.map(_.toMap)
   }
 
   def find(applicationId: String): Future[List[PersistedQuestion]] = {
@@ -92,6 +98,12 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     collection.find(query, projection).one[Questions].map {
       case Some(q) => q.questions.map((q: (String, PersistedAnswer)) => PersistedQuestion(q._1, q._2)).toList
       case None => List()
+    }
+  }
+
+  private def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
+    new BSONDocumentReader[T] {
+      def read(bson: BSONDocument) = f(bson)
     }
   }
 

@@ -208,8 +208,8 @@ trait ReportingController extends BaseController {
     applications: List[(String, IsNonSubmitted, PreferencesWithContactDetails)]
   ) = {
 
-    val contactDetailsMap = contactDetails.groupBy(_.userId).mapValues(_.headOption)
-    val applicationsMap = applications
+    val contactDetailsMap = contactDetails.toList.groupBy(_.userId).mapValues(_.headOption)
+    val applicationsMap = applications.toList
       .groupBy { case (userId, _, _) => userId }
       .mapValues(_.headOption.map { case (_, _, app) => app })
 

@@ -19,7 +19,6 @@ package controllers
 import config.TestFixtureBase
 import connectors.AuthProviderClient
 import connectors.ExchangeObjects.Candidate
-import controllers.ReportingController
 import mocks._
 import mocks.application.DocumentRootInMemoryRepository
 import model.{Address, SchemeType}
