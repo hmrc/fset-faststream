@@ -50,26 +50,28 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     when(phase1TestsConfigMock.scheduleIds).thenReturn(Map("sjq" -> 1, "bq" -> 2))
   }
 
+  // format: OFF
   val phase1PassMarkSettingsTable = Table[SchemeType, Double, Double, Double, Double](
-    ("Scheme Name", "SJQ Fail Threshold", "SJQ Pass threshold", "BQ Fail Threshold", "BQ Pass Threshold"),
-    (Commercial, 20.0, 80.0, 30.0, 70.0),
-    (DigitalAndTechnology, 20.001, 20.001, 20.01, 20.05),
-    (DiplomaticService, 20.01, 20.02, 20.01, 20.02),
-    (DiplomaticServiceEconomics, 30.0, 70.0, 30.0, 70.0),
-    (DiplomaticServiceEuropean, 30.0, 70.0, 30.0, 70.0),
-    (European, 30.0, 70.0, 30.0, 70.0),
-    (Finance, 30.0, 70.0, 30.0, 70.0),
-    (Generalist, 30.0, 70.0, 30.0, 70.0),
-    (GovernmentCommunicationService, 30.0, 70.0, 30.0, 70.0),
-    (GovernmentEconomicsService, 30.0, 70.0, 30.0, 70.0),
-    (GovernmentOperationalResearchService, 30.0, 70.0, 30.0, 70.0),
-    (GovernmentSocialResearchService, 30.0, 70.0, 30.0, 70.0),
-    (GovernmentStatisticalService, 30.0, 70.0, 30.0, 70.0),
-    (HousesOfParliament, 30.0, 70.0, 30.0, 70.0),
-    (HumanResources, 30.0, 70.0, 30.0, 70.0),
-    (ProjectDelivery, 30.0, 70.0, 30.0, 70.0),
-    (ScienceAndEngineering, 30.0, 70.0, 30.0, 70.0)
+    ("Scheme Name",                       "SJQ Fail Threshold",   "SJQ Pass threshold",   "BQ Fail Threshold",    "BQ Pass Threshold"),
+    (Commercial,                            20.0,                    80.0,                   30.0,                   70.0),
+    (DigitalAndTechnology,                  20.001,                  20.001,                 20.01,                  20.05),
+    (DiplomaticService,                     20.01,                   20.02,                  20.01,                  20.02),
+    (DiplomaticServiceEconomics,            30.0,                    70.0,                   30.0,                   70.0),
+    (DiplomaticServiceEuropean,             30.0,                    70.0,                   30.0,                   70.0),
+    (European,                              30.0,                    70.0,                   30.0,                   70.0),
+    (Finance,                               30.0,                    70.0,                   30.0,                   70.0),
+    (Generalist,                            30.0,                    70.0,                   30.0,                   70.0),
+    (GovernmentCommunicationService,        30.0,                    70.0,                   30.0,                   70.0),
+    (GovernmentEconomicsService,            30.0,                    70.0,                   30.0,                   70.0),
+    (GovernmentOperationalResearchService,  30.0,                    70.0,                   30.0,                   70.0),
+    (GovernmentSocialResearchService,       30.0,                    70.0,                   30.0,                   70.0),
+    (GovernmentStatisticalService,          30.0,                    70.0,                   30.0,                   70.0),
+    (HousesOfParliament,                    30.0,                    79.999,                 30.0,                   78.08),
+    (HumanResources,                        30.0,                    70.0,                   30.0,                   70.0),
+    (ProjectDelivery,                       30.0,                    70.0,                   30.0,                   70.0),
+    (ScienceAndEngineering,                 69.00,                   69.00,                  78.99,                  78.99)
   )
+  // format: ON
 
   def applicationTable(application: (String, Double, Double, Boolean, List[SchemeType])*) = Table(
     ("ApplicationId", "SJQ Score", "BQ Score", "isGis", "Selected Schemes"),
@@ -80,17 +82,20 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     expectedResult: _*)
 
   "phase1 evaluation process" should {
-    "process phase1 test results for candidates that has completed phase1 tests" in {
+
+    "give pass results when all schemes are passed" in {
       val applications = applicationTable(
-        ("application-1", 25, 80, false, List(Commercial, DigitalAndTechnology)),
-        ("application-2", 20.001, 25, false, List(Commercial, DigitalAndTechnology)),
-        ("application-3", 20.015, 20.015, false, List(Commercial, DigitalAndTechnology))
+        ("application-1", 80, 80, false, List(Commercial, DigitalAndTechnology)),
+        ("application-2", 79.999, 78.08, false, List(HousesOfParliament)),
+        ("application-3", 69, 78.99, false, List(ScienceAndEngineering))
       )
+
       val expectedResults = expectedResultTable(
-        ("application-1", PHASE1_TESTS_PASSED, List(Commercial -> Amber, DigitalAndTechnology -> Green)),
-        ("application-2", PHASE1_TESTS_PASSED, List(Commercial -> Red, DigitalAndTechnology -> Green)),
-        ("application-3", PHASE1_TESTS, List(Commercial -> Red, DigitalAndTechnology -> Amber))
+        ("application-1", PHASE1_TESTS_PASSED, List(Commercial -> Green, DigitalAndTechnology -> Green)),
+        ("application-2", PHASE1_TESTS_PASSED, List(HousesOfParliament -> Green)),
+        ("application-3", PHASE1_TESTS_PASSED, List(ScienceAndEngineering -> Green))
       )
+
       evaluatePhase1Tests(applications)(expectedResults)
     }
 
