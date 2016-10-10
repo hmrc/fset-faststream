@@ -21,7 +21,7 @@ import play.api.libs.json.{ Format, Json }
 
 object AssessmentScheduleCommands {
   case class ApplicationForAssessmentAllocation(firstName: String, lastName: String, userId: String, applicationId: String,
-    needsAdjustment: String, invitationDate: DateTime)
+                                                needsSupportAtVenue: String, invitationDate: DateTime)
   case class ApplicationForAssessmentAllocationResult(result: List[ApplicationForAssessmentAllocation], total: Int)
 
   case class CandidateAllocation(candidateName: String, onlineTestDate: DateTime, hasAdjustment: Boolean,

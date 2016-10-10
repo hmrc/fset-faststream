@@ -19,15 +19,13 @@ package mocks.application
 import model.ApplicationStatus.ApplicationStatus
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
-import model.command._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
-import model.OnlineTestCommands.{OnlineTestApplication, Phase1TestProfile}
+import model.OnlineTestCommands.OnlineTestApplication
 import model._
-import model.report.{ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport}
-import org.joda.time.{DateTime, LocalDate}
+import model.command._
 import model.persisted.ApplicationForNotification
-import model.report.CandidateProgressReport
+import model.report.{ AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport }
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
 
