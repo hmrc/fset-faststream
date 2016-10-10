@@ -16,7 +16,6 @@
 
 package controllers
 
-import model.PersistedObjects
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories._
@@ -30,7 +29,6 @@ object DiagnosticReportController extends DiagnosticReportController {
 }
 
 trait DiagnosticReportController extends BaseController {
-  import PersistedObjects.Implicits._
 
   val drRepository: DiagnosticReportingRepository
 
