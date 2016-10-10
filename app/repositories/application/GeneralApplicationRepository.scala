@@ -216,6 +216,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
         phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.toString),
         phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.toString),
         phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
+        phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString),
         phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
         failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
         assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
