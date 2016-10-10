@@ -61,9 +61,6 @@ object Commands {
                                        hasAdjustments: Option[String], guaranteedInterview: Option[String], firstName: Option[String], lastName: Option[String],
                                        preferredName: Option[String], dateOfBirth: Option[String], cubiksUserId: Option[Int])
 
-  case class AdjustmentReport(userId: String, firstName: Option[String], lastName: Option[String], preferredName: Option[String],
-                              email: Option[String], telephone: Option[String], adjustments: Option[String], gis: Option[String], adjustmentsConfirmed: Option[String])
-
   case class CandidateAwaitingAllocation(
                                           userId: String,
                                           firstName: String,
@@ -233,7 +230,6 @@ object Commands {
     implicit val searchCandidateFormat = Json.format[SearchCandidate]
     implicit val candidateFormat = Json.format[Candidate]
     implicit val reportFormat = Json.format[Report]
-    implicit val adjustmentReportFormat = Json.format[AdjustmentReport]
     implicit val preferencesWithContactDetailsFormat = Json.format[PreferencesWithContactDetails]
     implicit val adjustmentManagementFormat = Json.format[AdjustmentManagement]
 
