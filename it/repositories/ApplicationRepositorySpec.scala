@@ -59,7 +59,9 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
           List("_id"),
           List("applicationId", "userId"),
           List("userId", "frameworkId"),
-          List("applicationStatus")
+          List("applicationStatus"),
+          List("assistance-details.needsSupportForOnlineAssessment"),
+          List("assistance-details.needsSupportAtVenue")
         )
 
     }
