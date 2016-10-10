@@ -143,7 +143,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     }
   }
 
-  private def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
+  override def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
   )(implicit hc: HeaderCarrier): Future[Unit] = {
     val preferredName = application.preferredName

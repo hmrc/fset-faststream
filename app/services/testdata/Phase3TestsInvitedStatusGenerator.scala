@@ -24,7 +24,6 @@ import play.api.mvc.RequestHeader
 import repositories.onlinetesting.{ Phase1TestRepository, Phase3TestRepository }
 import _root_.services.onlinetesting.Phase3TestService
 import model.OnlineTestCommands.OnlineTestApplication
-import model.persisted.phase3tests.Phase3TestApplication
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -49,8 +48,8 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         candidateInPreviousStatus.applicationId.get,
         PHASE3_TESTS,
         candidateInPreviousStatus.userId,
-        false,
-        false,
+        guaranteedInterview = false,
+        needsAdjustments = false,
         candidateInPreviousStatus.preferredName,
         candidateInPreviousStatus.lastName,
         None

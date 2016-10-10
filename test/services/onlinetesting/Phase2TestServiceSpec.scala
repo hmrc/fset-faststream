@@ -87,7 +87,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with PrivateMetho
       userId = "userId",
       guaranteedInterview = false,
       needsAdjustments = false,
-      preferredName = "Optimus Prime",
+      preferredName = "Optimus",
+      lastName = "Prime",
       timeAdjustments = None
     )
 

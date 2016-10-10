@@ -61,7 +61,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     ),
     competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
     situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, scheduleName = "e-tray", scheduleId = 123),
+    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, scheduleName = "e-tray", scheduleId = 123, assessmentId = 1),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"
@@ -71,6 +71,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val bqScheduleId =testGatewayConfig.phase1Tests.scheduleIds("bq")
 
   val preferredName = "Preferred\tName"
+  val lastName = "Johnson"
   val preferredNameSanitized = "Preferred Name"
   val userId = "userId"
 
@@ -80,11 +81,11 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     guaranteedInterview = false,
     needsAdjustments = false,
     preferredName,
+    lastName,
     timeAdjustments = None
   )
 
   val cubiksUserId = 98765
-  val lastName = ""
   val token = "token"
   val emailCubiks = token + "@" + testGatewayConfig.emailDomain
   val registerApplicant = RegisterApplicant(preferredNameSanitized, lastName, emailCubiks)
