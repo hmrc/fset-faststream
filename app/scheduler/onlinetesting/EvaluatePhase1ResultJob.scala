@@ -37,7 +37,7 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
         evaluateService.evaluate(app, passmarkSettings)
       case None =>
         Logger.info("Passmark settings or Application to evaluate phase1 result not found")
-        Future.successful()
+        Future.successful(())
     }
   }
 }
