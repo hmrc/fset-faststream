@@ -58,7 +58,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     (DiplomaticService,                     20.01,                   20.02,                  20.01,                  20.02),
     (DiplomaticServiceEconomics,            30.0,                    70.0,                   30.0,                   70.0),
     (DiplomaticServiceEuropean,             30.0,                    70.0,                   30.0,                   70.0),
-    (European,                              30.0,                    70.0,                   30.0,                   70.0),
+    (European,                              40.0,                    70.0,                   30.0,                   70.0),
     (Finance,                               30.0,                    70.0,                   30.0,                   70.0),
     (Generalist,                            30.0,                    70.0,                   30.0,                   70.0),
     (GovernmentCommunicationService,        30.0,                    70.0,                   30.0,                   70.0),
@@ -86,20 +86,56 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give pass results when all schemes are passed" in {
       val applications = applicationTable(
         ("application-1", 80, 80, false, List(Commercial, DigitalAndTechnology)),
-        ("application-2", 79.999, 78.08, false, List(HousesOfParliament)),
-        ("application-3", 69, 78.99, false, List(ScienceAndEngineering))
+        ("application-2", 79.999, 78.08, false, List(HousesOfParliament))
       )
-
       val expectedResults = expectedResultTable(
         ("application-1", PHASE1_TESTS_PASSED, List(Commercial -> Green, DigitalAndTechnology -> Green)),
-        ("application-2", PHASE1_TESTS_PASSED, List(HousesOfParliament -> Green)),
-        ("application-3", PHASE1_TESTS_PASSED, List(ScienceAndEngineering -> Green))
+        ("application-2", PHASE1_TESTS_PASSED, List(HousesOfParliament -> Green))
       )
-
       evaluatePhase1Tests(applications)(expectedResults)
     }
 
-    "process phase1 test results for gis candidates" in {
+    "give pass results when at-least one scheme is passed" in {
+      val applications = applicationTable(
+        ("application-1", 20.002, 20.06, false, List(Commercial, DigitalAndTechnology))
+      )
+      val expectedResults = expectedResultTable(
+        ("application-1", PHASE1_TESTS_PASSED, List(Commercial -> Red, DigitalAndTechnology -> Green))
+      )
+      evaluatePhase1Tests(applications)(expectedResults)
+    }
+
+    "give fail results when none of the schemes are passed" in {
+      val applications = applicationTable(
+        ("application-1", 20, 20, false, List(DiplomaticServiceEconomics, DiplomaticServiceEuropean))
+      )
+      val expectedResults = expectedResultTable(
+        ("application-1", PHASE1_TESTS_FAILED, List(DiplomaticServiceEconomics -> Red, DiplomaticServiceEuropean -> Red))
+      )
+      evaluatePhase1Tests(applications)(expectedResults)
+    }
+
+    "leave applicants in amber when all the schemes are in amber" in {
+      val applications = applicationTable(
+        ("application-1", 40, 40, false, List(DiplomaticServiceEconomics, DiplomaticServiceEuropean))
+      )
+      val expectedResults = expectedResultTable(
+        ("application-1", PHASE1_TESTS, List(DiplomaticServiceEconomics -> Amber, DiplomaticServiceEuropean -> Amber))
+      )
+      evaluatePhase1Tests(applications)(expectedResults)
+    }
+
+    "leave applicants in amber when at-least one of the scheme is amber and none of the schemes in green" in {
+      val applications = applicationTable(
+        ("application-1", 30, 80, false, List(Commercial, European))
+      )
+      val expectedResults = expectedResultTable(
+        ("application-1", PHASE1_TESTS, List(Commercial -> Amber, European -> Red))
+      )
+      evaluatePhase1Tests(applications)(expectedResults)
+    }
+
+    "give pass results for gis candidates" in {
       val applications = applicationTable(
         ("application-1", 25, NaN, true, List(Commercial, DigitalAndTechnology))
       )
