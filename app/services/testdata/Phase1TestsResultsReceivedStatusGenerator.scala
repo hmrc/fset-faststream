@@ -20,7 +20,7 @@ import common.FutureEx
 import model.OnlineTestCommands.{Phase1Test, TestResult}
 import model.ProgressStatuses
 import model.exchange.Phase1TestResultReady
-import model.persisted.Phase1TestProfileWithAppId
+import model.persisted.Phase1TestWithUserIds
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.mvc.RequestHeader
 import repositories._

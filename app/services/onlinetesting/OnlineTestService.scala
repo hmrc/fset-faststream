@@ -27,7 +27,7 @@ import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
-import model.persisted.Phase1TestProfileWithAppId
+import model.persisted.Phase1TestWithUserIds
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -91,7 +91,7 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
     phase1TestRepo.nextApplicationReadyForOnlineTesting
   }
 
-  def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestProfileWithAppId]] = {
+  def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
     phase1TestRepo.nextPhase1TestGroupWithReportReady
   }
 
@@ -194,7 +194,7 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
     }
   }
 
-  def retrievePhase1TestResult(testProfile: Phase1TestProfileWithAppId)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def retrievePhase1TestResult(testProfile: Phase1TestWithUserIds)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     def insertTests(testResults: List[(TestResult, Phase1Test)]): Future[Unit] = {
       Future.sequence(testResults.map {
@@ -206,7 +206,9 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
 
     val testResults = Future.sequence(testProfile.phase1TestProfile.activeTests.map { test =>
       cubiksGatewayClient.downloadXmlReport(
-        test.reportId.getOrElse(throw ReportIdNotDefinedException(s"no report id defined on test for schedule ${test.scheduleId}"))
+        test.reportId.getOrElse(
+          throw ReportIdNotDefinedException(s"no report id defined on test! Test profile: ${testProfile}")
+        )
       ).map(_ -> test)
     })
 
@@ -382,8 +384,8 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
   // TODO: We need to stop updating the entire group here and use selective $set, this method of replacing the entire document
   // invites race conditions
   private def updateTestPhase1(cubiksUserId: Int, update: Phase1Test => Phase1Test, debugKey: String = "foo"):
-  Future[Phase1TestProfileWithAppId] = {
-    def createUpdateTestGroup(p: Phase1TestProfileWithAppId): Phase1TestProfileWithAppId = {
+  Future[Phase1TestWithUserIds] = {
+    def createUpdateTestGroup(p: Phase1TestWithUserIds): Phase1TestWithUserIds = {
       val testGroup = p.phase1TestProfile
       val requireUserIdOnOnlyOneTestCount = testGroup.tests.count(_.cubiksUserId == cubiksUserId)
       require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
@@ -394,7 +396,7 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
         case t => t
       }
       val updatedTestGroup = testGroup.copy(tests = updatedTests)
-      Phase1TestProfileWithAppId(appId, updatedTestGroup)
+      Phase1TestWithUserIds(applicationId = appId, p.userId, phase1TestProfile = updatedTestGroup)
     }
 
     for {

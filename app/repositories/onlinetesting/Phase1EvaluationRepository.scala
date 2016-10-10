@@ -85,7 +85,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     ))
 
     collection.update(query, passMarkEvaluation) map { r =>
-      require(r.n == 1, "None or more than one application have been updated during phase1 evaluation: appId=$applicationId")
+      require(r.n == 1, s"None or more than one application have been updated during phase1 evaluation: appId=$applicationId")
     }
   }
 

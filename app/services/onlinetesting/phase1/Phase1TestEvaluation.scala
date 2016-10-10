@@ -50,34 +50,17 @@ trait Phase1TestEvaluation {
     }
   }
 
-  private def evaluateResultsForExercise(testResult: TestResult, threshhold: PassMarkThreshold): Result = {
-    determineResult(testResult.tScore.get, threshhold.failThreshold, threshhold.passThreshold)
-  }
+  private def evaluateResultsForExercise(testResult: TestResult, threshold: PassMarkThreshold): Result = {
+    val tScore = testResult.tScore.get
+    val failmark = threshold.failThreshold
+    val passmark = threshold.passThreshold
 
-  private def determineResult(tScore: Double, failmark: Double, passmark: Double): Result = {
-    def determineResultWithAmbers = {
-      if (tScore <= failmark) {
-        Red
-      } else if (tScore >= passmark) {
-        Green
-      } else {
-        Amber
-      }
-    }
-
-    def determineResultWithoutAmbers = {
-      if (tScore >= passmark) {
-        Green
-      } else {
-        Red
-      }
-    }
-
-    val isAmberGapPresent = failmark < passmark
-    if (isAmberGapPresent) {
-      determineResultWithAmbers
+    if (tScore >= passmark) {
+      Green
+    } else if (tScore <= failmark) {
+      Red
     } else {
-      determineResultWithoutAmbers
+      Amber
     }
   }
 }

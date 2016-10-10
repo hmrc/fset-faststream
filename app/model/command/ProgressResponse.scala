@@ -46,7 +46,10 @@ case class ProgressResponse(
                              phase1TestsStarted: Boolean = false,
                              phase1TestsCompleted: Boolean = false,
                              phase1TestsExpired: Boolean = false,
+                             phase1TestsResultsReady: Boolean = false,
                              phase1TestsResultsReceived: Boolean = false,
+                             phase1TestsPassed: Boolean = false,
+                             phase1TestsFailed: Boolean = false,
                              failedToAttend: Boolean = false,
                              assessmentScores: AssessmentScores = AssessmentScores(),
                              assessmentCentre: AssessmentCentre = AssessmentCentre()
