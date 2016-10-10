@@ -63,6 +63,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
   val TestProfile = Phase1TestProfile(expirationDate = DatePlus7Days, tests = List(phase1Test))
   val testProfileWithAppId = Phase1TestWithUserIds(
     "appId",
+    "userId",
     TestProfile.copy(tests = List(
       phase1Test.copy(usedForResults = true, resultsReadyToDownload = true),
       phase1Test.copy(usedForResults = true, resultsReadyToDownload = true))
@@ -104,10 +105,13 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
     }
 
     "return an online tet for the specific cubiks id" in {
-      insertApplication("appId")
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true,
+        fastPassReceived = true
+      ).futureValue
       phase1TestRepo.insertOrUpdatePhase1TestGroup("appId", TestProfile).futureValue
       val result = phase1TestRepo.getPhase1TestProfileByCubiksId(CubiksUserId).futureValue
-      result mustBe Phase1TestWithUserIds("appId", TestProfile)
+      result mustBe Phase1TestWithUserIds("appId", "userId", TestProfile)
     }
 
   }
