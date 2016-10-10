@@ -21,8 +21,8 @@ import akka.actor.ActorSystem
 import common.FutureEx
 import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, CubiksGatewayClient, EmailClient }
-import factories.{ DateTimeFactory, UUIDFactory }
+import connectors.{CSREmailClient, CubiksGatewayClient, EmailClient}
+import factories.{DateTimeFactory, UUIDFactory}
 import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.events.{ AuditEvents, DataStoreEvents }
@@ -39,12 +39,14 @@ import services.onlinetesting.OnlineTestService.ReportIdNotDefinedException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.language.postfixOps
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 object OnlineTestService extends OnlineTestService {
+
   import config.MicroserviceAppConfig._
+
   val appRepository = applicationRepository
   val cdRepository = contactDetailsRepository
   val phase1TestRepo = phase1TestRepository
@@ -59,7 +61,9 @@ object OnlineTestService extends OnlineTestService {
   val eventService = EventService
 
   case class TestExtensionException(message: String) extends Exception(message)
+
   case class ReportIdNotDefinedException(message: String) extends Exception(message)
+
 }
 
 trait OnlineTestService extends ResetPhase1Test with EventSink {
@@ -121,11 +125,11 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
   def resetPhase1Tests(application: OnlineTestApplication, testNamesToRemove: List[String], actionTriggeredBy: String)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
-    - <- registerAndInviteForTestGroup(application, testNamesToRemove)
+      - <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
       AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))) ::
-      DataStoreEvents.OnlineExerciseReset(application.applicationId, actionTriggeredBy) ::
-      Nil
+        DataStoreEvents.OnlineExerciseReset(application.applicationId, actionTriggeredBy) ::
+        Nil
     }
   }
 
@@ -133,7 +137,7 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
     (implicit hc: HeaderCarrier): Future[Unit] = {
     val (invitationDate, expirationDate) = calcOnlineTestDates
 
-    def mapValue[T]( f: Future[T] ): Future[Try[T]] = {
+    def mapValue[T](f: Future[T]): Future[Try[T]] = {
       val prom = Promise[Try[T]]()
       f onComplete prom.success
       prom.future
@@ -147,13 +151,13 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
     // The approach to fixing it here is to generate futures that return Try[A] and then all futures will be
     // traversed. Afterward, we look at the results and clear up the mess
     // We space out calls to Cubiks because it appears they fail when they are too close together.
-    val registerAndInvite = FutureEx.traverseToTry(scheduleNames.zipWithIndex){
+    val registerAndInvite = FutureEx.traverseToTry(scheduleNames.zipWithIndex) {
       case (scheduleName, delayModifier) =>
-      val scheduleId = scheduleIdByName(scheduleName)
-      val delay = (delayModifier * 1).second
-      akka.pattern.after(delay, actor.scheduler)(
-        registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
-      )
+        val scheduleId = scheduleIdByName(scheduleName)
+        val delay = (delayModifier * 1).second
+        akka.pattern.after(delay, actor.scheduler)(
+          registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
+        )
     }
 
     val registerAndInviteProcess = registerAndInvite.flatMap { phase1TestsRegs =>
@@ -342,8 +346,8 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
       if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
         phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
           DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
-          DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
-          Nil
+            DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
+            Nil
         }
       } else {
         Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
@@ -405,11 +409,12 @@ trait OnlineTestService extends ResetPhase1Test with EventSink {
 }
 
 trait ResetPhase1Test {
+
   import ProgressStatuses._
 
   def determineStatusesToRemove(testGroup: Phase1TestProfile): List[ProgressStatus] = {
     (if (testGroup.hasNotStartedYet) List(PHASE1_TESTS_STARTED) else List()) ++
-    (if (testGroup.hasNotCompletedYet) List(PHASE1_TESTS_COMPLETED) else List()) ++
-    (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED) else List())
+      (if (testGroup.hasNotCompletedYet) List(PHASE1_TESTS_COMPLETED) else List()) ++
+      (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED) else List())
   }
 }

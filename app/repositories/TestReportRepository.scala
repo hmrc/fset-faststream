@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.Commands.PassMarkReportTestResults
+import model.report.PassMarkReportTestResults
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.CandidateTestReport
 import model.PersistedObjects.Implicits._
@@ -133,9 +133,7 @@ class TestReportMongoRepository(implicit mongo: () => DB)
     val applicationId = document.getAs[String]("applicationId").get
 
     (applicationId, PassMarkReportTestResults(
-      getTest("competency"),
-      getTest("numerical"),
-      getTest("verbal"),
+      getTest("behavioural"),
       getTest("situational")
     ))
   }
