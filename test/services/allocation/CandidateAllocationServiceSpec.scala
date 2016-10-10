@@ -16,7 +16,7 @@
 
 package services.allocation
 
-import connectors.EmailClient
+import connectors.CSREmailClient
 import model.Address
 import model.Commands.ApplicationAssessment
 import model.PersistedObjects.{AllocatedCandidate, ContactDetails, PersonalDetailsWithUserId}
@@ -43,7 +43,7 @@ class CandidateAllocationServiceSpec extends PlaySpec with ScalaFutures with Moc
   val caRepositoryMock = mock[CandidateAllocationRepository]
   val cdRepositoryMock = mock[ContactDetailsRepository]
   val aaRepositoryMock = mock[ApplicationAssessmentRepository]
-  val emailClientMock = mock[EmailClient]
+  val emailClientMock = mock[CSREmailClient]
   val auditServiceMock = mock[AuditService]
 
   val HeaderCarrier = new HeaderCarrier()

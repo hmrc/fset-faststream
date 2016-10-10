@@ -18,44 +18,78 @@ package services.onlinetesting
 
 import akka.actor.ActorSystem
 import config._
-import connectors.{ CSREmailClient, CubiksGatewayClient }
+import connectors.ExchangeObjects.{Invitation, InviteApplicant, Registration}
+import connectors.{CSREmailClient, CubiksGatewayClient}
 import factories.{DateTimeFactory, UUIDFactory}
-import model.ApplicationStatus
+import model.{Address, ApplicationStatus}
 import model.OnlineTestCommands.OnlineTestApplication
+import model.PersistedObjects.ContactDetails
+import model.persisted.Phase2TestGroup
+import org.joda.time.DateTime
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.PrivateMethodTester
 import org.scalatestplus.play.PlaySpec
+import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Mockito._
+import org.scalatest.concurrent.ScalaFutures
 import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
-import services.events.EventService
+import services.events.{EventService, EventServiceFixture}
+import testkit.ExtendedTimeout
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with PrivateMethodTester {
+import scala.concurrent.Future
 
-  "some tests" should {
-    "pass" in {
-      pending
+class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
+
+  "Register applicants" should {
+    "correctly register a batch of candidates" in new Phase2TestServiceFixture {
+
+      val result = phase2TestService.registerApplicants(candidates, tokens).futureValue
+      result.size mustBe 2
+      val head = result.values.head
+      val last = result.values.last
+      head._1 mustBe onlineTestApplication
+      head._2 mustBe tokens.head
+      head._3 mustBe registrations.head
+      last._1 mustBe onlineTestApplication2
+      last._2 mustBe tokens.last
+      last._3 mustBe registrations.last
+
+      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
     }
   }
 
-  "Filter candidates" should {
-    "return the first candidate that needs adjustments" in new Phase2TestServiceFixture {
-      val filterCandidatesTester = PrivateMethod[List[OnlineTestApplication]]('filterCandidates)
-      val input = List(onlineTestApplication, onlineTestApplication, onlineTestApplication.copy(needsAdjustments = true),
-        onlineTestApplication.copy(needsAdjustments = true)
+  "Invite applicants" must {
+    "correctly invite a batch of candidates" in new Phase2TestServiceFixture {
+      val result = phase2TestService.inviteApplicants(registeredMap).futureValue
+
+      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, tokens.head,
+        registrations.head, invites.head),
+        phase2TestService.Phase2TestInviteData(onlineTestApplication2, tokens.last,
+          registrations.last, invites.last)
       )
 
-      val result = phase2TestService invokePrivate filterCandidatesTester(input)
+      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
+    }
+  }
 
-      result.size mustBe 1
-      result.head mustBe onlineTestApplication.copy(needsAdjustments = true)
+  "Register and Invite applicants" must {
+    "email the candidate and send audit events" in new Phase2TestServiceFixture {
+
+      phase2TestService.registerAndInviteForTestGroup(candidates).futureValue
+
+      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
+      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
+      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
     }
   }
 
   trait Phase2TestServiceFixture {
 
-    val cubiksGtewayMock = mock[CubiksGatewayClient]
+    implicit val hc = mock[HeaderCarrier]
+
     val gatewayConfigMock =  CubiksGatewayConfig(
       "",
       Phase1TestsConfig(expiryTimeInDays = 7,
@@ -77,11 +111,10 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with PrivateMetho
     val cubiksGatewayClientMock = mock[CubiksGatewayClient]
     val emailClientMock = mock[CSREmailClient]
     var auditServiceMock = mock[AuditService]
-    val tokenFactoryMock = mock[UUIDFactory]
-    val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
+    val tokenFactoryMock = UUIDFactory
     val eventServiceMock = mock[EventService]
-
-
+    val tokens = UUIDFactory.generateUUID :: UUIDFactory.generateUUID :: Nil
+    val registrations = Registration(123) :: Registration(456) :: Nil
     val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
@@ -91,7 +124,38 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with PrivateMetho
       timeAdjustments = None
     )
 
-    val phase2TestService = new Phase2TestService {
+    val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
+    val candidates = List(onlineTestApplication, onlineTestApplication2)
+
+    val registeredMap = Map(
+      registrations.head.userId -> (onlineTestApplication, tokens.head, registrations.head),
+      registrations.last.userId -> (onlineTestApplication2, tokens.last, registrations.last)
+    )
+
+    val invites = List(Invitation(userId = registrations.head.userId, email = "email@test.com", accessCode = "accessCode",
+       logonUrl = "logon.com", authenticateUrl = "authenticated", participantScheduleId = 999
+      ),
+      Invitation(userId = registrations.last.userId, email = "email@test.com", accessCode = "accessCode", logonUrl = "logon.com",
+        authenticateUrl = "authenticated", participantScheduleId = 888
+    ))
+
+    when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
+      .thenReturn(Future.successful(registrations))
+
+    when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])(any[HeaderCarrier]))
+      .thenReturn(Future.successful(invites))
+
+    when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup]))
+        .thenReturn(Future.successful(()))
+
+    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(ContactDetails(
+      Address("Aldwych road"), "QQ1 1QQ", "email@test.com", Some("111111")
+    )))
+
+    when(emailClientMock.sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(()))
+
+    val phase2TestService = new Phase2TestService with EventServiceFixture {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val phase2TestRepo = otRepositoryMock
@@ -99,10 +163,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with PrivateMetho
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val tokenFactory = tokenFactoryMock
-      val dateTimeFactory = onlineTestInvitationDateFactoryMock
+      val dateTimeFactory = DateTimeFactory
       val gatewayConfig = gatewayConfigMock
-      val eventService = eventServiceMock
-      val actor = ActorSystem()
     }
   }
 }

@@ -17,7 +17,7 @@
 package services.applicationassessment
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import connectors.EmailClient
+import connectors.CSREmailClient
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
 import model.CandidateScoresCommands.{CandidateScores, CandidateScoresAndFeedback}
 import model.Commands._
@@ -51,7 +51,7 @@ class ApplicationAssessmentServiceSpec extends PlaySpec with MockitoSugar with S
   val applicationAssessmentRepositoryMock = mock[ApplicationAssessmentRepository]
   val onlineTestRepositoryMock = mock[Phase1TestRepository]
   val auditServiceMock = mock[AuditService]
-  val emailClientMock = mock[EmailClient]
+  val emailClientMock = mock[CSREmailClient]
   val aRepositoryMock = mock[GeneralApplicationRepository]
   val acpmsServiceMock = mock[AssessmentCentrePassMarkSettingsService]
   val aasRepositoryMock = mock[ApplicationAssessmentScoresRepository]

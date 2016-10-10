@@ -16,8 +16,8 @@
 
 package services.onlinetesting
 
-import connectors.EmailClient
-import factories.{ DateTimeFactory, UUIDFactory }
+import connectors.{EmailClient, OnlineTestEmailClient}
+import factories.{DateTimeFactory, UUIDFactory}
 import model.OnlineTestCommands.OnlineTestApplication
 import org.joda.time.DateTime
 import play.api.Logger
@@ -25,11 +25,11 @@ import services.AuditService
 import services.events.EventSink
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 
 trait OnlineTestService extends EventSink  {
-  val emailClient: EmailClient
+  val emailClient: OnlineTestEmailClient
   val auditService: AuditService
   val tokenFactory: UUIDFactory
   val dateTimeFactory: DateTimeFactory

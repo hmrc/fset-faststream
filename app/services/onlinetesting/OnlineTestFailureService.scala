@@ -16,7 +16,7 @@
 
 package services.onlinetesting
 
-import connectors.EmailClient
+import connectors.CSREmailClient
 import model.ApplicationStatus._
 import model.persisted.ApplicationForNotification
 import play.api.Logger
@@ -39,7 +39,7 @@ class OnlineTestFailureServiceImpl(
   appRepository: GeneralApplicationRepository,
   otRepository: Phase1TestRepository,
   cdRepository: ContactDetailsRepository,
-  emailClient: EmailClient,
+  emailClient: CSREmailClient,
   auditService: AuditService,
   newHeaderCarrier: => HeaderCarrier
 )(implicit executor: ExecutionContext) extends OnlineTestFailureService {
