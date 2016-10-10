@@ -42,6 +42,8 @@ case class ProgressResponse(applicationId: String,
                             phase1TestsExpired: Boolean = false,
                             phase1TestsResultsReady: Boolean = false,
                             phase1TestsResultsReceived: Boolean = false,
+                            phase1TestsPassed: Boolean = false,
+                            phase1TestsFailed: Boolean = false,
                             failedToAttend: Boolean = false,
                             assessmentScores: AssessmentScores = AssessmentScores(),
                             assessmentCentre: AssessmentCentre = AssessmentCentre())
