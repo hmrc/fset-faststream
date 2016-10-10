@@ -17,11 +17,9 @@
 package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.Result
 import model.OnlineTestCommands.Phase1TestProfile
-import model.SchemeType.SchemeType
 import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
-import model.{ ApplicationStatus, ProgressStatuses, SchemeType, SelectedSchemes }
+import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.{ CommonBSONDocuments, RandomSelection }
@@ -84,6 +82,8 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       if (newApplicationStatus.isDefined) applicationStatusBSON(newApplicationStatus.get) else BSONDocument.empty
     ))
 
-    collection.update(query, passMarkEvaluation) map ( r => require(r.n >= 1, "Passmark evaluation for PHASE1 was not saved") )
+    collection.update(query, passMarkEvaluation) map { r =>
+      require(r.n == 1, "None or more than one application have been updated during phase1 evaluation: appId=$applicationId")
+    }
   }
 }

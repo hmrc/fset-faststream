@@ -122,6 +122,16 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
       val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
       result mustBe defined
     }
+
+    "do not change application status when it is not required" in {
+      insertApp("app1", ApplicationStatus.PHASE2_TESTS, Some(testsWithResult))
+      val evaluation = PassmarkEvaluation("version1", resultToSave)
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newApplicationStatus = None).futureValue
+
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
+      result mustBe defined
+      result.get.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS
+    }
   }
 
   private def insertApp(appId: String, applicationStatus: ApplicationStatus, tests: Option[List[Phase1Test]] = None,
