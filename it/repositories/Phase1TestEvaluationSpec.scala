@@ -59,8 +59,8 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     (DiplomaticServiceEconomics,            30.0,                    70.0,                   30.0,                   70.0),
     (DiplomaticServiceEuropean,             30.0,                    70.0,                   30.0,                   70.0),
     (European,                              40.0,                    70.0,                   30.0,                   70.0),
-    (Finance,                               30.0,                    70.0,                   30.0,                   70.0),
-    (Generalist,                            30.0,                    70.0,                   30.0,                   70.0),
+    (Finance,                               25.01,                   25.02,                  25.01,                  25.02),
+    (Generalist,                            30.0,                    30.0,                   30.0,                   30.0),
     (GovernmentCommunicationService,        30.0,                    70.0,                   30.0,                   70.0),
     (GovernmentEconomicsService,            30.0,                    70.0,                   30.0,                   70.0),
     (GovernmentOperationalResearchService,  30.0,                    70.0,                   30.0,                   70.0),
@@ -86,11 +86,13 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give pass results when all schemes are passed" in {
       val applications = applicationTable(
         ("application-1", 80, 80, false, List(Commercial, DigitalAndTechnology)),
-        ("application-2", 79.999, 78.08, false, List(HousesOfParliament))
+        ("application-2", 79.999, 78.08, false, List(HousesOfParliament)),
+        ("application-3", 30, 30, false, List(Generalist))
       )
       val expectedResults = expectedResultTable(
         ("application-1", PHASE1_TESTS_PASSED, List(Commercial -> Green, DigitalAndTechnology -> Green)),
-        ("application-2", PHASE1_TESTS_PASSED, List(HousesOfParliament -> Green))
+        ("application-2", PHASE1_TESTS_PASSED, List(HousesOfParliament -> Green)),
+        ("application-3", PHASE1_TESTS_PASSED, List(Generalist -> Green))
       )
       evaluatePhase1Tests(applications)(expectedResults)
     }
@@ -117,10 +119,12 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     "leave applicants in amber when all the schemes are in amber" in {
       val applications = applicationTable(
-        ("application-1", 40, 40, false, List(DiplomaticServiceEconomics, DiplomaticServiceEuropean))
+        ("application-1", 40, 40, false, List(DiplomaticServiceEconomics, DiplomaticServiceEuropean)),
+        ("application-2", 25.015, 25.015, false, List(Finance))
       )
       val expectedResults = expectedResultTable(
-        ("application-1", PHASE1_TESTS, List(DiplomaticServiceEconomics -> Amber, DiplomaticServiceEuropean -> Amber))
+        ("application-1", PHASE1_TESTS, List(DiplomaticServiceEconomics -> Amber, DiplomaticServiceEuropean -> Amber)),
+        ("application-2", PHASE1_TESTS, List(Finance -> Amber))
       )
       evaluatePhase1Tests(applications)(expectedResults)
     }
