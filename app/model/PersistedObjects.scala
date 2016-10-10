@@ -19,12 +19,11 @@ package model
 import model.Commands.{PhoneNumber, PostCode}
 import model.OnlineTestCommands.TestResult
 import org.joda.time.{DateTime, LocalDate}
+import model.ApplicationStatus._
 import play.api.libs.json._
 
 @deprecated("fasttrack version. Create one case class in one file. All persisted case classes are in model.persisted package")
 object PersistedObjects {
-
-  case class ApplicationStatus(applicationId: String, applicationStatus: String)
 
   @deprecated("fasttrack version")
   case class PersonalDetails(
@@ -104,7 +103,6 @@ object PersistedObjects {
 
   object Implicits {
     implicit val persistedPersonalDetailsFormats = Json.format[PersonalDetails]
-    implicit val applicationStatusFormats = Json.format[ApplicationStatus]
     implicit val addressFormats = Json.format[Address]
     implicit val contactDetailsFormats = Json.format[ContactDetails]
     implicit val contactDetailsIdFormats = Json.format[ContactDetailsWithId]

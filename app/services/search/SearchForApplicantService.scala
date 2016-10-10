@@ -89,7 +89,8 @@ trait SearchForApplicantService {
   }
 
   private def searchAuthProviderByFirstAndLastName(firstNameOpt: Option[String],
-                                                   lastNameOpt: Option[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
+                                                   lastNameOpt: Option[String])(
+                                                   implicit hc: HeaderCarrier): Future[List[Candidate]] = {
 
     val firstNameResultsFut = firstNameOpt.map {
       firstName => authProviderClient.findByFirstName(firstName, List("candidate"))

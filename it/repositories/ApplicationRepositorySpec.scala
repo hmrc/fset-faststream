@@ -16,24 +16,26 @@
 
 package repositories
 
+import config.MicroserviceAppConfig
 import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
-import model.command.WithdrawApplication
+import model.EvaluationResults
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
+import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import model.{ ApplicationStatuses, EvaluationResults }
-import org.joda.time.LocalDate
+import org.joda.time.DateTime
+import org.joda.time.Seconds._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, TestDataMongoRepository }
+import repositories.application.{GeneralApplicationMongoRepository, TestDataMongoRepository}
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Await
-
+import MicroserviceAppConfig.cubiksGatewayConfig
 
 class ApplicationRepositorySpec extends MongoRepositorySpec {
 
@@ -43,7 +45,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val collectionName = "application"
 
-  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def assistanceRepo = new AssistanceDetailsMongoRepository()
 
   "Application repository" should {
@@ -116,7 +118,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       } yield appStatus).futureValue
 
       applicationStatus.status mustBe SUBMITTED.toString
-      applicationStatus.statusDate mustBe Some(LocalDate.now)
+      timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
   }
 
@@ -129,7 +131,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       } yield appStatus).futureValue
 
       applicationStatus.status mustBe WITHDRAWN.toString
-      applicationStatus.statusDate mustBe Some(LocalDate.now)
+      timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
   }
 
@@ -285,7 +287,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   "next application ready for assessment score evaluation" should {
     "return the only application ready for evaluation" in {
-      createApplication("app1", ApplicationStatuses.AssessmentScoresAccepted)
+      createApplication("app1", ASSESSMENT_SCORES_ACCEPTED)
 
       val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
 
@@ -294,7 +296,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
 
     "return the next application when the passmark is different" in {
-      createApplicationWithPassmark("app1", ApplicationStatuses.AwaitingAssessmentCentreReevaluation, "1")
+      createApplicationWithPassmark("app1", AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, "1")
 
       val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("2").futureValue
 
@@ -302,7 +304,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
 
     "return none when application has already passmark and it has not changed" in {
-      createApplicationWithPassmark("app1", ApplicationStatuses.AwaitingAssessmentCentreReevaluation, "1")
+      createApplicationWithPassmark("app1", AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, "1")
 
       val result = applicationRepo.nextApplicationReadyForAssessmentScoreEvaluation("1").futureValue
 
@@ -320,33 +322,33 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   "save assessment score evaluation" should {
     "save a score evaluation and update the application status when the application is in ASSESSMENT_SCORES_ACCEPTED status" in {
-      createApplication("app1", ApplicationStatuses.AssessmentScoresAccepted)
+      createApplication("app1", ASSESSMENT_SCORES_ACCEPTED)
 
       val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ApplicationStatuses.AwaitingAssessmentCentreReevaluation).futureValue
+      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION).futureValue
 
       val status = getApplicationStatus("app1")
-      status must be (ApplicationStatuses.AwaitingAssessmentCentreReevaluation)
+      status must be (AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.toString)
     }
 
     "save a score evaluation and update the application status when the application is in AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION" in {
-      createApplication("app1", ApplicationStatuses.AwaitingAssessmentCentreReevaluation)
+      createApplication("app1", AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
 
       val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ApplicationStatuses.AssessmentScoresAccepted).futureValue
+      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_SCORES_ACCEPTED).futureValue
 
       val status = getApplicationStatus("app1")
-      status must be (ApplicationStatuses.AssessmentScoresAccepted)
+      status must be (ASSESSMENT_SCORES_ACCEPTED.toString)
     }
 
     "fail to save a score evaluation when candidate has been withdrawn" in {
-      createApplication("app1", ApplicationStatuses.Withdrawn)
+      createApplication("app1", WITHDRAWN)
 
       val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
-      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ApplicationStatuses.AssessmentScoresAccepted).futureValue
+      applicationRepo.saveAssessmentScoreEvaluation("app1", "1", result, ASSESSMENT_SCORES_ACCEPTED).futureValue
 
       val status = getApplicationStatus("app1")
-      status must be (ApplicationStatuses.Withdrawn)
+      status must be (WITHDRAWN.toString)
     }
   }
 
@@ -354,7 +356,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "be returned" in {
       val scores = CandidateScoresSummary(Some(2d), Some(2d), Some(2d), Some(2d),Some(2d),Some(2d),Some(2d), Some(14d))
       createApplicationWithSummaryScoresAndSchemeEvaluations("app1",frameworkId,
-        ApplicationStatuses.AssessmentCentrePassed,
+        ASSESSMENT_CENTRE_PASSED,
         "1",
         scores,
         SchemeEvaluation(Some("Red"), Some("Green"), Some("Amber"), Some("Red"), Some("Green"))
@@ -376,7 +378,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   "online test results" should {
     "be returned" in {
       createApplicationWithFrameworkEvaluations("app1", frameworkId,
-        ApplicationStatuses.AssessmentScoresAccepted,
+        ASSESSMENT_SCORES_ACCEPTED,
         "1",
         OnlineTestPassmarkEvaluationSchemes(Some("Red"), Some("Green"), Some("Amber"), Some("Red"), Some("Green"))
       )
@@ -418,13 +420,13 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   "preview" should {
     "change progress status to preview" in {
-      createApplication("app1", ApplicationStatuses.InProgress)
+      createApplication("app1", IN_PROGRESS)
 
       val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
       applicationRepo.preview("app1").futureValue
 
       val status = getApplicationStatus("app1")
-      status must be (ApplicationStatuses.InProgress)
+      status must be (IN_PROGRESS.toString)
 
       val progressResponse = applicationRepo.findProgress("app1").futureValue
       progressResponse.preview mustBe true

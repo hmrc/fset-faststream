@@ -16,11 +16,11 @@
 
 package services.evaluation
 
-import connectors.PassMarkExchangeObjects.{ SchemeThreshold, SchemeThresholds }
 import model.EvaluationResults._
-import model.OnlineTestCommands.{ CandidateScoresWithPreferencesAndPassmarkSettings, TestResult }
+import model.OnlineTestCommands.CandidateScoresWithPreferencesAndPassmarkSettings
 import model.PersistedObjects.CandidateTestReport
 import model.Schemes
+import model.exchange.passmarksettings.Phase1PassMarkThresholds
 
 trait OnlineTestPassmarkRulesEngine {
 
@@ -53,12 +53,13 @@ object OnlineTestPassmarkRulesEngine extends OnlineTestPassmarkRulesEngine {
   private def evaluateScore(candidateScores: CandidateScoresWithPreferencesAndPassmarkSettings)(schemeName: String) = {
     val passmark = candidateScores.passmarkSettings.schemes.find(_.schemeName == schemeName)
       .getOrElse(throw new IllegalStateException(s"schemeName=$schemeName is not set in Passmark settings"))
-
-    passmark.schemeThresholds match {
-      case threshold @ SchemeThresholds(_, _, _, _, Some(_)) =>
+    // TODO Fast-stream score evaluation
+    /*passmark.schemeThresholds match {
+      case threshold @ SchemePassMarkThresholds(_, _, _, _, Some(_)) =>
         CombinationScoreProcessor.determineResult(candidateScores.scores, threshold)
       case threshold @ SchemeThresholds(_, _, _, _, None) => IndividualScoreProcessor.determineResult(candidateScores.scores, threshold)
-    }
+    }*/
+    Green
   }
 
   private def evaluateScoreForAllSchemes(score: CandidateScoresWithPreferencesAndPassmarkSettings) = {
@@ -78,17 +79,14 @@ object OnlineTestPassmarkRulesEngine extends OnlineTestPassmarkRulesEngine {
 
 trait ScoreProcessor {
 
-  def determineResult(scores: CandidateTestReport, passmarkThreshholds: SchemeThresholds): Result
+  def determineResult(scores: CandidateTestReport, passmarkThreshholds: Phase1PassMarkThresholds): Result
 
 }
 
-object IndividualScoreProcessor extends ScoreProcessor {
+/*object IndividualScoreProcessor extends ScoreProcessor {
 
-  def determineResult(scores: CandidateTestReport, thresholds: SchemeThresholds): Result = {
+  def determineResult(scores: CandidateTestReport, thresholds: SchemePassMarkThresholds): Result = {
     val resultsToPassmark = List(
-      (scores.competency, thresholds.competency),
-      (scores.verbal, thresholds.verbal),
-      (scores.numerical, thresholds.numerical),
       (scores.situational, thresholds.situational)
     )
 
@@ -122,11 +120,11 @@ object IndividualScoreProcessor extends ScoreProcessor {
 
 object CombinationScoreProcessor extends ScoreProcessor {
 
-  def determineResult(scores: CandidateTestReport, thresholds: SchemeThresholds): Result = {
+  def determineResult(scores: CandidateTestReport, thresholds: SchemePassMarkThresholds): Result = {
     val individualResult = IndividualScoreProcessor.determineResult(scores, thresholds)
 
     val average = averageTScore(scores)
-    val combinedThresholds = thresholds.combination
+    val combinedThresholds = thresholds.behavioural
       .getOrElse(throw new IllegalStateException("Cannot find combined passmark settings"))
 
     if (individualResult == Red) {
@@ -154,4 +152,4 @@ object CombinationScoreProcessor extends ScoreProcessor {
 
     allScores.sum / allScores.length
   }
-}
+}*/

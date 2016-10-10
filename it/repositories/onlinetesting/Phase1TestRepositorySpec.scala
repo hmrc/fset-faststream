@@ -18,20 +18,20 @@ package repositories.onlinetesting
 
 import java.util.UUID
 
-import repositories.BSONLocalDateHandler
 import factories.DateTimeFactory
 import model.Exceptions.CannotFindTestByCubiksId
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1Test, Phase1TestProfile }
+import model.OnlineTestCommands.{OnlineTestApplication, Phase1Test, Phase1TestProfile}
 import model.persisted.ExpiringOnlineTest
-import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _ }
+import model.ProgressStatuses.{PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _}
 import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future
@@ -42,7 +42,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = "application"
 
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
 
   val Token = UUID.randomUUID.toString
@@ -183,7 +183,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
       }
 
       val status = helperRepo.findProgress("appId").futureValue
-      status.phase1TestsResultsReceived mustBe true
+      status.phase1TestsResultsReceived mustBe false
 
     }
   }
@@ -245,18 +245,19 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now
+          s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
         ))).futureValue
         phase1TestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
       "the test is completed" in {
+        import repositories.BSONDateTimeHandler
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
+          s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
         ))).futureValue
         phase1TestRepo.nextExpiringApplication.futureValue must be(None)
       }
@@ -313,23 +314,25 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
       }
 
       "the test is expired" in {
+        import repositories.BSONDateTimeHandler
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_EXPIRED" -> LocalDate.now()
+          s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
         ))).futureValue
         phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
 
       "the test is completed" in {
+        import repositories.BSONDateTimeHandler
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdatePhase1TestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
-          s"progress-status-dates.$PHASE1_TESTS_COMPLETED" -> LocalDate.now()
+          s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
         ))).futureValue
         phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
@@ -352,6 +355,9 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
 
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1TestsStarted mustBe true
+
+      val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
+      appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
 
     "remove progress statuses" in {

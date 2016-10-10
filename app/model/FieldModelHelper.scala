@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package repositories
+package models
 
-import testkit.MongoRepositorySpec
 
-class PassMarkSettingsRepositorySpec extends MongoRepositorySpec {
-  val collectionName = "pass-mark-settings"
+object FieldNameHelpers {
 
-  "Pass-mark-settings collection" should {
-    "create indexes for the repository" in {
-      val repo = repositories.passMarkSettingsRepository
+  def createId(id: String, v: (String, String)) = id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_")
 
-      val indexes = indexesWithFields(repo)
-      indexes must contain (List("_id"))
-      indexes must contain (List("createDate"))
-      indexes.size must be (2)
-    }
-  }
+  def formatId(id:String, v:(String,String)) =
+    createId(id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_"), v)
+
 }

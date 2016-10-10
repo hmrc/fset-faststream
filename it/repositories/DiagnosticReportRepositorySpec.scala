@@ -22,6 +22,7 @@ import reactivemongo.bson.{BSONBoolean, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository}
 import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
 
 class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
@@ -30,7 +31,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   override val collectionName = "application"
   
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository()
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
 
   "Find by user id" should {
     "return NotFound if there is nobody with this userId" in {

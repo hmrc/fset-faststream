@@ -24,8 +24,8 @@ PUT         /application/confirm/adjustment/:applicationId               control
 
 PUT         /media/create                                                controllers.MediaController.addMedia()
 
-PUT         /pass-mark-settings/create                                   controllers.OnlineTestPassMarkSettingsController.createPassMarkSettings
-GET         /pass-mark-settings/getLatestVersion                         controllers.OnlineTestPassMarkSettingsController.getLatestVersion
+PUT         /phase1/pass-mark-settings/create                            controllers.Phase1PassMarkSettingsController.create
+GET         /phase1/pass-mark-settings/getLatestVersion                  controllers.Phase1PassMarkSettingsController.getLatestVersion
 
 GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 PUT         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.create
@@ -52,8 +52,8 @@ POST        /search/find-by-criteria                                     control
 GET         /report/diversity-monitoring                                 controllers.ReportingController.retrieveDiversityReport
 GET         /report/adjustments/:frameworkId                             controllers.ReportingController.createAdjustmentReports(frameworkId: String)
 GET         /report/assessment-centre-allocation/:frameworkId            controllers.ReportingController.createAssessmentCentreAllocationReport(frameworkId: String)
-GET         /report/pass-mark-modelling/:frameworkId                     controllers.ReportingController.createPassMarkModellingReport(frameworkId: String)
-GET         /report/pass-mark-personal-data/:frameworkId                 controllers.ReportingController.createPassMarkWithPersonalDataReport(frameworkId: String)
+GET         /report/online-test-pass-mark/:frameworkId                   controllers.ReportingController.createOnlineTestPassMarkReport(frameworkId: String)
+#GET         /report/pass-mark-personal-data/:frameworkId                 controllers.ReportingController.createPassMarkWithPersonalDataReport(frameworkId: S#tring)
 GET         /report/non-submitted-applications/:frameworkId              controllers.ReportingController.createNonSubmittedAppsReports(frameworkId: String)
 GET         /report/preferences-and-contact/:frameworkId                 controllers.ReportingController.createPreferencesAndContactReports(frameworkId: String)
 GET         /report/application-user-ids/:frameworkId                    controllers.ReportingController.applicationAndUserIdsReport(frameworkId: String)
