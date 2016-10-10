@@ -77,12 +77,27 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
   "Register and Invite applicants" must {
     "email the candidate and send audit events" in new Phase2TestServiceFixture {
-
       phase2TestService.registerAndInviteForTestGroup(candidates).futureValue
 
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
+    }
+
+    "process adjustment candidates first and individually" in new Phase2TestServiceFixture {
+     val adjustmentCandidates = candidates :+ adjustmentApplication :+ adjustmentApplication2
+
+      when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(List(registrations.head)))
+
+      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(List(invites.head)))
+
+      phase2TestService.registerAndInviteForTestGroup(adjustmentCandidates).futureValue
+
+      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
+      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
+      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
     }
   }
 
@@ -125,6 +140,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     )
 
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
+    val adjustmentApplication = onlineTestApplication.copy(applicationId = "appId3", userId = "userId3", needsAdjustments = true)
+    val adjustmentApplication2 = onlineTestApplication.copy(applicationId = "appId4", userId = "userId4", needsAdjustments = true)
     val candidates = List(onlineTestApplication, onlineTestApplication2)
 
     val registeredMap = Map(
