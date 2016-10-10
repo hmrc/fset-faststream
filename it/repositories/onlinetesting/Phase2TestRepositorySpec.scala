@@ -2,7 +2,7 @@ package repositories.onlinetesting
 
 import java.util.UUID
 
-import model.persisted.{ CubiksTest, Phase2TestProfile }
+import model.persisted.{ CubiksTest, Phase2TestGroup }
 import org.joda.time.{ DateTime, DateTimeZone }
 import testkit.MongoRepositorySpec
 
@@ -23,7 +23,7 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     participantScheduleId = 456
   )
 
-  val TestProfile = Phase2TestProfile(expirationDate = DatePlus7Days, tests = List(phase2Test))
+  val TestProfile = Phase2TestGroup(expirationDate = DatePlus7Days, tests = List(phase2Test))
 
   "Get online test" should {
     "return None if there is no test for the specific user id" in {

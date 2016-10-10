@@ -49,6 +49,12 @@ trait OnlineTestService extends EventSink  {
     }
   }
 
+  protected def calcOnlineTestDates(expiryTimeInDays: Int): (DateTime, DateTime) = {
+    val invitationDate = dateTimeFactory.nowLocalTimeZone
+    val expirationDate = invitationDate.plusDays(expiryTimeInDays)
+    (invitationDate, expirationDate)
+  }
+
   protected def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
     Logger.info(s"$event for user $userId")
 
@@ -56,5 +62,10 @@ trait OnlineTestService extends EventSink  {
       event,
       Map("userId" -> userId) ++ emailAddress.map("email" -> _).toMap
     )
+  }
+
+  private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {
+    val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))
+    math.min(adjustedValue, maximum).toInt
   }
 }

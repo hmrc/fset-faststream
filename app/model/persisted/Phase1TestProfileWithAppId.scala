@@ -24,8 +24,8 @@ object Phase1TestProfileWithAppId {
   implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestProfileWithAppId]
 }
 
-case class Phase2TestProfileWithAppId(applicationId: String, phase2TestProfile: Phase2TestProfile)
+case class Phase2TestGroupWithAppId(applicationId: String, phase2TestGroup: Phase2TestGroup)
 
-object Phase2TestProfileWithAppId {
-  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase2TestProfileWithAppId]
+object Phase2TestGroupWithAppId {
+  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase2TestGroupWithAppId]
 }

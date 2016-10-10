@@ -67,7 +67,8 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
   scheduleName: String,
-  scheduleId: Int
+  scheduleId: Int,
+  assessmentId: Int
 )
 
 trait CubiksGatewayAssessment {

@@ -18,8 +18,6 @@ package repositories.onlinetesting
 
 import java.util.UUID
 
-import repositories.BSONLocalDateHandler
-import factories.DateTimeFactory
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.{ CubiksTest, Phase1TestProfile }
@@ -27,14 +25,8 @@ import model.persisted.ExpiringOnlineTest
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
 import model.persisted.Phase1TestProfileWithAppId
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
-import reactivemongo.bson.BSONDocument
 import org.joda.time.{ DateTime, DateTimeZone }
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument }
-import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.GeneralApplicationMongoRepository
-import services.GBTimeZoneService
+import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
@@ -241,7 +233,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
-        ))).futureValue
+        )), AppId).futureValue
         phase1TestRepo.nextExpiringApplication.futureValue must be(None)
       }
 
@@ -253,7 +245,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
-        ))).futureValue
+        )), AppId).futureValue
         phase1TestRepo.nextExpiringApplication.futureValue must be(None)
       }
     }
@@ -316,7 +308,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
-        ))).futureValue
+        )), AppId).futureValue
         phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
 
@@ -328,7 +320,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
-        ))).futureValue
+        )), AppId).futureValue
         phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
       }
 

@@ -21,25 +21,26 @@ import akka.actor.ActorSystem
 import common.FutureEx
 import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, CubiksGatewayClient }
-import factories.{ DateTimeFactory, UUIDFactory }
+import connectors.{CSREmailClient, CubiksGatewayClient}
+import factories.{DateTimeFactory, UUIDFactory}
 import model.OnlineTestCommands._
 import model.ProgressStatuses
-import model.events.{ AuditEvents, DataStoreEvents }
-import model.exchange.{ Phase1TestProfileWithNames, Phase1TestResultReady }
-import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestProfileWithAppId }
+import model.events.{AuditEvents, DataStoreEvents}
+import model.exchange.{Phase1TestProfileWithNames, Phase1TestResultReady}
+import model.persisted.{CubiksTest, Phase1TestProfile, Phase1TestProfileWithAppId}
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.events.EventService
+import services.onlinetesting.Exceptions.ReportIdNotDefinedException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.{Future, Promise}
 import scala.language.postfixOps
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 object Phase1TestService extends Phase1TestService {
   import config.MicroserviceAppConfig._
@@ -122,7 +123,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String])
     (implicit hc: HeaderCarrier): Future[Unit] = {
-    val (invitationDate, expirationDate) = calcOnlineTestDates
+    val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase1Tests.expiryTimeInDays)
 
     def mapValue[T]( f: Future[T] ): Future[Try[T]] = {
       val prom = Promise[Try[T]]()
@@ -254,11 +255,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
     cdRepository.find(application.userId).map(_.email)
 
-  private def calcOnlineTestDates: (DateTime, DateTime) = {
-    val invitationDate = dateTimeFactory.nowLocalTimeZone
-    val expirationDate = invitationDate.plusDays(gatewayConfig.phase1Tests.expiryTimeInDays)
-    (invitationDate, expirationDate)
-  }
+
 
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {
@@ -270,12 +267,6 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
 
   private def scheduleIdByName(name: String): Int = {
     gatewayConfig.phase1Tests.scheduleIds.getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
-  }
-
-
-  private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {
-    val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))
-    math.min(adjustedValue, maximum).toInt
   }
 
   private[services] def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {

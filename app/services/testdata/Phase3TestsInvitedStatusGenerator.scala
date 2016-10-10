@@ -54,9 +54,6 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       _ <- p3TestService.registerAndInviteForTestGroup(p3TestApplication)
       testGroup <- p3Repository.getTestGroup(p3TestApplication.applicationId)
     } yield {
-      print("========= TG = " + testGroup + "\n")
-      val tg = testGroup.get.tests
-      val tgt = testGroup.get.tests.find(_.usedForResults).get
       candidateInPreviousStatus.copy(
         phase3TestUrl = Some(testGroup.get.tests.find(_.usedForResults).get.testUrl)
       )

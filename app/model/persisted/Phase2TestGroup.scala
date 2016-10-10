@@ -20,12 +20,12 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class Phase2TestProfile(expirationDate: DateTime,
+case class Phase2TestGroup(expirationDate: DateTime,
   tests: List[CubiksTest]
 ) extends CubiksTestProfile
 
-object Phase2TestProfile {
+object Phase2TestGroup {
   import repositories.BSONDateTimeHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestProfile] = Macros.handler[Phase2TestProfile]
-  implicit val phase2TestProfileFormat = Json.format[Phase2TestProfile]
+  implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup] = Macros.handler[Phase2TestGroup]
+  implicit val phase2TestProfileFormat = Json.format[Phase2TestGroup]
 }
