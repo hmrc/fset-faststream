@@ -19,8 +19,11 @@ package model.persisted
 import model.OnlineTestCommands.Phase1TestProfile
 import reactivemongo.bson.Macros
 
-case class Phase1TestProfileWithAppId(applicationId: String, phase1TestProfile: Phase1TestProfile)
+case class Phase1TestWithUserIds(applicationId: String,
+  userId: String,
+  phase1TestProfile: Phase1TestProfile
+)
 
-object Phase1TestProfileWithAppId {
-  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestProfileWithAppId]
+object Phase1TestWithUserIds {
+  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestWithUserIds]
 }
