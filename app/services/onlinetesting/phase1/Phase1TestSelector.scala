@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package services
+package services.onlinetesting.phase1
 
-import org.joda.time.{ DateTime, DateTimeZone }
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import testkit.FutureHelper
+import config.CubiksGatewayConfig
+import model.OnlineTestCommands.Phase1Test
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.Failure
+trait Phase1TestSelector {
+  val gatewayConfig: CubiksGatewayConfig
 
-/**
-  * Common base class for all service tests
-  */
-class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with FutureHelper {
-  implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
+  def findFirstSjqTest(tests: List[Phase1Test]): Option[Phase1Test] = tests find (_.scheduleId == sjq)
 
-  val AppId = "AppId"
-  val UserId = "UserId"
+  def findFirstBqTest(tests: List[Phase1Test]): Option[Phase1Test] = tests find (_.scheduleId == bq)
+
+  private[onlinetesting] def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
+
+  private[onlinetesting] def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
+
 }

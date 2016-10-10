@@ -28,7 +28,7 @@ import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
 import model.events.EventTypes.{ toString => _, _ }
 import model.exchange.Phase1TestResultReady
-import model.persisted.Phase1TestProfileWithAppId
+import model.persisted.Phase1TestWithUserIds
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -66,8 +66,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     emailDomain = "test.com"
   )
 
-  val sjqScheduleId =testGatewayConfig.phase1Tests.scheduleIds("sjq")
-  val bqScheduleId =testGatewayConfig.phase1Tests.scheduleIds("bq")
+  val sjqScheduleId = testGatewayConfig.phase1Tests.scheduleIds("sjq")
+  val bqScheduleId = testGatewayConfig.phase1Tests.scheduleIds("bq")
 
   val preferredName = "Preferred\tName"
   val preferredNameSanitized = "Preferred Name"
@@ -161,7 +161,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val result = onlineTestService.getPhase1TestProfile("valid-userid").futureValue
 
       result.get.expirationDate must equal(validExpireDate)
-//      result.get.activeTests.head.invitationDate must equal(InvitationDate)
+      //      result.get.activeTests.head.invitationDate must equal(InvitationDate)
     }
   }
 
@@ -229,52 +229,52 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     }
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest' " +
       "if there is an exception retrieving the contact details" in new OnlineTest {
-        when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
-          .thenReturn(Future.successful(registration))
-        when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
-          .thenReturn(Future.successful(invitation))
-        when(cdRepositoryMock.find(userId))
-          .thenReturn(Future.failed(new Exception))
+      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(registration))
+      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(invitation))
+      when(cdRepositoryMock.find(userId))
+        .thenReturn(Future.failed(new Exception))
 
-        val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
-        result.failed.futureValue mustBe an[Exception]
+      val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
+      result.failed.futureValue mustBe an[Exception]
 
-        verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-        verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
-        verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
-      }
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+    }
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest'" +
       " if there is an exception sending the invitation email" in new OnlineTest {
-        when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])(any[HeaderCarrier]))
-          .thenReturn(Future.successful(registration))
-        when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
-          .thenReturn(Future.successful(invitation))
-        when(cdRepositoryMock.find(userId))
-          .thenReturn(Future.successful(contactDetails))
+      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(registration))
+      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(invitation))
+      when(cdRepositoryMock.find(userId))
+        .thenReturn(Future.successful(contactDetails))
 
-        when(emailClientMock.sendOnlineTestInvitation(
-          eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
-        )(any[HeaderCarrier]))
-          .thenReturn(Future.failed(new Exception))
+      when(emailClientMock.sendOnlineTestInvitation(
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
+      )(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new Exception))
 
-        val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
-        result.failed.futureValue mustBe an[Exception]
+      val result = onlineTestService.registerAndInviteForTestGroup(onlineTestApplication)
+      result.failed.futureValue mustBe an[Exception]
 
-        verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-        verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
-        verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
-      }
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+    }
     "fail, audit 'UserRegisteredForOnlineTest', audit 'UserInvitedToOnlineTest'" +
       ", not send invitation email to user" +
       "if there is an exception storing the status and the online profile data to database" in new OnlineTest {
-        when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
-          .thenReturn(Future.successful(registration))
-        when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
-          .thenReturn(Future.successful(invitation))
-        when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
-        when(emailClientMock.sendOnlineTestInvitation(
-          eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
-        ).thenReturn(Future.successful(()))
+      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(registration))
+      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(invitation))
+      when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
+      when(emailClientMock.sendOnlineTestInvitation(
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+      ).thenReturn(Future.successful(()))
 
 
       when(otRepositoryMock.insertOrUpdatePhase1TestGroup("appId", phase1TestProfile))
@@ -382,7 +382,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     "change progress to started" in new OnlineTest {
       when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
       when(otRepositoryMock.getPhase1TestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase1TestProfileWithAppId("appId123", phase1TestProfile)))
+        .thenReturn(Future.successful(Phase1TestWithUserIds("appId123", "userId", phase1TestProfile)))
       when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)).thenReturn(Future.successful(()))
       onlineTestService.markAsStarted(cubiksUserId).futureValue
 
@@ -395,7 +395,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
       val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))))
       when(otRepositoryMock.getPhase1TestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase1TestProfileWithAppId("appId123", phase1Tests)))
+        .thenReturn(Future.successful(Phase1TestWithUserIds("appId123", "userId", phase1Tests)))
       when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful(()))
       onlineTestService.markAsCompleted(cubiksUserId).futureValue
 
@@ -408,7 +408,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val reportReady = Phase1TestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
 
       when(otRepositoryMock.getPhase1TestProfileByCubiksId(cubiksUserId)).thenReturn(
-        Future.successful(Phase1TestProfileWithAppId("appId", phase1TestProfile.copy(
+        Future.successful(Phase1TestWithUserIds("appId", "userId", phase1TestProfile.copy(
           tests = List(phase1Test.copy(usedForResults = false, cubiksUserId = 123),
             phase1Test,
             phase1TestBq.copy(cubiksUserId = 789, resultsReadyToDownload = false)
@@ -418,7 +418,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
-          .thenReturn(Future.successful(()))
+        .thenReturn(Future.successful(()))
 
       val result = onlineTestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
@@ -429,7 +429,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val reportReady = Phase1TestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
 
       when(otRepositoryMock.getPhase1TestProfileByCubiksId(cubiksUserId)).thenReturn(
-        Future.successful(Phase1TestProfileWithAppId("appId", phase1TestProfile.copy(
+        Future.successful(Phase1TestWithUserIds("appId", "userId", phase1TestProfile.copy(
           tests = List(phase1Test.copy(usedForResults = false, cubiksUserId = 123),
             phase1Test,
             phase1TestBq.copy(cubiksUserId = 789, resultsReadyToDownload = true)
@@ -439,7 +439,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(otRepositoryMock.insertOrUpdatePhase1TestGroup(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
-          .thenReturn(Future.successful(()))
+        .thenReturn(Future.successful(()))
 
       val result = onlineTestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
@@ -450,6 +450,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   "reset phase1 tests" should {
     "remove progress and register for new tests" in new SuccessfulTestInviteFixture {
+
       import ProgressStatuses._
 
       when(appRepositoryMock.findCandidateByUserId(any[String])).thenReturn(Future.successful(Some(candidate)))
@@ -473,9 +474,9 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   "retrieve phase 1 test report" should {
     "return an exception if no report Id is set" in new OnlineTest {
-        an[Exception] must be thrownBy onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
-          "appId", phase1TestProfile
-        ))
+      an[Exception] must be thrownBy onlineTestService.retrievePhase1TestResult(Phase1TestWithUserIds(
+        "appId", "userId", phase1TestProfile
+      ))
     }
 
     "return an exception if there is an error retrieving one of the reports" in new OnlineTest {
@@ -496,7 +497,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       an[Exception] mustBe thrownBy {
         onlineTestService.retrievePhase1TestResult(
-          Phase1TestProfileWithAppId("appId", phase1TestProfile.copy(tests = List(successfulTest, failedTest)))
+          Phase1TestWithUserIds("appId", "userId", phase1TestProfile.copy(tests = List(successfulTest, failedTest)))
         ).futureValue
       }
       verify(otRepositoryMock, never()).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
@@ -525,7 +526,7 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         .thenReturn(Future.failed(new Exception))
 
       an[Exception] mustBe thrownBy {
-        onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(appId,
+        onlineTestService.retrievePhase1TestResult(Phase1TestWithUserIds(appId, "userId",
           phase1TestProfile.copy(tests = List(successfulTest, failedTest)))).futureValue
       }
 
@@ -547,8 +548,8 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))
 
-      val result = onlineTestService.retrievePhase1TestResult(Phase1TestProfileWithAppId(
-        "appId", phase1TestProfile.copy(tests = List(phase1Test.copy(reportId = Some(123))))
+      val result = onlineTestService.retrievePhase1TestResult(Phase1TestWithUserIds(
+        "appId", "userId", phase1TestProfile.copy(tests = List(phase1Test.copy(reportId = Some(123))))
       )).futureValue
 
       verify(otRepositoryMock, times(1)).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
@@ -605,4 +606,5 @@ class OnlineTestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
     when(otRepositoryMock.removePhase1TestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
   }
+
 }

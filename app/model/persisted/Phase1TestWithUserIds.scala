@@ -17,16 +17,13 @@
 package model.persisted
 
 import model.OnlineTestCommands.Phase1TestProfile
-import model.SelectedSchemes
-import play.api.libs.json._
+import reactivemongo.bson.Macros
 
-case class ApplicationToPhase1Evaluation(
-  applicationId: String,
-  isGis: Boolean,
-  phase1: Phase1TestProfile,
-  preferences: SelectedSchemes
+case class Phase1TestWithUserIds(applicationId: String,
+  userId: String,
+  phase1TestProfile: Phase1TestProfile
 )
 
-object ApplicationToPhase1Evaluation {
-  implicit val applicationToPhase1EvaluationFormats = Json.format[ApplicationToPhase1Evaluation]
+object Phase1TestWithUserIds {
+  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestWithUserIds]
 }

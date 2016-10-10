@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.exchange.passmarksettings
 
-import model.OnlineTestCommands.Phase1TestProfile
-import reactivemongo.bson.Macros
+import org.joda.time.DateTime
+import org.scalatest.FunSuite
 
-case class Phase1TestProfileWithAppId(applicationId: String, phase1TestProfile: Phase1TestProfile)
-
-object Phase1TestProfileWithAppId {
-  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestProfileWithAppId]
+object Phase1PassMarkSettingsExamples {
+  def passmark(implicit now: DateTime) = Phase1PassMarkSettings(List(), "version", now, "userId")
 }

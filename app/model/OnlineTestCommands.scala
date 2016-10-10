@@ -19,6 +19,7 @@ package model
 import connectors.ExchangeObjects.ReportNorm
 import model.PersistedObjects.CandidateTestReport
 import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.persisted.PassmarkEvaluation
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
@@ -53,8 +54,8 @@ object OnlineTestCommands {
   }
 
   case class Phase1TestProfile(expirationDate: DateTime,
-    tests: List[Phase1Test]
-  ) extends TestProfile {
+                               tests: List[Phase1Test],
+                               evaluation: Option[PassmarkEvaluation] = None) extends TestProfile {
 
     def activeTests = tests filter (_.usedForResults)
     def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)

@@ -16,12 +16,13 @@
 
 package repositories.onlinetesting
 
+import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.Phase1TestProfile
-import model.persisted.ApplicationToPhase1Evaluation
+import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.RandomSelection
+import repositories.{ CommonBSONDocuments, RandomSelection }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -29,35 +30,60 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait Phase1EvaluationRepository {
-  def nextApplicationReadyForPhase1ResultEvaluation: Future[Option[ApplicationToPhase1Evaluation]]
+  def nextApplicationReadyForPhase1ResultEvaluation(currentPassmarkVersion: String): Future[Option[ApplicationPhase1ReadyForEvaluation]]
+
+  def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
+                             newApplicationStatus: Option[ApplicationStatus]): Future[Unit]
 }
 
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationToPhase1Evaluation, BSONObjectID]("application", mongo,
-    ApplicationToPhase1Evaluation.applicationToPhase1EvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with RandomSelection {
+  extends ReactiveRepository[ApplicationPhase1ReadyForEvaluation, BSONObjectID]("application", mongo,
+    ApplicationPhase1ReadyForEvaluation.applicationPhase1ReadyForEvaluationFormats,
+    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with RandomSelection with CommonBSONDocuments {
+  private val BSONDocumentPhase1OrPhase2AppStatus = BSONDocument("$or" -> BSONArray(
+    BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+    BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
+    BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
+  ))
 
-  def nextApplicationReadyForPhase1ResultEvaluation: Future[Option[ApplicationToPhase1Evaluation]] = {
-    // TODO: Add BSONDocument("passmarkEvaluation.passmarkVersion" -> BSONDocument("$exists" -> false))
-    val query = BSONDocument("$or" -> BSONArray(
-      BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
-      )),
-      BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS),
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
+  def nextApplicationReadyForPhase1ResultEvaluation(currentPassmarkVersion: String): Future[Option[ApplicationPhase1ReadyForEvaluation]] = {
+    // eTray (Phase2) requires all schemes to be evaluated. However, candidate
+    // can be promoted to Phase2 with some Ambers. We need to select all applications in PHASE2
+    // who were evaluated against the old passmark, as the second evaluation may get rid of
+    // all Ambers for them
+    val query = BSONDocument("$and" -> BSONArray(
+        BSONDocumentPhase1OrPhase2AppStatus,
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
+        BSONDocument("testGroups.PHASE1.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
       ))
-    ))
 
     selectRandom(query).map(_.map { doc =>
-      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
+      val applicationId = doc.getAs[String]("applicationId").get
+      val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
       val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
       val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE1"))
       val phase1 = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
       val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
 
-      ApplicationToPhase1Evaluation(applicationId, isGis, phase1, preferences)
+      ApplicationPhase1ReadyForEvaluation(applicationId, applicationStatus, isGis, phase1, preferences)
     })
+  }
+
+  def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
+                             newApplicationStatus: Option[ApplicationStatus]): Future[Unit] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocumentPhase1OrPhase2AppStatus
+    ))
+
+    val passMarkEvaluation = BSONDocument("$set" -> BSONDocument(
+      "testGroups.PHASE1.evaluation" -> evaluation
+    ).add(
+      if (newApplicationStatus.isDefined) applicationStatusBSON(newApplicationStatus.get) else BSONDocument.empty
+    ))
+
+    collection.update(query, passMarkEvaluation) map { r =>
+      require(r.n == 1, s"None or more than one application have been updated during phase1 evaluation: appId=$applicationId")
+    }
   }
 }
