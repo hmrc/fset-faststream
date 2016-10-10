@@ -25,7 +25,7 @@ case class Phase1TestPage(
 )
 
 object Phase1TestPage {
-  def apply(test: connectors.exchange.Phase1Test): Phase1TestPage = {
+  def apply(test: connectors.exchange.CubiksTest): Phase1TestPage = {
     Phase1TestPage(started = test.started,
       completed = test.completed
     )

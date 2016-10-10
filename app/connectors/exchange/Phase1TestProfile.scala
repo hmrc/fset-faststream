@@ -17,83 +17,38 @@
 package connectors.exchange
 
 import models.UniqueIdentifier
-import org.joda.time.{ DateTime, Period }
-import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
+import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class Phase1Test(usedForResults: Boolean,
-                      testUrl: String,
-                      token: UniqueIdentifier,
-                      cubiksUserId: Int,
-                      invitationDate: DateTime,
-                      startedDateTime: Option[DateTime] = None,
-                      completedDateTime: Option[DateTime] = None,
-                      resultsReadyToDownload: Boolean = false) {
+case class CubiksTest(usedForResults: Boolean,
+  testUrl: String,
+  token: UniqueIdentifier,
+  cubiksUserId: Int,
+  invitationDate: DateTime,
+  startedDateTime: Option[DateTime] = None,
+  completedDateTime: Option[DateTime] = None,
+  resultsReadyToDownload: Boolean = false
+) extends Test {
   def started = startedDateTime.isDefined
-
   def completed = completedDateTime.isDefined
 }
 
-object Phase1Test {
-  implicit def phase1TestFormat = Json.format[Phase1Test]
+object CubiksTest {
+  implicit def phase1TestFormat = Json.format[CubiksTest]
 }
-
 
 case class Phase1TestProfile(expirationDate: DateTime,
-  tests: List[Phase1Test]
-) {
-
-  def getDuration: String = {
-
-    val now = DateTime.now
-    val date = expirationDate
-
-    val periodFormat = new PeriodFormatterBuilder().
-      printZeroAlways().
-      appendDays().
-      appendSuffix(" day ", " days ").
-      appendSeparator(" and ").
-      appendHours().
-      appendSuffix(" hour ", " hours ").
-      toFormatter
-
-    val period = new Period(now, date)
-
-    periodFormat print period
-  }
-
-  def getExpireDateTime: String = {
-
-    val dateTimeFormat = new DateTimeFormatterBuilder().
-      appendClockhourOfHalfday(1).
-      appendLiteral(":").
-      appendMinuteOfHour(2).
-      appendHalfdayOfDayText().
-      appendLiteral(" on ").
-      appendDayOfMonth(1).
-      appendLiteral(" ").
-      appendMonthOfYearText().
-      appendLiteral(" ").
-      appendYear(4, 4).
-      toFormatter
-
-    dateTimeFormat.print(expirationDate)
-  }
-
-  def getExpireDate: String = {
-
-    val dateTimeFormat = new DateTimeFormatterBuilder().
-      appendDayOfMonth(1).
-      appendLiteral(" ").
-      appendMonthOfYearText().
-      appendLiteral(" ").
-      appendYear(4, 4).
-      toFormatter
-
-    dateTimeFormat.print(expirationDate)
-  }
-}
+  tests: List[CubiksTest]
+) extends CubiksTestProfile
 
 object Phase1TestProfile {
   implicit def phase1TestProfileFormat = Json.format[Phase1TestProfile]
+}
+
+case class Phase2TestProfile(expirationDate: DateTime,
+  tests: List[CubiksTest]
+) extends CubiksTestProfile
+
+object Phase2TestProfile {
+  implicit def phase1TestProfileFormat = Json.format[Phase2TestProfile]
 }

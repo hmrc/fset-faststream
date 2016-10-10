@@ -19,7 +19,7 @@ package connectors.exchange
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class Phase1TestProfileWithNames(expirationDate: DateTime, activeTests: Map[String, Phase1Test]) {
+case class Phase1TestProfileWithNames(expirationDate: DateTime, activeTests: Map[String, CubiksTest]) {
   def tests = activeTests.values
 }
 

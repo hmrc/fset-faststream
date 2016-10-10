@@ -209,7 +209,7 @@ object DashboardPageSpec {
   val EmptyProgress = ProgressResponseExamples.Initial
 
   val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now,
-    tests = List(Phase1Test(usedForResults = true,
+    tests = List(CubiksTest(usedForResults = true,
       testUrl = "test.com",
       invitationDate = DateTime.now,
       token = UniqueIdentifier(UUID.randomUUID()),

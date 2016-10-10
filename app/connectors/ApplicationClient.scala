@@ -171,6 +171,10 @@ trait ApplicationClient {
     }
   }
 
+  def getPhase2TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase2TestProfile] = {
+
+  }
+
   def getAllocationDetails(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[AllocationDetails]] = {
     http.GET(s"${url.host}${url.base}/allocation-status/$appId").map { response =>
       Some(response.json.as[AllocationDetails])
