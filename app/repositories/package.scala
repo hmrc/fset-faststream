@@ -201,6 +201,7 @@ package object repositories {
 
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
+    val lastName = personalDetailsRoot.getAs[String]("lastName").get
 
     val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
     val guaranteedInterview = assistanceDetailsRoot.getAs[Boolean]("guaranteedInterview").getOrElse(false)
@@ -214,12 +215,14 @@ package object repositories {
         val numericalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("numericalTimeAdjustmentPercentage").get
         val timeAdjustments = TimeAdjustmentsOnlineTestApplication(verbalTimeAdjustmentPercentage, numericalTimeAdjustmentPercentage)
         OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
-          Some(timeAdjustments))
+          lastName, Some(timeAdjustments))
       } else {
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName, None)
+        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+          lastName, None)
       }
     } else {
-      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName, None)
+      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+        lastName, None)
     }
 
   }

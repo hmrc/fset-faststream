@@ -25,7 +25,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.persisted.Phase1TestProfileWithAppId
-import model.persisted.phase3tests.{ Phase3Test, Phase3TestApplication, Phase3TestGroup }
+import model.persisted.phase3tests.{ Phase3Test, Phase3TestGroup }
 import org.joda.time.DateTime
 import play.api.Logger
 import repositories._
@@ -55,7 +55,7 @@ object Phase3TestService extends Phase3TestService {
   case class InviteLinkCouldNotBeCreatedSuccessfully(message: String) extends Exception(message)
 }
 
-trait Phase3TestService extends ResetPhase3Test with EventSink {
+trait Phase3TestService extends OnlineTestService with ResetPhase3Test with EventSink {
   val appRepository: GeneralApplicationRepository
   val p3TestRepository: Phase3TestRepository
   val cdRepository: contactdetails.ContactDetailsMongoRepository
@@ -66,11 +66,17 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
   val auditService: AuditService
   val gatewayConfig: LaunchpadGatewayConfig
 
-  def registerAndInviteForTestGroup(application: Phase3TestApplication)(implicit hc: HeaderCarrier): Future[Unit] = {
+  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
+    p3TestRepository.nextApplicationReadyForOnlineTesting
+  }
+
+  override def registerAndInviteForTestGroup(application: List[OnlineTestApplication])(implicit hc: HeaderCarrier): Future[Unit] = ???
+
+  override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit] = {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
   }
 
-  def registerAndInviteForTestGroup(application: Phase3TestApplication, interviewId: Int)
+  def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int)
     (implicit hc: HeaderCarrier): Future[Unit] = {
     val (invitationDate, expirationDate) =
       dateTimeFactory.nowLocalTimeZone -> dateTimeFactory.nowLocalTimeZone.plusDays(gatewayConfig.phase3Tests.timeToExpireInDays)
@@ -83,7 +89,7 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
     } yield audit("Phase3TestInvitationProcessComplete", application.userId)
   }
 
-  private def registerAndInviteApplicant(application: Phase3TestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
+  private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
     expirationDate: DateTime
   )(implicit hc: HeaderCarrier): Future[Phase3Test] = {
     val customCandidateId = "FSCND-" + tokenFactory.generateUUID()
@@ -105,7 +111,7 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
     }
   }
 
-  def registerApplicant(application: Phase3TestApplication,
+  def registerApplicant(application: OnlineTestApplication,
                         emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
     print("RA = " + registerApplicant + "\n")
@@ -116,7 +122,7 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
     }
   }
 
-  private def inviteApplicant(application: Phase3TestApplication, interviewId: Int, candidateId: String)
+  private def inviteApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String)
     (implicit hc: HeaderCarrier): Future[InviteApplicantResponse] = {
 
     val customInviteId = "FSINV-" + tokenFactory.generateUUID()
@@ -137,7 +143,7 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
     }
   }
 
-  private def emailInviteToApplicant(application: Phase3TestApplication, emailAddress: String,
+  private def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
   )(implicit hc: HeaderCarrier): Future[Unit] = {
     val preferredName = application.preferredName
@@ -162,7 +168,7 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
       Phase3TestGroup(newTestGroup.expirationDate, existingTestsAfterUpdate ++ newTestGroup.tests)
   }
 
-  private def markAsInvited(application: Phase3TestApplication)
+  private def markAsInvited(application: OnlineTestApplication)
                            (newPhase3TestGroup: Phase3TestGroup): Future[Unit] = {
     Logger.debug("====== In Invited!")
     for {
@@ -176,20 +182,11 @@ trait Phase3TestService extends ResetPhase3Test with EventSink {
     }
   }
 
-  private def candidateEmailAddress(application: Phase3TestApplication): Future[String] =
+  private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
     cdRepository.find(application.userId).map(_.email)
 
-  private def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
-    Logger.info(s"$event for user $userId")
-
-    auditService.logEventNoRequest(
-      event,
-      Map("userId" -> userId) ++ emailAddress.map("email" -> _).toMap
-    )
-  }
-
   // TODO: This needs to cater for 10% extra, 33% extra etc
-  private def getInterviewIdForApplication(application: Phase3TestApplication): Int = {
+  private def getInterviewIdForApplication(application: OnlineTestApplication): Int = {
       gatewayConfig.phase3Tests.mainInterviewId
   }
 }

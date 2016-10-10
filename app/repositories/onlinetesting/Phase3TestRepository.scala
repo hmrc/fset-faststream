@@ -56,7 +56,11 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
 
-  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = Future.successful(None)
+  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
+    val query = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS_PASSED)
+
+    selectRandom(query).map(_.map(repositories.bsonDocToOnlineTestApplication))
+  }
 
   override def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)

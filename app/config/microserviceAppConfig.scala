@@ -109,11 +109,13 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
   lazy val launchpadGatewayConfig = configuration.underlying.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
   lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
+
   lazy val sendPhase1InvitationJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase1-invitation-job")
-
   lazy val sendPhase2InvitationJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase2-invitation-job")
+  lazy val sendPhase3InvitationJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase3-invitation-job")
 
   lazy val firstReminderJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-reminder-expiring-test-job")

@@ -23,6 +23,7 @@ import model.ApplicationStatus._
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting.{ Phase1TestRepository, Phase3TestRepository }
 import _root_.services.onlinetesting.Phase3TestService
+import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.phase3tests.Phase3TestApplication
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -44,12 +45,15 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      p3TestApplication = Phase3TestApplication(
+      p3TestApplication = OnlineTestApplication(
         candidateInPreviousStatus.applicationId.get,
         PHASE3_TESTS,
         candidateInPreviousStatus.userId,
+        false,
+        false,
         candidateInPreviousStatus.preferredName,
-        candidateInPreviousStatus.lastName
+        candidateInPreviousStatus.lastName,
+        None
       )
       _ <- p3TestService.registerAndInviteForTestGroup(p3TestApplication)
       testGroup <- p3Repository.getTestGroup(p3TestApplication.applicationId)
