@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.exchange.passmarksettings
 
-import model.OnlineTestCommands.Phase1TestProfile
-import model.SelectedSchemes
-import play.api.libs.json._
+import org.joda.time.DateTime
+import org.scalatest.FunSuite
 
-case class ApplicationToPhase1Evaluation(
-  applicationId: String,
-  isGis: Boolean,
-  phase1: Phase1TestProfile,
-  preferences: SelectedSchemes
-)
-
-object ApplicationToPhase1Evaluation {
-  implicit val applicationToPhase1EvaluationFormats = Json.format[ApplicationToPhase1Evaluation]
+object Phase1PassMarkSettingsExamples {
+  def passmark(implicit now: DateTime) = Phase1PassMarkSettings(List(), "version", now, "userId")
 }

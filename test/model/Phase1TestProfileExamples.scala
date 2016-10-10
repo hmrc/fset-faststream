@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package services
+package model
 
-import org.joda.time.{ DateTime, DateTimeZone }
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import testkit.FutureHelper
+import model.OnlineTestCommands.Phase1TestProfile
+import org.joda.time.DateTime
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.Failure
+object Phase1TestProfileExamples {
 
-/**
-  * Common base class for all service tests
-  */
-class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with FutureHelper {
-  implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
-
-  val AppId = "AppId"
-  val UserId = "UserId"
+  def profile(implicit now: DateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstTest))
 }

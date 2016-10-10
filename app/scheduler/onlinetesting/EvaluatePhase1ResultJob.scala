@@ -31,14 +31,13 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
   val evaluateService: EvaluatePhase1ResultService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    // TODO retrieve passmark phase1
     evaluateService.nextCandidateReadyForEvaluation.map {
-      case Some(app) =>
-        Logger.debug(s"Phase1 evaluation for applicationId=${app.applicationId}")
-        evaluateService.evaluate(app)
+      case Some((app, passmarkSettings)) =>
+        Logger.debug(s"Phase1 evaluation for applicationId=${app.applicationId} against passmarkVersion=${passmarkSettings.version}")
+        evaluateService.evaluate(app, passmarkSettings)
       case None =>
-        Logger.info("Application to evaluate phase1 result not found")
-        Future.successful()
+        Logger.info("Passmark settings or Application to evaluate phase1 result not found")
+        Future.successful(())
     }
   }
 }
