@@ -157,11 +157,13 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     case x if x % 7 == 0 && !buildAlways => None
     case _ =>
       Some(BSONDocument(
-        "needsAssistance" -> "No",
-        "needsAdjustment" -> "Yes",
-        "guaranteedInterview" -> "Yes",
-        "typeOfAdjustments" -> BSONArray("Time extension", "Braille test paper", "Stand up and move around", "Other"),
-        "otherAdjustments" -> "Other adjustments test text"
+        "hasDisability" -> "Yes",
+        "needsSupportForOnlineAssessment" -> true,
+        "needsSupportAtVenue" -> true,
+        "needsSupportAtVenueDescription" -> "A nice cup of coffee",
+        "needsSupportForOnlineAssessmentDescription" -> "Extra time",
+        "guaranteedInterview" -> true,
+        "hasDisabilityDescription" -> "Wooden leg"
       ))
   }
 

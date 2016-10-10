@@ -56,6 +56,7 @@ object EvaluationResults {
 
   }
 
+  @deprecated("Use SchemeEvaluationResult with SchemeType", since = "10/10/2016")
   case class PerSchemeEvaluation(schemeName: String, result: Result)
 
   case class AssessmentRuleCategoryResult(
