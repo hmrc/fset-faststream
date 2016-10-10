@@ -50,7 +50,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with PrivateMetho
 
       result.size mustBe 1
       result.head mustBe onlineTestApplication.copy(needsAdjustments = true)
-    }
+    }K
   }
 
   trait Phase2TestServiceFixture {
