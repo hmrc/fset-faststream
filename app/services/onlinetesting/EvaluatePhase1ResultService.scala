@@ -69,6 +69,4 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
       determineApplicationStatus(application.applicationStatus, schemeResults)
     )
   }
-
-
 }

@@ -102,7 +102,6 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
       result mustBe defined
     }
 
-
     "return the candidate to re-evaluation in PHASE1_TESTS_PASSED if the passmark has changed" in {
       insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
@@ -171,7 +170,6 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
       (applicationStatus, phase1)
     }).futureValue
   }
-
 }
 
 object Phase1EvaluationMongoRepositorySpec {

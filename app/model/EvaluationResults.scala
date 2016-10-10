@@ -16,8 +16,6 @@
 
 package model
 
-import model.SchemeType.SchemeType
-
 object EvaluationResults {
   sealed trait Result {
     def toPassmark: String
