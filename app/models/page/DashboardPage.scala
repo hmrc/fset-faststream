@@ -36,6 +36,7 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isTestGroupExpired: Boolean,
   fullName: String,
   phase1TestsPage: Option[Phase1TestsPage],
+  // phase3TestsPage: Option[Phase3TestsPage],
   assessmentStageStatus: AssessmentStageStatus,
   postAssessmentStageStatus: PostAssessmentStageStatus
 )

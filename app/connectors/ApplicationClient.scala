@@ -171,6 +171,14 @@ trait ApplicationClient {
     }
   }
 
+  def getPhase3TestGroup(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase3TestGroup] = {
+    http.GET(s"${url.host}${url.base}/phase3-test-group/$appId").map { response =>
+      response.json.as[Phase3TestGroup]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
+
   def getAllocationDetails(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[AllocationDetails]] = {
     http.GET(s"${url.host}${url.base}/allocation-status/$appId").map { response =>
       Some(response.json.as[AllocationDetails])

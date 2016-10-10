@@ -70,6 +70,7 @@ GET         /schools                                                controllers.
 
 # Online Test
 POST        /online-tests/phase1/start                              controllers.OnlineTestController.startPhase1Tests
+POST        /online-tests/phase3/start                              controllers.OnlineTestController.startPhase3Tests
 GET         /online-tests/phase1/continue/:token                    controllers.OnlineTestController.completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier)
 GET         /online-tests/phase1/complete/:token                    controllers.OnlineTestController.completePhase1TestsByToken(token: UniqueIdentifier)
 GET         /online-tests/complete/:token                           controllers.OnlineTestController.completeTestByToken(token: UniqueIdentifier)

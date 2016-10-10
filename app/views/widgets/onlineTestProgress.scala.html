@@ -33,7 +33,11 @@
                 </li>
                 <li>
                     <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Video interview
-                        <span class="font-xsmall" data-locked>- locked</span>
+                        <!-- <span class="font-xsmall" data-locked>- locked</span> -->
+                        @helper.form(action = routes.OnlineTestController.startPhase3Tests(), 'novalidate -> "novalidate") {
+                            @helper.CSRF.formField
+                            <button id="submit_phase3_tests" type="submit" value="submit" class="button">Start section</button>
+                        }
                     </p>
                 </li>
             </ul>
@@ -102,7 +106,12 @@
                         <span
                                 class="font-xsmall" data-locked>- locked</span>
                     </p>
-                    <p data-locked>Unlocked if you're successful in the E-tray</p>
+                    <!-- <p data-locked>Unlocked if you're successful in the E-tray</p> -->
+                    <p>
+
+                        <button id="submit_phase3_tests" type="submit" value="submit" class="button">Start section</button>
+
+                    </p>
                     <div id="videoBlurb" class="hidden">
                         <p id="videoDescription" class="">This section is timed, after starting the section you'll
                             have 30 minutes to complete it.</p>
