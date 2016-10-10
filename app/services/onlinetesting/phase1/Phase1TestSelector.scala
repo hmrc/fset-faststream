@@ -26,8 +26,8 @@ trait Phase1TestSelector {
 
   def findFirstBqTest(tests: List[Phase1Test]): Option[Phase1Test] = tests find (_.scheduleId == bq)
 
-  private def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
+  private[onlinetesting] def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
 
-  private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
+  private[onlinetesting] def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
 
 }
