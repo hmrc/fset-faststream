@@ -1,18 +1,36 @@
+/*
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// scalastyle:off
 package connectors.exchange
 
-import org.joda.time.{DateTime, Period}
-import org.joda.time.format.{DateTimeFormatterBuilder, PeriodFormatterBuilder}
+import models.UniqueIdentifier
+import org.joda.time.{ DateTime, Period }
+import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 
-abstract class CubiksTestProfile extends TestProfile[CubiksTest] {
-  def hasNotResultReadyToDownloadForAllTestsYet =  activeTests.exists(!_.resultsReadyToDownload)
+abstract class CubiksTestGroup() extends TestGroup[CubiksTest] {
+  def hasNotResultReadyToDownloadForAllTestsYet = activeTests.exists(!_.resultsReadyToDownload)
 }
 
-trait TestProfile[T <: Test] {
+trait TestGroup[T <: Test] {
   def expirationDate: DateTime
   def tests: List[T]
   def activeTests = tests filter (_.usedForResults)
   def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
-  def hasNotCompletedYet =  activeTests.exists(_.completedDateTime.isEmpty)
+  def hasNotCompletedYet = activeTests.exists(_.completedDateTime.isEmpty)
 
   def getDuration: String = {
     val now = DateTime.now
@@ -31,7 +49,7 @@ trait TestProfile[T <: Test] {
     periodFormat print period
   }
 
-    def getExpireDateTime: String = {
+  def getExpireDateTime: String = {
 
     val dateTimeFormat = new DateTimeFormatterBuilder().
       appendClockhourOfHalfday(1).
@@ -65,7 +83,7 @@ trait TestProfile[T <: Test] {
 
 trait Test {
   def usedForResults: Boolean
-  def token: String
+  def token: UniqueIdentifier
   def startedDateTime: Option[DateTime]
   def completedDateTime: Option[DateTime]
 }

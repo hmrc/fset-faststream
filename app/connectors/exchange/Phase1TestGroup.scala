@@ -37,18 +37,18 @@ object CubiksTest {
   implicit def phase1TestFormat = Json.format[CubiksTest]
 }
 
-case class Phase1TestProfile(expirationDate: DateTime,
+case class Phase1TestGroup(expirationDate: DateTime,
   tests: List[CubiksTest]
-) extends CubiksTestProfile
+) extends CubiksTestGroup
 
-object Phase1TestProfile {
-  implicit def phase1TestProfileFormat = Json.format[Phase1TestProfile]
+object Phase1TestGroup {
+  implicit def phase1TestGroupFormat = Json.format[Phase1TestGroup]
 }
 
-case class Phase2TestProfile(expirationDate: DateTime,
+case class Phase2TestGroup(expirationDate: DateTime,
   tests: List[CubiksTest]
-) extends CubiksTestProfile
+) extends CubiksTestGroup
 
-object Phase2TestProfile {
-  implicit def phase1TestProfileFormat = Json.format[Phase2TestProfile]
+object Phase2TestGroup {
+  implicit def phase1TestProfileFormat = Json.format[Phase2TestGroup]
 }

@@ -19,14 +19,14 @@ package models.page
 import org.joda.time.{ DateTime, Period, PeriodType }
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 
-case class Phase1TestPage(
+case class CubiksTestPage(
   started: Boolean = false,
   completed: Boolean = false
 )
 
-object Phase1TestPage {
-  def apply(test: connectors.exchange.CubiksTest): Phase1TestPage = {
-    Phase1TestPage(started = test.started,
+object CubiksTestPage {
+  def apply(test: connectors.exchange.CubiksTest): CubiksTestPage = {
+    CubiksTestPage(started = test.started,
       completed = test.completed
     )
   }
@@ -34,8 +34,8 @@ object Phase1TestPage {
 
 case class Phase1TestsPage(
   expirationDate: DateTime,
-  sjq: Option[Phase1TestPage],
-  bq: Option[Phase1TestPage]
+  sjq: Option[CubiksTestPage],
+  bq: Option[CubiksTestPage]
 ) {
 
   def areStarted: Boolean = {
@@ -101,10 +101,79 @@ case class Phase1TestsPage(
 
 object Phase1TestsPage {
 
-  def apply(profile: connectors.exchange.Phase1TestProfileWithNames): Phase1TestsPage = {
+  def apply(profile: connectors.exchange.Phase1TestGroupWithNames): Phase1TestsPage = {
     Phase1TestsPage(expirationDate = profile.expirationDate,
-      sjq = profile.activeTests.get("sjq").map(Phase1TestPage.apply),
-      bq = profile.activeTests.get("bq").map(Phase1TestPage.apply)
+      sjq = profile.activeTests.get("sjq").map(CubiksTestPage.apply),
+      bq = profile.activeTests.get("bq").map(CubiksTestPage.apply)
+    )
+  }
+}
+
+case class Phase2TestsPage(
+  expirationDate: DateTime,
+  etray: Option[CubiksTestPage]
+) {
+
+  def isStarted: Boolean = etray.exists(_.started)
+
+  def isCompleted: Boolean = etray.exists(_.completed)
+
+  def getDuration: String = {
+
+    val now = DateTime.now
+    val date = expirationDate
+
+    val period = new Period(now, date).normalizedStandard(PeriodType.dayTime())
+
+    val periodFormat = new PeriodFormatterBuilder().
+      printZeroAlways().
+      appendDays().
+      appendSuffix(" day ", " days ").
+      appendSeparator(" and ").
+      appendHours().
+      appendSuffix(" hour ", " hours ").
+      toFormatter
+
+    periodFormat print period
+  }
+
+  def getExpireDateTime: String = {
+
+    val dateTimeFormat = new DateTimeFormatterBuilder().
+      appendClockhourOfHalfday(1).
+      appendLiteral(":").
+      appendMinuteOfHour(2).
+      appendHalfdayOfDayText().
+      appendLiteral(" on ").
+      appendDayOfMonth(1).
+      appendLiteral(" ").
+      appendMonthOfYearText().
+      appendLiteral(" ").
+      appendYear(4, 4).
+      toFormatter
+
+    dateTimeFormat.print(expirationDate)
+  }
+
+  def getExpireDate: String = {
+
+    val dateTimeFormat = new DateTimeFormatterBuilder().
+      appendDayOfMonth(1).
+      appendLiteral(" ").
+      appendMonthOfYearText().
+      appendLiteral(" ").
+      appendYear(4, 4).
+      toFormatter
+
+    dateTimeFormat.print(expirationDate)
+  }
+}
+
+object Phase2TestsPage {
+
+  def apply(profile: connectors.exchange.Phase2TestGroupWithNames): Phase2TestsPage = {
+    Phase2TestsPage(expirationDate = profile.expirationDate,
+      etray = profile.activeTests.headOption.map(CubiksTestPage.apply)
     )
   }
 }

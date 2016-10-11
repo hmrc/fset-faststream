@@ -36,6 +36,7 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isTestGroupExpired: Boolean,
   fullName: String,
   phase1TestsPage: Option[Phase1TestsPage],
+  phase2TestsPage: Option[Phase2TestsPage],
   assessmentStageStatus: AssessmentStageStatus,
   postAssessmentStageStatus: PostAssessmentStageStatus
 )
@@ -46,8 +47,9 @@ object DashboardPage {
   import models.ApplicationData.ApplicationStatus
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], testProfile: Option[Phase1TestsPage])
-           (implicit request: RequestHeader, lang: Lang): DashboardPage = {
+  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], phase1TestGroup: Option[Phase1TestsPage],
+    phase2TestGroup: Option[Phase2TestsPage]
+  )(implicit request: RequestHeader, lang: Lang): DashboardPage = {
 
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility,
       fourthStepVisibility
@@ -65,7 +67,8 @@ object DashboardPage {
       isUserWithNoApplication(user),
       isTestGroupExpired(user),
       user.user.firstName + " " + user.user.lastName,
-      testProfile,
+      phase1TestGroup,
+      phase2TestGroup,
       getAssessmentInProgressStatus(user, allocationDetails),
       getPostAssessmentStatus(user, allocationDetails)
     )

@@ -130,6 +130,16 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS) && isTestExpired(user)
   }
 
+  object Phase2TestInvitedRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS)
+  }
+
+  object Phase2TestExpiredRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS) && isTestExpired(user)
+  }
+
   object DisplayOnlineTestSectionRole extends CsrAuthorization {
     // format: OFF
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
@@ -231,5 +241,6 @@ object RoleUtils {
       .getOrElse(false)
 
   def isTestExpired(implicit user: CachedData) = progress.phase1TestsExpired
+  def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestsExpired
 
 }

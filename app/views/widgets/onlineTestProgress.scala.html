@@ -84,6 +84,12 @@
                 </div>
                 </li>
             }
+        }
+    }
+
+    @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.phase2TestsPage) match {
+
+         case (false, None) => {
                 <li id="etraySection">
                     <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray <span class="font-xsmall"
                                                                                                                 data-locked>- locked</span></p>
@@ -97,6 +103,24 @@
                         <p>(You'll have 80 minutes to finish)</p>
                     </div>
                 </li>
+         }
+
+         case (false, Some(phase2Test)) => {
+                 <li id="etraySection">
+                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray <span class="font-xsmall"
+                                                                                                                data-locked>- locked</span></p>
+                    <p data-locked>Unlocked if you're successful in the online exercises</p>
+                    <div id="etrayBlurb" class="hidden">
+                        <p id="etrayDescription" class="">This section is timed, after starting the section you'll
+                            have 80 minutes to complete it.</p>
+                        <p id="etrayTime" class="">You have <strong>6 days 3 hours</strong> to finish
+                            the e-tray</p>
+                        <a href="" class="button" id="etrayButton">Start section</a>
+                        <p>(You'll have 80 minutes to finish)</p>
+                    </div>
+                </li>
+         }
+    }
                 <li id="videoSection">
                     <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
                         <span
@@ -115,8 +139,5 @@
                 </li>
             </ul>
             <p id="testsFindoutmore"><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the online tests</a></p>
-        }
-    }
-
 </div>
 
