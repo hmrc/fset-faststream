@@ -46,10 +46,11 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         fastPassReceived = false
       ).futureValue
 
-      val result = phase2TestRepo.nextApplicationReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
 
-      result.get.applicationId mustBe "appId"
-      result.get.userId mustBe "userId"
+      results.length mustBe 1
+      results(0).applicationId mustBe "appId"
+      results(0).userId mustBe "userId"
     }
 
     "return more than one candidate for batch processing" in {

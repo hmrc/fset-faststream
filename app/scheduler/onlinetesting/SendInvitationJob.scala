@@ -40,11 +40,11 @@ trait SendInvitationJob extends SingleInstanceScheduledJob {
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationReadyForOnlineTesting.flatMap {
-      case Some(application) =>
-        implicit val hc = new HeaderCarrier()
-        onlineTestingService.registerAndInviteForTestGroup(application)
-      case None =>
+      case Nil =>
         Future.successful(Unit)
+      case applications =>
+        implicit val hc = new HeaderCarrier()
+        onlineTestingService.registerAndInviteForTestGroup(applications)
     }
   }
 }

@@ -45,7 +45,7 @@ class SendInvitationJobSpec extends PlaySpec with MockitoSugar with ScalaFutures
   "send invitation job" should {
 
     "complete successfully when there is no application ready for online testing" in new WithApplication {
-      when(onlineTestingServiceMock.nextApplicationReadyForOnlineTesting).thenReturn(Future.successful(None))
+      when(onlineTestingServiceMock.nextApplicationReadyForOnlineTesting).thenReturn(Future.successful(Nil))
       TestableSendInvitationJob.tryExecute().futureValue mustBe (_: Unit)
     }
 

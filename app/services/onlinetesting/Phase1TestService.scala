@@ -68,8 +68,8 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
 
-  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
-    phase1TestRepo.nextApplicationReadyForOnlineTesting
+  override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
+    phase1TestRepo.nextApplicationsReadyForOnlineTesting
   }
 
   def nextTestGroupWithReportReady: Future[Option[Phase1TestProfileWithAppId]] = {
