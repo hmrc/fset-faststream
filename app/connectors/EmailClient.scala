@@ -63,7 +63,38 @@ object Phase2OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
     )
 }
 
+object Phase3OnlineTestEmailClient extends OnlineTestEmailClient with EmailClient {
+  val emailConfig = config.MicroserviceAppConfig.emailConfig
 
+  override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)
+                                       (implicit hc: HeaderCarrier) = sendEmail(to,
+    "fset_faststream_app_phase3_test_invitation",
+    Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
+  )
+
+  override def sendOnlineTestExpired(to: String, name: String)
+                                    (implicit hc: HeaderCarrier) = sendEmail(to,
+    "fset_faststream_app_online_test_expired",
+    Map("name" -> name)
+  )
+
+  override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
+                                        timeUnit: TimeUnit, expiryDate: DateTime)
+                                       (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
+    "fset_faststream_app_online_test_reminder",
+    Map("name" -> name,
+      "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
+      "timeUnit" -> timeUnit.toString.toLowerCase,
+      "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeftInHours)
+    )
+  )
+
+  override def sendOnlineTestFailed(to: String, name: String)
+                                   (implicit hc: HeaderCarrier) = sendEmail(to,
+    "csr_app_online_test_failed",
+    Map("name" -> name)
+  )
+}
 
 trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailClient with EmailClient {
 

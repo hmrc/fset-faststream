@@ -20,7 +20,7 @@ import _root_.services.AuditService
 import config.LaunchpadGatewayConfig
 import connectors.ExchangeObjects._
 import connectors.LaunchpadGatewayClient.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest }
-import connectors.{ CSREmailClient, EmailClient, LaunchpadGatewayClient }
+import connectors._
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.ProgressStatuses
@@ -47,7 +47,7 @@ object Phase3TestService extends Phase3TestService {
   val launchpadGatewayClient = LaunchpadGatewayClient
   val tokenFactory = UUIDFactory
   val dateTimeFactory = DateTimeFactory
-  val emailClient = CSREmailClient
+  val emailClient = Phase3OnlineTestEmailClient
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
   val eventService = EventService
@@ -62,7 +62,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
   val launchpadGatewayClient: LaunchpadGatewayClient
   val tokenFactory: UUIDFactory
   val dateTimeFactory: DateTimeFactory
-  val emailClient: EmailClient
+  val emailClient: OnlineTestEmailClient
   val auditService: AuditService
   val gatewayConfig: LaunchpadGatewayConfig
 
