@@ -29,7 +29,7 @@ trait RandomSelection {
 
   // In Mongo 3.2.0 it would be more efficient and safer to use `db.aggregate` with the new `$sample` aggregation
   // to randomly select a single record.
-  def selectRandom(query: BSONDocument)(implicit ec: ExecutionContext): Future[Option[BSONDocument]] =
+  def selectRandom(query: BSONDocument, batchSize: Int = 1)(implicit ec: ExecutionContext): Future[Option[BSONDocument]] =
     collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
       val count = c.count
       if (count == 0) {
@@ -37,10 +37,14 @@ trait RandomSelection {
       } else {
         // In the event of a race-condition where the size decreases after counting, the worse-case is that
         // `None` is returned by the method instead of a Some[BSONDocument].
-        val randomIndex = Random.nextInt(count)
-        collection
-          .find(query)
-          .options(QueryOpts(skipN = randomIndex, batchSizeN = 1))
+        val (randomIndex, newBatchSize) = batchSize match {
+          case 1 => (Random.nextInt(count), 1)
+          case _ => if (count < batchSize) { (0, count) }
+            else { (Random.nextInt(batchSize - count), batchSize) }
+        }
+
+        collection.find(query)
+          .options(QueryOpts(skipN = randomIndex, batchSizeN = newBatchSize))
           .cursor[BSONDocument]().collect[List](1)
           .map(_.headOption)
       }

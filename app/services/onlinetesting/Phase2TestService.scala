@@ -20,12 +20,11 @@ import _root_.services.AuditService
 import akka.actor.ActorSystem
 import config.{CubiksGatewayConfig, Phase2TestsConfig}
 import connectors.ExchangeObjects._
-import connectors.{CSREmailClient, CubiksGatewayClient, EmailClient}
+import connectors.{CSREmailClient, CubiksGatewayClient, Phase2OnlineTestEmailClient}
 import factories.{DateTimeFactory, UUIDFactory}
 import model.OnlineTestCommands._
 import model.persisted.{CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId}
 import org.joda.time.DateTime
-import play.api.Logger
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
@@ -43,7 +42,7 @@ object Phase2TestService extends Phase2TestService {
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
   val dateTimeFactory = DateTimeFactory
-  val emailClient = CSREmailClient
+  val emailClient = Phase2OnlineTestEmailClient
   val auditService = AuditService
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
@@ -52,7 +51,6 @@ object Phase2TestService extends Phase2TestService {
 }
 
 trait Phase2TestService extends OnlineTestService {
-  val actor: ActorSystem
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
@@ -60,14 +58,13 @@ trait Phase2TestService extends OnlineTestService {
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
 
-  val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
 
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
 
-  case class Phase2TestRegistrationAndInvitation(application: OnlineTestApplication,
+  case class Phase2TestInviteData(application: OnlineTestApplication,
+    token: String,
     registration: Registration,
-    invitation: Invitation,
-    token: String
+    invitation: Invitation
   )
 
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
@@ -79,48 +76,42 @@ trait Phase2TestService extends OnlineTestService {
     registerAndInviteForTestGroup(List(application))
   }
 
+  def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
+    (implicit hc: HeaderCarrier): Future[Map[Int, (OnlineTestApplication, String, Registration)]] = {
+    cubiksGatewayClient.registerApplicants(candidates.size).map( _.zipWithIndex.map { case (registration, idx) =>
+      val candidate = candidates(idx)
+      audit("Phase2TestRegistered", candidate.userId)
+      registration.userId -> (candidate, tokens(idx), registration)
+    }.toMap)
+  }
+
+  def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)])
+    (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
+    val invites = candidateData.values.map { case (application, token, registration) =>
+      buildInviteApplication(application, token, registration.userId, testConfig.scheduleId)
+    }.toList
+
+    cubiksGatewayClient.inviteApplicants(invites).map(_.map { invitation =>
+      val (application, token, registration) = candidateData(invitation.userId)
+      audit("Phase2TestInvited", application.userId)
+      Phase2TestInviteData(application, token, registration, invitation)
+    })
+  }
+
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
     (implicit hc: HeaderCarrier): Future[Unit] = {
     val candidatesToProcess = filterCandidates(applications)
-    val registrations = cubiksGatewayClient.registerApplicants(candidatesToProcess.size)
     val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
-
-    val invitationProcess = (registrations: Future[List[Registration]]) => registrations.flatMap { eventualRegistrations =>
-      val invites = eventualRegistrations.zipWithIndex.map {  case (registration, idx) =>
-        buildInviteApplication(candidatesToProcess(idx), tokens(idx), registration.userId, testConfig.scheduleId)
-      }
-
-      require(eventualRegistrations.size == invites.size == tokens.size,
-        s"Size mismatch between generated tokens, invitations and completed registrations")
-
-      cubiksGatewayClient.inviteApplicants(invites)
-    }
+    implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
 
     for {
-      invitedApplicants <- invitationProcess(registrations)
-      phase2TestGroupsWithAppId = invitedApplicants.zipWithIndex.map { case (invite, idx) =>
-        buildPhase2TestGroupWithAppId(candidatesToProcess(idx), tokens(idx), invite) }
-      _ <- insertPhase2TestGroups(phase2TestGroupsWithAppId)
-      _ <- emailInviteToApplicants(candidatesToProcess)
-    } yield {
-     ()
+      registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
+      invitedApplicants <- inviteApplicants(registeredApplicants)
+      _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
+      _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
+    } yield candidatesToProcess.foreach { candidate =>
+      audit("Phase2TestInvitationProcessComplete", candidate.userId)
     }
-  }
-
-  def buildPhase2TestGroupWithAppId(application: OnlineTestApplication, token: String, invite: Invitation): Phase2TestGroupWithAppId = {
-    Phase2TestGroupWithAppId(application.applicationId,
-      Phase2TestGroup(expirationDate = expirationDate,
-        tests = List(CubiksTest(scheduleId = testConfig.scheduleId,
-          usedForResults = true,
-          cubiksUserId = invite.userId,
-          testProvider = "cubiks",
-          token = token,
-          testUrl = "",
-          invitationDate = invitationDate,
-          participantScheduleId = invite.participantScheduleId
-        ))
-      )
-    )
   }
 
   def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
@@ -134,9 +125,21 @@ trait Phase2TestService extends OnlineTestService {
     )
   }
 
-  def insertPhase2TestGroups(groups: List[Phase2TestGroupWithAppId]): Future[Unit] = Future.sequence(
-    groups.map( o => phase2TestRepo.insertOrUpdateTestGroup(o.applicationId, o.phase2TestGroup))
-  ).map( _ => () )
+  def insertPhase2TestGroups(o: List[Phase2TestInviteData])
+    (implicit invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = Future.sequence(o.map { completedInvite =>
+    val testGroup = Phase2TestGroup(expirationDate = expirationDate,
+      List(CubiksTest(scheduleId = testConfig.scheduleId,
+        usedForResults = true,
+        cubiksUserId = completedInvite.registration.userId,
+        token = completedInvite.token,
+        testUrl = completedInvite.invitation.authenticateUrl,
+        invitationDate = invitationDate,
+        participantScheduleId = completedInvite.invitation.participantScheduleId
+      ))
+    )
+
+    phase2TestRepo.insertOrUpdateTestGroup(completedInvite.application.applicationId, testGroup)
+  }).map( _ => () )
 
   //TODO Once the time adjustments ticket has been done then this should be updated to apply the etray adjustment settings.
   def buildTimeAdjustments(needsAdjustment: Boolean) = if (needsAdjustment) {
@@ -152,7 +155,8 @@ trait Phase2TestService extends OnlineTestService {
   }
 
   def emailInviteToApplicants(candidates: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier): Future[Unit] = Future.sequence(candidates.map { candidate =>
+    (implicit hc: HeaderCarrier, invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
+  Future.sequence(candidates.map { candidate =>
     candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
   }).map( _ => () )
 
