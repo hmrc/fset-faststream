@@ -19,10 +19,18 @@ package connectors.exchange
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class Phase1TestProfileWithNames(expirationDate: DateTime, activeTests: Map[String, Phase1Test]) {
+case class Phase1TestGroupWithNames(expirationDate: DateTime, activeTests: Map[String, CubiksTest]) {
   def tests = activeTests.values
 }
 
-object Phase1TestProfileWithNames {
-  implicit val phase1TestProfileWithNamesFormat = Json.format[Phase1TestProfileWithNames]
+object Phase1TestGroupWithNames {
+  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames]
+}
+
+
+case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTests: List[CubiksTest])
+
+
+object Phase2TestGroupWithNames {
+  implicit val phase2TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
 }

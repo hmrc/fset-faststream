@@ -34,8 +34,10 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isApplicationCreatedOrInProgress: Boolean,
   isUserWithNoApplication: Boolean,
   isTestGroupExpired: Boolean,
+  isPhase2TestGroupExpired: Boolean,
   fullName: String,
   phase1TestsPage: Option[Phase1TestsPage],
+  phase2TestsPage: Option[Phase2TestsPage],
   assessmentStageStatus: AssessmentStageStatus,
   postAssessmentStageStatus: PostAssessmentStageStatus
 )
@@ -46,8 +48,9 @@ object DashboardPage {
   import models.ApplicationData.ApplicationStatus
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], testProfile: Option[Phase1TestsPage])
-           (implicit request: RequestHeader, lang: Lang): DashboardPage = {
+  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], phase1TestGroup: Option[Phase1TestsPage],
+    phase2TestGroup: Option[Phase2TestsPage]
+  )(implicit request: RequestHeader, lang: Lang): DashboardPage = {
 
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility,
       fourthStepVisibility
@@ -64,8 +67,10 @@ object DashboardPage {
       isApplicationCreatedOrInProgress(user),
       isUserWithNoApplication(user),
       isTestGroupExpired(user),
+      isPhase2TestGroupExpired(user),
       user.user.firstName + " " + user.user.lastName,
-      testProfile,
+      phase1TestGroup,
+      phase2TestGroup,
       getAssessmentInProgressStatus(user, allocationDetails),
       getPostAssessmentStatus(user, allocationDetails)
     )
@@ -174,6 +179,9 @@ object DashboardPage {
 
   private def isTestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     OnlineTestExpiredRole.isAuthorized(user)
+
+  private def isPhase2TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    Phase2TestExpiredRole.isAuthorized(user)
 
   private def getAssessmentInProgressStatus(user: CachedData,
     allocationDetails: Option[AllocationDetails])
