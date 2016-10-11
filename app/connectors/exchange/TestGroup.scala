@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-// scalastyle:off
 package connectors.exchange
 
 import models.UniqueIdentifier
@@ -34,7 +33,7 @@ trait TestGroup[T <: Test] {
 
   def getDuration: String = {
     val now = DateTime.now
-    val date = this.expirationDate
+    val date = expirationDate
 
     val periodFormat = new PeriodFormatterBuilder().
       printZeroAlways().

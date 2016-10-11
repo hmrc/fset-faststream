@@ -71,8 +71,8 @@ trait MicroService {
 //      .setPreference(DanglingCloseParenthesis, Preserve)
 //      .setPreference(AlignParameters, false)
 //      .setPreference(SpacesAroundMultiImports, false))
-    //.settings(compileScalastyle := org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Compile).toTask("").value,
-    //  (compile in Compile) <<= (compile in Compile) dependsOn compileScalastyle)
+    .settings(compileScalastyle := org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Compile).toTask("").value,
+      (compile in Compile) <<= (compile in Compile) dependsOn compileScalastyle)
     .settings(
       Keys.fork in IntegrationTest := false,
       unmanagedSourceDirectories in IntegrationTest <<= (baseDirectory in IntegrationTest)(base => Seq(base / "it")),
