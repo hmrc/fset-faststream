@@ -131,7 +131,8 @@ trait GeneralApplicationRepository {
 class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats,
-    ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments {
+    ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository
+    with RandomSelection with CommonBSONDocuments with BSONHelpers {
 
   override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -955,7 +956,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
           )
         ))
 
-    selectRandom(query).map(_.map(doc => doc.getAs[String]("applicationId").get))
+    implicit val reader = bsonReader { doc => doc.getAs[String]("applicationId").get }
+    selectOneRandom[String](query)
   }
 
   def nextAssessmentCentrePassedOrFailedApplication(): Future[Option[ApplicationForNotification]] = {
@@ -970,7 +972,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
         )
       )
     )
-    selectRandom(query).map(_.map(bsonDocToApplicationForNotification))
+    implicit val reader = bsonReader(bsonDocToApplicationForNotification)
+    selectOneRandom[ApplicationForNotification](query)
   }
 
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,

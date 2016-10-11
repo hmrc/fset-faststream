@@ -21,7 +21,7 @@ import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import model.persisted.ApplicationToPhase1Evaluation
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.RandomSelection
+import repositories.{ BSONHelpers, RandomSelection }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -35,7 +35,7 @@ trait Phase1EvaluationRepository {
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationToPhase1Evaluation, BSONObjectID]("application", mongo,
     ApplicationToPhase1Evaluation.applicationToPhase1EvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with RandomSelection {
+    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with RandomSelection with BSONHelpers {
 
   def nextApplicationReadyForPhase1ResultEvaluation: Future[Option[ApplicationToPhase1Evaluation]] = {
     // TODO: Add BSONDocument("passmarkEvaluation.passmarkVersion" -> BSONDocument("$exists" -> false))
@@ -50,7 +50,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       ))
     ))
 
-    selectRandom(query).map(_.map { doc =>
+    implicit val reader = bsonReader { doc =>
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
       val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE1"))
@@ -58,6 +58,8 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
 
       ApplicationToPhase1Evaluation(applicationId, isGis, phase1, preferences)
-    })
+    }
+
+    selectOneRandom[ApplicationToPhase1Evaluation](query)
   }
 }

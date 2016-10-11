@@ -83,7 +83,8 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
     ))
 
-    selectRandom(query).map(_.map(repositories.bsonDocToOnlineTestApplication))
+    implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
+    selectOneRandom[OnlineTestApplication](query)
   }
 
   override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestProfileWithAppId] = {
@@ -171,13 +172,15 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       )
     ))
 
-    selectRandom(query).map(_.map { doc =>
+    implicit val reader = bsonReader { doc =>
       val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
       Phase1TestProfileWithAppId(
         applicationId = doc.getAs[String]("applicationId").get,
         Phase1TestProfile.bsonHandler.read(group)
       )
-    })
+    }
+
+    selectOneRandom[Phase1TestProfileWithAppId](query)
   }
 
   override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
