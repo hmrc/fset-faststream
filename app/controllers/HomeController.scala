@@ -44,8 +44,8 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
         app = CachedDataWithApp(cachedData.user, application)
         updatedData <- refreshCachedUser()(app, hc, request)
       } yield {
-        val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames),
-          Some(Phase2TestsPage.apply(phase2TestsWithNames)))
+        val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)),
+          Some(Phase2TestsPage.apply(phase2TestsWithNames))
         )
         Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))
       }

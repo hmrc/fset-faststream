@@ -34,6 +34,7 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isApplicationCreatedOrInProgress: Boolean,
   isUserWithNoApplication: Boolean,
   isTestGroupExpired: Boolean,
+  isPhase2TestGroupExpired: Boolean,
   fullName: String,
   phase1TestsPage: Option[Phase1TestsPage],
   phase2TestsPage: Option[Phase2TestsPage],
@@ -66,6 +67,7 @@ object DashboardPage {
       isApplicationCreatedOrInProgress(user),
       isUserWithNoApplication(user),
       isTestGroupExpired(user),
+      isPhase2TestGroupExpired(user),
       user.user.firstName + " " + user.user.lastName,
       phase1TestGroup,
       phase2TestGroup,
@@ -177,6 +179,9 @@ object DashboardPage {
 
   private def isTestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     OnlineTestExpiredRole.isAuthorized(user)
+
+  private def isPhase2TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    Phase2TestExpiredRole.isAuthorized(user)
 
   private def getAssessmentInProgressStatus(user: CachedData,
     allocationDetails: Option[AllocationDetails])

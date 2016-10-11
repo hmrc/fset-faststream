@@ -241,6 +241,6 @@ object RoleUtils {
       .getOrElse(false)
 
   def isTestExpired(implicit user: CachedData) = progress.phase1TestsExpired
-  def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestsExpired
+  def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
 
 }
