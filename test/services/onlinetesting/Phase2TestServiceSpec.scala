@@ -16,7 +16,6 @@
 
 package services.onlinetesting
 
-import akka.actor.ActorSystem
 import config._
 import connectors.ExchangeObjects.{Invitation, InviteApplicant, Registration}
 import connectors.{CSREmailClient, CubiksGatewayClient}

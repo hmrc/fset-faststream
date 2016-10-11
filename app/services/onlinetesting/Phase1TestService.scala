@@ -21,13 +21,13 @@ import akka.actor.ActorSystem
 import common.FutureEx
 import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
-import connectors.{CSREmailClient, CubiksGatewayClient}
-import factories.{DateTimeFactory, UUIDFactory}
+import connectors.{ CSREmailClient, CubiksGatewayClient }
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.ProgressStatuses
-import model.events.{AuditEvents, DataStoreEvents}
-import model.exchange.{Phase1TestProfileWithNames, Phase1TestResultReady}
-import model.persisted.{CubiksTest, Phase1TestProfile, Phase1TestProfileWithAppId}
+import model.events.{ AuditEvents, DataStoreEvents }
+import model.exchange.{ Phase1TestGroupWithNames, Phase1TestGroupWithNames$, Phase1TestResultReady }
+import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestProfileWithAppId }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -38,9 +38,9 @@ import services.onlinetesting.Exceptions.ReportIdNotDefinedException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 import scala.language.postfixOps
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 object Phase1TestService extends Phase1TestService {
   import config.MicroserviceAppConfig._
@@ -76,7 +76,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     phase1TestRepo.nextTestGroupWithReportReady
   }
 
-  def getTestProfile(applicationId: String): Future[Option[Phase1TestProfileWithNames]] = {
+  def getTestProfile(applicationId: String): Future[Option[Phase1TestGroupWithNames]] = {
     for {
       phase1Opt <- phase1TestRepo.getTestGroup(applicationId)
     } yield {
@@ -86,7 +86,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
         require(sjqTests.length <= 1)
         require(bqTests.length <= 1)
 
-        Phase1TestProfileWithNames(
+        Phase1TestGroupWithNames(
           phase1.expirationDate, Map()
             ++ (if (sjqTests.nonEmpty) Map("sjq" -> sjqTests.head) else Map())
             ++ (if (bqTests.nonEmpty) Map("bq" -> bqTests.head) else Map())

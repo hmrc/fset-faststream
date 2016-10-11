@@ -18,17 +18,18 @@ package services.onlinetesting
 
 import _root_.services.AuditService
 import akka.actor.ActorSystem
-import config.{CubiksGatewayConfig, Phase2TestsConfig}
+import config.{ CubiksGatewayConfig, Phase2TestsConfig }
 import connectors.ExchangeObjects._
-import connectors.{CSREmailClient, CubiksGatewayClient, Phase2OnlineTestEmailClient}
-import factories.{DateTimeFactory, UUIDFactory}
+import connectors.{ CSREmailClient, CubiksGatewayClient, Phase2OnlineTestEmailClient }
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.persisted.{CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId}
+import model.exchange.Phase2TestGroupWithNames
+import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import org.joda.time.DateTime
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
-import services.events.{EventService, EventSink}
+import services.events.{ EventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -66,6 +67,18 @@ trait Phase2TestService extends OnlineTestService {
     registration: Registration,
     invitation: Invitation
   )
+
+  def getTestProfile(applicationId: String): Future[Option[Phase2TestGroupWithNames]] = {
+    for {
+      phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
+    } yield phase2Opt.map { phase2 =>
+        val tests = phase2.activeTests
+        Phase2TestGroupWithNames(
+          phase2.expirationDate,
+          tests
+        )
+    }
+  }
 
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     phase2TestRepo.nextApplicationReadyForOnlineTesting
