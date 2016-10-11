@@ -26,7 +26,7 @@ abstract class CubiksTestProfile(
 trait TestProfile[T <: Test] {
   def expirationDate: DateTime
   def tests: List[T]
-  def activeTests = tests filter (_.usedForResults)
+  def activeTests = tests.filter(_.usedForResults)
   def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
   def hasNotCompletedYet =  activeTests.exists(_.completedDateTime.isEmpty)
 }
