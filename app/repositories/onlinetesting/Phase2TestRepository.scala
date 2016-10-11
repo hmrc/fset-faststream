@@ -180,7 +180,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
-    require(progressStatuses forall (_.applicationStatus == thisApplicationStatus), "Cannot remove non Phase 1 progress status")
+    require(progressStatuses forall (_.applicationStatus == thisApplicationStatus), "Cannot remove non Phase 2 progress status")
 
     val query = BSONDocument(
       "applicationId" -> appId,
