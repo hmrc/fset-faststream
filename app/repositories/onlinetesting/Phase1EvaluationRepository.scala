@@ -17,6 +17,7 @@
 package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
+import model.Exceptions.PassMarkEvaluationNotFound
 import model.OnlineTestCommands.Phase1TestProfile
 import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
@@ -34,6 +35,7 @@ trait Phase1EvaluationRepository {
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
                              newApplicationStatus: Option[ApplicationStatus]): Future[Unit]
+  def getPassMarkEvaluation(application: String): Future[PassmarkEvaluation]
 }
 
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
@@ -84,6 +86,18 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
 
     collection.update(query, passMarkEvaluation) map { r =>
       require(r.n == 1, s"None or more than one application have been updated during phase1 evaluation: appId=$applicationId")
+    }
+  }
+
+  def getPassMarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("testGroups.PHASE1.evaluation" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+      optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
+        .flatMap {_.getAs[BSONDocument]("PHASE1")}
+        .flatMap {_.getAs[PassmarkEvaluation]("evaluation")}
+        .getOrElse(throw PassMarkEvaluationNotFound(applicationId))
     }
   }
 }
