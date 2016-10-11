@@ -192,6 +192,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
           case (schemeType, resultStr) => schemeType -> Result(resultStr)
         }.get
       }
+      phase1PassMarkSettings.version mustBe passMarkEvaluation.passmarkVersion
       applicationStatus mustBe expApplicationStatus
       schemeResults must contain theSameElementsAs expSchemeResults
       this
