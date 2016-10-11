@@ -20,7 +20,7 @@ import java.util.UUID
 
 object ProgressResponseExamples {
   val Initial = ProgressResponse(UUID.randomUUID().toString, false, false, false, false, false, Nil, false, false,
-    false, false, false, false, false, false)
+    false, false, false, false, false, Phase2ProgressResponse(false, false, false, false, false), false)
   val InProgress = Initial.copy(personalDetails = true)
   val InPersonalDetails = Initial.copy(personalDetails = true)
   val InSchemePreferences = InPersonalDetails.copy(schemePreferences = true)
