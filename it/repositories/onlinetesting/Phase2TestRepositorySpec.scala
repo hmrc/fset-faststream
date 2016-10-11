@@ -64,13 +64,15 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         fastPassReceived = false
       ).futureValue
 
-      val input = Phase2TestGroup(expirationDate = DateTime.now(),
+      val now =  DateTime.now(DateTimeZone.UTC)
+
+      val input = Phase2TestGroup(expirationDate = now,
         tests = List(CubiksTest(scheduleId = 1,
           usedForResults = true,
           token = "token",
           cubiksUserId = 111,
           testUrl = "testUrl",
-          invitationDate = DateTime.now(),
+          invitationDate = now,
           participantScheduleId = 222
         ))
       )
