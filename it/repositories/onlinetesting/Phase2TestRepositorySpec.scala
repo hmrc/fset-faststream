@@ -46,10 +46,11 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         fastPassReceived = false
       ).futureValue
 
-      val result = phase2TestRepo.nextApplicationReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
 
-      result.get.applicationId mustBe "appId"
-      result.get.userId mustBe "userId"
+      results.length mustBe 1
+      results(0).applicationId mustBe "appId"
+      results(0).userId mustBe "userId"
     }
 
     "return more than one candidate for batch processing" in {
@@ -64,13 +65,15 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         fastPassReceived = false
       ).futureValue
 
-      val input = Phase2TestGroup(expirationDate = DateTime.now(),
+      val now =  DateTime.now(DateTimeZone.UTC)
+
+      val input = Phase2TestGroup(expirationDate = now,
         tests = List(CubiksTest(scheduleId = 1,
           usedForResults = true,
           token = "token",
           cubiksUserId = 111,
           testUrl = "testUrl",
-          invitationDate = DateTime.now(),
+          invitationDate = now,
           participantScheduleId = 222
         ))
       )

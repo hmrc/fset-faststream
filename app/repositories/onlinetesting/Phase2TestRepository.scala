@@ -77,10 +77,11 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     getTestProfileByToken(token, phaseName)
   }
 
-  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
+  override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     val query = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED)
 
-    selectRandom(query, 50).map(_.map(repositories.bsonDocToOnlineTestApplication))
+    implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
+    selectRandom[OnlineTestApplication](query, 50)
   }
 
   override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase2TestGroupWithAppId] = {
@@ -144,7 +145,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       BSONDocument("progress-status.PHASE2_TESTS_EXPIRED" -> BSONDocument("$ne" -> true))
     ))
 
-  nextExpiringApplication(progressStatusQuery, phaseName)
+    nextExpiringApplication(progressStatusQuery, phaseName)
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
@@ -166,13 +167,15 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       )
     ))
 
-    selectRandom(query).map(_.map { doc =>
+    implicit val reader = bsonReader { doc =>
       val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
       Phase2TestGroupWithAppId(
         applicationId = doc.getAs[String]("applicationId").get,
         Phase2TestGroup.bsonHandler.read(group)
       )
-    })
+    }
+
+    selectOneRandom[Phase2TestGroupWithAppId](query)
   }
 
   override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {

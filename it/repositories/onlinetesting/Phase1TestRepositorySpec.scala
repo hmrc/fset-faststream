@@ -106,9 +106,9 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         fastPassReceived = true
       ).futureValue
 
-      val result = phase1TestRepo.nextApplicationReadyForOnlineTesting.futureValue
+      val result = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
 
-      result must be (None)
+      result must be (Nil)
     }
 
     "return one application if there is only one and it is not a fast pass candidate" in{
@@ -117,10 +117,11 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         fastPassReceived = false
       ).futureValue
 
-      val result = phase1TestRepo.nextApplicationReadyForOnlineTesting.futureValue
+      val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
 
-      result.get.applicationId mustBe "appId"
-      result.get.userId mustBe "userId"
+      results.length mustBe 1
+      results(0).applicationId mustBe "appId"
+      results(0).userId mustBe "userId"
     }
   }
 
@@ -181,11 +182,11 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false, isGis = true
       ).futureValue
 
-      val onlineTestApplication = phase1TestRepo.nextApplicationReadyForOnlineTesting.futureValue
+      val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
 
-      onlineTestApplication.isDefined mustBe true
+      onlineTestApplications.length mustBe 1
 
-      inside (onlineTestApplication.get) { case OnlineTestApplication(applicationId, applicationStatus, userId,
+      inside (onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId,
         guaranteedInterview, needsAdjustments, preferredName, lastName, timeAdjustments) =>
 
         applicationId mustBe "appId"

@@ -80,8 +80,8 @@ trait Phase2TestService extends OnlineTestService {
     }
   }
 
-  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
-    phase2TestRepo.nextApplicationReadyForOnlineTesting
+  override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
+    phase2TestRepo.nextApplicationsReadyForOnlineTesting
   }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)

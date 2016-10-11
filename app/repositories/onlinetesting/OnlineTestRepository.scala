@@ -33,7 +33,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelection {
+trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelection with BSONHelpers{
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
@@ -41,7 +41,7 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
   val dateTimeFactory: DateTimeFactory
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
 
-  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]]
+  def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]]
 
   def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -101,7 +101,8 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
         s"testGroups.$phase.expirationDate" -> BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone) // Serialises to UTC.
       ), progressStatusQuery))
 
-    selectRandom(query).map(_.map(ExpiringOnlineTest.fromBson))
+    implicit val reader = bsonReader(ExpiringOnlineTest.fromBson)
+    selectOneRandom[ExpiringOnlineTest](query)
   }
 
   def nextTestForReminder(reminder: ReminderNotice, phase: String = "PHASE1",
@@ -115,7 +116,8 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
       progressStatusQuery
     ))
 
-    selectRandom(query).map(_.map(NotificationExpiringOnlineTest.fromBson))
+    implicit val reader = bsonReader(NotificationExpiringOnlineTest.fromBson)
+    selectOneRandom[NotificationExpiringOnlineTest](query)
   }
 
 
