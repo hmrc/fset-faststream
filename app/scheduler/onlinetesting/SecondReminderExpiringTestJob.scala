@@ -19,7 +19,7 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import model.SecondReminder
+import model.Phase1SecondReminder
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestExpiryService
 
@@ -35,7 +35,7 @@ trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob with Seco
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    service.processNextTestForReminder(SecondReminder)
+    service.processNextTestForReminder(Phase1SecondReminder)
   }
 
 }

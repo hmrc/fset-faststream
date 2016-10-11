@@ -22,7 +22,7 @@ import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.events.EventTypes.Events
 import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
-import model.{ FirstReminder, SecondReminder }
+import model.{ Phase1FirstReminder, Phase1SecondReminder }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -106,8 +106,8 @@ object OnlineTestExtensionServiceImpl {
     val progressList = (Set.empty[ProgressStatus]
         ++ cond(progress.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
         ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)
-        ++ cond(extendedExpiryDate.minusHours(SecondReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_SECOND_REMINDER)
-        ++ cond(extendedExpiryDate.minusHours(FirstReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_FIRST_REMINDER)).toList
+        ++ cond(extendedExpiryDate.minusHours(Phase1SecondReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_SECOND_REMINDER)
+        ++ cond(extendedExpiryDate.minusHours(Phase1FirstReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_FIRST_REMINDER)).toList
     if(progressList.isEmpty) { None } else { Some(progressList) }
   }
 
