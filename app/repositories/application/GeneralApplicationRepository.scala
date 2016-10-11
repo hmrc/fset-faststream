@@ -772,7 +772,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
         BSONDocument("$or" ->
           BSONArray(
             BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-            BSONDocument("assistance-details.needsSupportAtVenue" -> true)
+            BSONDocument("assistance-details.needsSupportAtVenue" -> true),
+            BSONDocument("assistance-details.guaranteedInterview" -> true)
           ))
       ))
 
