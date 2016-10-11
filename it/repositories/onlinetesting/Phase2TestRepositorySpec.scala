@@ -25,7 +25,7 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
   val TestProfile = Phase2TestGroup(expirationDate = DatePlus7Days, tests = List(phase2Test))
 
-  "Get online test" should {
+  "Get online test" must {
     "return None if there is no test for the specific user id" in {
       val result = phase2TestRepo.getTestGroup("userId").futureValue
       result mustBe None
@@ -39,7 +39,7 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
   }
 
-  "Next application ready for online testing" should {
+  "Next application ready for online testing" must {
     "return one application if there is only one" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
@@ -54,6 +54,33 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
     "return more than one candidate for batch processing" in {
       pending
+    }
+  }
+
+  "Insert a phase 2 test" must {
+    "correctly insert a test" in {
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false
+      ).futureValue
+
+      val input = Phase2TestGroup(expirationDate = DateTime.now(),
+        tests = List(CubiksTest(scheduleId = 1,
+          usedForResults = true,
+          token = "token",
+          cubiksUserId = 111,
+          testUrl = "testUrl",
+          invitationDate = DateTime.now(),
+          participantScheduleId = 222
+        ))
+      )
+
+      phase2TestRepo.insertOrUpdateTestGroup("appId", input).futureValue
+
+      val result = phase2TestRepo.getTestGroup("appId").futureValue
+      result.isDefined mustBe true
+      result.get.expirationDate mustBe input.expirationDate
+      result.get.tests mustBe input.tests
     }
   }
 }

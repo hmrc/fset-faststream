@@ -81,6 +81,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
+      verify(otRepositoryMock, times(2)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
     }
 
     "process adjustment candidates first and individually" in new Phase2TestServiceFixture {
@@ -94,9 +95,10 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
       phase2TestService.registerAndInviteForTestGroup(adjustmentCandidates).futureValue
 
-      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
-      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
+      verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
+      verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
+      verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
+      verify(otRepositoryMock).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
     }
   }
 
