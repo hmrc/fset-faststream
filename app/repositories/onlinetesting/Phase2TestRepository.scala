@@ -80,7 +80,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED)
 
-    selectRandom(query).map(_.map(repositories.bsonDocToOnlineTestApplication))
+    selectRandom(query, 50).map(_.map(repositories.bsonDocToOnlineTestApplication))
   }
 
   override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase2TestGroupWithAppId] = {
