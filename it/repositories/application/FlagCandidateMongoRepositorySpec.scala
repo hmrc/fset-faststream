@@ -22,6 +22,7 @@ import model.FlagCandidatePersistedObject.FlagCandidate
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
 
 class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {

@@ -19,14 +19,14 @@ package mocks.application
 import model.ApplicationStatus.ApplicationStatus
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
-import model.command._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.Phase1TestProfile
 import model._
+import model.command._
 import model.persisted.ApplicationForNotification
-import model.report.CandidateProgressReport
+import model.report.{ AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport }
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
 
@@ -101,20 +101,27 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findCandidateByUserId(userId: String): Future[Option[Candidate]] = Future.successful(None)
 
-  override def candidateProgressReportNotWithdrawn(frameworkId: String):
-  Future[List[CandidateProgressReport]] = candidateProgressReport(frameworkId)
+  override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] =
+    candidateProgressReport(frameworkId)
 
   override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]] = Future.successful(List(
     CandidateProgressReport("", Some("registered"),
       List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None))
   )
 
+  override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = ???
+
   override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReport]] =
     Future.successful(
       List(
-        AdjustmentReport("1", Some("John"), Some("Smith"), Some("Spiderman"), None, None, Some("Some adjustments"), Some("Yes"), Some("Yes")),
-        AdjustmentReport("2", Some("James"), Some("Jones"), Some("Batman"), None, None, Some("Some adjustments"), Some("Yes"), Some("No")),
-        AdjustmentReport("3", Some("Kathrine"), Some("Jones"), Some("Supergirl"), None, None, Some("Some adjustments"), Some("Yes"), Some("No"))
+        AdjustmentReport("1", Some("11"), Some("John"), Some("Smith"), Some("Spiderman"), None, None, Some("Yes"),
+          Some(ApplicationStatus.SUBMITTED), Some("Need help for online tests"), Some("Need help at the venue"),
+          Some("Yes"), Some("A wooden leg")),
+        AdjustmentReport("2", Some("22"), Some("Jones"), Some("Batman"), None, None, None, None,
+          Some(ApplicationStatus.PHASE1_TESTS), None, Some("Need help at the venue"), None, None),
+        AdjustmentReport("3", Some("33"), Some("Kathrine"), Some("Jones"), Some("Supergirl"), None, None, None,
+          Some(ApplicationStatus.PHASE1_TESTS_PASSED), Some("Need help for online tests"), None,
+          Some("Yes"), Some("A glass eye"))
       )
     )
 

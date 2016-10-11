@@ -231,9 +231,10 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
     "dateOfBirth" -> "1986-05-01"
   )
 
-  def insertApplication(appId: String) = {
+  def insertApplication(appId: String, userId: String) = {
     helperRepo.collection.insert(BSONDocument(
       "applicationId" -> appId,
+      "userId" -> userId,
       "personal-details" -> BSONDocument(
         "firstName" -> s"${testCandidate("firstName")}",
         "lastName" -> s"${testCandidate("lastName")}",

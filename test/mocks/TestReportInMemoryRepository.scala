@@ -16,8 +16,8 @@
 
 package mocks
 
-import model.Commands.PassMarkReportTestResults
 import model.PersistedObjects.CandidateTestReport
+import model.report.PassMarkReportTestResults
 import repositories.TestReportRepository
 
 import scala.concurrent.Future

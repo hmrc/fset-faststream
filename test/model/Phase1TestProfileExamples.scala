@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model
 
-import reactivemongo.bson.Macros
+import model.persisted.Phase1TestProfile
+import org.joda.time.DateTime
 
-case class Phase1TestProfileWithAppId(applicationId: String, phase1TestProfile: Phase1TestProfile)
+object Phase1TestProfileExamples {
 
-object Phase1TestProfileWithAppId {
-  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestProfileWithAppId]
-}
-
-case class Phase2TestGroupWithAppId(applicationId: String, phase2TestGroup: Phase2TestGroup)
-
-object Phase2TestGroupWithAppId {
-  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase2TestGroupWithAppId]
+  def profile(implicit now: DateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstTest))
 }

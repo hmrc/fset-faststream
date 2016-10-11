@@ -94,7 +94,7 @@ trait Phase2TestService extends OnlineTestService {
     cubiksGatewayClient.registerApplicants(candidates.size).map( _.zipWithIndex.map { case (registration, idx) =>
       val candidate = candidates(idx)
       audit("Phase2TestRegistered", candidate.userId)
-      registration.userId -> (candidate, tokens(idx), registration)
+      (registration.userId, (candidate, tokens(idx), registration))
     }.toMap)
   }
 

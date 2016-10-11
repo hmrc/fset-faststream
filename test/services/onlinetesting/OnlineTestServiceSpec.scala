@@ -27,5 +27,4 @@ class OnlineTestServiceSpec extends PlaySpec with MockitoSugar {
       pending
     }
   }
-
 }
