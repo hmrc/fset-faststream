@@ -52,7 +52,8 @@ class QuestionnaireControllerSpec extends PlaySpec with Results {
       ))) must be(202)
 
       await(QuestionnaireInMemoryRepository.find(appId)).size must be(2)
-      verify(mockAuditService).logEvent(eqTo("QuestionnaireSectionSaved"), eqTo(Map("section" -> "section1")))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo("QuestionnaireSectionSaved"), eqTo(
+        Map("section" -> "section1")))(any[HeaderCarrier], any[RequestHeader])
 
       status(TestQuestionnaireController.addSection(appId, "section2")(addQuestionnaireSection(appId, "section2")(
         s"""
@@ -67,7 +68,8 @@ class QuestionnaireControllerSpec extends PlaySpec with Results {
       ))) must be(202)
 
       await(QuestionnaireInMemoryRepository.find(appId)).size must be(5)
-      verify(mockAuditService).logEvent(eqTo("QuestionnaireSectionSaved"), eqTo(Map("section" -> "section2")))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo("QuestionnaireSectionSaved"), eqTo(
+        Map("section" -> "section2")))(any[HeaderCarrier], any[RequestHeader])
     }
 
     "return a system error on invalid json" in new TestFixture {

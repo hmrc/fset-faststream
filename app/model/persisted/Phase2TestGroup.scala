@@ -21,7 +21,8 @@ import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class Phase2TestGroup(expirationDate: DateTime,
-  tests: List[CubiksTest]
+  tests: List[CubiksTest],
+  evaluation: Option[PassmarkEvaluation] = None
 ) extends CubiksTestProfile
 
 object Phase2TestGroup {

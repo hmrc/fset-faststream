@@ -8,6 +8,7 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
 
 class PersonalDetailsRepositorySpec extends MongoRepositorySpec {

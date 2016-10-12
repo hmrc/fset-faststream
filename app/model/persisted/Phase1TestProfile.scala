@@ -45,8 +45,10 @@ object CubiksTest {
 
 
 case class Phase1TestProfile(expirationDate: DateTime,
-  tests: List[CubiksTest]
+  tests: List[CubiksTest],
+  evaluation: Option[PassmarkEvaluation] = None
 ) extends CubiksTestProfile
+
 
 object Phase1TestProfile {
   import repositories.BSONDateTimeHandler

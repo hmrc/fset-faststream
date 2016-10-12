@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package model.persisted
+package models
 
-import model.SelectedSchemes
-import play.api.libs.json._
 
-case class ApplicationToPhase1Evaluation(
-  applicationId: String,
-  isGis: Boolean,
-  phase1: Phase1TestProfile,
-  preferences: SelectedSchemes
-)
+object FieldNameHelpers {
 
-object ApplicationToPhase1Evaluation {
-  implicit val applicationToPhase1EvaluationFormats = Json.format[ApplicationToPhase1Evaluation]
+  def createId(id: String, v: (String, String)) = id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_")
+
+  def formatId(id:String, v:(String,String)) =
+    createId(id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_"), v)
+
 }

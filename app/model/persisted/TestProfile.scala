@@ -29,6 +29,7 @@ trait TestProfile[T <: Test] {
   def activeTests = tests.filter(_.usedForResults)
   def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
   def hasNotCompletedYet =  activeTests.exists(_.completedDateTime.isEmpty)
+  def evaluation: Option[PassmarkEvaluation]
 }
 
 trait Test {

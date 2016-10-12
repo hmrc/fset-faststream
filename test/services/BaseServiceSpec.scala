@@ -16,6 +16,7 @@
 
 package services
 
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -29,6 +30,8 @@ import scala.util.Failure
   * Common base class for all service tests
   */
 class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with FutureHelper {
+  implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
+
   val AppId = "AppId"
   val UserId = "UserId"
 }

@@ -32,7 +32,7 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "return an online test for the specific user id" in {
-      insertApplication("appId")
+      insertApplication("appId", "userId")
       phase2TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase2TestRepo.getTestGroup("appId").futureValue
       result mustBe Some(TestProfile)

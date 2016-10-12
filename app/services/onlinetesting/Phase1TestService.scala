@@ -27,7 +27,7 @@ import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ Phase1TestGroupWithNames, Phase1TestGroupWithNames$, Phase1TestResultReady }
-import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestProfileWithAppId }
+import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestWithUserIds }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -72,7 +72,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     phase1TestRepo.nextApplicationsReadyForOnlineTesting
   }
 
-  def nextTestGroupWithReportReady: Future[Option[Phase1TestProfileWithAppId]] = {
+  def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
     phase1TestRepo.nextTestGroupWithReportReady
   }
 
@@ -182,7 +182,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     }
   }
 
-  def retrieveTestResult(testProfile: Phase1TestProfileWithAppId)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def retrieveTestResult(testProfile: Phase1TestWithUserIds)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     def insertTests(testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
       Future.sequence(testResults.map {
@@ -342,8 +342,8 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   // TODO: We need to stop updating the entire group here and use selective $set, this method of replacing the entire document
   // invites race conditions
   private def updateTestPhase1(cubiksUserId: Int, update: CubiksTest => CubiksTest, debugKey: String = "foo"):
-  Future[Phase1TestProfileWithAppId] = {
-    def createUpdateTestGroup(p: Phase1TestProfileWithAppId): Phase1TestProfileWithAppId = {
+  Future[Phase1TestWithUserIds] = {
+    def createUpdateTestGroup(p: Phase1TestWithUserIds): Phase1TestWithUserIds = {
       val testGroup = p.phase1TestProfile
       val requireUserIdOnOnlyOneTestCount = testGroup.tests.count(_.cubiksUserId == cubiksUserId)
       require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
@@ -354,7 +354,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
         case t => t
       }
       val updatedTestGroup = testGroup.copy(tests = updatedTests)
-      Phase1TestProfileWithAppId(appId, updatedTestGroup)
+      Phase1TestWithUserIds(appId, p.userId, updatedTestGroup)
     }
 
     for {

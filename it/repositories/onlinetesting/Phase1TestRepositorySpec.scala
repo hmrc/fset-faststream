@@ -23,7 +23,7 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.persisted.ExpiringOnlineTest
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
-import model.persisted.Phase1TestProfileWithAppId
+import model.persisted.Phase1TestWithUserIds
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
@@ -48,8 +48,9 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   )
 
   val TestProfile = Phase1TestProfile(expirationDate = DatePlus7Days, tests = List(phase1Test))
-  val testProfileWithAppId = Phase1TestProfileWithAppId(
+  val testProfileWithAppId = Phase1TestWithUserIds(
     "appId",
+    "userId",
     TestProfile.copy(tests = List(
       phase1Test.copy(usedForResults = true, resultsReadyToDownload = true),
       phase1Test.copy(usedForResults = true, resultsReadyToDownload = true))
@@ -63,7 +64,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "return an online test for the specific user id" in {
-      insertApplication("appId")
+      insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase1TestRepo.getTestGroup("appId").futureValue
       result mustBe Some(TestProfile)
@@ -77,7 +78,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "return an online tet for the specific token" in {
-      insertApplication("appId")
+      insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase1TestRepo.getTestProfileByToken(Token).futureValue
       result mustBe TestProfile
@@ -91,10 +92,10 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "return an online tet for the specific cubiks id" in {
-      insertApplication("appId")
+      insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase1TestRepo.getTestProfileByCubiksId(CubiksUserId).futureValue
-      result mustBe Phase1TestProfileWithAppId("appId", TestProfile)
+      result mustBe Phase1TestWithUserIds("appId", "userId", TestProfile)
     }
 
   }
@@ -171,7 +172,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       }
 
       val status = helperRepo.findProgress("appId").futureValue
-      status.phase1TestsResultsReceived mustBe true
+      status.phase1TestsResultsReceived mustBe false
 
     }
   }

@@ -19,8 +19,31 @@ package model.command
 import java.util.UUID
 
 object ProgressResponseExamples {
-  val Initial = ProgressResponse(UUID.randomUUID().toString, false, false, false, false, false, Nil, false, false,
-    false, false, false, false, false, Phase2ProgressResponse(false, false, false, false, false), false)
+  val Initial = ProgressResponse(applicationId = UUID.randomUUID().toString,
+    personalDetails = false,
+    schemePreferences = false,
+    partnerGraduateProgrammes = false,
+    assistanceDetails = false,
+    preview = false,
+    questionnaire = Nil,
+    submitted = false,
+    withdrawn = false,
+    phase1TestsInvited = false,
+    phase1TestsStarted = false,
+    phase1TestsCompleted = false,
+    phase1TestsExpired = false,
+    phase1TestsResultsReady = false,
+    phase1TestsResultsReceived = false,
+    phase1TestsPassed = false,
+    phase1TestsFailed = false,
+    phase2ProgressResponse = Phase2ProgressResponse(phase2TestsInvited = false,
+      phase2TestsStarted = false,
+      phase2TestsCompleted = false,
+      phase2TestsExpired = false,
+      phase2TestsResultsReceived = false
+    ),
+    failedToAttend = false
+  )
   val InProgress = Initial.copy(personalDetails = true)
   val InPersonalDetails = Initial.copy(personalDetails = true)
   val InSchemePreferences = InPersonalDetails.copy(schemePreferences = true)

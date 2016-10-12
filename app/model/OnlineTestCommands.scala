@@ -19,6 +19,7 @@ package model
 import connectors.ExchangeObjects.ReportNorm
 import model.PersistedObjects.CandidateTestReport
 import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.persisted.PassmarkEvaluation
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }

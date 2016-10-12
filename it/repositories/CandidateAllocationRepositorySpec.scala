@@ -22,6 +22,7 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{CandidateAllocationMongoRepository, GeneralApplicationMongoRepository}
 import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
 import model.ApplicationStatus._
 
