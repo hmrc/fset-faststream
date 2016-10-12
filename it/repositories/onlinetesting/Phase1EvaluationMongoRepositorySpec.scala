@@ -177,8 +177,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 object Phase1EvaluationMongoRepositorySpec {
   val now = DateTime.now().withZone(DateTimeZone.UTC)
   val phase1Tests = List(
-    Phase1Test(1, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000),
-    Phase1Test(2, usedForResults = true, 101, "cubiks", "token2", "http://localhost", now, 2001)
+    Phase1Test(16196, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000),
+    Phase1Test(16194, usedForResults = true, 101, "cubiks", "token2", "http://localhost", now, 2001)
   )
   val selectedSchemes = SelectedSchemes(List(Commercial, DigitalAndTechnology), orderAgreed = true, eligible = true)
   val testsWithResult = phase1TestsWithResults(TestResult("Ready", "norm", Some(20.5), None, None, None))

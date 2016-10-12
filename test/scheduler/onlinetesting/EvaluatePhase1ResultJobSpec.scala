@@ -35,7 +35,7 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
   "Scheduler execution" should {
-    "evaluate candidates when two exists and are ready for evaluation" in new TestFixture {
+    "evaluate applications ready for evaluation" in new TestFixture {
       when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])).thenReturn(Future.successful(Some(apps.toList, passmark)))
 
       scheduler.tryExecute().futureValue
@@ -43,7 +43,7 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
       assertAllApplicationsWereEvaluated(apps)
     }
 
-    "process only successful and do not break when first is failing" in new TestFixture {
+    "evaluate all applications even when some of them fail" in new TestFixture {
       when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])).thenReturn(Future.successful(Some(apps.toList, passmark)))
       when(mockEvaluateService.evaluate(apps(0), passmark)).thenReturn(Future.failed(new IllegalStateException("first application fails")))
       when(mockEvaluateService.evaluate(apps(5), passmark)).thenReturn(Future.failed(new Exception("fifth application fails")))

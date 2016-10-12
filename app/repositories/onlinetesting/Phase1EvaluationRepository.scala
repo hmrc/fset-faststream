@@ -31,15 +31,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait Phase1EvaluationRepository {
-  @deprecated
-  def nextApplicationReadyForPhase1ResultEvaluation(currentPassmarkVersion: String): Future[Option[ApplicationPhase1ReadyForEvaluation]]
-
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String,
                                          batchSize: Int): Future[List[ApplicationPhase1ReadyForEvaluation]]
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
                              newApplicationStatus: Option[ApplicationStatus]): Future[Unit]
-  def getPassMarkEvaluation(application: String): Future[PassmarkEvaluation]
 }
 
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
@@ -51,30 +47,6 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
     BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
   ))
-
-  @deprecated
-  def nextApplicationReadyForPhase1ResultEvaluation(currentPassmarkVersion: String): Future[Option[ApplicationPhase1ReadyForEvaluation]] = {
-    // eTray (Phase2) requires all schemes to be evaluated. However, candidate
-    // can be promoted to Phase2 with some Ambers. We need to select all applications in PHASE2
-    // who were evaluated against the old passmark, as the second evaluation may get rid of
-    // all Ambers for them
-    val query = BSONDocument("$and" -> BSONArray(
-        BSONDocumentPhase1OrPhase2AppStatus,
-        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
-        BSONDocument("testGroups.PHASE1.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
-      ))
-
-    selectRandom(query).map(_.map { doc =>
-      val applicationId = doc.getAs[String]("applicationId").get
-      val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
-      val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
-      val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE1"))
-      val phase1 = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
-      val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
-
-      ApplicationPhase1ReadyForEvaluation(applicationId, applicationStatus, isGis, phase1, preferences)
-    })
-  }
 
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String,
                                          batchSize: Int): Future[List[ApplicationPhase1ReadyForEvaluation]] = {
@@ -118,7 +90,8 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     }
   }
 
-  def getPassMarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
+  // This method is used only by tests
+  private[repositories] def getPassMarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("testGroups.PHASE1.evaluation" -> 1, "_id" -> 0)
 

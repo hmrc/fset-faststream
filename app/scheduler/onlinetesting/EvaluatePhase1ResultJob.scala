@@ -20,12 +20,14 @@ import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import common.FutureEx
 import config.ScheduledJobConfig
+import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.persisted.ApplicationPhase1ReadyForEvaluation
 import play.api.Logger
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.EvaluatePhase1ResultService
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.Failure
+import scala.util.{ Failure, Success, Try }
 
 object EvaluatePhase1ResultJob extends EvaluatePhase1ResultJob {
   val evaluateService: EvaluatePhase1ResultService = EvaluatePhase1ResultService
@@ -41,27 +43,34 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     evaluateService.nextCandidatesReadyForEvaluation(batchSizeLimit) flatMap {
       case Some((apps, passmarkSettings)) =>
-        Logger.debug(s"Evaluate Phase1 Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
-        val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
-          evaluateService.evaluate(app, passmarkSettings)
-        }
-
-        evaluationResultsFut.flatMap { evaluationResults =>
-          val errors = evaluationResults.flatMap {
-            case Failure(e) => Some(e)
-            case _ => None
-          }
-
-          if (errors.nonEmpty) {
-            Logger.error(s"There were errors in batch Phase 1 evaluation, number of failed applications: ${errors.size}")
-            Future.failed(errors.head)
-          } else {
-            Future.successful()
-          }
-        }
+        evaluateInBatch(apps, passmarkSettings)
       case None =>
         Logger.info("Passmark settings or an application to evaluate phase1 result not found")
         Future.successful(())
+    }
+  }
+
+  private def evaluateInBatch(apps: List[ApplicationPhase1ReadyForEvaluation], passmarkSettings: Phase1PassMarkSettings): Future[Unit] = {
+    Logger.debug(s"Evaluate Phase1 Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
+    val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
+      Try(evaluateService.evaluate(app, passmarkSettings)) match {
+        case Success(fut) => fut
+        case Failure(e) => Future.failed(e)
+      }
+    }
+
+    evaluationResultsFut flatMap { evaluationResults =>
+      val errors = evaluationResults.flatMap {
+        case Failure(e) => Some(e)
+        case _ => None
+      }
+
+      if (errors.nonEmpty) {
+        Logger.error(s"There were errors in batch Phase 1 evaluation, number of failed applications: ${errors.size}")
+        Future.failed(errors.head)
+      } else {
+        Future.successful(())
+      }
     }
   }
 }
@@ -72,4 +81,5 @@ trait EvaluatePhase1ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   val configPrefix = "scheduling.online-testing.evaluate-phase1-result-job."
   val name = "EvaluatePhase1ResultJob"
   val batchSizeLimit = config.MicroserviceAppConfig.maxNumberOfApplicationsInScheduler
+  Logger.debug(s"Max number of applications in scheduler: $batchSizeLimit")
 }
