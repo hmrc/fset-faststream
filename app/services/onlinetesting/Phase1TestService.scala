@@ -148,22 +148,16 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
         )
     }
 
-    println("====== RI = " + registerAndInvite)
-
     val registerAndInviteProcess = registerAndInvite.flatMap { phase1TestsRegs =>
       phase1TestsRegs.collect { case Failure(e) => throw e }
       val successfullyRegisteredTests = phase1TestsRegs.collect { case Success(t) => t }.toList
-      println("====== YO1")
       markAsInvited(application)(Phase1TestProfile(expirationDate = expirationDate, tests = successfullyRegisteredTests))
     }
 
     for {
       _ <- registerAndInviteProcess
-      _ = println("====== WHATUP1")
       emailAddress <- candidateEmailAddress(application)
-      _ = println("====== WHATUP2")
       _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
-      _ = println("====== WHATUP3")
     } yield audit("OnlineTestInvitationProcessComplete", application.userId)
   }
 
@@ -174,11 +168,8 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
 
     for {
       userId <- registerApplicant(application, authToken)
-      _ = println("====== HI1")
       invitation <- inviteApplicant(application, authToken, userId, scheduleId)
-      _ = println("====== HI2")
       _ <- trRepository.remove(application.applicationId)
-      _ = println("====== HI3")
     } yield {
       CubiksTest(scheduleId = scheduleId,
         usedForResults = true,
@@ -230,12 +221,10 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
                              (implicit hc: HeaderCarrier): Future[Invitation] = {
 
     val inviteApplicant = buildInviteApplication(application, authToken, userId, scheduleId)
-    println("====== Send to cubiks invite")
     val inv = cubiksGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
       audit("UserInvitedToOnlineTest", application.userId)
       invitation
     }
-    println("====== Sent to cubiks invite")
     inv
   }
 

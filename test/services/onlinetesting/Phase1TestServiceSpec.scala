@@ -72,7 +72,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   val preferredName = "Preferred\tName"
   val preferredNameSanitized = "Preferred Name"
-  val lastName = "Jones"
+  val lastName = ""
   val userId = "userId"
 
   val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
@@ -459,7 +459,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         .map(t => t.copy(startedDateTime = Some(startedDate))))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfileWithStartedTests)))
       when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
-      val result = phase1TestService.resetTests(onlineTestApplication, List("sjq"), "createdBy").futureValue
+      phase1TestService.resetTests(onlineTestApplication, List("sjq"), "createdBy").futureValue
 
       verify(otRepositoryMock).removeTestProfileProgresses(
         "appId",
