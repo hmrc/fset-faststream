@@ -33,13 +33,15 @@ trait ScheduledJobConfigurable {
   val lockId: Option[String]
   val initialDelaySecs: Option[Int]
   val intervalSecs: Option[Int]
+  val batchSize: Option[Int]
 }
 
 case class ScheduledJobConfig(
   enabled: Boolean,
   lockId: Option[String],
   initialDelaySecs: Option[Int],
-  intervalSecs: Option[Int]
+  intervalSecs: Option[Int],
+  batchSize: Option[Int] = None
 ) extends ScheduledJobConfigurable
 
 case class WaitingScheduledJobConfig(
@@ -47,7 +49,8 @@ case class WaitingScheduledJobConfig(
   lockId: Option[String],
   initialDelaySecs: Option[Int],
   intervalSecs: Option[Int],
-  waitSecs: Option[Int]
+  waitSecs: Option[Int],
+  batchSize: Option[Int] = None
 ) extends ScheduledJobConfigurable
 
 case class CubiksGatewayConfig(url: String,
@@ -101,7 +104,6 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
   lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
   lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
-  lazy val maxNumberOfApplicationsInScheduler = configuration.underlying.as[Int]("scheduling.maxNumberOfApplicationsInScheduler")
   lazy val sendPhase1InvitationJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase1-invitation-job")
 

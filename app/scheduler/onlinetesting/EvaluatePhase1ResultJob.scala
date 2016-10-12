@@ -37,7 +37,7 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
   val evaluateService: EvaluatePhase1ResultService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    evaluateService.nextCandidatesReadyForEvaluation(batchSizeLimit) flatMap {
+    evaluateService.nextCandidatesReadyForEvaluation(batchSize) flatMap {
       case Some((apps, passmarkSettings)) =>
         evaluateInBatch(apps, passmarkSettings)
       case None =>
@@ -81,6 +81,8 @@ trait EvaluatePhase1ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   val conf = config.MicroserviceAppConfig.evaluatePhase1ResultJobConfig
   val configPrefix = "scheduling.online-testing.evaluate-phase1-result-job."
   val name = "EvaluatePhase1ResultJob"
-  val batchSizeLimit = config.MicroserviceAppConfig.maxNumberOfApplicationsInScheduler
-  Logger.debug(s"Max number of applications in scheduler: $batchSizeLimit")
+
+  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
+  Logger.debug(s"Max number of applications in scheduler: $batchSize")
+
 }
