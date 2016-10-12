@@ -138,7 +138,7 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
 
-  lazy val scheduledJobs = List(sendPhase1InvitationJob,sendPhase2InvitationJob, sendPhase3InvitationJob,
+  lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob,
     firstReminderExpiringTestJob, secondReminderExpiringTestJob, expireOnlineTestJob, failedOnlineTestJob,
     retrieveResultsJob, evaluatePhase1ResultJob, diversityMonitoringJob, confirmAttendanceReminderJob,
     evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten

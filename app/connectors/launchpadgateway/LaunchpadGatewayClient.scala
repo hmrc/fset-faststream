@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package connectors
+package connectors.launchpadgateway
 
 import _root_.config.WSHttp
 import config.MicroserviceAppConfig._
-import connectors.LaunchpadGatewayClient._
+import connectors.launchpadgateway.exchangeobjects._
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
 import play.api.libs.json.{ Json, Reads }
@@ -30,23 +30,6 @@ import scala.concurrent.Future
 object LaunchpadGatewayClient extends LaunchpadGatewayClient {
   val http: WSHttp = WSHttp
   val url = launchpadGatewayConfig.url
-
-  case class RegisterApplicantRequest(email: String, customCandidateId: String, firstName: String, lastName: String)
-  object RegisterApplicantRequest { implicit val registerApplicantRequestFormat = Json.format[RegisterApplicantRequest] }
-
-  case class RegisterApplicantResponse(candidate_id: String,
-                                       custom_candidate_id: String)
-  object RegisterApplicantResponse { implicit val registerApplicantResponseFormat = Json.format[RegisterApplicantResponse] }
-
-  case class InviteApplicantRequest(interviewId: Int, candidateId: String, customInviteId: String, redirectUrl: String)
-  object InviteApplicantRequest { implicit val inviteApplicantRequestFormat = Json.format[InviteApplicantRequest] }
-
-  case class SeamlessLoginLink(url: String, status: String, message: String)
-  object SeamlessLoginLink { implicit val seamlessLoginLinkFormat = Json.format[SeamlessLoginLink] }
-
-  case class InviteApplicantResponse(custom_invite_id: String, candidate_id: String, custom_candidate_id: String,
-                                     link: SeamlessLoginLink, deadline: String)
-  object InviteApplicantResponse { implicit val inviteApplicantResponseFormat = Json.format[InviteApplicantResponse] }
 }
 
 trait LaunchpadGatewayClient {
@@ -54,9 +37,6 @@ trait LaunchpadGatewayClient {
   val url: String
 
   lazy val urlWithPathPrefix = s"$url/fset-launchpad-gateway/faststream"
-
-  import InviteApplicantResponse._
-  import RegisterApplicantResponse._
 
   def registerApplicant(registerApplicant: RegisterApplicantRequest)(implicit hc: HeaderCarrier): Future[RegisterApplicantResponse] =
     http.POST(s"$urlWithPathPrefix/register", registerApplicant).map(responseAsOrThrow[RegisterApplicantResponse])

@@ -18,21 +18,20 @@ package services.onlinetesting
 
 import _root_.services.AuditService
 import config.LaunchpadGatewayConfig
-import connectors.ExchangeObjects._
-import connectors.LaunchpadGatewayClient.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest }
+import connectors.launchpadgateway.exchangeobjects._
 import connectors._
+import connectors.launchpadgateway.LaunchpadGatewayClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.persisted.phase3tests.{ Phase3Test, Phase3TestGroup }
 import org.joda.time.DateTime
-import play.api.Logger
 import repositories.application.GeneralApplicationRepository
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.{ EventService, EventSink }
 import services.onlinetesting.Phase3TestService.InviteLinkCouldNotBeCreatedSuccessfully
-import uk.gov.hmrc.play.http.{ HeaderCarrier, NotImplementedException }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps

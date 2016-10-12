@@ -17,9 +17,9 @@
 package services.onlinetesting
 
 import config._
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
-import connectors.LaunchpadGatewayClient._
-import connectors.{ CSREmailClient, CubiksGatewayClient, LaunchpadGatewayClient }
+import connectors.launchpadgateway.LaunchpadGatewayClient
+import connectors.launchpadgateway.exchangeobjects._
+import connectors.CSREmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.ContactDetails
@@ -37,10 +37,9 @@ import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
 import testkit.ExtendedTimeout
-import uk.gov.hmrc.play.http.{ HeaderCarrier, NotImplementedException }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
-import scala.util.Failure
 
 class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
 
