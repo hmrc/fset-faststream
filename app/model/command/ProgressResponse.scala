@@ -35,7 +35,10 @@ case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
   phase2TestsStarted: Boolean = false,
   phase2TestsCompleted: Boolean = false,
   phase2TestsExpired: Boolean = false,
-  phase2TestsResultsReceived: Boolean = false
+  phase2TestsResultsReady: Boolean = false,
+  phase2TestsResultsReceived: Boolean = false,
+  phase2TestsPassed: Boolean = false,
+  phase2TestsFailed: Boolean = false
 )
 
 
@@ -57,7 +60,7 @@ case class ProgressResponse(
                              phase1TestsResultsReceived: Boolean = false,
                              phase1TestsPassed: Boolean = false,
                              phase1TestsFailed: Boolean = false,
-                             phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(false, false, false, false, false),
+                             phase2ProgressResponse: Phase2ProgressResponse = new Phase2ProgressResponse,
                              failedToAttend: Boolean = false,
                              assessmentScores: AssessmentScores = AssessmentScores(),
                              assessmentCentre: AssessmentCentre = AssessmentCentre()
