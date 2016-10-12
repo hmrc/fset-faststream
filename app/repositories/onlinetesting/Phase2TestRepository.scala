@@ -107,8 +107,8 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val updateBson = BSONDocument("$set" -> applicationStatusBSON(PHASE2_TESTS_INVITED))
-    ++ BSONDocument("$set" -> BSONDocument(
+    val updateBson = BSONDocument("$set" -> applicationStatusBSON(PHASE2_TESTS_INVITED)
+    ) ++ BSONDocument("$set" -> BSONDocument(
       "testGroups" -> BSONDocument(phaseName -> phase2TestProfile)
     ))
 
