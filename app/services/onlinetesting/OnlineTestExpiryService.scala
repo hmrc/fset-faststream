@@ -16,7 +16,7 @@
 
 package services.onlinetesting
 
-import connectors.{ CSREmailClient, EmailClient }
+import connectors.CSREmailClient
 import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest }
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER }
 import model.ReminderNotice
@@ -40,7 +40,7 @@ class OnlineTestExpiryServiceImpl(
   appRepository: GeneralApplicationRepository,
   otRepository: Phase1TestRepository,
   cdRepository: ContactDetailsRepository,
-  emailClient: EmailClient,
+  emailClient: CSREmailClient,
   auditService: AuditService,
   newHeaderCarrier: => HeaderCarrier
 )(implicit executor: ExecutionContext) extends OnlineTestExpiryService {

@@ -16,11 +16,10 @@
 
 package repositories
 
-import model.Exceptions.NotFoundException
-import model.PersistedObjects.{ApplicationProgressStatus, ApplicationProgressStatuses, ApplicationUser}
-import reactivemongo.bson.{BSONBoolean, BSONDocument}
+import model.Exceptions.ApplicationNotFound
+import reactivemongo.bson.{ BSONBoolean, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository}
+import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
@@ -31,87 +30,34 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   override val collectionName = "application"
   
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository()
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
 
   "Find by user id" should {
-    "return NotFound if there is nobody with this userId" in {
+    "return an empty list if there is nobody with this userId" in {
       val result = diagnosticReportRepo.findByUserId("123").failed.futureValue
-      result mustBe an[NotFoundException]
+      result mustBe an[ApplicationNotFound]
     }
 
-    "return user with the specific Id" in {
-      helperRepo.collection.insert(UserWithAllDetails).futureValue
+    "return user's application with the specific Id" in {
+      helperRepo.collection.insert(userWithAllDetails("user1", "app1", "FastStream-2016")).futureValue
+      helperRepo.collection.insert(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
+      helperRepo.collection.insert(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
 
       val result = diagnosticReportRepo.findByUserId("user1").futureValue
-
-      val expectedApplicationUser = ApplicationUser("app1", "user1", "FastStream-2016", "AWAITING_ALLOCATION",
-        ApplicationProgressStatuses(Some(List(
-          ApplicationProgressStatus("registered", true),
-          ApplicationProgressStatus("personal_details_completed", true),
-          ApplicationProgressStatus("schemes_and_locations_completed", true),
-          ApplicationProgressStatus("assistance_details_completed", true),
-          ApplicationProgressStatus("preview_completed", true),
-          ApplicationProgressStatus("submitted", true),
-          ApplicationProgressStatus("online_test_invited", true),
-          ApplicationProgressStatus("online_test_started", true),
-          ApplicationProgressStatus("online_test_completed", true),
-          ApplicationProgressStatus("awaiting_online_test_allocation", true)
-        )), Some(List(
-          ApplicationProgressStatus("start_diversity_questionnaire", true),
-          ApplicationProgressStatus("diversity_questions_completed", true),
-          ApplicationProgressStatus("education_questions_completed", true),
-          ApplicationProgressStatus("occupation_questions_completed", true)
-        ))))
-
-      result.progressStatuses.statuses must be(expectedApplicationUser.progressStatuses.statuses)
-      result.progressStatuses.questionnaireStatuses must be(expectedApplicationUser.progressStatuses.questionnaireStatuses)
-      result must be(expectedApplicationUser)
-    }
-
-    "return user without questionnaire" in {
-      helperRepo.collection.insert(UserWithoutQuestionnaire).futureValue
-
-      val result = diagnosticReportRepo.findByUserId("user1").futureValue
-
-      val expectedApplicationUser = ApplicationUser("app1", "user1", "FastStream-2016", "SUBMITED",
-        ApplicationProgressStatuses(Some(List(
-          ApplicationProgressStatus("registered", true),
-          ApplicationProgressStatus("personal_details_completed", true),
-          ApplicationProgressStatus("schemes_and_locations_completed", true),
-          ApplicationProgressStatus("assistance_details_completed", true),
-          ApplicationProgressStatus("preview_completed", true),
-          ApplicationProgressStatus("submitted", true),
-          ApplicationProgressStatus("online_test_invited", true),
-          ApplicationProgressStatus("online_test_started", true),
-          ApplicationProgressStatus("online_test_completed", true),
-          ApplicationProgressStatus("awaiting_online_test_allocation", true)
-        )), None))
-
-      result.progressStatuses.statuses must be(expectedApplicationUser.progressStatuses.statuses)
-      result.progressStatuses.questionnaireStatuses must be(expectedApplicationUser.progressStatuses.questionnaireStatuses)
-      result must be(expectedApplicationUser)
-    }
-
-    "return user which application status is CREATED" in {
-      helperRepo.collection.insert(UserWithOnlyRegistedStatus).futureValue
-
-      val result = diagnosticReportRepo.findByUserId("user1").futureValue
-
-      val expectedApplicationUser = ApplicationUser("app1", "user1", "FastStream-2016", "CREATED",
-        ApplicationProgressStatuses(Some(List(
-          ApplicationProgressStatus("registered", true)
-        )), None))
-
-      result.progressStatuses.statuses must be(expectedApplicationUser.progressStatuses.statuses)
-      result.progressStatuses.questionnaireStatuses must be(expectedApplicationUser.progressStatuses.questionnaireStatuses)
-      result must be(expectedApplicationUser)
+      result.length mustBe 2
+      (result(0) \ "applicationId").as[String] mustBe "app1"
+      (result(0) \ "progress-status" \ "registered").as[Boolean] mustBe true
+      (result(0) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      (result(1) \ "applicationId").as[String] mustBe "app2"
+      (result(1) \ "progress-status" \ "registered").as[Boolean] mustBe true
+      (result(1) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
     }
   }
 
-  val UserWithAllDetails = BSONDocument(
-    "applicationId" -> "app1",
-    "userId" -> "user1",
-    "frameworkId" -> "FastStream-2016",
+  def userWithAllDetails(userId: String, appId: String, frameworkId: String) = BSONDocument(
+    "applicationId" -> appId,
+    "userId" -> userId,
+    "frameworkId" -> frameworkId,
     "applicationStatus" -> "AWAITING_ALLOCATION",
     "progress-status" -> BSONDocument(
       "registered" -> BSONBoolean(true),
@@ -131,29 +77,4 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
       "online_test_completed" -> BSONBoolean(true),
       "awaiting_online_test_allocation" -> BSONBoolean(true)
     ))
-
-  val UserWithoutQuestionnaire = BSONDocument(
-    "applicationId" -> "app1",
-    "userId" -> "user1",
-    "frameworkId" -> "FastStream-2016",
-    "applicationStatus" -> "SUBMITED",
-    "progress-status" -> BSONDocument(
-      "registered" -> BSONBoolean(true),
-      "personal_details_completed" -> BSONBoolean(true),
-      "schemes_and_locations_completed" -> BSONBoolean(true),
-      "assistance_details_completed" -> BSONBoolean(true),
-      "preview_completed" -> BSONBoolean(true),
-      "submitted" -> BSONBoolean(true),
-      "online_test_invited" -> BSONBoolean(true),
-      "online_test_started" -> BSONBoolean(true),
-      "online_test_completed" -> BSONBoolean(true),
-      "awaiting_online_test_allocation" -> BSONBoolean(true)
-    ))
-
-  val UserWithOnlyRegistedStatus = BSONDocument(
-    "applicationId" -> "app1",
-    "userId" -> "user1",
-    "frameworkId" -> "FastStream-2016",
-    "applicationStatus" -> "CREATED"
-  )
 }

@@ -17,7 +17,7 @@
 package services.applicationassessment
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import connectors.{ CSREmailClient, EmailClient }
+import connectors.CSREmailClient
 import model.ApplicationStatus._
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
 import model.EvaluationResults._
@@ -63,7 +63,7 @@ trait ApplicationAssessmentService {
   val fpRepository: FrameworkPreferenceRepository
   val cdRepository: ContactDetailsRepository
 
-  val emailClient: EmailClient
+  val emailClient: CSREmailClient
 
   val auditService: AuditService
   val passmarkService: AssessmentCentrePassMarkSettingsService

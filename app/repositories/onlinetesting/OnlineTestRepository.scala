@@ -20,8 +20,8 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ CannotFindTestByCubiksId, UnexpectedException }
 import org.joda.time.DateTime
-import model.OnlineTestCommands.{ OnlineTestApplication, TestProfile }
-import model.persisted.{ExpiringOnlineTest, NotificationExpiringOnlineTest }
+import model.OnlineTestCommands.OnlineTestApplication
+import model.persisted._
 import model.ProgressStatuses.ProgressStatus
 import model._
 import play.api.Logger
@@ -32,13 +32,15 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestRepository[T <: TestProfile] extends RandomSelection with CommonBSONDocuments {
+trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelection with BSONHelpers with CommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
   val phaseName: String
   val dateTimeFactory: DateTimeFactory
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
+
+  def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]]
 
   def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -98,7 +100,8 @@ trait OnlineTestRepository[T <: TestProfile] extends RandomSelection with Common
         s"testGroups.$phase.expirationDate" -> BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone) // Serialises to UTC.
       ), progressStatusQuery))
 
-    selectRandom(query).map(_.map(ExpiringOnlineTest.fromBson))
+    implicit val reader = bsonReader(ExpiringOnlineTest.fromBson)
+    selectOneRandom[ExpiringOnlineTest](query)
   }
 
   def nextTestForReminder(reminder: ReminderNotice, phase: String = "PHASE1",
@@ -112,17 +115,10 @@ trait OnlineTestRepository[T <: TestProfile] extends RandomSelection with Common
       progressStatusQuery
     ))
 
-    selectRandom(query).map(_.map(NotificationExpiringOnlineTest.fromBson))
+    implicit val reader = bsonReader(NotificationExpiringOnlineTest.fromBson)
+    selectOneRandom[NotificationExpiringOnlineTest](query)
   }
 
-  def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
-      BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
-    ))
-
-    selectRandom(query).map(_.map(bsonDocToOnlineTestApplication))
-  }
 
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = {
     require(progressStatus.applicationStatus == thisApplicationStatus, "Forbidden progress status update")

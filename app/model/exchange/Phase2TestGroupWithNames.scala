@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.exchange
 
-import model.OnlineTestCommands.Phase1TestProfile
-import reactivemongo.bson.Macros
+import model.persisted.CubiksTest
+import org.joda.time.DateTime
+import play.api.libs.json.Json
 
-case class Phase1TestProfileWithAppId(applicationId: String, phase1TestProfile: Phase1TestProfile)
+case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTest: List[CubiksTest])
 
-object Phase1TestProfileWithAppId {
-  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestProfileWithAppId]
+object Phase2TestGroupWithNames {
+  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
 }

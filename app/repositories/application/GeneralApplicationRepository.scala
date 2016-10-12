@@ -19,6 +19,7 @@ package repositories.application
 import java.util.UUID
 import java.util.regex.Pattern
 
+import _root_.config.CubiksGatewayConfig
 import model.ApplicationStatus._
 import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
@@ -27,33 +28,26 @@ import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.InternshipType.InternshipType
-import model.OnlineTestCommands.{ OnlineTestApplication, Phase1TestProfile, TestResult }
-import model.persisted.ApplicationForNotification
-import model.ProgressStatuses.ProgressStatus
+import model.OnlineTestCommands.{ OnlineTestApplication, TestResult }
 import model.SchemeType._
-import model._
 import model.command._
-import model.report.{ ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, PassMarkReportTestResults }
+import model.persisted.{ ApplicationForNotification, Phase1TestProfile }
+import model.report.{ AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, PassMarkReportTestResults }
+import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, JsNumber, JsObject }
-import reactivemongo.api.{ CursorProducer, DB, QueryOpts, ReadPreference }
+import reactivemongo.api.collections.bson.BSONCollection
+import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
-import config.MicroserviceAppConfig._
-import _root_.config.CubiksGatewayConfig
-import play.api.Logger
-import play.api.libs.iteratee.Iteratee
-import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.Try
+import scala.concurrent.Future
 
 // TODO FAST STREAM
 // This is far too large an interface - we should look at splitting up based on
@@ -137,7 +131,7 @@ trait GeneralApplicationRepository {
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
-class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
+class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments {
@@ -216,7 +210,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
         phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.toString),
         phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.toString),
         phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
+        phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString),
         phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
+        phase2ProgressResponse = Phase2ProgressResponse(
+          phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.toString),
+          phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.toString),
+          phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.toString),
+          phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.toString),
+          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString)
+        ),
         failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
         assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
         assessmentCentre = AssessmentCentre(
@@ -248,11 +250,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
       case Some(document) =>
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val progressStatusTimeStamp = document.getAs[BSONDocument]("progress-status-timestamp")
-            .flatMap(_.getAs[DateTime](applicationStatus))
-            .orElse(
-              document.getAs[BSONDocument]("progress-status-dates")
-                .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))
-            )
+          .flatMap(_.getAs[DateTime](applicationStatus))
+          .orElse(
+            document.getAs[BSONDocument]("progress-status-dates")
+              .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))
+          )
         ApplicationStatusDetails(applicationStatus, progressStatusTimeStamp)
 
       case None => throw ApplicationNotFound(applicationId)
@@ -346,7 +348,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
           "applicationId" -> 1,
           "personal-details.firstName" -> 1,
           "personal-details.lastName" -> 1,
-          "assistance-details.needsAdjustment" -> 1,
+          "assistance-details.needsSupportAtVenue" -> 1,
           "online-tests.invitationDate" -> 1
         )
         val sort = JsObject(Seq("online-tests.invitationDate" -> JsNumber(1)))
@@ -372,10 +374,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
   override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationBSON = BSONDocument("$set" -> BSONDocument(
-        "withdraw" -> reason
-      ).add(
-        applicationStatusBSON(WITHDRAWN)
-      )
+      "withdraw" -> reason
+    ).add(
+      applicationStatusBSON(WITHDRAWN)
+    )
     )
     collection.update(query, applicationBSON, upsert = false) map { _ => }
   }
@@ -407,7 +409,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
   }
 
   override def onlineTestPassMarkReport(frameworkId: String):
-    Future[List[ApplicationForOnlineTestPassMarkReportItem]] = {
+  Future[List[ApplicationForOnlineTestPassMarkReportItem]] = {
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
@@ -471,7 +473,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
     val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
 
     val testGroupsDoc = document.getAs[BSONDocument]("testGroups")
-    val phase1Doc  = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE1"))
+    val phase1Doc = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE1"))
 
     val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
 
@@ -480,7 +482,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
 
     def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
       phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
-        phase1Test.testResult.map{ tr =>
+        phase1Test.testResult.map { tr =>
           TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
         }
       }
@@ -497,6 +499,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
       assessmentCentreAdjustments,
       PassMarkReportTestResults(behaviouralTestResult, situationalTestResult))
   }
+
   //scalastyle:on method.length
 
   private def docToCandidateProgressReport(document: BSONDocument): CandidateProgressReport = {
@@ -770,24 +773,29 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
-        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "IN_PROGRESS")),
-        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN")),
+        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.CREATED)),
+        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.IN_PROGRESS)),
+        BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN)),
         BSONDocument("$or" ->
           BSONArray(
-            BSONDocument("assistance-details.needsAdjustment" -> "Yes"),
-            BSONDocument("assistance-details.guaranteedInterview" -> "Yes")
+            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+            BSONDocument("assistance-details.needsSupportAtVenue" -> true),
+            BSONDocument("assistance-details.guaranteedInterview" -> true)
           ))
       ))
 
     val projection = BSONDocument(
       "userId" -> "1",
+      "applicationStatus" -> "1",
+      "applicationId" -> "1",
       "personal-details.firstName" -> "1",
       "personal-details.lastName" -> "1",
       "personal-details.preferredName" -> "1",
+      "assistance-details.hasDisability" -> "1",
+      "assistance-details.needsSupportAtVenueDescription" -> "1",
+      "assistance-details.needsSupportForOnlineAssessmentDescription" -> "1",
       "assistance-details.guaranteedInterview" -> "1",
-      "assistance-details.typeOfAdjustments" -> "1",
-      "assistance-details.otherAdjustments" -> "1",
-      "assistance-details.adjustments-confirmed" -> "1"
+      "assistance-details.hasDisabilityDescription" -> "1"
     )
 
     reportQueryWithProjections[BSONDocument](query, projection).map { list =>
@@ -795,19 +803,33 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
 
         val personalDetails = document.getAs[BSONDocument]("personal-details")
         val userId = document.getAs[String]("userId").getOrElse("")
+        val applicationId = document.getAs[String]("applicationId")
+        val applicationStatus = document.getAs[String]("applicationStatus")
         val firstName = extract("firstName")(personalDetails)
         val lastName = extract("lastName")(personalDetails)
         val preferredName = extract("preferredName")(personalDetails)
 
         val assistance = document.getAs[BSONDocument]("assistance-details")
-        val gis = extract("guaranteedInterview")(assistance)
-        val typesOfAdjustments = assistance.flatMap(_.getAs[List[String]]("typeOfAdjustments"))
-        val otherAdjustments = extract("otherAdjustments")(assistance)
-        val adjustmentsConfirmed = getAdjustmentsConfirmed(assistance)
-        val adjustments = typesOfAdjustments.getOrElse(Nil) ::: otherAdjustments.toList
-        val finalTOA = if (adjustments.isEmpty) None else Some(adjustments.mkString("|"))
+        val gis = assistance.flatMap(_.getAs[Boolean]("guaranteedInterview")).flatMap(b => Some(booleanTranslator(b)))
+        val needsSupportForOnlineAssessmentDescription = extract("needsSupportForOnlineAssessmentDescription")(assistance)
+        val needsSupportAtVenueDescription = extract("needsSupportAtVenueDescription")(assistance)
+        val hasDisability = extract("hasDisability")(assistance)
+        val hasDisabilityDescription = extract("hasDisabilityDescription")(assistance)
 
-        AdjustmentReport(userId, firstName, lastName, preferredName, None, None, finalTOA, gis, adjustmentsConfirmed)
+        AdjustmentReport(
+          userId,
+          applicationId,
+          firstName,
+          lastName,
+          preferredName,
+          None,
+          None,
+          gis,
+          applicationStatus,
+          needsSupportForOnlineAssessmentDescription,
+          needsSupportAtVenueDescription,
+          hasDisability,
+          hasDisabilityDescription)
       }
     }
   }
@@ -922,19 +944,19 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
 
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
 
-  private def getAdjustmentsConfirmed(assistance: Option[BSONDocument]): Option[String] = {
+  /*private def getAdjustmentsConfirmed(assistance: Option[BSONDocument]): Option[String] = {
     assistance.flatMap(_.getAs[Boolean]("adjustments-confirmed")).getOrElse(false) match {
       case false => Some("Unconfirmed")
       case true => Some("Confirmed")
     }
-  }
+  }*/
 
   private def reportQueryWithProjectionsBSON[A](
-                                             query: BSONDocument,
-                                             prj: BSONDocument,
-                                             upTo: Int = Int.MaxValue,
-                                             stopOnError: Boolean = true
-                                           )(implicit reader: BSONDocumentReader[A]): Future[List[A]] =
+                                                 query: BSONDocument,
+                                                 prj: BSONDocument,
+                                                 upTo: Int = Int.MaxValue,
+                                                 stopOnError: Boolean = true
+                                               )(implicit reader: BSONDocumentReader[A]): Future[List[A]] =
     bsonCollection.find(query).projection(prj)
       .cursor[A](ReadPreference.nearest)
       .collect[List](Int.MaxValue, true)
@@ -1037,7 +1059,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
           )
         ))
 
-    selectRandom(query).map(_.map(doc => doc.getAs[String]("applicationId").get))
+    implicit val reader = bsonReader { doc => doc.getAs[String]("applicationId").get }
+    selectOneRandom[String](query)
   }
 
   def nextAssessmentCentrePassedOrFailedApplication(): Future[Option[ApplicationForNotification]] = {
@@ -1052,7 +1075,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
         )
       )
     )
-    selectRandom(query).map(_.map(bsonDocToApplicationForNotification))
+    implicit val reader = bsonReader(bsonDocToApplicationForNotification)
+    selectOneRandom[ApplicationForNotification](query)
   }
 
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,
@@ -1103,7 +1127,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
     val query = BSONDocument("applicationId" -> applicationId)
 
     val statusesToUnset = progressStatuses.flatMap { progressStatus =>
-        Map(s"progress-status.$progressStatus" -> BSONString(""))
+      Map(s"progress-status.$progressStatus" -> BSONString(""))
     }
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))
@@ -1142,10 +1166,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService, gatewa
     val firstName = personalDetails.getAs[String]("firstName").get
     val lastName = personalDetails.getAs[String]("lastName").get
     val assistanceDetails = doc.getAs[BSONDocument]("assistance-details").get
-    val needsAdjustment = assistanceDetails.getAs[String]("needsAdjustment").get
+    val needsSupportAtVenue = assistanceDetails.getAs[Boolean]("needsSupportAtVenue").flatMap(b => Some(booleanTranslator(b))).get
     val onlineTestDetails = doc.getAs[BSONDocument]("online-tests").get
     val invitationDate = onlineTestDetails.getAs[DateTime]("invitationDate").get
-    ApplicationForAssessmentAllocation(firstName, lastName, userId, applicationId, needsAdjustment, invitationDate)
+    ApplicationForAssessmentAllocation(firstName, lastName, userId, applicationId, needsSupportAtVenue, invitationDate)
   }
 
   private def bsonDocToApplicationForNotification(doc: BSONDocument) = {

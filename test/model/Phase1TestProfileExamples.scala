@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model
 
-import model.OnlineTestCommands.Phase1TestProfile
-import model.SelectedSchemes
-import play.api.libs.json._
+import model.persisted.Phase1TestProfile
+import org.joda.time.DateTime
 
-case class ApplicationToPhase1Evaluation(
-  applicationId: String,
-  isGis: Boolean,
-  phase1: Phase1TestProfile,
-  preferences: SelectedSchemes
-)
+object Phase1TestProfileExamples {
 
-object ApplicationToPhase1Evaluation {
-  implicit val applicationToPhase1EvaluationFormats = Json.format[ApplicationToPhase1Evaluation]
+  def profile(implicit now: DateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstTest))
 }

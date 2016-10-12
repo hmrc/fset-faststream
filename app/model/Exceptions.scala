@@ -47,6 +47,8 @@ object Exceptions {
 
   case class SchemePreferencesNotFound(applicationId: String) extends Exception(applicationId)
 
+  case class PassMarkEvaluationNotFound(applicationId: String) extends Exception(applicationId)
+
   case class PartnerGraduateProgrammesNotFound(applicationId: String) extends Exception(applicationId)
 
   case class AssistanceDetailsNotFound(id: String) extends Exception(id)

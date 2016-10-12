@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package model.exchange
+package services.onlinetesting.phase1
 
-import model.OnlineTestCommands.Phase1Test
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import config.CubiksGatewayConfig
+import model.persisted.CubiksTest
 
-case class Phase1TestProfileWithNames(expirationDate: DateTime, activeTests: Map[String, Phase1Test])
+trait Phase1TestSelector {
+  val gatewayConfig: CubiksGatewayConfig
 
-object Phase1TestProfileWithNames {
-  implicit val phase1TestProfileWithNamesFormat = Json.format[Phase1TestProfileWithNames]
+  def findFirstSjqTest(tests: List[CubiksTest]): Option[CubiksTest] = tests find (_.scheduleId == sjq)
+
+  def findFirstBqTest(tests: List[CubiksTest]): Option[CubiksTest] = tests find (_.scheduleId == bq)
+
+  private[onlinetesting] def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
+
+  private[onlinetesting] def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
+
 }

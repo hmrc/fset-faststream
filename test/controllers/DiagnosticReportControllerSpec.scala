@@ -23,6 +23,7 @@ import model.PersistedObjects.{ ApplicationProgressStatuses, ApplicationUser }
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.mvc.Results
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
@@ -36,18 +37,17 @@ class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoS
 
   "Get user by id" should {
     "return all information about the user" in new TestFixture {
-      val applicationUser = ApplicationUser("app1", "user1", "FastStream-2016", "AWAITING_ALLOCATION",
-        ApplicationProgressStatuses(None, None))
-      when(mockSecretReportRepository.findByUserId("user1")).thenReturn(Future.successful(applicationUser))
-      val result = TestableSecretReportingController.getUserById(applicationUser.userId)(createOnlineTestRequest(
-        applicationUser.userId
+      val expectedApplications = List(Json.obj("applicationId" -> "app1", "userId" -> "user1", "frameworkId" -> "FastStream-2016"))
+      when(mockSecretReportRepository.findByUserId("user1")).thenReturn(Future.successful(expectedApplications))
+      val result = TestableSecretReportingController.getUserById("user1")(createOnlineTestRequest(
+        "user1"
       )).run
 
       val resultJson = contentAsJson(result)
 
-      val actualApplicationUser = resultJson.as[ApplicationUser]
+      val actualApplications = resultJson.as[JsValue]
       status(result) must be(200)
-      actualApplicationUser must be(applicationUser)
+      resultJson mustBe JsArray(expectedApplications)
     }
 
     "return NotFound if the user cannot be found" in new TestFixture {
