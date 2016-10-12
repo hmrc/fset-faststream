@@ -16,7 +16,7 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   val collectionName: String = "application"
 
   def repository = new SchemePreferencesMongoRepository
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService)
 
   "save and find" should {
     "save and return scheme preferences" in {

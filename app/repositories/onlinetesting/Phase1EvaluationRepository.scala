@@ -16,14 +16,14 @@
 
 package repositories.onlinetesting
 
+import model.persisted.Phase1TestProfile
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.PassMarkEvaluationNotFound
-import model.OnlineTestCommands.Phase1TestProfile
 import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.{ CommonBSONDocuments, RandomSelection }
+import repositories.{ BSONHelpers, RandomSelection, CommonBSONDocuments }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -41,7 +41,7 @@ trait Phase1EvaluationRepository {
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationPhase1ReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationPhase1ReadyForEvaluation.applicationPhase1ReadyForEvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with RandomSelection with CommonBSONDocuments {
+    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with RandomSelection with BSONHelpers with CommonBSONDocuments {
   private val BSONDocumentPhase1OrPhase2AppStatus = BSONDocument("$or" -> BSONArray(
     BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
     BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
@@ -59,7 +59,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
         BSONDocument("testGroups.PHASE1.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
       ))
 
-    selectRandom(query).map(_.map { doc =>
+    implicit val reader = bsonReader { doc =>
       val applicationId = doc.getAs[String]("applicationId").get
       val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
       val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
@@ -68,7 +68,9 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
 
       ApplicationPhase1ReadyForEvaluation(applicationId, applicationStatus, isGis, phase1, preferences)
-    })
+    }
+
+    selectOneRandom[ApplicationPhase1ReadyForEvaluation](query)
   }
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,

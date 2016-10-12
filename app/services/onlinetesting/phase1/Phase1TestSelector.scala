@@ -17,14 +17,14 @@
 package services.onlinetesting.phase1
 
 import config.CubiksGatewayConfig
-import model.OnlineTestCommands.Phase1Test
+import model.persisted.CubiksTest
 
 trait Phase1TestSelector {
   val gatewayConfig: CubiksGatewayConfig
 
-  def findFirstSjqTest(tests: List[Phase1Test]): Option[Phase1Test] = tests find (_.scheduleId == sjq)
+  def findFirstSjqTest(tests: List[CubiksTest]): Option[CubiksTest] = tests find (_.scheduleId == sjq)
 
-  def findFirstBqTest(tests: List[Phase1Test]): Option[Phase1Test] = tests find (_.scheduleId == bq)
+  def findFirstBqTest(tests: List[CubiksTest]): Option[CubiksTest] = tests find (_.scheduleId == bq)
 
   private[onlinetesting] def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
 

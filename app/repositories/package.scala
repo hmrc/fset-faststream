@@ -19,7 +19,7 @@ import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, C
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
-import model.OnlineTestCommands.{OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication}
+import model.OnlineTestCommands.{OnlineTestApplication, TimeAdjustmentsOnlineTestApplication}
 import model.PassmarkPersistedObjects._
 import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
 import model.command.WithdrawApplication
@@ -59,13 +59,14 @@ package object repositories {
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService)
   lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
   lazy val mediaRepository = new MediaMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
+  lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
   lazy val testReportRepository = new TestReportMongoRepository()
   lazy val diversityReportRepository = new ReportingMongoRepository()
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()

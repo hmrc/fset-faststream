@@ -20,35 +20,45 @@ import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.OnlineTestService
+import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object SendInvitationJob extends SendInvitationJob {
-  val onlineTestingService = OnlineTestService
+object SendPhase1InvitationJob extends SendInvitationJob with SendInvitationJobConfig {
+  val onlineTestingService = Phase1TestService
+  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 }
 
-trait SendInvitationJob extends SingleInstanceScheduledJob with SendInvitationJobConfig {
+object SendPhase2InvitationJob extends SendInvitationJob with SendPhase2InvitationJobConfig {
+  val onlineTestingService = Phase2TestService
+  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+}
+
+trait SendInvitationJob extends SingleInstanceScheduledJob {
   val onlineTestingService: OnlineTestService
 
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
-
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    onlineTestingService.nextApplicationReadyForOnlineTesting().flatMap {
-      case Some(application) =>
-        implicit val hc = new HeaderCarrier()
-        onlineTestingService.registerAndInviteForTestGroup(application)
-      case None =>
+    onlineTestingService.nextApplicationReadyForOnlineTesting.flatMap {
+      case Nil =>
         Future.successful(Unit)
+      case applications =>
+        implicit val hc = new HeaderCarrier()
+        onlineTestingService.registerAndInviteForTestGroup(applications)
     }
   }
 }
 
 trait SendInvitationJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.sendInvitationJobConfig
-  val configPrefix = "scheduling.online-testing.send-invitation-job."
+  override val conf = config.MicroserviceAppConfig.sendPhase1InvitationJobConfig
+  val configPrefix = "scheduling.online-testing.send-phase1-invitation-job."
   val name = "SendInvitationJob"
+}
 
+trait SendPhase2InvitationJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  override val conf = config.MicroserviceAppConfig.sendPhase2InvitationJobConfig
+  val configPrefix = "scheduling.online-testing.send-phase2-invitation-job."
+  val name = "SendPhase2InvitationJob"
 }

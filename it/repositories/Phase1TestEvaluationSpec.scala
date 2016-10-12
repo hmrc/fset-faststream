@@ -42,7 +42,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   val mockGatewayConfig = mock[CubiksGatewayConfig]
 
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig)
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService)
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 
