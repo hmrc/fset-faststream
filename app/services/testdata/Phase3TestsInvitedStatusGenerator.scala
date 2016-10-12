@@ -42,6 +42,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
+    // TODO: This is "real" integration with launchpad, ultimately we should mock the invite
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       p3TestApplication = OnlineTestApplication(

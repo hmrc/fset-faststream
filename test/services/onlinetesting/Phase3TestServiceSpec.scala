@@ -18,7 +18,7 @@ package services.onlinetesting
 
 import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
-import connectors.LaunchpadGatewayClient.{ InviteApplicantResponse, RegisterApplicantResponse, SeamlessLoginLink }
+import connectors.LaunchpadGatewayClient._
 import connectors.{ CSREmailClient, CubiksGatewayClient, LaunchpadGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
@@ -52,12 +52,47 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
   }
 
   "Register and Invite an applicant" should {
-    "email the candidate and send audit events" in new Phase3TestServiceFixture {
+    "send audit events" in new Phase3TestServiceFixture {
       phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
       verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3UserRegistered"), any[Map[String, String]])
       verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3TestInvited"), any[Map[String, String]])
       verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3TestInvitationProcessComplete"), any[Map[String, String]])
+    }
+
+    "insert a valid test group" in new Phase3TestServiceFixture {
+      phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+
+      verify(p3TestRepositoryMock, times(1)).insertOrUpdateTestGroup(eqTo(onlineTestApplication.applicationId), eqTo(Phase3TestGroup(
+        testExpiryTime,
+        List(
+          testPhase3Test
+        ),
+        None
+      )))
+    }
+
+    "call the register and invite methods of the launchpad gateway only once and with the correct arguments" in new Phase3TestServiceFixture {
+      phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+
+      verify(launchpadGatewayClientMock, times(1)).registerApplicant(eqTo(
+        RegisterApplicantRequest(
+          testEmail,
+          "FSCND-" + tokens.head,
+          testFirstName,
+          testLastName
+        )
+      ))(any[HeaderCarrier]())
+
+      val expectedCustomInviteId = "FSINV-" + tokens.head
+      verify(launchpadGatewayClientMock, times(1)).inviteApplicant(eqTo(
+        InviteApplicantRequest(
+          testInterviewId,
+          testLaunchpadCandidateId,
+          expectedCustomInviteId,
+          s"http://www.foo.com/test/interview/fset-fast-stream/phase3-tests/complete/$expectedCustomInviteId"
+        )
+      ))(any[HeaderCarrier]())
     }
   }
 
@@ -65,38 +100,65 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
     implicit val hc = mock[HeaderCarrier]
 
-    val gatewayConfigMock =  LaunchpadGatewayConfig(
-      "localhost",
-      Phase3TestsConfig(timeToExpireInDays = 7,
-        candidateCompletionRedirectUrl = "test.com",
-        1,
-        2
-      )
-    )
-
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val p3TestRepositoryMock = mock[Phase3TestRepository]
     val launchpadGatewayClientMock = mock[LaunchpadGatewayClient]
     val emailClientMock = mock[CSREmailClient]
     var auditServiceMock = mock[AuditService]
-    val tokenFactoryMock = UUIDFactory
+    val tokenFactoryMock = mock[UUIDFactory]
     val eventServiceMock = mock[EventService]
-    val tokens = UUIDFactory.generateUUID :: UUIDFactory.generateUUID :: Nil
-    val registrations = Registration(123) :: Registration(456) :: Nil
+    val dateTimeFactoryMock = mock[DateTimeFactory]
+    val tokens = UUIDFactory.generateUUID() :: Nil
+
+    val testFirstName = "Optimus"
+    val testLastName = "Prime"
 
     val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
       guaranteedInterview = false,
       needsAdjustments = false,
-      preferredName = "Optimus",
-      lastName = "Prime",
+      preferredName = testFirstName,
+      lastName = testLastName,
       timeAdjustments = None
     )
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
 
     val testInterviewId = 123
+    val testTimeNow = DateTime.parse("2016-10-01T00:00:01Z")
+    val testExpiryTime = testTimeNow.plusDays(7)
+    val testLaunchpadCandidateId = "CND_123"
+    val testFaststreamCustomCandidateId = "FSCND_456"
+    val testInviteId = "INV_123"
+    val testCandidateRedirectUrl = "http://www.foo.com/test/interview"
+    val testEmail = "foo@bar.com"
+
+    val gatewayConfigMock =  LaunchpadGatewayConfig(
+      "localhost",
+      Phase3TestsConfig(timeToExpireInDays = 7,
+        candidateCompletionRedirectUrl = testCandidateRedirectUrl,
+        1,
+        2
+      )
+    )
+
+    val testPhase3Test = Phase3Test(
+      testInterviewId,
+      usedForResults = true,
+      "launchpad",
+      testCandidateRedirectUrl,
+      testInviteId,
+      testLaunchpadCandidateId,
+      testFaststreamCustomCandidateId,
+      testTimeNow,
+      None,
+      None
+    )
+
+    when(tokenFactoryMock.generateUUID()).thenReturn(tokens.head.toString)
+
+    when(dateTimeFactoryMock.nowLocalTimeZone).thenReturn(testTimeNow)
 
     when(cdRepositoryMock.find(any())).thenReturn {
       Future.successful(ContactDetails(
@@ -104,24 +166,24 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
         Address("123, Fake Street"),
         Some("AB1 2CD"),
         None,
-        "foo@bar.com",
+        testEmail,
         "12345678"
       ))
     }
 
     when(launchpadGatewayClientMock.registerApplicant(any())(any[HeaderCarrier]())).thenReturn {
       Future.successful(RegisterApplicantResponse(
-        "CND_123",
-        "FSCND_456"
+        testLaunchpadCandidateId,
+        testFaststreamCustomCandidateId
       ))
     }
 
     when(launchpadGatewayClientMock.inviteApplicant(any())(any[HeaderCarrier]())).thenReturn {
       Future.successful(InviteApplicantResponse(
-        "INV_123",
-        "CND_123",
-        "FSCND_456",
-        SeamlessLoginLink("http://www.foo.com", "success", "registered successfully"),
+        testInviteId,
+        testLaunchpadCandidateId,
+        testFaststreamCustomCandidateId,
+        SeamlessLoginLink(testCandidateRedirectUrl, "success", "registered successfully"),
         "Tomorrow"
       ))
     }
@@ -132,33 +194,13 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
     when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
 
-    /*
-    Some(Phase3TestGroup(
-          DateTime.parse("2030-10-15 00:00:01"),
-          List(
-            Phase3Test(
-              123,
-              true,
-              "launchpad",
-              "test.com",
-              "abc123",
-              "CND_123",
-              "FSCND_456",
-              DateTime.parse("2016-10-01 00:00:01"),
-              None,
-              None
-            )
-          )
-        )
-     */
-
     val phase3TestService = new Phase3TestService with EventServiceFixture {
       val appRepository = appRepositoryMock
       val p3TestRepository = p3TestRepositoryMock
       val cdRepository = cdRepositoryMock
       val launchpadGatewayClient = launchpadGatewayClientMock
       val tokenFactory = tokenFactoryMock
-      val dateTimeFactory = DateTimeFactory
+      val dateTimeFactory = dateTimeFactoryMock
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val gatewayConfig = gatewayConfigMock

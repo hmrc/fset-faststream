@@ -190,12 +190,8 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
 trait ResetPhase3Test {
   import ProgressStatuses._
 
-  // TODO: Implement
+  // TODO: Implement for resets/extends
   def determineStatusesToRemove(testGroup: Phase3TestGroup): List[ProgressStatus] = {
-    /*(if (testGroup.hasNotStartedYet) List(PHASE1_TESTS_STARTED) else List()) ++
-      (if (testGroup.hasNotCompletedYet) List(PHASE1_TESTS_COMPLETED) else List()) ++
-      (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED) else List())
-      */
-      List(PHASE1_TESTS_INVITED)
-    }
+    Nil
+  }
 }
