@@ -21,8 +21,22 @@ import java.util.UUID
 import connectors.exchange.ProgressResponse
 
 object ProgressResponseExamples {
-  val Initial = ProgressResponse(UUID.randomUUID().toString, false, false, false, false, false, Nil, false, false,
-    false, false, false, false, false, false)
+  val Initial = ProgressResponse(applicationId = UUID.randomUUID().toString,
+    personalDetails = false,
+    schemePreferences = false,
+    partnerGraduateProgrammes = false,
+    assistanceDetails = false,
+    preview = false,
+    questionnaire = Nil,
+    submitted = false,
+    withdrawn = false,
+    phase1TestsInvited = false,
+    phase1TestsStarted = false,
+    phase1TestsCompleted = false,
+    phase1TestsExpired = false,
+    phase1TestsResultsReady = false,
+    phase1TestsResultsReceived = false
+  )
   val InProgress = Initial.copy(personalDetails = true)
   val InPersonalDetails = Initial.copy(personalDetails = true)
   val InSchemePreferencesDetails = InPersonalDetails.copy(schemePreferences = true)

@@ -19,32 +19,19 @@ package connectors.exchange
 import models.UniqueIdentifier
 import org.joda.time.{ DateTime, Period }
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
-import play.api.libs.json.Json
 
-case class Phase1Test(usedForResults: Boolean,
-                      testUrl: String,
-                      token: UniqueIdentifier,
-                      cubiksUserId: Int,
-                      invitationDate: DateTime,
-                      startedDateTime: Option[DateTime] = None,
-                      completedDateTime: Option[DateTime] = None,
-                      resultsReadyToDownload: Boolean = false) {
-  def started = startedDateTime.isDefined
-
-  def completed = completedDateTime.isDefined
+abstract class CubiksTestGroup() extends TestGroup[CubiksTest] {
+  def hasNotResultReadyToDownloadForAllTestsYet = activeTests.exists(!_.resultsReadyToDownload)
 }
 
-object Phase1Test {
-  implicit def phase1TestFormat = Json.format[Phase1Test]
-}
-
-
-case class Phase1TestProfile(expirationDate: DateTime,
-  tests: List[Phase1Test]
-) {
+trait TestGroup[T <: Test] {
+  def expirationDate: DateTime
+  def tests: List[T]
+  def activeTests = tests filter (_.usedForResults)
+  def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
+  def hasNotCompletedYet = activeTests.exists(_.completedDateTime.isEmpty)
 
   def getDuration: String = {
-
     val now = DateTime.now
     val date = expirationDate
 
@@ -58,7 +45,6 @@ case class Phase1TestProfile(expirationDate: DateTime,
       toFormatter
 
     val period = new Period(now, date)
-
     periodFormat print period
   }
 
@@ -94,6 +80,9 @@ case class Phase1TestProfile(expirationDate: DateTime,
   }
 }
 
-object Phase1TestProfile {
-  implicit def phase1TestProfileFormat = Json.format[Phase1TestProfile]
+trait Test {
+  def usedForResults: Boolean
+  def token: UniqueIdentifier
+  def startedDateTime: Option[DateTime]
+  def completedDateTime: Option[DateTime]
 }
