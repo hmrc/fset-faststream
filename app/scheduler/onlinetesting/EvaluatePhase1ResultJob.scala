@@ -52,8 +52,7 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
       Try(evaluateService.evaluate(app, passmarkSettings)) match {
         case Success(fut) => fut
-        case Failure(e) =>
-          Future.failed(e)
+        case Failure(e) => Future.failed(e)
       }
     }
 
