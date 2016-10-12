@@ -44,12 +44,8 @@ trait RandomSelection {
         // `None` is returned by the method instead of a Some[BSONDocument].
         val (randomIndex, newBatchSize) = batchSize match {
           case 1 => (Random.nextInt(count), 1)
-          case _ => if (count < batchSize) {
-            (0, count)
-          }
-          else {
-            (Random.nextInt(count - batchSize), batchSize)
-          }
+          case _ if count <= batchSize => (0, count)
+          case _ => (Random.nextInt(count - batchSize), batchSize)
         }
 
         bsonCollection.find(query)
