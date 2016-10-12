@@ -96,6 +96,9 @@ object ProgressStatuses {
   case object PHASE2_TESTS_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_RESULTS_READY extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+  case object PHASE2_TESTS_PASSED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_PASSED)
+  case object PHASE2_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_FAILED)
+
 
   val nameToProgressStatus: Map[String, ProgressStatus] = List(
     PHASE1_TESTS_INVITED,
@@ -111,7 +114,9 @@ object ProgressStatuses {
     PHASE2_TESTS_COMPLETED,
     PHASE2_TESTS_EXPIRED,
     PHASE2_TESTS_RESULTS_READY,
-    PHASE2_TESTS_RESULTS_RECEIVED
+    PHASE2_TESTS_RESULTS_RECEIVED,
+    PHASE2_TESTS_PASSED,
+    PHASE2_TESTS_FAILED
   ).map { value =>
     value.toString -> value
   }.toMap
