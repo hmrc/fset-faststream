@@ -36,10 +36,6 @@ object EvaluatePhase1ResultJob extends EvaluatePhase1ResultJob {
 trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePhase1ResultJobConfig {
   val evaluateService: EvaluatePhase1ResultService
 
-  override implicit val ec = ExecutionContext.fromExecutor(
-    new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(batchSizeLimit))
-  )
-
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     evaluateService.nextCandidatesReadyForEvaluation(batchSizeLimit) flatMap {
       case Some((apps, passmarkSettings)) =>
@@ -50,12 +46,14 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
     }
   }
 
-  private def evaluateInBatch(apps: List[ApplicationPhase1ReadyForEvaluation], passmarkSettings: Phase1PassMarkSettings): Future[Unit] = {
+  private def evaluateInBatch(apps: List[ApplicationPhase1ReadyForEvaluation],
+                              passmarkSettings: Phase1PassMarkSettings)(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.debug(s"Evaluate Phase1 Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
       Try(evaluateService.evaluate(app, passmarkSettings)) match {
         case Success(fut) => fut
-        case Failure(e) => Future.failed(e)
+        case Failure(e) =>
+          Future.failed(e)
       }
     }
 
@@ -66,7 +64,11 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
       }
 
       if (errors.nonEmpty) {
-        Logger.error(s"There were errors in batch Phase 1 evaluation, number of failed applications: ${errors.size}")
+        val errorMsg = apps map {a =>
+          s"${a.applicationId}, cubiks Ids: ${a.phase1.tests.map(_.cubiksUserId).mkString(",")}".mkString("\n")
+        }
+
+        Logger.error(s"There were errors in batch Phase 1 evaluation: $errorMsg, number of failed applications: ${errors.size}")
         Future.failed(errors.head)
       } else {
         Future.successful(())

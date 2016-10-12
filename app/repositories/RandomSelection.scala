@@ -48,7 +48,7 @@ trait RandomSelection {
             (0, count)
           }
           else {
-            (Random.nextInt(batchSize - count), batchSize)
+            (Random.nextInt(count - batchSize), batchSize)
           }
         }
 

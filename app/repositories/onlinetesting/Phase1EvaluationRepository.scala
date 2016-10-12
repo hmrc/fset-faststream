@@ -22,7 +22,7 @@ import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.{ CommonBSONDocuments, RandomSelection }
+import repositories.{ BSONHelpers, CommonBSONDocuments, RandomSelection }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -40,7 +40,8 @@ trait Phase1EvaluationRepository {
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationPhase1ReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationPhase1ReadyForEvaluation.applicationPhase1ReadyForEvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with CommonBSONDocuments {
+    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with CommonBSONDocuments
+    with RandomSelection with BSONHelpers {
   private val BSONDocumentPhase1OrPhase2AppStatus = BSONDocument("$or" -> BSONArray(
     BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
     BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
@@ -59,7 +60,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       BSONDocument("testGroups.PHASE1.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
     ))
 
-    collection.find(query).cursor[BSONDocument]().collect[List](batchSize).map(_.map { doc =>
+    implicit val reader = bsonReader { doc =>
       val applicationId = doc.getAs[String]("applicationId").get
       val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
       val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
@@ -68,7 +69,9 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
 
       ApplicationPhase1ReadyForEvaluation(applicationId, applicationStatus, isGis, phase1, preferences)
-    })
+    }
+
+    selectRandom[ApplicationPhase1ReadyForEvaluation](query, batchSize)
   }
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
