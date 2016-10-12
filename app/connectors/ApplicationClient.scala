@@ -21,7 +21,6 @@ import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
 import models.UniqueIdentifier
-import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
