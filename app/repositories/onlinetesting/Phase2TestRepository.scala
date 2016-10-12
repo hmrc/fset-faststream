@@ -107,14 +107,12 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      s"progress-status.$PHASE2_TESTS_INVITED" -> true,
-      "applicationStatus" -> PHASE2_TESTS_INVITED.applicationStatus
-    )) ++ BSONDocument("$set" -> BSONDocument(
+    val updateBson = BSONDocument("$set" -> applicationStatusBSON(PHASE2_TESTS_INVITED))
+    ++ BSONDocument("$set" -> BSONDocument(
       "testGroups" -> BSONDocument(phaseName -> phase2TestProfile)
     ))
 
-    collection.update(query, applicationStatusBSON, upsert = false) map { status =>
+    collection.update(query, updateBson, upsert = false) map { status =>
       if (status.n != 1) {
         val msg = s"${status.n} rows affected when inserting or updating instead of 1! (App Id: $applicationId)"
         Logger.warn(msg)
