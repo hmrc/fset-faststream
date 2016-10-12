@@ -35,63 +35,44 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   def phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
 
+
   "next Application Ready For Evaluation" should {
     "return nothing if there is no PHASE1_TESTS and PHASE2_TESTS applications" in {
       insertApplication("appId", ApplicationStatus.SUBMITTED)
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
-      result mustBe empty
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
+      result mustBe None
     }
 
     "return nothing if application does not have online exercise results" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
-      result mustBe empty
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
+      result mustBe None
     }
 
     "return application in PHASE1_TESTS with results" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
 
-      result must not be empty
-      result.head mustBe ApplicationPhase1ReadyForEvaluation(
+      result mustBe Some(ApplicationPhase1ReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE1_TESTS,
         isGis = false,
         Phase1TestProfile(now, testsWithResult),
-        selectedSchemes(List(Commercial)))
+        selectedSchemes(List(Commercial))))
     }
 
     "return GIS application in PHASE1_TESTS with results" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult), isGis = true)
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
 
-      result must not be empty
-      result.head mustBe ApplicationPhase1ReadyForEvaluation(
+      result mustBe Some(ApplicationPhase1ReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE1_TESTS,
         isGis = true,
         Phase1TestProfile(now, testsWithResult),
-        selectedSchemes(List(Commercial)))
-    }
-
-    "limit number of next applications to the batch size limit" in {
-      val batchSizeLimit = 5
-      1 to 6 foreach { id =>
-        insertApplication(s"app$id", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult), isGis = false)
-      }
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSizeLimit).futureValue
-      result.size mustBe batchSizeLimit
-    }
-
-    "return less number of applications than batch size limit" in {
-      val batchSizeLimit = 5
-      1 to 2 foreach { id =>
-        insertApplication(s"app$id", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult), isGis = false)
-      }
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSizeLimit).futureValue
-      result.size mustBe 2
+        selectedSchemes(List(Commercial))))
     }
   }
 
@@ -119,8 +100,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
-      result mustBe empty
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
+      result mustBe None
     }
 
     "return the candidate in PHASE1_TESTS if the passmark has changed" in {
@@ -129,8 +110,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result must not be empty
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
+      result mustBe defined
     }
 
     "return the candidate to re-evaluation in PHASE1_TESTS_PASSED if the passmark has changed" in {
@@ -139,8 +120,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS_PASSED)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result must not be empty
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
+      result mustBe defined
     }
 
     "return the candidate to re-evaluation in PHASE2_TESTS if the passmark has changed" in {
@@ -149,8 +130,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE2_TESTS)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result must not be empty
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
+      result mustBe defined
     }
 
     "do not change application status when it is not required" in {
@@ -158,9 +139,9 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val evaluation = PassmarkEvaluation("version1", resultToSave)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newApplicationStatus = None).futureValue
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result must not be empty
-      result.head.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS
+      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
+      result mustBe defined
+      result.get.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS
     }
   }
 
