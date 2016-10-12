@@ -18,11 +18,12 @@ package services.onlinetesting
 
 import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
-import connectors.{ CSREmailClient, CubiksGatewayClient }
+import connectors.LaunchpadGatewayClient.{ InviteApplicantResponse, RegisterApplicantResponse, SeamlessLoginLink }
+import connectors.{ CSREmailClient, CubiksGatewayClient, LaunchpadGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.PersistedObjects.ContactDetails
-import model.persisted.Phase2TestGroup
+import model.persisted.ContactDetails
+import model.persisted.phase3tests.{ Phase3Test, Phase3TestGroup }
 import model.{ Address, ApplicationStatus }
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -30,9 +31,9 @@ import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.Phase2TestRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
 import testkit.ExtendedTimeout
@@ -42,93 +43,40 @@ import scala.concurrent.Future
 
 class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
 
-  "Register applicants" should {
-    "correctly register a batch of candidates" in new Phase2TestServiceFixture {
+  "Register and Invite an applicant" must {
+    "email the candidate and send audit events" in new Phase3TestServiceFixture {
+      phase3TestService.registerAndInviteForTestGroup(onlineTestApplication).futureValue
 
-      val result = phase2TestService.registerApplicants(candidates, tokens).futureValue
-      result.size mustBe 2
-      val head = result.values.head
-      val last = result.values.last
-      head._1 mustBe onlineTestApplication
-      head._2 mustBe tokens.head
-      head._3 mustBe registrations.head
-      last._1 mustBe onlineTestApplication2
-      last._2 mustBe tokens.last
-      last._3 mustBe registrations.last
-
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
+      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3UserRegistered"), any[Map[String, String]])
+      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3TestInvited"), any[Map[String, String]])
+      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3TestInvitationProcessComplete"), any[Map[String, String]])
     }
   }
 
-  "Invite applicants" must {
-    "correctly invite a batch of candidates" in new Phase2TestServiceFixture {
-      val result = phase2TestService.inviteApplicants(registeredMap).futureValue
-
-      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, tokens.head,
-        registrations.head, invites.head),
-        phase2TestService.Phase2TestInviteData(onlineTestApplication2, tokens.last,
-          registrations.last, invites.last)
-      )
-
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-    }
-  }
-
-  "Register and Invite applicants" must {
-    "email the candidate and send audit events" in new Phase2TestServiceFixture {
-      phase2TestService.registerAndInviteForTestGroup(candidates).futureValue
-
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
-    }
-
-    "process adjustment candidates first and individually" in new Phase2TestServiceFixture {
-     val adjustmentCandidates = candidates :+ adjustmentApplication :+ adjustmentApplication2
-
-      when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
-        .thenReturn(Future.successful(List(registrations.head)))
-
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])(any[HeaderCarrier]))
-        .thenReturn(Future.successful(List(invites.head)))
-
-      phase2TestService.registerAndInviteForTestGroup(adjustmentCandidates).futureValue
-
-      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
-      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
-    }
-  }
-
-  trait Phase2TestServiceFixture {
+  trait Phase3TestServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
 
-    val gatewayConfigMock =  CubiksGatewayConfig(
-      "",
-      Phase1TestsConfig(expiryTimeInDays = 7,
-        scheduleIds = Map("sjq" -> 16196, "bq" -> 16194),
-        List("sjq", "bq"),
-        List("sjq")
-      ),
-      competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
-      situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, scheduleName = "e-tray", scheduleId = 123, assessmentId = 158),
-      reportConfig = ReportConfig(1, 2, "en-GB"),
-      candidateAppUrl = "http://localhost:9284",
-      emailDomain = "test.com"
+    val gatewayConfigMock =  LaunchpadGatewayConfig(
+      "localhost",
+      Phase3TestsConfig(timeToExpireInDays = 7,
+        candidateCompletionRedirectUrl = "test.com",
+        1,
+        2
+      )
     )
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
-    val otRepositoryMock = mock[Phase2TestRepository]
-    val cubiksGatewayClientMock = mock[CubiksGatewayClient]
+    val p3TestRepositoryMock = mock[Phase3TestRepository]
+    val launchpadGatewayClientMock = mock[LaunchpadGatewayClient]
     val emailClientMock = mock[CSREmailClient]
     var auditServiceMock = mock[AuditService]
     val tokenFactoryMock = UUIDFactory
     val eventServiceMock = mock[EventService]
     val tokens = UUIDFactory.generateUUID :: UUIDFactory.generateUUID :: Nil
     val registrations = Registration(123) :: Registration(456) :: Nil
+
     val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
@@ -138,49 +86,71 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       lastName = "Prime",
       timeAdjustments = None
     )
-
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
-    val adjustmentApplication = onlineTestApplication.copy(applicationId = "appId3", userId = "userId3", needsAdjustments = true)
-    val adjustmentApplication2 = onlineTestApplication.copy(applicationId = "appId4", userId = "userId4", needsAdjustments = true)
-    val candidates = List(onlineTestApplication, onlineTestApplication2)
 
-    val registeredMap = Map(
-      registrations.head.userId -> (onlineTestApplication, tokens.head, registrations.head),
-      registrations.last.userId -> (onlineTestApplication2, tokens.last, registrations.last)
-    )
+    when(cdRepositoryMock.find(any())).thenReturn {
+      Future.successful(ContactDetails(
+        outsideUk = false,
+        Address("123, Fake Street"),
+        Some("AB1 2CD"),
+        None,
+        "foo@bar.com",
+        "12345678"
+      ))
+    }
 
-    val invites = List(Invitation(userId = registrations.head.userId, email = "email@test.com", accessCode = "accessCode",
-       logonUrl = "logon.com", authenticateUrl = "authenticated", participantScheduleId = 999
-      ),
-      Invitation(userId = registrations.last.userId, email = "email@test.com", accessCode = "accessCode", logonUrl = "logon.com",
-        authenticateUrl = "authenticated", participantScheduleId = 888
-    ))
+    when(launchpadGatewayClientMock.registerApplicant(any())(any[HeaderCarrier]())).thenReturn {
+      Future.successful(RegisterApplicantResponse(
+        "CND_123",
+        "FSCND_456"
+      ))
+    }
 
-    when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
-      .thenReturn(Future.successful(registrations))
+    when(launchpadGatewayClientMock.inviteApplicant(any())(any[HeaderCarrier]())).thenReturn {
+      Future.successful(InviteApplicantResponse(
+        "INV_123",
+        "CND_123",
+        "FSCND_456",
+        SeamlessLoginLink("http://www.foo.com", "success", "registered successfully"),
+        "Tomorrow"
+      ))
+    }
 
-    when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])(any[HeaderCarrier]))
-      .thenReturn(Future.successful(invites))
+    when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
 
-    when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup]))
-        .thenReturn(Future.successful(()))
+    when(p3TestRepositoryMock.insertOrUpdateTestGroup(any(), any())).thenReturn(Future.successful(()))
 
-    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(ContactDetails(
-      Address("Aldwych road"), "QQ1 1QQ", "email@test.com", Some("111111")
-    )))
+    when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
 
-    when(emailClientMock.sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier]))
-        .thenReturn(Future.successful(()))
+    /*
+    Some(Phase3TestGroup(
+          DateTime.parse("2030-10-15 00:00:01"),
+          List(
+            Phase3Test(
+              123,
+              true,
+              "launchpad",
+              "test.com",
+              "abc123",
+              "CND_123",
+              "FSCND_456",
+              DateTime.parse("2016-10-01 00:00:01"),
+              None,
+              None
+            )
+          )
+        )
+     */
 
-    val phase2TestService = new Phase2TestService with EventServiceFixture {
+    val phase3TestService = new Phase3TestService with EventServiceFixture {
       val appRepository = appRepositoryMock
+      val p3TestRepository = p3TestRepositoryMock
       val cdRepository = cdRepositoryMock
-      val phase2TestRepo = otRepositoryMock
-      val cubiksGatewayClient = cubiksGatewayClientMock
-      val emailClient = emailClientMock
-      val auditService = auditServiceMock
+      val launchpadGatewayClient = launchpadGatewayClientMock
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = DateTimeFactory
+      val emailClient = emailClientMock
+      val auditService = auditServiceMock
       val gatewayConfig = gatewayConfigMock
     }
   }

@@ -28,8 +28,8 @@ import model.persisted.Phase1TestProfileWithAppId
 import model.persisted.phase3tests.{ Phase3Test, Phase3TestGroup }
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.{ EventService, EventSink }
 import services.onlinetesting.Phase3TestService.InviteLinkCouldNotBeCreatedSuccessfully
@@ -58,7 +58,7 @@ object Phase3TestService extends Phase3TestService {
 trait Phase3TestService extends OnlineTestService with ResetPhase3Test with EventSink {
   val appRepository: GeneralApplicationRepository
   val p3TestRepository: Phase3TestRepository
-  val cdRepository: contactdetails.ContactDetailsMongoRepository
+  val cdRepository: contactdetails.ContactDetailsRepository
   val launchpadGatewayClient: LaunchpadGatewayClient
   val tokenFactory: UUIDFactory
   val dateTimeFactory: DateTimeFactory
@@ -66,8 +66,8 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
   val auditService: AuditService
   val gatewayConfig: LaunchpadGatewayConfig
 
-  override def nextApplicationReadyForOnlineTesting: Future[Option[OnlineTestApplication]] = {
-    p3TestRepository.nextApplicationReadyForOnlineTesting
+  override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
+    p3TestRepository.nextApplicationsReadyForOnlineTesting
   }
 
   override def registerAndInviteForTestGroup(application: List[OnlineTestApplication])(implicit hc: HeaderCarrier): Future[Unit] = ???
@@ -114,10 +114,8 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
   def registerApplicant(application: OnlineTestApplication,
                         emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
-    print("RA = " + registerApplicant + "\n")
     launchpadGatewayClient.registerApplicant(registerApplicant).map { registration =>
-      audit("UserRegisteredForPhase3Test", application.userId)
-      print("RCND = " + registration.candidate_id + "\n")
+      audit("Phase3UserRegistered", application.userId)
       registration.candidate_id
     }
   }
@@ -134,7 +132,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     launchpadGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
       invitation.link.status match {
         case "success" =>
-          audit("UserInvitedToPhase3Test", application.userId)
+          audit("Phase3TestInvited", application.userId)
           invitation
         case _ =>
           throw InviteLinkCouldNotBeCreatedSuccessfully(s"Status of invite for " +
@@ -170,14 +168,12 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
 
   private def markAsInvited(application: OnlineTestApplication)
                            (newPhase3TestGroup: Phase3TestGroup): Future[Unit] = {
-    Logger.debug("====== In Invited!")
     for {
       currentPhase3TestGroup <- p3TestRepository.getTestGroup(application.applicationId)
       updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
       _ <- p3TestRepository.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
       _ <- appRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(updatedPhase3TestGroup))
     } yield {
-      Logger.debug("====== Wrote PHASE 3 " + updatedPhase3TestGroup)
       audit("Phase3TestInvited", application.userId)
     }
   }
