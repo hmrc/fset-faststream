@@ -55,7 +55,7 @@ case class ProgressResponse(applicationId: String,
                             phase1TestsResultsReceived: Boolean = false,
                             phase1TestsPassed: Boolean = false,
                             phase1TestsFailed: Boolean = false,
-                            phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(false, false, false, false, false),
+                            phase2ProgressResponse: Phase2ProgressResponse = new Phase2ProgressResponse,
                             failedToAttend: Boolean = false,
                             assessmentScores: AssessmentScores = AssessmentScores(),
                             assessmentCentre: AssessmentCentre = AssessmentCentre())
