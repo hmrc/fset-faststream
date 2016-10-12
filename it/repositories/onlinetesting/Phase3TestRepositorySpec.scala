@@ -34,7 +34,7 @@ class Phase3TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "return an online test for the specific user id" in {
-      insertApplication("appId")
+      insertApplication("appId", "userId")
       phase3TestRepo.insertOrUpdateTestGroup("appId", TestGroup).futureValue
       val result = phase3TestRepo.getTestGroup("appId").futureValue
       result mustBe Some(TestGroup)
@@ -48,10 +48,11 @@ class Phase3TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         fastPassReceived = false
       ).futureValue
 
-      val result = phase3TestRepo.nextApplicationReadyForOnlineTesting.futureValue
+      val result = phase3TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
 
-      result.get.applicationId mustBe "appId"
-      result.get.userId mustBe "userId"
+      result.size mustBe 1
+      result.head.applicationId mustBe "appId"
+      result.head.userId mustBe "userId"
     }
   }
 
