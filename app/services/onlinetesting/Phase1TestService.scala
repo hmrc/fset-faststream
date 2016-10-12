@@ -43,7 +43,9 @@ import scala.language.postfixOps
 import scala.util.{ Failure, Success, Try }
 
 object Phase1TestService extends Phase1TestService {
+
   import config.MicroserviceAppConfig._
+
   val appRepository = applicationRepository
   val cdRepository = contactDetailsRepository
   val phase1TestRepo = phase1TestRepository
@@ -125,7 +127,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
                                    (implicit hc: HeaderCarrier): Future[Unit] = {
     val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase1Tests.expiryTimeInDays)
 
-    def mapValue[T]( f: Future[T] ): Future[Try[T]] = {
+    def mapValue[T](f: Future[T]): Future[Try[T]] = {
       val prom = Promise[Try[T]]()
       f onComplete prom.success
       prom.future
@@ -139,7 +141,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     // The approach to fixing it here is to generate futures that return Try[A] and then all futures will be
     // traversed. Afterward, we look at the results and clear up the mess
     // We space out calls to Cubiks because it appears they fail when they are too close together.
-    val registerAndInvite = FutureEx.traverseToTry(scheduleNames.zipWithIndex){
+    val registerAndInvite = FutureEx.traverseToTry(scheduleNames.zipWithIndex) {
       case (scheduleName, delayModifier) =>
         val scheduleId = scheduleIdByName(scheduleName)
         val delay = (delayModifier * 1).second
@@ -221,11 +223,10 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
                              (implicit hc: HeaderCarrier): Future[Invitation] = {
 
     val inviteApplicant = buildInviteApplication(application, authToken, userId, scheduleId)
-    val inv = cubiksGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
+    cubiksGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
       audit("UserInvitedToOnlineTest", application.userId)
       invitation
     }
-    inv
   }
 
   private def markAsInvited(application: OnlineTestApplication)
@@ -255,7 +256,6 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
 
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
     cdRepository.find(application.userId).map(_.email)
-
 
 
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
@@ -290,7 +290,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   }
 
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
-                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]= eventSink {
+                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
     updatedTestPhase1 flatMap { u =>
       phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
@@ -370,6 +370,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
 }
 
 trait ResetPhase1Test {
+
   import ProgressStatuses._
 
   def determineStatusesToRemove(testGroup: Phase1TestProfile): List[ProgressStatus] = {

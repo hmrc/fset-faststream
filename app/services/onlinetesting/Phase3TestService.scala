@@ -191,6 +191,6 @@ trait ResetPhase3Test {
 
   // TODO: Implement for resets/extends
   def determineStatusesToRemove(testGroup: Phase3TestGroup): List[ProgressStatus] = {
-    Nil
+    List(PHASE3_TESTS_STARTED, PHASE3_TESTS_COMPLETED)
   }
 }

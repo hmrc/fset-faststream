@@ -46,6 +46,4 @@ trait Phase3TestGroupController extends BaseController {
           NotFound
     }
   }
-
-
 }
