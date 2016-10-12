@@ -18,8 +18,7 @@ package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.PassMarkEvaluationNotFound
-import model.OnlineTestCommands.Phase1TestProfile
-import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
+import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation, Phase1TestProfile }
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
@@ -41,7 +40,7 @@ trait Phase1EvaluationRepository {
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationPhase1ReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationPhase1ReadyForEvaluation.applicationPhase1ReadyForEvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with RandomSelection with CommonBSONDocuments {
+    ReactiveMongoFormats.objectIdFormats) with Phase1EvaluationRepository with CommonBSONDocuments {
   private val BSONDocumentPhase1OrPhase2AppStatus = BSONDocument("$or" -> BSONArray(
     BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
     BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),

@@ -60,7 +60,7 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
     }
 
     evaluationResultsFut flatMap { evaluationResults =>
-      val errors = evaluationResults.flatMap {
+      val errors = evaluationResults flatMap {
         case Failure(e) => Some(e)
         case _ => None
       }
