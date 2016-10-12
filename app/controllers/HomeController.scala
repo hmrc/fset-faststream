@@ -19,7 +19,7 @@ package controllers
 import _root_.forms.WithdrawApplicationForm
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.{ FrameworkId, WithdrawApplication }
+import connectors.exchange.{ FrameworkId, Phase2TestGroupWithNames, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage }
@@ -34,18 +34,25 @@ object HomeController extends HomeController(ApplicationClient)
 class HomeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
   val Withdrawer = "Candidate"
 
+
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     cachedData.application.map { application =>
+
+
+      def getPhase2Test: Future[Option[Phase2TestGroupWithNames]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
+        applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
+      } else { Future.successful(None) }
+
       val dashboard = for {
         phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
-        phase2TestsWithNames <- applicationClient.getPhase2TestProfile(application.applicationId)
+        phase2TestsWithNames <- getPhase2Test
         allocationDetails <- applicationClient.getAllocationDetails(application.applicationId)
         // TODO Work out a better way to invalidate the cache across the site
         app = CachedDataWithApp(cachedData.user, application)
         updatedData <- refreshCachedUser()(app, hc, request)
       } yield {
         val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)),
-          Some(Phase2TestsPage.apply(phase2TestsWithNames))
+          phase2TestsWithNames.map(Phase2TestsPage.apply)
         )
         Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))
       }
