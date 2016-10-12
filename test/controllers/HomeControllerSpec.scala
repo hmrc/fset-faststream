@@ -24,7 +24,7 @@ import connectors.exchange.{ AssistanceDetailsExamples, WithdrawApplicationExamp
 import controllers.forms.{ AssistanceDetailsFormExamples, WithdrawApplicationFormExamples }
 import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
-import models._t s
+import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
