@@ -3,8 +3,8 @@ package repositories.onlinetesting
 import config.CubiksGatewayConfig
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
+import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.EvaluationResults.Green
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.SchemeType._
 import model.persisted.{ ApplicationPhase1ReadyForEvaluation, _ }
 import model.{ ApplicationStatus, SchemeType, SelectedSchemes }
@@ -27,7 +27,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository
 
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mock[CubiksGatewayConfig])
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService)
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 
@@ -177,8 +177,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 object Phase1EvaluationMongoRepositorySpec {
   val now = DateTime.now().withZone(DateTimeZone.UTC)
   val phase1Tests = List(
-    Phase1Test(16196, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000),
-    Phase1Test(16194, usedForResults = true, 101, "cubiks", "token2", "http://localhost", now, 2001)
+    CubiksTest(16196, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000),
+    CubiksTest(16194, usedForResults = true, 101, "cubiks", "token2", "http://localhost", now, 2001)
   )
   val selectedSchemes = SelectedSchemes(List(Commercial, DigitalAndTechnology), orderAgreed = true, eligible = true)
   val testsWithResult = phase1TestsWithResults(TestResult("Ready", "norm", Some(20.5), None, None, None))

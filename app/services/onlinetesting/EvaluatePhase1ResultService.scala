@@ -21,7 +21,6 @@ import services.onlinetesting.phase1.{ ApplicationStatusCalculator, Phase1TestEv
 import config.MicroserviceAppConfig._
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
-import play.api.Logger
 import repositories._
 import repositories.onlinetesting.Phase1EvaluationRepository
 
@@ -38,12 +37,11 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
   with ApplicationStatusCalculator {
   val phase1EvaluationRepository: Phase1EvaluationRepository
 
-  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationPhase1ReadyForEvaluation],
-    Phase1PassMarkSettings)]] = {
+  def nextCandidateReadyForEvaluation: Future[Option[(ApplicationPhase1ReadyForEvaluation, Phase1PassMarkSettings)]] = {
     getLatestPhase1PassMarkSettings flatMap {
       case Some(passmark) =>
-        phase1EvaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize).map { candidates =>
-          Some(candidates, passmark)
+        phase1EvaluationRepository.nextApplicationReadyForPhase1ResultEvaluation(passmark.version).map { candidateOpt =>
+          candidateOpt map (currentEvaluation => (currentEvaluation, passmark))
         }
       case _ =>
         Future.successful(None)
@@ -51,8 +49,6 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
   }
 
   def evaluate(application: ApplicationPhase1ReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
-    Logger.debug(s"Evaluating appId=${application.applicationId}")
-
     val tests = application.phase1.activeTests
     require(tests.nonEmpty && tests.length <= 2, "Allowed active number of tests is 1 or 2")
     val sjqTestOpt = findFirstSjqTest(tests)

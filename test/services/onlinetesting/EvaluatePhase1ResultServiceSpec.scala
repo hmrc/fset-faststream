@@ -16,12 +16,11 @@
 
 package services.onlinetesting
 
-import org.mockito.Matchers.{ eq => eqTo, _ }
 import _root_.config.CubiksGatewayConfig
 import _root_.services.BaseServiceSpec
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
-import model.OnlineTestCommands.Phase1Test
+import model.persisted.CubiksTest
 import model.SchemeType.SchemeType
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted.{ ApplicationPhase1EvaluationExamples, PassmarkEvaluation, SchemeEvaluationResult, TestResult }
@@ -39,7 +38,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
   "next candidate ready for evaluation" should {
     "return none if passmark is not set" in new TestFixture {
       when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(None))
-      val result = service.nextCandidatesReadyForEvaluation(1).futureValue
+      val result = service.nextCandidateReadyForEvaluation.futureValue
       result mustBe None
     }
 
@@ -48,12 +47,12 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(Some(PassmarkSettings)))
       when(mockPhase1EvaluationRepository
-        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int]))
-        .thenReturn(Future.successful(List(application)))
+        .nextApplicationReadyForPhase1ResultEvaluation(PassmarkVersion))
+        .thenReturn(Future.successful(Some(application)))
 
-      val result = service.nextCandidatesReadyForEvaluation(1).futureValue
+      val result = service.nextCandidateReadyForEvaluation.futureValue
 
-      result mustBe Some((List(application), PassmarkSettings))
+      result mustBe Some((application, PassmarkSettings))
     }
   }
 
@@ -140,12 +139,12 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       override def bq = BqId
     }
 
-    def createAppWithTestGroup(tests: List[Phase1Test]) = {
+    def createAppWithTestGroup(tests: List[CubiksTest]) = {
       val phase1 = Phase1TestProfileExamples.profile.copy(tests = tests)
       ApplicationPhase1EvaluationExamples.application.copy(phase1 = phase1)
     }
 
-    def createGisAppWithTestGroup(tests: List[Phase1Test]) = {
+    def createGisAppWithTestGroup(tests: List[CubiksTest]) = {
       createAppWithTestGroup(tests).copy(isGis = true)
     }
 

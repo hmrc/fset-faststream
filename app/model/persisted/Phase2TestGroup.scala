@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package model
+package model.persisted
 
-import model.persisted.Phase1TestProfile
 import org.joda.time.DateTime
+import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-object Phase1TestProfileExamples {
+case class Phase2TestGroup(expirationDate: DateTime,
+  tests: List[CubiksTest],
+  evaluation: Option[PassmarkEvaluation] = None
+) extends CubiksTestProfile
 
-  def profile(implicit now: DateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstTest))
+object Phase2TestGroup {
+  import repositories.BSONDateTimeHandler
+  implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup] = Macros.handler[Phase2TestGroup]
+  implicit val phase2TestProfileFormat = Json.format[Phase2TestGroup]
 }

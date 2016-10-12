@@ -20,7 +20,7 @@ import java.util.UUID
 
 import config.CubiksGatewayConfig
 import connectors.testdata.ExchangeObjects.{ Phase1TestGroupResponse, Phase1TestResponse }
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
+import model.persisted.{ CubiksTest, Phase1TestProfile }
 import org.joda.time.DateTime
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
@@ -42,7 +42,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    val sjqTest = Phase1Test(
+    val sjqTest = CubiksTest(
       cubiksUserId = scala.util.Random.nextInt(1000000000),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
@@ -52,7 +52,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       usedForResults = true
     )
 
-    val bqTest = Phase1Test(
+    val bqTest = CubiksTest(
       cubiksUserId = scala.util.Random.nextInt(1000000000),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
@@ -69,7 +69,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.insertOrUpdatePhase1TestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
+      _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
     } yield {
       val sjq = phase1TestProfile.tests.find(t => t.cubiksUserId == sjqTest.cubiksUserId).get
       val bq = phase1TestProfile.tests.find(t => t.cubiksUserId == bqTest.cubiksUserId)

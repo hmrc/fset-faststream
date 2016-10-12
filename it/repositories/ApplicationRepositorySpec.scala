@@ -45,7 +45,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val collectionName = "application"
 
-  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
 
   def assistanceRepo = new AssistanceDetailsMongoRepository()
 
@@ -61,7 +61,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
           List("userId", "frameworkId"),
           List("applicationStatus"),
           List("assistance-details.needsSupportForOnlineAssessment"),
-          List("assistance-details.needsSupportAtVenue")
+          List("assistance-details.needsSupportAtVenue"),
+          List("assistance-details.guaranteedInterview")
         )
 
     }

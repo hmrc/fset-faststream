@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package model
+package services.onlinetesting
 
-import model.persisted.Phase1TestProfile
-import org.joda.time.DateTime
-
-object Phase1TestProfileExamples {
-
-  def profile(implicit now: DateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstTest))
+object Exceptions {
+  case class TestExtensionException(message: String) extends Exception(message)
+  case class ReportIdNotDefinedException(message: String) extends Exception(message)
 }
