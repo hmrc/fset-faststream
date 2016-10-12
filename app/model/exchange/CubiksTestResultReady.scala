@@ -18,10 +18,10 @@ package model.exchange
 
 import play.api.libs.json.Json
 
-case class Phase1TestResultReady(reportId: Option[Int],
+case class CubiksTestResultReady(reportId: Option[Int],
                                  reportStatus: String,
                                  reportLinkURL: Option[String])
 
-case object Phase1TestResultReady {
-  implicit val phase1TestResultReadyFormat = Json.format[Phase1TestResultReady]
+case object CubiksTestResultReady {
+  implicit val phase1TestResultReadyFormat = Json.format[CubiksTestResultReady]
 }

@@ -26,7 +26,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.events.{ AuditEvents, DataStoreEvents }
-import model.exchange.{ Phase1TestGroupWithNames, Phase1TestGroupWithNames$, Phase1TestResultReady }
+import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestWithUserIds }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -322,7 +322,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     }
   }
 
-  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: Phase1TestResultReady): Future[Unit] = {
+  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
     updateTestPhase1(cubiksUserId,
       t => t.copy(
         resultsReadyToDownload = reportReady.reportStatus == "Ready",
