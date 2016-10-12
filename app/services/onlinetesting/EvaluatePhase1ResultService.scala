@@ -50,7 +50,7 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
   }
 
   def evaluate(application: ApplicationPhase1ReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
-    Logger.debug(s"Evaluating appId=${application.applicationId}")
+    Logger.debug(s"Evaluating phase1 appId=${application.applicationId}")
 
     val tests = application.phase1.activeTests
     require(tests.nonEmpty && tests.length <= 2, "Allowed active number of tests is 1 or 2")
