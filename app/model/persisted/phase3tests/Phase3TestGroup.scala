@@ -16,12 +16,14 @@
 
 package model.persisted.phase3tests
 
-import model.persisted.TestProfile
+import model.persisted.{ PassmarkEvaluation, TestProfile }
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class Phase3TestGroup(expirationDate: DateTime, tests: List[Phase3Test]) extends TestProfile[Phase3Test]
+case class Phase3TestGroup(expirationDate: DateTime,
+                           tests: List[Phase3Test],
+                           evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[Phase3Test]
 
 object Phase3TestGroup {
   implicit val phase3TestGroupFormat = Json.format[Phase3TestGroup]

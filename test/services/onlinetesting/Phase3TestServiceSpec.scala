@@ -37,15 +37,23 @@ import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
 import testkit.ExtendedTimeout
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.http.{ HeaderCarrier, NotImplementedException }
 
 import scala.concurrent.Future
+import scala.util.Failure
 
 class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
 
-  "Register and Invite an applicant" must {
+  "Register and invite for multiple applicants (batch invite)" should {
+    "throw a not implemented error" in new Phase3TestServiceFixture {
+      val ex = phase3TestService.registerAndInviteForTestGroup(List()).failed.futureValue
+      ex.getCause mustBe a[NotImplementedError]
+    }
+  }
+
+  "Register and Invite an applicant" should {
     "email the candidate and send audit events" in new Phase3TestServiceFixture {
-      phase3TestService.registerAndInviteForTestGroup(onlineTestApplication).futureValue
+      phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
       verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3UserRegistered"), any[Map[String, String]])
       verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3TestInvited"), any[Map[String, String]])
@@ -87,6 +95,8 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       timeAdjustments = None
     )
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
+
+    val testInterviewId = 123
 
     when(cdRepositoryMock.find(any())).thenReturn {
       Future.successful(ContactDetails(

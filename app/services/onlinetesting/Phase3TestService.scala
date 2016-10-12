@@ -24,7 +24,6 @@ import connectors._
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.ProgressStatuses
-import model.persisted.Phase1TestProfileWithAppId
 import model.persisted.phase3tests.{ Phase3Test, Phase3TestGroup }
 import org.joda.time.DateTime
 import play.api.Logger
@@ -33,7 +32,7 @@ import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.{ EventService, EventSink }
 import services.onlinetesting.Phase3TestService.InviteLinkCouldNotBeCreatedSuccessfully
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.http.{ HeaderCarrier, NotImplementedException }
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -70,7 +69,8 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     p3TestRepository.nextApplicationsReadyForOnlineTesting
   }
 
-  override def registerAndInviteForTestGroup(application: List[OnlineTestApplication])(implicit hc: HeaderCarrier): Future[Unit] = ???
+  override def registerAndInviteForTestGroup(
+  application: List[OnlineTestApplication])(implicit hc: HeaderCarrier): Future[Unit] = Future.failed(new NotImplementedError())
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit] = {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
@@ -84,6 +84,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     for {
       emailAddress <- candidateEmailAddress(application)
       phase3Test <- registerAndInviteApplicant(application, emailAddress, interviewId, invitationDate, expirationDate)
+      // TODO: Trigger email when template is available
       // _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
     } yield audit("Phase3TestInvitationProcessComplete", application.userId)
@@ -132,7 +133,6 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     launchpadGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
       invitation.link.status match {
         case "success" =>
-          audit("Phase3TestInvited", application.userId)
           invitation
         case _ =>
           throw InviteLinkCouldNotBeCreatedSuccessfully(s"Status of invite for " +
