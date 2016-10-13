@@ -182,6 +182,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     bsonCollection.find(query).cursor[Candidate]().collect[List]()
   }
 
+  // scalastyle:off method.length
   private def findProgress(document: BSONDocument, applicationId: String): ProgressResponse = {
 
     (document.getAs[BSONDocument]("progress-status") map { root =>
@@ -217,7 +218,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
           phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.toString),
           phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.toString),
           phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.toString),
-          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString)
+          phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.toString),
+          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString),
+          phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.toString),
+          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.toString)
         ),
         failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
         assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
@@ -231,6 +235,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       )
     }).getOrElse(ProgressResponse(applicationId))
   }
+  // scalastyle:on method.length
 
   override def findProgress(applicationId: String): Future[ProgressResponse] = {
     val query = BSONDocument("applicationId" -> applicationId)

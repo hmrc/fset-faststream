@@ -19,30 +19,31 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import model.SecondReminder
+import model.{ Phase1SecondReminder, ReminderNotice }
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestExpiryService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object SecondReminderExpiringTestJob extends SecondReminderExpiringTestJob {
+object SecondPhase1ReminderExpiringTestJob extends SecondReminderExpiringTestJob with SecondPhase1ReminderExpiringTestJobConfig {
   override val service = OnlineTestExpiryService
+  override val reminderNotice: ReminderNotice = Phase1SecondReminder
+  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 }
 
-trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob with SecondReminderExpiringTestJobConfig {
+trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob {
   val service: OnlineTestExpiryService
-
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+  val reminderNotice: ReminderNotice
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    service.processNextTestForReminder(SecondReminder)
+    service.processNextTestForReminder(reminderNotice)
   }
 
 }
 
-trait SecondReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+trait SecondPhase1ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.secondReminderJobConfig
-  val configPrefix = "scheduling.online-testing.second-reminder-expiring-test-job."
-  val name = "SecondReminderExpiringTestJob"
+  override val conf = config.MicroserviceAppConfig.secondPhase1ReminderJobConfig
+  val configPrefix = "scheduling.online-testing.second-phase1-reminder-expiring-test-job."
+  val name = "SecondPhase1ReminderExpiringTestJob"
 }

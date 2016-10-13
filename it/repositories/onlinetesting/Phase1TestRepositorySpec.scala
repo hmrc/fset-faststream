@@ -257,26 +257,26 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   "nextTestForReminder" should {
     "return one result" when {
       "there is an application in PHASE1_TESTS and is about to expiry in the next 72 hours" in {
-        val date = DateTime.now().plusHours(FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val date = DateTime.now().plusHours(Phase1FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        val notification = phase1TestRepo.nextTestForReminder(FirstReminder).futureValue
+        val notification = phase1TestRepo.nextTestForReminder(Phase1FirstReminder).futureValue
         notification.isDefined must be(true)
         notification.get.applicationId must be(AppId)
         notification.get.userId must be(UserId)
         notification.get.preferredName must be("Georgy")
         notification.get.expiryDate.getMillis must be(date.getMillis)
         // Because we are far away from the 24h reminder's window
-        phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
+        phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue must be(None)
       }
 
       "there is an application in PHASE1_TESTS and is about to expiry in the next 24 hours" in {
-        val date = DateTime.now().plusHours(SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val date = DateTime.now().plusHours(Phase1SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        val notification = phase1TestRepo.nextTestForReminder(SecondReminder).futureValue
+        val notification = phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue
         notification.isDefined must be(true)
         notification.get.applicationId must be(AppId)
         notification.get.userId must be(UserId)
@@ -292,7 +292,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
-        phase1TestRepo.nextTestForReminder(FirstReminder).futureValue must be(None)
+        phase1TestRepo.nextTestForReminder(Phase1FirstReminder).futureValue must be(None)
       }
 
       "the expiration date is in 26h but we send the second reminder only after 24h" in {
@@ -300,7 +300,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         phase1TestRepo.insertOrUpdateTestGroup(
           AppId,
           Phase1TestProfile(expirationDate = new DateTime().plusHours(30), tests = List(phase1Test))).futureValue
-        phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
+        phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue must be(None)
       }
 
       "the test is expired" in {
@@ -312,7 +312,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
         )), AppId).futureValue
-        phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
+        phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue must be(None)
       }
 
       "the test is completed" in {
@@ -324,7 +324,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
         )), AppId).futureValue
-        phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
+        phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue must be(None)
       }
 
       "we already sent a second reminder" in {
@@ -333,7 +333,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         updateApplication(BSONDocument("$set" -> BSONDocument(
           s"progress-status.$PHASE1_TESTS_SECOND_REMINDER" -> true
         )), AppId).futureValue
-        phase1TestRepo.nextTestForReminder(SecondReminder).futureValue must be(None)
+        phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue must be(None)
       }
     }
   }
@@ -368,6 +368,6 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 }
 
 object TextFixture {
-  val FirstReminder = ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
-  val SecondReminder = ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER)
+  val Phase1FirstReminder = ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
+  val Phase1SecondReminder = ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER)
 }
