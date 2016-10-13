@@ -16,14 +16,17 @@
 
 package mocks
 
-import connectors.EmailClient
-import org.joda.time.{ DateTime, LocalDate }
+import config.EmailConfig
+import connectors.CSREmailClient
+import org.joda.time.{DateTime, LocalDate}
 import uk.gov.hmrc.play.http.HeaderCarrier
-import scala.concurrent.duration.TimeUnit
 
+import scala.concurrent.duration.TimeUnit
 import scala.concurrent.Future
 
-object EmailClientStub extends EmailClient {
+object EmailClientStub extends CSREmailClient {
+  val emailConfig = EmailConfig(url = "test")
+
   override def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     Future.successful(Unit)
 

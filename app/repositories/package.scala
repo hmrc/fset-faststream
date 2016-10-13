@@ -19,7 +19,7 @@ import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, C
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
-import model.OnlineTestCommands.{OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication}
+import model.OnlineTestCommands.{OnlineTestApplication, TimeAdjustmentsOnlineTestApplication}
 import model.PassmarkPersistedObjects._
 import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
 import model.command.WithdrawApplication
@@ -68,6 +68,7 @@ package object repositories {
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
+  lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
   lazy val testReportRepository = new TestReportMongoRepository()
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()

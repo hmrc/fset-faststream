@@ -38,7 +38,8 @@ trait CandidateAllocationRepository {
 
 class CandidateAllocationMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[AllocatedCandidate, BSONObjectID]("application", mongo,
-    PersistedObjects.Implicits.allocatedCandidateFormats) with CandidateAllocationRepository with RandomSelection {
+    PersistedObjects.Implicits.allocatedCandidateFormats) with CandidateAllocationRepository
+    with RandomSelection with BSONHelpers {
 
   def nextUnconfirmedCandidateToSendReminder(daysBeforeExpiration: Int): Future[Option[AllocatedCandidate]] = {
     val now = dateTime.nowLocalDate
@@ -49,8 +50,8 @@ class CandidateAllocationMongoRepository(dateTime: DateTimeFactory)(implicit mon
       BSONDocument("allocation-expire-date" -> BSONDocument("$lte" -> now.plusDays(daysBeforeExpiration)))
     ))
 
-    selectRandom(query).map(_.map(bsonToAllocatedCandidate))
-
+    implicit val reader = bsonReader(bsonToAllocatedCandidate)
+    selectOneRandom[AllocatedCandidate](query)
   }
 
   def saveAllocationReminderSentDate(applicationId: String, date: DateTime): Future[Unit] = {

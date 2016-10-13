@@ -16,7 +16,7 @@
 
 package services.onlinetesting
 
-import connectors.EmailClient
+import connectors.CSREmailClient
 import model.Address
 import model.PersistedObjects.ContactDetails
 import model.persisted.ApplicationForNotification
@@ -149,7 +149,7 @@ class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with Mocki
     val applicationRepository = mock[GeneralApplicationRepository]
     val otRepository = mock[Phase1TestRepository]
     val cdRepository = mock[ContactDetailsRepository]
-    val emailClient = mock[EmailClient]
+    val emailClient = mock[CSREmailClient]
     val audit = mock[AuditService]
     val service = spy(new OnlineTestFailureServiceImpl(applicationRepository, otRepository,
       cdRepository, emailClient, audit, hc

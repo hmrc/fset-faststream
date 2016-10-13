@@ -19,6 +19,8 @@ package repositories
 import model.Exceptions.{ApplicationNotFound, NotFoundException}
 import model.PersistedObjects.{ApplicationProgressStatus, ApplicationProgressStatuses, ApplicationUser}
 import reactivemongo.bson.{BSONBoolean, BSONDocument}
+import model.Exceptions.ApplicationNotFound
+import reactivemongo.bson.{ BSONBoolean, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.{DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
 import services.GBTimeZoneService

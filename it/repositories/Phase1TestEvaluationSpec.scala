@@ -42,7 +42,8 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   val mockGatewayConfig = mock[CubiksGatewayConfig]
 
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig,
+    GeneralApplicationRepoBSONToModelHelper)
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 
@@ -61,7 +62,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val phase1TestsConfigMock = mock[Phase1TestsConfig]
 
     when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
-    when(phase1TestsConfigMock.scheduleIds).thenReturn(Map("sjq" -> 1, "bq" -> 2))
+    when(phase1TestsConfigMock.scheduleIds).thenReturn(Map("sjq" -> 16196, "bq" -> 16194))
   }
 
   "phase1 evaluation process" should {

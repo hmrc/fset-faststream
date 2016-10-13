@@ -16,7 +16,7 @@
 
 package services.allocation
 
-import connectors.{ CSREmailClient, EmailClient }
+import connectors.CSREmailClient
 import model.Commands.ApplicationAssessment
 import model.PersistedObjects.{ AllocatedCandidate, ContactDetails }
 import org.joda.time.DateTime
@@ -40,7 +40,7 @@ trait CandidateAllocationService {
   val caRepository: CandidateAllocationRepository
   val aaRepository: ApplicationAssessmentRepository
   val cdRepository: ContactDetailsRepository
-  val emailClient: EmailClient
+  val emailClient: CSREmailClient
   val auditService: AuditService
 
   implicit def headerCarrier = new HeaderCarrier()

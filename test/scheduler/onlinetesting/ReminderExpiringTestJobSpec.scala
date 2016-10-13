@@ -16,6 +16,7 @@
 
 package scheduler.onlinetesting
 
+import model.Phase1FirstReminder
 import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -28,30 +29,35 @@ import testkit.ShortTimeout
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ExpireOnlineTestJobSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
+/*
+Test only one type of reminder as the difference is only in the kind of reminder notice they
+pass to the service.
+ */
+class ReminderExpiringTestJobSpec  extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val serviceMock = mock[OnlineTestExpiryService]
 
-  object TestableExpireTestJob extends ExpireOnlineTestJob {
+  object TestableFirstReminderExpiringTestJob extends FirstReminderExpiringTestJob {
     val service = serviceMock
     val lockId: String = "1"
     val forceLockReleaseAfter: Duration = mock[Duration]
+    val reminderNotice = Phase1FirstReminder
     implicit val ec: ExecutionContext = mock[ExecutionContext]
     def name: String = "test"
     def initialDelay: FiniteDuration = mock[FiniteDuration]
     def interval: FiniteDuration = mock[FiniteDuration]
   }
 
-  "send invitation job" should {
+  "send first reminder job" should {
     "complete successfully when service completes successfully" in new WithApplication {
-      when(serviceMock.processNextExpiredTest()).thenReturn(Future.successful(()))
-      TestableExpireTestJob.tryExecute().futureValue mustBe (())
+      when(serviceMock.processNextTestForReminder(TestableFirstReminderExpiringTestJob.reminderNotice)).thenReturn(Future.successful(()))
+      TestableFirstReminderExpiringTestJob.tryExecute().futureValue mustBe (())
     }
 
     "fail when the service fails" in new WithApplication {
-      when(serviceMock.processNextExpiredTest()).thenReturn(Future.failed(new Exception))
-      TestableExpireTestJob.tryExecute().failed.futureValue mustBe an[Exception]
+      when(serviceMock.processNextTestForReminder(TestableFirstReminderExpiringTestJob.reminderNotice)).thenReturn(Future.failed(new Exception))
+      TestableFirstReminderExpiringTestJob.tryExecute().failed.futureValue mustBe an[Exception]
     }
   }
 }

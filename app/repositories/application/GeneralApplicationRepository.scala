@@ -23,16 +23,13 @@ import _root_.config.CubiksGatewayConfig
 import model.ApplicationStatus._
 import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
-import model.CivilServiceExperienceType.CivilServiceExperienceType
 import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
-import model.InternshipType.InternshipType
 import model.OnlineTestCommands.OnlineTestApplication
-import model.SchemeType._
 import model.command._
 import model.persisted.ApplicationForNotification
-import model.report._
+import model.report.{AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, _}
 import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}
@@ -146,6 +143,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
 
 
+  // scalastyle:off method.length
   private def findProgress(document: BSONDocument, applicationId: String): ProgressResponse = {
 
     (document.getAs[BSONDocument]("progress-status") map { root =>
@@ -176,6 +174,16 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
         phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString),
         phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
+        phase2ProgressResponse = Phase2ProgressResponse(
+          phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.toString),
+          phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.toString),
+          phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.toString),
+          phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.toString),
+          phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.toString),
+          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString),
+          phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.toString),
+          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.toString)
+        ),
         failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
         assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
         assessmentCentre = AssessmentCentre(
@@ -188,6 +196,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       )
     }).getOrElse(ProgressResponse(applicationId))
   }
+  // scalastyle:on method.length
 
   implicit val readerPD = bsonReader(bsonToModelHelper.toReportWithPersonalDetails(findProgress))
   implicit val readerTPM = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem)
@@ -938,7 +947,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           )
         ))
 
-    selectRandom(query).map(_.map(doc => doc.getAs[String]("applicationId").get))
+    implicit val reader = bsonReader { doc => doc.getAs[String]("applicationId").get }
+    selectOneRandom[String](query)
   }
 
   def nextAssessmentCentrePassedOrFailedApplication(): Future[Option[ApplicationForNotification]] = {
@@ -953,7 +963,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         )
       )
     )
-    selectRandom(query).map(_.map(bsonToModelHelper.toApplicationForNotification))
+    implicit val reader = bsonReader(bsonToModelHelper.toApplicationForNotification)
+    selectOneRandom[ApplicationForNotification](query)
   }
 
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String,

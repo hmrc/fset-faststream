@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package model
+package repositories
 
-import model.persisted.Phase1TestProfile
-import org.joda.time.DateTime
+import reactivemongo.api.collections.bson.BSONCollection
+import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+import uk.gov.hmrc.mongo.ReactiveRepository
 
-object Phase1TestProfileExamples {
+trait BSONHelpers {
+  this: ReactiveRepository[_, _] =>
 
-  def profile(implicit now: DateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstTest))
+  protected lazy val bsonCollection = collection.db.collection[BSONCollection](collection.name)
+
+  protected def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
+    new BSONDocumentReader[T] {
+      def read(bson: BSONDocument) = f(bson)
+    }
+  }
 }

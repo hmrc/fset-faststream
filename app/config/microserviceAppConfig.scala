@@ -33,13 +33,15 @@ trait ScheduledJobConfigurable {
   val lockId: Option[String]
   val initialDelaySecs: Option[Int]
   val intervalSecs: Option[Int]
+  val batchSize: Option[Int]
 }
 
 case class ScheduledJobConfig(
   enabled: Boolean,
   lockId: Option[String],
   initialDelaySecs: Option[Int],
-  intervalSecs: Option[Int]
+  intervalSecs: Option[Int],
+  batchSize: Option[Int] = None
 ) extends ScheduledJobConfigurable
 
 case class WaitingScheduledJobConfig(
@@ -47,11 +49,13 @@ case class WaitingScheduledJobConfig(
   lockId: Option[String],
   initialDelaySecs: Option[Int],
   intervalSecs: Option[Int],
-  waitSecs: Option[Int]
+  waitSecs: Option[Int],
+  batchSize: Option[Int] = None
 ) extends ScheduledJobConfigurable
 
 case class CubiksGatewayConfig(url: String,
   phase1Tests: Phase1TestsConfig,
+  phase2Tests: Phase2TestsConfig,
   competenceAssessment: CubiksGatewayStandardAssessment,
   situationalAssessment: CubiksGatewayStandardAssessment,
   reportConfig: ReportConfig,
@@ -63,6 +67,12 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
                                   scheduleIds: Map[String, Int],
                                   standard: List[String],
                                   gis: List[String])
+
+case class Phase2TestsConfig(expiryTimeInDays: Int,
+  scheduleName: String,
+  scheduleId: Int,
+  assessmentId: Int
+)
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
@@ -91,16 +101,19 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
   lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
   lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
-  lazy val sendInvitationJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-invitation-job")
+  lazy val sendPhase1InvitationJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase1-invitation-job")
 
-  lazy val firstReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-reminder-expiring-test-job")
-  lazy val secondReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-reminder-expiring-test-job")
+  lazy val sendPhase2InvitationJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase2-invitation-job")
 
-  lazy val expireOnlineTestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-job")
+  lazy val firstPhase1ReminderJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-phase1-reminder-expiring-test-job")
+  lazy val secondPhase1ReminderJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-phase1-reminder-expiring-test-job")
+
+  lazy val expirePhase1TestJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase1-job")
   lazy val failedOnlineTestJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-test-job")
   lazy val retrieveResultsJobConfig =

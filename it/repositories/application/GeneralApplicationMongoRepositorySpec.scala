@@ -21,12 +21,12 @@ import model._
 import model.ApplicationStatus._
 import model.SchemeType.SchemeType
 import model.report.CandidateProgressReport
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.LocalDate
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
-import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
+import config.MicroserviceAppConfig._
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 

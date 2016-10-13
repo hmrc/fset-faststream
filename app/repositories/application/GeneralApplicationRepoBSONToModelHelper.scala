@@ -22,12 +22,12 @@ import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocation
 import model.CivilServiceExperienceType.{CivilServiceExperienceType, apply => _, _}
 import model.Commands.{Candidate, _}
 import model.InternshipType.{InternshipType, apply => _}
-import model.OnlineTestCommands.{Phase1TestProfile, TestResult}
+import model.OnlineTestCommands.TestResult
 import model.SchemeType._
 import model.command.ProgressResponse
-import model.persisted.ApplicationForNotification
+import model.persisted.{ApplicationForNotification, Phase1TestProfile}
 import model.report._
-import model.{ CivilServiceExperienceType, InternshipType}
+import model.{CivilServiceExperienceType, InternshipType}
 import org.joda.time.{DateTime, LocalDate}
 import reactivemongo.bson.{BSONDocument, _}
 import repositories._

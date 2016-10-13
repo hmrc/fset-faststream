@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package model
+package model.exchange
 
-import model.persisted.Phase1TestProfile
+import model.persisted.CubiksTest
 import org.joda.time.DateTime
+import play.api.libs.json.Json
 
-object Phase1TestProfileExamples {
+case class Phase1TestGroupWithNames(expirationDate: DateTime, activeTests: Map[String, CubiksTest])
 
-  def profile(implicit now: DateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstTest))
+object Phase1TestGroupWithNames {
+  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames]
 }

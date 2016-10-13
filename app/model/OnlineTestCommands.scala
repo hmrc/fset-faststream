@@ -25,49 +25,6 @@ import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 object OnlineTestCommands {
-  case class Phase1Test(scheduleId: Int,
-    usedForResults: Boolean,
-    cubiksUserId: Int,
-    testProvider: String = "cubiks",
-    token: String,
-    testUrl: String,
-    invitationDate: DateTime,
-    participantScheduleId: Int,
-    startedDateTime: Option[DateTime] = None,
-    completedDateTime: Option[DateTime] = None,
-    resultsReadyToDownload: Boolean = false,
-    reportId: Option[Int] = None,
-    reportLinkURL: Option[String] = None,
-    reportStatus: Option[String] = None,
-    testResult: Option[model.persisted.TestResult] = None
-  )
-
-  object Phase1Test {
-    import repositories.BSONDateTimeHandler
-    implicit val phase1TestHandler: BSONHandler[BSONDocument, Phase1Test] = Macros.handler[Phase1Test]
-    implicit val phase1TestFormat = Json.format[Phase1Test]
-  }
-
-  trait TestProfile {
-    def expirationDate: DateTime
-    def tests: List[Phase1Test]
-  }
-
-  case class Phase1TestProfile(expirationDate: DateTime,
-                               tests: List[Phase1Test],
-                               evaluation: Option[PassmarkEvaluation] = None) extends TestProfile {
-
-    def activeTests = tests filter (_.usedForResults)
-    def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
-    def hasNotCompletedYet =  activeTests.exists(_.completedDateTime.isEmpty)
-    def hasNotResultReadyToDownloadForAllTestsYet =  activeTests.exists(!_.resultsReadyToDownload)
-  }
-
-  object Phase1TestProfile {
-    import repositories.BSONDateTimeHandler
-    implicit val bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Macros.handler[Phase1TestProfile]
-    implicit val phase1TestProfileFormat = Json.format[Phase1TestProfile]
-  }
 
   case class OnlineTestApplication(applicationId: String, applicationStatus: String, userId: String,
     guaranteedInterview: Boolean, needsAdjustments: Boolean, preferredName: String,

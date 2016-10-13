@@ -16,27 +16,57 @@
 
 package connectors
 
-import config.WSHttp
+import config.{EmailConfig, WSHttp}
 import connectors.ExchangeObjects._
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
 import uk.gov.hmrc.play.http.HeaderCarrier
+import Implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.TimeUnit
 
-object CSREmailClient extends CSREmailClient
+object CSREmailClient extends CSREmailClient {
+  val emailConfig = config.MicroserviceAppConfig.emailConfig
+}
 
-trait CSREmailClient extends EmailClient {
+object Phase2OnlineTestEmailClient extends OnlineTestEmailClient with EmailClient {
+  val emailConfig = config.MicroserviceAppConfig.emailConfig
 
-  import Implicits._
-  import config.MicroserviceAppConfig.emailConfig._
+  override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)
+    (implicit hc: HeaderCarrier) = sendEmail(to,
+      "fset_faststream_app_phase2_test_invitation",
+      Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
+    )
 
-  private def sendEmail(to: String, template: String, parameters: Map[String, String])(implicit hc: HeaderCarrier) =
-    POST(s"$url/send-templated-email", UserEmail(List(to), template, parameters), Seq()).map(_ => (): Unit)
+  override def sendOnlineTestExpired(to: String, name: String)
+    (implicit hc: HeaderCarrier) = sendEmail(to,
+      "fset_faststream_app_online_test_expired",
+      Map("name" -> name)
+    )
 
-  override def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier) =
-    sendEmail(to, "fset_faststream_app_submit_confirmation", Map("name" -> name))
+  override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
+    timeUnit: TimeUnit, expiryDate: DateTime)
+    (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
+      "fset_faststream_app_online_test_reminder",
+      Map("name" -> name,
+          "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
+          "timeUnit" -> timeUnit.toString.toLowerCase,
+          "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeftInHours)
+      )
+  )
+
+  override def sendOnlineTestFailed(to: String, name: String)
+    (implicit hc: HeaderCarrier) = sendEmail(to,
+      "csr_app_online_test_failed",
+      Map("name" -> name)
+    )
+}
+
+
+
+trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailClient with EmailClient {
+
 
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier) =
     sendEmail(
@@ -48,7 +78,7 @@ trait CSREmailClient extends EmailClient {
   override def sendOnlineTestExpired(to: String, name: String)(implicit hc: HeaderCarrier) =
     sendEmail(
       to,
-      "fset_faststream_app_online_test_expired",
+      "fset_faststream_app_online_phase1_test_expired",
       Map("name" -> name)
     )
 
@@ -57,7 +87,7 @@ trait CSREmailClient extends EmailClient {
 
     sendEmail(
       to,
-      "fset_faststream_app_online_test_reminder",
+      "fset_faststream_app_online_phase1_test_reminder",
       Map("name" -> name,
           "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
           "timeUnit" -> timeUnit.toString.toLowerCase,
@@ -117,19 +147,31 @@ trait CSREmailClient extends EmailClient {
 
 }
 
-trait EmailClient extends WSHttp {
-  def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
+trait OnlineTestEmailClient {
   def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
   def sendOnlineTestExpired(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
   def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
     timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
   def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
+}
+
+trait AssessmentCentreEmailClient {
   def sendConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime,
     confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit]
   def sendReminderToConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime,
     confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit]
   def sendAssessmentCentrePassed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
   def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
+}
+
+trait EmailClient extends WSHttp {
+  val emailConfig: EmailConfig
+
+  protected def sendEmail(to: String, template: String, parameters: Map[String, String])(implicit hc: HeaderCarrier) =
+    POST(s"${emailConfig.url}/send-templated-email", UserEmail(List(to), template, parameters), Seq()).map(_ => (): Unit)
+
+  def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier) =
+    sendEmail(to, "fset_faststream_app_submit_confirmation", Map("name" -> name))
 }
 
 object EmailDateFormatter {

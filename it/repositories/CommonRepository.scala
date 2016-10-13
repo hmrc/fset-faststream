@@ -1,7 +1,7 @@
 package repositories
 
 import model.ApplicationStatus.ApplicationStatus
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
+import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.Phase1TestExamples._
 import model.SchemeType._
 import model.persisted.{ ApplicationPhase1ReadyForEvaluation, AssistanceDetails, TestResult }
@@ -41,7 +41,7 @@ trait CommonRepository {
       selectedSchemes(schemes.toList))
   }
 
-  def insertApplication(appId: String, applicationStatus: ApplicationStatus, tests: Option[List[Phase1Test]] = None,
+  def insertApplication(appId: String, applicationStatus: ApplicationStatus, tests: Option[List[CubiksTest]] = None,
                         isGis: Boolean = false, schemes: List[SchemeType] = List(Commercial)): Unit = {
     val gis = if (isGis) Some(true) else None
     applicationRepository.collection.insert(BSONDocument(
@@ -56,7 +56,7 @@ trait CommonRepository {
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
 
     tests.foreach { t =>
-      phase1TestRepository.insertOrUpdatePhase1TestGroup(appId, Phase1TestProfile(now, t)).futureValue
+      phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t)).futureValue
       t.foreach { oneTest =>
         oneTest.testResult.foreach { result =>
           phase1TestRepository.insertPhase1TestResult(appId, oneTest, result).futureValue
