@@ -87,9 +87,22 @@
         }
     }
 
-    @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.phase2TestsPage) match {
-
-         case (false, Some(phase2Test)) => {
+    @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
+         case (_, None, Some(tests)) => {
+                <li id="etraySection">
+                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray
+                        <span class="font-xsmall" data-locked>- locked</span>
+                    </p>
+                    <p data-locked>Unlocked if you're successful in the online exercises</p>
+                </li>
+                <li id="videoSection">
+                    <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
+                        <span class="font-xsmall" data-locked>- locked</span>
+                    </p>
+                    <p data-locked>Unlocked if you're successful in the E-tray</p>
+                </li>
+         }
+         case (false, Some(phase2Test), _) => {
                 @if(phase2Test.isCompleted) {
                     <li id="etraySection">
                         <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>E-tray</p>
@@ -120,39 +133,20 @@
                         </div>
                     </li>
                 }
+                <li id="videoSection">
+                    <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
+                        <span class="font-xsmall" data-locked>- locked</span>
+                    </p>
+                    <p data-locked>Unlocked if you're successful in the E-tray</p>
+                </li>
          }
 
-         case (true, Some(phase2Test)) => {
+         case (true, Some(phase2Test), _) => {
                 <li id="etraySection">
                     @* TODO e-tray expiry content *@
                 </li>
          }
-
-         case (_, None) => {
-                <li id="etraySection">
-                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray <span class="font-xsmall"
-                                                                                                                data-locked>- locked</span></p>
-                    <p data-locked>Unlocked if you're successful in the online exercises</p>
-                </li>
-        }
+         case _ => { }
     }
-                <li id="videoSection">
-                    <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
-                        <span
-                                class="font-xsmall" data-locked>- locked</span>
-                    </p>
-                    <p data-locked>Unlocked if you're successful in the E-tray</p>
-                    <div id="videoBlurb" class="hidden">
-                        <p id="videoDescription" class="">This section is timed, after starting the section you'll
-                            have 30 minutes to complete it.</p>
-                        <p id="videoTime" class="">You have <strong>6 days 3 hours</strong> to finish
-                            the video interview</p>
-                        <a href="https://launchpadrecruitsapp.com/apply/4dbf86b937ecb3df1c533a30" class="button"
-                           id="videoButton">Start section</a>
-                        <p>(You'll have 30 minutes to finish)</p>
-                    </div>
-                </li>
-            </ul>
-            <p id="testsFindoutmore"><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the online tests</a></p>
 </div>
 

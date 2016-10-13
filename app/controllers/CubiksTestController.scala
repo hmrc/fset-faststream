@@ -20,7 +20,6 @@ import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
-import play.api.mvc.Result
 import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -44,13 +43,6 @@ abstract class CubiksTestController(applicationClient: ApplicationClient) extend
       applicationClient.getPhase2TestProfile(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
         startCubiksTest(phase2TestProfile.activeTests)
       }
-  }
-
-  private def startCubiksTest(cubiksTests: Iterable[CubiksTest])(implicit hc: HeaderCarrier) = {
-    cubiksTests.find(!_.completed).map { testToStart =>
-      applicationClient.startTest(testToStart.cubiksUserId)
-      Future.successful(Redirect(testToStart.testUrl))
-    }.getOrElse(Future.successful(NotFound))
   }
 
   def completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
@@ -79,6 +71,13 @@ abstract class CubiksTestController(applicationClient: ApplicationClient) extend
       applicationClient.completeTestByToken(token).map { _ =>
         Ok(views.html.application.onlineTests.onlineTestSuccess())
       }
+  }
+
+  private def startCubiksTest(cubiksTests: Iterable[CubiksTest])(implicit hc: HeaderCarrier) = {
+    cubiksTests.find(!_.completed).map { testToStart =>
+      applicationClient.startTest(testToStart.cubiksUserId)
+      Future.successful(Redirect(testToStart.testUrl))
+    }.getOrElse(Future.successful(NotFound))
   }
 
 }
