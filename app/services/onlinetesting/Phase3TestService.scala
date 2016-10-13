@@ -180,9 +180,9 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
     cdRepository.find(application.userId).map(_.email)
 
-  // TODO: This needs to cater for 10% extra, 33% extra etc
+  // TODO: This needs to cater for 10% extra, 33% extra etc. See FSET-656
   private def getInterviewIdForApplication(application: OnlineTestApplication): Int = {
-      gatewayConfig.phase3Tests.mainInterviewId
+      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0%")
   }
 }
 

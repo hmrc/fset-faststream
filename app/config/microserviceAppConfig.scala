@@ -84,8 +84,7 @@ case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
 
 case class Phase3TestsConfig(timeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
-                             mainInterviewId: Int,
-                             tenPercentInterviewId: Int)
+                             interviewsByAdjustmentPercentage: Map[String, Int])
 
 case class DiversityMonitoringJobConfig(enabled: Boolean, lockId: Option[String], initialDelaySecs: Option[Int],
   intervalSecs: Option[Int], forceStopActorsSecs: Option[Int])

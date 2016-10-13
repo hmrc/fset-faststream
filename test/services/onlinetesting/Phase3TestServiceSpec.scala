@@ -137,8 +137,9 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       "localhost",
       Phase3TestsConfig(timeToExpireInDays = 7,
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
-        1,
-        2
+        Map(
+          "0%" -> 12345
+        )
       )
     )
 
