@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package model.exchange
+package connectors.launchpadgateway.exchangeobjects
 
-import model.OnlineTestCommands.Phase1Test
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class Phase1TestProfileWithNames(expirationDate: DateTime, activeTests: Map[String, Phase1Test])
-
-object Phase1TestProfileWithNames {
-  implicit val phase1TestProfileWithNamesFormat = Json.format[Phase1TestProfileWithNames]
+case class RegisterApplicantResponse(candidateId: String,
+                                     customCandidateId: String)
+object RegisterApplicantResponse {
+  implicit val registerApplicantResponseFormat = Json.format[RegisterApplicantResponse]
 }

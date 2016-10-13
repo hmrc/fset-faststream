@@ -17,32 +17,32 @@
 package services.testdata
 
 import common.FutureEx
-import model.OnlineTestCommands.{Phase1Test, TestResult}
+import model.OnlineTestCommands.TestResult
 import model.ProgressStatuses
 import model.exchange.Phase1TestResultReady
-import model.persisted.Phase1TestWithUserIds
-import org.joda.time.{DateTime, DateTimeZone}
+import model.persisted.CubiksTest
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-import services.onlinetesting.OnlineTestService
+import services.onlinetesting.Phase1TestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.Future
 
 object Phase1TestsResultsReceivedStatusGenerator extends Phase1TestsResultsReceivedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsCompletedStatusGenerator
   override val otRepository = phase1TestRepository
-  override val otService = OnlineTestService
+  override val otService = Phase1TestService
 }
 
 trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
-  val otService: OnlineTestService
+  val otService: Phase1TestService
 
 
-    def insertTests(applicationId: String, testResults: List[(TestResult, Phase1Test)]): Future[Unit] = {
+    def insertTests(applicationId: String, testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
       Future.sequence(testResults.map {
         case (result, phase1Test) => otRepository.insertPhase1TestResult(applicationId,
           phase1Test, model.persisted.TestResult.fromCommandObject(result)
@@ -51,8 +51,8 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
     }
 
     val now = DateTime.now().withZone(DateTimeZone.UTC)
-    def getPhase1Test(cubiksUserId: Int) = Phase1Test(0, true, cubiksUserId, "", "", "", now, 0)
-    def getTestResult() = TestResult("completed", "norm", Some(10.0), Some(20.0), Some(30.0), Some(40.0))
+    def getPhase1Test(cubiksUserId: Int) = CubiksTest(0, true, cubiksUserId, "", "", "", now, 0)
+    def getTestResult() = TestResult("completed", "norm", Some(30.0), Some(20.0), Some(30.0), Some(40.0))
 
 
     def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {

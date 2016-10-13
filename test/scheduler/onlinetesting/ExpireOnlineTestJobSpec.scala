@@ -25,6 +25,7 @@ import play.api.test.WithApplication
 import services.onlinetesting.OnlineTestExpiryService
 import testkit.ShortTimeout
 
+import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ExpireOnlineTestJobSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
@@ -32,22 +33,25 @@ class ExpireOnlineTestJobSpec extends PlaySpec with MockitoSugar with ScalaFutur
 
   val serviceMock = mock[OnlineTestExpiryService]
 
-  "send invitation job" should {
+  object TestableExpireTestJob extends ExpireOnlineTestJob {
+    val service = serviceMock
+    val lockId: String = "1"
+    val forceLockReleaseAfter: Duration = mock[Duration]
+    implicit val ec: ExecutionContext = mock[ExecutionContext]
+    def name: String = "test"
+    def initialDelay: FiniteDuration = mock[FiniteDuration]
+    def interval: FiniteDuration = mock[FiniteDuration]
+  }
 
+  "send invitation job" should {
     "complete successfully when service completes successfully" in new WithApplication {
-      object TestableExpireOnlineTestJob extends ExpireOnlineTestJob {
-        val service = serviceMock
-      }
       when(serviceMock.processNextExpiredTest()).thenReturn(Future.successful(()))
-      TestableExpireOnlineTestJob.tryExecute().futureValue mustBe (())
+      TestableExpireTestJob.tryExecute().futureValue mustBe (())
     }
 
     "fail when the service fails" in new WithApplication {
-      object TestableExpireOnlineTestJob extends ExpireOnlineTestJob {
-        val service = serviceMock
-      }
       when(serviceMock.processNextExpiredTest()).thenReturn(Future.failed(new Exception))
-      TestableExpireOnlineTestJob.tryExecute().failed.futureValue mustBe an[Exception]
+      TestableExpireTestJob.tryExecute().failed.futureValue mustBe an[Exception]
     }
   }
 }

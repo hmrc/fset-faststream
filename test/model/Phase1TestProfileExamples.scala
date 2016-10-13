@@ -16,7 +16,7 @@
 
 package model
 
-import model.OnlineTestCommands.Phase1TestProfile
+import model.persisted.Phase1TestProfile
 import org.joda.time.DateTime
 
 object Phase1TestProfileExamples {

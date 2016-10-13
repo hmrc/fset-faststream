@@ -19,8 +19,9 @@ package repositories.onlinetesting
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
+import model.OnlineTestCommands.OnlineTestApplication
 import org.joda.time.DateTime
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
+import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase1TestWithUserIds, TestResult }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
@@ -33,24 +34,24 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait Phase1TestRepository extends OnlineTestRepository[Phase1TestProfile] {
+trait Phase1TestRepository extends OnlineTestRepository[CubiksTest, Phase1TestProfile] {
   this: ReactiveRepository[_, _] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase1TestProfile]]
 
   def getTestProfileByToken(token: String): Future[Phase1TestProfile]
 
-  def getPhase1TestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestWithUserIds]
+  def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestWithUserIds]
 
-  def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
+  def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
-  def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]]
+  def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]]
 
-  def updatePhase1GroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
+  def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
 
-  def removePhase1TestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
+  def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
 
-  def insertPhase1TestResult(appId: String, phase1Test: Phase1Test, testResult: TestResult): Future[Unit]
+  def insertPhase1TestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 
@@ -59,7 +60,7 @@ trait Phase1TestRepository extends OnlineTestRepository[Phase1TestProfile] {
 
 class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[Phase1TestProfile, BSONObjectID]("application", mongo,
-    model.OnlineTestCommands.Phase1TestProfile.phase1TestProfileFormat, ReactiveMongoFormats.objectIdFormats
+    model.persisted.Phase1TestProfile.phase1TestProfileFormat, ReactiveMongoFormats.objectIdFormats
   ) with Phase1TestRepository {
 
   val phaseName = "PHASE1"
@@ -76,7 +77,17 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     getTestProfileByToken(token, phaseName)
   }
 
-  override def getPhase1TestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestWithUserIds] = {
+  override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+      BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
+    ))
+
+    implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
+    selectRandom[OnlineTestApplication](query, 1)
+  }
+
+  override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestWithUserIds] = {
     val query = BSONDocument("testGroups.PHASE1.tests" -> BSONDocument(
       "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
     ))
@@ -93,21 +104,19 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
   }
 
-  override def updatePhase1GroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
+  override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
     updateGroupExpiryTime(applicationId, expirationDate, phaseName)
   }
 
-  override def insertOrUpdatePhase1TestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
+  override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val applicationStatusBSON = BSONDocument("$set" -> BSONDocument(
-      s"progress-status.$PHASE1_TESTS_INVITED" -> true,
-      "applicationStatus" -> PHASE1_TESTS_INVITED.applicationStatus
-    )) ++ BSONDocument("$set" -> BSONDocument(
+    val updateBson = BSONDocument("$set" -> applicationStatusBSON(PHASE1_TESTS_INVITED)
+    ) ++ BSONDocument("$set" -> BSONDocument(
       "testGroups" -> BSONDocument(phaseName -> phase1TestProfile)
     ))
 
-    collection.update(query, applicationStatusBSON, upsert = false) map { status =>
+    collection.update(query, updateBson, upsert = false) map { status =>
       if (status.n != 1) {
         val msg = s"${status.n} rows affected when inserting or updating instead of 1! (App Id: $applicationId)"
         Logger.warn(msg)
@@ -117,7 +126,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
   }
 
-  override def insertPhase1TestResult(appId: String, phase1Test: Phase1Test, testResult: TestResult): Future[Unit] = {
+  override def insertPhase1TestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
     val query = BSONDocument(
       "applicationId" -> appId,
       s"testGroups.$phaseName.tests" -> BSONDocument(
@@ -149,7 +158,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     nextTestForReminder(reminder, phaseName, progressStatusQuery)
   }
 
-  override def nextPhase1TestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
+  def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_READY}" -> true),
@@ -158,17 +167,19 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       )
     ))
 
-    selectRandom(query).map(_.map { doc =>
+    implicit val reader = bsonReader { doc =>
       val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
       Phase1TestWithUserIds(
         applicationId = doc.getAs[String]("applicationId").get,
         userId = doc.getAs[String]("userId").get,
         Phase1TestProfile.bsonHandler.read(group)
       )
-    })
+    }
+
+    selectOneRandom[Phase1TestWithUserIds](query)
   }
 
-  override def removePhase1TestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
+  override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
     require(progressStatuses forall (_.applicationStatus == ApplicationStatus.PHASE1_TESTS), "Cannot remove non Phase 1 progress status")
 

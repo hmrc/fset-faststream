@@ -1,23 +1,25 @@
 package repositories.onlinetesting
 
+import config.CubiksGatewayConfig
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
+import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.EvaluationResults.Green
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
 import model.SchemeType._
-import model.persisted._
-import model.{ ApplicationStatus, ProgressStatuses, SchemeType, SelectedSchemes }
+import model.persisted.{ ApplicationPhase1ReadyForEvaluation, _ }
+import model.{ ApplicationStatus, SchemeType, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
+import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.schemepreferences
+import repositories.{ CommonRepository, schemepreferences }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
-import config.MicroserviceAppConfig._
 
-class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
+class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
+
   import ImplicitBSONHandlers._
   import Phase1EvaluationMongoRepositorySpec._
 
@@ -25,42 +27,71 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository
 
-  def helperAppRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
-  def helperAssistanceDetailsRepo = new AssistanceDetailsMongoRepository
-  def helperPhase1TestMongoRepoo = new Phase1TestMongoRepository(DateTimeFactory)
-  def helperSchemePreferencesRepo = new schemepreferences.SchemePreferencesMongoRepository
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService)
+
+  def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
+
+  def assistanceDetailsRepository = new AssistanceDetailsMongoRepository
+
+  def phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
 
   "next Application Ready For Evaluation" should {
     "return nothing if there is no PHASE1_TESTS and PHASE2_TESTS applications" in {
-      insertApp("appId", ApplicationStatus.SUBMITTED)
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
-      result mustBe None
+      insertApplication("appId", ApplicationStatus.SUBMITTED)
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
+      result mustBe empty
+    }
+
+    "return nothing if application does not have online exercise results" in {
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
+      result mustBe empty
     }
 
     "return application in PHASE1_TESTS with results" in {
-      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
 
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
 
-      result mustBe Some(ApplicationPhase1ReadyForEvaluation(
+      result must not be empty
+      result.head mustBe ApplicationPhase1ReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE1_TESTS,
         isGis = false,
         Phase1TestProfile(now, testsWithResult),
-        selectedSchemes))
+        selectedSchemes(List(Commercial)))
     }
 
     "return GIS application in PHASE1_TESTS with results" in {
-      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult), isGis = true)
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult), isGis = true)
 
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
 
-      result mustBe Some(ApplicationPhase1ReadyForEvaluation(
+      result must not be empty
+      result.head mustBe ApplicationPhase1ReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE1_TESTS,
         isGis = true,
         Phase1TestProfile(now, testsWithResult),
-        selectedSchemes))
+        selectedSchemes(List(Commercial)))
+    }
+
+    "limit number of next applications to the batch size limit" in {
+      val batchSizeLimit = 5
+      1 to 6 foreach { id =>
+        insertApplication(s"app$id", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult), isGis = false)
+      }
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSizeLimit).futureValue
+      result.size mustBe batchSizeLimit
+    }
+
+    "return less number of applications than batch size limit" in {
+      val batchSizeLimit = 5
+      1 to 2 foreach { id =>
+        insertApplication(s"app$id", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult), isGis = false)
+      }
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSizeLimit).futureValue
+      result.size mustBe 2
     }
   }
 
@@ -68,7 +99,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
 
     "save result and update the status" in {
-      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
 
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS_PASSED)).futureValue
@@ -83,83 +114,54 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
     }
 
     "return nothing when candidate has been already evaluated" in {
-      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version1").futureValue
-      result mustBe None
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
+      result mustBe empty
     }
 
     "return the candidate in PHASE1_TESTS if the passmark has changed" in {
-      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
-      result mustBe defined
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
+      result must not be empty
     }
 
     "return the candidate to re-evaluation in PHASE1_TESTS_PASSED if the passmark has changed" in {
-      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS_PASSED)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
-      result mustBe defined
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
+      result must not be empty
     }
 
     "return the candidate to re-evaluation in PHASE2_TESTS if the passmark has changed" in {
-      insertApp("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE2_TESTS)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
-      result mustBe defined
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
+      result must not be empty
     }
 
     "do not change application status when it is not required" in {
-      insertApp("app1", ApplicationStatus.PHASE2_TESTS, Some(testsWithResult))
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newApplicationStatus = None).futureValue
 
-      val result = phase1EvaluationRepo.nextApplicationReadyForPhase1ResultEvaluation("version2").futureValue
-      result mustBe defined
-      result.get.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
+      result must not be empty
+      result.head.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS
     }
-  }
-
-  private def insertApp(appId: String, applicationStatus: ApplicationStatus, tests: Option[List[Phase1Test]] = None,
-                        isGis: Boolean = false): Unit = {
-    val gis = if (isGis) Some(true) else None
-    helperAppRepo.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "userId" -> appId,
-      "applicationStatus" -> applicationStatus
-    )).futureValue
-    val ad = AssistanceDetails("No", None, gis, needsSupportForOnlineAssessment = false, None, needsSupportAtVenue = false, None)
-    helperAssistanceDetailsRepo.update(appId, appId, ad).futureValue
-    helperSchemePreferencesRepo.save(appId, selectedSchemes).futureValue
-
-    tests.foreach { t =>
-      helperPhase1TestMongoRepoo.insertOrUpdatePhase1TestGroup(appId, Phase1TestProfile(now, t)).futureValue
-      t.foreach { oneTest =>
-        oneTest.testResult.foreach { result =>
-          helperPhase1TestMongoRepoo.insertPhase1TestResult(appId, oneTest, result).futureValue
-        }
-      }
-      if(t.exists(_.testResult.isDefined)) {
-        helperPhase1TestMongoRepoo.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
-      }
-    }
-
-    helperAppRepo.collection.update(
-      BSONDocument("applicationId" -> appId),
-      BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus))).futureValue
   }
 
   private def getOnePhase1Profile(appId: String) = {
@@ -173,10 +175,11 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec {
 }
 
 object Phase1EvaluationMongoRepositorySpec {
-  implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
-  import model.Phase1TestExamples._
-
-  val phase1Tests = List(firstTest, firstTest)
+  val now = DateTime.now().withZone(DateTimeZone.UTC)
+  val phase1Tests = List(
+    CubiksTest(16196, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000),
+    CubiksTest(16194, usedForResults = true, 101, "cubiks", "token2", "http://localhost", now, 2001)
+  )
   val selectedSchemes = SelectedSchemes(List(Commercial, DigitalAndTechnology), orderAgreed = true, eligible = true)
   val testsWithResult = phase1TestsWithResults(TestResult("Ready", "norm", Some(20.5), None, None, None))
 

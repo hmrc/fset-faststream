@@ -34,7 +34,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
   override val collectionName = "application"
   
   def candidateAllocationRepo = new CandidateAllocationMongoRepository(DateTimeFactory)
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
 
   "Next unconfirmed candidate to send a reminder" should {
     "return the unconfirmed candidate who's expiration date is today" in {

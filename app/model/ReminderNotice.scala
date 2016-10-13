@@ -31,5 +31,5 @@ sealed case class ReminderNotice(hoursBeforeReminder: Int, progressStatuses: Pro
   }
 }
 
-object FirstReminder extends ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
-object SecondReminder extends ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER)
+object Phase1FirstReminder extends ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
+object Phase1SecondReminder extends ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER)

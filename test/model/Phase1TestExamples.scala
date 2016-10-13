@@ -16,7 +16,7 @@
 
 package model
 
-import model.OnlineTestCommands.Phase1Test
+import model.persisted.CubiksTest
 import model.persisted.TestResult
 import org.joda.time.DateTime
 
@@ -25,10 +25,10 @@ object Phase1TestExamples {
 
   def createTestResult(tScore: Double) = TestResult("Ready", "norm", Some(tScore), None, None, None)
 
-  def firstTest(implicit now: DateTime) = Phase1Test(1, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
+  def firstTest(implicit now: DateTime) = CubiksTest(16196, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
     testResult = Some(testResult))
 
-  def secondTest(implicit now: DateTime) = firstTest.copy(scheduleId = 2)
+  def secondTest(implicit now: DateTime) = firstTest.copy(scheduleId = 16194)
 
-  def thirdTest(implicit now: DateTime) = firstTest.copy(scheduleId = 3)
+  def thirdTest(implicit now: DateTime) = firstTest.copy(scheduleId = 16196)
 }

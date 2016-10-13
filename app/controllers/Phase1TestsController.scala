@@ -22,17 +22,17 @@ import play.api.mvc.{ Action, Result }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.Logger
 import services.events.EventService
-import services.onlinetesting.OnlineTestService
+import services.onlinetesting.Phase1TestService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase1TestsController extends Phase1TestsController {
-  override val phase1TestService = OnlineTestService
+  override val phase1TestService = Phase1TestService
   val eventService = EventService
 }
 
 trait Phase1TestsController extends BaseController {
-  val phase1TestService: OnlineTestService
+  val phase1TestService: Phase1TestService
   val eventService: EventService
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>

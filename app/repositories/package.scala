@@ -19,7 +19,7 @@ import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, C
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
-import model.OnlineTestCommands.{OnlineTestApplication, Phase1TestProfile, TimeAdjustmentsOnlineTestApplication}
+import model.OnlineTestCommands.{OnlineTestApplication, TimeAdjustmentsOnlineTestApplication}
 import model.PassmarkPersistedObjects._
 import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
 import model.command.WithdrawApplication
@@ -59,13 +59,15 @@ package object repositories {
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService)
   lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
   lazy val mediaRepository = new MediaMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
+  lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
+  lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
   lazy val testReportRepository = new TestReportMongoRepository()
   lazy val diversityReportRepository = new ReportingMongoRepository()
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
@@ -85,6 +87,7 @@ package object repositories {
     applicationRepository.collection.indexesManager.create(Index(
       Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false)),
     applicationRepository.collection.indexesManager.create(Index(Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false)),
+    applicationRepository.collection.indexesManager.create(Index(Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)),
 
     contactDetailsRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
     faststreamContactDetailsRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
@@ -203,6 +206,7 @@ package object repositories {
 
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
+    val lastName = personalDetailsRoot.getAs[String]("lastName").get
 
     val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
     val guaranteedInterview = assistanceDetailsRoot.getAs[Boolean]("guaranteedInterview").getOrElse(false)
@@ -216,12 +220,14 @@ package object repositories {
         val numericalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("numericalTimeAdjustmentPercentage").get
         val timeAdjustments = TimeAdjustmentsOnlineTestApplication(verbalTimeAdjustmentPercentage, numericalTimeAdjustmentPercentage)
         OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
-          Some(timeAdjustments))
+          lastName, Some(timeAdjustments))
       } else {
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName, None)
+        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+          lastName, None)
       }
     } else {
-      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName, None)
+      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+        lastName, None)
     }
 
   }

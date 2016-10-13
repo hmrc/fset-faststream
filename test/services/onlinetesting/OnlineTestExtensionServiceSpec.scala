@@ -17,11 +17,11 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import model.OnlineTestCommands.Phase1TestProfile
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED }
+import model.persisted.Phase1TestProfile
+import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED}
 import model.command.ProgressResponse
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
@@ -30,7 +30,7 @@ import repositories.onlinetesting.Phase1TestRepository
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.events.EventServiceFixture
-import services.onlinetesting.OnlineTestService.TestExtensionException
+import services.onlinetesting.Exceptions.TestExtensionException
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
 import uk.gov.hmrc.play.http.HeaderCarrier

@@ -46,27 +46,39 @@ object MicroserviceLoggingFilter extends LoggingFilter {
 trait Scheduler extends RunningOfScheduledJobs {
   import config.MicroserviceAppConfig._
 
-  private lazy val sendInvitationJob: Option[ScheduledJob] =
-    if (sendInvitationJobConfigValues.enabled) Some(SendInvitationJob) else {
-      Logger.warn("Send invitation job is disabled")
+  private lazy val sendPhase1InvitationJob: Option[ScheduledJob] =
+    if (sendPhase1InvitationJobConfigValues.enabled) Some(SendPhase1InvitationJob) else {
+      Logger.warn("Send phase 1 invitation job is disabled")
       None
     }
 
-  private lazy val firstReminderExpiringTestJob: Option[ScheduledJob] =
-    if (firstReminderJobConfigValues.enabled) Some(FirstReminderExpiringTestJob) else {
-      Logger.warn("First reminder for expiring test job is disabled")
+  private lazy val sendPhase2InvitationJob: Option[ScheduledJob] =
+    if (sendPhase2InvitationJobConfigValues.enabled) Some(SendPhase2InvitationJob) else {
+      Logger.warn("Send phase 2 invitation job is disabled")
       None
     }
 
-  private lazy val secondReminderExpiringTestJob: Option[ScheduledJob] =
-    if (secondReminderJobConfigValues.enabled) Some(SecondReminderExpiringTestJob) else {
-      Logger.warn("Second reminder for expiring test job is disabled")
+  private lazy val sendPhase3InvitationJob: Option[ScheduledJob] =
+    if (sendPhase3InvitationJobConfigValues.enabled) Some(SendPhase3InvitationJob) else {
+      Logger.warn("Send phase 3 invitation job is disabled")
       None
     }
 
-  private lazy val expireOnlineTestJob: Option[ScheduledJob] =
-    if (expireOnlineTestJobConfigValues.enabled) Some(ExpireOnlineTestJob) else {
-      Logger.warn("Expire online test job is disabled")
+  private lazy val firstPhase1ReminderExpiringTestJob: Option[ScheduledJob] =
+    if (firstPhase1ReminderJobConfigValues.enabled) Some(FirstPhase1ReminderExpiringTestJob) else {
+      Logger.warn("First Phase1 reminder for expiring test job is disabled")
+      None
+    }
+
+  private lazy val secondPhase1ReminderExpiringTestJob: Option[ScheduledJob] =
+    if (secondPhase1ReminderJobConfigValues.enabled) Some(SecondPhase1ReminderExpiringTestJob) else {
+      Logger.warn("Second Phase1 reminder for expiring test job is disabled")
+      None
+    }
+
+  private lazy val expirePhase1TestJob: Option[ScheduledJob] =
+    if (expirePhase1TestJobConfigValues.enabled) Some(ExpirePhase1TestJob) else {
+      Logger.warn("Expire Phase1 test job is disabled")
       None
     }
 
@@ -112,10 +124,12 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
-  private[config] def sendInvitationJobConfigValues = sendInvitationJobConfig
-  private[config] def expireOnlineTestJobConfigValues = expireOnlineTestJobConfig
-  private[config] def firstReminderJobConfigValues = firstReminderJobConfig
-  private[config] def secondReminderJobConfigValues = secondReminderJobConfig
+  private[config] def sendPhase1InvitationJobConfigValues = sendPhase1InvitationJobConfig
+  private[config] def sendPhase2InvitationJobConfigValues = sendPhase2InvitationJobConfig
+  private[config] def sendPhase3InvitationJobConfigValues = sendPhase3InvitationJobConfig
+  private[config] def expirePhase1TestJobConfigValues = expirePhase1TestJobConfig
+  private[config] def firstPhase1ReminderJobConfigValues = firstPhase1ReminderJobConfig
+  private[config] def secondPhase1ReminderJobConfigValues = secondPhase1ReminderJobConfig
   private[config] def failedOnlineTestJobConfigValues = failedOnlineTestJobConfig
   private[config] def retrieveResultsJobConfigValues = retrieveResultsJobConfig
   private[config] def evaluatePhase1ResultJobConfigValues = evaluatePhase1ResultJobConfig
@@ -124,9 +138,9 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
 
-  lazy val scheduledJobs = List(sendInvitationJob, firstReminderExpiringTestJob, secondReminderExpiringTestJob,
-    expireOnlineTestJob, failedOnlineTestJob, retrieveResultsJob, evaluatePhase1ResultJob, diversityMonitoringJob,
-    confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
+  lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob, firstPhase1ReminderExpiringTestJob,
+    secondPhase1ReminderExpiringTestJob, expirePhase1TestJob, failedOnlineTestJob, retrieveResultsJob, evaluatePhase1ResultJob,
+    diversityMonitoringJob, confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with Scheduler {

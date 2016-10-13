@@ -28,22 +28,21 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object ExpireOnlineTestJob extends ExpireOnlineTestJob {
+object ExpirePhase1TestJob extends ExpireOnlineTestJob with ExpirePhase1TestJobConfig {
   override val service = OnlineTestExpiryService
+  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 }
 
-trait ExpireOnlineTestJob extends SingleInstanceScheduledJob with ExpireOnlineTestJobConfig {
+trait ExpireOnlineTestJob extends SingleInstanceScheduledJob {
   val service: OnlineTestExpiryService
-
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] =
     service.processNextExpiredTest()
 }
 
-trait ExpireOnlineTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+trait ExpirePhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.expireOnlineTestJobConfig
-  val configPrefix = "scheduling.online-testing.expiry-job."
-  val name = "ExpireOnlineTestJob"
+  override val conf = config.MicroserviceAppConfig.expirePhase1TestJobConfig
+  val configPrefix = "scheduling.online-testing.expiry-phase1-job."
+  val name = "ExpirePhase1TestJob"
 }

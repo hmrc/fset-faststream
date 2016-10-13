@@ -17,7 +17,8 @@
 package repositories
 
 import reactivemongo.api.QueryOpts
-import reactivemongo.bson.BSONDocument
+import reactivemongo.api.collections.bson.BSONCollection
+import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -27,22 +28,35 @@ import scala.util.Random
 trait RandomSelection {
   this: ReactiveRepository[_, _] =>
 
+  protected val bsonCollection: BSONCollection
+
   // In Mongo 3.2.0 it would be more efficient and safer to use `db.aggregate` with the new `$sample` aggregation
   // to randomly select a single record.
-  def selectRandom(query: BSONDocument)(implicit ec: ExecutionContext): Future[Option[BSONDocument]] =
+  def selectRandom[T](query: BSONDocument, batchSize: Int = 1)(
+    implicit reader: BSONDocumentReader[T], ec: ExecutionContext): Future[List[T]] = {
+
     collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
       val count = c.count
       if (count == 0) {
-        Future.successful(None)
+        Future.successful(Nil)
       } else {
         // In the event of a race-condition where the size decreases after counting, the worse-case is that
         // `None` is returned by the method instead of a Some[BSONDocument].
-        val randomIndex = Random.nextInt(count)
-        collection
-          .find(query)
-          .options(QueryOpts(skipN = randomIndex, batchSizeN = 1))
-          .cursor[BSONDocument]().collect[List](1)
-          .map(_.headOption)
+        val (randomIndex, newBatchSize) = batchSize match {
+          case 1 => (Random.nextInt(count), 1)
+          case _ if count <= batchSize => (0, count)
+          case _ => (Random.nextInt(count - batchSize), batchSize)
+        }
+
+        bsonCollection.find(query)
+          .options(QueryOpts(skipN = randomIndex, batchSizeN = newBatchSize))
+          .cursor[T]().collect[List](newBatchSize)
       }
     }
+  }
+
+  def selectOneRandom[T](query: BSONDocument)(
+    implicit reader: BSONDocumentReader[T], ec: ExecutionContext): Future[Option[T]] = {
+    selectRandom[T](query, 1).map(_.headOption)
+  }
 }

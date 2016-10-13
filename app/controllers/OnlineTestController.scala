@@ -27,7 +27,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.events.EventService
-import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService }
+import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService, Phase1TestService, Phase2TestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -56,7 +56,8 @@ case class UserIdWrapper(userId: String)
 object OnlineTestController extends OnlineTestController {
   override val appRepository: GeneralApplicationRepository = applicationRepository
   override val onlineRepository: Phase1TestRepository = phase1TestRepository
-  override val onlineTestingService: OnlineTestService = OnlineTestService
+  override val onlineTestingService = Phase1TestService
+  override val phase2TestService = Phase2TestService
   override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
   val eventService: EventService = EventService
 }
@@ -64,16 +65,25 @@ object OnlineTestController extends OnlineTestController {
 trait OnlineTestController extends BaseController {
   val appRepository: GeneralApplicationRepository
   val onlineRepository: Phase1TestRepository
-  val onlineTestingService: OnlineTestService
+  val onlineTestingService: Phase1TestService
+  val phase2TestService: Phase2TestService
   val onlineTestExtensionService: OnlineTestExtensionService
   val eventService: EventService
 
   import Commands.Implicits._
 
   def getOnlineTest(applicationId: String) = Action.async { implicit request =>
-    onlineTestingService.getPhase1TestProfile(applicationId) map {
+    onlineTestingService.getTestProfile(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
       case None => Logger.warn(s"No phase 1 tests found for applicationId '$applicationId'")
+        NotFound
+    }
+  }
+
+  def getPhase2OnlineTest(applicationId: String) = Action.async { implicit request =>
+    phase2TestService.getTestProfile(applicationId) map {
+      case Some(phase2TestGroupWithNames) => Ok(Json.toJson(phase2TestGroupWithNames))
+      case None => Logger.warn(s"No phase 2 tests found for applicationId '$applicationId'")
         NotFound
     }
   }
@@ -87,7 +97,7 @@ trait OnlineTestController extends BaseController {
   def resetOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
       appRepository.getOnlineTestApplication(appId).flatMap {
-        case Some(onlineTestApp) => onlineTestingService.resetPhase1Tests(onlineTestApp, resetOnlineTest.tests,
+        case Some(onlineTestApp) => onlineTestingService.resetTests(onlineTestApp, resetOnlineTest.tests,
           resetOnlineTest.actionTriggeredBy).map ( _ => Ok )
         case _ => Future.successful(NotFound)
       }
