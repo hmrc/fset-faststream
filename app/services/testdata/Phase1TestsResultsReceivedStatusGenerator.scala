@@ -19,7 +19,7 @@ package services.testdata
 import common.FutureEx
 import model.OnlineTestCommands.TestResult
 import model.ProgressStatuses
-import model.exchange.Phase1TestResultReady
+import model.exchange.CubiksTestResultReady
 import model.persisted.CubiksTest
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
@@ -52,7 +52,7 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
 
     val now = DateTime.now().withZone(DateTimeZone.UTC)
     def getPhase1Test(cubiksUserId: Int) = CubiksTest(0, true, cubiksUserId, "", "", "", now, 0)
-    def getTestResult() = TestResult("completed", "norm", Some(10.0), Some(20.0), Some(30.0), Some(40.0))
+    def getTestResult() = TestResult("completed", "norm", Some(30.0), Some(20.0), Some(30.0), Some(40.0))
 
 
     def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
@@ -60,7 +60,7 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
         candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
         _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests) { test =>
           val id = test.cubiksUserId
-          val result = Phase1TestResultReady(Some(id * 123), "Ready", Some(s"http://fakeurl.com/report$id"))
+          val result = CubiksTestResultReady(Some(id * 123), "Ready", Some(s"http://fakeurl.com/report$id"))
           otService.markAsReportReadyToDownload(id, result)
         }
         cubiksUserIds <- Future.successful(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))

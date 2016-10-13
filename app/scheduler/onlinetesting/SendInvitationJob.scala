@@ -21,7 +21,7 @@ import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 import config.ScheduledJobConfig
 import model.EmptyRequestHeader
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService }
+import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService, Phase3TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -33,6 +33,11 @@ object SendPhase1InvitationJob extends SendInvitationJob with SendInvitationJobC
 
 object SendPhase2InvitationJob extends SendInvitationJob with SendPhase2InvitationJobConfig {
   val onlineTestingService = Phase2TestService
+  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+}
+
+object SendPhase3InvitationJob extends SendInvitationJob with SendPhase3InvitationJobConfig {
+  val onlineTestingService = Phase3TestService
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 }
 
@@ -63,4 +68,11 @@ trait SendPhase2InvitationJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   override val conf = config.MicroserviceAppConfig.sendPhase2InvitationJobConfig
   val configPrefix = "scheduling.online-testing.send-phase2-invitation-job."
   val name = "SendPhase2InvitationJob"
+}
+
+trait SendPhase3InvitationJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  override val conf = config.MicroserviceAppConfig.sendPhase3InvitationJobConfig
+  val configPrefix = "scheduling.online-testing.send-phase3-invitation-job."
+  val name = "SendPhase3InvitationJob"
 }

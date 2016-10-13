@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package model.exchange
+package connectors.launchpadgateway.exchangeobjects
 
 import play.api.libs.json.Json
 
-case class Phase1TestResultReady(reportId: Option[Int],
-                                 reportStatus: String,
-                                 reportLinkURL: Option[String])
-
-case object Phase1TestResultReady {
-  implicit val phase1TestResultReadyFormat = Json.format[Phase1TestResultReady]
+case class RegisterApplicantResponse(candidateId: String,
+                                     customCandidateId: String)
+object RegisterApplicantResponse {
+  implicit val registerApplicantResponseFormat = Json.format[RegisterApplicantResponse]
 }

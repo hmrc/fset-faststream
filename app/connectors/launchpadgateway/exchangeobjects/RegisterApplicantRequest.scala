@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package model.exchange
+package connectors.launchpadgateway.exchangeobjects
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTests: List[CubiksTest])
+case class RegisterApplicantRequest(email: String, customCandidateId: String, firstName: String, lastName: String)
 
-object Phase2TestGroupWithNames {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
+object RegisterApplicantRequest {
+  implicit val registerApplicantRequestFormat = Json.format[RegisterApplicantRequest]
 }

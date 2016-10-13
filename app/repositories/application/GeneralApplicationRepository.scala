@@ -19,7 +19,6 @@ package repositories.application
 import java.util.UUID
 import java.util.regex.Pattern
 
-import _root_.config.CubiksGatewayConfig
 import model.ApplicationStatus._
 import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
@@ -1129,10 +1128,16 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
+    require(progressStatuses.nonEmpty, "Progress statuses to remove cannot be empty")
+
     val query = BSONDocument("applicationId" -> applicationId)
 
     val statusesToUnset = progressStatuses.flatMap { progressStatus =>
-      Map(s"progress-status.$progressStatus" -> BSONString(""))
+        Map(
+          s"progress-status.$progressStatus" -> BSONString(""),
+          s"progress-status-dates.$progressStatus" -> BSONString(""),
+          s"progress-status-timestamp.$progressStatus" -> BSONString("")
+        )
     }
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))

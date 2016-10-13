@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package model.exchange
+package connectors.launchpadgateway.exchangeobjects
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTests: List[CubiksTest])
+case class InviteApplicantResponse(customInviteId: String, candidateId: String, customCandidateId: String,
+                                   testUrl: String, deadline: String)
 
-object Phase2TestGroupWithNames {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
+object InviteApplicantResponse {
+  implicit val inviteApplicantResponseFormat = Json.format[InviteApplicantResponse]
 }

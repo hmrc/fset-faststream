@@ -188,7 +188,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       onlineTestApplications.length mustBe 1
 
       inside (onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId,
-        guaranteedInterview, needsAdjustments, preferredName, timeAdjustments) =>
+        guaranteedInterview, needsAdjustments, preferredName, lastName, timeAdjustments) =>
 
         applicationId mustBe "appId"
         applicationStatus mustBe "SUBMITTED"
@@ -196,6 +196,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         guaranteedInterview mustBe true
         needsAdjustments mustBe false
         preferredName mustBe testCandidate("preferredName")
+        lastName mustBe testCandidate("lastName")
         timeAdjustments mustBe None
       }
     }

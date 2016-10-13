@@ -31,7 +31,7 @@ import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.events.EventServiceFixture
 import services.onlinetesting.Exceptions.TestExtensionException
-import testkit.MockitoImplicits.{OngoingStubbingExtension, OngoingStubbingExtensionUnit}
+import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import testkit.MockitoSugar
 import uk.gov.hmrc.play.http.HeaderCarrier
 
