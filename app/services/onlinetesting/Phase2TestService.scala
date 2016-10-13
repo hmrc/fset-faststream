@@ -114,7 +114,7 @@ trait Phase2TestService extends OnlineTestService {
   }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
 
     val candidatesToProcess = filterCandidates(applications)
     val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
@@ -125,11 +125,9 @@ trait Phase2TestService extends OnlineTestService {
       invitedApplicants <- inviteApplicants(registeredApplicants)
       _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
       _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
-    } yield eventSink {
-      Future.successful(candidatesToProcess.map { candidate =>
+    } yield candidatesToProcess.map { candidate =>
         audit("Phase2TestInvitationProcessComplete", candidate.userId)
         DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
-      })
     }
   }
 
