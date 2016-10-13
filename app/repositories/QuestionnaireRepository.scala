@@ -16,12 +16,12 @@
 
 package repositories
 
-import model.report.PassMarkReportQuestionnaireData
+import model.report.{QuestionnaireReportItem}
 import model.PersistedObjects
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
 import play.api.libs.json._
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.api.{DB, ReadPreference}
 import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
 import services.reporting.SocioEconomicScoreCalculator
@@ -35,7 +35,8 @@ import scala.language.postfixOps
 trait QuestionnaireRepository {
   def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit]
   def findQuestions(applicationId: String): Future[Map[String, String]]
-  def onlineTestPassMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]]
+  def findAllAsReportItem(): Future[Map[String, QuestionnaireReportItem]]
+  def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]]
 }
 
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
@@ -69,7 +70,16 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     }
   }
 
-  override def onlineTestPassMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]] = {
+  // TODO: this method and findForOnlineTestPassMarkReport should be the same in behaviour, maybe I should merge.
+  override def findAllAsReportItem(): Future[Map[String, QuestionnaireReportItem]] = {
+    val query = BSONDocument()
+    implicit val reader = bsonReader(docToReport)
+    val queryResult = bsonCollection.find(query)
+      .cursor[(String, QuestionnaireReportItem)](ReadPreference.nearest).collect[List]()
+    queryResult.map(_.toMap)
+  }
+
+  override def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]] = {
     // We need to ensure that the candidates have completed the last page of the questionnaire
     // however, only the first question on the employment page is mandatory, as if the answer is
     // unemployed, they don't need to answer other questions
@@ -77,11 +87,12 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     val query = BSONDocument(s"questions.$firstEmploymentQuestion" -> BSONDocument("$exists" -> BSONBoolean(true)))
     implicit val reader = bsonReader(docToReport)
     val queryResult = bsonCollection.find(query)
-      .cursor[(String, PassMarkReportQuestionnaireData)](ReadPreference.nearest).collect[List]()
+      .cursor[(String, QuestionnaireReportItem)](ReadPreference.nearest).collect[List]()
     queryResult.map(_.toMap)
   }
 
-  def find(applicationId: String): Future[List[PersistedQuestion]] = {
+
+  private[repositories] def find(applicationId: String): Future[List[PersistedQuestion]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("questions" -> 1, "_id" -> 0)
 
@@ -107,8 +118,9 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     }
   }
 
-  private def docToReport(document: BSONDocument): (String, PassMarkReportQuestionnaireData) = {
+  private def docToReport(document: BSONDocument): (String, QuestionnaireReportItem) = {
     val questionsDoc = document.getAs[BSONDocument]("questions")
+
     def getAnswer(question: String): Option[String] = {
       val questionDoc = questionsDoc.flatMap(_.getAs[BSONDocument](question))
       val answer = questionDoc.flatMap(_.getAs[String]("answer"))
@@ -137,9 +149,9 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
         (question, answer)
     }.toMap
 
-    val socioEconomicScore = socioEconomicCalculator.calculate(qAndA)
+    val socioEconomicScore = employmentStatus.map(_ => socioEconomicCalculator.calculate(qAndA)).getOrElse("")
 
-    (applicationId, PassMarkReportQuestionnaireData(
+    (applicationId, QuestionnaireReportItem(
       gender,
       sexualOrientation,
       ethnicity,

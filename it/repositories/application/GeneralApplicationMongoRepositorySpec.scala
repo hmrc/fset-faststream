@@ -34,7 +34,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   val collectionName = "application"
 
-  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
 
   "General Application repository" should {
     "Get overall report for an application with all fields" in {

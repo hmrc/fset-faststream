@@ -16,11 +16,11 @@
 
 package repositories
 
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
-import model.PersistedObjects.{ ApplicationProgressStatus, ApplicationProgressStatuses, ApplicationUser }
-import reactivemongo.bson.{ BSONBoolean, BSONDocument }
+import model.Exceptions.{ApplicationNotFound, NotFoundException}
+import model.PersistedObjects.{ApplicationProgressStatus, ApplicationProgressStatuses, ApplicationUser}
+import reactivemongo.bson.{BSONBoolean, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
+import repositories.application.{DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
@@ -31,7 +31,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   override val collectionName = "application"
   
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository()
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
 
   "Find by user id" should {
     "return an empty list if there is nobody with this userId" in {

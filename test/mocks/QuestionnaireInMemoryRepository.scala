@@ -17,7 +17,7 @@
 package mocks
 
 import model.PersistedObjects.PersistedQuestion
-import model.report.PassMarkReportQuestionnaireData
+import model.report.{QuestionnaireReportItem, QuestionnaireReportItem$}
 import repositories.QuestionnaireRepository
 
 import scala.concurrent.Future
@@ -33,8 +33,12 @@ object QuestionnaireInMemoryRepository extends QuestionnaireRepository with InMe
 
   override def findQuestions(applicationId: String): Future[Map[String, String]] = Future.successful(Map.empty[String, String])
 
-  override def onlineTestPassMarkReport: Future[Map[String, PassMarkReportQuestionnaireData]] =
-    Future.successful(Map.empty[String, PassMarkReportQuestionnaireData])
+  override def findAllAsReportItem: Future[Map[String, QuestionnaireReportItem]] =
+    Future.successful(Map.empty[String, QuestionnaireReportItem])
+
+  override def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]] =
+    Future.successful(Map.empty[String, QuestionnaireReportItem])
+
 }
 
 case class QuestionnaireNotFound(applicationId: String) extends Exception

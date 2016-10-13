@@ -24,12 +24,12 @@ import model.OnlineTestCommands.{OnlineTestApplication, Phase1Test, Phase1TestPr
 import model.persisted.ExpiringOnlineTest
 import model.ProgressStatuses.{PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, ProgressStatus, _}
 import model.persisted.Phase1TestWithUserIds
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
-import org.joda.time.{ DateTime, DateTimeZone }
+import model.{ApplicationStatus, ProgressStatuses, ReminderNotice, persisted}
+import org.joda.time.{DateTime, DateTimeZone}
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.GeneralApplicationMongoRepository
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
@@ -42,7 +42,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = "application"
 
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
 
   val Token = UUID.randomUUID.toString

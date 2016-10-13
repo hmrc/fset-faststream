@@ -17,7 +17,7 @@
 package mocks.application
 
 import model.ApplicationStatus.ApplicationStatus
-import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
+import model.AssessmentScheduleCommands.{ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult}
 import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
@@ -25,8 +25,8 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model._
 import model.command._
 import model.persisted.ApplicationForNotification
-import model.report.{ AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport }
-import org.joda.time.{ DateTime, LocalDate }
+import model.report.{AdjustmentReport, ApplicationForDiversityReportItem, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport}
+import org.joda.time.{DateTime, LocalDate}
 import repositories.application.GeneralApplicationRepository
 
 import scala.collection.mutable
@@ -107,6 +107,9 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
     CandidateProgressReport("", Some("registered"),
       List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None))
   )
+
+  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]] = ???
+
 
   override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = ???
 

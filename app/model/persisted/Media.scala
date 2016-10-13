@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package mocks
+package model.persisted
 
-import model.PersistedObjects.{ DiversityReport, DiversityReportRow }
-import org.joda.time.DateTime
-import repositories.ReportingRepository
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-import scala.concurrent.Future
+case class Media(userId: String, media: String)
 
-object ReportingInMemoryRepository extends ReportingRepository {
-  override def update(location: String, timeStamp: DateTime, data: DiversityReportRow): Future[Unit] = Future.successful(Unit)
-
-  override def findLatest(): Future[Option[DiversityReport]] = Future.successful(None)
-
-  override def finalizeReportStatus(timeStamp: DateTime): Future[Unit] = Future.successful(Unit)
+object Media {
+  implicit val mediaFormat = Json.format[Media]
+  implicit val mediaHandler = Macros.handler[Media]
 }

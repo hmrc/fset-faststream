@@ -4,17 +4,17 @@ import config.CubiksGatewayConfig
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
-import model.OnlineTestCommands.{ Phase1Test, Phase1TestProfile }
+import model.OnlineTestCommands.{Phase1Test, Phase1TestProfile}
 import model.SchemeType._
-import model.persisted.{ ApplicationPhase1ReadyForEvaluation, _ }
-import model.{ ApplicationStatus, SchemeType, SelectedSchemes }
-import org.joda.time.{ DateTime, DateTimeZone }
+import model.persisted.{ApplicationPhase1ReadyForEvaluation, _}
+import model.{ApplicationStatus, SchemeType, SelectedSchemes}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.GeneralApplicationMongoRepository
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.{ CommonRepository, schemepreferences }
+import repositories.{CommonRepository, schemepreferences}
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
@@ -27,7 +27,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository
 
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mock[CubiksGatewayConfig])
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mock[CubiksGatewayConfig],
+    GeneralApplicationRepoBSONToModelHelper)
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 

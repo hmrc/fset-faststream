@@ -73,9 +73,6 @@ case class CubiksGatewayStandardAssessment(assessmentId: Int, normId: Int) exten
 
 case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, suppressValidation: Boolean = false)
 
-case class DiversityMonitoringJobConfig(enabled: Boolean, lockId: Option[String], initialDelaySecs: Option[Int],
-  intervalSecs: Option[Int], forceStopActorsSecs: Option[Int])
-
 case class AssessmentCentresLocationsConfig(yamlFilePath: String)
 case class AssessmentCentresConfig(yamlFilePath: String)
 
@@ -106,8 +103,6 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-job")
   lazy val failedOnlineTestJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-test-job")
-  lazy val diversityMonitoringJobConfig =
-    configuration.underlying.as[DiversityMonitoringJobConfig]("scheduling.diversity-monitoring-job")
   lazy val retrieveResultsJobConfig =
     configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-results-job")
   lazy val evaluatePhase1ResultJobConfig =

@@ -5,7 +5,7 @@ import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFoun
 import model.SelectedSchemesExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.GeneralApplicationMongoRepository
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
@@ -16,7 +16,7 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   val collectionName: String = "application"
 
   def repository = new SchemePreferencesMongoRepository
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
 
   "save and find" should {
     "save and return scheme preferences" in {

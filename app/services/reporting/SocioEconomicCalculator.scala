@@ -16,23 +16,7 @@
 
 package services.reporting
 
-import akka.actor.{Actor, ActorRef, Props}
-import model.PersistedObjects.DiversitySocioEconomic
-
-class SocioEconomicCalculator(aggregator: ActorRef) extends Actor with AnswerProcessorTrait
-  with SocioEconomicScoreCalculator with SocioEconomicCollector {
-
-  override def receive: Receive = {
-    case QuestionnaireProfile(answers) =>
-      process(answers)
-      val calculationMessage = createMessage
-
-      aggregator ! calculationMessage
-      context.stop(self)
-  }
-}
-
-object SocioEconomicCalculator {
+object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
   val NotApplicable = 0
   val EmployersLargeOrganisations = 1
   val EmployersSmallOrganisations = 2
@@ -42,22 +26,6 @@ object SocioEconomicCalculator {
   val Supervisors = 6
   val OtherEmployees = 7
 
-  def props(aggregator: ActorRef) = Props(new SocioEconomicCalculator(aggregator))
-}
-
-trait SocioEconomicCollector extends Collector {
-
-  type Message = DiversitySocioEconomic
-
-  override val collectorMap: collection.mutable.Map[String, Int] = collection.mutable.Map(
-    ("SE-1", 0),
-    ("SE-2", 0),
-    ("SE-3", 0),
-    ("SE-4", 0),
-    ("SE-5", 0)
-  )
-
-  override def createMessage: DiversitySocioEconomic = new DiversitySocioEconomic(collectorMap.toMap)
 }
 
 trait SocioEconomicScoreCalculator extends Calculable {
@@ -115,7 +83,6 @@ trait SocioEconomicScoreCalculator extends Calculable {
       "Middle or junior managers" -> 7,
       "Traditional professional" -> 8
     )
-
     TypeOfOccupation(answers("When you were 14, what kind of work did your highest-earning parent or guardian do?"))
   }
 
@@ -137,5 +104,3 @@ trait SocioEconomicScoreCalculator extends Calculable {
     }
   }
 }
-
-

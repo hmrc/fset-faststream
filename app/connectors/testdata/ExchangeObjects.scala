@@ -30,6 +30,7 @@ object ExchangeObjects {
                                     firstName: String,
                                     lastName: String,
                                     preferredName: String,
+                                    mediaReferrer: Option[String] = None,
                                     personalDetails: Option[PersonalDetails] = None,
                                     isCivilServant: Option[Boolean] = None,
                                     contactDetails: Option[ContactDetails] = None,
