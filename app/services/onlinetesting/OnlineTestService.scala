@@ -16,16 +16,18 @@
 
 package services.onlinetesting
 
-import connectors.{EmailClient, OnlineTestEmailClient}
-import factories.{DateTimeFactory, UUIDFactory}
+import connectors.{ EmailClient, OnlineTestEmailClient }
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
+import model.exchange.CubiksTestResultReady
+import model.persisted.CubiksTest
 import org.joda.time.DateTime
 import play.api.Logger
 import services.AuditService
 import services.events.EventSink
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 
 trait OnlineTestService extends EventSink  {
@@ -62,6 +64,23 @@ trait OnlineTestService extends EventSink  {
       event,
       Map("userId" -> userId) ++ emailAddress.map("email" -> _).toMap
     )
+  }
+
+  def updateTestReportReady(cubiksTest: CubiksTest, reportReady: CubiksTestResultReady) = cubiksTest.copy(
+    resultsReadyToDownload = reportReady.reportStatus == "Ready",
+    reportId = reportReady.reportId,
+    reportLinkURL = reportReady.reportLinkURL,
+    reportStatus = Some(reportReady.reportStatus)
+  )
+
+  def updateCubiksTestsById(cubiksUserId: Int, cubiksTests: List[CubiksTest], updateFn: CubiksTest => CubiksTest) = cubiksTests.collect {
+      case t if t.cubiksUserId == cubiksUserId => updateFn(t)
+      case t => t
+  }
+
+  def assertUniqueTestByCubiksUserId(cubiksTests: List[CubiksTest], cubiksUserId: Int) = {
+    val requireUserIdOnOnlyOneTestCount = cubiksTests.count(_.cubiksUserId == cubiksUserId)
+    require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
   }
 
   private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {

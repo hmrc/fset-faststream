@@ -25,6 +25,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.events.DataStoreEvents
+import model.events.EventTypes.EventType
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import org.joda.time.DateTime
@@ -160,47 +161,39 @@ trait Phase2TestService extends OnlineTestService {
 
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]= eventSink {
-    val updatedTestPhase1 = updateTestPhase2(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
-    updatedTestPhase1 flatMap { u =>
+    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)))
+    updatedPhase2Test flatMap { u =>
       phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
-        DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
+        DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
       }
     }
   }
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    val updatedTestPhase1 = updateTestPhase2(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)), "COMPLETED")
-    updatedTestPhase1 flatMap { u =>
+    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)))
+    updatedPhase2Test flatMap { u =>
       require(u.phase2TestGroup.activeTests.nonEmpty, "Active tests cannot be found")
-
-      if (u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)) {
-        phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
-          DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
-            DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
-            Nil
-        }
-      } else {
-        Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
+      val activeTestsCompleted = u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)
+      activeTestsCompleted match {
+        case true =>
+          phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
+            DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
+          }
+        case false =>
+          Future.successful(List.empty[EventType])
       }
     }
   }
 
   def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     phase2TestRepo.getTestProfileByToken(token).flatMap { p =>
-      val test = p.tests.find(_.token == token).get
-      markAsCompleted(test.cubiksUserId)
+      p.tests.find(_.token == token).map {test => markAsCompleted(test.cubiksUserId)}
+        .getOrElse(Future.successful(()))
     }
   }
 
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
-    updateTestPhase2(cubiksUserId,
-      t => t.copy(
-        resultsReadyToDownload = reportReady.reportStatus == "Ready",
-        reportId = reportReady.reportId,
-        reportLinkURL = reportReady.reportLinkURL,
-        reportStatus = Some(reportReady.reportStatus)
-      )
-    ).flatMap { updated =>
+    updatePhase2Test(cubiksUserId, updateTestReportReady(_: CubiksTest, reportReady)).flatMap { updated =>
       if (updated.phase2TestGroup.activeTests forall (_.resultsReadyToDownload)) {
         phase2TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
       } else {
@@ -209,22 +202,13 @@ trait Phase2TestService extends OnlineTestService {
     }
   }
 
-  private def updateTestPhase2(cubiksUserId: Int, update: CubiksTest => CubiksTest, debugKey: String = "foo"):
-  Future[Phase2TestGroupWithAppId] = {
+  private def updatePhase2Test(cubiksUserId: Int, update: CubiksTest => CubiksTest): Future[Phase2TestGroupWithAppId] = {
     def createUpdateTestGroup(p: Phase2TestGroupWithAppId): Phase2TestGroupWithAppId = {
       val testGroup = p.phase2TestGroup
-      val requireUserIdOnOnlyOneTestCount = testGroup.tests.count(_.cubiksUserId == cubiksUserId)
-      require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
-
-      val appId = p.applicationId
-      val updatedTests = testGroup.tests.collect {
-        case t if t.cubiksUserId == cubiksUserId => update(t)
-        case t => t
-      }
-      val updatedTestGroup = testGroup.copy(tests = updatedTests)
-      Phase2TestGroupWithAppId(appId, updatedTestGroup)
+      assertUniqueTestByCubiksUserId(testGroup.tests, cubiksUserId)
+      val updatedTestGroup = testGroup.copy(tests = updateCubiksTestsById(cubiksUserId, testGroup.tests, update))
+      Phase2TestGroupWithAppId(p.applicationId, updatedTestGroup)
     }
-
     for {
       p1TestProfile <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
       updated = createUpdateTestGroup(p1TestProfile)
