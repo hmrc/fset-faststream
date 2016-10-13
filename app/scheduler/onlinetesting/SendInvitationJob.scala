@@ -19,6 +19,7 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
+import model.EmptyRequestHeader
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -44,6 +45,7 @@ trait SendInvitationJob extends SingleInstanceScheduledJob {
         Future.successful(Unit)
       case applications =>
         implicit val hc = new HeaderCarrier()
+        implicit val rh = EmptyRequestHeader
         onlineTestingService.registerAndInviteForTestGroup(applications)
     }
   }

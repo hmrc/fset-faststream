@@ -23,9 +23,11 @@ import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
+import model.events.DataStoreEvents
 import model.exchange.Phase2TestGroupWithNames
 import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import org.joda.time.DateTime
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
@@ -85,7 +87,7 @@ trait Phase2TestService extends OnlineTestService {
   }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(List(application))
   }
 
@@ -112,7 +114,7 @@ trait Phase2TestService extends OnlineTestService {
   }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     val candidatesToProcess = filterCandidates(applications)
     val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
@@ -123,8 +125,11 @@ trait Phase2TestService extends OnlineTestService {
       invitedApplicants <- inviteApplicants(registeredApplicants)
       _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
       _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
-    } yield candidatesToProcess.foreach { candidate =>
-      audit("Phase2TestInvitationProcessComplete", candidate.userId)
+    } yield eventSink {
+      Future.successful(candidatesToProcess.map { candidate =>
+        audit("Phase2TestInvitationProcessComplete", candidate.userId)
+        DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
+      })
     }
   }
 
@@ -178,3 +183,4 @@ trait Phase2TestService extends OnlineTestService {
   private def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
 
 }
+

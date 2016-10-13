@@ -17,24 +17,25 @@
 package services.onlinetesting
 
 import config._
-import connectors.ExchangeObjects.{Invitation, InviteApplicant, Registration}
-import connectors.{CSREmailClient, CubiksGatewayClient}
-import factories.{DateTimeFactory, UUIDFactory}
-import model.{Address, ApplicationStatus}
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
+import connectors.{ CSREmailClient, CubiksGatewayClient }
+import factories.{ DateTimeFactory, UUIDFactory }
+import model.{ Address, ApplicationStatus }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PersistedObjects.ContactDetails
 import model.persisted.Phase2TestGroup
 import org.joda.time.DateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
+import play.api.mvc.RequestHeader
 import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
-import services.events.{EventService, EventServiceFixture}
+import services.events.{ EventService, EventServiceFixture }
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -99,12 +100,14 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
       verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
       verify(otRepositoryMock).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
+      phase2TestService.verifyDataStoreEvents(1, "OnlineExerciseResultSent")
     }
   }
 
   trait Phase2TestServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
+    implicit val rh = mock[RequestHeader]
 
     val gatewayConfigMock =  CubiksGatewayConfig(
       "",
