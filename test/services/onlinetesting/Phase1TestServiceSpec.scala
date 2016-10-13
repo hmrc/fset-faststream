@@ -163,7 +163,6 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val result = phase1TestService.getTestProfile("valid-userid").futureValue
 
       result.get.expirationDate must equal(validExpireDate)
-      //      result.get.activeTests.head.invitationDate must equal(InvitationDate)
     }
   }
 

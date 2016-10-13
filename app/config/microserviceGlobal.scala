@@ -57,7 +57,7 @@ trait Scheduler extends RunningOfScheduledJobs {
       Logger.warn("Send phase 2 invitation job is disabled")
       None
     }
-  
+
   private lazy val sendPhase3InvitationJob: Option[ScheduledJob] =
     if (sendPhase3InvitationJobConfigValues.enabled) Some(SendPhase3InvitationJob) else {
       Logger.warn("Send phase 3 invitation job is disabled")
