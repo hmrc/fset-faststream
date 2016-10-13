@@ -163,7 +163,7 @@ trait Phase2TestService extends OnlineTestService {
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]= eventSink {
     val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)))
     updatedPhase2Test flatMap { u =>
-      phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
+      phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
         DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
       }
     }
