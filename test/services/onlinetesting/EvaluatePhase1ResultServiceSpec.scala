@@ -38,7 +38,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
   "next candidate ready for evaluation" should {
     "return none if passmark is not set" in new TestFixture {
       when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(None))
-      val result = service.nextCandidateReadyForEvaluation.futureValue
+      val result = service.nextCandidatesReadyForEvaluation(1).futureValue
       result mustBe None
     }
 
@@ -47,12 +47,12 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(Some(PassmarkSettings)))
       when(mockPhase1EvaluationRepository
-        .nextApplicationReadyForPhase1ResultEvaluation(PassmarkVersion))
-        .thenReturn(Future.successful(Some(application)))
+        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int]))
+        .thenReturn(Future.successful(List(application)))
 
-      val result = service.nextCandidateReadyForEvaluation.futureValue
+      val result = service.nextCandidatesReadyForEvaluation(1).futureValue
 
-      result mustBe Some((application, PassmarkSettings))
+      result mustBe Some((List(application), PassmarkSettings))
     }
   }
 
@@ -117,8 +117,8 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val PassmarkSettings = Phase1PassMarkSettingsExamples.passmark
     val AppId = ApplicationPhase1EvaluationExamples.application.applicationId
     val PassmarkVersion = PassmarkSettings.version
-    val SjqId = 1
-    val BqId = 2
+    val SjqId = 16196
+    val BqId = 16194
     val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
     val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, EvaluateForNonGis)
 

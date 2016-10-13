@@ -33,13 +33,15 @@ trait ScheduledJobConfigurable {
   val lockId: Option[String]
   val initialDelaySecs: Option[Int]
   val intervalSecs: Option[Int]
+  val batchSize: Option[Int]
 }
 
 case class ScheduledJobConfig(
   enabled: Boolean,
   lockId: Option[String],
   initialDelaySecs: Option[Int],
-  intervalSecs: Option[Int]
+  intervalSecs: Option[Int],
+  batchSize: Option[Int] = None
 ) extends ScheduledJobConfigurable
 
 case class WaitingScheduledJobConfig(
@@ -47,7 +49,8 @@ case class WaitingScheduledJobConfig(
   lockId: Option[String],
   initialDelaySecs: Option[Int],
   intervalSecs: Option[Int],
-  waitSecs: Option[Int]
+  waitSecs: Option[Int],
+  batchSize: Option[Int] = None
 ) extends ScheduledJobConfigurable
 
 case class CubiksGatewayConfig(url: String,
