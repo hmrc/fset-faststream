@@ -117,7 +117,6 @@ trait Phase2TestService extends OnlineTestService {
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
     (implicit hc: HeaderCarrier): Future[Unit] = {
-
     val candidatesToProcess = filterCandidates(applications)
     val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
     implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)

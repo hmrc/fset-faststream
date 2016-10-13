@@ -25,6 +25,7 @@ import model.persisted._
 import model.ProgressStatuses.ProgressStatus
 import model._
 import play.api.Logger
+import play.api.libs.json.Json
 import reactivemongo.bson._
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -70,7 +71,7 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(doc) =>
-        val bson = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phase).get)
+        val bson = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phase)
         bson.map(x => bsonHandler.read(x))
       case _ => None
     }
