@@ -59,7 +59,7 @@ class CubiksGatewayClientSpec extends PlaySpec with MockitoSugar with ScalaFutur
   val LogonUrl = "http://cubiks.com/logonUrl"
   val AuthenticatedUrl = "http://cubiks/authenticatedUrl"
   val timeAdjustments = TimeAdjustments(VerbalAndNumericalAssessmentId, NumericalSectionId, verbalTimeAdjustment)
-  val inviteApplicant = InviteApplicant(ScheduleId, CubiksUserId, "completeurl.com", None, Some(List(timeAdjustments)))
+  val inviteApplicant = InviteApplicant(ScheduleId, CubiksUserId, "completeurl.com", None, List(timeAdjustments))
   val invitation = Invitation(CubiksUserId, Email, AccessCode, LogonUrl, AuthenticatedUrl, ScheduleId)
   val invitationHttpResponse = HttpResponse(OK, Some(Json.toJson(invitation)))
 
