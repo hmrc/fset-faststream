@@ -72,7 +72,7 @@
                 <p id="testsTime">You have <strong>@{tests.getDuration}</strong> to finish the online exercises</p>
                 <div id="testsButtonContainer">
 
-                    @helper.form(action = routes.OnlineTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
+                    @helper.form(action = routes.CubiksTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
                     @helper.CSRF.formField
                         @{if (!tests.areStarted) {
                             <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
@@ -89,37 +89,52 @@
 
     @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.phase2TestsPage) match {
 
-         case (false, None) => {
+         case (false, Some(phase2Test)) => {
+                @if(phase2Test.isCompleted) {
+                    <li id="etraySection">
+                        <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>E-tray</p>
+                        <div id="etrayBlurb">
+                            <p>You've completed this section, we'll send you an email when we have your results.
+                                Make sure you check your junk inbox.</p>
+                        </div>
+                    </li>
+                } else {
+                    <li id="etraySection">
+                        <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-minus"></i>E-tray </p>
+                        <div id="etrayBlurb">
+                            <p id="etrayDescription" class="">This section is timed, after starting the section you'll
+                                have 80 minutes to complete it.</p>
+                            <p id="etrayTime" class="">You have <strong>@{phase2Test.getDuration}</strong> to finish
+                                the e-tray</p>
+                            <div id="etrayTestButton">
+                                @helper.form(action = routes.CubiksTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
+                                @helper.CSRF.formField
+                                    @if(!phase2Test.isStarted) {
+                                        <button id="etrayButton" type="submit" value="submit" class="button">Start section</button>
+                                    } else {
+                                        <button id="etrayButton" type="submit" value="submit" class="button">Continue section</button>
+                                    }
+                                }
+                                <p>(You'll have 80 minutes to finish)</p>
+                            </div>
+                        </div>
+                    </li>
+                }
+         }
+
+         case (true, Some(phase2Test)) => {
+                <li id="etraySection">
+                    @* TODO e-tray expiry content *@
+                </li>
+         }
+
+         case (_, None) => {
                 <li id="etraySection">
                     <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray <span class="font-xsmall"
                                                                                                                 data-locked>- locked</span></p>
                     <p data-locked>Unlocked if you're successful in the online exercises</p>
-                    <div id="etrayBlurb" class="hidden">
-                        <p id="etrayDescription" class="">This section is timed, after starting the section you'll
-                            have 80 minutes to complete it.</p>
-                        <p id="etrayTime" class="">You have <strong>6 days 3 hours</strong> to finish
-                            the e-tray</p>
-                        <a href="" class="button" id="etrayButton">Start section</a>
-                        <p>(You'll have 80 minutes to finish)</p>
-                    </div>
                 </li>
-         }
-
-         case (false, Some(phase2Test)) => {
-                 <li id="etraySection">
-                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray <span class="font-xsmall"
-                                                                                                                data-locked>- locked</span></p>
-                    <p data-locked>Unlocked if you're successful in the online exercises</p>
-                    <div id="etrayBlurb" class="hidden">
-                        <p id="etrayDescription" class="">This section is timed, after starting the section you'll
-                            have 80 minutes to complete it.</p>
-                        <p id="etrayTime" class="">You have <strong>6 days 3 hours</strong> to finish
-                            the e-tray</p>
-                        <a href="" class="button" id="etrayButton">Start section</a>
-                        <p>(You'll have 80 minutes to finish)</p>
-                    </div>
-                </li>
-         }
+        }
     }
                 <li id="videoSection">
                     <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview

@@ -18,28 +18,39 @@ package controllers
 
 import config.CSRHttp
 import connectors.ApplicationClient
-import models.ApplicationData.{ ApplicationStatus, ProgressStatuses }
+import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
-import security.Roles.{ DisplayOnlineTestSectionRole, OnlineTestInvitedRole }
+import play.api.mvc.Result
+import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object OnlineTestController extends OnlineTestController(ApplicationClient) {
+object CubiksTestController extends CubiksTestController(ApplicationClient) {
   val http = CSRHttp
 }
 
-abstract class OnlineTestController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+abstract class CubiksTestController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
   def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>
-     applicationClient.getPhase1TestProfile(cachedUserData.application.applicationId).flatMap { testProfile =>
-        // If we've started but not completed a test we still want to send them to that
-        // test link to continue with it
-        testProfile.tests.find(!_.completed).map { testToStart =>
-          applicationClient.startTest(testToStart.cubiksUserId)
-          Future.successful(Redirect(testToStart.testUrl))
-        }.getOrElse(Future.successful(NotFound))
+     applicationClient.getPhase1TestProfile(cachedUserData.application.applicationId).flatMap { phase1TestProfile =>
+       startCubiksTest(phase1TestProfile.tests)
       }
+  }
+
+  def startPhase2Tests = CSRSecureAppAction(Phase2TestInvitedRole) { implicit request =>
+    implicit cachedUserData =>
+      applicationClient.getPhase2TestProfile(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
+        startCubiksTest(phase2TestProfile.activeTests)
+      }
+  }
+
+  private def startCubiksTest(cubiksTests: Iterable[CubiksTest])(implicit hc: HeaderCarrier) = {
+    cubiksTests.find(!_.completed).map { testToStart =>
+      applicationClient.startTest(testToStart.cubiksUserId)
+      Future.successful(Redirect(testToStart.testUrl))
+    }.getOrElse(Future.successful(NotFound))
   }
 
   def completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
@@ -53,6 +64,13 @@ abstract class OnlineTestController(applicationClient: ApplicationClient) extend
     implicit user =>
       applicationClient.completeTestByToken(token).map { _ =>
         Ok(views.html.application.onlineTests.phase1TestsComplete())
+      }
+  }
+
+  def completePhase2TestsByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
+    implicit user =>
+      applicationClient.completeTestByToken(token).map { _ =>
+        Redirect(routes.HomeController.present())
       }
   }
 
