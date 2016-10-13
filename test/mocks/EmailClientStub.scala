@@ -52,4 +52,5 @@ object EmailClientStub extends EmailClient {
   override def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
                                timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
 
+  override def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
 }

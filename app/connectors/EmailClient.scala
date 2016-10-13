@@ -115,6 +115,9 @@ trait CSREmailClient extends EmailClient {
     )
   }
 
+  override def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier) =
+    sendEmail(to, "fset_faststream_app_withdrawn", Map("name" -> name))
+
 }
 
 trait EmailClient extends WSHttp {
@@ -130,6 +133,7 @@ trait EmailClient extends WSHttp {
     confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit]
   def sendAssessmentCentrePassed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
   def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
+  def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
 }
 
 object EmailDateFormatter {
