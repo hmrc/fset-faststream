@@ -220,9 +220,9 @@ trait Phase2TestService extends OnlineTestService {
 
   //TODO Once the time adjustments ticket has been done then this should be updated to apply the etray adjustment settings.
   def buildTimeAdjustments(needsAdjustment: Boolean) = if (needsAdjustment) {
-    Some(List(TimeAdjustments(testConfig.assessmentId, sectionId = 1, absoluteTime = 100)))
+    List(TimeAdjustments(testConfig.assessmentId, sectionId = 1, absoluteTime = 100))
   } else {
-    None
+    Nil
   }
 
   private def filterCandidates(candidates: List[OnlineTestApplication]): List[OnlineTestApplication] =
