@@ -34,8 +34,10 @@ object FutureEx {
   def traverseSerial[A, B, M[X] <: TraversableOnce[X]](
     in: M[A]
   )(fn: A => Future[B])(implicit cbf: CanBuildFrom[M[A], B, M[B]], executor: ExecutionContext): Future[M[B]] =
-    in.foldLeft(Future.successful(cbf(in))) { (fr, a) =>
-      for (r <- fr; b <- fn(a)) yield r += b
+    in.foldLeft(Future.successful(cbf(in))) { (previousFuture, a) =>
+      for { previousResult <- previousFuture
+            newFutureResult <- fn(a)
+      } yield previousResult += newFutureResult
     }.map(_.result())
 
 

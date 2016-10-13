@@ -360,6 +360,6 @@ trait ResetPhase1Test {
   def determineStatusesToRemove(testGroup: Phase1TestProfile): List[ProgressStatus] = {
     (if (testGroup.hasNotStartedYet) List(PHASE1_TESTS_STARTED) else List()) ++
     (if (testGroup.hasNotCompletedYet) List(PHASE1_TESTS_COMPLETED) else List()) ++
-    (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED) else List())
+    (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_RESULTS_READY) else List())
   }
 }
