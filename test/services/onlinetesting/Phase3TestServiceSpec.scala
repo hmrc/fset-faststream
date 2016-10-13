@@ -62,7 +62,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "insert a valid test group" in new Phase3TestServiceFixture {
       phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
-      verify(p3TestRepositoryMock, times(1)).insertOrUpdateTestGroup(eqTo(onlineTestApplication.applicationId), eqTo(Phase3TestGroup(
+      verify(p3TestRepositoryMock).insertOrUpdateTestGroup(eqTo(onlineTestApplication.applicationId), eqTo(Phase3TestGroup(
         testExpiryTime,
         List(
           testPhase3Test
@@ -74,7 +74,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "call the register and invite methods of the launchpad gateway only once and with the correct arguments" in new Phase3TestServiceFixture {
       phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
-      verify(launchpadGatewayClientMock, times(1)).registerApplicant(eqTo(
+      verify(launchpadGatewayClientMock).registerApplicant(eqTo(
         RegisterApplicantRequest(
           testEmail,
           "FSCND-" + tokens.head,
@@ -84,7 +84,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       ))(any[HeaderCarrier]())
 
       val expectedCustomInviteId = "FSINV-" + tokens.head
-      verify(launchpadGatewayClientMock, times(1)).inviteApplicant(eqTo(
+      verify(launchpadGatewayClientMock).inviteApplicant(eqTo(
         InviteApplicantRequest(
           testInterviewId,
           testLaunchpadCandidateId,
