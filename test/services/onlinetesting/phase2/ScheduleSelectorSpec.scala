@@ -31,7 +31,7 @@ class ScheduleSelectorSpec extends PlaySpec {
       }
     }
 
-    "return a schedule" in {
+    "return a schedule randomly" in {
       val schedules = List(DaroShedule, IradShedule, WardShedule)
       val selector = createSelector(schedules)
       val randomSchedules = 1 to 1000 map (_ => selector.getRandomSchedule)
