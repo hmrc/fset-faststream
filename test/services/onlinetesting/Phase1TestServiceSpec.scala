@@ -92,7 +92,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   val inviteApplicant = InviteApplicant(sjqScheduleId,
     cubiksUserId, s"$scheduleCompletionBaseUrl/complete/$token",
-    resultsURL = None, timeAdjustments = None
+    resultsURL = None, timeAdjustments = Nil
   )
 
   val accessCode = "fdkfdfj"
