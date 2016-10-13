@@ -20,15 +20,20 @@ import _root_.services.AuditService
 import akka.actor.ActorSystem
 import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, CubiksGatewayClient, Phase2OnlineTestEmailClient }
+import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.exchange.Phase2TestGroupWithNames
+import model.ProgressStatuses
+import model.events.DataStoreEvents
+import model.events.EventTypes.EventType
+import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import org.joda.time.DateTime
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
+import services.events.EventService
 import services.events.{ EventService, EventSink }
 import services.onlinetesting.phase2.ScheduleSelector
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -155,6 +160,65 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
     phase2TestRepo.insertOrUpdateTestGroup(completedInvite.application.applicationId, testGroup)
   }).map( _ => () )
+
+  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]= eventSink {
+    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)))
+    updatedPhase2Test flatMap { u =>
+      phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
+        DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
+      }
+    }
+  }
+
+  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)))
+    updatedPhase2Test flatMap { u =>
+      require(u.phase2TestGroup.activeTests.nonEmpty, "Active tests cannot be found")
+      val activeTestsCompleted = u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)
+      activeTestsCompleted match {
+        case true =>
+          phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
+            DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
+          }
+        case false =>
+          Future.successful(List.empty[EventType])
+      }
+    }
+  }
+
+  def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    phase2TestRepo.getTestProfileByToken(token).flatMap { p =>
+      p.tests.find(_.token == token).map {test => markAsCompleted(test.cubiksUserId)}
+        .getOrElse(Future.successful(()))
+    }
+  }
+
+  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
+    updatePhase2Test(cubiksUserId, updateTestReportReady(_: CubiksTest, reportReady)).flatMap { updated =>
+      if (updated.phase2TestGroup.activeTests forall (_.resultsReadyToDownload)) {
+        phase2TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
+      } else {
+        Future.successful(())
+      }
+    }
+  }
+
+  private def updatePhase2Test(cubiksUserId: Int, update: CubiksTest => CubiksTest): Future[Phase2TestGroupWithAppId] = {
+    def createUpdateTestGroup(p: Phase2TestGroupWithAppId): Phase2TestGroupWithAppId = {
+      val testGroup = p.phase2TestGroup
+      assertUniqueTestByCubiksUserId(testGroup.tests, cubiksUserId)
+      val updatedTestGroup = testGroup.copy(tests = updateCubiksTestsById(cubiksUserId, testGroup.tests, update))
+      Phase2TestGroupWithAppId(p.applicationId, updatedTestGroup)
+    }
+    for {
+      p1TestProfile <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
+      updated = createUpdateTestGroup(p1TestProfile)
+      _ <- phase2TestRepo.insertOrUpdateTestGroup(updated.applicationId, updated.phase2TestGroup)
+    } yield {
+      updated
+    }
+  }
 
   //TODO Once the time adjustments ticket has been done then this should be updated to apply the etray adjustment settings.
   def buildTimeAdjustments(needsAdjustment: Boolean, assessmentId: Int) = if (needsAdjustment) {

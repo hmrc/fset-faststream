@@ -17,33 +17,41 @@
 package controllers
 
 import model.Exceptions.CannotFindTestByCubiksId
-import model.exchange.Phase1TestResultReady
-import play.api.mvc.{ Action, Result }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import model.exchange.CubiksTestResultReady
 import play.api.Logger
+import play.api.mvc.{ Action, Result }
 import services.events.EventService
-import services.onlinetesting.Phase1TestService
+import services.onlinetesting.{ Phase1TestService, Phase2TestService }
+import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1TestsController extends Phase1TestsController {
+object CubiksTestsController extends CubiksTestsController {
   override val phase1TestService = Phase1TestService
+  override val phase2TestService = Phase2TestService
   val eventService = EventService
 }
 
-trait Phase1TestsController extends BaseController {
+trait CubiksTestsController extends BaseController {
   val phase1TestService: Phase1TestService
+  val phase2TestService: Phase2TestService
   val eventService: EventService
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId started")
-    phase1TestService.markAsStarted(cubiksUserId).map( _ => Ok )
+    phase1TestService.markAsStarted(cubiksUserId)
+      .recoverWith { case _: CannotFindTestByCubiksId =>
+          phase2TestService.markAsStarted(cubiksUserId)
+      }.map( _ => Ok )
       .recover(recoverNotFound)
   }
 
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Assessment $cubiksUserId completed")
-    phase1TestService.markAsCompleted(cubiksUserId).map( _ => Ok )
+    phase1TestService.markAsCompleted(cubiksUserId)
+      .recoverWith { case _: CannotFindTestByCubiksId =>
+          phase2TestService.markAsCompleted(cubiksUserId)
+      }.map( _ => Ok )
       .recover(recoverNotFound)
   }
 
@@ -54,22 +62,27 @@ trait Phase1TestsController extends BaseController {
     */
   def completeTestByToken(token: String) = Action.async { implicit request =>
     Logger.info(s"Complete test by token $token")
-    phase1TestService.markAsCompleted(token).map ( _ => Ok )
+    phase1TestService.markAsCompleted(token)
+      .recoverWith { case _: CannotFindTestByCubiksId =>
+          phase2TestService.markAsCompleted(token)
+      }.map( _ => Ok )
       .recover(recoverNotFound)
   }
 
   def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    withJsonBody[Phase1TestResultReady] { testResultReady =>
+    withJsonBody[CubiksTestResultReady] { testResultReady =>
       Logger.info(s"Assessment $cubiksUserId has report [$testResultReady] ready to download")
       phase1TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
-        .map(_ => Ok).recover(recoverNotFound)
+        .recoverWith { case _: CannotFindTestByCubiksId =>
+            phase2TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
+        }.map( _ => Ok )
+        .recover(recoverNotFound)
     }
   }
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
-    case e @ CannotFindTestByCubiksId(msg) => {
+    case e @ CannotFindTestByCubiksId(msg) =>
       Logger.warn(msg, e)
       NotFound
-    }
   }
 }

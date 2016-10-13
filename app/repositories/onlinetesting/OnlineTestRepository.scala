@@ -53,7 +53,7 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
       "$elemMatch" -> BSONDocument("token" -> token)
     ))
 
-    phaseTestProfileByQuery(query).map { x =>
+    phaseTestProfileByQuery(query, phase).map { x =>
       x.getOrElse(cannotFindTestByToken(token))
     }
   }
