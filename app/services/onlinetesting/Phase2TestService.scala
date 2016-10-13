@@ -18,7 +18,7 @@ package services.onlinetesting
 
 import _root_.services.AuditService
 import akka.actor.ActorSystem
-import config.{ CubiksGatewayConfig, Phase2TestsConfig }
+import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
@@ -30,6 +30,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.events.{ EventService, EventSink }
+import services.onlinetesting.phase2.ScheduleSelector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -51,7 +52,7 @@ object Phase2TestService extends Phase2TestService {
 
 }
 
-trait Phase2TestService extends OnlineTestService {
+trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
@@ -63,10 +64,10 @@ trait Phase2TestService extends OnlineTestService {
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
 
   case class Phase2TestInviteData(application: OnlineTestApplication,
-    token: String,
-    registration: Registration,
-    invitation: Invitation
-  )
+                                  scheduleId: Int,
+                                  token: String,
+                                  registration: Registration,
+                                  invitation: Invitation)
 
   def getTestProfile(applicationId: String): Future[Option[Phase2TestGroupWithNames]] = {
     for {
@@ -100,14 +101,15 @@ trait Phase2TestService extends OnlineTestService {
 
   def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)])
     (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
+    val schedule = getRandomSchedule
     val invites = candidateData.values.map { case (application, token, registration) =>
-      buildInviteApplication(application, token, registration.userId, testConfig.scheduleId)
+      buildInviteApplication(application, token, registration.userId, schedule)
     }.toList
 
     cubiksGatewayClient.inviteApplicants(invites).map(_.map { invitation =>
       val (application, token, registration) = candidateData(invitation.userId)
       audit("Phase2TestInvited", application.userId)
-      Phase2TestInviteData(application, token, registration, invitation)
+      Phase2TestInviteData(application, schedule.scheduleId, token, registration, invitation)
     })
   }
 
@@ -127,21 +129,21 @@ trait Phase2TestService extends OnlineTestService {
     }
   }
 
-  def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
+  def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, schedule: Phase2Schedule) = {
     val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase2"
 
-    InviteApplicant(scheduleId,
+    InviteApplicant(schedule.scheduleId,
       userId,
       s"$scheduleCompletionBaseUrl/complete/$token",
       resultsURL = None,
-      timeAdjustments = buildTimeAdjustments(application.needsAdjustments)
+      timeAdjustments = buildTimeAdjustments(application.needsAdjustments, schedule.assessmentId)
     )
   }
 
   def insertPhase2TestGroups(o: List[Phase2TestInviteData])
     (implicit invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = Future.sequence(o.map { completedInvite =>
     val testGroup = Phase2TestGroup(expirationDate = expirationDate,
-      List(CubiksTest(scheduleId = testConfig.scheduleId,
+      List(CubiksTest(scheduleId = getRandomSchedule.scheduleId,
         usedForResults = true,
         cubiksUserId = completedInvite.registration.userId,
         token = completedInvite.token,
@@ -155,8 +157,8 @@ trait Phase2TestService extends OnlineTestService {
   }).map( _ => () )
 
   //TODO Once the time adjustments ticket has been done then this should be updated to apply the etray adjustment settings.
-  def buildTimeAdjustments(needsAdjustment: Boolean) = if (needsAdjustment) {
-    List(TimeAdjustments(testConfig.assessmentId, sectionId = 1, absoluteTime = 100))
+  def buildTimeAdjustments(needsAdjustment: Boolean, assessmentId: Int) = if (needsAdjustment) {
+    List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = 100))
   } else {
     Nil
   }

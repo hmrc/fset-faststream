@@ -16,25 +16,26 @@
 
 package services.onlinetesting
 
+import config.Phase2ScheduleExamples._
 import config._
-import connectors.ExchangeObjects.{Invitation, InviteApplicant, Registration}
-import connectors.{CSREmailClient, CubiksGatewayClient}
-import factories.{DateTimeFactory, UUIDFactory}
-import model.{Address, ApplicationStatus}
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
+import connectors.{ CSREmailClient, CubiksGatewayClient }
+import factories.{ DateTimeFactory, UUIDFactory }
+import model.{ Address, ApplicationStatus }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PersistedObjects.ContactDetails
 import model.persisted.Phase2TestGroup
 import org.joda.time.DateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
-import services.events.{EventService, EventServiceFixture}
+import services.events.{ EventService, EventServiceFixture }
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -64,9 +65,9 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "correctly invite a batch of candidates" in new Phase2TestServiceFixture {
       val result = phase2TestService.inviteApplicants(registeredMap).futureValue
 
-      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, tokens.head,
+      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, 1, tokens.head,
         registrations.head, invites.head),
-        phase2TestService.Phase2TestInviteData(onlineTestApplication2, tokens.last,
+        phase2TestService.Phase2TestInviteData(onlineTestApplication2, scheduleId = DaroShedule.scheduleId, tokens.last,
           registrations.last, invites.last)
       )
 
@@ -115,7 +116,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       ),
       competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
       situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, scheduleName = "e-tray", scheduleId = 123, assessmentId = 158),
+      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, List(DaroShedule)),
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",
       emailDomain = "test.com"
