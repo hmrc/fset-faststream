@@ -27,6 +27,17 @@ case class AssessmentCentre(awaitingReevaluation: Boolean = false,
                             failedNotified: Boolean = false
                            )
 
+case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
+  phase2TestsStarted: Boolean = false,
+  phase2TestsCompleted: Boolean = false,
+  phase2TestsExpired: Boolean = false,
+  phase2TestsResultsReady: Boolean = false,
+  phase2TestsResultsReceived: Boolean = false,
+  phase2TestsPassed: Boolean = false,
+  phase2TestsFailed: Boolean = false
+)
+
+
 case class ProgressResponse(applicationId: String,
                             personalDetails: Boolean = false,
                             schemePreferences: Boolean = false,
@@ -40,7 +51,11 @@ case class ProgressResponse(applicationId: String,
                             phase1TestsStarted: Boolean = false,
                             phase1TestsCompleted: Boolean = false,
                             phase1TestsExpired: Boolean = false,
+                            phase1TestsResultsReady: Boolean = false,
                             phase1TestsResultsReceived: Boolean = false,
+                            phase1TestsPassed: Boolean = false,
+                            phase1TestsFailed: Boolean = false,
+                            phase2ProgressResponse: Phase2ProgressResponse = new Phase2ProgressResponse,
                             failedToAttend: Boolean = false,
                             assessmentScores: AssessmentScores = AssessmentScores(),
                             assessmentCentre: AssessmentCentre = AssessmentCentre())
@@ -48,5 +63,6 @@ case class ProgressResponse(applicationId: String,
 object ProgressResponse {
   implicit val assessmentScoresFormat = Json.format[AssessmentScores]
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
+  implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
   implicit val progressResponseFormat = Json.format[ProgressResponse]
 }
