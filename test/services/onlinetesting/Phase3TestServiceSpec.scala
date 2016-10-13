@@ -183,7 +183,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
         testInviteId,
         testLaunchpadCandidateId,
         testFaststreamCustomCandidateId,
-        SeamlessLoginLink(testCandidateRedirectUrl, "success", "registered successfully"),
+        testCandidateRedirectUrl,
         "Tomorrow"
       ))
     }

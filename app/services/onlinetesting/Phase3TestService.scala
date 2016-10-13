@@ -30,7 +30,6 @@ import repositories.application.GeneralApplicationRepository
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.{ EventService, EventSink }
-import services.onlinetesting.Phase3TestService.InviteLinkCouldNotBeCreatedSuccessfully
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -49,8 +48,6 @@ object Phase3TestService extends Phase3TestService {
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
   val eventService = EventService
-
-  case class InviteLinkCouldNotBeCreatedSuccessfully(message: String) extends Exception(message)
 }
 
 trait Phase3TestService extends OnlineTestService with ResetPhase3Test with EventSink {
@@ -102,7 +99,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     } yield {
       LaunchpadTest(interviewId = interviewId,
         usedForResults = true,
-        testUrl = invitation.link.url,
+        testUrl = invitation.testUrl,
         token = invitation.customInviteId,
         candidateId = candidateId,
         customCandidateId = invitation.customCandidateId,
@@ -131,15 +128,8 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
       s"phase3-tests/complete/$customInviteId"
 
     val inviteApplicant = InviteApplicantRequest(interviewId, candidateId, customInviteId, completionRedirectUrl)
-    launchpadGatewayClient.inviteApplicant(inviteApplicant).map { invitation =>
-      invitation.link.status match {
-        case "success" =>
-          invitation
-        case _ =>
-          throw InviteLinkCouldNotBeCreatedSuccessfully(s"Status of invite for " +
-            s"candidate $candidateId to $interviewId was ${invitation.link.status} (Invite ID: $customInviteId)")
-      }
-    }
+
+    launchpadGatewayClient.inviteApplicant(inviteApplicant)
   }
 
   override def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
