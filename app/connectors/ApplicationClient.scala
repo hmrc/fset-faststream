@@ -193,11 +193,11 @@ trait ApplicationClient {
   }
 
   def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(s"${url.host}${url.base}/phase1-test/$cubiksUserId/start", "").map(_ => ())
+    http.PUT(s"${url.host}${url.base}/cubiks/$cubiksUserId/start", "").map(_ => ())
   }
 
   def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(s"${url.host}${url.base}/phase1-test/complete-by-token/$token", "").map(_ => ())
+    http.PUT(s"${url.host}${url.base}/cubiks/complete-by-token/$token", "").map(_ => ())
   }
 }
 
