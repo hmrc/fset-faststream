@@ -19,4 +19,7 @@ package connectors.launchpadgateway.exchangeobjects
 import play.api.libs.json.Json
 
 case class SeamlessLoginLink(url: String, status: String, message: String)
-object SeamlessLoginLink { implicit val seamlessLoginLinkFormat = Json.format[SeamlessLoginLink] }
+
+object SeamlessLoginLink {
+  implicit val seamlessLoginLinkFormat = Json.format[SeamlessLoginLink]
+}

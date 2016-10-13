@@ -18,6 +18,8 @@ package connectors.launchpadgateway.exchangeobjects
 
 import play.api.libs.json.Json
 
-case class RegisterApplicantResponse(candidate_id: String,
-                                     custom_candidate_id: String)
-object RegisterApplicantResponse { implicit val registerApplicantResponseFormat = Json.format[RegisterApplicantResponse] }
+case class RegisterApplicantResponse(candidateId: String,
+                                     customCandidateId: String)
+object RegisterApplicantResponse {
+  implicit val registerApplicantResponseFormat = Json.format[RegisterApplicantResponse]
+}

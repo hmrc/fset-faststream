@@ -24,7 +24,7 @@ import connectors.launchpadgateway.LaunchpadGatewayClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.ProgressStatuses
-import model.persisted.phase3tests.{ Phase3Test, Phase3TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import org.joda.time.DateTime
 import repositories.application.GeneralApplicationRepository
 import repositories._
@@ -40,7 +40,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Phase3TestService extends Phase3TestService {
   import config.MicroserviceAppConfig._
   val appRepository = applicationRepository
-  val p3TestRepository = phase3TestRepository
+  val phase3TestRepo = phase3TestRepository
   val cdRepository = faststreamContactDetailsRepository
   val launchpadGatewayClient = LaunchpadGatewayClient
   val tokenFactory = UUIDFactory
@@ -55,7 +55,7 @@ object Phase3TestService extends Phase3TestService {
 
 trait Phase3TestService extends OnlineTestService with ResetPhase3Test with EventSink {
   val appRepository: GeneralApplicationRepository
-  val p3TestRepository: Phase3TestRepository
+  val phase3TestRepo: Phase3TestRepository
   val cdRepository: contactdetails.ContactDetailsRepository
   val launchpadGatewayClient: LaunchpadGatewayClient
   val tokenFactory: UUIDFactory
@@ -65,8 +65,10 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
   val gatewayConfig: LaunchpadGatewayConfig
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    p3TestRepository.nextApplicationsReadyForOnlineTesting
+    phase3TestRepo.nextApplicationsReadyForOnlineTesting
   }
+
+  def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = phase3TestRepo.getTestGroup(applicationId)
 
   override def registerAndInviteForTestGroup(
   application: List[OnlineTestApplication])(implicit hc: HeaderCarrier): Future[Unit] = Future.failed(new NotImplementedError())
@@ -91,19 +93,19 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
     expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[Phase3Test] = {
+  )(implicit hc: HeaderCarrier): Future[LaunchpadTest] = {
     val customCandidateId = "FSCND-" + tokenFactory.generateUUID()
 
     for {
       candidateId <- registerApplicant(application, emailAddress, customCandidateId)
       invitation <- inviteApplicant(application, interviewId, candidateId)
     } yield {
-      Phase3Test(interviewId = interviewId,
+      LaunchpadTest(interviewId = interviewId,
         usedForResults = true,
         testUrl = invitation.link.url,
-        token = invitation.custom_invite_id,
+        token = invitation.customInviteId,
         candidateId = candidateId,
-        customCandidateId = invitation.custom_candidate_id,
+        customCandidateId = invitation.customCandidateId,
         invitationDate = invitationDate,
         startedDateTime = None,
         completedDateTime = None
@@ -111,12 +113,12 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     }
   }
 
-  def registerApplicant(application: OnlineTestApplication,
+  private def registerApplicant(application: OnlineTestApplication,
                         emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
     launchpadGatewayClient.registerApplicant(registerApplicant).map { registration =>
       audit("Phase3UserRegistered", application.userId)
-      registration.candidate_id
+      registration.candidateId
     }
   }
 
@@ -168,9 +170,9 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
   private def markAsInvited(application: OnlineTestApplication)
                            (newPhase3TestGroup: Phase3TestGroup): Future[Unit] = {
     for {
-      currentPhase3TestGroup <- p3TestRepository.getTestGroup(application.applicationId)
+      currentPhase3TestGroup <- phase3TestRepo.getTestGroup(application.applicationId)
       updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
-      _ <- p3TestRepository.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
+      _ <- phase3TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
       _ <- appRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(updatedPhase3TestGroup))
     } yield {
       audit("Phase3TestInvited", application.userId)

@@ -23,7 +23,7 @@ import org.joda.time.DateTime
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted.Phase1TestProfile
-import model.persisted.phase3tests.{ Phase3Test, Phase3TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import play.api.Logger
 import reactivemongo.api.DB
@@ -35,7 +35,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait Phase3TestRepository extends OnlineTestRepository[Phase3Test, Phase3TestGroup] {
+trait Phase3TestRepository extends OnlineTestRepository[LaunchpadTest, Phase3TestGroup] {
   this: ReactiveRepository[_, _] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]]

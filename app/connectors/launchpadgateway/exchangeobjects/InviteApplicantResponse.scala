@@ -18,6 +18,9 @@ package connectors.launchpadgateway.exchangeobjects
 
 import play.api.libs.json.Json
 
-case class InviteApplicantResponse(custom_invite_id: String, candidate_id: String, custom_candidate_id: String,
+case class InviteApplicantResponse(customInviteId: String, candidateId: String, customCandidateId: String,
                                    link: SeamlessLoginLink, deadline: String)
-object InviteApplicantResponse { implicit val inviteApplicantResponseFormat = Json.format[InviteApplicantResponse] }
+
+object InviteApplicantResponse {
+  implicit val inviteApplicantResponseFormat = Json.format[InviteApplicantResponse]
+}

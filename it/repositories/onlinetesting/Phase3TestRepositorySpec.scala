@@ -2,8 +2,7 @@ package repositories.onlinetesting
 
 import java.util.UUID
 
-import model.persisted.phase3tests.{ Phase3Test, Phase3TestGroup }
-import model.persisted.{ CubiksTest, Phase2TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import org.joda.time.{ DateTime, DateTimeZone }
 import testkit.MongoRepositorySpec
 
@@ -13,7 +12,7 @@ class Phase3TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   val DatePlus7Days = Now.plusDays(7)
   val Token = UUID.randomUUID.toString
 
-  val phase3Test = Phase3Test(
+  val phase3Test = LaunchpadTest(
     interviewId = 123,
     usedForResults = true,
     token = Token,

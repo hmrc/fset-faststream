@@ -23,7 +23,7 @@ import connectors.CSREmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.ContactDetails
-import model.persisted.phase3tests.{ Phase3Test, Phase3TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.{ Address, ApplicationStatus }
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -54,9 +54,9 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "send audit events" in new Phase3TestServiceFixture {
       phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
-      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3UserRegistered"), any[Map[String, String]])
-      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3TestInvited"), any[Map[String, String]])
-      verify(auditServiceMock, times(1)).logEventNoRequest(eqTo("Phase3TestInvitationProcessComplete"), any[Map[String, String]])
+      verify(auditServiceMock).logEventNoRequest(eqTo("Phase3UserRegistered"), any[Map[String, String]])
+      verify(auditServiceMock).logEventNoRequest(eqTo("Phase3TestInvited"), any[Map[String, String]])
+      verify(auditServiceMock).logEventNoRequest(eqTo("Phase3TestInvitationProcessComplete"), any[Map[String, String]])
     }
 
     "insert a valid test group" in new Phase3TestServiceFixture {
@@ -143,7 +143,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       )
     )
 
-    val testPhase3Test = Phase3Test(
+    val testPhase3Test = LaunchpadTest(
       testInterviewId,
       usedForResults = true,
       "launchpad",
@@ -196,7 +196,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
     val phase3TestService = new Phase3TestService with EventServiceFixture {
       val appRepository = appRepositoryMock
-      val p3TestRepository = p3TestRepositoryMock
+      val phase3TestRepo = p3TestRepositoryMock
       val cdRepository = cdRepositoryMock
       val launchpadGatewayClient = launchpadGatewayClientMock
       val tokenFactory = tokenFactoryMock

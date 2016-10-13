@@ -22,8 +22,8 @@ import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class Phase3TestGroup(expirationDate: DateTime,
-                           tests: List[Phase3Test],
-                           evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[Phase3Test]
+                           tests: List[LaunchpadTest],
+                           evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[LaunchpadTest]
 
 object Phase3TestGroup {
   implicit val phase3TestGroupFormat = Json.format[Phase3TestGroup]

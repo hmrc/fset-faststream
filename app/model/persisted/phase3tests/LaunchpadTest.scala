@@ -21,20 +21,20 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class Phase3Test(interviewId: Int,
-                      usedForResults: Boolean,
-                      testProvider: String = "launchpad",
-                      testUrl: String,
-                      token: String,
-                      candidateId: String,
-                      customCandidateId: String,
-                      invitationDate: DateTime,
-                      startedDateTime: Option[DateTime],
-                      completedDateTime: Option[DateTime]
+case class LaunchpadTest(interviewId: Int,
+                         usedForResults: Boolean,
+                         testProvider: String = "launchpad",
+                         testUrl: String,
+                         token: String,
+                         candidateId: String,
+                         customCandidateId: String,
+                         invitationDate: DateTime,
+                         startedDateTime: Option[DateTime],
+                         completedDateTime: Option[DateTime]
                      ) extends Test
 
-object Phase3Test {
-  implicit val phase3TestFormat = Json.format[Phase3Test]
+object LaunchpadTest {
+  implicit val launchpadTestFormat = Json.format[LaunchpadTest]
   import repositories.BSONDateTimeHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, Phase3Test] = Macros.handler[Phase3Test]
+  implicit val bsonHandler: BSONHandler[BSONDocument, LaunchpadTest] = Macros.handler[LaunchpadTest]
 }

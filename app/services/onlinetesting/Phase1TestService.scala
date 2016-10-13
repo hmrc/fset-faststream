@@ -144,7 +144,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     val registerAndInvite = FutureEx.traverseToTry(scheduleNames.zipWithIndex) {
       case (scheduleName, delayModifier) =>
         val scheduleId = scheduleIdByName(scheduleName)
-        val delay = (delayModifier * 1).second
+        val delay = delayModifier.second
         akka.pattern.after(delay, actor.scheduler)(
           registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
         )

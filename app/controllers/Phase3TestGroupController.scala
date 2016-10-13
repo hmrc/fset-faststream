@@ -16,30 +16,27 @@
 
 package controllers
 
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories._
-import repositories.onlinetesting.{ Phase1TestRepository, Phase3TestRepository }
+import repositories.onlinetesting.Phase3TestRepository
 import services.events.EventService
-import services.onlinetesting.{ OnlineTestExtensionService, Phase3TestService }
+import services.onlinetesting.Phase3TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase3TestGroupController extends Phase3TestGroupController {
-  override val phase3Repository = phase3TestRepository
-  override val phase3TestService = Phase3TestService
+  val phase3TestService = Phase3TestService
   val eventService: EventService = EventService
 }
 
 trait Phase3TestGroupController extends BaseController {
-
-  val phase3Repository: Phase3TestRepository
   val phase3TestService: Phase3TestService
   val eventService: EventService
 
-  def get(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
-      phase3Repository.getTestGroup(applicationId).map {
+  def getTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    phase3TestService.getTestGroup(applicationId).map {
         case Some(testGroup) =>
           Ok(Json.toJson(testGroup))
         case None =>
