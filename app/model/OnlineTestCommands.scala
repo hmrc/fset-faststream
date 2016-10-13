@@ -27,7 +27,7 @@ import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 object OnlineTestCommands {
 
   case class OnlineTestApplication(applicationId: String, applicationStatus: String, userId: String,
-    guaranteedInterview: Boolean, needsAdjustments: Boolean, preferredName: String,
+    guaranteedInterview: Boolean, needsAdjustments: Boolean, preferredName: String, lastName: String,
     timeAdjustments: Option[TimeAdjustmentsOnlineTestApplication])
 
   case class OnlineTestApplicationWithCubiksUser(applicationId: String, userId: String, cubiksUserId: Int)

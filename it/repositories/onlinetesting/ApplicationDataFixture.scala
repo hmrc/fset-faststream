@@ -17,6 +17,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
   def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
   def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
+  def phase3TestRepo = new Phase3TestMongoRepository(DateTimeFactory)
 
   import ImplicitBSONHandlers._
 
@@ -34,13 +35,14 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
       "frameworkId" -> frameworkId,
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
-      "personal-details" -> BSONDocument("preferredName" -> "Test Preferred Name"),
+      "personal-details" -> BSONDocument("preferredName" -> "Test Preferred Name",
+                                          "lastName" -> "Test Last Name"),
       "civil-service-experience-details.applicable" -> fastPassApplicable,
-      "assistance-details" -> createAsistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments)
+      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments)
     )).futureValue
   }
 
-  def createAsistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments:Boolean) = {
+  def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments:Boolean) = {
     if (needsAdjustment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
@@ -71,8 +73,6 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
       )
     }
   }
-
-
 
   def createOnlineTestApplication(appId: String, applicationStatus: String, xmlReportSavedOpt: Option[Boolean] = None,
     alreadyEvaluatedAgainstPassmarkVersionOpt: Option[String] = None): String = {

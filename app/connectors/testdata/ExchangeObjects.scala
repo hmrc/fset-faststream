@@ -36,7 +36,8 @@ object ExchangeObjects {
                                     contactDetails: Option[ContactDetails] = None,
                                     phase1TestGroup: Option[Phase1TestGroupResponse] = None,
                                     applicationAssessment: Option[ApplicationAssessment] = None,
-                                    schemePreferences: Option[SelectedSchemes] = None
+                                    schemePreferences: Option[SelectedSchemes] = None,
+                                    phase3TestUrl: Option[String] = None
                                    )
 
   case class Phase1TestGroupResponse(tests: List[Phase1TestResponse])
