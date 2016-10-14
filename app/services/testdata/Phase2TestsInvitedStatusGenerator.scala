@@ -43,7 +43,7 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     val etray = CubiksTest(
-      cubiksUserId = scala.util.Random.nextInt(1000000000),
+      cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
