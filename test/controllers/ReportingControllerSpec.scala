@@ -21,19 +21,14 @@ import connectors.AuthProviderClient
 import connectors.ExchangeObjects.Candidate
 import mocks._
 import mocks.application.DocumentRootInMemoryRepository
-import model.{Address, SchemeType}
-import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback}
-import model.Commands._
-import model.report._
-import model.Commands.Implicits._
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.ContactDetailsWithId
-import model.report.{CandidateProgressReport, OnlineTestPassMarkReportItem}
-import org.joda.time.LocalDate
+import model.report.{OnlineTestPassMarkReportItem, _}
+import model.{Address, SchemeType}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{JsArray, JsValue}
+import play.api.libs.json.JsArray
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Helpers}
@@ -46,7 +41,7 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.Random
 
-class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
+class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
 
   class TestableReportingController extends ReportingController {
     override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
@@ -115,9 +110,9 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
 
   "Online test pass mark report" should {
     "return nothing if no applications exist" in new PassMarkReportTestFixture {
-      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(Nil)
-      when(questionRepo.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
-      when(testResultRepo.getOnlineTestReports).thenReturnAsync(Map.empty)
+      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(Nil)
+      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
+      when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -127,9 +122,9 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     }
 
     "return nothing if applications exist, but no questionnaires" in new PassMarkReportTestFixture {
-      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(reports)
-      when(questionRepo.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
-      when(testResultRepo.getOnlineTestReports).thenReturnAsync(Map.empty)
+      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(reports)
+      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
+      when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -142,9 +137,9 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
       val emptyTestResults = PassMarkReportTestResults(None, None)
       val emptyTestResultsReports = List(newOnlineTestPassMarkReport(emptyTestResults), newOnlineTestPassMarkReport(emptyTestResults))
 
-      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(emptyTestResultsReports)
+      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(emptyTestResultsReports)
 
-      when(questionRepo.findForOnlineTestPassMarkReport).thenReturnAsync(questionnaires)
+      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnaires)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -154,10 +149,10 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
     }
 
     "return applications with questionnaire and test results" in new PassMarkReportTestFixture {
-      when(appRepo.onlineTestPassMarkReport(any())).thenReturnAsync(reports)
+      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(reports)
 
-      when(questionRepo.findForOnlineTestPassMarkReport).thenReturnAsync(questionnaires)
-      when(testResultRepo.getOnlineTestReports).thenReturnAsync(testResults)
+      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnaires)
+      when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(testResults)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -169,6 +164,7 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
       )
     }
   }
+
 /*
   "Reporting controller create non-submitted applications report" should {
     "return a list of non submitted applications with phone number if contact details exist" in new TestFixture {
@@ -457,17 +453,18 @@ class ReportControllerSpec extends PlaySpec with Results with MockitoSugar {
   */
 
   trait PassMarkReportTestFixture extends TestFixture {
-    val appRepo = mock[GeneralApplicationRepository]
-    val questionRepo = mock[QuestionnaireRepository]
-    val testResultRepo = mock[TestReportRepository]
+    val mockAppRepository = mock[GeneralApplicationRepository]
+    val mockQuestionRepository = mock[QuestionnaireRepository]
+    val mockTestResultRepository = mock[TestReportRepository]
+    val mockMediaRepository = mock[MediaRepository]
     val controller = new ReportingController {
-      val appRepository = appRepo
+      val appRepository = mockAppRepository
       val cdRepository = mock[ContactDetailsRepository]
       val authProviderClient = mock[AuthProviderClient]
-      val questionnaireRepository = questionRepo
-      val testReportRepository = testResultRepo
+      val questionnaireRepository = mockQuestionRepository
+      val testReportRepository = mockTestResultRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
-      val medRepository: MediaRepository = MediaInMemoryRepository
+      val medRepository: MediaRepository = mockMediaRepository
     }
 
     lazy val testResults1 = newTestResults

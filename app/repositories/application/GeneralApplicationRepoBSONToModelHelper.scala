@@ -124,6 +124,23 @@ trait GeneralApplicationRepoBSONToModelHelper {
     Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
   }
 
+  def toCivilServiceExperienceDetailsReportItem(optDoc: Option[BSONDocument]): Option[CivilServiceExperienceDetailsReportItem] = {
+    optDoc.map { doc =>
+      val civilServiceExperienceType = (fpType: CivilServiceExperienceType) =>
+        doc.getAs[CivilServiceExperienceType]("civilServiceExperienceType").contains(fpType)
+      val internshipTypes = (internshipType: InternshipType) =>
+        doc.getAs[List[InternshipType]]("internshipTypes").getOrElse(List.empty[InternshipType]).contains(internshipType)
+      val civilServant = booleanTranslator(civilServiceExperienceType(CivilServiceExperienceType.CivilServant))
+      val fastTrack = booleanTranslator(civilServiceExperienceType(CivilServiceExperienceType.CivilServantViaFastTrack))
+      val edip = booleanTranslator(internshipTypes(InternshipType.EDIP))
+      val sdipPrevious = booleanTranslator(internshipTypes(InternshipType.SDIPPreviousYear))
+      val sdip = booleanTranslator(internshipTypes(InternshipType.SDIPCurrentYear))
+      val fastPassCertificate = doc.getAs[String]("certificateNumber").getOrElse("No")
+      CivilServiceExperienceDetailsReportItem(Some(civilServant), Some(fastTrack), Some(edip), Some(sdipPrevious),
+        Some(sdip), Some(fastPassCertificate))
+    }
+  }
+
   def toApplicationForDiversityReportItem(findProgress: (BSONDocument, String) => ProgressResponse)
                                          (doc: BSONDocument): ApplicationForDiversityReportItem = {
     val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
@@ -136,19 +153,7 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
 
     val civilServiceExperienceDoc = doc.getAs[BSONDocument]("civil-service-experience-details")
-    val civilServiceExperienceType = (fpType: CivilServiceExperienceType) => civilServiceExperienceDoc.map(
-      _.getAs[CivilServiceExperienceType]("civilServiceExperienceType").contains(fpType)
-    )
-    val internshipTypes = (internshipType: InternshipType) =>
-      civilServiceExperienceDoc.map(_.getAs[List[InternshipType]]("internshipTypes").
-        getOrElse(List.empty[InternshipType]).contains(internshipType))
-    val civilServant = civilServiceExperienceType(CivilServiceExperienceType.CivilServant).map(booleanTranslator)
-    val fastTrack = civilServiceExperienceType(CivilServiceExperienceType.CivilServantViaFastTrack).map(booleanTranslator)
-    val edip = internshipTypes(InternshipType.EDIP).map(booleanTranslator)
-    val sdipPrevious = internshipTypes(InternshipType.SDIPPreviousYear).map(booleanTranslator)
-    val sdip = internshipTypes(InternshipType.SDIPCurrentYear).map(booleanTranslator)
-    val fastPassCertificate = civilServiceExperienceDoc.map(_.getAs[String]("certificateNumber").getOrElse("No"))
-    val civilServiceExperience = CivilServiceExperienceDetailsReportItem(civilServant, fastTrack, edip, sdipPrevious, sdip, fastPassCertificate)
+    val civilServiceExperience = toCivilServiceExperienceDetailsReportItem(civilServiceExperienceDoc)
 
     val applicationId = doc.getAs[String]("applicationId").getOrElse("")
     val userId = doc.getAs[String]("userId").getOrElse("")
@@ -156,7 +161,7 @@ trait GeneralApplicationRepoBSONToModelHelper {
 
     ApplicationForDiversityReportItem(applicationId, userId, Some(getStatus(progress)),
       schemes.getOrElse(List.empty), disability, gis, onlineAdjustments,
-      assessmentCentreAdjustments, Some(civilServiceExperience))
+      assessmentCentreAdjustments, civilServiceExperience)
   }
 
   def toApplicationForOnlineTestPassMarkReportItem(doc: BSONDocument): ApplicationForOnlineTestPassMarkReportItem = {
