@@ -19,10 +19,10 @@ package controllers
 import _root_.forms.WithdrawApplicationForm
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.{ FrameworkId, Phase2TestGroupWithNames, WithdrawApplication }
+import connectors.exchange.{ FrameworkId, Phase2TestGroupWithNames, Phase3TestGroup, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
-import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage }
+import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
 import models.{ CachedData, CachedDataWithApp }
 import security.Roles
 import security.Roles._
@@ -43,16 +43,22 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
         applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
       } else { Future.successful(None) }
 
+      def getPhase3Test: Future[Option[Phase3TestGroup]] = if (application.applicationStatus == ApplicationStatus.PHASE3_TESTS) {
+        applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))
+      } else { Future.successful(None) }
+
       val dashboard = for {
         phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
         phase2TestsWithNames <- getPhase2Test
+        phase3Tests <- getPhase3Test
         allocationDetails <- applicationClient.getAllocationDetails(application.applicationId)
         // TODO Work out a better way to invalidate the cache across the site
         app = CachedDataWithApp(cachedData.user, application)
         updatedData <- refreshCachedUser()(app, hc, request)
       } yield {
         val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)),
-          phase2TestsWithNames.map(Phase2TestsPage.apply)
+          phase2TestsWithNames.map(Phase2TestsPage.apply),
+          phase3Tests.map(Phase3TestsPage.apply)
         )
         Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))
       }
@@ -65,7 +71,7 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
           val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled || applicationSubmitted
 
           if (isDashboardEnabled) {
-            val dashboardPage = DashboardPage(cachedData, None, None, None)
+            val dashboardPage = DashboardPage(cachedData, None, None, None, None)
             Ok(views.html.home.dashboard(cachedData, dashboardPage, None))
           } else {
             Ok(views.html.home.submit_disabled(cachedData))
@@ -75,7 +81,7 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
       val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled
 
       if (isDashboardEnabled) {
-        val dashboardPage = DashboardPage(cachedData, None, None, None)
+        val dashboardPage = DashboardPage(cachedData, None, None, None, None)
         Future.successful(Ok(views.html.home.dashboard(cachedData, dashboardPage, None)))
       } else {
         Future.successful(Ok(views.html.home.submit_disabled(cachedData)))

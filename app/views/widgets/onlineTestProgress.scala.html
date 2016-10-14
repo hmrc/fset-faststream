@@ -125,28 +125,40 @@
                 </li>
          }
     }
-                <li id="videoSection">
-                    <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
-                        <span
-                                class="font-xsmall" data-locked>- locked</span>
-                    </p>
-                    <!-- <p data-locked>Unlocked if you're successful in the E-tray</p> -->
-                    <p>
 
-                        <button id="submit_phase3_tests" type="submit" value="submit" class="button">Start section</button>
+    <li id="videoSection">
+    @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.phase3TestsPage) match {
+        case (_, None) => {
+            <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
+                <span
+                class="font-xsmall" data-locked>- locked</span>
+            </p>
+            <p data-locked>Unlocked if you're successful in the E-tray</p>
+        }
 
-                    </p>
-                    <div id="videoBlurb" class="hidden">
-                        <p id="videoDescription" class="">This section is timed, after starting the section you'll
-                            have 30 minutes to complete it.</p>
-                        <p id="videoTime" class="">You have <strong>6 days 3 hours</strong> to finish
-                            the video interview</p>
-                        <a href="https://launchpadrecruitsapp.com/apply/4dbf86b937ecb3df1c533a30" class="button"
-                           id="videoButton">Start section</a>
-                        <p>(You'll have 30 minutes to finish)</p>
-                    </div>
-                </li>
-            </ul>
-            <p id="testsFindoutmore"><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the online tests</a></p>
+        case (true, Some(phase3Test)) => {
+            <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
+                EXPIRED
+            </p>
+        }
+        case (false, Some(phase3Test)) => {
+            <p>
+                <button id="submit_phase3_tests" type="submit" value="submit" class="button">Start section</button>
+            </p>
+            <div id="videoBlurb" class="hidden">
+                <p id="videoDescription" class="">This section is timed, after starting the section you'll
+                    have 30 minutes to complete it.</p>
+                <p id="videoTime" class="">You have <strong>6 days 3 hours</strong> to finish
+                    the video interview</p>
+                <a href="https://launchpadrecruitsapp.com/apply/4dbf86b937ecb3df1c533a30" class="button"
+                id="videoButton">Start section</a>
+                <p>(You'll have 30 minutes to finish)</p>
+            </div>
+
+        }
+    }
+    </li>
+    </ul>
+    <p id="testsFindoutmore"><a href="http://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the online tests</a></p>
 </div>
 

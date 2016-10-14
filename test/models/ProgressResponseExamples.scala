@@ -18,7 +18,7 @@ package models
 
 import java.util.UUID
 
-import connectors.exchange.ProgressResponse
+import connectors.exchange.{ Phase1ProgressResponse, ProgressResponse }
 
 object ProgressResponseExamples {
   val Initial = ProgressResponse(applicationId = UUID.randomUUID().toString,
@@ -30,12 +30,7 @@ object ProgressResponseExamples {
     questionnaire = Nil,
     submitted = false,
     withdrawn = false,
-    phase1TestsInvited = false,
-    phase1TestsStarted = false,
-    phase1TestsCompleted = false,
-    phase1TestsExpired = false,
-    phase1TestsResultsReady = false,
-    phase1TestsResultsReceived = false
+    Phase1ProgressResponse()
   )
   val InProgress = Initial.copy(personalDetails = true)
   val InPersonalDetails = Initial.copy(personalDetails = true)

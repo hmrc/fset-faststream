@@ -20,15 +20,14 @@ import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 import org.joda.time.{ DateTime, Period, PeriodType }
 
 
-case class Phase3TestsPage(
-                            expirationDate: DateTime,
-                            started: Boolean,
-                            completed: Boolean
-                          ) {
+case class Phase2TestsPage(
+  expirationDate: DateTime,
+  etray: Option[CubiksTestPage]
+) {
 
-  def isStarted: Boolean = started
+  def isStarted: Boolean = etray.exists(_.started)
 
-  def isCompleted: Boolean = completed
+  def isCompleted: Boolean = etray.exists(_.completed)
 
   def getDuration: String = {
 
@@ -81,12 +80,11 @@ case class Phase3TestsPage(
   }
 }
 
-object Phase3TestsPage {
+object Phase2TestsPage {
 
-  def apply(profile: connectors.exchange.Phase3TestGroup): Phase3TestsPage = {
-    Phase3TestsPage(expirationDate = profile.expirationDate,
-      started = profile.activeTests.headOption.exists(_.started),
-      completed = profile.activeTests.headOption.exists(_.completed)
+  def apply(profile: connectors.exchange.Phase2TestGroupWithNames): Phase2TestsPage = {
+    Phase2TestsPage(expirationDate = profile.expirationDate,
+      etray = profile.activeTests.headOption.map(CubiksTestPage.apply)
     )
   }
 }

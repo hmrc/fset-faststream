@@ -36,6 +36,7 @@ object Phase3Test {
 
 
 case class Phase3TestGroup(expirationDate: DateTime, tests: List[Phase3Test]) {
+  def activeTests = tests.filter(_.usedForResults)
 }
 
 object Phase3TestGroup {

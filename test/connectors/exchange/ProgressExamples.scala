@@ -16,11 +16,17 @@
 
 package connectors.exchange
 
-import models.{ Phase2TestProgress, Progress }
+import models.{ Phase1TestProgress, Phase2TestProgress, Phase3TestProgress, Progress }
 
 object ProgressExamples {
   val InitialProgress = Progress(false, false, false, false, false, false, false, false, false, false, false,
-    false, false, false, false, false, false,
+    Phase1TestProgress(phase1TestsInvited = false,
+      phase1TestsStarted = false,
+      phase1TestsCompleted = false,
+      phase1TestsExpired = false,
+      phase1TestsResultsReady = false,
+      phase1TestsResultsReceived = false
+    ),
     Phase2TestProgress(phase2TestsInvited = false,
       phase2TestsStarted = false,
       phase2TestsCompleted = false,
@@ -28,18 +34,38 @@ object ProgressExamples {
       phase2TestsResultsReady = false,
       phase2TestsResultsReceived = false
     ),
+    Phase3TestProgress(phase3TestsInvited = false,
+      phase3TestsStarted = false,
+      phase3TestsCompleted = false,
+      phase3TestsExpired = false,
+      phase3TestsResultsReady = false,
+      phase3TestsResultsReceived = false
+    ),
     false,
     AssessmentScores(false, false),
     AssessmentCentre(false, false, false)
   )
   val FullProgress = Progress(true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true,
+    Phase1TestProgress(phase1TestsInvited = true,
+      phase1TestsStarted = true,
+      phase1TestsCompleted = true,
+      phase1TestsExpired = true,
+      phase1TestsResultsReady = true,
+      phase1TestsResultsReceived = true
+    ),
     Phase2TestProgress(phase2TestsInvited = true,
       phase2TestsStarted = true,
       phase2TestsCompleted = true,
       phase2TestsExpired = true,
       phase2TestsResultsReady = true,
       phase2TestsResultsReceived = true
+    ),
+    Phase3TestProgress(phase3TestsInvited = true,
+      phase3TestsStarted = true,
+      phase3TestsCompleted = true,
+      phase3TestsExpired = true,
+      phase3TestsResultsReady = true,
+      phase3TestsResultsReceived = true
     ),
     true,
     AssessmentScores(true, true),

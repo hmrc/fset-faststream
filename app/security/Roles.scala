@@ -42,8 +42,8 @@ object Roles {
       activeUserWithApp(user) && isEnabled(user)
   }
 
-  //all the roles
-
+  // All the roles
+  // scalastyle:off number.of.types
   object NoRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) = true
   }
@@ -137,7 +137,12 @@ object Roles {
 
   object Phase2TestExpiredRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS) && isTestExpired(user)
+      activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS) && isPhase2TestExpired(user)
+  }
+
+  object Phase3TestExpiredRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE3_TESTS) && isPhase3TestExpired(user)
   }
 
   object DisplayOnlineTestSectionRole extends CsrAuthorization {
@@ -180,6 +185,7 @@ object Roles {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
   }
+  // scalastyle:on number.of.types
 
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
     ApplicationStartRole -> routes.HomeController.present(),
@@ -240,7 +246,7 @@ object RoleUtils {
       .flatMap(_.fastPassReceived)
       .getOrElse(false)
 
-  def isTestExpired(implicit user: CachedData) = progress.phase1TestsExpired
+  def isTestExpired(implicit user: CachedData) = progress.phase1TestProgress.phase1TestsExpired
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
-
+  def isPhase3TestExpired(implicit user: CachedData) = progress.phase3TestProgress.phase3TestsExpired
 }
