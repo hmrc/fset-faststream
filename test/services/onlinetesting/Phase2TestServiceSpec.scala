@@ -16,19 +16,29 @@
 
 package services.onlinetesting
 
+import akka.actor.ActorSystem
+import config.Phase2ScheduleExamples._
 import config._
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
+import connectors.{ CSREmailClient, CubiksGatewayClient }
+import factories.{ DateTimeFactory, UUIDFactory }
+import model.{ Address, ApplicationStatus, ProgressStatuses }
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.{ Address, ApplicationStatus }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.{ ContactDetails, Phase2TestGroup }
+import model.ProgressStatuses.ProgressStatus
+import model.exchange.CubiksTestResultReady
+import model.persisted._
 import org.joda.time.DateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
+import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
@@ -63,9 +73,9 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "correctly invite a batch of candidates" in new Phase2TestServiceFixture {
       val result = phase2TestService.inviteApplicants(registeredMap).futureValue
 
-      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, tokens.head,
+      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, 1, tokens.head,
         registrations.head, invites.head),
-        phase2TestService.Phase2TestInviteData(onlineTestApplication2, tokens.last,
+        phase2TestService.Phase2TestInviteData(onlineTestApplication2, scheduleId = DaroShedule.scheduleId, tokens.last,
           registrations.last, invites.last)
       )
 
@@ -98,12 +108,83 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
       verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
       verify(otRepositoryMock).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
+      phase2TestService.verifyDataStoreEvents(1, "OnlineExerciseResultSent")
+    }
+  }
+
+  "mark as started" should {
+    "change progress to started" in new Phase2TestServiceFixture {
+      when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
+        .thenReturn(Future.successful(Phase2TestGroupWithAppId("appId123", phase2TestProfile)))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)).thenReturn(Future.successful(()))
+      phase2TestService.markAsStarted(cubiksUserId).futureValue
+
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)
+    }
+  }
+
+  "mark as completed" should {
+    "change progress to completed if there are all tests completed" in new Phase2TestServiceFixture {
+      when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
+      val phase1Tests = phase2TestProfile.copy(tests = phase2TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))))
+      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
+        .thenReturn(Future.successful(Phase2TestGroupWithAppId("appId123", phase1Tests)))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED)).thenReturn(Future.successful(()))
+      phase2TestService.markAsCompleted(cubiksUserId).futureValue
+
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED)
+    }
+  }
+
+  "mark report as ready to download" should {
+    "not change progress if not all the active tests have reports ready" in new Phase2TestServiceFixture {
+      val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
+
+      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
+        Future.successful(Phase2TestGroupWithAppId("appId", phase2TestProfile.copy(
+          tests = List(phase2Test.copy(usedForResults = false, cubiksUserId = 123),
+            phase2Test,
+            phase2Test.copy(cubiksUserId = 789, resultsReadyToDownload = false)
+          )
+        )))
+      )
+      when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup]))
+        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
+        .thenReturn(Future.successful(()))
+
+      val result = phase2TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
+
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+    }
+
+    "change progress to reports ready if all the active tests have reports ready" in new Phase2TestServiceFixture {
+      val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
+
+      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
+        Future.successful(Phase2TestGroupWithAppId("appId", phase2TestProfile.copy(
+          tests = List(phase2Test.copy(usedForResults = false, cubiksUserId = 123),
+            phase2Test,
+            phase2Test.copy(cubiksUserId = 789, resultsReadyToDownload = true)
+          )
+        )))
+      )
+      when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup]))
+        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
+        .thenReturn(Future.successful(()))
+
+      val result = phase2TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
+
+      verify(otRepositoryMock).updateProgressStatus("appId", ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
     }
   }
 
   trait Phase2TestServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
+    implicit val rh = mock[RequestHeader]
 
     val gatewayConfigMock =  CubiksGatewayConfig(
       "",
@@ -114,11 +195,18 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       ),
       competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
       situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, scheduleName = "e-tray", scheduleId = 123, assessmentId = 158),
+      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, Map("daro" -> DaroShedule)),
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",
       emailDomain = "test.com"
     )
+
+    val cubiksUserId = 98765
+    val token = "token"
+    val authenticateUrl = "http://localhost/authenticate"
+    val invitationDate = DateTime.parse("2016-05-11")
+    val startedDate = invitationDate.plusDays(1)
+    val expirationDate = invitationDate.plusDays(7)
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
@@ -135,7 +223,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       userId = "userId",
       guaranteedInterview = false,
       needsAdjustments = false,
-      preferredName = "Optimus Prime",
+      preferredName = "Optimus",
+      lastName = "Prime",
       timeAdjustments = None
     )
 
@@ -155,6 +244,18 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       Invitation(userId = registrations.last.userId, email = "email@test.com", accessCode = "accessCode", logonUrl = "logon.com",
         authenticateUrl = "authenticated", participantScheduleId = 888
     ))
+
+    val phase2Test = CubiksTest(scheduleId = 3,
+      usedForResults = true,
+      cubiksUserId = cubiksUserId,
+      token = token,
+      testUrl = authenticateUrl,
+      invitationDate = invitationDate,
+      participantScheduleId = 234
+    )
+    val phase2TestProfile = Phase2TestGroup(expirationDate,
+      List(phase2Test)
+    )
 
     when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
       .thenReturn(Future.successful(registrations))
@@ -181,6 +282,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = DateTimeFactory
       val gatewayConfig = gatewayConfigMock
+      val actor = ActorSystem()
     }
   }
 }

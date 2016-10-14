@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package model.exchange
+package config
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
-import play.api.libs.json.Json
-
-case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTests: List[CubiksTest])
-
-object Phase2TestGroupWithNames {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
+object Phase2ScheduleExamples {
+  val DaroShedule = Phase2Schedule(1, 2, 3)
+  val IradShedule = Phase2Schedule(4, 5, 6)
+  val WardShedule = Phase2Schedule(7, 8, 9)
 }

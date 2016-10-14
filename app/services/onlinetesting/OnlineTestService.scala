@@ -21,9 +21,11 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.ReminderNotice
-import model.persisted.NotificationExpiringOnlineTest
+import model.exchange.CubiksTestResultReady
+import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest }
 import org.joda.time.DateTime
 import play.api.Logger
+import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.AuditService
@@ -44,8 +46,8 @@ trait OnlineTestService extends EventSink  {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]]
-  def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit]
-  def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier): Future[Unit]
+  def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit]
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
@@ -74,6 +76,23 @@ trait OnlineTestService extends EventSink  {
       event,
       Map("userId" -> userId) ++ emailAddress.map("email" -> _).toMap
     )
+  }
+
+  def updateTestReportReady(cubiksTest: CubiksTest, reportReady: CubiksTestResultReady) = cubiksTest.copy(
+    resultsReadyToDownload = reportReady.reportStatus == "Ready",
+    reportId = reportReady.reportId,
+    reportLinkURL = reportReady.reportLinkURL,
+    reportStatus = Some(reportReady.reportStatus)
+  )
+
+  def updateCubiksTestsById(cubiksUserId: Int, cubiksTests: List[CubiksTest], updateFn: CubiksTest => CubiksTest) = cubiksTests.collect {
+      case t if t.cubiksUserId == cubiksUserId => updateFn(t)
+      case t => t
+  }
+
+  def assertUniqueTestByCubiksUserId(cubiksTests: List[CubiksTest], cubiksUserId: Int) = {
+    val requireUserIdOnOnlyOneTestCount = cubiksTests.count(_.cubiksUserId == cubiksUserId)
+    require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
   }
 
   private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {

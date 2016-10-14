@@ -16,12 +16,12 @@
 
 package model.exchange
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTests: List[CubiksTest])
+case class CubiksTestResultReady(reportId: Option[Int],
+                                 reportStatus: String,
+                                 reportLinkURL: Option[String])
 
-object Phase2TestGroupWithNames {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
+case object CubiksTestResultReady {
+  implicit val phase1TestResultReadyFormat = Json.format[CubiksTestResultReady]
 }

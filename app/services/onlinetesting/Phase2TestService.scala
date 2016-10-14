@@ -18,18 +18,22 @@ package services.onlinetesting
 
 import _root_.services.AuditService
 import akka.actor.ActorSystem
-import config.{ CubiksGatewayConfig, Phase2TestsConfig }
+import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.ReminderNotice
-import model.exchange.Phase2TestGroupWithNames
-import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup }
+import model.{ ProgressStatuses, ReminderNotice }
+import model.events.DataStoreEvents
+import model.events.EventTypes.EventType
+import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
+import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import org.joda.time.DateTime
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
 import services.events.EventService
+import services.onlinetesting.phase2.ScheduleSelector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -51,7 +55,7 @@ object Phase2TestService extends Phase2TestService {
 
 }
 
-trait Phase2TestService extends OnlineTestService {
+trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
@@ -61,10 +65,10 @@ trait Phase2TestService extends OnlineTestService {
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
 
   case class Phase2TestInviteData(application: OnlineTestApplication,
-    token: String,
-    registration: Registration,
-    invitation: Invitation
-  )
+                                  scheduleId: Int,
+                                  token: String,
+                                  registration: Registration,
+                                  invitation: Invitation)
 
   def getTestProfile(applicationId: String): Future[Option[Phase2TestGroupWithNames]] = {
     for {
@@ -100,7 +104,7 @@ trait Phase2TestService extends OnlineTestService {
   }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(List(application))
   }
 
@@ -115,19 +119,20 @@ trait Phase2TestService extends OnlineTestService {
 
   def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)])
     (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
+    val schedule = getRandomSchedule
     val invites = candidateData.values.map { case (application, token, registration) =>
-      buildInviteApplication(application, token, registration.userId, testConfig.scheduleId)
+      buildInviteApplication(application, token, registration.userId, schedule)
     }.toList
 
     cubiksGatewayClient.inviteApplicants(invites).map(_.map { invitation =>
       val (application, token, registration) = candidateData(invitation.userId)
       audit("Phase2TestInvited", application.userId)
-      Phase2TestInviteData(application, token, registration, invitation)
+      Phase2TestInviteData(application, schedule.scheduleId, token, registration, invitation)
     })
   }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
 
     val candidatesToProcess = filterCandidates(applications)
     val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
@@ -138,26 +143,27 @@ trait Phase2TestService extends OnlineTestService {
       invitedApplicants <- inviteApplicants(registeredApplicants)
       _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
       _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
-    } yield candidatesToProcess.foreach { candidate =>
-      audit("Phase2TestInvitationProcessComplete", candidate.userId)
+    } yield candidatesToProcess.map { candidate =>
+        audit("Phase2TestInvitationProcessComplete", candidate.userId)
+        DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
     }
   }
 
-  def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, scheduleId: Int) = {
+  def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, schedule: Phase2Schedule) = {
     val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase2"
 
-    InviteApplicant(scheduleId,
+    InviteApplicant(schedule.scheduleId,
       userId,
       s"$scheduleCompletionBaseUrl/complete/$token",
       resultsURL = None,
-      timeAdjustments = buildTimeAdjustments(application.needsAdjustments)
+      timeAdjustments = buildTimeAdjustments(application.needsAdjustments, schedule.assessmentId)
     )
   }
 
-  def insertPhase2TestGroups(o: List[Phase2TestInviteData])
+  private def insertPhase2TestGroups(o: List[Phase2TestInviteData])
     (implicit invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = Future.sequence(o.map { completedInvite =>
     val testGroup = Phase2TestGroup(expirationDate = expirationDate,
-      List(CubiksTest(scheduleId = testConfig.scheduleId,
+      List(CubiksTest(scheduleId = completedInvite.scheduleId,
         usedForResults = true,
         cubiksUserId = completedInvite.registration.userId,
         token = completedInvite.token,
@@ -170,11 +176,70 @@ trait Phase2TestService extends OnlineTestService {
     phase2TestRepo.insertOrUpdateTestGroup(completedInvite.application.applicationId, testGroup)
   }).map( _ => () )
 
+  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]= eventSink {
+    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)))
+    updatedPhase2Test flatMap { u =>
+      phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
+        DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
+      }
+    }
+  }
+
+  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)))
+    updatedPhase2Test flatMap { u =>
+      require(u.phase2TestGroup.activeTests.nonEmpty, "Active tests cannot be found")
+      val activeTestsCompleted = u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)
+      activeTestsCompleted match {
+        case true =>
+          phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
+            DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
+          }
+        case false =>
+          Future.successful(List.empty[EventType])
+      }
+    }
+  }
+
+  def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    phase2TestRepo.getTestProfileByToken(token).flatMap { p =>
+      p.tests.find(_.token == token).map {test => markAsCompleted(test.cubiksUserId)}
+        .getOrElse(Future.successful(()))
+    }
+  }
+
+  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
+    updatePhase2Test(cubiksUserId, updateTestReportReady(_: CubiksTest, reportReady)).flatMap { updated =>
+      if (updated.phase2TestGroup.activeTests forall (_.resultsReadyToDownload)) {
+        phase2TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
+      } else {
+        Future.successful(())
+      }
+    }
+  }
+
+  private def updatePhase2Test(cubiksUserId: Int, update: CubiksTest => CubiksTest): Future[Phase2TestGroupWithAppId] = {
+    def createUpdateTestGroup(p: Phase2TestGroupWithAppId): Phase2TestGroupWithAppId = {
+      val testGroup = p.phase2TestGroup
+      assertUniqueTestByCubiksUserId(testGroup.tests, cubiksUserId)
+      val updatedTestGroup = testGroup.copy(tests = updateCubiksTestsById(cubiksUserId, testGroup.tests, update))
+      Phase2TestGroupWithAppId(p.applicationId, updatedTestGroup)
+    }
+    for {
+      p1TestProfile <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
+      updated = createUpdateTestGroup(p1TestProfile)
+      _ <- phase2TestRepo.insertOrUpdateTestGroup(updated.applicationId, updated.phase2TestGroup)
+    } yield {
+      updated
+    }
+  }
+
   //TODO Once the time adjustments ticket has been done then this should be updated to apply the etray adjustment settings.
-  def buildTimeAdjustments(needsAdjustment: Boolean) = if (needsAdjustment) {
-    Some(List(TimeAdjustments(testConfig.assessmentId, sectionId = 1, absoluteTime = 100)))
+  def buildTimeAdjustments(needsAdjustment: Boolean, assessmentId: Int) = if (needsAdjustment) {
+    List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = 100))
   } else {
-    None
+    Nil
   }
 
   private def filterCandidates(candidates: List[OnlineTestApplication]): List[OnlineTestApplication] =
@@ -193,3 +258,4 @@ trait Phase2TestService extends OnlineTestService {
   private def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
 
 }
+

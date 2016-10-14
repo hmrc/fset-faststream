@@ -58,6 +58,7 @@ object StatusGeneratorFactory {
         }
       case (PHASE1_TESTS, Some(PHASE1_TESTS_COMPLETED)) => Phase1TestsCompletedStatusGenerator
       case (PHASE1_TESTS, Some(PHASE1_TESTS_RESULTS_RECEIVED)) => Phase1TestsResultsReceivedStatusGenerator
+      case (PHASE3_TESTS, Some(PHASE3_TESTS_INVITED)) => Phase3TestsInvitedStatusGenerator
       case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
     }
   }

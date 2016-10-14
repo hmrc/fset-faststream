@@ -64,15 +64,14 @@ case class CubiksGatewayConfig(url: String,
 )
 
 case class Phase1TestsConfig(expiryTimeInDays: Int,
-                                  scheduleIds: Map[String, Int],
-                                  standard: List[String],
-                                  gis: List[String])
+                             scheduleIds: Map[String, Int],
+                             standard: List[String],
+                             gis: List[String])
+
+case class Phase2Schedule(scheduleId: Int, assessmentId: Int, normId: Int)
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
-  scheduleName: String,
-  scheduleId: Int,
-  assessmentId: Int
-)
+                             schedules: Map[String, Phase2Schedule])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
@@ -82,6 +81,12 @@ trait CubiksGatewayAssessment {
 case class CubiksGatewayStandardAssessment(assessmentId: Int, normId: Int) extends CubiksGatewayAssessment
 
 case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, suppressValidation: Boolean = false)
+
+case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
+
+case class Phase3TestsConfig(timeToExpireInDays: Int,
+                             candidateCompletionRedirectUrl: String,
+                             interviewsByAdjustmentPercentage: Map[String, Int])
 
 case class DiversityMonitoringJobConfig(enabled: Boolean, lockId: Option[String], initialDelaySecs: Option[Int],
   intervalSecs: Option[Int], forceStopActorsSecs: Option[Int])
@@ -103,12 +108,15 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val frameworksConfig = configuration.underlying.as[FrameworksConfig]("microservice.frameworks")
   lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
   lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val launchpadGatewayConfig = configuration.underlying.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
   lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
+
   lazy val sendPhase1InvitationJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase1-invitation-job")
-
   lazy val sendPhase2InvitationJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase2-invitation-job")
+  lazy val sendPhase3InvitationJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase3-invitation-job")
 
   lazy val firstPhase1ReminderJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-phase1-reminder-expiring-test-job")
