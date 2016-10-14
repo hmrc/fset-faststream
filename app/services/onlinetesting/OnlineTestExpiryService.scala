@@ -29,6 +29,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
 
+@deprecated("remaining methods to be moved in phase1/2 services")
 trait OnlineTestExpiryService {
   def processNextExpiredTest(): Future[Unit]
   def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
