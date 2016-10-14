@@ -19,13 +19,12 @@ package repositories.onlinetesting
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ CannotFindTestByCubiksId, UnexpectedException }
-import org.joda.time.DateTime
 import model.OnlineTestCommands.OnlineTestApplication
-import model.persisted._
 import model.ProgressStatuses.ProgressStatus
 import model._
+import model.persisted._
+import org.joda.time.DateTime
 import play.api.Logger
-import play.api.libs.json.Json
 import reactivemongo.bson._
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -69,11 +68,10 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
   private def phaseTestProfileByQuery(query: BSONDocument, phase: String = "PHASE1"): Future[Option[T]] = {
     val projection = BSONDocument(s"testGroups.$phase" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
-      case Some(doc) =>
-        val bson = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phase)
-        bson.map(x => bsonHandler.read(x))
-      case _ => None
+    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+      optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
+        .flatMap {_.getAs[BSONDocument](phase)}
+        .map {x => bsonHandler.read(x)}
     }
   }
 
