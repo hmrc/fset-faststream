@@ -16,6 +16,7 @@
 
 package model.persisted
 
+import model.ReminderNotice
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONDocument
@@ -35,8 +36,8 @@ object NotificationExpiringOnlineTest {
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
     val testGroupsRoot = doc.getAs[BSONDocument]("testGroups").get
-    val PHASE1Root = testGroupsRoot.getAs[BSONDocument]("PHASE1").get
-    val expiryDate = PHASE1Root.getAs[DateTime]("expirationDate").get
+    val PHASERoot = testGroupsRoot.getAs[BSONDocument]("PHASE1").getOrElse(testGroupsRoot.getAs[BSONDocument]("PHASE2").get)
+    val expiryDate = PHASERoot.getAs[DateTime]("expirationDate").get
     NotificationExpiringOnlineTest(applicationId, userId, preferredName, expiryDate)
   }
 

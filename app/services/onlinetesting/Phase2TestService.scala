@@ -20,16 +20,16 @@ import _root_.services.AuditService
 import akka.actor.ActorSystem
 import config.{ CubiksGatewayConfig, Phase2TestsConfig }
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, CubiksGatewayClient, Phase2OnlineTestEmailClient }
+import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
+import model.ReminderNotice
 import model.exchange.Phase2TestGroupWithNames
-import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
+import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup }
 import org.joda.time.DateTime
 import repositories._
-import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
-import services.events.{ EventService, EventSink }
+import services.events.EventService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -38,7 +38,7 @@ import scala.language.postfixOps
 object Phase2TestService extends Phase2TestService {
   import config.MicroserviceAppConfig._
   val appRepository = applicationRepository
-  val cdRepository = contactDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
   val phase2TestRepo = phase2TestRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
@@ -53,8 +53,6 @@ object Phase2TestService extends Phase2TestService {
 
 trait Phase2TestService extends OnlineTestService {
 
-  val appRepository: GeneralApplicationRepository
-  val cdRepository: ContactDetailsRepository
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
@@ -82,6 +80,23 @@ trait Phase2TestService extends OnlineTestService {
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     phase2TestRepo.nextApplicationsReadyForOnlineTesting
+  }
+
+  override def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+    phase2TestRepo.nextTestForReminder(reminder).flatMap {
+      case Some(expiringTest) => processReminder(expiringTest, reminder)
+      case None => Future.successful(())
+    }
+  }
+
+  override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
+                                                     emailAddress: String,
+                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+    emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
+      reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
+      audit(s"ReminderPhase2ExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
+        expiringTest.userId, Some(emailAddress))
+    }
   }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)

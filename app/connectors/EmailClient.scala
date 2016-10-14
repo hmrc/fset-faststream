@@ -16,9 +16,9 @@
 
 package connectors
 
-import config.{EmailConfig, WSHttp}
+import config.{ EmailConfig, WSHttp }
 import connectors.ExchangeObjects._
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 import uk.gov.hmrc.play.http.HeaderCarrier
 import Implicits._
 
@@ -39,22 +39,16 @@ object Phase2OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
       Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
     )
 
+  override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
+                                        timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendExpiringReminder("fset_faststream_app_online_phase2_test_reminder")(to,name,timeLeftInHours, timeUnit, expiryDate)
+  }
+
   override def sendOnlineTestExpired(to: String, name: String)
     (implicit hc: HeaderCarrier) = sendEmail(to,
       "fset_faststream_app_online_test_expired",
       Map("name" -> name)
     )
-
-  override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
-    timeUnit: TimeUnit, expiryDate: DateTime)
-    (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
-      "fset_faststream_app_online_test_reminder",
-      Map("name" -> name,
-          "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
-          "timeUnit" -> timeUnit.toString.toLowerCase,
-          "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeftInHours)
-      )
-  )
 
   override def sendOnlineTestFailed(to: String, name: String)
     (implicit hc: HeaderCarrier) = sendEmail(to,
@@ -84,16 +78,7 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
 
   override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
                                         timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
-
-    sendEmail(
-      to,
-      "fset_faststream_app_online_phase1_test_reminder",
-      Map("name" -> name,
-          "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
-          "timeUnit" -> timeUnit.toString.toLowerCase,
-          "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeftInHours)
-      )
-    )
+    sendExpiringReminder("fset_faststream_app_online_phase1_test_reminder")(to,name,timeLeftInHours, timeUnit, expiryDate)
   }
 
   override def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier) =
@@ -147,11 +132,28 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
 
 }
 
-trait OnlineTestEmailClient {
+sealed trait OnlineTestEmailClient {
+
+  self: EmailClient =>
+
   def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
   def sendOnlineTestExpired(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
-  def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
-    timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
+  def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
+                               timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
+
+  protected def sendExpiringReminder(template: String)(to: String, name: String, timeLeftInHours: Int,
+                                        timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(
+      to,
+      template,
+      Map("name" -> name,
+        "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
+        "timeUnit" -> timeUnit.toString.toLowerCase,
+        "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeftInHours)
+      )
+    )
+  }
+
   def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
 }
 

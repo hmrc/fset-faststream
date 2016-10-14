@@ -16,16 +16,21 @@
 
 package services.onlinetesting
 
-import connectors.{EmailClient, OnlineTestEmailClient}
-import factories.{DateTimeFactory, UUIDFactory}
+import connectors.OnlineTestEmailClient
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
+import model.ProgressStatuses._
+import model.ReminderNotice
+import model.persisted.NotificationExpiringOnlineTest
 import org.joda.time.DateTime
 import play.api.Logger
+import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import services.AuditService
 import services.events.EventSink
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 
 trait OnlineTestService extends EventSink  {
@@ -33,12 +38,15 @@ trait OnlineTestService extends EventSink  {
   val auditService: AuditService
   val tokenFactory: UUIDFactory
   val dateTimeFactory: DateTimeFactory
+  val cdRepository: ContactDetailsRepository
+  val appRepository: GeneralApplicationRepository
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier): Future[Unit]
+  def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit]
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
@@ -55,6 +63,10 @@ trait OnlineTestService extends EventSink  {
     (invitationDate, expirationDate)
   }
 
+  protected def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
+                                                      emailAddress: String,
+                                                      reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit]
+
   protected def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
     Logger.info(s"$event for user $userId")
 
@@ -67,5 +79,34 @@ trait OnlineTestService extends EventSink  {
   private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {
     val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))
     math.min(adjustedValue, maximum).toInt
+  }
+
+  private def candidateEmailAddress(userId: String): Future[String] =
+    cdRepository.find(userId).map(_.email)
+
+  protected def processReminder(expiringTest: NotificationExpiringOnlineTest,
+                                reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] =
+    for {
+      emailAddress <- candidateEmailAddress(expiringTest.userId)
+      _ <- commitNotificationExpiringTestProgressStatus(expiringTest, reminder, emailAddress)
+      _ <- emailCandidateForExpiringTestReminder(expiringTest, emailAddress, reminder)
+    } yield ()
+
+  private def commitNotificationExpiringTestProgressStatus(
+                                                            expiringTest: NotificationExpiringOnlineTest,
+                                                            reminder: ReminderNotice,
+                                                            email: String): Future[Unit] = {
+    appRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, reminder.progressStatuses).map { _ =>
+      reminder.progressStatuses match {
+        case PHASE1_TESTS_FIRST_REMINDER => audit(s"FirstPhase1ReminderFor${reminder.hoursBeforeReminder}Hours",
+          expiringTest.userId, Some(email))
+        case PHASE1_TESTS_SECOND_REMINDER => audit(s"SecondPhase1ReminderFor${reminder.hoursBeforeReminder}Hours",
+          expiringTest.userId, Some(email))
+        case PHASE2_TESTS_FIRST_REMINDER => audit(s"FirstPhase2ReminderFor${reminder.hoursBeforeReminder}Hours",
+          expiringTest.userId, Some(email))
+        case PHASE2_TESTS_SECOND_REMINDER => audit(s"SecondPhase2ReminderFor${reminder.hoursBeforeReminder}Hours",
+          expiringTest.userId, Some(email))
+      }
+    }
   }
 }
