@@ -69,6 +69,12 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       val result = phase1TestRepo.getTestGroup("appId").futureValue
       result mustBe Some(TestProfile)
     }
+
+    "return None if there is an application with out test group" in {
+      insertApplication("appId", "userId")
+      val result = phase1TestRepo.getTestGroup("appId").futureValue
+      result mustBe None
+    }
   }
 
   "Get online test by token" should {
