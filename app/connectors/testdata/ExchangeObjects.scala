@@ -36,7 +36,8 @@ object ExchangeObjects {
     phase1TestGroup: Option[TestGroupResponse] = None,
     phase2TestGroup: Option[TestGroupResponse] = None,
     applicationAssessment: Option[ApplicationAssessment] = None,
-    schemePreferences: Option[SelectedSchemes] = None
+    schemePreferences: Option[SelectedSchemes] = None,
+    phase3TestUrl: Option[String] = None
   )
 
   case class TestGroupResponse(tests: List[CubiksTestResponse])
