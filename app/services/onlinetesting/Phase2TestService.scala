@@ -91,7 +91,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(List(application))
   }
 
@@ -119,7 +119,8 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+
     val candidatesToProcess = filterCandidates(applications)
     val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
     implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
@@ -129,8 +130,9 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
       invitedApplicants <- inviteApplicants(registeredApplicants)
       _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
       _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
-    } yield candidatesToProcess.foreach { candidate =>
-      audit("Phase2TestInvitationProcessComplete", candidate.userId)
+    } yield candidatesToProcess.map { candidate =>
+        audit("Phase2TestInvitationProcessComplete", candidate.userId)
+        DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
     }
   }
 
@@ -243,3 +245,4 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   private def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
 
 }
+
