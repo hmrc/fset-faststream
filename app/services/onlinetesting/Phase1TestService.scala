@@ -26,7 +26,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.events.{ AuditEvents, DataStoreEvents }
-import model.exchange.{ Phase1TestGroupWithNames, Phase1TestResultReady }
+import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestWithUserIds }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -291,8 +291,8 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
 
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)), "STARTED")
-    updatedTestPhase1 flatMap { u =>
+    val updatedPhase1Test = updatePhase1Test(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)))
+    updatedPhase1Test flatMap { u =>
       phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
         DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
       }
@@ -300,64 +300,50 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   }
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    val updatedTestPhase1 = updateTestPhase1(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)), "COMPLETED")
-    updatedTestPhase1 flatMap { u =>
+    val updatedPhase1Test = updatePhase1Test(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)))
+    updatedPhase1Test flatMap { u =>
       require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
-
-      if (u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)) {
-        phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
-          DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
-            DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
-            Nil
-        }
-      } else {
-        Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
+      val activeTestsCompleted = u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)
+      activeTestsCompleted match {
+        case true =>
+          phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
+            DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
+              DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
+              Nil
+          }
+        case false =>
+          Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
       }
     }
   }
 
   def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     phase1TestRepo.getTestProfileByToken(token).flatMap { p =>
-      val test = p.tests.find(_.token == token).get
-      markAsCompleted(test.cubiksUserId)
+      p.tests.find(_.token == token).map {test => markAsCompleted(test.cubiksUserId)}
+        .getOrElse(Future.successful(()))
     }
   }
 
-  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: Phase1TestResultReady): Future[Unit] = {
-    updateTestPhase1(cubiksUserId,
-      t => t.copy(
-        resultsReadyToDownload = reportReady.reportStatus == "Ready",
-        reportId = reportReady.reportId,
-        reportLinkURL = reportReady.reportLinkURL,
-        reportStatus = Some(reportReady.reportStatus)
-      )
-    ).flatMap { updated =>
-      if (updated.phase1TestProfile.activeTests forall (_.resultsReadyToDownload)) {
-        phase1TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
-      } else {
-        Future.successful(())
+  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
+    updatePhase1Test(cubiksUserId, updateTestReportReady(_:CubiksTest, reportReady)).flatMap { updated =>
+      val allResultReadyToDownload = updated.phase1TestProfile.activeTests forall (_.resultsReadyToDownload)
+      allResultReadyToDownload match {
+        case true => phase1TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
+        case false => Future.successful(())
       }
     }
   }
 
   // TODO: We need to stop updating the entire group here and use selective $set, this method of replacing the entire document
   // invites race conditions
-  private def updateTestPhase1(cubiksUserId: Int, update: CubiksTest => CubiksTest, debugKey: String = "foo"):
+  private def updatePhase1Test(cubiksUserId: Int, update: CubiksTest => CubiksTest):
   Future[Phase1TestWithUserIds] = {
     def createUpdateTestGroup(p: Phase1TestWithUserIds): Phase1TestWithUserIds = {
       val testGroup = p.phase1TestProfile
-      val requireUserIdOnOnlyOneTestCount = testGroup.tests.count(_.cubiksUserId == cubiksUserId)
-      require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
-
-      val appId = p.applicationId
-      val updatedTests = testGroup.tests.collect {
-        case t if t.cubiksUserId == cubiksUserId => update(t)
-        case t => t
-      }
-      val updatedTestGroup = testGroup.copy(tests = updatedTests)
-      Phase1TestWithUserIds(appId, p.userId, updatedTestGroup)
+      assertUniqueTestByCubiksUserId(testGroup.tests, cubiksUserId)
+      val updatedTestGroup = testGroup.copy(tests = updateCubiksTestsById(cubiksUserId, testGroup.tests, update))
+      Phase1TestWithUserIds(p.applicationId, p.userId, updatedTestGroup)
     }
-
     for {
       p1TestProfile <- phase1TestRepo.getTestProfileByCubiksId(cubiksUserId)
       updated = createUpdateTestGroup(p1TestProfile)

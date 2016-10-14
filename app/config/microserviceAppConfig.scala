@@ -68,11 +68,10 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
                              standard: List[String],
                              gis: List[String])
 
+case class Phase2Schedule(scheduleId: Int, assessmentId: Int, normId: Int)
+
 case class Phase2TestsConfig(expiryTimeInDays: Int,
-  scheduleName: String,
-  scheduleId: Int,
-  assessmentId: Int
-)
+                             schedules: Map[String, Phase2Schedule])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
