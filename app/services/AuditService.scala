@@ -25,26 +25,26 @@ import uk.gov.hmrc.play.audit.model.{ Audit, DataEvent, EventTypes }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 trait AuditService {
-    private[services] val appName: String
-    private[services] val auditFacade: Audit
+  private[services] val appName: String
+  private[services] val auditFacade: Audit
 
-    def logEvent(eventName: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Unit =
-        auditFacade.sendDataEvent(
-            DataEvent(appName, EventTypes.Succeeded, tags = hc.toAuditTags(eventName, rh.path))
-          )
+  def logEvent(eventName: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Unit =
+    auditFacade.sendDataEvent(
+      DataEvent(appName, EventTypes.Succeeded, tags = hc.toAuditTags(eventName, rh.path))
+    )
 
-    def logEvent(eventName: String, detail: Map[String, String])(implicit hc: HeaderCarrier, rh: RequestHeader): Unit =
-        auditFacade.sendDataEvent(
-            DataEvent(appName, EventTypes.Succeeded, tags = hc.toAuditTags(eventName, rh.path), detail = detail)
-          )
+  def logEvent(eventName: String, detail: Map[String, String])(implicit hc: HeaderCarrier, rh: RequestHeader): Unit =
+    auditFacade.sendDataEvent(
+      DataEvent(appName, EventTypes.Succeeded, tags = hc.toAuditTags(eventName, rh.path), detail = detail)
+    )
 
-    def logEventNoRequest(eventName: String, detail: Map[String, String]): Unit =
-        auditFacade.sendDataEvent(
-            DataEvent(appName, EventTypes.Succeeded, tags = Map(EventKeys.TransactionName -> eventName), detail = detail)
-          )
-  }
+  def logEventNoRequest(eventName: String, detail: Map[String, String]): Unit =
+    auditFacade.sendDataEvent(
+      DataEvent(appName, EventTypes.Succeeded, tags = Map(EventKeys.TransactionName -> eventName), detail = detail)
+    )
+}
 
 object AuditService extends AuditService {
-    private[services] val appName = Play.current.configuration.getString("appName").get
-    private[services] val auditFacade: Audit = new Audit(appName, MicroserviceAuditConnector)
-  }
+  private[services] val appName = Play.current.configuration.getString("appName").get
+  private[services] val auditFacade: Audit = new Audit(appName, MicroserviceAuditConnector)
+}
