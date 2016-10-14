@@ -51,7 +51,6 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
   val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
-
   val testGatewayConfig = CubiksGatewayConfig(
     "",
     Phase1TestsConfig(expiryTimeInDays = 7,
@@ -61,7 +60,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     ),
     competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
     situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, scheduleName = "e-tray", scheduleId = 123, assessmentId = 1),
+    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, List(Phase2ScheduleExamples.DaroShedule)),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"
