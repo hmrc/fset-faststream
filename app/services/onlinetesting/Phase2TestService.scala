@@ -147,10 +147,10 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     )
   }
 
-  def insertPhase2TestGroups(o: List[Phase2TestInviteData])
+  private def insertPhase2TestGroups(o: List[Phase2TestInviteData])
     (implicit invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = Future.sequence(o.map { completedInvite =>
     val testGroup = Phase2TestGroup(expirationDate = expirationDate,
-      List(CubiksTest(scheduleId = getRandomSchedule.scheduleId,
+      List(CubiksTest(scheduleId = completedInvite.scheduleId,
         usedForResults = true,
         cubiksUserId = completedInvite.registration.userId,
         token = completedInvite.token,
