@@ -19,6 +19,7 @@ package repositories.application
 import java.util.UUID
 import java.util.regex.Pattern
 
+import config.CubiksGatewayConfig
 import model.ApplicationStatus._
 import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
@@ -137,6 +138,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments {
+
 
   // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
   lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
