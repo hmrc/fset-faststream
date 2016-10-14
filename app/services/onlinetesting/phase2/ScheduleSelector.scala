@@ -27,7 +27,6 @@ trait ScheduleSelector {
     val schedules = testConfig.schedules
     require(schedules.nonEmpty, "Phase2 schedule list cannot be empty")
 
-    val length = schedules.length
-    schedules(Random.nextInt(schedules.length))
+    schedules.values.toSeq(Random.nextInt(schedules.size))
   }
 }

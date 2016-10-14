@@ -24,7 +24,7 @@ class ScheduleSelectorSpec extends PlaySpec {
 
   "get random schedule" should {
     "throw an exception when no schedules are configured" in {
-      val selector = createSelector(List())
+      val selector = createSelector(Map())
 
       intercept[IllegalArgumentException] {
         selector.getRandomSchedule
@@ -32,15 +32,15 @@ class ScheduleSelectorSpec extends PlaySpec {
     }
 
     "return a schedule randomly" in {
-      val schedules = List(DaroShedule, IradShedule, WardShedule)
+      val schedules = Map("daro" -> DaroShedule, "irad" -> IradShedule, "ward" -> WardShedule)
       val selector = createSelector(schedules)
       val randomSchedules = 1 to 1000 map (_ => selector.getRandomSchedule)
 
-      randomSchedules.distinct must contain theSameElementsAs schedules
+      randomSchedules.distinct must contain theSameElementsAs schedules.values
     }
   }
 
-  private def createSelector(schedules: List[Phase2Schedule]): ScheduleSelector = new ScheduleSelector {
+  private def createSelector(schedules: Map[String, Phase2Schedule]): ScheduleSelector = new ScheduleSelector {
     def testConfig = Phase2TestsConfig(1, schedules)
   }
 
