@@ -31,6 +31,7 @@ import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase3TestRepository
@@ -98,6 +99,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
   trait Phase3TestServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
+    implicit val rh = mock[RequestHeader]
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]

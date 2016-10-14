@@ -102,13 +102,14 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   private def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-                                            (implicit hc: HeaderCarrier): Future[Unit] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     Future.sequence(applications.map { application =>
       registerAndInviteForTestGroup(application)
     }).map(_ => ())
   }
 
-  override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit] = {
+  override def registerAndInviteForTestGroup(application: OnlineTestApplication)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
   }
 
