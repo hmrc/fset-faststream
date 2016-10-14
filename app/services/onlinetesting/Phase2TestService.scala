@@ -119,20 +119,23 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = filterCandidates(applications) match {
 
-    val candidatesToProcess = filterCandidates(applications)
-    val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
-    implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
+    case Nil => Future.successful(())
 
-    for {
-      registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
-      invitedApplicants <- inviteApplicants(registeredApplicants)
-      _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
-      _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
-    } yield candidatesToProcess.map { candidate =>
-        audit("Phase2TestInvitationProcessComplete", candidate.userId)
-        DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
+    case candidatesToProcess => eventSink {
+      val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
+      implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
+
+      for {
+        registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
+        invitedApplicants <- inviteApplicants(registeredApplicants)
+        _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
+        _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
+      } yield candidatesToProcess.map { candidate =>
+          audit("Phase2TestInvitationProcessComplete", candidate.userId)
+          DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
+      }
     }
   }
 
@@ -231,7 +234,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   private def filterCandidates(candidates: List[OnlineTestApplication]): List[OnlineTestApplication] =
     candidates.find(_.needsAdjustments) match {
-      case Some(candidate) => List(candidate)
+      case Some(candidate) => Nil // TODO build time adjustments here
       case None => candidates
   }
 
