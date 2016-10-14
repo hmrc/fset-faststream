@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package model.exchange
+package services.onlinetesting.phase2
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import config.{ Phase2Schedule, Phase2TestsConfig }
 
-case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTests: List[CubiksTest])
+import scala.util.Random
 
-object Phase2TestGroupWithNames {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
+trait ScheduleSelector {
+  def testConfig: Phase2TestsConfig
+
+  def getRandomSchedule: Phase2Schedule = {
+    val schedules = testConfig.schedules
+    require(schedules.nonEmpty, "Phase2 schedule list cannot be empty")
+
+    schedules.values.toSeq(Random.nextInt(schedules.size))
+  }
 }

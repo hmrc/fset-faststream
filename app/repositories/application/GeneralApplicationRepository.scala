@@ -19,7 +19,6 @@ package repositories.application
 import java.util.UUID
 import java.util.regex.Pattern
 
-import _root_.config.CubiksGatewayConfig
 import model.ApplicationStatus._
 import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }

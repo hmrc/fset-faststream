@@ -108,9 +108,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument("applicationId" -> applicationId)
 
     val updateBson = BSONDocument("$set" -> applicationStatusBSON(PHASE2_TESTS_INVITED)
-    ) ++ BSONDocument("$set" -> BSONDocument(
-      "testGroups" -> BSONDocument(phaseName -> phase2TestProfile)
-    ))
+    ) ++ BSONDocument("$set" -> BSONDocument("testGroups.PHASE2" -> phase2TestProfile))
 
     collection.update(query, updateBson, upsert = false) map { status =>
       if (status.n != 1) {

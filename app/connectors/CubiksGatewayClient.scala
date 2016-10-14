@@ -65,7 +65,7 @@ trait CubiksGatewayClient {
   }
 
   def inviteApplicants(invitations: List[InviteApplicant])(implicit hc: HeaderCarrier): Future[List[Invitation]] =
-  http.POST(s"$url/csr-cubiks/faststream/batchInvite", invitations).map { response =>
+  http.POST(s"$url/csr-cubiks-gateway/faststream/batchInvite", invitations).map { response =>
     if (response.status == OK) {
       response.json.as[List[Invitation]]
     } else {

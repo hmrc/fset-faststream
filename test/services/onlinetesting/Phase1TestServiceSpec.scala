@@ -20,38 +20,37 @@ import akka.actor.ActorSystem
 import config._
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
-import factories.{DateTimeFactory, UUIDFactory}
-import model._
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
-import model.events.EventTypes.{toString => _, _}
-import model.exchange.Phase1TestResultReady
-import model.persisted.{CubiksTest, Phase1TestProfile, Phase1TestWithUserIds}
+import model._
+import model.events.EventTypes.{ toString => _ }
+import model.exchange.CubiksTestResultReady
+import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestWithUserIds }
 import org.joda.time.DateTime
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.{BeforeAndAfterEach, PrivateMethodTester}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
+import org.scalatest.{ BeforeAndAfterEach, PrivateMethodTester }
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
-import repositories.{ContactDetailsRepository, TestReportRepository}
+import repositories.{ ContactDetailsRepository, TestReportRepository }
 import services.AuditService
-import services.events.{EventService, EventServiceFixture}
+import services.events.{ EventService, EventServiceFixture }
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout
   with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
   val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
-
   val testGatewayConfig = CubiksGatewayConfig(
     "",
     Phase1TestsConfig(expiryTimeInDays = 7,
@@ -61,7 +60,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     ),
     competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
     situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, scheduleName = "e-tray", scheduleId = 123, assessmentId = 1),
+    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, Map("daro" -> Phase2ScheduleExamples.DaroShedule)),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"
@@ -406,7 +405,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   "mark report as ready to download" should {
     "not change progress if not all the active tests have reports ready" in new OnlineTest {
-      val reportReady = Phase1TestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
+      val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
 
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
         Future.successful(Phase1TestWithUserIds("appId", "userId", phase1TestProfile.copy(
@@ -427,7 +426,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     }
 
     "change progress to reports ready if all the active tests have reports ready" in new OnlineTest {
-      val reportReady = Phase1TestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
+      val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
 
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
         Future.successful(Phase1TestWithUserIds("appId", "userId", phase1TestProfile.copy(
