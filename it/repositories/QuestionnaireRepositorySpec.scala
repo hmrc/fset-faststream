@@ -94,7 +94,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaires()
 
-      val report = questionnaireRepo.findAllForDiversityReport().futureValue
+      val report = questionnaireRepo.findAllForDiversityReport.futureValue
 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
