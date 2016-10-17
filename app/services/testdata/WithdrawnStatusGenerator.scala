@@ -40,7 +40,7 @@ trait WithdrawnStatusGenerator extends BaseGenerator {
         SUBMITTED
       ), None, generatorConfig).generate(generationId, generatorConfig)
       _ <- appRepository.withdraw(candidateInPreviousStatus.applicationId.get, model.command.WithdrawApplication("test", Some("test"),
-        "test"))
+        "Candidate"))
     } yield {
       candidateInPreviousStatus
     }

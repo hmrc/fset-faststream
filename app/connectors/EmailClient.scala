@@ -175,7 +175,6 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
       Map("name" -> name)
     )
   }
-
 }
 
 trait OnlineTestEmailClient {
@@ -203,6 +202,9 @@ trait EmailClient extends WSHttp {
 
   def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier) =
     sendEmail(to, "fset_faststream_app_submit_confirmation", Map("name" -> name))
+
+  def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier) =
+    sendEmail(to, "fset_faststream_app_withdrawn", Map("name" -> name))
 }
 
 object EmailDateFormatter {
