@@ -206,12 +206,16 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
         questionnaire = questionnaire,
         submitted = getProgress(SUBMITTED.toString),
         withdrawn = getProgress(WITHDRAWN.toString),
-        phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.toString),
-        phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.toString),
-        phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.toString),
-        phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
-        phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString),
-        phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
+        phase1ProgressResponse = Phase1ProgressResponse(
+          phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.toString),
+          phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.toString),
+          phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.toString),
+          phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
+          phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString),
+          phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
+          phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.toString),
+          phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.toString)
+        ),
         phase2ProgressResponse = Phase2ProgressResponse(
           phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.toString),
           phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.toString),
@@ -221,6 +225,16 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
           phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString),
           phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.toString),
           phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.toString)
+        ),
+        phase3ProgressResponse = Phase3ProgressResponse(
+          phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
+          phase3TestsStarted = getProgress(ProgressStatuses.PHASE3_TESTS_STARTED.toString),
+          phase3TestsCompleted = getProgress(ProgressStatuses.PHASE3_TESTS_COMPLETED.toString),
+          phase3TestsExpired = getProgress(ProgressStatuses.PHASE3_TESTS_EXPIRED.toString),
+          phase3TestsResultsReady = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_READY.toString),
+          phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
+          phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
+          phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString)
         ),
         failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
         assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
