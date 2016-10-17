@@ -26,6 +26,7 @@ import model.OnlineTestCommands._
 import model.ProgressStatuses
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import org.joda.time.DateTime
+import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
@@ -67,10 +68,11 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
 
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = phase3TestRepo.getTestGroup(applicationId)
 
-  override def registerAndInviteForTestGroup(
-  application: List[OnlineTestApplication])(implicit hc: HeaderCarrier): Future[Unit] = Future.failed(new NotImplementedError())
+  override def registerAndInviteForTestGroup(application: List[OnlineTestApplication])
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = Future.failed(new NotImplementedError())
 
-  override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier): Future[Unit] = {
+  override def registerAndInviteForTestGroup(application: OnlineTestApplication)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
   }
 
@@ -174,7 +176,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
 
   // TODO: This needs to cater for 10% extra, 33% extra etc. See FSET-656
   private def getInterviewIdForApplication(application: OnlineTestApplication): Int = {
-      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0%")
+      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0pc")
   }
 }
 
