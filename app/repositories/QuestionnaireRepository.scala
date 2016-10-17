@@ -35,7 +35,6 @@ import scala.language.postfixOps
 trait QuestionnaireRepository {
   def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit]
   def findQuestions(applicationId: String): Future[Map[String, String]]
-
   def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]]
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
 }

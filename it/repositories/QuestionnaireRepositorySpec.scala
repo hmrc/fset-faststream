@@ -17,7 +17,7 @@
 package repositories
 
 import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
-import model.report.{QuestionnaireReportItem, QuestionnaireReportItem$}
+import model.report.QuestionnaireReportItem
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -27,7 +27,7 @@ import testkit.MongoRepositorySpec
 class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar {
 
   override val collectionName = "questionnaire"
-  
+
   "The Questionnaire Repo" should {
 
     "create collection, append questions to the application and overwrite existing questions" in new TestFixture {
@@ -55,7 +55,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("where?", PersistedAnswer(None, None, Some(true))))).futureValue
       val result2 = questionnaireRepo.findQuestions(applicationId).futureValue
 
-      result2.keys.size must be (2)
+      result2.keys.size must be(2)
       result2("where?") must be("")
     }
 
@@ -103,9 +103,9 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         applicationId2 -> QuestionnaireReportItem(
           Some("Female"), Some("Lesbian"), Some("White"), Some("Employed"), Some("Modern professional"), Some("Part-time employed"),
           Some("Large (26-500)"), "SES Score", Some("W17-WARR")),
-          applicationId3 -> QuestionnaireReportItem(
+        applicationId3 -> QuestionnaireReportItem(
           Some("Female"), Some("Lesbian"), Some("White"), None, None, None,
-            None, "SES Score", None)
+          None, "", None)
       )
     }
   }
@@ -139,6 +139,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     )
 
     val socioEconomicCalculator = mock[SocioEconomicScoreCalculator]
+
     def questionnaireRepo = new QuestionnaireMongoRepository(socioEconomicCalculator)
 
     def submitQuestionnaire(): Unit =
@@ -150,4 +151,5 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       questionnaireRepo.addQuestions(applicationId3, partiallyCompleteQuestionnaire).futureValue
     }
   }
+
 }
