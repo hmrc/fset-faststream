@@ -176,7 +176,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
 
   // TODO: This needs to cater for 10% extra, 33% extra etc. See FSET-656
   private def getInterviewIdForApplication(application: OnlineTestApplication): Int = {
-      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0%")
+      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0pc")
   }
 }
 
