@@ -40,22 +40,16 @@ object FrontendAuditConnector extends AuditConnector {
 
 object CSRHttp extends CSRHttp
 
-class CSRHttp extends WSHttp {
+trait CSRHttp extends WSHttp {
   override val hooks = NoneRequired
   val wS = WS
 }
 
 trait CSRCache extends SessionCache with AppName with ServicesConfig {
-  override lazy val http = CSRHttp
-  override lazy val defaultSource = appName
-  override lazy val baseUri = baseUrl("cachable.session-cache")
-  override lazy val domain = getConfString(
-    "cachable.session-cache.domain",
-    throw new Exception(s"Could not find config 'cachable.session-cache.domain'")
-  )
+
 }
 
-object CSRCache extends SessionCache with AppName with ServicesConfig {
+object CSRCache extends CSRCache {
   override lazy val http = CSRHttp
   override lazy val defaultSource = appName
   override lazy val baseUri = baseUrl("cachable.session-cache")

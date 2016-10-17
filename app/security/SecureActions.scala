@@ -57,7 +57,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
   def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedData => Future[Result]): Action[AnyContent] = {
     SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
-      secondRequest.identity.toUserFuture.flatMap {
+      secondRequest.identity.toUserFuture().flatMap {
         case Some(data) => SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
         case None => gotoAuthentication
       }
@@ -68,7 +68,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
                         (block: SecuredRequest[_] => CachedDataWithApp => Future[Result]): Action[AnyContent] = {
     SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
-      secondRequest.identity.toUserFuture.flatMap {
+      secondRequest.identity.toUserFuture().flatMap {
         case Some(CachedData(_, None)) => gotoUnauthorised
         case Some(data @ CachedData(u, Some(app))) => SecuredActionWithCSRAuthorisation(secondRequest,
             block, role, data, CachedDataWithApp(u, app))
@@ -81,7 +81,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
     withSession {
       UserAwareAction.async { request =>
         request.identity match {
-          case Some(securityUser: SecurityUser) => securityUser.toUserFuture(hc(request.request)).flatMap(r => block(request)(r))
+          case Some(securityUser: SecurityUser) => securityUser.toUserFuture()(hc(request.request)).flatMap(r => block(request)(r))
           case None => block(request)(None)
         }
       }
