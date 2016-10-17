@@ -36,12 +36,16 @@ trait LaunchpadGatewayClient {
   val http: WSHttp
   val url: String
 
+  // Blank out header carriers for calls to LPG. Passing on someone's true-client-ip header will cause them to be reassessed
+  // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesireable behaviour.
+  implicit val blankedHeaderCarrier = new HeaderCarrier()
+
   lazy val urlWithPathPrefix = s"$url/fset-launchpad-gateway/faststream"
 
-  def registerApplicant(registerApplicant: RegisterApplicantRequest)(implicit hc: HeaderCarrier): Future[RegisterApplicantResponse] =
+  def registerApplicant(registerApplicant: RegisterApplicantRequest): Future[RegisterApplicantResponse] =
     http.POST(s"$urlWithPathPrefix/register", registerApplicant).map(responseAsOrThrow[RegisterApplicantResponse])
 
-  def inviteApplicant(inviteApplicant: InviteApplicantRequest)(implicit hc: HeaderCarrier): Future[InviteApplicantResponse] =
+  def inviteApplicant(inviteApplicant: InviteApplicantRequest): Future[InviteApplicantResponse] =
     http.POST(s"$urlWithPathPrefix/invite", inviteApplicant).map(responseAsOrThrow[InviteApplicantResponse])
 
   private def responseAsOrThrow[A](response: HttpResponse)(implicit jsonFormat: Reads[A]) = {
