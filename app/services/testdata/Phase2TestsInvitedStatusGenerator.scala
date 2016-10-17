@@ -63,7 +63,7 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
     } yield {
       val etray = phase2TestGroup.tests.head
 
-      candidateInPreviousStatus.copy(phase1TestGroup = Some(
+      candidateInPreviousStatus.copy(phase2TestGroup = Some(
         TestGroupResponse(
           List(CubiksTestResponse(etray.cubiksUserId, etray.token, etray.testUrl))
         )
