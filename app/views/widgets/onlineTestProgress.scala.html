@@ -95,12 +95,6 @@
                 </p>
                 <p data-locked>Unlocked if you're successful in the online exercises</p>
             </li>
-            <li id="videoSection">
-                <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
-                    <span class="font-xsmall" data-locked>- locked</span>
-                </p>
-                <p data-locked>Unlocked if you're successful in the E-tray</p>
-            </li>
         }
         case (false, Some(phase2Test), _) => {
             @if(phase2Test.isCompleted) {
@@ -133,12 +127,6 @@
                     </div>
                 </li>
             }
-            <li id="videoSection">
-                <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
-                    <span class="font-xsmall" data-locked>- locked</span>
-                </p>
-                <p data-locked>Unlocked if you're successful in the E-tray</p>
-            </li>
         }
 
         case (true, Some(phase2Test), _) => {
@@ -148,4 +136,56 @@
         }
         case _ => { }
     }
+
+    @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage) match {
+        case (_, None, Some(tests)) => {
+            <li id="videoSection">
+                <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
+                    <span class="font-xsmall" data-locked>- locked</span>
+                </p>
+                <p data-locked>Unlocked if you're successful in the E-tray</p>
+            </li>
+        }
+        case (false, Some(phase3Test), _) => {
+            @if(phase3Test.isCompleted) {
+                <li id="videoSection">
+                    <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>Video Interview</p>
+                    <div id="videoBlurb">
+                        <p>You've completed this section, we'll send you an email when we have your results.
+                            Make sure you check your junk inbox.</p>
+                    </div>
+                </li>
+            } else {
+                <li id="videoSection">
+                    <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-minus"></i>Video Interview </p>
+                    <div id="videoBlurb">
+                        <p id="videoDescription" class="">This section is timed, after starting the section you'll
+                            have 20 minutes to complete it.</p>
+                        <p id="videoTime" class="">You have <strong>@{phase3Test.getDuration}</strong> to finish
+                            the video interview</p>
+                        <div id="videoTestButton">
+                            @helper.form(action = routes.LaunchpadTestController.startPhase3Tests(), 'novalidate -> "novalidate") {
+                                @helper.CSRF.formField
+                                @if(!phase3Test.isStarted) {
+                                    <button id="videoButton" type="submit" value="submit" class="button">Start section</button>
+                                } else {
+                                    <button id="videoButton" type="submit" value="submit" class="button">Continue section</button>
+                                }
+                            }
+                            <p>(You'll have 20 minutes to finish)</p>
+                        </div>
+                    </div>
+                </li>
+            }
+        }
+
+        case (true, Some(phase3Test), _) => {
+            <li id="videoSection">
+                @* TODO video expiry content *@
+                VIDEO INTERVIEW EXPIRED
+            </li>
+        }
+        case _ => { }
+    }
+    </ul>
 </div>

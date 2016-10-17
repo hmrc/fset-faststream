@@ -33,11 +33,9 @@ object HomeController extends HomeController(ApplicationClient)
 
 class HomeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
   val Withdrawer = "Candidate"
-
-
+  
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     cachedData.application.map { application =>
-
 
       def getPhase2Test: Future[Option[Phase2TestGroupWithNames]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
         applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))

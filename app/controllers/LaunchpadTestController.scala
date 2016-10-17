@@ -31,8 +31,6 @@ object LaunchpadTestController extends LaunchpadTestController(ApplicationClient
 
 abstract class LaunchpadTestController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
 
-  /*
-   TODO
   def startPhase3Tests = CSRSecureAppAction(Phase3TestInvitedRole) { implicit request =>
     implicit cachedUserData =>
       applicationClient.getPhase3TestGroup(cachedUserData.application.applicationId).flatMap { testProfile =>
@@ -44,7 +42,6 @@ abstract class LaunchpadTestController(applicationClient: ApplicationClient) ext
         }.getOrElse(Future.successful(NotFound))
       }
   }
-  */
 
   /*
    * TODO
