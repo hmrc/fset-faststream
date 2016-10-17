@@ -112,7 +112,7 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
       progressStatusQuery
     ))
 
-    implicit val reader = bsonReader(NotificationExpiringOnlineTest.fromBson)
+    implicit val reader = bsonReader(x => NotificationExpiringOnlineTest.fromBson(x, reminder.phase))
     selectOneRandom[NotificationExpiringOnlineTest](query)
   }
 

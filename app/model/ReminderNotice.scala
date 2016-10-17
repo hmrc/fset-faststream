@@ -28,20 +28,18 @@ sealed case class ReminderNotice(hoursBeforeReminder: Int, progressStatuses: Pro
           progressStatuses == PHASE2_TESTS_SECOND_REMINDER,
           "progressStatuses value not allowed")
 
-  private val phase_1 = "PHASE1"
-  private val phase_2 = "PHASE2"
+  private val Phase_1 = "PHASE1"
+  private val Phase_2 = "PHASE2"
 
   private def timeUnitAndPhase: (TimeUnit, String) = progressStatuses match {
-    case PHASE1_TESTS_SECOND_REMINDER => (HOURS, phase_1)
-    case PHASE1_TESTS_FIRST_REMINDER => (DAYS, phase_1)
-    case PHASE2_TESTS_SECOND_REMINDER => (HOURS, phase_2)
-    case PHASE2_TESTS_FIRST_REMINDER => (DAYS, phase_2)
+    case PHASE1_TESTS_SECOND_REMINDER => (HOURS, Phase_1)
+    case PHASE1_TESTS_FIRST_REMINDER => (DAYS, Phase_1)
+    case PHASE2_TESTS_SECOND_REMINDER => (HOURS, Phase_2)
+    case PHASE2_TESTS_FIRST_REMINDER => (DAYS, Phase_2)
   }
 
   val timeUnit: TimeUnit = timeUnitAndPhase._1
   val phase: String = timeUnitAndPhase._2
-  val isPhase1 = phase == phase_1
-  val isPhase2 = phase == phase_2
 }
 
 object Phase1FirstReminder extends ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)

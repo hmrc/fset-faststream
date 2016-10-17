@@ -30,13 +30,13 @@ case class NotificationExpiringOnlineTest(
 )
 
 object NotificationExpiringOnlineTest {
-  def fromBson(doc: BSONDocument) = {
+  def fromBson(doc: BSONDocument, phase: String) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val userId = doc.getAs[String]("userId").get
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
     val testGroupsRoot = doc.getAs[BSONDocument]("testGroups").get
-    val PHASERoot = testGroupsRoot.getAs[BSONDocument]("PHASE1").getOrElse(testGroupsRoot.getAs[BSONDocument]("PHASE2").get)
+    val PHASERoot = testGroupsRoot.getAs[BSONDocument](phase).get
     val expiryDate = PHASERoot.getAs[DateTime]("expirationDate").get
     NotificationExpiringOnlineTest(applicationId, userId, preferredName, expiryDate)
   }
