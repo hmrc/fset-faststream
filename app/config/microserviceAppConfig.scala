@@ -70,8 +70,12 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
 
 case class Phase2Schedule(scheduleId: Int, assessmentId: Int, normId: Int)
 
-case class Phase2TestsConfig(expiryTimeInDays: Int,
-                             schedules: Map[String, Phase2Schedule])
+case class Phase2TestsConfig(expiryTimeInDays: Int, expiryTimeInDaysForInvigilatedETray: Int,
+                             schedules: Map[String, Phase2Schedule]) {
+  require(schedules.contains("daro"), "Daro schedule must be present as it is used for invigilated e-tray")
+
+  def scheduleForInvigilatedETray = schedules("daro")
+}
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int

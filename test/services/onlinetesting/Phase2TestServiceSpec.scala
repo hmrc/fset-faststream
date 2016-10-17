@@ -71,12 +71,23 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
   "Invite applicants" must {
     "correctly invite a batch of candidates" in new Phase2TestServiceFixture {
-      val result = phase2TestService.inviteApplicants(registeredMap).futureValue
+      val result = phase2TestService.inviteApplicants(isInvigilatedETray = false, registeredMap).futureValue
 
-      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, 1, tokens.head,
+      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, IradShedule.scheduleId, tokens.head,
         registrations.head, invites.head),
-        phase2TestService.Phase2TestInviteData(onlineTestApplication2, scheduleId = DaroShedule.scheduleId, tokens.last,
+        phase2TestService.Phase2TestInviteData(onlineTestApplication2, scheduleId = IradShedule.scheduleId, tokens.last,
           registrations.last, invites.last)
+      )
+
+      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
+    }
+
+    "correctly invite a invigilated e-tray candidates" in new Phase2TestServiceFixture {
+      val result = phase2TestService.inviteApplicants(isInvigilatedETray = true, registeredMap).futureValue
+
+      result mustBe List(
+        phase2TestService.Phase2TestInviteData(onlineTestApplication, DaroShedule.scheduleId, tokens.head, registrations.head, invites.head),
+        phase2TestService.Phase2TestInviteData(onlineTestApplication2, DaroShedule.scheduleId, tokens.last, registrations.last, invites.last)
       )
 
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
@@ -195,7 +206,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       ),
       competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
       situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, Map("daro" -> DaroShedule)),
+      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, expiryTimeInDaysForInvigilatedETray = 90,
+        Map("daro" -> DaroShedule, "irad" -> IradShedule)),
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",
       emailDomain = "test.com"
@@ -284,6 +296,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val dateTimeFactory = DateTimeFactory
       val gatewayConfig = gatewayConfigMock
       val actor = ActorSystem()
+
+      override def getRandomSchedule: Phase2Schedule = IradShedule
     }
   }
 }

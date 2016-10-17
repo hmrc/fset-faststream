@@ -104,9 +104,9 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     }.toMap)
   }
 
-  def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)])
+  def inviteApplicants(isInvigilatedETray: Boolean, candidateData: Map[Int, (OnlineTestApplication, String, Registration)])
     (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
-    val schedule = getRandomSchedule
+    val schedule = if (isInvigilatedETray) testConfig.scheduleForInvigilatedETray else getRandomSchedule
     val invites = candidateData.values.map { case (application, token, registration) =>
       buildInviteApplication(application, token, registration.userId, schedule)
     }.toList
@@ -123,17 +123,23 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
     val candidatesToProcess = filterCandidates(applications)
     val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
-    implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
+    val expiryTimeInDays = if (isInvigilatedETray) testConfig.expiryTimeInDaysForInvigilatedETray else testConfig.expiryTimeInDays
+    val (invitationDate, expirationDate) = calcOnlineTestDates(expiryTimeInDays)
 
     for {
       registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
-      invitedApplicants <- inviteApplicants(registeredApplicants)
-      _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
+      invitedApplicants <- inviteApplicants(isInvigilatedETray, registeredApplicants)
+      _ <- insertPhase2TestGroups(invitedApplicants, invitationDate, expirationDate)
       _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
     } yield candidatesToProcess.map { candidate =>
         audit("Phase2TestInvitationProcessComplete", candidate.userId)
         DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
     }
+  }
+
+  private def isInvigilatedETray = {
+    // TODO: Once FSET-656 is completed
+    false
   }
 
   def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, schedule: Phase2Schedule) = {
@@ -147,8 +153,8 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     )
   }
 
-  private def insertPhase2TestGroups(o: List[Phase2TestInviteData])
-    (implicit invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = Future.sequence(o.map { completedInvite =>
+  private def insertPhase2TestGroups(o: List[Phase2TestInviteData], invitationDate: DateTime,
+                                     expirationDate: DateTime): Future[Unit] = Future.sequence(o.map { completedInvite =>
     val testGroup = Phase2TestGroup(expirationDate = expirationDate,
       List(CubiksTest(scheduleId = completedInvite.scheduleId,
         usedForResults = true,
