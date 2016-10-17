@@ -24,10 +24,10 @@ import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.ProgressStatuses
+import model.{ ExpiryTest, ProgressStatuses }
 import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
-import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestWithUserIds }
+import model.persisted.{ CubiksTest, ExpiringOnlineTest, Phase1TestProfile, Phase1TestWithUserIds }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -69,6 +69,25 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   val trRepository: TestReportRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
+
+  override def processNextExpiredTest(expiryTest: ExpiryTest): Future[Unit] = {
+    phase1TestRepo.nextExpiringApplication.flatMap {
+      case Some(expiredTest) => processExpiredTest(expiredTest)
+      case None => Future.successful(())
+    }
+  }
+
+  private def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =
+    for {
+      emailAddress <- candidateEmailAddress(expiringTest.userId)
+      _ <- emailCandidate(expiringTest, emailAddress)
+      _ <- commitExpiredProgressStatus(expiringTest)
+    } yield ()
+
+  private def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit] =
+    emailClient.sendOnlineTestExpired(emailAddress, expiringTest.preferredName).map { _ =>
+      //audit("ExpiredOnlineTestNotificationEmailed", expiringTest, Some(emailAddress))
+    }
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     phase1TestRepo.nextApplicationsReadyForOnlineTesting

@@ -18,9 +18,10 @@ package services.onlinetesting
 
 import connectors.{ EmailClient, OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.ExpiryTest
 import model.OnlineTestCommands.OnlineTestApplication
 import model.exchange.CubiksTestResultReady
-import model.persisted.CubiksTest
+import model.persisted.{ CubiksTest, ExpiringOnlineTest }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -42,6 +43,8 @@ trait OnlineTestService extends EventSink  {
   def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def processNextExpiredTest(expiryTest: ExpiryTest): Future[Unit]
+  def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
