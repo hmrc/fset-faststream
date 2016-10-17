@@ -18,10 +18,10 @@ package services.onlinetesting
 
 import factories.DateTimeFactory
 import model.persisted.Phase1TestProfile
-import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED}
-import model.command.ProgressResponse
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED }
+import model.command.{ Phase1ProgressResponse, ProgressResponse }
 import org.joda.time.DateTime
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
@@ -168,6 +168,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
     val InTwentyFiveHours = Now.plusHours(25)
     val InMoreThanThreeDays = Now.plusHours(73)
     val mockProfile = mock[Phase1TestProfile]
+    val mockPhase1ProgressResponse = mock[Phase1ProgressResponse]
     val mockProgressResponse = mock[ProgressResponse]
     val successfulProgressResponse = mockProgressResponse
     val successfulTestProfile = Some(mockProfile)
@@ -180,5 +181,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
       val auditService = mockAuditService
       val dateTimeFactory = mockDateFactory
     }
+
+    when(mockProgressResponse.phase1ProgressResponse).thenReturn(mockPhase1ProgressResponse)
   }
 }
