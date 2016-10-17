@@ -16,31 +16,23 @@
 
 package connectors.exchange
 
-import models.{ Phase2TestProgress, Progress }
+import models.{ Phase1TestProgress, Phase2TestProgress, Progress }
 
 object ProgressExamples {
   val InitialProgress = Progress(false, false, false, false, false, false, false, false, false, false, false,
-    false, false, false, false, false, false,
-    Phase2TestProgress(phase2TestsInvited = false,
-      phase2TestsStarted = false,
-      phase2TestsCompleted = false,
-      phase2TestsExpired = false,
-      phase2TestsResultsReady = false,
-      phase2TestsResultsReceived = false
-    ),
+    phase1TestProgress = Phase1TestProgress(false, false, false, false, false, false,
+      false, false, false, false),
+    phase2TestProgress = Phase2TestProgress(false, false, false, false, false, false,
+      false, false, false, false),
     false,
     AssessmentScores(false, false),
     AssessmentCentre(false, false, false)
   )
   val FullProgress = Progress(true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true,
-    Phase2TestProgress(phase2TestsInvited = true,
-      phase2TestsStarted = true,
-      phase2TestsCompleted = true,
-      phase2TestsExpired = true,
-      phase2TestsResultsReady = true,
-      phase2TestsResultsReceived = true
-    ),
+    phase1TestProgress = Phase1TestProgress(true, true, true, true, true, true,
+      true, true, true, true),
+    phase2TestProgress = Phase2TestProgress(true, true, true, true, true, true,
+      true, true, true, true),
     true,
     AssessmentScores(true, true),
     AssessmentCentre(true, true, true)
