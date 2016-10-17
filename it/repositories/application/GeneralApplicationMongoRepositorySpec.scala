@@ -88,21 +88,24 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val result = repository.diversityReport("FastStream-2016").futureValue
 
-      result mustBe(List(ApplicationForDiversityReportItem(
-        appId1, userId1, Some("registered"),
+      result must have size (3)
+      result must contain
+      ApplicationForDiversityReportItem(appId1, userId1, Some("registered"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
         Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsReportItem(Some("Yes"),
-          Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
+          Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
+      result must contain
         ApplicationForDiversityReportItem(
           appId2, userId2, Some("registered"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
           Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsReportItem(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))) //,
+      result must contain
         ApplicationForDiversityReportItem(
           appId3, userId3, Some("registered"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
           Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsReportItem(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))))
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
     }
 
     "Find user by id" in {
