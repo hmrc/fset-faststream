@@ -240,7 +240,7 @@ object RoleUtils {
       .flatMap(_.fastPassReceived)
       .getOrElse(false)
 
-  def isTestExpired(implicit user: CachedData) = progress.phase1TestsExpired
+  def isTestExpired(implicit user: CachedData) = progress.phase1TestProgress.phase1TestsExpired
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
 
 }
