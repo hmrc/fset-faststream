@@ -124,14 +124,15 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     case Nil => Future.successful(())
 
     case candidatesToProcess => eventSink {
+
       val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
-      implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
+      val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
 
       for {
         registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
-        invitedApplicants <- inviteApplicants(registeredApplicants)
-        _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
-        _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
+        invitedApplicants <- inviteApplicants(isInvigilatedETray, registeredApplicants)
+        _ <- insertPhase2TestGroups(invitedApplicants, invitationDate, expirationDate)
+        _ <- emailInviteToApplicants(candidatesToProcess, invitationDate, expirationDate)(hc)
       } yield candidatesToProcess.map { candidate =>
           audit("Phase2TestInvitationProcessComplete", candidate.userId)
           DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
@@ -243,8 +244,8 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
       case None => candidates
   }
 
-  def emailInviteToApplicants(candidates: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier, invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
+  def emailInviteToApplicants(candidates: List[OnlineTestApplication], invitationDate: DateTime, expirationDate: DateTime)
+    (implicit hc: HeaderCarrier): Future[Unit] =
   Future.sequence(candidates.map { candidate =>
     candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
   }).map( _ => () )
