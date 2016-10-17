@@ -53,11 +53,9 @@ trait ApplicationService extends EventSink {
 
     appRepository.find(applicationId).flatMap{
       case Some(candidate) =>
-        for {
-          cd <- cdRepository.find(candidate.userId)
-        } yield {
+        cdRepository.find(candidate.userId).flatMap{ cd =>
           eventSink {
-            appRepository.withdraw(applicationId, withdrawRequest) map { _ =>
+            appRepository.withdraw(applicationId, withdrawRequest).map{ _ =>
               val commonEventList =
                   DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
                   AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
