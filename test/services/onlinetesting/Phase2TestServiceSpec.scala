@@ -104,9 +104,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(otRepositoryMock, times(2)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
     }
 
-    "process adjustment candidates first and individually" in new Phase2TestServiceFixture {
+    "process adjustment candidates first and individually" ignore new Phase2TestServiceFixture {
      val adjustmentCandidates = candidates :+ adjustmentApplication :+ adjustmentApplication2
-
       when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
         .thenReturn(Future.successful(List(registrations.head)))
 
@@ -120,6 +119,17 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
       verify(otRepositoryMock).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
       phase2TestService.verifyDataStoreEvents(1, "OnlineExerciseResultSent")
+    }
+
+    "exclude adjsutments candidates from the invite" in new Phase2TestServiceFixture {
+      val adjustmentCandidates = candidates :+ adjustmentApplication :+ adjustmentApplication2
+      phase2TestService.registerAndInviteForTestGroup(adjustmentCandidates).futureValue
+      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
+      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
+      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
+      verify(otRepositoryMock, times(0)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
+      //phase2TestService.verifyDataStoreEvents(0, "OnlineExerciseResultSent")
+
     }
   }
 
