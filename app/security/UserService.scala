@@ -25,4 +25,6 @@ import scala.concurrent.Future
 trait UserService extends IdentityService[SecurityUser] {
 
   def save(user: CachedData)(implicit hc: HeaderCarrier): Future[CachedData]
+
+  def refreshCache(userId: String)(implicit hc: HeaderCarrier): Future[Unit]
 }

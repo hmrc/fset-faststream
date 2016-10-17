@@ -17,11 +17,14 @@
 package models
 
 import com.mohiva.play.silhouette.api.Identity
-import config.CSRCache
+import config.{ CSRCache, SecurityEnvironmentImpl }
 import play.api.libs.json._
+import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
+import language.postfixOps
 
 /**
  * A model for the user. This should represent the logged in user, so it should contain information the user itself,
@@ -58,10 +61,13 @@ object CachedData {
 }
 
 object SecurityUser {
-
   implicit class loginInfoToCachedUser(securityUser: SecurityUser) {
-    def toUserFuture(implicit hc: HeaderCarrier): Future[Option[models.CachedData]] =
-      CSRCache.fetchAndGetEntry[CachedData](securityUser.userID)
+    def toUserFuture(secondAttempt: Boolean = false)(implicit hc: HeaderCarrier): Future[Option[models.CachedData]] =
+      CSRCache.fetchAndGetEntry[CachedData](securityUser.userID).recover {
+        case ex: KeyStoreEntryValidationException if !secondAttempt =>
+          SecurityEnvironmentImpl.userService.refreshCache(securityUser.userID)
+          Await.result(toUserFuture(secondAttempt = true)(hc), 5 seconds)
+        case ex => throw ex
+      }
   }
-
 }

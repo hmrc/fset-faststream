@@ -18,13 +18,14 @@ package security
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import config.CSRCache
+import connectors.ApplicationClient
 import models.{ CachedData, SecurityUser }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserCacheService extends UserService {
+class UserCacheService(applicationClient: ApplicationClient) extends UserService {
 
   override def retrieve(loginInfo: LoginInfo): Future[Option[SecurityUser]] =
     Future.successful(Some(SecurityUser(userID = loginInfo.providerKey)))
@@ -32,4 +33,7 @@ class UserCacheService extends UserService {
   override def save(user: CachedData)(implicit hc: HeaderCarrier): Future[CachedData] =
     CSRCache.cache[CachedData](user.user.userID.toString, user).map(_ => user)
 
+  override def refreshCache(userId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    Future.successful(())
+  }
 }

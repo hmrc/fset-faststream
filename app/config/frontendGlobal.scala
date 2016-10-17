@@ -72,7 +72,7 @@ abstract class DevelopmentFrontendGlobal
       def whereTo: Some[Future[Result]] = {
         val sec = request.asInstanceOf[SecuredRequest[AnyContent]]
         Some(
-          sec.identity.toUserFuture(hc(sec)).map {
+          sec.identity.toUserFuture()(hc(sec)).map {
             case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
             case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
           }
