@@ -30,7 +30,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
   
   "The Questionnaire Repo" should {
 
-    "create collection, append questions to the application and overwrite existing questions" in new Fixture {
+    "create collection, append questions to the application and overwrite existing questions" in new TestFixture {
 
       val applicationId = System.currentTimeMillis() + ""
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("what?", PersistedAnswer(Some("nothing"), None, None)))).futureValue
@@ -47,7 +47,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       result2.size must be(2)
     }
 
-    "find questions should return a map of questions/answers ignoring the non answered ones" in new Fixture {
+    "find questions should return a map of questions/answers ignoring the non answered ones" in new TestFixture {
 
       val applicationId = System.currentTimeMillis() + ""
 
@@ -59,7 +59,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       result2("where?") must be("")
     }
 
-    "return data relevant to the pass mark modelling report" in new Fixture {
+    "return data relevant to the pass mark report" in new TestFixture {
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaires()
 
@@ -75,7 +75,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       )
     }
 
-    "calculate the socioeconomic score for the pass mark modelling report" in new Fixture {
+    "calculate the socioeconomic score for the pass mark report" in new TestFixture {
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaire()
 
@@ -89,9 +89,28 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed"
       ))
     }
+
+    "find all for diversity report" in new TestFixture {
+      when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
+      submitQuestionnaires()
+
+      val report = questionnaireRepo.findAllForDiversityReport().futureValue
+
+      report mustBe Map(
+        applicationId1 -> QuestionnaireReportItem(
+          Some("Male"), Some("Straight"), Some("Black"), Some("Unemployed"), None, None,
+          None, "SES Score", Some("W01-USW")),
+        applicationId2 -> QuestionnaireReportItem(
+          Some("Female"), Some("Lesbian"), Some("White"), Some("Employed"), Some("Modern professional"), Some("Part-time employed"),
+          Some("Large (26-500)"), "SES Score", Some("W17-WARR")),
+          applicationId3 -> QuestionnaireReportItem(
+          Some("Female"), Some("Lesbian"), Some("White"), None, None, None,
+            None, "SES Score", None)
+      )
+    }
   }
 
-  trait Fixture {
+  trait TestFixture {
     val applicationId1 = "abc"
     val applicationId2 = "123"
     val applicationId3 = "partiallyCompleteId"

@@ -59,7 +59,7 @@ trait ReportingController extends BaseController {
   def diversityReport(frameworkId: String) = Action.async { implicit request =>
     val reports = for {
       applications <- appRepository.diversityReport(frameworkId)
-      questionnaires <- questionnaireRepository.findAllAsReportItem()
+      questionnaires <- questionnaireRepository.findAllForDiversityReport
       medias <- medRepository.findAll()
     } yield {
       for {

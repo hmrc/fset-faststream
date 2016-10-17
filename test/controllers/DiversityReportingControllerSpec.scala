@@ -56,7 +56,7 @@ class DiversityReportingControllerSpec extends PlaySpec with Results with Mockit
 
     "return applications with questionnaires and no media when there are questionnaires but no media" in new DiversityReportTestFixture {
       when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
-      when(mockQuestionRepository.findAllAsReportItem).thenReturnAsync(questionnaires)
+      when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(questionnaires)
 
       val response = controller.diversityReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[DiversityReportItem]]
@@ -70,7 +70,7 @@ class DiversityReportingControllerSpec extends PlaySpec with Results with Mockit
     "return applications with no questionnaires or no media when passing questionnaires" +
       " that dont belong to applications and no media" in new DiversityReportTestFixture {
       when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
-      when(mockQuestionRepository.findAllAsReportItem).thenReturnAsync(notFoundQuestionnaires)
+      when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(notFoundQuestionnaires)
 
       val response = controller.diversityReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[DiversityReportItem]]
@@ -82,7 +82,7 @@ class DiversityReportingControllerSpec extends PlaySpec with Results with Mockit
     "return applications with questionnaires and no media when passing questionnaires" +
       " and media that dont belong to the applications"  in new DiversityReportTestFixture {
       when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
-      when(mockQuestionRepository.findAllAsReportItem).thenReturnAsync(questionnaires)
+      when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(questionnaires)
       when(mockMediaRepository.findAll()).thenReturnAsync(notFoundMedias)
 
       val response = controller.diversityReport(frameworkId)(request).run
@@ -107,7 +107,7 @@ class DiversityReportingControllerSpec extends PlaySpec with Results with Mockit
 
     "return applications with questionnaires and media when passing media and questionnaires" in new DiversityReportTestFixture {
       when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
-      when(mockQuestionRepository.findAllAsReportItem).thenReturnAsync(questionnaires)
+      when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(questionnaires)
       when(mockMediaRepository.findAll()).thenReturnAsync(medias)
 
       val response = controller.diversityReport(frameworkId)(request).run
@@ -157,7 +157,7 @@ class DiversityReportingControllerSpec extends PlaySpec with Results with Mockit
       "NotFoundUserId2" -> MediaExamples.Example2)
 
     when(mockAppRepository.diversityReport(any())).thenReturnAsync(List.empty)
-    when(mockQuestionRepository.findAllAsReportItem).thenReturnAsync(Map.empty)
+    when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(Map.empty)
     when(mockMediaRepository.findAll()).thenReturnAsync(Map.empty)
 
     def request = {

@@ -109,7 +109,7 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
 
 
   "Online test pass mark report" should {
-    "return nothing if no applications exist" in new PassMarkReportTestFixture {
+    "return nothing if no application exists" in new PassMarkReportTestFixture {
       when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(Nil)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
       when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(Map.empty)
@@ -122,7 +122,7 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
     }
 
     "return nothing if applications exist, but no questionnaires" in new PassMarkReportTestFixture {
-      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(reports)
+      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
       when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(Map.empty)
 
@@ -133,23 +133,23 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
       result mustBe empty
     }
 
-    "return nothing if applications and questionnaires exist, but no test results" in new PassMarkReportTestFixture {
-      val emptyTestResults = PassMarkReportTestResults(None, None)
-      val emptyTestResultsReports = List(newOnlineTestPassMarkReport(emptyTestResults), newOnlineTestPassMarkReport(emptyTestResults))
+    "return applications and questionnaires if applications and questionnaires exist, but no test results" in new PassMarkReportTestFixture {
+      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applicationsWithNoTestResults)
 
-      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(emptyTestResultsReports)
-
-      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnaires)
+      when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnairesForNoTestResults)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
-      result mustBe empty
+      result mustBe List(
+        OnlineTestPassMarkReportItem(applicationWithNoTestResult1, questionnaire1),
+        OnlineTestPassMarkReportItem(applicationWithNoTestResult2, questionnaire2)
+      )
     }
 
     "return applications with questionnaire and test results" in new PassMarkReportTestFixture {
-      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(reports)
+      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnaires)
       when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(testResults)
@@ -159,8 +159,8 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
 
       status(response) mustBe OK
       result mustBe List(
-        OnlineTestPassMarkReportItem(report1, questionnaire1),
-        OnlineTestPassMarkReportItem(report2, questionnaire2)
+        OnlineTestPassMarkReportItem(application1, questionnaire1),
+        OnlineTestPassMarkReportItem(application2, questionnaire2)
       )
     }
   }
@@ -469,18 +469,24 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
 
     lazy val testResults1 = newTestResults
     lazy val testResults2 = newTestResults
-    lazy val testResults = Map(report1.applicationId -> testResults1, report2.applicationId -> testResults2)
+    lazy val testResults = Map(application1.applicationId -> testResults1, application2.applicationId -> testResults2)
 
-    lazy val report1 = newOnlineTestPassMarkReport(testResults1)
-    lazy val report2 = newOnlineTestPassMarkReport(testResults2)
-    lazy val reports = List(report1, report2)
+    lazy val application1 = newApplicationForOnlineTestPassMarkReportItem(testResults1)
+    lazy val application2 = newApplicationForOnlineTestPassMarkReportItem(testResults2)
+    lazy val applications = List(application1, application2)
+
+    lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(PassMarkReportTestResults(None, None))
+    lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(PassMarkReportTestResults(None, None))
+    lazy val applicationsWithNoTestResults = List(applicationWithNoTestResult1, applicationWithNoTestResult2)
 
     lazy val questionnaire1 = newQuestionnaire
     lazy val questionnaire2 = newQuestionnaire
-    lazy val questionnaires = Map(report1.applicationId -> questionnaire1,
-      report2.applicationId -> questionnaire2)
+    lazy val questionnaires = Map(application1.applicationId -> questionnaire1,
+      application2.applicationId -> questionnaire2)
+    lazy val questionnairesForNoTestResults = Map(applicationWithNoTestResult1.applicationId -> questionnaire1,
+      applicationWithNoTestResult2.applicationId -> questionnaire2)
 
-    def newOnlineTestPassMarkReport(testsResult: PassMarkReportTestResults) =
+    def newApplicationForOnlineTestPassMarkReportItem(testsResult: PassMarkReportTestResults) =
       ApplicationForOnlineTestPassMarkReportItem(
         rnd("AppId"),
         List(SchemeType.Commercial, SchemeType.DigitalAndTechnology),

@@ -35,8 +35,9 @@ import scala.language.postfixOps
 trait QuestionnaireRepository {
   def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit]
   def findQuestions(applicationId: String): Future[Map[String, String]]
-  def findAllAsReportItem(): Future[Map[String, QuestionnaireReportItem]]
+
   def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]]
+  def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
 }
 
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
@@ -70,27 +71,25 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     }
   }
 
-  // TODO: this method and findForOnlineTestPassMarkReport should be the same in behaviour, maybe I should merge.
-  override def findAllAsReportItem(): Future[Map[String, QuestionnaireReportItem]] = {
-    val query = BSONDocument()
-    implicit val reader = bsonReader(docToReport)
-    val queryResult = bsonCollection.find(query)
-      .cursor[(String, QuestionnaireReportItem)](ReadPreference.nearest).collect[List]()
-    queryResult.map(_.toMap)
-  }
-
   override def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]] = {
     // We need to ensure that the candidates have completed the last page of the questionnaire
     // however, only the first question on the employment page is mandatory, as if the answer is
     // unemployed, they don't need to answer other questions
     val firstEmploymentQuestion = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
     val query = BSONDocument(s"questions.$firstEmploymentQuestion" -> BSONDocument("$exists" -> BSONBoolean(true)))
+    findAllAsReportItem(query)
+  }
+
+  override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] = {
+    findAllAsReportItem(BSONDocument())
+  }
+
+  protected def findAllAsReportItem(query: BSONDocument): Future[Map[String, QuestionnaireReportItem]] = {
     implicit val reader = bsonReader(docToReport)
     val queryResult = bsonCollection.find(query)
       .cursor[(String, QuestionnaireReportItem)](ReadPreference.nearest).collect[List]()
     queryResult.map(_.toMap)
   }
-
 
   private[repositories] def find(applicationId: String): Future[List[PersistedQuestion]] = {
     val query = BSONDocument("applicationId" -> applicationId)
