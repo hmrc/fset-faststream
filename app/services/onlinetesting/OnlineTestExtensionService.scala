@@ -59,9 +59,10 @@ trait OnlineTestExtensionService extends EventSink {
       phase1TestGroup <- otRepository.getTestGroup(applicationId)
     } yield {
       (progressResponse, phase1TestGroup) match {
-        case (progress, Some(group)) if progress.phase1TestsExpired =>
+        case (progress, Some(group)) if progress.phase1ProgressResponse.phase1TestsExpired =>
           Extension(dateTimeFactory.nowLocalTimeZone.plusDays(extraDays), expired = true, group, progressResponse)
-        case (progress, Some(group)) if progressResponse.phase1TestsInvited || progressResponse.phase1TestsStarted =>
+        case (progress, Some(group)) if progressResponse.phase1ProgressResponse.phase1TestsInvited ||
+          progressResponse.phase1ProgressResponse.phase1TestsStarted =>
           Extension(group.expirationDate.plusDays(extraDays), expired = false, group, progressResponse)
         case (progress, None) =>
           throw TestExtensionException("No Phase1TestGroupAvailable for the given application")
@@ -104,7 +105,7 @@ object OnlineTestExtensionServiceImpl {
 
     val today = DateTime.now()
     val progressList = (Set.empty[ProgressStatus]
-        ++ cond(progress.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
+        ++ cond(progress.phase1ProgressResponse.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
         ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)
         ++ cond(extendedExpiryDate.minusHours(Phase1SecondReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_SECOND_REMINDER)
         ++ cond(extendedExpiryDate.minusHours(Phase1FirstReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_FIRST_REMINDER)).toList
