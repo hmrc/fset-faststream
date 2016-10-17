@@ -52,7 +52,7 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
 
     val now = DateTime.now().withZone(DateTimeZone.UTC)
     def getPhase1Test(cubiksUserId: Int) = CubiksTest(0, true, cubiksUserId, "", "", "", now, 0)
-    def getTestResult() = TestResult("completed", "norm", Some(30.0), Some(20.0), Some(30.0), Some(40.0))
+    def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(Some(10.0)), Some(20.0), Some(30.0), Some(40.0))
 
 
     def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
@@ -64,7 +64,7 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
           otService.markAsReportReadyToDownload(id, result)
         }
         cubiksUserIds <- Future.successful(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))
-        testResults <- Future.successful(cubiksUserIds.map { id => { (getTestResult(), getPhase1Test(id))}})
+        testResults <- Future.successful(cubiksUserIds.map { id => { (getTestResult(generatorConfig.tscore), getPhase1Test(id))}})
         _ <- insertTests(candidate.applicationId.get, testResults)
         _ <- otRepository.updateProgressStatus(candidate.applicationId.get, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
       } yield candidate

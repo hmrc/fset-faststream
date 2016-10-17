@@ -19,67 +19,53 @@ package services.testdata
 import java.util.UUID
 
 import config.CubiksGatewayConfig
-import connectors.testdata.ExchangeObjects.{ TestGroupResponse, CubiksTestResponse }
-import model.persisted.{ CubiksTest, Phase1TestProfile }
+import connectors.testdata.ExchangeObjects.{ CubiksTestResponse, TestGroupResponse }
+import model.persisted.{ CubiksTest, Phase2TestGroup }
 import org.joda.time.DateTime
 import repositories._
-import repositories.onlinetesting.Phase1TestRepository
+import repositories.onlinetesting.Phase2TestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1TestsInvitedStatusGenerator extends Phase1TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = SubmittedStatusGenerator
-  override val otRepository = phase1TestRepository
+object Phase2TestsInvitedStatusGenerator extends Phase2TestsInvitedStatusGenerator {
+  override val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
+  override val otRepository = phase2TestRepository
   override val gatewayConfig = cubiksGatewayConfig
 }
 
-trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase1TestRepository
+trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
+  val otRepository: Phase2TestRepository
   val gatewayConfig: CubiksGatewayConfig
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    val sjqTest = CubiksTest(
+    val etray = CubiksTest(
       cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
-      participantScheduleId = 149245,
-      scheduleId = gatewayConfig.phase1Tests.scheduleIds("sjq"),
+      participantScheduleId = 243357,
+      scheduleId = gatewayConfig.phase2Tests.schedules("daro").scheduleId,
       usedForResults = true
     )
 
-    val bqTest = CubiksTest(
-      cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
-      token = UUID.randomUUID().toString,
-      testUrl = generatorConfig.cubiksUrl,
-      invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
-      participantScheduleId = 149245,
-      scheduleId = gatewayConfig.phase1Tests.scheduleIds("bq"),
-      usedForResults = true
-    )
-
-    val phase1TestProfile = Phase1TestProfile(
+    val phase2TestGroup = Phase2TestGroup(
       expirationDate = generatorConfig.phase1ExpiryTime.getOrElse(DateTime.now().plusDays(7)),
-      tests = if (generatorConfig.setGis) List(sjqTest) else List(sjqTest, bqTest)
+      tests = List(etray)
     )
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
+      _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase2TestGroup)
     } yield {
-      val sjq = phase1TestProfile.tests.find(t => t.cubiksUserId == sjqTest.cubiksUserId).get
-      val bq = phase1TestProfile.tests.find(t => t.cubiksUserId == bqTest.cubiksUserId)
+      val etray = phase2TestGroup.tests.head
 
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
         TestGroupResponse(
-          List(CubiksTestResponse(sjq.cubiksUserId, sjq.token, sjq.testUrl)) ++
-          bq.map { b =>
-            List(CubiksTestResponse(b.cubiksUserId, b.token, b.testUrl))
-          }.getOrElse(Nil)
+          List(CubiksTestResponse(etray.cubiksUserId, etray.token, etray.testUrl))
         )
       ))
     }
