@@ -63,11 +63,11 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
       }
 
       if (errors.nonEmpty) {
-        val errorMsg = apps map {a =>
-          s"${a.applicationId}, cubiks Ids: ${a.phase1.tests.map(_.cubiksUserId).mkString(",")}".mkString("\n")
-        }
+        val errorMsg = apps.map {a =>
+          s"${a.applicationId}, cubiks Ids: ${a.phase1.tests.map(_.cubiksUserId).mkString(",")}"
+        }.mkString("\n")
 
-        Logger.error(s"There were errors in batch Phase 1 evaluation: $errorMsg, number of failed applications: ${errors.size}")
+        Logger.error(s"There were ${errors.size} errors in batch Phase 1 evaluation:\n$errorMsg")
         Future.failed(errors.head)
       } else {
         Future.successful(())

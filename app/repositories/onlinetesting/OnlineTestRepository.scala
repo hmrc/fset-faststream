@@ -104,18 +104,16 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
     selectOneRandom[ExpiringOnlineTest](query)
   }
 
-  def nextTestForReminder(reminder: ReminderNotice, phase: String = "PHASE1",
-    progressStatusQuery: BSONDocument
-  ): Future[Option[NotificationExpiringOnlineTest]] = {
+  def nextTestForReminder(reminder: ReminderNotice, progressStatusQuery: BSONDocument): Future[Option[NotificationExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
-      BSONDocument(s"testGroups.$phase.expirationDate" ->
+      BSONDocument(s"testGroups.${reminder.phase}.expirationDate" ->
         BSONDocument( "$lte" -> dateTimeFactory.nowLocalTimeZone.plusHours(reminder.hoursBeforeReminder)) // Serialises to UTC.
       ),
       progressStatusQuery
     ))
 
-    implicit val reader = bsonReader(NotificationExpiringOnlineTest.fromBson)
+    implicit val reader = bsonReader(x => NotificationExpiringOnlineTest.fromBson(x, reminder.phase))
     selectOneRandom[NotificationExpiringOnlineTest](query)
   }
 

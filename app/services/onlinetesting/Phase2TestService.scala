@@ -24,17 +24,16 @@ import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.{ ExpiryTest, ProgressStatuses }
+import model.{ ProgressStatuses, ReminderNotice }
 import model.events.DataStoreEvents
 import model.events.EventTypes.EventType
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
-import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
+import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.events.EventService
-import services.events.{ EventService, EventSink }
 import services.onlinetesting.phase2.ScheduleSelector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -43,6 +42,8 @@ import scala.language.postfixOps
 
 object Phase2TestService extends Phase2TestService {
   import config.MicroserviceAppConfig._
+  val appRepository = applicationRepository
+  val cdRepository = faststreamContactDetailsRepository
   val phase2TestRepo = phase2TestRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
@@ -84,6 +85,23 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     phase2TestRepo.nextApplicationsReadyForOnlineTesting
+  }
+
+  override def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+    phase2TestRepo.nextTestForReminder(reminder).flatMap {
+      case Some(expiringTest) => processReminder(expiringTest, reminder)
+      case None => Future.successful(())
+    }
+  }
+
+  override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
+                                                     emailAddress: String,
+                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+    emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
+      reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
+      audit(s"ReminderPhase2ExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
+        expiringTest.userId, Some(emailAddress))
+    }
   }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
