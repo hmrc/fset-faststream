@@ -20,8 +20,8 @@ import model.persisted.CubiksTest
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTests: List[CubiksTest])
+case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest)
 
-object Phase2TestGroupWithNames {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
+object Phase2TestGroupWithActiveTest {
+  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithActiveTest]
 }
