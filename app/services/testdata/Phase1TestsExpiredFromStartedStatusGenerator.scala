@@ -16,6 +16,7 @@
 
 package services.testdata
 
+import model.ProgressStatuses
 import model.persisted.ExpiringOnlineTest
 import play.api.mvc.RequestHeader
 import repositories._
@@ -29,20 +30,18 @@ object Phase1TestsExpiredFromStartedStatusGenerator extends Phase1TestsExpiredFr
   override val previousStatusGenerator = Phase1TestsStartedStatusGenerator
   override val otRepository = phase1TestRepository
   override val otService = Phase1TestService
-  override val oteService = OnlineTestExpiryService
 }
 
 trait Phase1TestsExpiredFromStartedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase1TestRepository
   val otService: Phase1TestService
-  val oteService: OnlineTestExpiryService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- oteService.commitExpiredProgressStatus(ExpiringOnlineTest(
+      _ <- otService.commitProgressStatus(ExpiringOnlineTest(
         candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId, candidateInPreviousStatus.preferredName
-      ))
+      ), ProgressStatuses.PHASE1_TESTS_EXPIRED)
     } yield {
       candidateInPreviousStatus
     }

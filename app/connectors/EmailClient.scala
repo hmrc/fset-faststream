@@ -39,12 +39,6 @@ object Phase2OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
       Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
     )
 
-  override def sendOnlineTestExpired(to: String, name: String)
-    (implicit hc: HeaderCarrier) = sendEmail(to,
-      "fset_faststream_app_online_test_expired",
-      Map("name" -> name)
-    )
-
   override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
     timeUnit: TimeUnit, expiryDate: DateTime)
     (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
@@ -70,12 +64,6 @@ object Phase3OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
                                        (implicit hc: HeaderCarrier) = sendEmail(to,
     "fset_faststream_app_phase3_test_invitation",
     Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
-  )
-
-  override def sendOnlineTestExpired(to: String, name: String)
-                                    (implicit hc: HeaderCarrier) = sendEmail(to,
-    "fset_faststream_app_online_test_expired",
-    Map("name" -> name)
   )
 
   override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
@@ -104,13 +92,6 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
       to,
       "fset_faststream_app_online_test_invitation",
       Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
-    )
-
-  override def sendOnlineTestExpired(to: String, name: String)(implicit hc: HeaderCarrier) =
-    sendEmail(
-      to,
-      "fset_faststream_app_online_phase1_test_expired",
-      Map("name" -> name)
     )
 
   override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
@@ -178,8 +159,15 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
 }
 
 trait OnlineTestEmailClient {
+
+  self: EmailClient =>
+
   def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
-  def sendOnlineTestExpired(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
+  def sendOnlineTestExpired(to: String, name: String, template: String)(implicit hc: HeaderCarrier): Future[Unit] = sendEmail(
+    to,
+    template,
+    Map("name" -> name)
+  )
   def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
     timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
   def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]

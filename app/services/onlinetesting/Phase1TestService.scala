@@ -31,7 +31,6 @@ import model.persisted.{ CubiksTest, ExpiringOnlineTest, Phase1TestProfile, Phas
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.events.EventService
 import services.onlinetesting.Exceptions.ReportIdNotDefinedException
@@ -46,8 +45,6 @@ object Phase1TestService extends Phase1TestService {
 
   import config.MicroserviceAppConfig._
 
-  val appRepository = applicationRepository
-  val cdRepository = contactDetailsRepository
   val phase1TestRepo = phase1TestRepository
   val trRepository = testReportRepository
   val cubiksGatewayClient = CubiksGatewayClient
@@ -63,31 +60,10 @@ object Phase1TestService extends Phase1TestService {
 trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   val actor: ActorSystem
 
-  val appRepository: GeneralApplicationRepository
-  val cdRepository: ContactDetailsRepository
   val phase1TestRepo: Phase1TestRepository
   val trRepository: TestReportRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
-
-  override def processNextExpiredTest(expiryTest: ExpiryTest): Future[Unit] = {
-    phase1TestRepo.nextExpiringApplication.flatMap {
-      case Some(expiredTest) => processExpiredTest(expiredTest)
-      case None => Future.successful(())
-    }
-  }
-
-  private def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =
-    for {
-      emailAddress <- candidateEmailAddress(expiringTest.userId)
-      _ <- emailCandidate(expiringTest, emailAddress)
-      _ <- commitExpiredProgressStatus(expiringTest)
-    } yield ()
-
-  private def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit] =
-    emailClient.sendOnlineTestExpired(emailAddress, expiringTest.preferredName).map { _ =>
-      //audit("ExpiredOnlineTestNotificationEmailed", expiringTest, Some(emailAddress))
-    }
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     phase1TestRepo.nextApplicationsReadyForOnlineTesting
@@ -130,6 +106,13 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
+  }
+
+  override def processNextExpiredTest(expiryTest: ExpiryTest)(implicit hc: HeaderCarrier): Future[Unit] = {
+    phase1TestRepo.nextExpiringApplication(expiryTest).flatMap{
+      case Some(expired) => processExpiredTest(expired, expiryTest)
+      case None => Future.successful(())
+    }
   }
 
   def resetTests(application: OnlineTestApplication, testNamesToRemove: List[String], actionTriggeredBy: String)
@@ -178,7 +161,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
 
     for {
       _ <- registerAndInviteProcess
-      emailAddress <- candidateEmailAddress(application)
+      emailAddress <- candidateEmailAddress(application.userId)
       _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
     } yield audit("OnlineTestInvitationProcessComplete", application.userId)
   }
@@ -273,10 +256,6 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
       )
       Phase1TestProfile(newProfile.expirationDate, existingTestsAfterUpdate ++ newProfile.tests)
   }
-
-  private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
-    cdRepository.find(application.userId).map(_.email)
-
 
   private def getScheduleNamesForApplication(application: OnlineTestApplication) = {
     if (application.guaranteedInterview) {

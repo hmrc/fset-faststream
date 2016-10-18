@@ -45,8 +45,10 @@ trait ExpireOnlineTestJob extends SingleInstanceScheduledJob {
   val onlineTestingService: OnlineTestService
   val expiryTest: ExpiryTest
 
-  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] =
+  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    implicit val hc = new HeaderCarrier()
     onlineTestingService.processNextExpiredTest(expiryTest)
+  }
 }
 
 trait ExpirePhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {

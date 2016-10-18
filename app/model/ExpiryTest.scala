@@ -1,16 +1,24 @@
+/*
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package model
 
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, ProgressStatus }
 
+sealed case class ExpiryTest(hoursBeforeReminder: Int, phase: String, expiredStatus: ProgressStatus, template: String)
 
-sealed case class ExpiryTest(hoursBeforeReminder: Int, phase: String, expiredStatus: ProgressStatus) {
-  require(hoursBeforeReminder > 0, "Hours before expiration was negative")
-  require(expiredStatus == PHASE1_TESTS_EXPIRED || expiredStatus == PHASE2_TESTS_EXPIRED,
-    "progressStatuses value not allowed")
-  require(phase == "PHASE1" || phase == "PHASE2",
-    "phase value not allowed")
-
-}
-
-object Phase1ExpiryTest extends ExpiryTest(24 * 7, "PHASE1", PHASE1_TESTS_EXPIRED)
-object Phase2ExpiryTest extends ExpiryTest(24 * 7, "PHASE2", PHASE2_TESTS_EXPIRED)
+object Phase1ExpiryTest extends ExpiryTest(24 * 7, "PHASE1", PHASE1_TESTS_EXPIRED, "fset_faststream_app_online_test_expired")
+object Phase2ExpiryTest extends ExpiryTest(24 * 7, "PHASE2", PHASE2_TESTS_EXPIRED, "fset_faststream_app_online_test_expired")

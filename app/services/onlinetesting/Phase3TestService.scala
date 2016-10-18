@@ -23,7 +23,7 @@ import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.ProgressStatuses
+import model.{ ExpiryTest, ProgressStatuses }
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -39,9 +39,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase3TestService extends Phase3TestService {
   import config.MicroserviceAppConfig._
-  val appRepository = applicationRepository
+  //val appRepository = applicationRepository
   val phase3TestRepo = phase3TestRepository
-  val cdRepository = faststreamContactDetailsRepository
+  //val cdRepository = faststreamContactDetailsRepository
   val launchpadGatewayClient = LaunchpadGatewayClient
   val tokenFactory = UUIDFactory
   val dateTimeFactory = DateTimeFactory
@@ -75,6 +75,8 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
   }
+
+  override def processNextExpiredTest(expiryTest: ExpiryTest)(implicit hc: HeaderCarrier): Future[Unit] = ???
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int)
     (implicit hc: HeaderCarrier): Future[Unit] = {

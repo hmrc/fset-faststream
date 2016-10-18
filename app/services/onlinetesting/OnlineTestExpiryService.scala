@@ -32,8 +32,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 trait OnlineTestExpiryService {
   def processNextTestForReminder(reminder: ReminderNotice): Future[Unit]
-  def processNextExpiredTest(): Future[Unit]
-  def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
+
 }
 
 class OnlineTestExpiryServiceImpl(
@@ -54,17 +53,18 @@ class OnlineTestExpiryServiceImpl(
     }
   }
 
-  override def processNextExpiredTest(): Future[Unit] = {
+  //override def processNextExpiredTest(): Future[Unit] = Future.successful(())
+  /*override def processNextExpiredTest(): Future[Unit] = {
     otRepository.nextExpiringApplication.flatMap {
       case Some(expiredTest) => processExpiredTest(expiredTest)
       case None => Future.successful(())
     }
-  }
+  }*/
 
-  override def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
+  /*override def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit] =
     applicationRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, PHASE1_TESTS_EXPIRED).map { _ =>
       audit("ExpiredOnlineTest", expiringTest)
-    }
+    }*/
 
   private def processReminder(expiringTest: NotificationExpiringOnlineTest, reminder: ReminderNotice): Future[Unit] =
     for {
@@ -73,7 +73,7 @@ class OnlineTestExpiryServiceImpl(
       _ <- emailCandidateForExpiringTestReminder(expiringTest, emailAddress, reminder)
     } yield ()
 
-  private def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =
+  /*private def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
       _ <- emailCandidate(expiringTest, emailAddress)
@@ -83,7 +83,7 @@ class OnlineTestExpiryServiceImpl(
   private def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String): Future[Unit] =
     emailClient.sendOnlineTestExpired(emailAddress, expiringTest.preferredName).map { _ =>
       audit("ExpiredOnlineTestNotificationEmailed", expiringTest, Some(emailAddress))
-    }
+    }*/
 
   private def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
                                                     emailAddress: String, reminder: ReminderNotice): Future[Unit] = {

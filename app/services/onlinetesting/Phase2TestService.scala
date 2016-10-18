@@ -23,7 +23,7 @@ import connectors.ExchangeObjects._
 import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.ProgressStatuses
+import model.{ ExpiryTest, ProgressStatuses }
 import model.events.DataStoreEvents
 import model.events.EventTypes.EventType
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
@@ -43,8 +43,6 @@ import scala.language.postfixOps
 
 object Phase2TestService extends Phase2TestService {
   import config.MicroserviceAppConfig._
-  val appRepository = applicationRepository
-  val cdRepository = contactDetailsRepository
   val phase2TestRepo = phase2TestRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
@@ -59,8 +57,6 @@ object Phase2TestService extends Phase2TestService {
 
 trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
-  val appRepository: GeneralApplicationRepository
-  val cdRepository: ContactDetailsRepository
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
@@ -93,6 +89,13 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(List(application))
+  }
+
+  override def processNextExpiredTest(expiryTest: ExpiryTest)(implicit hc: HeaderCarrier): Future[Unit] = {
+    phase2TestRepo.nextExpiringApplication(expiryTest).flatMap{
+      case Some(expired) => processExpiredTest(expired, expiryTest)
+      case None => Future.successful(())
+    }
   }
 
   def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
@@ -245,7 +248,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }).map( _ => () )
 
 
-  private def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
+  //private def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
 
 }
 

@@ -50,9 +50,10 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     model.persisted.phase3tests.Phase3TestGroup.phase3TestGroupFormat, ReactiveMongoFormats.objectIdFormats
   ) with Phase3TestRepository with CommonBSONDocuments {
 
-  val phaseName = "PHASE3"
-  val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE3_TESTS
-  val dateTimeFactory = dateTime
+  override val phaseName = "PHASE3"
+  override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE3_TESTS
+  override val dateTimeFactory = dateTime
+  override val expiredTestQuery: BSONDocument = ???
 
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
 
