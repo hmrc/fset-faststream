@@ -62,8 +62,6 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
         }
     )
   }
-
-
 }
 
 object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, SchemeClient)
