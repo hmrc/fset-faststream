@@ -17,9 +17,8 @@
 package services.onlinetesting
 
 import connectors.CSREmailClient
-import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest }
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER }
-import model.ReminderNotice
+import model.persisted.ExpiringOnlineTest
+import model.ProgressStatuses.PHASE1_TESTS_EXPIRED
 import play.api.Logger
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -30,8 +29,8 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
 
+@deprecated("remaining methods to be moved in phase1/2 services")
 trait OnlineTestExpiryService {
-  def processNextTestForReminder(reminder: ReminderNotice): Future[Unit]
   def processNextExpiredTest(): Future[Unit]
   def commitExpiredProgressStatus(expiringTest: ExpiringOnlineTest): Future[Unit]
 }
@@ -47,13 +46,6 @@ class OnlineTestExpiryServiceImpl(
 
   private implicit def headerCarrier = newHeaderCarrier
 
-  override def processNextTestForReminder(reminder: ReminderNotice): Future[Unit] = {
-    otRepository.nextTestForReminder(reminder).flatMap {
-      case Some(expiringTest) => processReminder(expiringTest, reminder)
-      case None => Future.successful(())
-    }
-  }
-
   override def processNextExpiredTest(): Future[Unit] = {
     otRepository.nextExpiringApplication.flatMap {
       case Some(expiredTest) => processExpiredTest(expiredTest)
@@ -66,13 +58,6 @@ class OnlineTestExpiryServiceImpl(
       audit("ExpiredOnlineTest", expiringTest)
     }
 
-  private def processReminder(expiringTest: NotificationExpiringOnlineTest, reminder: ReminderNotice): Future[Unit] =
-    for {
-      emailAddress <- candidateEmailAddress(expiringTest.userId)
-      _ <- commitNotificationExpiringTestProgressStatus(expiringTest, reminder)
-      _ <- emailCandidateForExpiringTestReminder(expiringTest, emailAddress, reminder)
-    } yield ()
-
   private def processExpiredTest(expiringTest: ExpiringOnlineTest): Future[Unit] =
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
@@ -84,30 +69,6 @@ class OnlineTestExpiryServiceImpl(
     emailClient.sendOnlineTestExpired(emailAddress, expiringTest.preferredName).map { _ =>
       audit("ExpiredOnlineTestNotificationEmailed", expiringTest, Some(emailAddress))
     }
-
-  private def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
-                                                    emailAddress: String, reminder: ReminderNotice): Future[Unit] = {
-    emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
-      reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
-      audit(s"ReminderExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
-        ExpiringOnlineTest(expiringTest.applicationId, expiringTest.userId, expiringTest.preferredName), Some(emailAddress))
-    }
-  }
-
-  private def commitNotificationExpiringTestProgressStatus(
-                                                            expiringTest: NotificationExpiringOnlineTest,
-                                                            reminder: ReminderNotice): Future[Unit] = {
-
-    applicationRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, reminder.progressStatuses).map { _ =>
-      reminder.progressStatuses match {
-        case PHASE1_TESTS_FIRST_REMINDER => audit(s"FirstReminderFor${reminder.hoursBeforeReminder}HoursAddedToProgress",
-          ExpiringOnlineTest(expiringTest.applicationId, expiringTest.userId, expiringTest.preferredName))
-        case PHASE1_TESTS_SECOND_REMINDER => audit(s"SecondReminderFor${reminder.hoursBeforeReminder}HoursAddedToProgress",
-          ExpiringOnlineTest(expiringTest.applicationId, expiringTest.userId, expiringTest.preferredName))
-      }
-    }
-  }
-
 
   private def candidateEmailAddress(userId: String): Future[String] =
     cdRepository.find(userId).map(_.email)

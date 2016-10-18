@@ -151,7 +151,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
       ))
 
-    nextTestForReminder(reminder, phaseName, progressStatusQuery)
+    nextTestForReminder(reminder, progressStatusQuery)
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
