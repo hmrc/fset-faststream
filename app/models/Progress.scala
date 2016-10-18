@@ -23,8 +23,8 @@ import scala.language.implicitConversions
 
 case class Phase1TestProgress(
   phase1TestsInvited: Boolean = false,
-  phase1TestsFirstRemainder: Boolean = false,
-  phase1TestsSecondRemainder: Boolean = false,
+  phase1TestsFirstReminder: Boolean = false,
+  phase1TestsSecondReminder: Boolean = false,
   phase1TestsStarted: Boolean = false,
   phase1TestsCompleted: Boolean = false,
   phase1TestsExpired: Boolean = false,
@@ -36,8 +36,8 @@ case class Phase1TestProgress(
 
 case class Phase2TestProgress(
   phase2TestsInvited: Boolean = false,
-  phase2TestsFirstRemainder: Boolean = false,
-  phase2TestsSecondRemainder: Boolean = false,
+  phase2TestsFirstReminder: Boolean = false,
+  phase2TestsSecondReminder: Boolean = false,
   phase2TestsStarted: Boolean = false,
   phase2TestsCompleted: Boolean = false,
   phase2TestsExpired: Boolean = false,
@@ -90,8 +90,8 @@ object Progress {
       phase1TestProgress = Phase1TestProgress(
         phase1TestsInvited = progressResponse.phase1ProgressResponse.phase1TestsInvited,
         phase1TestsStarted  = progressResponse.phase1ProgressResponse.phase1TestsStarted,
-        phase1TestsFirstRemainder = progressResponse.phase1ProgressResponse.phase1TestsFirstRemainder,
-        phase1TestsSecondRemainder = progressResponse.phase1ProgressResponse.phase1TestsSecondRemainder,
+        phase1TestsFirstReminder = progressResponse.phase1ProgressResponse.phase1TestsFirstReminder,
+        phase1TestsSecondReminder = progressResponse.phase1ProgressResponse.phase1TestsSecondReminder,
         phase1TestsCompleted = progressResponse.phase1ProgressResponse.phase1TestsCompleted,
         phase1TestsExpired= progressResponse.phase1ProgressResponse.phase1TestsExpired,
         phase1TestsResultsReady = progressResponse.phase1ProgressResponse.phase1TestsResultsReady,
@@ -102,8 +102,8 @@ object Progress {
       phase2TestProgress = Phase2TestProgress(
         phase2TestsInvited = progressResponse.phase2ProgressResponse.phase2TestsInvited,
         phase2TestsStarted  = progressResponse.phase2ProgressResponse.phase2TestsStarted,
-        phase2TestsFirstRemainder = progressResponse.phase2ProgressResponse.phase2TestsFirstRemainder,
-        phase2TestsSecondRemainder = progressResponse.phase2ProgressResponse.phase2TestsSecondRemainder,
+        phase2TestsFirstReminder = progressResponse.phase2ProgressResponse.phase2TestsFirstReminder,
+        phase2TestsSecondReminder = progressResponse.phase2ProgressResponse.phase2TestsSecondReminder,
         phase2TestsCompleted = progressResponse.phase2ProgressResponse.phase2TestsCompleted,
         phase2TestsExpired= progressResponse.phase2ProgressResponse.phase2TestsExpired,
         phase2TestsResultsReady = progressResponse.phase2ProgressResponse.phase2TestsResultsReady,
