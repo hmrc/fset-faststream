@@ -60,10 +60,9 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
         Logger.warn(s"Retrieved invalid cache entry for userId '${securityUser.userID}' (structure changed?). " +
           s"Attempting cache refresh from database...")
         Await.result(SecurityEnvironmentImpl.userService.refreshCachedUser(securityUser.userID).map(Some(_)), 5 seconds)
-      case ex: Throwable => {
+      case ex: Throwable =>
         Logger.warn(s"Retrieved invalid cache entry for userID '${securityUser.userID}. Could not recover!")
         throw ex
-      }
     }
   }
 
