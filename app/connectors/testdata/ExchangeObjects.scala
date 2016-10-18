@@ -17,8 +17,8 @@
 package connectors.testdata
 
 import model.Commands.ApplicationAssessment
-import model.persisted.{ ContactDetails, PersonalDetails }
-import model.{ Preferences, SelectedSchemes }
+import model.persisted.{ContactDetails, PersonalDetails}
+import model.SelectedSchemes
 import play.api.libs.json.Json
 
 object ExchangeObjects {
@@ -34,21 +34,23 @@ object ExchangeObjects {
                                     personalDetails: Option[PersonalDetails] = None,
                                     isCivilServant: Option[Boolean] = None,
                                     contactDetails: Option[ContactDetails] = None,
-                                    phase1TestGroup: Option[Phase1TestGroupResponse] = None,
+                                    phase1TestGroup: Option[TestGroupResponse] = None,
+                                    phase2TestGroup: Option[TestGroupResponse] = None,
                                     applicationAssessment: Option[ApplicationAssessment] = None,
                                     schemePreferences: Option[SelectedSchemes] = None,
                                     phase3TestUrl: Option[String] = None
                                    )
 
-  case class Phase1TestGroupResponse(tests: List[Phase1TestResponse])
-  case class Phase1TestResponse(cubiksUserId: Int, token: String, testUrl: String)
+  case class TestGroupResponse(tests: List[CubiksTestResponse])
+
+  case class CubiksTestResponse(cubiksUserId: Int, token: String, testUrl: String)
 
   object Implicits {
 
     import model.Commands.Implicits._
 
-    implicit val phase1TestResponseFormat = Json.format[Phase1TestResponse]
-    implicit val phase1TestGroupResponseFormat = Json.format[Phase1TestGroupResponse]
+    implicit val phase1TestResponseFormat = Json.format[CubiksTestResponse]
+    implicit val phase1TestGroupResponseFormat = Json.format[TestGroupResponse]
     implicit val dataGenerationResponseFormat = Json.format[DataGenerationResponse]
   }
 
