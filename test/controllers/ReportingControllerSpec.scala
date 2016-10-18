@@ -474,8 +474,10 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
     lazy val application2 = newApplicationForOnlineTestPassMarkReportItem(testResults2)
     lazy val applications = List(application1, application2)
 
-    lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(TestResultForOnlineTestPassMarkReportItem(None, None))
-    lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(TestResultForOnlineTestPassMarkReportItem(None, None))
+    lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(
+      TestResultsForOnlineTestPassMarkReportItem(None, None, None))
+    lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(
+      TestResultsForOnlineTestPassMarkReportItem(None, None, None))
     lazy val applicationsWithNoTestResults = List(applicationWithNoTestResult1, applicationWithNoTestResult2)
 
     lazy val questionnaire1 = newQuestionnaire
@@ -485,7 +487,7 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
     lazy val questionnairesForNoTestResults = Map(applicationWithNoTestResult1.applicationId -> questionnaire1,
       applicationWithNoTestResult2.applicationId -> questionnaire2)
 
-    def newApplicationForOnlineTestPassMarkReportItem(testsResult: TestResultForOnlineTestPassMarkReportItem) =
+    def newApplicationForOnlineTestPassMarkReportItem(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
       ApplicationForOnlineTestPassMarkReportItem(
         rnd("AppId"),
         "phase1_tests_results_received",
@@ -502,7 +504,7 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
         someRnd("university"))
 
     def newTestResults =
-      TestResultForOnlineTestPassMarkReportItem(maybe(newTestResult), maybe(newTestResult))
+      TestResultsForOnlineTestPassMarkReportItem(maybe(newTestResult), maybe(newTestResult), maybe(newTestResult))
 
     private def someDouble = Some(Random.nextDouble())
 

@@ -20,11 +20,12 @@ import model.OnlineTestCommands.TestResult
 import play.api.libs.json.Json
 import model.OnlineTestCommands.Implicits._
 
-case class TestResultForOnlineTestPassMarkReportItem(
+case class TestResultsForOnlineTestPassMarkReportItem(
                                                       behavioural: Option[TestResult],
-                                                      situational: Option[TestResult]
+                                                      situational: Option[TestResult],
+                                                      etray: Option[TestResult]
                                                     )
 
-object TestResultForOnlineTestPassMarkReportItem {
-  implicit val testResultForOnlineTestPassMarkReportItemFormat = Json.format[TestResultForOnlineTestPassMarkReportItem]
+object TestResultsForOnlineTestPassMarkReportItem {
+  implicit val testResultsForOnlineTestPassMarkReportItemFormat = Json.format[TestResultsForOnlineTestPassMarkReportItem]
 }

@@ -18,7 +18,7 @@ package model.report
 
 import model.SchemeType.SchemeType
 import play.api.libs.json.Json
-import model.report.TestResultForOnlineTestPassMarkReportItem
+import model.report.TestResultsForOnlineTestPassMarkReportItem$
 
 case class ApplicationForOnlineTestPassMarkReportItem(
                                                        applicationId: String,
@@ -28,7 +28,7 @@ case class ApplicationForOnlineTestPassMarkReportItem(
                                                        gis: Option[Boolean],
                                                        onlineAdjustments: Option[String],
                                                        assessmentCentreAdjustments: Option[String],
-                                                       testResults: TestResultForOnlineTestPassMarkReportItem
+                                                       testResults: TestResultsForOnlineTestPassMarkReportItem
                                                      )
 
 object ApplicationForOnlineTestPassMarkReportItem {

@@ -16,6 +16,7 @@
 
 package repositories.application
 
+import config.MicroserviceAppConfig._
 import model.ApplicationStatus.{apply => _, _}
 import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocation
@@ -25,7 +26,7 @@ import model.InternshipType.{InternshipType, apply => _}
 import model.OnlineTestCommands.TestResult
 import model.SchemeType._
 import model.command.ProgressResponse
-import model.persisted.{ApplicationForNotification, Phase1TestProfile}
+import model.persisted.{ApplicationForNotification, Phase1TestProfile, Phase2TestGroup}
 import model.report._
 import model.{CivilServiceExperienceType, InternshipType}
 import org.joda.time.{DateTime, LocalDate}
@@ -167,7 +168,6 @@ trait GeneralApplicationRepoBSONToModelHelper {
 
   def toApplicationForOnlineTestPassMarkReportItem(findProgress: (BSONDocument, String) => ProgressResponse)
                                                   (doc: BSONDocument): ApplicationForOnlineTestPassMarkReportItem = {
-    import config.MicroserviceAppConfig._
 
     val applicationId = doc.getAs[String]("applicationId").getOrElse("")
 
@@ -182,24 +182,6 @@ trait GeneralApplicationRepoBSONToModelHelper {
 
     val progress: ProgressResponse = findProgress(doc, applicationId)
 
-    val testGroupsDoc = doc.getAs[BSONDocument]("testGroups")
-    val phase1Doc = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE1"))
-
-    val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
-
-    val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
-    val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
-
-    def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
-      phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
-        phase1Test.testResult.map { tr =>
-          TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
-        }
-      }
-    }
-    val behaviouralTestResult = getTestResult(phase1TestProfile, behaviouralScheduleId)
-    val situationalTestResult = getTestResult(phase1TestProfile, situationalScheduleId)
-
     ApplicationForOnlineTestPassMarkReportItem(
       applicationId,
       getStatus(progress),
@@ -208,7 +190,41 @@ trait GeneralApplicationRepoBSONToModelHelper {
       gis,
       onlineAdjustments,
       assessmentCentreAdjustments,
-      TestResultForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult))
+      toTestResultsForOnlineTestPassMarkReportItem(doc))
+  }
+
+  private def toTestResultsForOnlineTestPassMarkReportItem(doc: BSONDocument) = {
+    import config.MicroserviceAppConfig._
+
+    val testGroupsDoc = doc.getAs[BSONDocument]("testGroups")
+
+    val phase1Doc = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE1"))
+    val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
+
+    val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
+    val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
+
+    def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
+      phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
+        phase1Test.testResult.map { tr => toTestResult(tr) }
+      }
+    }
+    val behaviouralTestResult = getTestResult(phase1TestProfile, behaviouralScheduleId)
+    val situationalTestResult = getTestResult(phase1TestProfile, situationalScheduleId)
+
+    val phase2DocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE2"))
+    val etrayTestResult = phase2DocOpt.flatMap { phase2Doc =>
+      val phase2TestProfile = Phase2TestGroup.bsonHandler.read(phase2Doc)
+      // TODO: review headOption
+      phase2TestProfile.activeTests.headOption.flatMap { phase2Test =>
+        phase2Test.testResult.map { tr => toTestResult(tr) }
+      }
+    }
+    TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult)
+  }
+
+  private def toTestResult(tr: model.persisted.TestResult) = {
+    TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
   }
 
   def toApplicationsForAssessmentAllocation(doc: BSONDocument): ApplicationForAssessmentAllocation = {

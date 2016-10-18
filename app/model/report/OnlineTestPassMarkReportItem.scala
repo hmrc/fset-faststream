@@ -23,14 +23,14 @@ import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
 import model.report.QuestionnaireReportItem
-import model.report.TestResultForOnlineTestPassMarkReportItem._
+import model.report.TestResultsForOnlineTestPassMarkReportItem._
 
 case class OnlineTestPassMarkReportItem(
                            application: ApplicationForOnlineTestPassMarkReportItem,
                            questionnaire: QuestionnaireReportItem)
 
 case class PassMarkReportWithPersonalData(application: ReportWithPersonalDetails,
-                                          testResults: TestResultForOnlineTestPassMarkReportItem,
+                                          testResults: TestResultsForOnlineTestPassMarkReportItem,
                                           contactDetails: PhoneAndEmail)
 
 object PassMarkReportWithPersonalData {

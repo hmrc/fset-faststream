@@ -208,10 +208,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   // scalastyle:on method.length
 
   implicit val readerPD = bsonReader(bsonToModelHelper.toReportWithPersonalDetails(findProgress))
-  implicit val readerTPM = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem(findProgress))
+  implicit val readerOTPMR = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem(findProgress))
   implicit val readerCandidate = bsonReader(bsonToModelHelper.toCandidate)
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReportItem(findProgress))
-  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReportItem(findProgress))
+  implicit val readerDiversityReport = bsonReader(bsonToModelHelper.toApplicationForDiversityReportItem(findProgress))
 
   override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
