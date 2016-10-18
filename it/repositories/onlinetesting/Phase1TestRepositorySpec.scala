@@ -189,7 +189,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       }
 
       val status = helperRepo.findProgress("appId").futureValue
-      status.phase1TestsResultsReceived mustBe false
+      status.phase1ProgressResponse.phase1TestsResultsReceived mustBe false
 
     }
   }
@@ -361,7 +361,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       phase1TestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
 
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
-      app.progressResponse.phase1TestsStarted mustBe true
+      app.progressResponse.phase1ProgressResponse.phase1TestsStarted mustBe true
 
       val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
       appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
@@ -377,8 +377,8 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       ).futureValue
 
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
-      app.progressResponse.phase1TestsInvited mustBe false
-      app.progressResponse.phase1TestsCompleted mustBe false
+      app.progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe false
+      app.progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe false
     }
   }
 
