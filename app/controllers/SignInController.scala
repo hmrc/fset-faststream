@@ -19,18 +19,26 @@ package controllers
 import _root_.forms.SignInForm
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.{ CSRCache, CSRHttp }
+import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import helpers.NotificationType._
+import models.{ CachedData, SecurityUser }
+import play.api.i18n.Lang
+import play.api.mvc.{ AnyContent, RequestHeader, Result }
 import security.{ SignInService, _ }
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
 object SignInController extends SignInController(ApplicationClient) with SignInService {
   val http = CSRHttp
+  val securityEnvironmentImpl = SecurityEnvironmentImpl
 }
 
 abstract class SignInController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
+
+  val securityEnvironmentImpl: SecurityEnvironment
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
@@ -74,4 +82,13 @@ abstract class SignInController(val applicationClient: ApplicationClient) extend
       }
   }
 
+  def notAuthorised(request: RequestHeader, lang: Lang): Option[Future[Result]] = {
+    val sec = request.asInstanceOf[SecuredRequest[AnyContent]]
+    Some(
+      getCachedData(sec.identity)(hc(sec), sec).map {
+        case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
+        case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
+      }
+    )
+  }
 }

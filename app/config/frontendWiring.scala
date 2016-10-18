@@ -22,7 +22,7 @@ import com.mohiva.play.silhouette.api.EventBus
 import com.mohiva.play.silhouette.api.util.Clock
 import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticatorService, SessionAuthenticatorSettings }
 import com.mohiva.play.silhouette.impl.util.DefaultFingerprintGenerator
-import connectors.ApplicationClient
+import connectors.{ ApplicationClient, UserManagementClient }
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.ws.WS
@@ -64,7 +64,7 @@ object SecurityEnvironmentImpl extends security.SecurityEnvironment {
 
   override lazy val eventBus: EventBus = EventBus()
 
-  override val userService = new UserCacheService(ApplicationClient)
+  override val userService = new UserCacheService(ApplicationClient, UserManagementClient)
   override val identityService = userService
 
   override lazy val authenticatorService = new SessionAuthenticatorService(SessionAuthenticatorSettings(

@@ -100,6 +100,13 @@ trait UserManagementClient {
     }.recover {
       case e: NotFoundException => throw new InvalidCredentialsException()
     }
+
+  def findByUserId(userId: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
+    http.POST(s"${url.host}/service/$ServiceName/findByUserId", FindByUserIdRequest(userId)).map { (resp: HttpResponse) =>
+      resp.json.as[UserResponse]
+    }.recover {
+      case e: NotFoundException => throw new InvalidCredentialsException()
+    }
 }
 
 object UserManagementClient extends UserManagementClient {

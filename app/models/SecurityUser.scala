@@ -61,13 +61,5 @@ object CachedData {
 }
 
 object SecurityUser {
-  implicit class loginInfoToCachedUser(securityUser: SecurityUser) {
-    def toUserFuture(secondAttempt: Boolean = false)(implicit hc: HeaderCarrier): Future[Option[models.CachedData]] =
-      CSRCache.fetchAndGetEntry[CachedData](securityUser.userID).recover {
-        case ex: KeyStoreEntryValidationException if !secondAttempt =>
-          SecurityEnvironmentImpl.userService.refreshCache(securityUser.userID)
-          Await.result(toUserFuture(secondAttempt = true)(hc), 5 seconds)
-        case ex => throw ex
-      }
-  }
+
 }
