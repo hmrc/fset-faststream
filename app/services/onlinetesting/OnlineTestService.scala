@@ -119,7 +119,7 @@ trait OnlineTestService extends EventSink  {
       //audit("ExpiredOnlineTest", expiringTest)
     }
 
-  private def candidateEmailAddress(userId: String): Future[String] =
+  protected def candidateEmailAddress(userId: String): Future[String] =
     cdRepository.find(userId).map(_.email)
 
   protected def processReminder(expiringTest: NotificationExpiringOnlineTest,

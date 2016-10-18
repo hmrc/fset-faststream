@@ -41,9 +41,9 @@ import scala.language.postfixOps
 
 object Phase3TestService extends Phase3TestService {
   import config.MicroserviceAppConfig._
-  //val appRepository = applicationRepository
+  val appRepository = applicationRepository
   val phase3TestRepo = phase3TestRepository
-  //val cdRepository = faststreamContactDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
   val launchpadGatewayClient = LaunchpadGatewayClient
   val tokenFactory = UUIDFactory
   val dateTimeFactory = DateTimeFactory
