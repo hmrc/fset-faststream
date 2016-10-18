@@ -30,7 +30,6 @@ import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
-  import TextFixture._
 
   val Token = UUID.randomUUID.toString
   val Now =  DateTime.now(DateTimeZone.UTC)
