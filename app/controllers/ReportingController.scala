@@ -97,9 +97,10 @@ trait ReportingController extends BaseController {
         applications <- appRepository.onlineTestPassMarkReport(frameworkId)
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport
       } yield {
-        applications.map { application =>
-          OnlineTestPassMarkReportItem(application, questionnaires.get(application.applicationId).get)
-        }
+        for {
+          a <- applications
+          q <- questionnaires.get(a.applicationId)
+        } yield OnlineTestPassMarkReportItem(a, q)
       }
     reports.map { list =>
       Ok(Json.toJson(list))
