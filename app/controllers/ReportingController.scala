@@ -82,11 +82,9 @@ trait ReportingController extends BaseController {
       questionnaires <- questionnaireRepository.findAllForDiversityReport
       medias <- medRepository.findAll()
     } yield {
-      for {
-        a <- applications
-        q <- Some(questionnaires.get(a.applicationId))
-        m <- Some(medias.get(a.userId))
-      } yield DiversityReportItem(a, q, m)
+      applications.map { application =>
+        DiversityReportItem(application, questionnaires.get(application.applicationId), medias.get(application.userId))
+      }
     }
     reports.map { list =>
       Ok(Json.toJson(list))
@@ -99,12 +97,10 @@ trait ReportingController extends BaseController {
         applications <- appRepository.onlineTestPassMarkReport(frameworkId)
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport
       } yield {
-        for {
-          a <- applications
-          q <- questionnaires.get(a.applicationId)
-        } yield OnlineTestPassMarkReportItem(a, q)
+        applications.map { application =>
+          OnlineTestPassMarkReportItem(application, questionnaires.get(application.applicationId).get)
+        }
       }
-
     reports.map { list =>
       Ok(Json.toJson(list))
     }
