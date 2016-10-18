@@ -20,7 +20,8 @@ import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
 import connectors.CSREmailClient
-import model.{ ExpiryTest, Phase1ExpiryTest, Phase2ExpiryTest }
+import model.{ EmptyRequestHeader, ExpiryTest, Phase1ExpiryTest, Phase2ExpiryTest }
+import play.api.mvc.RequestHeader
 import repositories._
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.AuditService
@@ -47,6 +48,7 @@ trait ExpireOnlineTestJob extends SingleInstanceScheduledJob {
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = new HeaderCarrier()
+    implicit val rh = EmptyRequestHeader
     onlineTestingService.processNextExpiredTest(expiryTest)
   }
 }

@@ -20,11 +20,10 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
-import org.joda.time.DateTime
-import model.persisted.{ CubiksTest, Phase2TestGroup }
-import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase2TestGroupWithAppId, TestResult }
-import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
+import model.ProgressStatuses._
+import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
+import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson._

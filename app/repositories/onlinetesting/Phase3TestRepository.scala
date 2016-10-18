@@ -17,14 +17,12 @@
 package repositories.onlinetesting
 
 import factories.DateTimeFactory
+import model.ApplicationStatus
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
-import org.joda.time.DateTime
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
-import model.persisted.Phase1TestProfile
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
