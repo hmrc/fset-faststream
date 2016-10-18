@@ -134,8 +134,8 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
   "Next phase1 test group with report ready" should {
     "not return a test group if the progress status is not appropriately set" in {
-       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS",
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, false))
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS",
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, false))
       ).futureValue
 
       val result = phase1TestRepo.nextTestGroupWithReportReady.futureValue
@@ -146,13 +146,28 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     "return a test group if the progress status is set to PHASE1_TEST_RESULTS_READY" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true),(PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(testProfileWithAppId.phase1TestProfile)
       ).futureValue
 
       val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
       phase1TestResultsReady.isDefined mustBe true
       phase1TestResultsReady.get mustBe testProfileWithAppId
+    }
+
+    "return a test group if only one report is ready to download" in {
+
+      val profile = testProfileWithAppId.phase1TestProfile.copy(tests = List(phase1Test.copy(resultsReadyToDownload = false), phase1Test))
+
+      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true),(PHASE1_TESTS_RESULTS_READY, true)),
+        phase1TestProfile = Some(profile)
+      ).futureValue
+
+      val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
+      phase1TestResultsReady.isDefined mustBe true
+      phase1TestResultsReady.get mustBe profile
     }
 
     "correctly update a test group with results" in {

@@ -158,12 +158,24 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
+
+    /*db.getCollection('application').find(
+      {"$and" : [
+         {"applicationStatus" : "PHASE1_TESTS"},
+         {"progress-status.PHASE1_TESTS_COMPLETED" : true},
+         {"progress-status.PHASE1_TESTS_RESULTS_RECEVIED" : {"$ne" : true}},
+         {"testGroups.PHASE1.tests" : {"$elemMatch" : {"resultsReadyToDownload" : true, "testResult" : {"$exists" : false}}}}
+       ]}
+    ) */
+
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_READY}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" ->
-        BSONDocument("$ne" -> true)
-      )
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_COMPLETED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> BSONDocument("$ne" -> true)),
+      BSONDocument("testGroups.PHASE1.tests" ->
+        BSONDocument("$elemMatch" -> BSONArray(BSONDocument("resultsReadyToDownload" -> true),
+          BSONDocument("testResult" -> BSONDocument("$exists" -> false)))
+      ))
     ))
 
     implicit val reader = bsonReader { doc =>
