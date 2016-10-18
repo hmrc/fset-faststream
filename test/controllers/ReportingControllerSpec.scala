@@ -93,8 +93,8 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
     "return no adjustments if there's no data on the server" in new TestFixture {
       val controller = new TestableReportingController {
         override val appRepository = new DocumentRootInMemoryRepository {
-          override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReport]] = {
-            Future.successful(List.empty[AdjustmentReport])
+          override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]] = {
+            Future.successful(List.empty[AdjustmentReportItem])
           }
         }
       }
@@ -475,8 +475,8 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
     lazy val application2 = newApplicationForOnlineTestPassMarkReportItem(testResults2)
     lazy val applications = List(application1, application2)
 
-    lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(PassMarkReportTestResults(None, None))
-    lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(PassMarkReportTestResults(None, None))
+    lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(TestResultForOnlineTestPassMarkReportItem(None, None))
+    lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(TestResultForOnlineTestPassMarkReportItem(None, None))
     lazy val applicationsWithNoTestResults = List(applicationWithNoTestResult1, applicationWithNoTestResult2)
 
     lazy val questionnaire1 = newQuestionnaire
@@ -486,9 +486,10 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
     lazy val questionnairesForNoTestResults = Map(applicationWithNoTestResult1.applicationId -> questionnaire1,
       applicationWithNoTestResult2.applicationId -> questionnaire2)
 
-    def newApplicationForOnlineTestPassMarkReportItem(testsResult: PassMarkReportTestResults) =
+    def newApplicationForOnlineTestPassMarkReportItem(testsResult: TestResultForOnlineTestPassMarkReportItem) =
       ApplicationForOnlineTestPassMarkReportItem(
         rnd("AppId"),
+        "phase1_tests_results_received",
         List(SchemeType.Commercial, SchemeType.DigitalAndTechnology),
         None,
         None,
@@ -502,7 +503,7 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
         someRnd("university"))
 
     def newTestResults =
-      PassMarkReportTestResults(maybe(newTestResult), maybe(newTestResult))
+      TestResultForOnlineTestPassMarkReportItem(maybe(newTestResult), maybe(newTestResult))
 
     private def someDouble = Some(Random.nextDouble())
 

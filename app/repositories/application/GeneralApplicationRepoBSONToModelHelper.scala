@@ -79,8 +79,8 @@ trait GeneralApplicationRepoBSONToModelHelper {
     )
   }
 
-  def toCandidateProgressReport(findProgress: (BSONDocument, String) => ProgressResponse)
-                               (doc: BSONDocument): CandidateProgressReport = {
+  def toCandidateProgressReportItem(findProgress: (BSONDocument, String) => ProgressResponse)
+                                   (doc: BSONDocument): CandidateProgressReportItem = {
     val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
     val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
 
@@ -107,8 +107,9 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val applicationId = doc.getAs[String]("applicationId").getOrElse("")
     val progress: ProgressResponse = findProgress(doc, applicationId)
 
-    CandidateProgressReport(applicationId, Some(getStatus(progress)), schemes.getOrElse(List.empty[SchemeType]), disability, onlineAdjustments,
-      assessmentCentreAdjustments, gis, civilServant, fastTrack, edip, sdipPrevious, sdip, fastPassCertificate)
+    CandidateProgressReportItem(applicationId, Some(getStatus(progress)), schemes.getOrElse(List.empty[SchemeType]),
+      disability, onlineAdjustments, assessmentCentreAdjustments, gis, civilServant, fastTrack, edip, sdipPrevious,
+      sdip, fastPassCertificate)
   }
 
   def toCandidate(doc: BSONDocument): Candidate = {
@@ -164,7 +165,8 @@ trait GeneralApplicationRepoBSONToModelHelper {
       assessmentCentreAdjustments, civilServiceExperience)
   }
 
-  def toApplicationForOnlineTestPassMarkReportItem(doc: BSONDocument): ApplicationForOnlineTestPassMarkReportItem = {
+  def toApplicationForOnlineTestPassMarkReportItem(findProgress: (BSONDocument, String) => ProgressResponse)
+                                                  (doc: BSONDocument): ApplicationForOnlineTestPassMarkReportItem = {
     import config.MicroserviceAppConfig._
 
     val applicationId = doc.getAs[String]("applicationId").getOrElse("")
@@ -177,6 +179,8 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
     val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
     val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
+
+    val progress: ProgressResponse = findProgress(doc, applicationId)
 
     val testGroupsDoc = doc.getAs[BSONDocument]("testGroups")
     val phase1Doc = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE1"))
@@ -198,12 +202,13 @@ trait GeneralApplicationRepoBSONToModelHelper {
 
     ApplicationForOnlineTestPassMarkReportItem(
       applicationId,
+      getStatus(progress),
       schemes.getOrElse(List.empty[SchemeType]),
       disability,
       gis,
       onlineAdjustments,
       assessmentCentreAdjustments,
-      PassMarkReportTestResults(behaviouralTestResult, situationalTestResult))
+      TestResultForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult))
   }
 
   def toApplicationsForAssessmentAllocation(doc: BSONDocument): ApplicationForAssessmentAllocation = {

@@ -52,6 +52,26 @@ trait ReportingController extends BaseController {
   val assessmentScoresRepository: ApplicationAssessmentScoresRepository
   val medRepository: MediaRepository
 
+  def adjustmentReport(frameworkId: String) = Action.async { implicit request =>
+    val reports =
+      for {
+        applications <- appRepository.adjustmentReport(frameworkId)
+        allCandidates <- cdRepository.findAll
+        candidates = allCandidates.groupBy(_.userId).mapValues(_.head)
+      } yield {
+        applications.map { application =>
+          candidates
+            .get(application.userId)
+            .fold(application)(cd =>
+              application.copy(email = Some(cd.email), telephone = cd.phone))
+        }
+      }
+
+    reports.map { list =>
+      Ok(Json.toJson(list))
+    }
+  }
+
   def candidateProgressReport(frameworkId: String) = Action.async { implicit request =>
     appRepository.candidateProgressReport(frameworkId).map(r => Ok(Json.toJson(r)))
   }
@@ -73,27 +93,6 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def adjustmentReport(frameworkId: String) = Action.async { implicit request =>
-    val reports =
-      for {
-        applications <- appRepository.adjustmentReport(frameworkId)
-        allCandidates <- cdRepository.findAll
-        candidates = allCandidates.groupBy(_.userId).mapValues(_.head)
-      } yield {
-        applications.map { application =>
-          candidates
-            .get(application.userId)
-            .fold(application)(cd =>
-              application.copy(email = Some(cd.email), telephone = cd.phone))
-        }
-      }
-
-    reports.map { list =>
-      Ok(Json.toJson(list))
-    }
-  }
-
-
   def onlineTestPassMarkReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
       for {
@@ -110,7 +109,6 @@ trait ReportingController extends BaseController {
       Ok(Json.toJson(list))
     }
   }
-
 
   def nonSubmittedAppsReport(frameworkId: String) =
     preferencesAndContactReports(nonSubmittedOnly = true)(frameworkId)

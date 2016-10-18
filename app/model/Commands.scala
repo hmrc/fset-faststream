@@ -32,7 +32,7 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 import model.command.{AssessmentCentre, ProgressResponse}
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.report.{CandidateProgressReport, QuestionnaireReportItem, QuestionnaireReportItem$}
+import model.report.{CandidateProgressReportItem$, QuestionnaireReportItem, QuestionnaireReportItem$}
 
 //scalastyle:off
 object Commands {

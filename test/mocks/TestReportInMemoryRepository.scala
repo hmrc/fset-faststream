@@ -17,7 +17,7 @@
 package mocks
 
 import model.PersistedObjects.CandidateTestReport
-import model.report.PassMarkReportTestResults
+import model.report.{TestResultForOnlineTestPassMarkReportItem, TestResultForOnlineTestPassMarkReportItem$}
 import repositories.TestReportRepository
 
 import scala.concurrent.Future
@@ -33,8 +33,8 @@ object TestReportInMemoryRepository extends TestReportInMemoryRepository
 class TestReportInMemoryRepository extends TestReportRepository {
   override def saveOnlineTestReport(report: CandidateTestReport): Future[Unit] = Future.successful(Unit)
 
-  override def getOnlineTestReports: Future[Map[String, PassMarkReportTestResults]] =
-    Future.successful(Map.empty[String, PassMarkReportTestResults])
+  override def getOnlineTestReports: Future[Map[String, TestResultForOnlineTestPassMarkReportItem]] =
+    Future.successful(Map.empty[String, TestResultForOnlineTestPassMarkReportItem])
 
   override def getReportByApplicationId(applicationId: String): Future[Option[CandidateTestReport]] = {
     Future.successful(
