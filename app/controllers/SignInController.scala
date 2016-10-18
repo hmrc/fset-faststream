@@ -33,12 +33,9 @@ import scala.concurrent.Future
 
 object SignInController extends SignInController(ApplicationClient) with SignInService {
   val http = CSRHttp
-  val securityEnvironmentImpl = SecurityEnvironmentImpl
 }
 
 abstract class SignInController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
-
-  val securityEnvironmentImpl: SecurityEnvironment
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
