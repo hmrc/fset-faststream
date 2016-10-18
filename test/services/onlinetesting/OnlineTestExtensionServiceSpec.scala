@@ -18,10 +18,10 @@ package services.onlinetesting
 
 import factories.DateTimeFactory
 import model.persisted.Phase1TestProfile
-import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED}
-import model.command.ProgressResponse
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED }
+import model.command.{ Phase1ProgressResponse, ProgressResponse }
 import org.joda.time.DateTime
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
@@ -44,7 +44,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
       "add extra days onto expiry, from today's date, if expired" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
-        when(mockProgressResponse.phase1TestsExpired).thenReturn(true)
+        when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
         when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
@@ -61,8 +61,8 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
       "add extra days onto expiry, from the expiry time, if not expired" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
-        when(mockProgressResponse.phase1TestsExpired).thenReturn(false)
-        when(mockProgressResponse.phase1TestsStarted).thenReturn(true)
+        when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(false)
+        when(mockProgressResponse.phase1ProgressResponse.phase1TestsStarted).thenReturn(true)
         when(mockProfile.expirationDate).thenReturn(InFiveHours)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
@@ -106,7 +106,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
       "remove status return an error and no audit event is emitted" in new TestFixture {
         when(mockAppRepository.findProgress(any())).thenReturnAsync(successfulProgressResponse)
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
-        when(mockProgressResponse.phase1TestsExpired).thenReturn(true)
+        when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
         when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
@@ -130,7 +130,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
       }
       "the new expiry date is more than 3 days ahead and the test was expired and not started" in new TestFixture {
         when(mockProfile.hasNotStartedYet).thenReturn(true)
-        when(mockProgressResponse.phase1TestsExpired).thenReturn(true)
+        when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
 
         val result = getProgressStatusesToRemove(InMoreThanThreeDays, mockProfile, mockProgressResponse)
         result mustBe(Some(statusToRemoveWhenExpiryInMoreThanThreeDaysExpiredNotStarted))
@@ -168,6 +168,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
     val InTwentyFiveHours = Now.plusHours(25)
     val InMoreThanThreeDays = Now.plusHours(73)
     val mockProfile = mock[Phase1TestProfile]
+    val mockPhase1ProgressResponse = mock[Phase1ProgressResponse]
     val mockProgressResponse = mock[ProgressResponse]
     val successfulProgressResponse = mockProgressResponse
     val successfulTestProfile = Some(mockProfile)
@@ -180,5 +181,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
       val auditService = mockAuditService
       val dateTimeFactory = mockDateFactory
     }
+
+    when(mockProgressResponse.phase1ProgressResponse).thenReturn(mockPhase1ProgressResponse)
   }
 }
