@@ -24,14 +24,13 @@ import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.ProgressStatuses
 import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
-import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestWithUserIds }
+import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestWithUserIds, TestResult => _, _ }
+import model.{ ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.events.EventService
 import services.onlinetesting.Exceptions.ReportIdNotDefinedException
@@ -47,7 +46,7 @@ object Phase1TestService extends Phase1TestService {
   import config.MicroserviceAppConfig._
 
   val appRepository = applicationRepository
-  val cdRepository = contactDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
   val phase1TestRepo = phase1TestRepository
   val trRepository = testReportRepository
   val cubiksGatewayClient = CubiksGatewayClient
@@ -62,9 +61,6 @@ object Phase1TestService extends Phase1TestService {
 
 trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   val actor: ActorSystem
-
-  val appRepository: GeneralApplicationRepository
-  val cdRepository: ContactDetailsRepository
   val phase1TestRepo: Phase1TestRepository
   val trRepository: TestReportRepository
   val cubiksGatewayClient: CubiksGatewayClient
@@ -72,6 +68,23 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     phase1TestRepo.nextApplicationsReadyForOnlineTesting
+  }
+
+  override def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+    phase1TestRepo.nextTestForReminder(reminder).flatMap {
+      case Some(expiringTest) => processReminder(expiringTest, reminder)
+      case None => Future.successful(())
+    }
+  }
+
+  override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
+                                                     emailAddress: String,
+                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+    emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
+      reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
+      audit(s"ReminderPhase1ExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
+        expiringTest.userId, Some(emailAddress))
+    }
   }
 
   def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
