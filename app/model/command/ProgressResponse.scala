@@ -65,6 +65,8 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
 // Please don't forget or there will be runtime errors
 case class ProgressResponse(
                              applicationId: String,
+                             created: Boolean = false,
+                             inProgress: Boolean = false,
                              personalDetails: Boolean = false,
                              schemePreferences: Boolean = false,
                              partnerGraduateProgrammes: Boolean = false,

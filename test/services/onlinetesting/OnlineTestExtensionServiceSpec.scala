@@ -32,12 +32,12 @@ import services.AuditService
 import services.events.EventServiceFixture
 import services.onlinetesting.Exceptions.TestExtensionException
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
-import testkit.MockitoSugar
+import testkit.{ MockitoSugar, ShortTimeout }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with MockitoSugar {
+class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with MockitoSugar with ShortTimeout {
 
   "extendTestGroupExpiryTime" should {
     "return a successful Future" when {
@@ -163,10 +163,10 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
     val genericError = new Exception("Dummy error!")
     val mockDateFactory = mock[DateTimeFactory]
     val Now = DateTime.now()
-    val OneHourAgo = Now.minusHours(1)
-    val InFiveHours = Now.plusHours(5)
-    val InTwentyFiveHours = Now.plusHours(25)
-    val InMoreThanThreeDays = Now.plusHours(73)
+    val OneHourAgo = Now.minusHours(1).minusSeconds(1)
+    val InFiveHours = Now.plusHours(5).plusSeconds(1)
+    val InTwentyFiveHours = Now.plusHours(25).plusSeconds(1)
+    val InMoreThanThreeDays = Now.plusHours(73).plusSeconds(1)
     val mockProfile = mock[Phase1TestProfile]
     val mockPhase1ProgressResponse = mock[Phase1ProgressResponse]
     val mockProgressResponse = mock[ProgressResponse]

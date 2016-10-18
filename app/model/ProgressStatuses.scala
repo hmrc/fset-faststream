@@ -21,7 +21,8 @@ import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 import scala.language.implicitConversions
 
-// scalastyle:off
+// scalastyle:off number.of.types
+// scalastyle:off number.of.methods
 object ProgressStatuses {
 
   sealed abstract class ProgressStatus(val applicationStatus: ApplicationStatus) {
@@ -43,6 +44,12 @@ object ProgressStatuses {
 
   case object REGISTERED extends ProgressStatus(ApplicationStatus.REGISTERED) {
     val order = 0; override def key = "registered"}
+
+  case object CREATED extends ProgressStatus(ApplicationStatus.CREATED) {
+    val order = 5; override def key = "created"}
+
+  case object PROGRESS_STARTED extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
+    val order = 8 }
 
   case object PERSONAL_DETAILS_COMPLETED extends ProgressStatus(ApplicationStatus.IN_PROGRESS_PERSONAL_DETAILS) {
     val order = 10; override def key = "personal_details_completed"}
@@ -69,7 +76,7 @@ object ProgressStatuses {
     val order = 70; override def key = "occupation_questions_completed"}
 
   case object PREVIEW extends ProgressStatus(ApplicationStatus.IN_PROGRESS_PREVIEW) {
-    val order = 80; override def key = "preview_completed"}
+    val order = 80; override def key = "preview"}
 
   case object SUBMITTED extends ProgressStatus(ApplicationStatus.SUBMITTED) {
     val order = 90; override def key = "submitted"}
@@ -105,17 +112,24 @@ object ProgressStatuses {
 
   def nameToProgressStatus(name: String) = nameToProgressStatusMap(name.toLowerCase)
 
+  def getDefaultProgressStatus(applicationStatus: ApplicationStatus): ProgressStatus = {
+    val matching = allStatuses.filter(_.applicationStatus == applicationStatus)
+    require(matching.size == 1, s"Ambiguous mapping between application status and progress status for $applicationStatus")
+    matching.head
+  }
+
   // Reflection is generally 'A bad thing' but in this case it ensures that all progress statues are taken into account
   // Had considered an implementation with a macro, but that would need defining in another compilation unit
-
-  import scala.reflect.runtime.universe._
+  // As it is a val in a object, it is only run once upon startup
   val allStatuses: Seq[ProgressStatus] = {
+    import scala.reflect.runtime.universe._
     val mirror = runtimeMirror(this.getClass.getClassLoader)
     val insMirror = mirror reflect this
     val originType = insMirror.symbol.typeSignature
 
     val members = originType.members
 
+    // If you are looking at this in IntelliJ and it is red, don't trust it. Run SBT compile instead
     members.collect(member => member.typeSignature match {
       case tpe if tpe <:< typeOf[ProgressStatus] && member.isModule =>
         val module = member.asModule
@@ -131,6 +145,6 @@ object ProgressStatuses {
     override def compare(x: ProgressStatus, y: ProgressStatus): Int = x.order - y.order
   }
 
-  //require(nameToProgressStatusMap.values.map(_.order).toSet == nameToProgressStatusMap.size, "Ordering must be unique")
+  require(nameToProgressStatusMap.values.map(_.order).toSet.size == nameToProgressStatusMap.size, "Ordering must be unique")
 }
 

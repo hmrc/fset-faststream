@@ -14,76 +14,76 @@
  * limitations under the License.
  */
 
-package services
+package model
 
-import model.ApplicationStatusOrder
+import model.ProgressStatuses._
 import model.command.{ ProgressResponse, ProgressResponseExamples }
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.{ MustMatchers, WordSpec }
 
-class ApplicationStatusOrderSpec extends PlaySpec {
+class ApplicationStatusOrderSpec extends WordSpec with MustMatchers {
+
 
   import ApplicationStatusOrderSpec._
 
   "no progress status" should {
     "return registered" in {
-      ApplicationStatusOrder.getStatus(None) must be("registered")
+      ApplicationStatusOrder.getStatus(None) must be(REGISTERED.key)
     }
   }
 
   "a registered application" should {
     "return registered" in {
-      val status = ApplicationStatusOrder.getStatus(new ProgressResponse("id", false, false, false, false, false, Nil,
-        false, false))
-        status must be("registered")
+      val status = ApplicationStatusOrder.getStatus(new ProgressResponse("id"))
+      status must be(REGISTERED.key)
     }
   }
 
   "a withdrawn application" should {
     "return withdrawn" in {
-      ApplicationStatusOrder.getStatus(progressResponse) must be("withdrawn")
+      ApplicationStatusOrder.getStatus(withdrawnProgressResponse) must be(WITHDRAWN.key)
     }
     "return withdrawn when all other progresses are set" in {
-      ApplicationStatusOrder.getStatus(completeProgressResponse) must be("withdrawn")
+      ApplicationStatusOrder.getStatus(completeProgressResponse) must be(WITHDRAWN.key)
     }
   }
 
   "a submitted application" should {
     "return submitted" in {
-      val customProgress = progressResponse.copy(withdrawn = false)
-      ApplicationStatusOrder.getStatus(customProgress) must be("submitted")
+      val customProgress = withdrawnProgressResponse.copy(withdrawn = false)
+      ApplicationStatusOrder.getStatus(customProgress) must be(SUBMITTED.key)
     }
   }
 
   "a previewed application" should {
     "return previewed" in {
       val customProgress = ProgressResponseExamples.InPreview
-      ApplicationStatusOrder.getStatus(customProgress) must be("preview_completed")
+      ApplicationStatusOrder.getStatus(customProgress) must be(PREVIEW.key)
     }
   }
 
   "an application in partner graduate programmes" should {
     "Return partner_graduate_programmes_completed" in {
       val customProgress = ProgressResponseExamples.InPartnerGraduateProgrammes
-      ApplicationStatusOrder.getStatus(customProgress) must be("partner_graduate_programmes_completed")
+      ApplicationStatusOrder.getStatus(customProgress) must be(IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES_COMPLETED.key)
     }
   }
 
   "an application in scheme preferences" should {
     "return scheme_preferences_completed" in {
       val customProgress = ProgressResponseExamples.InSchemePreferences
-      ApplicationStatusOrder.getStatus(customProgress) must be("scheme_preferences_completed")
+      ApplicationStatusOrder.getStatus(customProgress) must be(SCHEME_PREFERENCES_COMPLETED.key)
     }
   }
 
   "an application in personal details" should {
     "return personal_details_completed" in {
       val customProgress = ProgressResponseExamples.InPersonalDetails
-      ApplicationStatusOrder.getStatus(customProgress) must be("personal_details_completed")
+      ApplicationStatusOrder.getStatus(customProgress) must be(PERSONAL_DETAILS_COMPLETED.key)
     }
 
     "return personal_details_completed when sections are not completed" in {
       val customProgress = ProgressResponseExamples.InPersonalDetails
-      ApplicationStatusOrder.getStatus(customProgress) must be("personal_details_completed")
+      ApplicationStatusOrder.getStatus(customProgress) must be(PERSONAL_DETAILS_COMPLETED.key)
     }
   }
 
@@ -107,12 +107,12 @@ class ApplicationStatusOrderSpec extends PlaySpec {
 
 object ApplicationStatusOrderSpec {
 
-  val progressResponse = ProgressResponse("1", true, true, true, true, true,
+  val withdrawnProgressResponse = ProgressResponse("1", true, true, true, true, true, true, true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"), true, true)
 
   val emptyProgressResponse = ProgressResponse("1")
 
-  val completeProgressResponse = ProgressResponse("1", true, true, true, true, true,
+  val completeProgressResponse = ProgressResponse("1", true, true, true, true, true, true, true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire",
       "occupation_questionnaire"), true, true)
 }

@@ -47,8 +47,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
 
     val applicationId = java.util.UUID.randomUUID().toString
-    val applicationCreated = ApplicationResponse(applicationId, "CREATED", userId,
-      ProgressResponse(applicationId), None)
+    val applicationCreated = ApplicationResponse(applicationId, ApplicationStatus.CREATED, userId,
+      ProgressResponse(applicationId, created = true), None)
 
     inMemoryRepo += applicationId -> applicationCreated
     Future.successful(applicationCreated)
@@ -56,7 +56,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findProgress(applicationId: String): Future[ProgressResponse] = applicationId match {
     case "1111-1234" => Future.failed(new ApplicationNotFound(applicationId))
-    case _ => Future.successful(ProgressResponse(applicationId, true))
+    case _ => Future.successful(ProgressResponse(applicationId, personalDetails = true))
   }
 
   val inMemoryRepo = new mutable.HashMap[String, ApplicationResponse]

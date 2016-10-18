@@ -64,7 +64,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
       "personal_details_completed" -> BSONBoolean(true),
       "schemes_and_locations_completed" -> BSONBoolean(true),
       "assistance_details_completed" -> BSONBoolean(true),
-      "preview_completed" -> BSONBoolean(true),
+      "preview" -> BSONBoolean(true),
       "questionnaire" -> BSONDocument(
         "start_diversity_questionnaire" -> BSONBoolean(true),
         "diversity_questions_completed" -> BSONBoolean(true),

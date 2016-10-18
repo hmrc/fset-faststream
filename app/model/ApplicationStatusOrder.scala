@@ -29,7 +29,8 @@ object ApplicationStatusOrder {
   def getStatus(progress: ProgressResponse): String = {
 
     val map = statusMaps(progress)
-    require(map.length == ProgressStatuses.allStatuses.length, "The status map must have the same number of statuses")
+    val diff = map.map(_._2).diff(ProgressStatuses.allStatuses)
+    require(diff.length == 0, s"The status map must have the same number of statuses, but found $diff")
 
     val activeProgressStatuses = map.collect {
       case (true, ps) => ps
@@ -44,8 +45,10 @@ object ApplicationStatusOrder {
     isNotWithdrawn && isNotSubmitted
   }
 
-  def statusMaps(progress: ProgressResponse) = Seq[(Boolean, ProgressStatus)](
+  private def statusMaps(progress: ProgressResponse) = Seq[(Boolean, ProgressStatus)](
     (true, REGISTERED),
+    (progress.created, CREATED),
+    (progress.inProgress, PROGRESS_STARTED),
     (progress.personalDetails, PERSONAL_DETAILS_COMPLETED),
     (progress.schemePreferences, SCHEME_PREFERENCES_COMPLETED),
     (progress.partnerGraduateProgrammes, IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES_COMPLETED),
