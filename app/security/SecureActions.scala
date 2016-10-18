@@ -35,16 +35,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import language.postfixOps
+import scala.util.{ Failure, Success, Try }
 
 /**
- *
- * The following Action wrappers exists in their respective traits:
- *
- * CSRUserAwareAction:    used when you have an action that we might have a logged in user (e.g. login page, registration page)
- * CSRSecureAction(role): used when you have an action where the user must be logged in and has and maybe has a ongoing application
- * CSRSecureAppAction(role): used when you have an action where the user must be logged in and must have an application
- *
- */
+  *
+  * The following Action wrappers exists in their respective traits:
+  *
+  * CSRUserAwareAction:    used when you have an action that we might have a logged in user (e.g. login page, registration page)
+  * CSRSecureAction(role): used when you have an action where the user must be logged in and has and maybe has a ongoing application
+  * CSRSecureAppAction(role): used when you have an action where the user must be logged in and must have an application
+  *
+  */
 
 // Some of the methods in this file are intended to look like the build in Action objects, which begin with an uppercase
 // so in this instance, ignore the scalastyle method rule
@@ -52,26 +53,28 @@ import language.postfixOps
 
 trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
 
-  protected def getCachedData(securityUser: SecurityUser,
-                              secondAttempt: Boolean = false)(implicit hc: HeaderCarrier,
-                                                              request: Request[_]): Future[Option[models.CachedData]] =
+  protected def getCachedData(securityUser: SecurityUser)(implicit hc: HeaderCarrier,
+                                                              request: Request[_]): Future[Option[CachedData]] = {
     CSRCache.fetchAndGetEntry[CachedData](securityUser.userID).recover {
-      case ex: KeyStoreEntryValidationException if !secondAttempt =>
+      case ex: KeyStoreEntryValidationException =>
         Logger.warn(s"Retrieved invalid cache entry for userId '${securityUser.userID}' (structure changed?). " +
           s"Attempting cache refresh from database...")
-        SecurityEnvironmentImpl.userService.refreshCachedUser(securityUser.userID)
-        Await.result(getCachedData(securityUser, secondAttempt = true)(hc, request), 5 seconds)
-      case ex => throw ex
+        Await.result(SecurityEnvironmentImpl.userService.refreshCachedUser(securityUser.userID).map(Some(_)), 5 seconds)
+      case ex: Throwable => {
+        Logger.warn(s"Retrieved invalid cache entry for userID '${securityUser.userID}. Could not recover!")
+        throw ex
+      }
     }
+  }
 
   /**
-   * Wraps the csrAction helper on a secure action.
-   * If the user is not logged in then the onNotAuthenticated method on global (or controller if it overrides it) will be called.
-   * The Action gets a default role that checks  if the user is active or not. \
-   * If the user is inactive then the onNotAuthorized method on global will be called.
-   */
+    * Wraps the csrAction helper on a secure action.
+    * If the user is not logged in then the onNotAuthenticated method on global (or controller if it overrides it) will be called.
+    * The Action gets a default role that checks  if the user is active or not. \
+    * If the user is inactive then the onNotAuthorized method on global will be called.
+    */
   def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedData => Future[Result])
-                     : Action[AnyContent] = {
+  : Action[AnyContent] = {
     SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
       getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
@@ -88,7 +91,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
       getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
         case Some(CachedData(_, None)) => gotoUnauthorised
         case Some(data @ CachedData(u, Some(app))) => SecuredActionWithCSRAuthorisation(secondRequest,
-            block, role, data, CachedDataWithApp(u, app))
+          block, role, data, CachedDataWithApp(u, app))
         case None => gotoAuthentication
       }
     }
@@ -105,12 +108,12 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
     }
 
   private def SecuredActionWithCSRAuthorisation[T](
-    originalRequest: SecuredRequest[AnyContent],
-    block: SecuredRequest[_] => T => Future[Result],
-    role: CsrAuthorization,
-    cachedData: CachedData,
-    valueForActionBlock: => T
-  ): Future[Result] = {
+                                                    originalRequest: SecuredRequest[AnyContent],
+                                                    block: SecuredRequest[_] => T => Future[Result],
+                                                    role: CsrAuthorization,
+                                                    cachedData: CachedData,
+                                                    valueForActionBlock: => T
+                                                  ): Future[Result] = {
 
     // Create an ad hoc authorization for silhouette, to allow us to use a future to resolve the user's cached data from keystore
     val authorizer = new Authorization[SecurityUser] {
