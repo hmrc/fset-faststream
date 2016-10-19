@@ -210,23 +210,23 @@ package object repositories {
 
     val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
     val guaranteedInterview = assistanceDetailsRoot.getAs[Boolean]("guaranteedInterview").getOrElse(false)
-    val needsAdjustment = assistanceDetailsRoot.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)
+    val needsAdjustmentForOnlineTests = assistanceDetailsRoot.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)
 
-    if (needsAdjustment) {
-      val typeOfAdjustmentsRoot = assistanceDetailsRoot.getAs[BSONArray]("typeOfAdjustments").get
-      val timeExtension = typeOfAdjustmentsRoot.values.contains(BSONString("time extension"))
+    if (needsAdjustmentForOnlineTests) {
+      val typeOfAdjustmentsRoot = assistanceDetailsRoot.getAs[BSONArray]("typeOfAdjustments")
+      val timeExtension = typeOfAdjustmentsRoot.exists(_.values.contains(BSONString("time extension")))
       if (timeExtension) {
         val verbalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("verbalTimeAdjustmentPercentage").get
         val numericalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("numericalTimeAdjustmentPercentage").get
         val timeAdjustments = TimeAdjustmentsOnlineTestApplication(verbalTimeAdjustmentPercentage, numericalTimeAdjustmentPercentage)
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
           lastName, Some(timeAdjustments))
       } else {
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
           lastName, None)
       }
     } else {
-      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
         lastName, None)
     }
 
