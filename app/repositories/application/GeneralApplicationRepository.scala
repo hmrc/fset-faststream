@@ -188,7 +188,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     (document.getAs[BSONDocument]("progress-status") map { root =>
 
       def getProgress(key: String) = {
-        // THIS IS A NASTY HACK AND SHOULD BE REMOVED ONCE THE PROGRESS STATUSES ARE SORTED
+        // TODO This should be made more consistent once the pgoress statuses are strongly typed everywhere
         root.getAs[Boolean](key).
           orElse(root.getAs[Boolean](key.toUpperCase)).
           orElse(root.getAs[Boolean](key.toLowerCase)).

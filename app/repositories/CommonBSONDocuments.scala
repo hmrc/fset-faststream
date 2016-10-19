@@ -26,7 +26,9 @@ import reactivemongo.bson.BSONDocument
 trait CommonBSONDocuments {
 
   def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
-    // This is a dirty hack, and really the progress status should be propagated up to the caller
+    // TODO the progress status should be propagated up to the caller, rather than default, but that will
+    // require widespread changes, and using a default in here is better than the previous implementation
+    // that just set the progress status to applicationStatus.toString, which produced invalid progress statuses
     val progressStatus = ProgressStatuses.getDefaultProgressStatus(applicationStatus)
     BSONDocument(
       "applicationStatus" -> applicationStatus,
