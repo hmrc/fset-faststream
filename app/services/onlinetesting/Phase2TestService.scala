@@ -132,7 +132,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = filterCandidates(applications) match {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = applications match {
 
     case Nil => Future.successful(())
 
@@ -243,12 +243,6 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = 100))
   } else {
     Nil
-  }
-
-  private def filterCandidates(candidates: List[OnlineTestApplication]): List[OnlineTestApplication] =
-    candidates.find(_.needsAdjustments) match {
-      case Some(candidate) => Nil // TODO build time adjustments here
-      case None => candidates
   }
 
   def emailInviteToApplicants(candidates: List[OnlineTestApplication])
