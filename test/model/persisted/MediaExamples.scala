@@ -14,25 +14,9 @@
  * limitations under the License.
  */
 
-package mocks
+package model.persisted
 
-import model.persisted.Media
-import repositories.MediaRepository
-
-import scala.collection.mutable
-import scala.concurrent.Future
-
-object MediaInMemoryRepository extends MediaRepository {
-
-  override def create(addMedia: Media): Future[Unit] = {
-    inMemoryRepo += addMedia.userId -> addMedia
-    Future.successful(Unit)
-  }
-
-  override def findAll(): Future[Map[String, Media]] = {
-    Future.successful(inMemoryRepo.toMap)
-  }
-
-  val inMemoryRepo = new mutable.HashMap[String, Media]
-
+object MediaExamples {
+  val Example1 = Media("userId10", "GOV.UK or Civil Service Jobs")
+  val Example2 = Media("userId11", "Friend in the Fast Stream")
 }

@@ -88,9 +88,6 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
                              interviewsByAdjustmentPercentage: Map[String, Int])
 
-case class DiversityMonitoringJobConfig(enabled: Boolean, lockId: Option[String], initialDelaySecs: Option[Int],
-  intervalSecs: Option[Int], forceStopActorsSecs: Option[Int])
-
 case class AssessmentCentresLocationsConfig(yamlFilePath: String)
 case class AssessmentCentresConfig(yamlFilePath: String)
 
@@ -133,8 +130,6 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase2-job")
   lazy val failedOnlineTestJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-test-job")
-  lazy val diversityMonitoringJobConfig =
-    configuration.underlying.as[DiversityMonitoringJobConfig]("scheduling.diversity-monitoring-job")
   lazy val retrieveResultsJobConfig =
     configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-results-job")
   lazy val evaluatePhase1ResultJobConfig =

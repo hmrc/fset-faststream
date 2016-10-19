@@ -27,7 +27,7 @@ import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.{ ApplicationStatus, TestExpirationEvent, ProgressStatuses, ReminderNotice }
 import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson._
+import reactivemongo.bson.{ BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -116,9 +116,9 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val update = BSONDocument("$set" -> applicationStatusBSON(PHASE1_TESTS_INVITED)) ++ BSONDocument("$set" -> BSONDocument(
-      "testGroups" -> BSONDocument(phaseName -> phase1TestProfile)
-    ))
+    val update = BSONDocument("$set" -> applicationStatusBSON(PHASE1_TESTS_INVITED)) ++
+      BSONDocument("$set" -> BSONDocument(s"testGroups.$phaseName" -> phase1TestProfile)
+    )
 
     collection.update(query, update, upsert = false) map { status =>
       if (status.n != 1) {
