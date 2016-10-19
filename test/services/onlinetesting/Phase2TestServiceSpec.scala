@@ -109,17 +109,6 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(otRepositoryMock).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
       phase2TestService.verifyDataStoreEvents(1, "OnlineExerciseResultSent")
     }
-
-    "exclude adjsutments candidates from the invite" in new Phase2TestServiceFixture {
-      val adjustmentCandidates = candidates :+ adjustmentApplication :+ adjustmentApplication2
-      phase2TestService.registerAndInviteForTestGroup(adjustmentCandidates).futureValue
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
-      verify(otRepositoryMock, times(0)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
-      //phase2TestService.verifyDataStoreEvents(0, "OnlineExerciseResultSent")
-
-    }
   }
 
   "mark as started" should {
