@@ -79,8 +79,11 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
+
+    val submittedStatuses = List[String](ApplicationStatus.SUBMITTED, ApplicationStatus.SUBMITTED.toLowerCase)
+
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> submittedStatuses)),
       BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
     ))
 
