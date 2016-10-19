@@ -208,16 +208,31 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
       }).map(_ => ())
     }
 
+    def maybeUpdateProgressStatus(appId: String) = {
+      phase1TestRepo.getTestGroup(appId).flatMap { eventualProfile =>
+
+        val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No profile returned for $appId"))
+
+        if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
+          phase1TestRepo.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).map( _ =>
+            audit(s"ProgressStatusSet${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}", appId)
+          )
+        } else {
+          Future.successful(())
+        }
+      }
+    }
+
     val testResults = Future.sequence(testProfile.phase1TestProfile.activeTests.map { test =>
-      cubiksGatewayClient.downloadXmlReport(
-        test.reportId.getOrElse(throw ReportIdNotDefinedException(s"no report id defined on test for schedule ${test.scheduleId}"))
-      ).map(_ -> test)
-    })
+      test.reportId.map { reportId =>
+        cubiksGatewayClient.downloadXmlReport(reportId)
+      }.map(_.map(_ -> test))
+    }.flatten)
 
     for {
       eventualTestResults <- testResults
       _ <- insertTests(eventualTestResults)
-      _ <- phase1TestRepo.updateProgressStatus(testProfile.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
+      _ <- maybeUpdateProgressStatus(testProfile.applicationId)
     } yield {
       audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
     }
