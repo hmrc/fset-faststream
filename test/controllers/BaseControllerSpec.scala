@@ -20,6 +20,7 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
+import config.CSRCache
 import models.SecurityUserExamples._
 import models._
 import org.joda.time.DateTime
@@ -29,7 +30,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.filters.csrf.CSRF
 import security.Roles.CsrAuthorization
-import security.{SecureActions, SecurityEnvironment, SignInService}
+import security.{ SecureActions, SecurityEnvironment, SignInService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -87,8 +88,11 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
     redirectLocation(result) must be(Some(expectedUrl))
   }
 
+  val mockSecurityEnv = mock[SecurityEnvironment]
+  val mockCSRCache = mock[CSRCache]
+
   // scalastyle:off method.name
-  trait TestableSecureActions extends SecureActions {
+  abstr TestableSecureActions extends SecureActions(mockSecurityEnv, mockCSRCache) {
 
     val Candidate: CachedData = currentCandidate
     val CandidateWithApp: CachedDataWithApp = currentCandidateWithApp

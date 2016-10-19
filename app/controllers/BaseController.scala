@@ -18,7 +18,7 @@ package controllers
 
 import java.time.LocalDateTime
 
-import config.FaststreamFrontendConfig
+import config.{ CSRCache, FaststreamFrontendConfig, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.exchange.FrameworkId
@@ -45,7 +45,9 @@ object FaststreamConfig {
 /**
  * should be extended by all controllers
  */
-abstract class BaseController(applicationClient: ApplicationClient) extends FrontendController with SecureActions {
+abstract class BaseController(applicationClient: ApplicationClient) extends SecureActions(SecurityEnvironmentImpl, CSRCache)
+with FrontendController
+   {
 
   implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
   implicit def faststreamConfig = FaststreamConfig(config.FrontendAppConfig.faststreamFrontendConfig)

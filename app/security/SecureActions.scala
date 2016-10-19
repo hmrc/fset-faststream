@@ -51,15 +51,15 @@ import scala.util.{ Failure, Success, Try }
 // so in this instance, ignore the scalastyle method rule
 // scalastyle:off method.name
 
-trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
+abstract class SecureActions(securityEnvironment: SecurityEnvironment, cache: CSRCache) extends Silhouette[SecurityUser, SessionAuthenticator] {
 
   protected def getCachedData(securityUser: SecurityUser)(implicit hc: HeaderCarrier,
                                                               request: Request[_]): Future[Option[CachedData]] = {
-    CSRCache.fetchAndGetEntry[CachedData](securityUser.userID).recoverWith {
+    cache.fetchAndGetEntry[CachedData](securityUser.userID).recoverWith {
       case ex: KeyStoreEntryValidationException =>
         Logger.warn(s"Retrieved invalid cache entry for userId '${securityUser.userID}' (structure changed?). " +
           s"Attempting cache refresh from database...")
-        SecurityEnvironmentImpl.userService.refreshCachedUser(UniqueIdentifier(securityUser.userID)).map(Some(_))
+        securityEnvironment.userService.refreshCachedUser(UniqueIdentifier(securityUser.userID)).map(Some(_))
       case ex: Throwable =>
         Logger.warn(s"Retrieved invalid cache entry for userID '${securityUser.userID}. Could not recover!")
         throw ex

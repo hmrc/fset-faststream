@@ -16,7 +16,7 @@
 
 package controllers
 
-import connectors.SchoolsClient
+import connectors.{ ApplicationClient, SchoolsClient }
 import connectors.SchoolsClient.SchoolsNotFound
 import models.view.SchoolView
 import models.view.SchoolView._
@@ -29,9 +29,9 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
-object SchoolsController extends SchoolsController(SchoolsClient)
+object SchoolsController extends SchoolsController(SchoolsClient, ApplicationClient)
 
-class SchoolsController(schoolsClient: SchoolsClient) extends FrontendController with SecureActions {
+class SchoolsController(schoolsClient: SchoolsClient, applicationClient: ApplicationClient) extends BaseController(applicationClient) {
   def getSchools(term: String) = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
       if (term.trim.nonEmpty) {
