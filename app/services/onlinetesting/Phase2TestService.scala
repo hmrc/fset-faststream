@@ -26,7 +26,7 @@ import model.OnlineTestCommands._
 import model.{ ProgressStatuses, ReminderNotice }
 import model.events.DataStoreEvents
 import model.events.EventTypes.EventType
-import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
+import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
 import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -70,14 +70,16 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
                                   registration: Registration,
                                   invitation: Invitation)
 
-  def getTestProfile(applicationId: String): Future[Option[Phase2TestGroupWithNames]] = {
+  case class NoActiveTestException(m: String) extends Exception(m)
+
+  def getTestProfile(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
     for {
       phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
-        val tests = phase2.activeTests
-        Phase2TestGroupWithNames(
+      val test = phase2.activeTests.find(_.usedForResults).getOrElse(throw new NoActiveTestException(s"No active phase 2 test found for $applicationId"))
+        Phase2TestGroupWithActiveTest(
           phase2.expirationDate,
-          tests
+          test
         )
     }
   }
@@ -255,4 +257,3 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   private def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
 
 }
-
