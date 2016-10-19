@@ -187,13 +187,13 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
     )
   }
 
-  private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
+  private def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean,
     timeExtensionAdjustments:Boolean, isGis: Boolean = false) = {
-    if (needsAdjustment) {
+    if (needsSupportForOnlineAssessment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
           BSONDocument(
-            "needsAdjustment" -> "Yes",
+            "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
             "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
             "adjustments-confirmed" -> true,
             "verbalTimeAdjustmentPercentage" -> 9,
@@ -202,7 +202,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
           )
         } else {
           BSONDocument(
-            "needsAdjustment" -> "Yes",
+            "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
             "typeOfAdjustments" -> BSONArray("room alone"),
             "adjustments-confirmed" -> true,
             "guaranteedInterview" -> isGis
@@ -210,7 +210,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
         }
       } else {
         BSONDocument(
-          "needsAdjustment" -> "Yes",
+          "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
           "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
           "adjustments-confirmed" -> false,
           "guaranteedInterview" -> isGis
@@ -218,7 +218,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
       }
     } else {
       BSONDocument(
-        "needsAdjustment" -> "No",
+        "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
         "guaranteedInterview" -> isGis
       )
     }
