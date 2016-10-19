@@ -1,7 +1,7 @@
 package repositories.onlinetesting
 
 import factories.DateTimeFactory
-import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses.{ DIVERSITY_QUESTIONNAIRE_COMPLETED, EDUCATION_QUESTIONS_COMPLETED, IN_PROGRESS_ASSISTANCE_DETAILS_COMPLETED, IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES_COMPLETED, OCCUPATION_QUESTIONS_COMPLETED, PERSONAL_DETAILS_COMPLETED, PREVIEW, ProgressStatus, SCHEME_PREFERENCES_COMPLETED, START_DIVERSITY_QUESTIONNAIRE_COMPLETED, SUBMITTED }
 import model.persisted.Phase1TestProfile
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{BSONArray, BSONDocument}
@@ -166,14 +166,13 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
 
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(
-      "personal-details" -> true,
-      "in_progress" -> true,
-      "scheme-preferences" -> true,
-      "partner-graduate-programmes" -> true,
-      "assistance-details" -> true,
+      PERSONAL_DETAILS_COMPLETED.key -> true,
+      SCHEME_PREFERENCES_COMPLETED.key -> true,
+      IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES_COMPLETED.key -> true,
+      IN_PROGRESS_ASSISTANCE_DETAILS_COMPLETED.key -> true,
       "questionnaire" -> questionnaire(),
-      "preview" -> true,
-      "submitted" -> true
+      PREVIEW.key -> true,
+      SUBMITTED.key -> true
     )
 
     args.foldLeft(baseDoc)((acc, v) => acc.++(v._1.toString -> v._2))
@@ -181,10 +180,10 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
 
   private def questionnaire() = {
     BSONDocument(
-      "start_questionnaire" -> true,
-      "diversity_questionnaire" -> true,
-      "education_questionnaire" -> true,
-      "occupation_questionnaire" -> true
+      START_DIVERSITY_QUESTIONNAIRE_COMPLETED.key -> true,
+      DIVERSITY_QUESTIONNAIRE_COMPLETED.key -> true,
+      EDUCATION_QUESTIONS_COMPLETED.key -> true,
+      OCCUPATION_QUESTIONS_COMPLETED.key -> true
     )
   }
 

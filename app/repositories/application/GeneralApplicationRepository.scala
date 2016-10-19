@@ -150,7 +150,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     (document.getAs[BSONDocument]("progress-status") map { root =>
 
       def getProgress(key: String) = {
-        root.getAs[Boolean](key).orElse(root.getAs[Boolean](key.toLowerCase)).getOrElse(false)
+        // TODO This should be made more consistent once the pgoress statuses are strongly typed everywhere
+        root.getAs[Boolean](key).
+          orElse(root.getAs[Boolean](key.toUpperCase)).
+          orElse(root.getAs[Boolean](key.toLowerCase)).
+          getOrElse(false)
       }
 
       def questionnaire = root.getAs[BSONDocument]("questionnaire").map { doc =>
@@ -161,37 +165,37 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
       ProgressResponse(
         applicationId,
-        personalDetails = getProgress("personal-details"),
-        partnerGraduateProgrammes = getProgress("partner-graduate-programmes"),
-        schemePreferences = getProgress("scheme-preferences"),
-        assistanceDetails = getProgress("assistance-details"),
-        preview = getProgress("preview"),
+        personalDetails = getProgress(ProgressStatuses.PERSONAL_DETAILS_COMPLETED.key),
+        partnerGraduateProgrammes = getProgress(ProgressStatuses.IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES_COMPLETED.key),
+        schemePreferences = getProgress(ProgressStatuses.SCHEME_PREFERENCES_COMPLETED.key),
+        assistanceDetails = getProgress(ProgressStatuses.IN_PROGRESS_ASSISTANCE_DETAILS_COMPLETED.key),
+        preview = getProgress(ProgressStatuses.PREVIEW.key),
         questionnaire = questionnaire,
-        submitted = getProgress(SUBMITTED.toString),
-        withdrawn = getProgress(WITHDRAWN.toString),
+        submitted = getProgress(ProgressStatuses.SUBMITTED.key),
+        withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
         phase1ProgressResponse = Phase1ProgressResponse(
-          phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.toString),
-          phase1TestsFirstRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.toString),
-          phase1TestsSecondRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.toString),
-          phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString),
-          phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
-          phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.toString),
-          phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.toString),
-          phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
-          phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.toString),
-          phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.toString)
+          phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
+          phase1TestsFirstRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
+          phase1TestsSecondRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.key),
+          phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.key),
+          phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.key),
+          phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.key),
+          phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.key),
+          phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.key),
+          phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.key),
+          phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key)
         ),
         phase2ProgressResponse = Phase2ProgressResponse(
-          phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.toString),
-          phase2TestsFirstRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.toString),
-          phase2TestsSecondRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.toString),
-          phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.toString),
-          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString),
-          phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.toString),
-          phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.toString),
-          phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.toString),
-          phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.toString),
-          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.toString)
+          phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
+          phase2TestsFirstRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.key),
+          phase2TestsSecondRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.key),
+          phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.key),
+          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.key),
+          phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.key),
+          phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.key),
+          phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.key),
+          phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
+          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key)
         ),
         failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
         assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),

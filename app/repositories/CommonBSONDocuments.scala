@@ -17,6 +17,7 @@
 package repositories
 
 import model.ApplicationStatus.ApplicationStatus
+import model.ProgressStatuses
 import model.ProgressStatuses.ProgressStatus
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
@@ -25,9 +26,13 @@ import reactivemongo.bson.BSONDocument
 trait CommonBSONDocuments {
 
   def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
+    // TODO the progress status should be propagated up to the caller, rather than default, but that will
+    // require widespread changes, and using a default in here is better than the previous implementation
+    // that just set the progress status to applicationStatus.toString, which produced invalid progress statuses
+    val progressStatus = ProgressStatuses.getDefaultProgressStatus(applicationStatus)
     BSONDocument(
       "applicationStatus" -> applicationStatus,
-      s"progress-status.$applicationStatus" -> true,
+      s"progress-status.${progressStatus.key}" -> true,
       s"progress-status-timestamp.$applicationStatus" -> DateTime.now()
     )
   }
@@ -35,8 +40,8 @@ trait CommonBSONDocuments {
   def applicationStatusBSON(progressStatus: ProgressStatus) = {
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
-      s"progress-status.$progressStatus" -> true,
-      s"progress-status-timestamp.$progressStatus" -> DateTime.now()
+      s"progress-status.${progressStatus.key}" -> true,
+      s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
     )
   }
 }

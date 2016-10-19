@@ -259,7 +259,7 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
       val result = contentAsJson(response).as[List[AssessmentCentreAllocationReport]]
 
       status(response) mustBe OK
-      result mustBe List(
+      result must contain theSameElementsAs List(
         toReport(candidate1, contactDetails1),
         toReport(candidate2, contactDetails2)
       )
