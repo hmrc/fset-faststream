@@ -55,11 +55,11 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
 
   protected def getCachedData(securityUser: SecurityUser)(implicit hc: HeaderCarrier,
                                                               request: Request[_]): Future[Option[CachedData]] = {
-    CSRCache.fetchAndGetEntry[CachedData](securityUser.userID).recover {
+    CSRCache.fetchAndGetEntry[CachedData](securityUser.userID).recoverWith {
       case ex: KeyStoreEntryValidationException =>
         Logger.warn(s"Retrieved invalid cache entry for userId '${securityUser.userID}' (structure changed?). " +
           s"Attempting cache refresh from database...")
-        Await.result(SecurityEnvironmentImpl.userService.refreshCachedUser(securityUser.userID).map(Some(_)), 5 seconds)
+        SecurityEnvironmentImpl.userService.refreshCachedUser(securityUser.userID).map(Some(_))
       case ex: Throwable =>
         Logger.warn(s"Retrieved invalid cache entry for userID '${securityUser.userID}. Could not recover!")
         throw ex
