@@ -16,23 +16,26 @@
 
 package controllers
 
+import config.CSRCache
 import connectors.ApplicationClient
 import models.CachedDataWithApp
 import models.Progress
 import models.ApplicationData.ApplicationStatus._
 import play.api.test.Helpers._
 import play.api.mvc.Result
+
 import scala.concurrent._
 
 
 class QuestionnaireControllerSpec extends BaseControllerSpec {
 
   val applicationClient = mock[ApplicationClient]
+  val mockCacheClient = mock[CSRCache]
   val candidateWithApp = currentCandidateWithApp.copy(
     application = currentCandidateWithApp.application.copy(applicationStatus = IN_PROGRESS))
   val errorContent = "You've now completed this part of the application and for security reasons you can't go back and change your answers."
 
-  def controllerUnderTest(appStatus: Progress) = new QuestionnaireController(applicationClient) with TestableSecureActions {
+  def controllerUnderTest(appStatus: Progress) = new QuestionnaireController(applicationClient, mockCacheClient) with TestableSecureActions {
     override val CandidateWithApp: CachedDataWithApp = candidateWithApp
       .copy(application = candidateWithApp.application.copy(progress = appStatus))
   }

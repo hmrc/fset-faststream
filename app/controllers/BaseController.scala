@@ -25,7 +25,7 @@ import connectors.exchange.FrameworkId
 import helpers.NotificationType._
 import models.{ CachedData, CachedDataWithApp }
 import play.api.mvc.Request
-import security.SecureActions
+import security.{ SecureActions, SecurityEnvironment }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -45,7 +45,7 @@ object FaststreamConfig {
 /**
  * should be extended by all controllers
  */
-abstract class BaseController(applicationClient: ApplicationClient) extends SecureActions(SecurityEnvironmentImpl, CSRCache)
+abstract class BaseController(applicationClient: ApplicationClient, val cacheClient: CSRCache) extends SecureActions
 with FrontendController
    {
 

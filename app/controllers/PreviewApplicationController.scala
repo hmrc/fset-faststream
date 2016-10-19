@@ -16,6 +16,7 @@
 
 package controllers
 
+import config.CSRCache
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
@@ -24,10 +25,10 @@ import security.Roles.PreviewApplicationRole
 
 import scala.concurrent.Future
 
-object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, SchemeClient)
+object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, CSRCache, SchemeClient)
 
-class PreviewApplicationController(applicationClient: ApplicationClient, schemeClient: SchemeClient) extends
-  BaseController(applicationClient) {
+class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient) extends
+  BaseController(applicationClient, cacheClient) {
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>

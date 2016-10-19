@@ -92,7 +92,7 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
   val mockCSRCache = mock[CSRCache]
 
   // scalastyle:off method.name
-  abstr TestableSecureActions extends SecureActions(mockSecurityEnv, mockCSRCache) {
+  trait TestableSecureActions extends SecureActions {
 
     val Candidate: CachedData = currentCandidate
     val CandidateWithApp: CachedDataWithApp = currentCandidateWithApp

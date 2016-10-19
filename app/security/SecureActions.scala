@@ -49,21 +49,25 @@ import scala.util.{ Failure, Success, Try }
 
 // Some of the methods in this file are intended to look like the build in Action objects, which begin with an uppercase
 // so in this instance, ignore the scalastyle method rule
-// scalastyle:off method.name
 
-abstract class SecureActions(securityEnvironment: SecurityEnvironment, cache: CSRCache) extends Silhouette[SecurityUser, SessionAuthenticator] {
+// scalastyle:off method.name
+trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
+
+  val cacheClient: CSRCache
 
   protected def getCachedData(securityUser: SecurityUser)(implicit hc: HeaderCarrier,
                                                               request: Request[_]): Future[Option[CachedData]] = {
-    cache.fetchAndGetEntry[CachedData](securityUser.userID).recoverWith {
+    val result = cacheClient.fetchAndGetEntry[CachedData](securityUser.userID).recoverWith {
       case ex: KeyStoreEntryValidationException =>
         Logger.warn(s"Retrieved invalid cache entry for userId '${securityUser.userID}' (structure changed?). " +
           s"Attempting cache refresh from database...")
-        securityEnvironment.userService.refreshCachedUser(UniqueIdentifier(securityUser.userID)).map(Some(_))
+        env.userService.refreshCachedUser(UniqueIdentifier(securityUser.userID)).map(Some(_))
       case ex: Throwable =>
         Logger.warn(s"Retrieved invalid cache entry for userID '${securityUser.userID}. Could not recover!")
         throw ex
     }
+    print("Returning " + result)
+    result
   }
 
   /**
@@ -74,13 +78,20 @@ abstract class SecureActions(securityEnvironment: SecurityEnvironment, cache: CS
     */
   def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedData => Future[Result])
   : Action[AnyContent] = {
-    SecuredAction.async { secondRequest =>
+    Logger.debug("Starting Async")
+    val result = SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
-      getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
-        case Some(data) => SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
-        case None => gotoAuthentication(secondRequest)
-      }
+      Logger.debug("Calling")
+      Future.successful(InternalServerError)
+      /*getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
+        case Some(data) => print("Going to SAWC")
+          SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
+        case None => print("None received!")
+          gotoAuthentication(secondRequest)
+      }*/
     }
+    Logger.debug("Done Async")
+    result
   }
 
   def CSRSecureAppAction(role: CsrAuthorization)

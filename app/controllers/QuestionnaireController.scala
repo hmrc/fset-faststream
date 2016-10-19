@@ -17,6 +17,7 @@
 package controllers
 
 import _root_.forms.{ DiversityQuestionnaireForm, EducationQuestionnaireForm, ParentalOccupationQuestionnaireForm }
+import config.CSRCache
 import connectors.ApplicationClient
 import connectors.exchange.Questionnaire
 import helpers.NotificationType._
@@ -29,9 +30,10 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
-object QuestionnaireController extends QuestionnaireController(ApplicationClient)
+object QuestionnaireController extends QuestionnaireController(ApplicationClient, CSRCache)
 
-class QuestionnaireController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class QuestionnaireController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) {
 
   val QuestionnaireCompletedBanner = danger("questionnaire.completed")
 

@@ -17,14 +17,17 @@
 package controllers
 
 import _root_.forms.SelectedSchemesForm._
+import config.CSRCache
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
 import security.Roles.SchemesRole
 
 import scala.concurrent.Future
 
-class SchemePreferencesController(applicationClient: ApplicationClient, schemeClient: SchemeClient) extends
-  BaseController(applicationClient){
+object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, CSRCache, SchemeClient)
+
+class SchemePreferencesController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient) extends
+  BaseController(applicationClient, cacheClient){
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
@@ -63,5 +66,3 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
     )
   }
 }
-
-object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, SchemeClient)

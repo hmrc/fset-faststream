@@ -17,6 +17,7 @@
 package controllers
 
 import _root_.forms.WithdrawApplicationForm
+import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange.{ FrameworkId, Phase2TestGroupWithNames, WithdrawApplication }
@@ -29,9 +30,9 @@ import security.Roles._
 
 import scala.concurrent.Future
 
-object HomeController extends HomeController(ApplicationClient)
+object HomeController extends HomeController(ApplicationClient, CSRCache)
 
-class HomeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache) extends BaseController(applicationClient, cacheClient) {
   val Withdrawer = "Candidate"
 
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
