@@ -27,7 +27,7 @@ import model.events.DataStoreEvents
 import model.events.EventTypes.EventType
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
 import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
-import model.{ ExpiryTest, ProgressStatuses, ReminderNotice }
+import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -108,7 +108,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     registerAndInviteForTestGroup(List(application))
   }
 
-  override def processNextExpiredTest(expiryTest: ExpiryTest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     phase2TestRepo.nextExpiringApplication(expiryTest).flatMap{
       case Some(expired) => processExpiredTest(expired, expiryTest)
       case None => Future.successful(())

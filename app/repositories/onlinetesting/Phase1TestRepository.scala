@@ -24,7 +24,7 @@ import org.joda.time.DateTime
 import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase1TestWithUserIds, TestResult }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
-import model.{ ApplicationStatus, ExpiryTest, ProgressStatuses, ReminderNotice }
+import model.{ ApplicationStatus, TestExpirationEvent, ProgressStatuses, ReminderNotice }
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson._

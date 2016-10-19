@@ -16,7 +16,7 @@
 
 package scheduler.onlinetesting
 
-import model.{ ExpiryTest, Phase1ExpiryTest }
+import model.Phase1ExpirationEvent
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -38,7 +38,7 @@ class ExpireOnlineTestJobSpec extends PlaySpec with MockitoSugar with ScalaFutur
 
   object TestableExpireTestJob extends ExpireOnlineTestJob {
     val onlineTestingService = serviceMock
-    val expiryTest = Phase1ExpiryTest
+    val expiryTest = Phase1ExpirationEvent
     val lockId: String = "1"
     val forceLockReleaseAfter: Duration = mock[Duration]
     implicit val ec: ExecutionContext = mock[ExecutionContext]
@@ -49,12 +49,13 @@ class ExpireOnlineTestJobSpec extends PlaySpec with MockitoSugar with ScalaFutur
 
   "expire test phase 1 job" should {
     "complete successfully when service completes successfully" in new WithApplication {
-      when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpiryTest))(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
+      when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
+        .thenReturn(Future.successful(()))
       TestableExpireTestJob.tryExecute().futureValue mustBe (())
     }
 
     "fail when the service fails" in new WithApplication {
-      when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpiryTest))(any[HeaderCarrier], any[RequestHeader]))
+      when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
         .thenReturn(Future.failed(new Exception))
       TestableExpireTestJob.tryExecute().failed.futureValue mustBe an[Exception]
     }

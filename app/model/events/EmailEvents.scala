@@ -29,5 +29,4 @@ sealed trait EmailEvent extends EventType {
 object EmailEvents {
   case class ApplicationSubmitted(to: String, name: String) extends EmailEvent
   case class ApplicationWithdrawn(to: String, name: String) extends EmailEvent
-  case class TestExpired(to: String, name: String, override val template: Option[String]) extends EmailEvent
 }

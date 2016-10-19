@@ -19,13 +19,12 @@ package services.onlinetesting
 import connectors.OnlineTestEmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses._
 import model.events.DataStoreEvents
 import model.exchange.CubiksTestResultReady
 import model.persisted.{ CubiksTest, ExpiringOnlineTest, NotificationExpiringOnlineTest }
-import model.{ ExpiryTest, ProgressStatuses, ReminderNotice }
+import model.{ TestExpirationEvent, ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
-import model.events.{ AuditEvents, EmailEvents }
+import model.events.AuditEvents
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -50,7 +49,7 @@ trait OnlineTestService extends EventSink  {
   def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-  def processNextExpiredTest(expiryTest: ExpiryTest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
@@ -82,7 +81,7 @@ trait OnlineTestService extends EventSink  {
     )
   }
 
-  protected def processExpiredTest(expiringTest: ExpiringOnlineTest, expiryTest: ExpiryTest)
+  protected def processExpiredTest(expiringTest: ExpiringOnlineTest, expiryTest: TestExpirationEvent)
                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = for {
     emailAddress <- candidateEmailAddress(expiringTest.userId)
     _ <- commitProgressStatus(expiringTest, expiryTest.expiredStatus)
@@ -114,7 +113,8 @@ trait OnlineTestService extends EventSink  {
   private def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String, template: String)
                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     emailClient.sendOnlineTestExpired(emailAddress, expiringTest.preferredName, template).map { _ =>
-      EmailEvents.TestExpired(emailAddress, expiringTest.preferredName, Some(template)) :: Nil
+      AuditEvents.ExpiredTestEmailSent(Map("applicationId" -> expiringTest.applicationId,
+        "emailAddress" -> emailAddress, "to" -> expiringTest.preferredName, "template" -> template )) :: Nil
     }
   }
 

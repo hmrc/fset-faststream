@@ -27,7 +27,7 @@ import model.OnlineTestCommands._
 import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestWithUserIds, TestResult => _, _ }
-import model.{ ExpiryTest, ProgressStatuses, ReminderNotice }
+import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -126,7 +126,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     registerAndInviteForTestGroup(application, getScheduleNamesForApplication(application))
   }
 
-  override def processNextExpiredTest(expiryTest: ExpiryTest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     phase1TestRepo.nextExpiringApplication(expiryTest).flatMap{
       case Some(expired) => processExpiredTest(expired, expiryTest)
       case None => Future.successful(())

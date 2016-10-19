@@ -25,7 +25,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.persisted.NotificationExpiringOnlineTest
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.{ ExpiryTest, ProgressStatuses, ReminderNotice }
+import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -77,7 +77,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
   }
 
-  override def processNextExpiredTest(expiryTest: ExpiryTest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int)
     (implicit hc: HeaderCarrier): Future[Unit] = {
@@ -96,8 +96,8 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
   override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
-                                                      emailAddress: String,
-                                                      reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+    emailAddress: String,
+    reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
     expirationDate: DateTime

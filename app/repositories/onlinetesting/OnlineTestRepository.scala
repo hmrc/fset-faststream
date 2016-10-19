@@ -91,7 +91,7 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
     }
   }
 
-  def nextExpiringApplication(expiryTest: ExpiryTest): Future[Option[ExpiringOnlineTest]] = {
+  def nextExpiringApplication(expiryTest: TestExpirationEvent): Future[Option[ExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(
         "applicationStatus" -> thisApplicationStatus
