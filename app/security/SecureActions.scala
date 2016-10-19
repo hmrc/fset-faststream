@@ -18,10 +18,10 @@ package security
 
 import java.util.UUID
 
-import com.mohiva.play.silhouette.api.{ Authorization, Silhouette }
+import com.mohiva.play.silhouette.api.{ Authorization, LogoutEvent, Silhouette }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import config.{ CSRCache, SecurityEnvironmentImpl }
-import controllers.routes
+import controllers.{ SignInController, routes }
 import helpers.NotificationType._
 import models.{ CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier }
 import play.api.Logger
@@ -78,7 +78,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
       implicit val carrier = hc(secondRequest.request)
       getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
         case Some(data) => SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
-        case None => gotoAuthentication
+        case None => gotoAuthentication(secondRequest)
       }
     }
   }
@@ -91,7 +91,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
         case Some(CachedData(_, None)) => gotoUnauthorised
         case Some(data @ CachedData(u, Some(app))) => SecuredActionWithCSRAuthorisation(secondRequest,
           block, role, data, CachedDataWithApp(u, app))
-        case None => gotoAuthentication
+        case None => gotoAuthentication(secondRequest)
       }
     }
   }
@@ -133,7 +133,16 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
 
   implicit def userWithAppToOptionCachedUser(implicit u: CachedDataWithApp): Option[CachedData] = Some(CachedData(u.user, Some(u.application)))
 
-  private def gotoAuthentication = Future.successful(Redirect(routes.SignInController.present()))
+  // TODO: Duplicates code from SigninService. Refactoring challenge.
+  private def gotoAuthentication[_](implicit request: SecuredRequest[_]) = {
+    env.eventBus.publish(LogoutEvent(request.identity, request, request2lang))
+    env.authenticatorService.retrieve.flatMap {
+      case Some(authenticator) =>
+        CSRCache.remove()
+        authenticator.discard(Future.successful(Redirect(routes.SignInController.present())))
+      case None => Future.successful(Redirect(routes.SignInController.present()))
+    }
+  }
 
   private def gotoUnauthorised = Future.successful(Redirect(routes.HomeController.present()).flashing(danger("access.denied")))
 

@@ -26,9 +26,10 @@ import helpers.NotificationType._
 import models.{ CachedData, SecurityUser }
 import play.api.i18n.Lang
 import play.api.mvc.{ AnyContent, RequestHeader, Result }
+import play.mvc.Http.Request
 import security.{ SignInService, _ }
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object SignInController extends SignInController(ApplicationClient) with SignInService {
@@ -68,24 +69,10 @@ abstract class SignInController(val applicationClient: ApplicationClient) extend
 
   def signOut = CSRUserAwareAction { implicit request =>
     implicit user =>
-      request.identity.map(identity => env.eventBus.publish(LogoutEvent(identity, request, request2lang)))
-      env.authenticatorService.retrieve.flatMap {
-        case Some(authenticator) =>
-          CSRCache.remove()
-          authenticator.discard(Future.successful(Redirect(routes.SignInController.present()).
-            flashing(success("feedback", config.FrontendAppConfig.feedbackUrl)).withNewSession))
-        case None => Future.successful(Redirect(routes.SignInController.present()).
+      logOutAndRedirectUserAware(successAction = Future.successful(Redirect(routes.SignInController.present()).
+          flashing(success("feedback", config.FrontendAppConfig.feedbackUrl)).withNewSession),
+        failAction = Future.successful(Redirect(routes.SignInController.present()).
           flashing(danger("You have already signed out")).withNewSession)
-      }
-  }
-
-  def notAuthorised(request: RequestHeader, lang: Lang): Option[Future[Result]] = {
-    val sec = request.asInstanceOf[SecuredRequest[AnyContent]]
-    Some(
-      getCachedData(sec.identity)(hc(sec), sec).map {
-        case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
-        case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
-      }
-    )
+      )
   }
 }
