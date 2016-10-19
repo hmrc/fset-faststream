@@ -43,7 +43,6 @@ class UserCacheService(applicationClient: ApplicationClient, userManagementClien
     refreshCachedUser(userId.toString())
 
   override def refreshCachedUser(userId: String)(implicit hc: HeaderCarrier, request: Request[_]): Future[CachedData] = {
-
     userManagementClient.findByUserId(userId).flatMap { userData =>
       applicationClient.findApplication(UniqueIdentifier(userId), FrameworkId).flatMap { appData =>
         val cd = CachedData(userData.toCached, Some(appData))
@@ -51,8 +50,6 @@ class UserCacheService(applicationClient: ApplicationClient, userManagementClien
       }.recover {
         case ex: ApplicationNotFound => CachedData(userData.toCached, None)
       }
-    }.recover {
-      case ex: InvalidCredentialsException => throw ex
     }
   }
 
