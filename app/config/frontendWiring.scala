@@ -46,9 +46,7 @@ trait CSRHttp extends WSHttp {
   val wS = WS
 }
 
-trait CSRCache extends SessionCache with AppName with ServicesConfig {
-
-}
+trait CSRCache extends SessionCache with AppName with ServicesConfig
 
 object CSRCache extends CSRCache {
   override lazy val http = CSRHttp
