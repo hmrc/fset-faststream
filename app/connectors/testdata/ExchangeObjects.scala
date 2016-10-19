@@ -17,30 +17,32 @@
 package connectors.testdata
 
 import model.Commands.ApplicationAssessment
-import model.persisted.{ ContactDetails, PersonalDetails }
+import model.persisted.{ContactDetails, PersonalDetails}
 import model.SelectedSchemes
 import play.api.libs.json.Json
 
 object ExchangeObjects {
 
   case class DataGenerationResponse(generationId: Int,
-    userId: String,
-    applicationId: Option[String],
-    email: String,
-    firstName: String,
-    lastName: String,
-    preferredName: String,
-    personalDetails: Option[PersonalDetails] = None,
-    isCivilServant: Option[Boolean] = None,
-    contactDetails: Option[ContactDetails] = None,
-    phase1TestGroup: Option[TestGroupResponse] = None,
-    phase2TestGroup: Option[TestGroupResponse] = None,
-    applicationAssessment: Option[ApplicationAssessment] = None,
-    schemePreferences: Option[SelectedSchemes] = None,
-    phase3TestUrl: Option[String] = None
-  )
+                                    userId: String,
+                                    applicationId: Option[String],
+                                    email: String,
+                                    firstName: String,
+                                    lastName: String,
+                                    preferredName: String,
+                                    mediaReferrer: Option[String] = None,
+                                    personalDetails: Option[PersonalDetails] = None,
+                                    isCivilServant: Option[Boolean] = None,
+                                    contactDetails: Option[ContactDetails] = None,
+                                    phase1TestGroup: Option[TestGroupResponse] = None,
+                                    phase2TestGroup: Option[TestGroupResponse] = None,
+                                    applicationAssessment: Option[ApplicationAssessment] = None,
+                                    schemePreferences: Option[SelectedSchemes] = None,
+                                    phase3TestUrl: Option[String] = None
+                                   )
 
   case class TestGroupResponse(tests: List[CubiksTestResponse])
+
   case class CubiksTestResponse(cubiksUserId: Int, token: String, testUrl: String)
 
   object Implicits {

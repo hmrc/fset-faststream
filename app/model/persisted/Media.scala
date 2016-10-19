@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
-package mocks
+package model.persisted
 
-import model.persisted.Media
-import repositories.MediaRepository
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-import scala.collection.mutable
-import scala.concurrent.Future
+case class Media(userId: String, media: String)
 
-object MediaInMemoryRepository extends MediaRepository {
-
-  override def create(addMedia: Media): Future[Unit] = {
-    inMemoryRepo += addMedia.userId -> addMedia
-    Future.successful(Unit)
-  }
-
-  override def findAll(): Future[Map[String, Media]] = {
-    Future.successful(inMemoryRepo.toMap)
-  }
-
-  val inMemoryRepo = new mutable.HashMap[String, Media]
-
+object Media {
+  implicit val mediaFormat = Json.format[Media]
+  implicit val mediaHandler = Macros.handler[Media]
 }
