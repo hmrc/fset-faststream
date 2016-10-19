@@ -138,6 +138,8 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
     env.eventBus.publish(LogoutEvent(request.identity, request, request2lang))
     env.authenticatorService.retrieve.flatMap {
       case Some(authenticator) =>
+        Logger.info(s"No keystore record found for user with valid cookie (User Id = ${request.identity.userID}). " +
+          s"Removing cookie and redirecting to sign in.")
         CSRCache.remove()
         authenticator.discard(Future.successful(Redirect(routes.SignInController.present())))
       case None => Future.successful(Redirect(routes.SignInController.present()))
