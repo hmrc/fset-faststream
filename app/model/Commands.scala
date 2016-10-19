@@ -19,25 +19,23 @@ package model
 import controllers._
 import model.CandidateScoresCommands.CandidateScoresAndFeedback
 import model.CandidateScoresCommands.Implicits._
-import model.Exceptions.{ NoResultsReturned, TooManyEntries }
+import model.Exceptions.{NoResultsReturned, TooManyEntries}
 import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands.TestResult
-import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme }
+import model.PassmarkPersistedObjects.{AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme}
 import model.PassmarkPersistedObjects.Implicits._
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
 import model.SchemeType.SchemeType
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
+import org.joda.time.{DateTime, LocalDate, LocalTime}
 import play.api.libs.json._
 
 import scala.language.implicitConversions
-import model.command.{ AssessmentCentre, ProgressResponse }
+import model.command.{AssessmentCentre, ProgressResponse}
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.report.{ CandidateProgressReport, PassMarkReportQuestionnaireData }
+import model.report.{CandidateProgressReport, QuestionnaireReportItem, QuestionnaireReportItem$}
 
 //scalastyle:off
 object Commands {
-
-  case class AddMedia(userId: String, media: String)
 
   case class CreateApplicationRequest(userId: String, frameworkId: String)
 
@@ -144,7 +142,7 @@ object Commands {
 
   case class AssessmentResultsReport(
                                       appPreferences: ApplicationPreferences,
-                                      questionnaire: PassMarkReportQuestionnaireData,
+                                      questionnaire: QuestionnaireReportItem,
                                       candidateScores: CandidateScoresAndFeedback
                                     )
 
@@ -211,8 +209,6 @@ object Commands {
                                                      )
 
   object Implicits {
-    implicit val mediaFormats = Json.format[AddMedia]
-
     implicit val addressFormat = Json.format[Address]
     implicit val applicationAddedFormat = Json.format[ApplicationResponse]
     implicit val passMarkSettingsCreateResponseFormat = Json.format[PassMarkSettingsCreateResponse]

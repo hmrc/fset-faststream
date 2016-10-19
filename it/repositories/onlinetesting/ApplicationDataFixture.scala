@@ -4,16 +4,17 @@ import factories.DateTimeFactory
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.Phase1TestProfile
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument }
-import repositories.application.GeneralApplicationMongoRepository
+import reactivemongo.bson.{BSONArray, BSONDocument}
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 import reactivemongo.json.ImplicitBSONHandlers
 
 import scala.concurrent.Future
+import config.MicroserviceAppConfig.cubiksGatewayConfig
 
 trait ApplicationDataFixture extends MongoRepositorySpec {
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
   def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
   def phase3TestRepo = new Phase3TestMongoRepository(DateTimeFactory)
