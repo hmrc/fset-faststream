@@ -27,9 +27,6 @@ import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
 import model.OnlineTestCommands.OnlineTestApplication
-import model.InternshipType.InternshipType
-import model.ProgressStatuses.ProgressStatus
-import model.SchemeType._
 import model.command._
 import model.persisted.ApplicationForNotification
 import model.report.{AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, _}
