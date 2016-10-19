@@ -70,13 +70,4 @@ abstract class BaseController(applicationClient: ApplicationClient) extends Fron
           onUpdate(cd)
         }
     }
-
-  def refreshCachedUser()(implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[CachedData] =
-    applicationClient.findApplication(user.user.userID, FrameworkId).flatMap { appData =>
-      val cd = CachedData(user.user, Some(appData))
-      env.userService.save(cd)
-    } recover {
-      case e: ApplicationNotFound => CachedData(user.user, Some(user.application))
-    }
-
 }

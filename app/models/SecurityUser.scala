@@ -17,11 +17,7 @@
 package models
 
 import com.mohiva.play.silhouette.api.Identity
-import config.CSRCache
 import play.api.libs.json._
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.Future
 
 /**
  * A model for the user. This should represent the logged in user, so it should contain information the user itself,
@@ -58,10 +54,5 @@ object CachedData {
 }
 
 object SecurityUser {
-
-  implicit class loginInfoToCachedUser(securityUser: SecurityUser) {
-    def toUserFuture(implicit hc: HeaderCarrier): Future[Option[models.CachedData]] =
-      CSRCache.fetchAndGetEntry[CachedData](securityUser.userID)
-  }
 
 }

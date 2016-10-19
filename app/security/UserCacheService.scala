@@ -18,18 +18,36 @@ package security
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import config.CSRCache
-import models.{ CachedData, SecurityUser }
+import connectors.{ ApplicationClient, UserManagementClient }
+import connectors.ApplicationClient.ApplicationNotFound
+import connectors.exchange._
+import models.{ CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier }
+import play.api.mvc.Request
 import uk.gov.hmrc.play.http.HeaderCarrier
+import Implicits.exchangeUserToCachedUser
+import connectors.UserManagementClient.InvalidCredentialsException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{ Failure, Success, Try }
 
-class UserCacheService extends UserService {
+class UserCacheService(applicationClient: ApplicationClient, userManagementClient: UserManagementClient) extends UserService {
 
   override def retrieve(loginInfo: LoginInfo): Future[Option[SecurityUser]] =
     Future.successful(Some(SecurityUser(userID = loginInfo.providerKey)))
 
   override def save(user: CachedData)(implicit hc: HeaderCarrier): Future[CachedData] =
-    CSRCache.cache[CachedData](user.user.userID.toString, user).map(_ => user)
+    CSRCache.cache[CachedData](user.user.userID.toString(), user).map(_ => user)
+
+  override def refreshCachedUser(userId: UniqueIdentifier)(implicit hc: HeaderCarrier, request: Request[_]): Future[CachedData] = {
+    userManagementClient.findByUserId(userId).flatMap { userData =>
+      applicationClient.findApplication(userId, FrameworkId).flatMap { appData =>
+        val cd = CachedData(userData.toCached, Some(appData))
+        save(cd)
+      }.recover {
+        case ex: ApplicationNotFound => CachedData(userData.toCached, None)
+      }
+    }
+  }
 
 }

@@ -67,7 +67,7 @@ class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures{
     "return InvalidCredentials when the credentials are invalid and we cannot record login failure" in new TestFixture {
       val csrCredentialsProvider = new TestCsrCredentialsProvider(
         signInResponse = Future.failed(new InvalidCredentialsException),
-        failedLoginResponse = Future.failed(new InvalidCredentialsException()))
+        failedLoginResponse = Future.failed(new InvalidCredentialsException))
       csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(InvalidCredentials)
     }
 

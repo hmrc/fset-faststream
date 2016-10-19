@@ -33,6 +33,8 @@ package object exchange {
 
   case class EmailWrapper(email: String, service: String)
 
+  case class FindByUserIdRequest(userId: UniqueIdentifier)
+
   case class CreateApplicationRequest(userId: UniqueIdentifier, frameworkId: String)
 
   case class GeneralDetails(firstName: String,
@@ -84,17 +86,18 @@ package object exchange {
 
   object Implicits {
 
-    implicit val emailWrapperFormats = Json.format[EmailWrapper]
-    implicit val addressFormats = Json.format[Address]
-    implicit val referralFormats = Json.format[AddReferral]
+    implicit val emailWrapperFormat = Json.format[EmailWrapper]
+    implicit val findByUserIdRequestFormat = Json.format[FindByUserIdRequest]
+    implicit val addressFormat = Json.format[Address]
+    implicit val referralFormat = Json.format[AddReferral]
 
-    implicit val userFormats = Json.format[UserResponse]
+    implicit val userFormat = Json.format[UserResponse]
 
-    implicit val resendActivationTokenRequestFormats = Json.format[ResendActivationTokenRequest]
+    implicit val resendActivationTokenRequestFormat = Json.format[ResendActivationTokenRequest]
 
-    implicit val activateEmailRequestFormats = Json.format[ActivateEmailRequest]
-    implicit val signInRequestFormats = Json.format[SignInRequest]
-    implicit val findUserRequestFormats = Json.format[FindUserRequest]
+    implicit val activateEmailRequestFormat = Json.format[ActivateEmailRequest]
+    implicit val signInRequestFormat = Json.format[SignInRequest]
+    implicit val findUserRequestFormat = Json.format[FindUserRequest]
 
     implicit class exchangeUserToCachedUser(exchUser: UserResponse) {
       def toCached: models.CachedUser =
@@ -102,23 +105,23 @@ package object exchange {
           exchUser.preferredName, exchUser.email, exchUser.isActive, exchUser.lockStatus)
     }
 
-    implicit val registrationEmail = Json.format[RegistrationEmail]
-    implicit val addUserRequestFormats = Json.format[AddUserRequest]
-    implicit val updateDetailsFormats = Json.format[UpdateDetails]
+    implicit val registrationEmailFormat = Json.format[RegistrationEmail]
+    implicit val addUserRequestFormat = Json.format[AddUserRequest]
+    implicit val updateDetailsFormat = Json.format[UpdateDetails]
 
     /** Successes serialization */
     implicit val applicationAddedFormat = Json.format[ApplicationResponse]
     implicit val personalDetailsAddedFormat = Json.format[PersonalDetailsAdded]
 
     /** Requests serialization */
-    implicit val createApplicationRequestFormats: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
-    implicit val updatePersonalDetailsRequestFormats: Format[GeneralDetails] = Json.format[GeneralDetails]
-    implicit val updateAssistanceDetailsRequestFormats: Format[AssistanceDetails] = Json.format[AssistanceDetails]
+    implicit val createApplicationRequestFormat: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
+    implicit val updatePersonalDetailsRequestFormat: Format[GeneralDetails] = Json.format[GeneralDetails]
+    implicit val updateAssistanceDetailsRequestFormat: Format[AssistanceDetails] = Json.format[AssistanceDetails]
 
-    implicit val sendPasswordCodeRequestFormats = Json.format[SendPasswordCodeRequest]
-    implicit val resetPasswordRequestFormats = Json.format[ResetPasswordRequest]
+    implicit val sendPasswordCodeRequestFormat = Json.format[SendPasswordCodeRequest]
+    implicit val resetPasswordRequestFormat = Json.format[ResetPasswordRequest]
 
-    implicit val previewFormats = Json.format[PreviewRequest]
+    implicit val previewFormat = Json.format[PreviewRequest]
 
   }
 

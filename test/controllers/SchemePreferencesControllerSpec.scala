@@ -18,7 +18,7 @@ package controllers
 
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
-import models.{ CachedData, ProgressResponseExamples }
+import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import _root_.forms.SelectedSchemesForm._
@@ -26,6 +26,7 @@ import connectors.exchange.{ ApplicationResponse, CivilServiceExperienceDetails,
 import connectors.exchange.CivilServiceExperienceDetailsExamples._
 import models.ApplicationData.ApplicationStatus
 import play.api.test.Helpers._
+import play.mvc.Http.Request
 import security.UserService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -40,6 +41,10 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   def controllerUnderTest = new SchemePreferencesController(applicationClient, schemeClient) with TestableSecureActions {
     override protected def env = securityEnvironment
+    when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any())).thenReturn(Future.successful(CachedData(
+      mock[CachedUser],
+      application = Some(mock[ApplicationData])
+    )))
     when(securityEnvironment.userService).thenReturn(userService)
   }
 

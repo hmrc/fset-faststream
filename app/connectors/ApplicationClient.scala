@@ -72,7 +72,7 @@ trait ApplicationClient {
     }
   }
 
-  def findApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier) = {
+  def findApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier): Future[ApplicationResponse] = {
     http.GET(s"${url.host}${url.base}/application/find/user/$userId/framework/$frameworkId").map { response =>
       response.json.as[ApplicationResponse]
     } recover {
