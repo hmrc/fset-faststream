@@ -16,7 +16,7 @@
 
 package security
 
-import controllers.{ PartnerGraduateProgrammesController, routes }
+import controllers.routes
 import models.ApplicationData.ApplicationStatus._
 import models.{ CachedData, CachedDataWithApp, Progress }
 import play.api.i18n.Lang
@@ -241,6 +241,9 @@ object RoleUtils {
       .getOrElse(false)
 
   def isTestExpired(implicit user: CachedData) = progress.phase1TestProgress.phase1TestsExpired
+  def isPhase1TestsPassed(implicit user: CachedData) = {
+    user.application.isDefined && progress.phase1TestProgress.phase1TestsPassed
+  }
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
 
 }

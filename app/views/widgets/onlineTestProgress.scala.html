@@ -45,8 +45,13 @@
                 <li>
                     <p class="med-btm-margin" id="testsHeading"><i class="fa fa-check the-icon"></i>Online exercises</p>
                     <div>
-                        <p>You've completed this section, we'll send you an email when we have your results.
-                            Make sure you check your junk inbox.</p>
+                        @if(dashboardPage.isPhase1TestsPassed) {
+                            <p>Congratulations, you've passed this section and can now
+                                continue to the next section.</p>
+                        } else {
+                            <p>You've completed this section, we'll send you an email when we have your results.
+                                Make sure you check your junk inbox.</p>
+                        }
                     </div>
                 </li>
 
