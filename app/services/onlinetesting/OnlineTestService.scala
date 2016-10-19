@@ -128,4 +128,12 @@ trait OnlineTestService extends EventSink  {
       }
     }
   }
+
+  protected def extendTime(alreadyExpired: Boolean, previousExpirationDate: DateTime, clock: DateTimeFactory) = { extraDays: Int =>
+    if (alreadyExpired) {
+      clock.nowLocalTimeZone.plusDays(extraDays)
+    } else {
+      previousExpirationDate.plusDays(extraDays)
+    }
+  }
 }

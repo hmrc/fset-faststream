@@ -116,7 +116,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "return nothing when candidate has been already evaluated" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(testsWithResult))
       val evaluation = PassmarkEvaluation("version1", resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, None).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue

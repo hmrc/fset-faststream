@@ -23,11 +23,13 @@ import connectors.ExchangeObjects._
 import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.{ ProgressStatuses, ReminderNotice }
-import model.events.DataStoreEvents
+import model.ProgressStatuses._
+import model._
+import model.command.ProgressResponse
 import model.events.EventTypes.EventType
+import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
-import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
+import model.persisted._
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -260,5 +262,52 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   private def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
 
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
+                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    val progressFut = appRepository.findProgress(applicationId)
+    val phase2TestGroup = phase2TestRepo.getTestGroup(applicationId)
+      .map(tg => tg.getOrElse(throw new IllegalStateException("Expiration date for Phase 2 cannot be extended. Test group not found.")))
+
+    for {
+      progress <- progressFut
+      phase2 <- phase2TestGroup
+      isAlreadyExpired = progress.phase2ProgressResponse.phase2TestsExpired
+      extendDays = extendTime(isAlreadyExpired, phase2.expirationDate, DateTimeFactory)
+      newExpiryDate = extendDays(extraDays)
+      _ <- phase2TestRepo.updateGroupExpiryTime(applicationId, newExpiryDate, phase2TestRepo.phaseName)
+      _ <- getProgressStatusesToRemove(newExpiryDate, phase2, progress, DateTimeFactory)
+        .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
+    } yield {
+      audit(isAlreadyExpired, applicationId) ::
+        DataStoreEvents.OnlineExerciseExtended(applicationId, actionTriggeredBy) ::
+        Nil
+    }
+  }
+
+  private def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
+                                  profile: Phase2TestGroup,
+                                  progress: ProgressResponse,
+                                  clock: DateTimeFactory): Option[List[ProgressStatus]] = {
+    val today = clock.nowLocalTimeZone
+    val isSecondReminderNeededForTheNewExpiryDate = extendedExpiryDate.minusHours(Phase2SecondReminder.hoursBeforeReminder).isAfter(today)
+    val isFirstReminderNeededForTheNewExpiryDate = extendedExpiryDate.minusHours(Phase2FirstReminder.hoursBeforeReminder).isAfter(today)
+
+    val progressStatusesToRemove = (Set.empty[ProgressStatus]
+      ++ Set(PHASE2_TESTS_EXPIRED)
+      ++ (if (profile.hasNotStartedYet) Set(PHASE2_TESTS_STARTED) else Set.empty)
+      ++ (if (isSecondReminderNeededForTheNewExpiryDate) Set(PHASE2_TESTS_SECOND_REMINDER) else Set.empty)
+      ++ (if (isFirstReminderNeededForTheNewExpiryDate) Set(PHASE2_TESTS_FIRST_REMINDER) else Set.empty)).toList
+
+    if (progressStatusesToRemove.isEmpty) { None } else { Some(progressStatusesToRemove) }
+  }
+
+  private def audit(isAlreadyExpired: Boolean, applicationId: String) = {
+    val details = Map("applicationId" -> applicationId)
+    if (isAlreadyExpired) {
+      AuditEvents.ExpiredTestsExtended(details)
+    } else {
+      AuditEvents.NonExpiredTestsExtended(details)
+    }
+  }
 }
 
