@@ -150,7 +150,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     (document.getAs[BSONDocument]("progress-status") map { root =>
 
       def getProgress(key: String) = {
-        root.getAs[Boolean](key).orElse(root.getAs[Boolean](key.toLowerCase)).getOrElse(false)
+        root.getAs[Boolean](key)
+          .orElse(root.getAs[Boolean](key.toUpperCase))
+          .orElse(root.getAs[Boolean](key.toLowerCase))
+          .getOrElse(false)
       }
 
       def questionnaire = root.getAs[BSONDocument]("questionnaire").map { doc =>
