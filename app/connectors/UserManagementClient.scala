@@ -51,7 +51,7 @@ trait UserManagementClient {
         response
       }
     }.recover {
-      case Upstream4xxResponse(_, 401, _, _) => throw new InvalidCredentialsException(s"Email = $email")
+      case Upstream4xxResponse(_, 401, _, _) => throw new InvalidCredentialsException()
     }
 
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] =
@@ -88,7 +88,7 @@ trait UserManagementClient {
     http.PUT(s"${url.host}/failedAttempt", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
-      case e: NotFoundException => throw new InvalidCredentialsException(s"Email = $email")
+      case e: NotFoundException => throw new InvalidCredentialsException()
       case e: LockedException => throw new AccountLockedOutException()
       //TODO Figure out why LockedException is not caught, and fix this
       case Upstream4xxResponse(_, 423, _, _) => throw new AccountLockedOutException()
@@ -98,7 +98,7 @@ trait UserManagementClient {
     http.POST(s"${url.host}/find", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
-      case e: NotFoundException => throw new InvalidCredentialsException(s"Email = $email")
+      case e: NotFoundException => throw new InvalidCredentialsException()
     }
 
   def findByUserId(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[UserResponse] =
@@ -114,7 +114,7 @@ object UserManagementClient extends UserManagementClient {
   sealed class InvalidRoleException extends Exception
   sealed class InvalidEmailException extends Exception
   sealed class EmailTakenException extends Exception
-  sealed class InvalidCredentialsException(message: String) extends Exception(message)
+  sealed class InvalidCredentialsException(message: String = "") extends Exception(message)
   sealed class AccountLockedOutException extends Exception
   sealed class TokenEmailPairInvalidException extends Exception
   sealed class TokenExpiredException extends Exception
