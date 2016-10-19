@@ -19,35 +19,35 @@ package services.onlinetesting
 import akka.actor.ActorSystem
 import config.Phase2ScheduleExamples._
 import config._
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.{ Address, ApplicationStatus, ProgressStatuses }
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
-import connectors.{ CSREmailClient, CubiksGatewayClient }
-import factories.{ DateTimeFactory, UUIDFactory }
-import model.{ Address, ApplicationStatus }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PersistedObjects.ContactDetails
-import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses.{ toString => _, _ }
+import model.events.{ DataStoreEvent, DataStoreEvents }
 import model.exchange.CubiksTestResultReady
 import model.persisted._
+import model.{ Address, ApplicationStatus, ProgressStatuses }
 import org.joda.time.DateTime
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
+import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
+import services.onlinetesting.phase2.ScheduleSelector
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 
 class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
 
@@ -191,11 +191,60 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     }
   }
 
+  "reset phase2 tests" should {
+    "remove progress and register for new tests" in new Phase2TestServiceFixture {
+      val expectedRegistration = registrations.head
+      val expectedInvite = invites.head
+      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
+        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
+
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+      when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(List(expectedRegistration)))
+      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(List(expectedInvite)))
+
+      phase2TestService.resetTests(onlineTestApplication, "createdBy").futureValue
+
+      verify(otRepositoryMock).removeTestProfileProgresses("appId",
+        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY))
+      val expectedTestsAfterReset = List(phase2TestProfileWithStartedTests.tests.head.copy(usedForResults = false),
+        phase2Test.copy(scheduleId = DaroShedule.scheduleId, token = token, cubiksUserId = expectedRegistration.userId,
+          participantScheduleId = expectedInvite.participantScheduleId))
+      verify(otRepositoryMock).insertOrUpdateTestGroup(onlineTestApplication.applicationId,
+        phase2TestProfile.copy(tests = expectedTestsAfterReset)
+      )
+      verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+    }
+    "return reset limit exceeded exception" in new Phase2TestServiceFixture {
+      val expectedRegistration = registrations.head
+      val expectedInvite = invites.head
+      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
+        .map(t => t.copy(startedDateTime = Some(startedDate))))
+
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+      when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(List(expectedRegistration)))
+      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(List(expectedInvite)))
+
+      an[ResetLimitExceededException] must be thrownBy
+        Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
+    }
+    "return cannot reset phase2 tests exception" in new Phase2TestServiceFixture {
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(None))
+
+      an[CannotResetPhase2Tests] must be thrownBy
+        Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
+    }
+  }
+
   trait Phase2TestServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
     implicit val rh = mock[RequestHeader]
 
+    val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase2"
     val gatewayConfigMock =  CubiksGatewayConfig(
       "",
       Phase1TestsConfig(expiryTimeInDays = 7,
@@ -222,10 +271,12 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val otRepositoryMock = mock[Phase2TestRepository]
     val cubiksGatewayClientMock = mock[CubiksGatewayClient]
+    val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
     val emailClientMock = mock[CSREmailClient]
     var auditServiceMock = mock[AuditService]
-    val tokenFactoryMock = UUIDFactory
+    val tokenFactoryMock = mock[UUIDFactory]
     val eventServiceMock = mock[EventService]
+
     val tokens = UUIDFactory.generateUUID :: UUIDFactory.generateUUID :: Nil
     val registrations = Registration(123) :: Registration(456) :: Nil
     val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
@@ -236,6 +287,18 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       preferredName = "Optimus",
       lastName = "Prime",
       timeAdjustments = None
+    )
+
+    val preferredNameSanitized = "Preferred Name"
+    val lastName = ""
+    val emailCubiks = token + "@" + gatewayConfigMock.emailDomain
+    val registerApplicant = RegisterApplicant(preferredNameSanitized, lastName, emailCubiks)
+    val registration = Registration(cubiksUserId)
+    val scheduleId = 1
+
+    val inviteApplicant = InviteApplicant(scheduleId,
+      cubiksUserId, s"$scheduleCompletionBaseUrl/complete/$token",
+      resultsURL = None, timeAdjustments = Nil
     )
 
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
@@ -249,13 +312,13 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     )
 
     val invites = List(Invitation(userId = registrations.head.userId, email = "email@test.com", accessCode = "accessCode",
-       logonUrl = "logon.com", authenticateUrl = "authenticated", participantScheduleId = 999
+       logonUrl = "logon.com", authenticateUrl = authenticateUrl, participantScheduleId = 999
       ),
       Invitation(userId = registrations.last.userId, email = "email@test.com", accessCode = "accessCode", logonUrl = "logon.com",
-        authenticateUrl = "authenticated", participantScheduleId = 888
+        authenticateUrl = authenticateUrl, participantScheduleId = 888
     ))
 
-    val phase2Test = CubiksTest(scheduleId = 3,
+    val phase2Test = CubiksTest(scheduleId = 1,
       usedForResults = true,
       cubiksUserId = cubiksUserId,
       token = token,
@@ -276,6 +339,12 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup]))
         .thenReturn(Future.successful(()))
 
+    when(otRepositoryMock.getTestGroup(any[String]))
+      .thenReturn(Future.successful(Some(phase2TestProfile)))
+
+    when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]]))
+      .thenReturn(Future.successful(()))
+
     when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(ContactDetails(
       Address("Aldwych road"), "QQ1 1QQ", "email@test.com", Some("111111")
     )))
@@ -283,7 +352,11 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     when(emailClientMock.sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
 
-    val phase2TestService = new Phase2TestService with EventServiceFixture {
+    when(tokenFactoryMock.generateUUID()).thenReturn(token)
+
+    when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
+
+    val phase2TestService = new Phase2TestService with EventServiceFixture with ScheduleSelector {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val phase2TestRepo = otRepositoryMock
@@ -291,7 +364,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val tokenFactory = tokenFactoryMock
-      val dateTimeFactory = DateTimeFactory
+      val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = gatewayConfigMock
       val actor = ActorSystem()
     }

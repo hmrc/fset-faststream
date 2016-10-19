@@ -22,10 +22,11 @@ import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.Exceptions.NotFoundException
 import model.OnlineTestCommands._
 import model.ProgressStatuses
-import model.events.DataStoreEvents
 import model.events.EventTypes.EventType
+import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import org.joda.time.DateTime
@@ -34,7 +35,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.events.EventService
-import services.events.{ EventService, EventSink }
+import services.onlinetesting.ResetPhase2Test._
 import services.onlinetesting.phase2.ScheduleSelector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -90,6 +91,23 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     phase2TestRepo.nextApplicationsReadyForOnlineTesting
   }
 
+  def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
+                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    phase2TestRepo.getTestGroup(application.applicationId).flatMap {
+       case Some(phase2TestGroup) if schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
+         val schedule = getRandomSchedule(phase2TestGroup.tests.map(_.scheduleId))
+         registerAndInviteForTestGroup(List(application), schedule).map { _ =>
+           audit("Phase2TestInvitationProcessComplete", application.userId)
+           AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
+             DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
+         }
+       case Some(phase2TestGroup) if !schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
+         throw ResetLimitExceededException()
+       case _ =>
+         throw CannotResetPhase2Tests()
+     }
+  }
+
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(List(application))
@@ -104,9 +122,9 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     }.toMap)
   }
 
-  def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)])
+  def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)],
+                       schedule: Phase2Schedule = getRandomSchedule())
     (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
-    val schedule = getRandomSchedule
     val invites = candidateData.values.map { case (application, token, registration) =>
       buildInviteApplication(application, token, registration.userId, schedule)
     }.toList
@@ -119,24 +137,33 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = filterCandidates(applications) match {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+    registerAndInviteForTestGroup(applications, getRandomSchedule()).map { candidatesToProgress =>
+      eventSink {
+        Future.successful(
+          candidatesToProgress.map(candidate => {
+            audit("Phase2TestInvitationProcessComplete", candidate.userId)
+            DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
+          })
+        )
+      }
+    }
 
-    case Nil => Future.successful(())
-
-    case candidatesToProcess => eventSink {
+  private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = filterCandidates(applications) match {
+    case Nil => Future.successful(Nil)
+    case candidatesToProcess =>
       val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
       implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
 
       for {
         registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
-        invitedApplicants <- inviteApplicants(registeredApplicants)
+        invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
         _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
         _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
-      } yield candidatesToProcess.map { candidate =>
-          audit("Phase2TestInvitationProcessComplete", candidate.userId)
-          DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId)
+      } yield {
+        candidatesToProcess
       }
-    }
   }
 
   def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, schedule: Phase2Schedule) = {
@@ -152,7 +179,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   private def insertPhase2TestGroups(o: List[Phase2TestInviteData])
     (implicit invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = Future.sequence(o.map { completedInvite =>
-    val testGroup = Phase2TestGroup(expirationDate = expirationDate,
+    val newTestGroup = Phase2TestGroup(expirationDate = expirationDate,
       List(CubiksTest(scheduleId = completedInvite.scheduleId,
         usedForResults = true,
         cubiksUserId = completedInvite.registration.userId,
@@ -162,9 +189,25 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
         participantScheduleId = completedInvite.invitation.participantScheduleId
       ))
     )
-
-    phase2TestRepo.insertOrUpdateTestGroup(completedInvite.application.applicationId, testGroup)
+    insertOrUpdateTestGroup(completedInvite.application)(newTestGroup)
   }).map( _ => () )
+
+  private def insertOrUpdateTestGroup(application: OnlineTestApplication)
+                           (newPhase2TestGroup: Phase2TestGroup): Future[Unit] = for {
+    currentPhase2TestGroup <- phase2TestRepo.getTestGroup(application.applicationId)
+    updatedPhase2TestGroup = merge(currentPhase2TestGroup, newPhase2TestGroup)
+    _ <- phase2TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedPhase2TestGroup)
+    _ <- phase2TestRepo.removeTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedPhase2TestGroup))
+  } yield ()
+
+  private def merge(currentProfile: Option[Phase2TestGroup], newProfile: Phase2TestGroup): Phase2TestGroup = currentProfile match {
+    case None => newProfile
+    case Some(profile) =>
+      val existingTestsAfterUpdate = profile.tests.map(t =>
+          t.copy(usedForResults = false)
+      )
+      Phase2TestGroup(newProfile.expirationDate, existingTestsAfterUpdate ++ newProfile.tests)
+  }
 
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]= eventSink {
@@ -247,5 +290,20 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   private def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
 
+}
+
+object ResetPhase2Test {
+
+  import ProgressStatuses._
+
+  case class CannotResetPhase2Tests() extends NotFoundException
+
+  case class ResetLimitExceededException() extends Exception
+
+  def determineStatusesToRemove(testGroup: Phase2TestGroup): List[ProgressStatus] = {
+      (if (testGroup.hasNotStartedYet) List(PHASE2_TESTS_STARTED) else List()) ++
+      (if (testGroup.hasNotCompletedYet) List(PHASE2_TESTS_COMPLETED) else List()) ++
+      (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY) else List())
+  }
 }
 
