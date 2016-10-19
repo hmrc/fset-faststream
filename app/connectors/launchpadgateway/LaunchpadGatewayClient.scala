@@ -21,7 +21,7 @@ import config.MicroserviceAppConfig._
 import connectors.launchpadgateway.exchangeobjects._
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
-import play.api.libs.json.{ Json, Reads }
+import play.api.libs.json.Reads
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.ExecutionContext.Implicits.global

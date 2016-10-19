@@ -77,25 +77,27 @@ trait TestDataGeneratorController extends BaseController {
   // scalastyle:off parameter.number
   // scalastyle:off method.length
   def createCandidatesInStatus(applicationStatus: String,
-                               progressStatus: Option[String],
-                               numberToGenerate: Int,
-                               emailPrefix: String,
-                               setGis: Boolean,
-                               firstName: Option[String],
-                               lastName: Option[String],
-                               preferredName: Option[String],
-                               isCivilServant: Option[Boolean],
-                               hasDegree: Option[Boolean],
-                               region: Option[String],
-                               loc1scheme1EvaluationResult: Option[String],
-                               loc1scheme2EvaluationResult: Option[String],
-                               previousStatus: Option[String],
-                               confirmedAllocation: Boolean,
-                               dateOfBirth: Option[String],
-                               postCode: Option[String],
-                               country: Option[String],
-                               phase1StartTime: Option[String],
-                               phase1ExpiryTime: Option[String]) = Action.async { implicit request =>
+    progressStatus: Option[String],
+    numberToGenerate: Int,
+    emailPrefix: String,
+    setGis: Boolean,
+    firstName: Option[String],
+    lastName: Option[String],
+    preferredName: Option[String],
+    isCivilServant: Option[Boolean],
+    hasDegree: Option[Boolean],
+    region: Option[String],
+    loc1scheme1EvaluationResult: Option[String],
+    loc1scheme2EvaluationResult: Option[String],
+    previousStatus: Option[String],
+    confirmedAllocation: Boolean,
+    dateOfBirth: Option[String],
+    postCode: Option[String],
+    country: Option[String],
+    phase1StartTime: Option[String],
+    phase1ExpiryTime: Option[String],
+    tscore: Option[Double]
+  ) = Action.async { implicit request =>
     val initialConfig = GeneratorConfig(
       emailPrefix = emailPrefix,
       setGis = setGis,
@@ -118,7 +120,8 @@ trait TestDataGeneratorController extends BaseController {
       postCode = postCode.map(pc => validatePostcode(pc)),
       country = country,
       phase1StartTime = phase1StartTime.map(x => DateTime.parse(x)),
-      phase1ExpiryTime = phase1ExpiryTime.map(x => DateTime.parse(x))
+      phase1ExpiryTime = phase1ExpiryTime.map(x => DateTime.parse(x)),
+      tscore = tscore
     )
 
     TestDataGeneratorService.createCandidatesInSpecificStatus(

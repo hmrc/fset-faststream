@@ -59,6 +59,14 @@ object StatusGeneratorFactory {
         }
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_COMPLETED)) => Phase1TestsCompletedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)) => Phase1TestsResultsReceivedStatusGenerator
+      case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_INVITED)) => Phase2TestsInvitedStatusGenerator
+      case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_STARTED)) => Phase2TestsStartedStatusGenerator
+      case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_EXPIRED)) =>
+        if (generatorConfig.phase1StartTime.isDefined) {
+          Phase2TestsExpiredFromStartedStatusGenerator
+        } else {
+          Phase2TestsExpiredFromInvitedStatusGenerator
+        }
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_INVITED)) => Phase3TestsInvitedStatusGenerator
       case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
     }
