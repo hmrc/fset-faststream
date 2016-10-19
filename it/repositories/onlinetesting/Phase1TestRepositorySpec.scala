@@ -233,6 +233,28 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         timeAdjustments mustBe None
       }
     }
+    "be correctly read from mongo with lower case submitted status" in {
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "submitted", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false, isGis = true
+      ).futureValue
+
+      val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      onlineTestApplications.length mustBe 1
+
+      inside (onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId,
+      guaranteedInterview, needsAdjustments, preferredName, lastName, timeAdjustments) =>
+
+        applicationId mustBe "appId"
+        applicationStatus mustBe "submitted"
+        userId mustBe "userId"
+        guaranteedInterview mustBe true
+        needsAdjustments mustBe false
+        preferredName mustBe testCandidate("preferredName")
+        lastName mustBe testCandidate("lastName")
+        timeAdjustments mustBe None
+      }
+    }
   }
 
   "nextExpiringApplication" should {
