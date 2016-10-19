@@ -28,6 +28,7 @@ import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
+import play.api.Logger
 
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
   import TextFixture._
@@ -157,7 +158,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
     "return a test group if only one report is ready to download" in {
 
-      val profile = testProfileWithAppId.phase1TestProfile.copy(tests = List(phase1Test.copy(resultsReadyToDownload = false), phase1Test))
+      val profile = testProfileWithAppId.phase1TestProfile.copy(tests = List(phase1Test, phase1Test.copy(resultsReadyToDownload = true)))
 
       createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
@@ -167,7 +168,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
       phase1TestResultsReady.isDefined mustBe true
-      phase1TestResultsReady.get mustBe profile
+      phase1TestResultsReady.get mustBe Phase1TestWithUserIds("appId2", "userId2", profile)
     }
 
     "correctly update a test group with results" in {

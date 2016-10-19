@@ -26,6 +26,7 @@ import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Pha
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import play.api.Logger
+import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.bson._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -173,9 +174,8 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_COMPLETED}" -> true),
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> BSONDocument("$ne" -> true)),
       BSONDocument("testGroups.PHASE1.tests" ->
-        BSONDocument("$elemMatch" -> BSONArray(BSONDocument("resultsReadyToDownload" -> true),
-          BSONDocument("testResult" -> BSONDocument("$exists" -> false)))
-      ))
+        BSONDocument("$elemMatch" -> BSONDocument("resultsReadyToDownload" -> true, "testResult" -> BSONDocument("$exists" -> false)))
+      )
     ))
 
     implicit val reader = bsonReader { doc =>
