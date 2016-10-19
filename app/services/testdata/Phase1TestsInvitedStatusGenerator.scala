@@ -19,7 +19,7 @@ package services.testdata
 import java.util.UUID
 
 import config.CubiksGatewayConfig
-import connectors.testdata.ExchangeObjects.{ Phase1TestGroupResponse, Phase1TestResponse }
+import connectors.testdata.ExchangeObjects.{ TestGroupResponse, CubiksTestResponse }
 import model.persisted.{ CubiksTest, Phase1TestProfile }
 import org.joda.time.DateTime
 import repositories._
@@ -43,7 +43,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     val sjqTest = CubiksTest(
-      cubiksUserId = scala.util.Random.nextInt(1000000000),
+      cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
@@ -53,7 +53,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
     )
 
     val bqTest = CubiksTest(
-      cubiksUserId = scala.util.Random.nextInt(1000000000),
+      cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
       invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
@@ -75,10 +75,10 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       val bq = phase1TestProfile.tests.find(t => t.cubiksUserId == bqTest.cubiksUserId)
 
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
-        Phase1TestGroupResponse(
-          List(Phase1TestResponse(sjq.cubiksUserId, sjq.token, sjq.testUrl)) ++
+        TestGroupResponse(
+          List(CubiksTestResponse(sjq.cubiksUserId, sjq.token, sjq.testUrl)) ++
           bq.map { b =>
-            List(Phase1TestResponse(b.cubiksUserId, b.token, b.testUrl))
+            List(CubiksTestResponse(b.cubiksUserId, b.token, b.testUrl))
           }.getOrElse(Nil)
         )
       ))

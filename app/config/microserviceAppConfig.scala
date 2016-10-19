@@ -122,6 +122,10 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-phase1-reminder-expiring-test-job")
   lazy val secondPhase1ReminderJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-phase1-reminder-expiring-test-job")
+  lazy val firstPhase2ReminderJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-phase2-reminder-expiring-test-job")
+  lazy val secondPhase2ReminderJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-phase2-reminder-expiring-test-job")
 
   lazy val expirePhase1TestJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase1-job")

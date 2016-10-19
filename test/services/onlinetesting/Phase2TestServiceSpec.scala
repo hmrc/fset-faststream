@@ -24,8 +24,8 @@ import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PersistedObjects.ContactDetails
-import model.ProgressStatuses.{ toString => _, _ }
-import model.events.{ DataStoreEvent, DataStoreEvents }
+import model.ProgressStatuses.{ ProgressStatus, _ }
+import model.events.DataStoreEvents
 import model.exchange.CubiksTestResultReady
 import model.persisted._
 import model.{ Address, ApplicationStatus, ProgressStatuses }
@@ -344,6 +344,10 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
     when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]]))
       .thenReturn(Future.successful(()))
+
+    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(ContactDetails(
+      Address("Aldwych road"), "QQ1 1QQ", "email@test.com", Some("111111")
+    )))
 
     when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(ContactDetails(
       Address("Aldwych road"), "QQ1 1QQ", "email@test.com", Some("111111")

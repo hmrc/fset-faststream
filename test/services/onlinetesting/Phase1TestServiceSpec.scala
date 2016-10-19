@@ -21,14 +21,14 @@ import config._
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.Commands.PostCode
+import model._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
-import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
-import model._
-import model.events.EventTypes.{ toString => _ }
+import model.events.EventTypes.{ toString => _, _ }
 import model.exchange.CubiksTestResultReady
-import model.persisted.{ CubiksTest, Phase1TestProfile, Phase1TestWithUserIds }
+import model.persisted.{ ContactDetails, CubiksTest, Phase1TestProfile, Phase1TestWithUserIds }
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -39,7 +39,8 @@ import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
-import repositories.{ ContactDetailsRepository, TestReportRepository }
+import repositories.TestReportRepository
+import repositories.contactdetails.ContactDetailsRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
 import testkit.ExtendedTimeout
@@ -130,9 +131,9 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     email = Some("test@test.com"), dateOfBirth = None, address = None, postCode = None, country = None
   )
 
-  val postcode = "WC2B 4"
+  val postcode : Option[PostCode]= Some("WC2B 4")
   val emailContactDetails = "emailfjjfjdf@mailinator.com"
-  val contactDetails = ContactDetails(Address("Aldwych road"), postcode, emailContactDetails, Some("111111"))
+  val contactDetails = ContactDetails(false, Address("Aldwych road"), postcode, Some("UK"), emailContactDetails, "111111")
 
   val auditDetails = Map("userId" -> userId)
   val auditDetailsWithEmail = auditDetails + ("email" -> emailContactDetails)

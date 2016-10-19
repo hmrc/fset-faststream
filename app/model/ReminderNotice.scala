@@ -16,20 +16,33 @@
 
 package model
 
-import model.ProgressStatuses.{ PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, ProgressStatus }
+import model.ProgressStatuses._
 
 import scala.concurrent.duration.{ DAYS, HOURS, TimeUnit }
 
 sealed case class ReminderNotice(hoursBeforeReminder: Int, progressStatuses: ProgressStatus) {
   require(hoursBeforeReminder > 0, "Hours before reminder was negative")
-  require(progressStatuses == PHASE1_TESTS_FIRST_REMINDER || progressStatuses == PHASE1_TESTS_SECOND_REMINDER,
-    "progressStatuses value not allowed")
+  require(progressStatuses == PHASE1_TESTS_FIRST_REMINDER ||
+          progressStatuses == PHASE1_TESTS_SECOND_REMINDER ||
+          progressStatuses == PHASE2_TESTS_FIRST_REMINDER ||
+          progressStatuses == PHASE2_TESTS_SECOND_REMINDER,
+          "progressStatuses value not allowed")
 
-  def timeUnit: TimeUnit = progressStatuses match {
-    case PHASE1_TESTS_SECOND_REMINDER => HOURS
-    case PHASE1_TESTS_FIRST_REMINDER => DAYS
+  private val Phase_1 = "PHASE1"
+  private val Phase_2 = "PHASE2"
+
+  private def timeUnitAndPhase: (TimeUnit, String) = progressStatuses match {
+    case PHASE1_TESTS_SECOND_REMINDER => (HOURS, Phase_1)
+    case PHASE1_TESTS_FIRST_REMINDER => (DAYS, Phase_1)
+    case PHASE2_TESTS_SECOND_REMINDER => (HOURS, Phase_2)
+    case PHASE2_TESTS_FIRST_REMINDER => (DAYS, Phase_2)
   }
+
+  val timeUnit: TimeUnit = timeUnitAndPhase._1
+  val phase: String = timeUnitAndPhase._2
 }
 
 object Phase1FirstReminder extends ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
 object Phase1SecondReminder extends ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER)
+object Phase2FirstReminder extends ReminderNotice(72, PHASE2_TESTS_FIRST_REMINDER)
+object Phase2SecondReminder extends ReminderNotice(24, PHASE2_TESTS_SECOND_REMINDER)

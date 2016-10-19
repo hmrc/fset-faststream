@@ -19,7 +19,7 @@ package common
 import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.language.higherKinds
-import scala.util.{ Failure, Success, Try }
+import scala.util.Try
 
 object FutureEx {
   /**
