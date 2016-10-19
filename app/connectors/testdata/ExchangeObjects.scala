@@ -17,7 +17,7 @@
 package connectors.testdata
 
 import model.Commands.ApplicationAssessment
-import model.persisted.{ ContactDetails, PersonalDetails }
+import model.persisted.{ContactDetails, PersonalDetails}
 import model.SelectedSchemes
 import play.api.libs.json.Json
 
@@ -42,6 +42,7 @@ object ExchangeObjects {
                                    )
 
   case class TestGroupResponse(tests: List[CubiksTestResponse])
+
   case class CubiksTestResponse(cubiksUserId: Int, token: String, testUrl: String)
 
   object Implicits {
