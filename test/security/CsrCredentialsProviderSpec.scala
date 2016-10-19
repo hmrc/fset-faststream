@@ -52,42 +52,42 @@ class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures{
 
     "return AccountLocked when account status is locked" in new TestFixture {
       val csrCredentialsProvider = new TestCsrCredentialsProvider(
-        signInResponse = Future.failed(new InvalidCredentialsException()),
+        signInResponse = Future.failed(new InvalidCredentialsException),
         failedLoginResponse = Future.successful(userResponse.copy(lockStatus = "LOCKED")))
       csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(AccountLocked)
     }
 
     "return LastAttempt when account status is last attempt" in new TestFixture {
       val csrCredentialsProvider = new TestCsrCredentialsProvider(
-        signInResponse = Future.failed(new InvalidCredentialsException()),
+        signInResponse = Future.failed(new InvalidCredentialsException),
         failedLoginResponse = Future.successful(userResponse.copy(lockStatus = "LAST_ATTEMPT")))
       csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(LastAttempt)
     }
 
     "return InvalidCredentials when the credentials are invalid and we cannot record login failure" in new TestFixture {
       val csrCredentialsProvider = new TestCsrCredentialsProvider(
-        signInResponse = Future.failed(new InvalidCredentialsException()),
-        failedLoginResponse = Future.failed(new InvalidCredentialsException()))
+        signInResponse = Future.failed(new InvalidCredentialsException),
+        failedLoginResponse = Future.failed(new InvalidCredentialsException))
       csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(InvalidCredentials)
     }
 
     "return InvalidCredentials when the credentials are invalid and we can record failed login" in new TestFixture {
       val csrCredentialsProvider = new TestCsrCredentialsProvider(
-        signInResponse = Future.failed(new InvalidCredentialsException()),
+        signInResponse = Future.failed(new InvalidCredentialsException),
         failedLoginResponse = Future.successful(userResponse))
       csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(InvalidCredentials)
     }
 
     "return InvalidCredentials when sign in fails and status is not last attempt or locked" in new TestFixture {
       val csrCredentialsProvider = new TestCsrCredentialsProvider(
-        signInResponse = Future.failed(new InvalidCredentialsException()),
+        signInResponse = Future.failed(new InvalidCredentialsException),
         failedLoginResponse = Future.successful(userResponse.copy(lockStatus = "xxxx")))
       csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(InvalidCredentials)
     }
 
     "return AccountLocked when there is an AccountLockedOutException" in new TestFixture {
       val csrCredentialsProvider = new TestCsrCredentialsProvider(
-        signInResponse = Future.failed(new InvalidCredentialsException()),
+        signInResponse = Future.failed(new InvalidCredentialsException),
         failedLoginResponse = Future.failed(new AccountLockedOutException))
       csrCredentialsProvider.authenticate(credentials).futureValue mustBe Left(AccountLocked)
     }
