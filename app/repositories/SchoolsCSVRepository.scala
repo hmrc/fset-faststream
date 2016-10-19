@@ -55,7 +55,7 @@ object SchoolsCSVRepository extends SchoolsRepository {
   private[repositories] def parseLine(line: String): Array[String] = {
     if (line.split(",").length != ExpectedNumberOfHeaders) {
       val sanitized = line.split("\"")
-      require(sanitized.length == 3, "Line cannot have more than one value with quatation")
+      require(sanitized.length == 3, "Line cannot have more than one value with quotation")
       require(!sanitized(1).contains("|"), "| is forbidden character")
 
       val parsedLine = sanitized(0) + sanitized(1).replaceAll(",", "|") + sanitized(2)
