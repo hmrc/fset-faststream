@@ -61,7 +61,8 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     ),
     competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
     situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, Map("daro" -> Phase2ScheduleExamples.DaroShedule)),
+    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, expiryTimeInDaysForInvigilatedETray = 90,
+      Map("daro" -> Phase2ScheduleExamples.DaroShedule)),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"
