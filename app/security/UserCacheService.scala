@@ -39,12 +39,9 @@ class UserCacheService(applicationClient: ApplicationClient, userManagementClien
   override def save(user: CachedData)(implicit hc: HeaderCarrier): Future[CachedData] =
     CSRCache.cache[CachedData](user.user.userID.toString(), user).map(_ => user)
 
-  override def refreshCachedUser(userId: UniqueIdentifier)(implicit hc: HeaderCarrier, request: Request[_]): Future[CachedData] =
-    refreshCachedUser(userId.toString())
-
-  override def refreshCachedUser(userId: String)(implicit hc: HeaderCarrier, request: Request[_]): Future[CachedData] = {
+  override def refreshCachedUser(userId: UniqueIdentifier)(implicit hc: HeaderCarrier, request: Request[_]): Future[CachedData] = {
     userManagementClient.findByUserId(userId).flatMap { userData =>
-      applicationClient.findApplication(UniqueIdentifier(userId), FrameworkId).flatMap { appData =>
+      applicationClient.findApplication(userId, FrameworkId).flatMap { appData =>
         val cd = CachedData(userData.toCached, Some(appData))
         save(cd)
       }.recover {

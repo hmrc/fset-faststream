@@ -28,5 +28,4 @@ trait UserService extends IdentityService[SecurityUser] {
   def save(user: CachedData)(implicit hc: HeaderCarrier): Future[CachedData]
 
   def refreshCachedUser(userId: UniqueIdentifier)(implicit hc: HeaderCarrier, request: Request[_]): Future[CachedData]
-  def refreshCachedUser(userId: String)(implicit hc: HeaderCarrier, request: Request[_]): Future[CachedData]
 }

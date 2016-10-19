@@ -23,7 +23,7 @@ import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import config.{ CSRCache, SecurityEnvironmentImpl }
 import controllers.routes
 import helpers.NotificationType._
-import models.{ CachedData, CachedDataWithApp, SecurityUser }
+import models.{ CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier }
 import play.api.Logger
 import play.api.i18n.Lang
 import play.api.mvc._
@@ -59,7 +59,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
       case ex: KeyStoreEntryValidationException =>
         Logger.warn(s"Retrieved invalid cache entry for userId '${securityUser.userID}' (structure changed?). " +
           s"Attempting cache refresh from database...")
-        SecurityEnvironmentImpl.userService.refreshCachedUser(securityUser.userID).map(Some(_))
+        SecurityEnvironmentImpl.userService.refreshCachedUser(UniqueIdentifier(securityUser.userID)).map(Some(_))
       case ex: Throwable =>
         Logger.warn(s"Retrieved invalid cache entry for userID '${securityUser.userID}. Could not recover!")
         throw ex

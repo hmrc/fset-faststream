@@ -33,7 +33,7 @@ package object exchange {
 
   case class EmailWrapper(email: String, service: String)
 
-  case class FindByUserIdRequest(userId: String)
+  case class FindByUserIdRequest(userId: UniqueIdentifier)
 
   case class CreateApplicationRequest(userId: UniqueIdentifier, frameworkId: String)
 

@@ -46,7 +46,7 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
         phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
         phase2TestsWithNames <- getPhase2Test
         allocationDetails <- applicationClient.getAllocationDetails(application.applicationId)
-        updatedData <- env.userService.refreshCachedUser(cachedData.user.userID.toString())(hc, request)
+        updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
       } yield {
         val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)),
           phase2TestsWithNames.map(Phase2TestsPage.apply)

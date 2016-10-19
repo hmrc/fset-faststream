@@ -101,7 +101,7 @@ trait UserManagementClient {
       case e: NotFoundException => throw new InvalidCredentialsException(s"Email = $email")
     }
 
-  def findByUserId(userId: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
+  def findByUserId(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[UserResponse] =
     http.POST(s"${url.host}/service/$ServiceName/findUserById", FindByUserIdRequest(userId)).map { (resp: HttpResponse) =>
       resp.json.as[UserResponse]
     }.recover {
