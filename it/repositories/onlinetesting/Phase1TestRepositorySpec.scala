@@ -20,17 +20,28 @@ import java.util.UUID
 
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.OnlineTestApplication
-import model.persisted.{ CubiksTest, Phase1TestProfile }
+import model.persisted.{CubiksTest, Phase1TestProfile}
 import model.persisted.ExpiringOnlineTest
-import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
+import model.ProgressStatuses.{PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _}
 import model.persisted.Phase1TestWithUserIds
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
-import org.joda.time.{ DateTime, DateTimeZone }
+import model.{ApplicationStatus, ProgressStatuses, ReminderNotice, persisted}
+import org.joda.time.{DateTime, DateTimeZone}
+import reactivemongo.api.commands.WriteResult
+import reactivemongo.bson.{BSONArray, BSONDocument}
+import reactivemongo.json.ImplicitBSONHandlers
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
+import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
+import factories.DateTimeFactory
+import model.{ApplicationStatus, ProgressStatuses, ReminderNotice, persisted}
+import org.joda.time.{DateTime, DateTimeZone}
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
   import TextFixture._
+
+  override val collectionName = "application"
 
   val Token = UUID.randomUUID.toString
   val Now =  DateTime.now(DateTimeZone.UTC)

@@ -18,6 +18,7 @@ package controllers
 
 import model.Commands._
 import model.Exceptions.CannotAddMedia
+import model.persisted.Media
 import play.api.mvc.Action
 import repositories._
 import services.AuditService
@@ -37,7 +38,7 @@ trait MediaController extends BaseController {
   val auditService: AuditService
 
   def addMedia() = Action.async(parse.json) { implicit request =>
-    withJsonBody[AddMedia] { media =>
+    withJsonBody[Media] { media =>
 
       (for {
         _ <- mRepository.create(media)
