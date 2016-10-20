@@ -22,10 +22,11 @@ import play.api.libs.json.Json
 import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
+import model.report.QuestionnaireReportItem
 
-case class PassMarkReport(
+case class OnlineTestPassMarkReportItem(
                            application: ApplicationForOnlineTestPassMarkReportItem,
-                           questionnaire: PassMarkReportQuestionnaireData)
+                           questionnaire: QuestionnaireReportItem)
 
 case class ApplicationForOnlineTestPassMarkReportItem(applicationId: String,
                                                       schemes: List[SchemeType],
@@ -44,17 +45,7 @@ case class PassMarkReportWithPersonalData(application: ReportWithPersonalDetails
                                           testResults: PassMarkReportTestResults,
                                           contactDetails: PhoneAndEmail)
 
-case class PassMarkReportQuestionnaireData(
-                                            gender: Option[String],
-                                            sexualOrientation: Option[String],
-                                            ethnicity: Option[String],
-                                            parentEmploymentStatus: Option[String],
-                                            parentOccupation: Option[String],
-                                            parentEmployedOrSelf: Option[String],
-                                            parentCompanySize: Option[String],
-                                            socioEconomicScore: String,
-                                            university: Option[String]
-                                          )
+
 
 
 
@@ -67,16 +58,13 @@ object PassMarkReportWithPersonalData {
   implicit val passMarkReportWithPersonalDetailsFormat = Json.format[PassMarkReportWithPersonalData]
 }
 
-object PassMarkReportQuestionnaireData {
-  implicit val passMarkReportQuestionnaireDataFormat = Json.format[PassMarkReportQuestionnaireData]
-}
 
 object ApplicationForOnlineTestPassMarkReportItem {
   implicit val applicationForOnlineTestReportItemFormat = Json.format[ApplicationForOnlineTestPassMarkReportItem]
 }
 
-object PassMarkReport {
-  implicit val passMarkReportFormat = Json.format[PassMarkReport]
+object OnlineTestPassMarkReportItem {
+  implicit val onlineTestPassMarkReportFormat = Json.format[OnlineTestPassMarkReportItem]
 }
 
 

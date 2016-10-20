@@ -30,7 +30,7 @@ import model.report.AdjustmentReport
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, TestDataMongoRepository }
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper, TestDataMongoRepository}
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
@@ -45,7 +45,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val collectionName = "application"
 
-  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
 
   def assistanceRepo = new AssistanceDetailsMongoRepository()
 

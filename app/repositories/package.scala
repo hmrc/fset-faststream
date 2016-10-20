@@ -56,20 +56,21 @@ package object repositories {
   lazy val faststreamAssistanceDetailsRepository = new assistancedetails.AssistanceDetailsMongoRepository()
   lazy val faststreamPhase1EvaluationRepository = new onlinetesting.Phase1EvaluationMongoRepository()
   lazy val schoolsRepository = SchoolsCSVRepository
+  lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
+  lazy val mediaRepository = new MediaMongoRepository()
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService,
+    cubiksGatewayConfig,
+    GeneralApplicationRepoBSONToModelHelper)
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService)
   lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
-  lazy val mediaRepository = new MediaMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
-  lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
   lazy val testReportRepository = new TestReportMongoRepository()
-  lazy val diversityReportRepository = new ReportingMongoRepository()
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
@@ -177,13 +178,6 @@ package object repositories {
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
   implicit val answerHandler: BSONHandler[BSONDocument, PersistedAnswer] = Macros.handler[PersistedAnswer]
-  implicit val diversityEthnicityHandler: BSONHandler[BSONDocument, DiversityEthnicity] = Macros.handler[DiversityEthnicity]
-  implicit val diversitySocioEconomicsHandler: BSONHandler[BSONDocument, DiversitySocioEconomic] = Macros.handler[DiversitySocioEconomic]
-  implicit val diversityGenderHandler: BSONHandler[BSONDocument, DiversityGender] =
-    Macros.handler[DiversityGender]
-  implicit val diversitySexualityyHandler: BSONHandler[BSONDocument, DiversitySexuality] =
-    Macros.handler[DiversitySexuality]
-  implicit val diversityReportRowHandler: BSONHandler[BSONDocument, DiversityReportRow] = Macros.handler[DiversityReportRow]
   implicit val candidateScoresHandler: BSONHandler[BSONDocument, CandidateScores] = Macros.handler[CandidateScores]
   implicit val candidateScoreFeedback: BSONHandler[BSONDocument, CandidateScoreFeedback] = Macros.handler[CandidateScoreFeedback]
   implicit val candidateScoresAndFeedback: BSONHandler[BSONDocument, CandidateScoresAndFeedback] = Macros.handler[CandidateScoresAndFeedback]
@@ -210,23 +204,23 @@ package object repositories {
 
     val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
     val guaranteedInterview = assistanceDetailsRoot.getAs[Boolean]("guaranteedInterview").getOrElse(false)
-    val needsAdjustment = assistanceDetailsRoot.getAs[String]("needsAdjustment").contains("Yes")
+    val needsAdjustmentForOnlineTests = assistanceDetailsRoot.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)
 
-    if (needsAdjustment) {
-      val typeOfAdjustmentsRoot = assistanceDetailsRoot.getAs[BSONArray]("typeOfAdjustments").get
-      val timeExtension = typeOfAdjustmentsRoot.values.contains(BSONString("time extension"))
+    if (needsAdjustmentForOnlineTests) {
+      val typeOfAdjustmentsRoot = assistanceDetailsRoot.getAs[BSONArray]("typeOfAdjustments")
+      val timeExtension = typeOfAdjustmentsRoot.exists(_.values.contains(BSONString("time extension")))
       if (timeExtension) {
         val verbalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("verbalTimeAdjustmentPercentage").get
         val numericalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("numericalTimeAdjustmentPercentage").get
         val timeAdjustments = TimeAdjustmentsOnlineTestApplication(verbalTimeAdjustmentPercentage, numericalTimeAdjustmentPercentage)
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
           lastName, Some(timeAdjustments))
       } else {
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
           lastName, None)
       }
     } else {
-      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustment, preferredName,
+      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
         lastName, None)
     }
 

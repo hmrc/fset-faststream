@@ -23,11 +23,10 @@ import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplica
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.PersistedObjects.ContactDetails
-import model.ProgressStatuses.{ ProgressStatus, _ }
+import model.ProgressStatuses._
 import model.events.DataStoreEvents
 import model.exchange.CubiksTestResultReady
-import model.persisted._
+import model.persisted.{ ContactDetails, Phase2TestGroup, _ }
 import model.{ Address, ApplicationStatus, ProgressStatuses }
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -36,8 +35,8 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
-import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
@@ -108,17 +107,6 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
       verify(otRepositoryMock).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
       phase2TestService.verifyDataStoreEvents(1, "OnlineExerciseResultSent")
-    }
-
-    "exclude adjsutments candidates from the invite" in new Phase2TestServiceFixture {
-      val adjustmentCandidates = candidates :+ adjustmentApplication :+ adjustmentApplication2
-      phase2TestService.registerAndInviteForTestGroup(adjustmentCandidates).futureValue
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
-      verify(otRepositoryMock, times(0)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
-      //phase2TestService.verifyDataStoreEvents(0, "OnlineExerciseResultSent")
-
     }
   }
 
@@ -345,13 +333,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]]))
       .thenReturn(Future.successful(()))
 
-    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(ContactDetails(
-      Address("Aldwych road"), "QQ1 1QQ", "email@test.com", Some("111111")
-    )))
-
-    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(ContactDetails(
-      Address("Aldwych road"), "QQ1 1QQ", "email@test.com", Some("111111")
-    )))
+    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(
+      ContactDetails(false, Address("Aldwych road"), Some("QQ1 1QQ"), Some("UK"), "email@test.com", "111111")))
 
     when(emailClientMock.sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))

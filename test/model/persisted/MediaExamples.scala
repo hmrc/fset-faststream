@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package model.exchange
+package model.persisted
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
-import play.api.libs.json.Json
-
-case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest)
-
-object Phase2TestGroupWithActiveTest {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithActiveTest]
+object MediaExamples {
+  val Example1 = Media("userId10", "GOV.UK or Civil Service Jobs")
+  val Example2 = Media("userId11", "Friend in the Fast Stream")
 }

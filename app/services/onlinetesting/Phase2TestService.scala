@@ -24,13 +24,11 @@ import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.NotFoundException
 import model.OnlineTestCommands._
-import model.{ ProgressStatuses, ReminderNotice }
-import model.events.DataStoreEvents
-import model.ProgressStatuses
 import model.events.EventTypes.EventType
 import model.events.{ AuditEvents, DataStoreEvents }
-import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithNames }
+import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
 import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
+import model.{ ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -74,15 +72,15 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
                                   registration: Registration,
                                   invitation: Invitation)
 
-  def getTestProfile(applicationId: String): Future[Option[Phase2TestGroupWithNames]] = {
+  case class NoActiveTestException(m: String) extends Exception(m)
+
+  def getTestProfile(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
     for {
       phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
-        val tests = phase2.activeTests
-        Phase2TestGroupWithNames(
-          phase2.expirationDate,
-          tests
-        )
+      val test = phase2.activeTests.find(_.usedForResults)
+        .getOrElse(throw NoActiveTestException(s"No active phase 2 test found for $applicationId"))
+      Phase2TestGroupWithActiveTest(phase2.expirationDate, test)
     }
   }
 
@@ -166,7 +164,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     }
 
   private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = filterCandidates(applications) match {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = applications match {
     case Nil => Future.successful(Nil)
     case candidatesToProcess =>
       val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
@@ -289,12 +287,6 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = 100))
   } else {
     Nil
-  }
-
-  private def filterCandidates(candidates: List[OnlineTestApplication]): List[OnlineTestApplication] =
-    candidates.find(_.needsAdjustments) match {
-      case Some(candidate) => Nil // TODO build time adjustments here
-      case None => candidates
   }
 
   def emailInviteToApplicants(candidates: List[OnlineTestApplication])

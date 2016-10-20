@@ -21,7 +21,7 @@ import model.ApplicationStatusOrder
 import model.Commands._
 import model.PersistedObjects.ContactDetailsWithId
 import model.PersistedObjects.Implicits._
-import model.report.{PassMarkReport, PassMarkReportWithPersonalData}
+import model.report.{DiversityReportItem, OnlineTestPassMarkReportItem, PassMarkReportWithPersonalData}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Request}
 import repositories.application.GeneralApplicationRepository
@@ -33,11 +33,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object ReportingController extends ReportingController {
   val appRepository = applicationRepository
   val cdRepository = contactDetailsRepository
-  val reportingRepository = diversityReportRepository
   val authProviderClient = AuthProviderClient
   val questionnaireRepository = repositories.questionnaireRepository
   val testReportRepository = repositories.testReportRepository
   val assessmentScoresRepository = repositories.applicationAssessmentScoresRepository
+  val medRepository = repositories.mediaRepository
 }
 
 trait ReportingController extends BaseController {
@@ -46,24 +46,32 @@ trait ReportingController extends BaseController {
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
-  val reportingRepository: ReportingRepository
   val authProviderClient: AuthProviderClient
   val questionnaireRepository: QuestionnaireRepository
   val testReportRepository: TestReportRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresRepository
+  val medRepository: MediaRepository
 
   def candidateProgressReport(frameworkId: String) = Action.async { implicit request =>
     appRepository.candidateProgressReport(frameworkId).map(r => Ok(Json.toJson(r)))
   }
 
-  def retrieveDiversityReport = Action.async { implicit request =>
-    reportingRepository.findLatest().map {
-      case Some(report) => Ok(Json.toJson(report))
-      case None => NotFound
+  def diversityReport(frameworkId: String) = Action.async { implicit request =>
+    val reports = for {
+      applications <- appRepository.diversityReport(frameworkId)
+      questionnaires <- questionnaireRepository.findAllForDiversityReport
+      medias <- medRepository.findAll()
+    } yield {
+      applications.map { application =>
+        DiversityReportItem(application, questionnaires.get(application.applicationId), medias.get(application.userId))
+      }
+    }
+    reports.map { list =>
+      Ok(Json.toJson(list))
     }
   }
 
-  def createAdjustmentReports(frameworkId: String) = Action.async { implicit request =>
+  def adjustmentReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
       for {
         applications <- appRepository.adjustmentReport(frameworkId)
@@ -83,6 +91,37 @@ trait ReportingController extends BaseController {
     }
   }
 
+
+  def onlineTestPassMarkReport(frameworkId: String) = Action.async { implicit request =>
+    val reports =
+      for {
+        applications <- appRepository.onlineTestPassMarkReport(frameworkId)
+        questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport
+      } yield {
+        for {
+          a <- applications
+          q <- questionnaires.get(a.applicationId)
+        } yield OnlineTestPassMarkReportItem(a, q)
+      }
+    reports.map { list =>
+      Ok(Json.toJson(list))
+    }
+  }
+
+
+  def nonSubmittedAppsReport(frameworkId: String) =
+    preferencesAndContactReports(nonSubmittedOnly = true)(frameworkId)
+
+  def createPreferencesAndContactReports(frameworkId: String) =
+    preferencesAndContactReports(nonSubmittedOnly = false)(frameworkId)
+
+  def applicationAndUserIdsReport(frameworkId: String) = Action.async { implicit request =>
+    appRepository.allApplicationAndUserIds(frameworkId).map { list =>
+      Ok(Json.toJson(list))
+    }
+  }
+
+  /*
   def createAssessmentCentreAllocationReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
       for {
@@ -109,7 +148,9 @@ trait ReportingController extends BaseController {
       Ok(Json.toJson(list))
     }
   }
+  */
 
+  /*
   def createAssessmentResultsReport(frameworkId: String) = Action.async { implicit request =>
 
     val applications = appRepository.applicationsWithAssessmentScoresAccepted(frameworkId)
@@ -134,7 +175,9 @@ trait ReportingController extends BaseController {
       Ok(Json.toJson(list))
     }
   }
+  */
 
+  /*
   def createSuccessfulCandidatesReport(frameworkId: String) = Action.async { implicit request =>
 
     val applications = appRepository.applicationsPassedInAssessmentCentre(frameworkId)
@@ -160,35 +203,8 @@ trait ReportingController extends BaseController {
       Ok(Json.toJson(list))
     }
   }
+  */
 
-  def createOnlineTestPassMarkReport(frameworkId: String) = Action.async { implicit request =>
-    val reports =
-      for {
-        applications <- appRepository.onlineTestPassMarkReport(frameworkId)
-        questionnaires <- questionnaireRepository.onlineTestPassMarkReport
-      } yield {
-        for {
-          a <- applications
-          q <- questionnaires.get(a.applicationId)
-        } yield PassMarkReport(a, q)
-      }
-
-    reports.map { list =>
-      Ok(Json.toJson(list))
-    }
-  }
-
-  def createNonSubmittedAppsReports(frameworkId: String) =
-    preferencesAndContactReports(nonSubmittedOnly = true)(frameworkId)
-
-  def createPreferencesAndContactReports(frameworkId: String) =
-    preferencesAndContactReports(nonSubmittedOnly = false)(frameworkId)
-
-  def applicationAndUserIdsReport(frameworkId: String) = Action.async { implicit request =>
-    appRepository.allApplicationAndUserIds(frameworkId).map { list =>
-      Ok(Json.toJson(list))
-    }
-  }
 
   private def preferencesAndContactReports(nonSubmittedOnly: Boolean)(frameworkId: String) = Action.async { implicit request =>
     for {
