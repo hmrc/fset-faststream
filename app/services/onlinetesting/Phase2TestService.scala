@@ -26,6 +26,7 @@ import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
 import model.command.ProgressResponse
+import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.events.EventTypes.EventType
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
 import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
@@ -78,7 +79,9 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     for {
       phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
-      val test = phase2.activeTests.find(_.usedForResults).getOrElse(throw new NoActiveTestException(s"No active phase 2 test found for $applicationId"))
+      val test = phase2.activeTests
+        .find(_.usedForResults)
+        .getOrElse(throw NoActiveTestException(s"No active phase 2 test found for $applicationId"))
         Phase2TestGroupWithActiveTest(
           phase2.expirationDate,
           test
