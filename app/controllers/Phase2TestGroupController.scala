@@ -23,15 +23,15 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase2TestGroupController extends Phase2TestGroupController {
-  val phase2TestExtensionService = Phase2TestService
+  val phase2TestService = Phase2TestService
 }
 
 trait Phase2TestGroupController extends BaseController {
-  val phase2TestExtensionService: Phase2TestService
+  val phase2TestService: Phase2TestService
 
   def extend(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>
-      phase2TestExtensionService.extendTestGroupExpiryTime(applicationId, extension.extraDays,
+      phase2TestService.extendTestGroupExpiryTime(applicationId, extension.extraDays,
         extension.actionTriggeredBy
       ).map( _ => Ok )
     }

@@ -54,14 +54,15 @@ object Phase2TestService extends Phase2TestService {
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
   val eventService = EventService
+  val clock: DateTimeFactory = DateTimeFactory
 
 }
 
 trait Phase2TestService extends OnlineTestService with ScheduleSelector {
-
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
+  val clock: DateTimeFactory
 
 
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
@@ -301,7 +302,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     if (progressStatusesToRemove.isEmpty) { None } else { Some(progressStatusesToRemove) }
   }
 
-  private def audit(isAlreadyExpired: Boolean, applicationId: String) = {
+  private def audit(isAlreadyExpired: Boolean, applicationId: String): AuditEvent = {
     val details = Map("applicationId" -> applicationId)
     if (isAlreadyExpired) {
       AuditEvents.ExpiredTestsExtended(details)

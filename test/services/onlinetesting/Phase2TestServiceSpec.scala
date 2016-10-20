@@ -22,11 +22,10 @@ import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.{ Address, ApplicationStatus, ProgressStatuses }
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.{ Address, ApplicationStatus }
+import model.{ Address, ApplicationStatus, ProgressStatuses }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.{ ContactDetails, Phase2TestGroup }
 import model.ProgressStatuses.ProgressStatus
@@ -237,6 +236,9 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       lastName = "Prime",
       timeAdjustments = None
     )
+    val now = DateTimeFactory.nowLocalTimeZone
+    val clockMock = mock[DateTimeFactory]
+    when(clockMock.nowLocalTimeZone).thenReturn(now)
 
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
     val adjustmentApplication = onlineTestApplication.copy(applicationId = "appId3", userId = "userId3", needsAdjustments = true)
@@ -293,6 +295,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val dateTimeFactory = DateTimeFactory
       val gatewayConfig = gatewayConfigMock
       val actor = ActorSystem()
+      val clock: DateTimeFactory = clockMock
     }
   }
 }
