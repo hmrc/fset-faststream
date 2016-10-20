@@ -20,7 +20,7 @@ import _root_.forms.WithdrawApplicationForm
 import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.{ FrameworkId, Phase2TestGroupWithNames, WithdrawApplication }
+import connectors.exchange.{ FrameworkId, Phase2TestGroupWithActiveTest, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage }
@@ -38,7 +38,7 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     cachedData.application.map { application =>
 
-      def getPhase2Test: Future[Option[Phase2TestGroupWithNames]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
+      def getPhase2Test: Future[Option[Phase2TestGroupWithActiveTest]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
         applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
       } else { Future.successful(None) }
 

@@ -146,6 +146,7 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
 
   // TODO: Duplicates code from SigninService. Refactoring challenge.
   private def gotoAuthentication[_](implicit request: SecuredRequest[_]) = {
+    Logger.debug("In GOTO AUTH!")
     env.eventBus.publish(LogoutEvent(request.identity, request, request2lang))
     env.authenticatorService.retrieve.flatMap {
       case Some(authenticator) =>
