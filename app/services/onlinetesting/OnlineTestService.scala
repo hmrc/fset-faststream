@@ -51,6 +51,8 @@ trait OnlineTestService extends EventSink  {
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
+                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
@@ -67,10 +69,6 @@ trait OnlineTestService extends EventSink  {
     (invitationDate, expirationDate)
   }
 
-  protected def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
-                                                      emailAddress: String,
-                                                      reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-
   @deprecated("use event sink instead")
   protected def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
     Logger.info(s"$event for user $userId")
@@ -84,7 +82,7 @@ trait OnlineTestService extends EventSink  {
   protected def processExpiredTest(expiringTest: ExpiringOnlineTest, expiryTest: TestExpirationEvent)
                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = for {
     emailAddress <- candidateEmailAddress(expiringTest.userId)
-    _ <- commitProgressStatus(expiringTest, expiryTest.expiredStatus)
+    _ <- commitProgressStatus(expiringTest.applicationId, expiryTest.expiredStatus)
     _ <- emailCandidate(expiringTest, emailAddress, expiryTest.template)
   } yield ()
 
@@ -118,11 +116,11 @@ trait OnlineTestService extends EventSink  {
     }
   }
 
-  def commitProgressStatus(expiringTest: ExpiringOnlineTest, status: ProgressStatuses.ProgressStatus)
+  def commitProgressStatus(applicationId: String, status: ProgressStatuses.ProgressStatus)
                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    appRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, status).map { _ =>
-      AuditEvents.ApplicationExpired(Map("applicationId" -> expiringTest.applicationId, "status" -> status )) ::
-        DataStoreEvents.ApplicationExpired(expiringTest.applicationId) :: Nil
+    appRepository.addProgressStatusAndUpdateAppStatus(applicationId, status).map { r =>
+      AuditEvents.ApplicationExpired(Map("applicationId" -> applicationId, "status" -> status )) ::
+        DataStoreEvents.ApplicationExpired(applicationId) :: Nil
     }
   }
 

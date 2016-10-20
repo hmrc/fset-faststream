@@ -39,9 +39,7 @@ trait Phase1TestsExpiredFromStartedStatusGenerator extends ConstructiveGenerator
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otService.commitProgressStatus(ExpiringOnlineTest(
-        candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId, candidateInPreviousStatus.preferredName
-      ), PHASE1_TESTS_EXPIRED)
+      _ <- otService.commitProgressStatus(candidateInPreviousStatus.applicationId.get, PHASE1_TESTS_EXPIRED)
     } yield {
       candidateInPreviousStatus
     }

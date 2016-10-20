@@ -25,10 +25,11 @@ import model.Commands.PostCode
 import model._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
-import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, ProgressStatus }
+import model.events.{ AuditEvents, DataStoreEvents }
 import model.events.EventTypes.{ toString => _, _ }
 import model.exchange.CubiksTestResultReady
-import model.persisted.{ ContactDetails, CubiksTest, Phase1TestProfile, Phase1TestWithUserIds }
+import model.persisted._
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -139,6 +140,10 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   val auditDetailsWithEmail = auditDetails + ("email" -> emailContactDetails)
 
   val connectorErrorMessage = "Error in connector"
+
+  val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
+  val expiredApplication = ExpiringOnlineTest(applicationId, userId, preferredName)
+  val success = Future.successful(())
 
   "get online test" should {
     "return None if the application id does not exist" in new OnlineTest {
@@ -519,6 +524,27 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       )).futureValue
 
       verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
+    }
+  }
+
+  "processNextExpiredTest" should {
+    "do nothing if there are no expired application to process" in new OnlineTest {
+      when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(None))
+      phase1TestService.processNextExpiredTest(Phase1ExpirationEvent).futureValue mustBe ()
+    }
+    "update progress status and send an email to the user when an application is expired" in new OnlineTest {
+      when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(emailClientMock.sendOnlineTestExpired(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val result = phase1TestService.processNextExpiredTest(Phase1ExpirationEvent)
+
+      result.futureValue mustBe (())
+
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_EXPIRED)
+      verify(emailClientMock).sendOnlineTestExpired(emailContactDetails, preferredName, Phase1ExpirationEvent.template)
     }
   }
 
