@@ -109,8 +109,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
       List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None))
   )
 
-  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]] = ???
-
+  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = ???
 
   override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = ???
 

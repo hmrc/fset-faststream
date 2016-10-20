@@ -53,6 +53,24 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       results.head.userId mustBe "userId"
     }
 
+    "exclude adjustment applications" in {
+      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = true,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false
+      ).futureValue
+
+      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 1
+      results.head.applicationId mustBe "appId2"
+      results.head.userId mustBe "userId2"
+    }
+
     "return more than one candidate for batch processing" in {
       pending
     }

@@ -38,12 +38,12 @@ object ApplicationStatus extends Enumeration {
   implicit def toString(applicationStatus: ApplicationStatus): String = applicationStatus.toString
 
   implicit val applicationStatusFormat = new Format[ApplicationStatus] {
-    def reads(json: JsValue) = JsSuccess(ApplicationStatus.withName(json.as[String]))
+    def reads(json: JsValue) = JsSuccess(ApplicationStatus.withName(json.as[String].toUpperCase()))
     def writes(myEnum: ApplicationStatus) = JsString(myEnum.toString)
   }
 
   implicit object BSONEnumHandler extends BSONHandler[BSONString, ApplicationStatus] {
-    def read(doc: BSONString) = ApplicationStatus.withName(doc.value)
+    def read(doc: BSONString) = ApplicationStatus.withName(doc.value.toUpperCase())
     def write(stats: ApplicationStatus) = BSON.write(stats.toString)
   }
 }

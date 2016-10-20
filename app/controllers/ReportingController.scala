@@ -21,7 +21,7 @@ import model.ApplicationStatusOrder
 import model.Commands._
 import model.PersistedObjects.ContactDetailsWithId
 import model.PersistedObjects.Implicits._
-import model.report.{DiversityReportItem, OnlineTestPassMarkReportItem, PassMarkReportWithPersonalData}
+import model.report._
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Request}
 import repositories.application.GeneralApplicationRepository
@@ -83,7 +83,10 @@ trait ReportingController extends BaseController {
       medias <- medRepository.findAll()
     } yield {
       applications.map { application =>
-        DiversityReportItem(application, questionnaires.get(application.applicationId), medias.get(application.userId))
+        DiversityReportItem(
+          ApplicationForDiversityReportItem.create(application),
+          questionnaires.get(application.applicationId),
+          medias.get(application.userId).map { m => MediaReportItem(m.media)})
       }
     }
     reports.map { list =>

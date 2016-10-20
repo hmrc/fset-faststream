@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package model.exchange
+package report
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import model.report.MediaReportItem
 
-case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest)
-
-object Phase2TestGroupWithActiveTest {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithActiveTest]
+object MediaReportItemExamples {
+  val Example1 = MediaReportItem("GOV.UK or Civil Service Jobs")
+  val Example2 = MediaReportItem("Friend in the Fast Stream")
 }

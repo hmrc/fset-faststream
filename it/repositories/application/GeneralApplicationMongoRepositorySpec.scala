@@ -17,16 +17,17 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model._
 import model.ApplicationStatus._
 import model.SchemeType.SchemeType
-import model.report.{ApplicationForDiversityReportItem, CandidateProgressReportItem, CivilServiceExperienceDetailsReportItem, DiversityReportItem}
+import model._
+import model.report.{ApplicationForDiversityReport, CandidateProgressReportItem}
 import org.joda.time.LocalDate
 import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
-import testkit.MongoRepositorySpec
 import config.MicroserviceAppConfig._
+import model.persisted.CivilServiceExperienceDetailsForDiversityReport
+import testkit.MongoRepositorySpec
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -72,7 +73,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.diversityReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(ApplicationForDiversityReportItem(appId, userId, Some("registered"), List.empty, None, None, None, None, None))
+      result.head must be(ApplicationForDiversityReport(appId, userId, Some("registered"), List.empty, None, None, None, None, None))
     }
 
     "Get diversity report for an application with all fields" in {
@@ -90,21 +91,21 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       result must have size (3)
       result must contain
-      ApplicationForDiversityReportItem(appId1, userId1, Some("registered"),
+      ApplicationForDiversityReport(appId1, userId1, Some("registered"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-        Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsReportItem(Some("Yes"),
+        Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
           Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
       result must contain
-        ApplicationForDiversityReportItem(
+      ApplicationForDiversityReport(
           appId2, userId2, Some("registered"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-          Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsReportItem(Some("Yes"),
+          Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))) //,
       result must contain
-        ApplicationForDiversityReportItem(
+      ApplicationForDiversityReport(
           appId3, userId3, Some("registered"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-          Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsReportItem(Some("Yes"),
+          Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
     }
 

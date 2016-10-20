@@ -29,7 +29,7 @@ import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command._
 import model.persisted.ApplicationForNotification
-import model.report.{AdjustmentReportItem$, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReportItem$, _}
+import model.report.{AdjustmentReportItem, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReportItem, _}
 import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}
@@ -87,7 +87,7 @@ trait GeneralApplicationRepository {
 
   def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReportItem]]
 
-  def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]]
+  def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
 
   def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]]
 
@@ -150,7 +150,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     (document.getAs[BSONDocument]("progress-status") map { root =>
 
       def getProgress(key: String) = {
-        root.getAs[Boolean](key).orElse(root.getAs[Boolean](key.toLowerCase)).getOrElse(false)
+        root.getAs[Boolean](key)
+          .orElse(root.getAs[Boolean](key.toUpperCase))
+          .orElse(root.getAs[Boolean](key.toLowerCase))
+          .getOrElse(false)
       }
 
       def questionnaire = root.getAs[BSONDocument]("questionnaire").map { doc =>
@@ -211,7 +214,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   implicit val readerOTPMR = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem(findProgress))
   implicit val readerCandidate = bsonReader(bsonToModelHelper.toCandidate)
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReportItem(findProgress))
-  implicit val readerDiversityReport = bsonReader(bsonToModelHelper.toApplicationForDiversityReportItem(findProgress))
+  implicit val readerDiversityReport = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
   override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -442,7 +445,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     reportQueryWithProjectionsBSON[CandidateProgressReportItem](query, projection)
   }
 
-  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]] = {
+  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = {
     val query = BSONDocument("frameworkId" -> frameworkId)
     val projection = BSONDocument(
       "userId" -> "1",
@@ -452,7 +455,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "applicationId" -> "1",
       "progress-status" -> "2"
     )
-    reportQueryWithProjectionsBSON[ApplicationForDiversityReportItem](query, projection)
+    reportQueryWithProjectionsBSON[ApplicationForDiversityReport](query, projection)
   }
 
   override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = {

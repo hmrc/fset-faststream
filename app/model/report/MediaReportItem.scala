@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package model.exchange
+package model.report
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
 import play.api.libs.json.Json
+import reactivemongo.bson.Macros
 
-case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest)
+case class MediaReportItem(media: String)
 
-object Phase2TestGroupWithActiveTest {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithActiveTest]
+object MediaReportItem {
+  implicit val mediaFormat = Json.format[MediaReportItem]
+  implicit val mediaHandler = Macros.handler[MediaReportItem]
 }
