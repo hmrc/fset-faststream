@@ -80,7 +80,8 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     } yield phase2Opt.map { phase2 =>
       val test = phase2.activeTests.find(_.usedForResults)
         .getOrElse(throw NoActiveTestException(s"No active phase 2 test found for $applicationId"))
-      Phase2TestGroupWithActiveTest(phase2.expirationDate, test)
+      Phase2TestGroupWithActiveTest(phase2.expirationDate, test,
+        schedulesAvailable(phase2.tests.map(_.scheduleId)))
     }
   }
 
