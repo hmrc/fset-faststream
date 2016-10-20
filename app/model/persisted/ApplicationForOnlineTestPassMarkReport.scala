@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package model.report
+package model.persisted
 
 import model.SchemeType.SchemeType
-import model.persisted.{ApplicationForOnlineTestPassMarkReport, CivilServiceExperienceDetailsReportItem}
 import play.api.libs.json.Json
-import model.report.TestResultsForOnlineTestPassMarkReportItem$
+import model.report.{ApplicationForOnlineTestPassMarkReportItem, TestResultsForOnlineTestPassMarkReportItem, TestResultsForOnlineTestPassMarkReportItem$}
 
-case class ApplicationForOnlineTestPassMarkReportItem(
+case class ApplicationForOnlineTestPassMarkReport(
+                                                       applicationId: String,
                                                        progress: String,
                                                        schemes: List[SchemeType],
                                                        disability: Option[String],
@@ -31,19 +31,6 @@ case class ApplicationForOnlineTestPassMarkReportItem(
                                                        testResults: TestResultsForOnlineTestPassMarkReportItem
                                                      )
 
-object ApplicationForOnlineTestPassMarkReportItem {
-  implicit val applicationForOnlineTestReportItemFormat = Json.format[ApplicationForOnlineTestPassMarkReportItem]
-
-  // If you add a custom apply() to a case class companion object then Json.reads and Json.writes fail
-  def create(a: ApplicationForOnlineTestPassMarkReport): ApplicationForOnlineTestPassMarkReportItem = {
-    ApplicationForOnlineTestPassMarkReportItem(
-      progress = a.progress,
-      schemes = a.schemes,
-      disability = a.disability,
-      gis = a.gis,
-      onlineAdjustments = a.onlineAdjustments,
-      assessmentCentreAdjustments = a.assessmentCentreAdjustments,
-      testResults = a.testResults
-    )
-  }
+object ApplicationForOnlineTestPassMarkReport {
+  implicit val applicationForOnlineTestReportFormat = Json.format[ApplicationForOnlineTestPassMarkReport]
 }

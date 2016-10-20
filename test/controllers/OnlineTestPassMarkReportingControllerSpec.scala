@@ -78,8 +78,12 @@ class OnlineTestPassMarkReportingControllerSpec extends PlaySpec with Results wi
 
       status(response) mustBe OK
       result must have size 2
-      result must contain(OnlineTestPassMarkReportItem(applicationWithNoTestResult1, questionnaire1))
-      result must contain(OnlineTestPassMarkReportItem(applicationWithNoTestResult2, questionnaire2))
+      result must contain(OnlineTestPassMarkReportItem(
+        ApplicationForOnlineTestPassMarkReportItemExamples.applicationWithNoTestResult1,
+        QuestionnaireReportItemExamples.questionnaire1))
+      result must contain(OnlineTestPassMarkReportItem(
+        ApplicationForOnlineTestPassMarkReportItemExamples.applicationWithNoTestResult2,
+        QuestionnaireReportItemExamples.questionnaire2))
     }
 
     "return applications with questionnaire and test results" in new PassMarkReportTestFixture {
@@ -93,8 +97,10 @@ class OnlineTestPassMarkReportingControllerSpec extends PlaySpec with Results wi
 
       status(response) mustBe OK
       result mustBe List(
-        OnlineTestPassMarkReportItem(application1, questionnaire1),
-        OnlineTestPassMarkReportItem(application2, questionnaire2)
+        OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItemExamples.application1,
+          QuestionnaireReportItemExamples.questionnaire1),
+        OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItemExamples.application2,
+          QuestionnaireReportItemExamples.questionnaire2)
       )
     }
   }
@@ -116,49 +122,29 @@ class OnlineTestPassMarkReportingControllerSpec extends PlaySpec with Results wi
       val medRepository: MediaRepository = mockMediaRepository
     }
 
-    lazy val testResults1 = newTestResults
-    lazy val testResults2 = newTestResults
-    lazy val testResults = Map(application1.applicationId -> testResults1, application2.applicationId -> testResults2)
+    lazy val testResults = Map(
+      ApplicationForOnlineTestPassMarkReportExamples.application1.applicationId ->
+        TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
+      ApplicationForOnlineTestPassMarkReportExamples.application2.applicationId ->
+        TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
 
-    lazy val application1 = newApplicationForOnlineTestPassMarkReportItem(testResults1)
-    lazy val application2 = newApplicationForOnlineTestPassMarkReportItem(testResults2)
-    lazy val applications = List(application1, application2)
-
-    lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(
-      TestResultsForOnlineTestPassMarkReportItem(None, None, None))
-    lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(
-      TestResultsForOnlineTestPassMarkReportItem(None, None, None))
-    lazy val applicationsWithNoTestResults = List(applicationWithNoTestResult1, applicationWithNoTestResult2)
-
-    lazy val questionnaire1 = newQuestionnaire
-    lazy val questionnaire2 = newQuestionnaire
-    lazy val questionnaires = Map(application1.applicationId -> questionnaire1,
-      application2.applicationId -> questionnaire2)
-    lazy val questionnairesForNoTestResults = Map(applicationWithNoTestResult1.applicationId -> questionnaire1,
-      applicationWithNoTestResult2.applicationId -> questionnaire2)
-
-    def newApplicationForOnlineTestPassMarkReportItem(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
-      ApplicationForOnlineTestPassMarkReportItem(
-        rnd("AppId"),
-        "phase1_tests_results_received",
-        List(SchemeType.Commercial, SchemeType.DigitalAndTechnology),
-        None,
-        None,
-        None,
-        None,
-        testsResult)
-
-    def newQuestionnaire =
-      QuestionnaireReportItem(someRnd("Gender"), someRnd("Orientation"), someRnd("Ethnicity"),
-        someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"), rnd("SES"),
-        someRnd("university"))
-
-    def newTestResults =
-      TestResultsForOnlineTestPassMarkReportItem(maybe(newTestResult), maybe(newTestResult), maybe(newTestResult))
-
-    private def someDouble = Some(Random.nextDouble())
-
-    def newTestResult = TestResult("Completed", "Example Norm", someDouble, someDouble, someDouble, someDouble)
+    lazy val applications = List(
+      ApplicationForOnlineTestPassMarkReportExamples.application1,
+      ApplicationForOnlineTestPassMarkReportExamples.application2)
+    lazy val applicationsWithNoTestResults = List(
+      ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult1,
+      ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult2)
+    
+    lazy val questionnaires = Map(
+      ApplicationForOnlineTestPassMarkReportExamples.application1.applicationId ->
+        QuestionnaireReportItemExamples.questionnaire1,
+      ApplicationForOnlineTestPassMarkReportExamples.application2.applicationId ->
+        QuestionnaireReportItemExamples.questionnaire2)
+    lazy val questionnairesForNoTestResults = Map(
+      ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult1.applicationId ->
+        QuestionnaireReportItemExamples.questionnaire1,
+      ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult2.applicationId ->
+        QuestionnaireReportItemExamples.questionnaire2)
 
     def request = {
       FakeRequest(Helpers.GET, controllers.routes.ReportingController.onlineTestPassMarkReport(frameworkId).url, FakeHeaders(), "")

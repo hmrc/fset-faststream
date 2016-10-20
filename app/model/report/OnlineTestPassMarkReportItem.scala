@@ -40,7 +40,3 @@ object PassMarkReportWithPersonalData {
 object OnlineTestPassMarkReportItem {
   implicit val onlineTestPassMarkReportFormat = Json.format[OnlineTestPassMarkReportItem]
 }
-
-
-
-

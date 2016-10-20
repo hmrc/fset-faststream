@@ -103,7 +103,7 @@ trait ReportingController extends BaseController {
         for {
           a <- applications
           q <- questionnaires.get(a.applicationId)
-        } yield OnlineTestPassMarkReportItem(a, q)
+        } yield OnlineTestPassMarkReportItem(ApplicationForOnlineTestPassMarkReportItem.create(a), q)
       }
     reports.map { list =>
       Ok(Json.toJson(list))

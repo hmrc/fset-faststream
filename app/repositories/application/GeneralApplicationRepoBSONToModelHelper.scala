@@ -25,7 +25,7 @@ import model.InternshipType.{InternshipType, apply => _}
 import model.OnlineTestCommands.TestResult
 import model.SchemeType._
 import model.command.ProgressResponse
-import model.persisted.{ApplicationForNotification, CivilServiceExperienceDetailsForDiversityReport, Phase1TestProfile, Phase2TestGroup}
+import model.persisted._
 import model.report._
 import model.{CivilServiceExperienceType, InternshipType}
 import org.joda.time.{DateTime, LocalDate}
@@ -165,8 +165,8 @@ trait GeneralApplicationRepoBSONToModelHelper {
       assessmentCentreAdjustments, civilServiceExperience)
   }
 
-  def toApplicationForOnlineTestPassMarkReportItem(findProgress: (BSONDocument, String) => ProgressResponse)
-                                                  (doc: BSONDocument): ApplicationForOnlineTestPassMarkReportItem = {
+  def toApplicationForOnlineTestPassMarkReport(findProgress: (BSONDocument, String) => ProgressResponse)
+                                                  (doc: BSONDocument): ApplicationForOnlineTestPassMarkReport = {
 
     val applicationId = doc.getAs[String]("applicationId").getOrElse("")
 
@@ -181,7 +181,7 @@ trait GeneralApplicationRepoBSONToModelHelper {
 
     val progress: ProgressResponse = findProgress(doc, applicationId)
 
-    ApplicationForOnlineTestPassMarkReportItem(
+    ApplicationForOnlineTestPassMarkReport(
       applicationId,
       getStatus(progress),
       schemes.getOrElse(List.empty[SchemeType]),

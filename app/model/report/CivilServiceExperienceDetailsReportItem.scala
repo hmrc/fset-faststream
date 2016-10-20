@@ -29,6 +29,7 @@ case class CivilServiceExperienceDetailsReportItem(
 object CivilServiceExperienceDetailsReportItem {
   implicit val civilServiceExperienceDetailsReportItemFormat = Json.format[CivilServiceExperienceDetailsReportItem]
 
+  // If you add a custom apply() to a case class companion object then Json.reads and Json.writes fail
   def create(civilServiceExperience: CivilServiceExperienceDetailsForDiversityReport): CivilServiceExperienceDetailsReportItem = {
     CivilServiceExperienceDetailsReportItem(
       isCivilServant = civilServiceExperience.isCivilServant,
