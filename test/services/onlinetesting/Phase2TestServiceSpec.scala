@@ -291,9 +291,9 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     implicit val hc = mock[HeaderCarrier]
     implicit val rh = mock[RequestHeader]
 
+    val clock = mock[DateTimeFactory]
     val now = DateTimeFactory.nowLocalTimeZone
-    val clockMock = mock[DateTimeFactory]
-    when(clockMock.nowLocalTimeZone).thenReturn(now)
+    when(clock.nowLocalTimeZone).thenReturn(now)
 
     val gatewayConfigMock =  CubiksGatewayConfig(
       "",
@@ -394,10 +394,9 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val tokenFactory = tokenFactoryMock
-      val dateTimeFactory = DateTimeFactory
+      val dateTimeFactory = clock
       val gatewayConfig = gatewayConfigMock
       val actor = ActorSystem()
-      val clock: DateTimeFactory = clockMock
     }
   }
 }

@@ -275,7 +275,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
         .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
       audit(isAlreadyExpired, applicationId) ::
-        DataStoreEvents.OnlineExerciseExtended(applicationId, actionTriggeredBy) ::
+        DataStoreEvents.ETrayExtended(applicationId, actionTriggeredBy) ::
         Nil
     }
   }
