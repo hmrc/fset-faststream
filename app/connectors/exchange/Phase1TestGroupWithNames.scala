@@ -28,7 +28,7 @@ object Phase1TestGroupWithNames {
 }
 
 
-case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTests: List[CubiksTest])
+case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTest: CubiksTest)
 
 
 object Phase2TestGroupWithNames {

@@ -41,7 +41,7 @@ abstract class CubiksTestController(applicationClient: ApplicationClient) extend
   def startPhase2Tests = CSRSecureAppAction(Phase2TestInvitedRole) { implicit request =>
     implicit cachedUserData =>
       applicationClient.getPhase2TestProfile(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
-        startCubiksTest(phase2TestProfile.activeTests)
+        startCubiksTest(phase2TestProfile.activeTest :: Nil)
       }
   }
 

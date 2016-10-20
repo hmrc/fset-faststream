@@ -173,7 +173,7 @@ object Phase2TestsPage {
 
   def apply(profile: connectors.exchange.Phase2TestGroupWithNames): Phase2TestsPage = {
     Phase2TestsPage(expirationDate = profile.expirationDate,
-      etray = profile.activeTests.headOption.map(CubiksTestPage.apply)
+      etray = Some(CubiksTestPage.apply(profile.activeTest))
     )
   }
 }
