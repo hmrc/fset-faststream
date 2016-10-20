@@ -141,6 +141,22 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   val connectorErrorMessage = "Error in connector"
 
+  val result = OnlineTestCommands.TestResult(status = "Completed",
+                                             norm = "some norm",
+                                             tScore = Some(23.9999d),
+                                             percentile = Some(22.4d),
+                                             raw = Some(66.9999d),
+                                             sten = Some(1.333d)
+  )
+
+  val savedResult = persisted.TestResult(status = "Completed",
+                                         norm = "some norm",
+                                         tScore = Some(23.9999d),
+                                         percentile = Some(22.4d),
+                                         raw = Some(66.9999d),
+                                         sten = Some(1.333d)
+  )
+
   val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
   val expiredApplication = ExpiringOnlineTest(applicationId, userId, preferredName)
   val success = Future.successful(())
@@ -353,7 +369,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   }
 
   "build invite application" should {
-    "return an InviteApplication for a GIS candidate" in new OnlineTest {
+     "return an InviteApplication for a GIS candidate" in new OnlineTest {
       val result = phase1TestService.buildInviteApplication(
         onlineTestApplication.copy(guaranteedInterview = true),
         token, cubiksUserId, sjqScheduleId
@@ -477,12 +493,6 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   }
 
   "retrieve phase 1 test report" should {
-    "return an exception if no report Id is set" in new OnlineTest {
-      an[Exception] must be thrownBy phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
-        "appId", "userId", phase1TestProfile
-      ))
-    }
-
     "return an exception if there is an error retrieving one of the reports" in new OnlineTest {
       val failedTest = phase1Test.copy(scheduleId = 555, reportId = Some(2))
       val successfulTest = phase1Test.copy(scheduleId = 444, reportId = Some(1))
@@ -504,26 +514,49 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       ))
     }
 
-    "save a phase1 report for a candidate" in new OnlineTest {
+    "save a phase1 report for a candidate and update progress status" in new OnlineTest {
+
+      val test = phase1Test.copy(reportId = Some(123), resultsReadyToDownload = true)
+      val testProfile = phase1TestProfile.copy(tests = List(test))
+
       when(cubiksGatewayClientMock.downloadXmlReport(any[Int])(any[HeaderCarrier]))
-        .thenReturn(Future.successful(OnlineTestCommands.TestResult(status = "Completed",
-          norm = "some norm",
-          tScore = Some(23.9999d),
-          percentile = Some(22.4d),
-          raw = Some(66.9999d),
-          sten = Some(1.333d)
-        )))
+        .thenReturn(Future.successful(result))
 
       when(otRepositoryMock.insertPhase1TestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult)))))))
 
-      val result = phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
-        "appId", "userId", phase1TestProfile.copy(tests = List(phase1Test.copy(reportId = Some(123))))
+      phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
+        "appId", "userId", testProfile
+      )).futureValue
+
+      verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(otRepositoryMock).updateProgressStatus(any[String], any[ProgressStatus])
+    }
+
+    "save a phase1 report for a candidate and not update progress status" in new OnlineTest {
+
+      val testReady = phase1Test.copy(reportId = Some(123), resultsReadyToDownload = true)
+      val testNotReady = phase1Test.copy(reportId = None, resultsReadyToDownload = false)
+      val testProfile = phase1TestProfile.copy(tests = List(testReady, testNotReady))
+
+      when(cubiksGatewayClientMock.downloadXmlReport(any[Int])(any[HeaderCarrier]))
+        .thenReturn(Future.successful(result))
+
+      when(otRepositoryMock.insertPhase1TestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
+        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
+        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady)))))
+
+      phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
+        "appId", "userId", testProfile
       )).futureValue
 
       verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
     }
   }
 
@@ -558,7 +591,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     val trRepositoryMock = mock[TestReportRepository]
     val cubiksGatewayClientMock = mock[CubiksGatewayClient]
     val emailClientMock = mock[CSREmailClient]
-    var auditServiceMock = mock[AuditService]
+    val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
     val eventServiceMock = mock[EventService]
