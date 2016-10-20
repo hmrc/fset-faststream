@@ -29,7 +29,7 @@ import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command._
 import model.persisted.ApplicationForNotification
-import model.report.{AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, _}
+import model.report.{AdjustmentReport, CandidateProgressReport, _}
 import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}
@@ -85,7 +85,7 @@ trait GeneralApplicationRepository {
   // Reports
   def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]]
 
-  def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]]
+  def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
 
   def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]]
 
@@ -214,7 +214,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   implicit val readerTPM = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem)
   implicit val readerCandidate = bsonReader(bsonToModelHelper.toCandidate)
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReport(findProgress))
-  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReportItem(findProgress))
+  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
   override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -463,7 +463,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     reportQueryWithProjectionsBSON[CandidateProgressReport](query, projection)
   }
 
-  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]] = {
+  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = {
     val query = BSONDocument("frameworkId" -> frameworkId)
     val projection = BSONDocument(
       "userId" -> "1",
@@ -473,7 +473,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "applicationId" -> "1",
       "progress-status" -> "2"
     )
-    reportQueryWithProjectionsBSON[ApplicationForDiversityReportItem](query, projection)
+    reportQueryWithProjectionsBSON[ApplicationForDiversityReport](query, projection)
   }
 
   override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] =

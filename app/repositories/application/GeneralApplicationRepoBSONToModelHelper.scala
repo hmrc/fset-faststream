@@ -25,7 +25,7 @@ import model.InternshipType.{InternshipType, apply => _}
 import model.OnlineTestCommands.TestResult
 import model.SchemeType._
 import model.command.ProgressResponse
-import model.persisted.{ApplicationForNotification, Phase1TestProfile}
+import model.persisted.{ApplicationForNotification, CivilServiceExperienceDetailsForDiversityReport, Phase1TestProfile}
 import model.report._
 import model.{CivilServiceExperienceType, InternshipType}
 import org.joda.time.{DateTime, LocalDate}
@@ -124,7 +124,7 @@ trait GeneralApplicationRepoBSONToModelHelper {
     Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
   }
 
-  def toCivilServiceExperienceDetailsReportItem(optDoc: Option[BSONDocument]): Option[CivilServiceExperienceDetailsReportItem] = {
+  def toCivilServiceExperienceDetailsReportItem(optDoc: Option[BSONDocument]): Option[CivilServiceExperienceDetailsForDiversityReport] = {
     optDoc.map { doc =>
       val civilServiceExperienceType = (fpType: CivilServiceExperienceType) =>
         doc.getAs[CivilServiceExperienceType]("civilServiceExperienceType").contains(fpType)
@@ -136,13 +136,13 @@ trait GeneralApplicationRepoBSONToModelHelper {
       val sdipPrevious = booleanTranslator(internshipTypes(InternshipType.SDIPPreviousYear))
       val sdip = booleanTranslator(internshipTypes(InternshipType.SDIPCurrentYear))
       val fastPassCertificate = doc.getAs[String]("certificateNumber").getOrElse("No")
-      CivilServiceExperienceDetailsReportItem(Some(civilServant), Some(fastTrack), Some(edip), Some(sdipPrevious),
+      CivilServiceExperienceDetailsForDiversityReport(Some(civilServant), Some(fastTrack), Some(edip), Some(sdipPrevious),
         Some(sdip), Some(fastPassCertificate))
     }
   }
 
-  def toApplicationForDiversityReportItem(findProgress: (BSONDocument, String) => ProgressResponse)
-                                         (doc: BSONDocument): ApplicationForDiversityReportItem = {
+  def toApplicationForDiversityReport(findProgress: (BSONDocument, String) => ProgressResponse)
+                                         (doc: BSONDocument): ApplicationForDiversityReport = {
     val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
     val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
 
@@ -159,7 +159,7 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val userId = doc.getAs[String]("userId").getOrElse("")
     val progress: ProgressResponse = findProgress(doc, applicationId)
 
-    ApplicationForDiversityReportItem(applicationId, userId, Some(getStatus(progress)),
+    ApplicationForDiversityReport(applicationId, userId, Some(getStatus(progress)),
       schemes.getOrElse(List.empty), disability, gis, onlineAdjustments,
       assessmentCentreAdjustments, civilServiceExperience)
   }

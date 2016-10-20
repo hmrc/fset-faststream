@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package model.report
+package persisted
 
 import model.SchemeType
-import model.persisted.CivilServiceExperienceDetailsReportItem
+import model.persisted.CivilServiceExperienceDetailsForDiversityReport
+import model.report.ApplicationForDiversityReport
 
-object ApplicationForDiversityReportItemExamples {
+object ApplicationForDiversityReportExamples {
 
-  val Example1 = ApplicationForDiversityReportItem(Some("phase1_tests_completed"),
+  val Example1 = ApplicationForDiversityReport("appId5", "userId10", Some("phase1_tests_completed"),
       List(SchemeType.DiplomaticService, SchemeType.Commercial), Some("No"), Some(false), Some("No"), Some("No"),
-      Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some(""))))
+      Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some(""))))
 
   val Example2 =
-    ApplicationForDiversityReportItem(Some("submitted"),
+    ApplicationForDiversityReport("appId6", "userId11", Some("submitted"),
       List(SchemeType.DiplomaticServiceEconomics, SchemeType.Commercial, SchemeType.GovernmentCommunicationService,
         SchemeType.European), Some("Yes"), Some(true), Some("Yes"), Some("No"),
-      Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("fastPass-101"))))
+      Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("fastPass-101"))))
 }

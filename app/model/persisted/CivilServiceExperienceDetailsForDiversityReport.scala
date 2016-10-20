@@ -18,7 +18,7 @@ package model.persisted
 
 import play.api.libs.json.Json
 
-case class CivilServiceExperienceDetailsReportItem(
+case class CivilServiceExperienceDetailsForDiversityReport(
                                                     isCivilServant: Option[String],
                                                     isFastTrack: Option[String],
                                                     isEDIP: Option[String],
@@ -26,16 +26,6 @@ case class CivilServiceExperienceDetailsReportItem(
                                                     isSDIP2016: Option[String],
                                                     fastPassCertificate: Option[String])
 
-object CivilServiceExperienceDetailsReportItem {
-  implicit val civilServiceExperienceDetailsReportItemFormat = Json.format[CivilServiceExperienceDetailsReportItem]
-
-  def create(civilServiceExperience: CivilServiceExperienceDetailsForDiversityReport): CivilServiceExperienceDetailsReportItem = {
-    CivilServiceExperienceDetailsReportItem(
-      isCivilServant = civilServiceExperience.isCivilServant,
-      isFastTrack = civilServiceExperience.isFastTrack,
-      isEDIP = civilServiceExperience.isEDIP,
-      isSDIPPre2016 = civilServiceExperience.isSDIPPre2016,
-      isSDIP2016 = civilServiceExperience.isSDIP2016,
-      fastPassCertificate = civilServiceExperience.fastPassCertificate)
-  }
+object CivilServiceExperienceDetailsForDiversityReport {
+  implicit val civilServiceExperienceDetailsForDiversityReportFormat = Json.format[CivilServiceExperienceDetailsForDiversityReport]
 }
