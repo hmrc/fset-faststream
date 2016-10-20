@@ -64,7 +64,6 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   val gatewayConfig: CubiksGatewayConfig
   val clock: DateTimeFactory
 
-
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
 
   case class Phase2TestInviteData(application: OnlineTestApplication,
@@ -271,10 +270,10 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
       progress <- progressFut
       phase2 <- phase2TestGroup
       isAlreadyExpired = progress.phase2ProgressResponse.phase2TestsExpired
-      extendDays = extendTime(isAlreadyExpired, phase2.expirationDate, DateTimeFactory)
+      extendDays = extendTime(isAlreadyExpired, phase2.expirationDate, clock)
       newExpiryDate = extendDays(extraDays)
       _ <- phase2TestRepo.updateGroupExpiryTime(applicationId, newExpiryDate, phase2TestRepo.phaseName)
-      _ <- getProgressStatusesToRemove(newExpiryDate, phase2, progress, DateTimeFactory)
+      _ <- getProgressStatusesToRemove(newExpiryDate, phase2, progress)
         .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
       audit(isAlreadyExpired, applicationId) ::
@@ -285,8 +284,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   private def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
                                   profile: Phase2TestGroup,
-                                  progress: ProgressResponse,
-                                  clock: DateTimeFactory): Option[List[ProgressStatus]] = {
+                                  progress: ProgressResponse): Option[List[ProgressStatus]] = {
     val today = clock.nowLocalTimeZone
     val isSecondReminderNeededForTheNewExpiryDate = extendedExpiryDate.minusHours(Phase2SecondReminder.hoursBeforeReminder).isAfter(today)
     val isFirstReminderNeededForTheNewExpiryDate = extendedExpiryDate.minusHours(Phase2FirstReminder.hoursBeforeReminder).isAfter(today)
