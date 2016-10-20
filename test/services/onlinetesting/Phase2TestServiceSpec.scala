@@ -95,10 +95,10 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
     "process adjustment candidates first and individually" ignore new Phase2TestServiceFixture {
      val adjustmentCandidates = candidates :+ adjustmentApplication :+ adjustmentApplication2
-      when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(registrations.head)))
 
-      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(invites.head)))
 
       phase2TestService.registerAndInviteForTestGroup(adjustmentCandidates).futureValue
@@ -256,10 +256,10 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       List(phase2Test)
     )
 
-    when(cubiksGatewayClientMock.registerApplicants(any[Int])(any[HeaderCarrier]))
+    when(cubiksGatewayClientMock.registerApplicants(any[Int]))
       .thenReturn(Future.successful(registrations))
 
-    when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])(any[HeaderCarrier]))
+    when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
       .thenReturn(Future.successful(invites))
 
     when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup]))
