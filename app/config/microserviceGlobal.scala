@@ -22,7 +22,6 @@ import play.api.{ Application, Logger, Play }
 import scheduler.allocation.ConfirmAttendanceReminderJob
 import scheduler.assessment._
 import scheduler.onlinetesting._
-import scheduler.reporting.DiversityMonitoringJob
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.config.{ AppName, ControllerConfig }
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
@@ -112,12 +111,6 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
-  private lazy val diversityMonitoringJob: Option[ScheduledJob] =
-    if (diversityMonitoringJobConfigValues.enabled) Some(DiversityMonitoringJob) else {
-      Logger.warn("diversity monitoring job is disabled")
-      None
-    }
-
   private lazy val confirmAttendanceReminderJob: Option[ScheduledJob] =
     if (confirmAttendanceReminderJobConfigValues.enabled) Some(ConfirmAttendanceReminderJob) else {
       Logger.warn("confirm attendance reminder job is disabled")
@@ -147,14 +140,13 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def failedOnlineTestJobConfigValues = failedOnlineTestJobConfig
   private[config] def retrieveResultsJobConfigValues = retrieveResultsJobConfig
   private[config] def evaluatePhase1ResultJobConfigValues = evaluatePhase1ResultJobConfig
-  private[config] def diversityMonitoringJobConfigValues = diversityMonitoringJobConfig
   private[config] def confirmAttendanceReminderJobConfigValues = confirmAttendanceReminderJobConfig
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
 
   lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob, firstPhase1ReminderExpiringTestJob,
     secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob, secondPhase2ReminderExpiringTestJob, expirePhase1TestJob,
-    failedOnlineTestJob, retrieveResultsJob, evaluatePhase1ResultJob, diversityMonitoringJob, confirmAttendanceReminderJob,
+    failedOnlineTestJob, retrieveResultsJob, evaluatePhase1ResultJob, confirmAttendanceReminderJob,
     evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 

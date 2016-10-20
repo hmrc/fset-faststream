@@ -17,7 +17,7 @@
 package repositories
 
 import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
-import model.report.PassMarkReportQuestionnaireData
+import model.report.QuestionnaireReportItem
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -27,10 +27,10 @@ import testkit.MongoRepositorySpec
 class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar {
 
   override val collectionName = "questionnaire"
-  
+
   "The Questionnaire Repo" should {
 
-    "create collection, append questions to the application and overwrite existing questions" in new Fixture {
+    "create collection, append questions to the application and overwrite existing questions" in new TestFixture {
 
       val applicationId = System.currentTimeMillis() + ""
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("what?", PersistedAnswer(Some("nothing"), None, None)))).futureValue
@@ -47,7 +47,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       result2.size must be(2)
     }
 
-    "find questions should return a map of questions/answers ignoring the non answered ones" in new Fixture {
+    "find questions should return a map of questions/answers ignoring the non answered ones" in new TestFixture {
 
       val applicationId = System.currentTimeMillis() + ""
 
@@ -55,31 +55,31 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("where?", PersistedAnswer(None, None, Some(true))))).futureValue
       val result2 = questionnaireRepo.findQuestions(applicationId).futureValue
 
-      result2.keys.size must be (2)
+      result2.keys.size must be(2)
       result2("where?") must be("")
     }
 
-    "return data relevant to the pass mark modelling report" in new Fixture {
+    "return data relevant to the pass mark report" in new TestFixture {
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaires()
 
-      val report = questionnaireRepo.onlineTestPassMarkReport.futureValue
+      val report = questionnaireRepo.findForOnlineTestPassMarkReport.futureValue
 
       report mustBe Map(
-        applicationId1 -> PassMarkReportQuestionnaireData(
+        applicationId1 -> QuestionnaireReportItem(
           Some("Male"), Some("Straight"), Some("Black"), Some("Unemployed"), None, None,
           None, "SES Score", Some("W01-USW")),
-        applicationId2 -> PassMarkReportQuestionnaireData(
+        applicationId2 -> QuestionnaireReportItem(
           Some("Female"), Some("Lesbian"), Some("White"), Some("Employed"), Some("Modern professional"), Some("Part-time employed"),
           Some("Large (26-500)"), "SES Score", Some("W17-WARR"))
       )
     }
 
-    "calculate the socioeconomic score for the pass mark modelling report" in new Fixture {
+    "calculate the socioeconomic score for the pass mark report" in new TestFixture {
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaire()
 
-      questionnaireRepo.onlineTestPassMarkReport.futureValue
+      questionnaireRepo.findForOnlineTestPassMarkReport.futureValue
 
       verify(socioEconomicCalculator).calculate(Map(
         "What is your gender identity?" -> "Male",
@@ -89,9 +89,28 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed"
       ))
     }
+
+    "find all for diversity report" in new TestFixture {
+      when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
+      submitQuestionnaires()
+
+      val report = questionnaireRepo.findAllForDiversityReport.futureValue
+
+      report mustBe Map(
+        applicationId1 -> QuestionnaireReportItem(
+          Some("Male"), Some("Straight"), Some("Black"), Some("Unemployed"), None, None,
+          None, "SES Score", Some("W01-USW")),
+        applicationId2 -> QuestionnaireReportItem(
+          Some("Female"), Some("Lesbian"), Some("White"), Some("Employed"), Some("Modern professional"), Some("Part-time employed"),
+          Some("Large (26-500)"), "SES Score", Some("W17-WARR")),
+        applicationId3 -> QuestionnaireReportItem(
+          Some("Female"), Some("Lesbian"), Some("White"), None, None, None,
+          None, "", None)
+      )
+    }
   }
 
-  trait Fixture {
+  trait TestFixture {
     val applicationId1 = "abc"
     val applicationId2 = "123"
     val applicationId3 = "partiallyCompleteId"
@@ -120,6 +139,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     )
 
     val socioEconomicCalculator = mock[SocioEconomicScoreCalculator]
+
     def questionnaireRepo = new QuestionnaireMongoRepository(socioEconomicCalculator)
 
     def submitQuestionnaire(): Unit =
@@ -131,4 +151,5 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       questionnaireRepo.addQuestions(applicationId3, partiallyCompleteQuestionnaire).futureValue
     }
   }
+
 }

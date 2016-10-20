@@ -20,17 +20,29 @@ import java.util.UUID
 
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.OnlineTestApplication
-import model.persisted.{ CubiksTest, Phase1TestProfile }
+import model.persisted.{CubiksTest, Phase1TestProfile}
 import model.persisted.ExpiringOnlineTest
-import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
+import model.ProgressStatuses.{PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _}
 import model.persisted.Phase1TestWithUserIds
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
-import org.joda.time.{ DateTime, DateTimeZone }
+import model.{ApplicationStatus, ProgressStatuses, ReminderNotice, persisted}
+import org.joda.time.{DateTime, DateTimeZone}
+import reactivemongo.api.commands.WriteResult
+import reactivemongo.bson.{BSONArray, BSONDocument}
+import reactivemongo.json.ImplicitBSONHandlers
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
+import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
+import factories.DateTimeFactory
+import model.{ApplicationStatus, ProgressStatuses, ReminderNotice, persisted}
+import org.joda.time.{DateTime, DateTimeZone}
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
+import play.api.Logger
 
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
   import TextFixture._
+
+  override val collectionName = "application"
 
   val Token = UUID.randomUUID.toString
   val Now =  DateTime.now(DateTimeZone.UTC)
@@ -134,8 +146,8 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
   "Next phase1 test group with report ready" should {
     "not return a test group if the progress status is not appropriately set" in {
-       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS",
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, false))
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS",
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, false))
       ).futureValue
 
       val result = phase1TestRepo.nextTestGroupWithReportReady.futureValue
@@ -146,13 +158,28 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     "return a test group if the progress status is set to PHASE1_TEST_RESULTS_READY" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true),(PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(testProfileWithAppId.phase1TestProfile)
       ).futureValue
 
       val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
       phase1TestResultsReady.isDefined mustBe true
       phase1TestResultsReady.get mustBe testProfileWithAppId
+    }
+
+    "return a test group if only one report is ready to download" in {
+
+      val profile = testProfileWithAppId.phase1TestProfile.copy(tests = List(phase1Test, phase1Test.copy(resultsReadyToDownload = true)))
+
+      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true),(PHASE1_TESTS_RESULTS_READY, true)),
+        phase1TestProfile = Some(profile)
+      ).futureValue
+
+      val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
+      phase1TestResultsReady.isDefined mustBe true
+      phase1TestResultsReady.get mustBe Phase1TestWithUserIds("appId2", "userId2", profile)
     }
 
     "correctly update a test group with results" in {
@@ -198,6 +225,28 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
         applicationId mustBe "appId"
         applicationStatus mustBe "SUBMITTED"
+        userId mustBe "userId"
+        guaranteedInterview mustBe true
+        needsAdjustments mustBe false
+        preferredName mustBe testCandidate("preferredName")
+        lastName mustBe testCandidate("lastName")
+        timeAdjustments mustBe None
+      }
+    }
+    "be correctly read from mongo with lower case submitted status" in {
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "submitted", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false, isGis = true
+      ).futureValue
+
+      val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      onlineTestApplications.length mustBe 1
+
+      inside (onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId,
+      guaranteedInterview, needsAdjustments, preferredName, lastName, timeAdjustments) =>
+
+        applicationId mustBe "appId"
+        applicationStatus mustBe "submitted"
         userId mustBe "userId"
         guaranteedInterview mustBe true
         needsAdjustments mustBe false

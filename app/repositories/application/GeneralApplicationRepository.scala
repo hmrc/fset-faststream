@@ -19,26 +19,24 @@ package repositories.application
 import java.util.UUID
 import java.util.regex.Pattern
 
+import config.CubiksGatewayConfig
 import model.ApplicationStatus._
 import model.ApplicationStatusOrder._
-import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
-import model.CivilServiceExperienceType.CivilServiceExperienceType
+import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
-import model.InternshipType.InternshipType
-import model.OnlineTestCommands.{ OnlineTestApplication, TestResult }
-import model.SchemeType._
+import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
+import model.OnlineTestCommands.OnlineTestApplication
 import model.command._
-import model.persisted.{ ApplicationForNotification, Phase1TestProfile }
-import model.report.{ AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, PassMarkReportTestResults }
-import model.{ ApplicationStatus, _ }
+import model.persisted.ApplicationForNotification
+import model.report.{AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, _}
+import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ Format, JsNumber, JsObject }
+import org.joda.time.{DateTime, LocalDate}
+import play.api.libs.json.{Format, JsNumber, JsObject}
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, _ }
+import reactivemongo.api.{DB, QueryOpts, ReadPreference}
+import reactivemongo.bson.{BSONDocument, _}
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -84,7 +82,10 @@ trait GeneralApplicationRepository {
 
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
 
+  // Reports
   def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]]
+
+  def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]]
 
   def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]]
 
@@ -97,6 +98,7 @@ trait GeneralApplicationRepository {
   def candidatesAwaitingAllocation(frameworkId: String): Future[List[CandidateAwaitingAllocation]]
 
   def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]]
+
 
   def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit]
 
@@ -130,56 +132,17 @@ trait GeneralApplicationRepository {
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
-class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
+class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
+                                        gatewayConfig: CubiksGatewayConfig,
+                                        bsonToModelHelper: GeneralApplicationRepoBSONToModelHelper)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments {
 
+
   // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
   lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
 
-  implicit val readerPD = bsonReader(docToReportWithPersonalDetails)
-  implicit val readerTPM = bsonReader(docToOnlineTestPassMarkReport)
-  implicit val readerCandidate = bsonReader(docToCandidate)
-  implicit val readerCPR = bsonReader(docToCandidateProgressReport)
-
-  override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
-    val applicationId = UUID.randomUUID().toString
-    val applicationBSON = BSONDocument(
-      "applicationId" -> applicationId,
-      "userId" -> userId,
-      "frameworkId" -> frameworkId,
-      "applicationStatus" -> CREATED
-    )
-    collection.insert(applicationBSON) flatMap { _ =>
-      findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, CREATED, userId, p, None)
-      }
-    }
-  }
-
-  private def docToCandidate(doc: BSONDocument): Candidate = {
-    val userId = doc.getAs[String]("userId").getOrElse("")
-    val applicationId = doc.getAs[String]("applicationId")
-
-    val psRoot = doc.getAs[BSONDocument]("personal-details")
-    val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
-    val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
-    val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
-    val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
-
-    Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
-  }
-
-  def find(applicationId: String): Future[Option[Candidate]] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    bsonCollection.find(query).one[Candidate]
-  }
-
-  def find(applicationIds: List[String]): Future[List[Candidate]] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-    bsonCollection.find(query).cursor[Candidate]().collect[List]()
-  }
 
   // scalastyle:off method.length
   private def findProgress(document: BSONDocument, applicationId: String): ProgressResponse = {
@@ -187,7 +150,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     (document.getAs[BSONDocument]("progress-status") map { root =>
 
       def getProgress(key: String) = {
-        root.getAs[Boolean](key).orElse(root.getAs[Boolean](key.toLowerCase)).getOrElse(false)
+        root.getAs[Boolean](key)
+          .orElse(root.getAs[Boolean](key.toUpperCase))
+          .orElse(root.getAs[Boolean](key.toLowerCase))
+          .getOrElse(false)
       }
 
       def questionnaire = root.getAs[BSONDocument]("questionnaire").map { doc =>
@@ -243,6 +209,37 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     }).getOrElse(ProgressResponse(applicationId))
   }
   // scalastyle:on method.length
+
+  implicit val readerPD = bsonReader(bsonToModelHelper.toReportWithPersonalDetails(findProgress))
+  implicit val readerTPM = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem)
+  implicit val readerCandidate = bsonReader(bsonToModelHelper.toCandidate)
+  implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReport(findProgress))
+  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReportItem(findProgress))
+
+  override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
+    val applicationId = UUID.randomUUID().toString
+    val applicationBSON = BSONDocument(
+      "applicationId" -> applicationId,
+      "userId" -> userId,
+      "frameworkId" -> frameworkId,
+      "applicationStatus" -> CREATED
+    )
+    collection.insert(applicationBSON) flatMap { _ =>
+      findProgress(applicationId).map { p =>
+        ApplicationResponse(applicationId, CREATED, userId, p, None)
+      }
+    }
+  }
+
+  def find(applicationId: String): Future[Option[Candidate]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    bsonCollection.find(query).one[Candidate]
+  }
+
+  def find(applicationIds: List[String]): Future[List[Candidate]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    bsonCollection.find(query).cursor[Candidate]().collect[List]()
+  }
 
   override def findProgress(applicationId: String): Future[ProgressResponse] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -368,7 +365,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
         collection.find(query, projection).sort(sort).options(QueryOpts(skipN = start)).cursor[BSONDocument]().collect[List](end - start + 1).
           map { docList =>
             docList.map { doc =>
-              bsonDocToApplicationsForAssessmentAllocation(doc)
+              bsonToModelHelper.toApplicationsForAssessmentAllocation(doc)
             }
           }.flatMap { result =>
           Future.successful(ApplicationForAssessmentAllocationResult(result, count))
@@ -420,9 +417,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
   }
 
-  override def onlineTestPassMarkReport(frameworkId: String):
-  Future[List[ApplicationForOnlineTestPassMarkReportItem]] = {
-
+  override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
       BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
@@ -439,7 +434,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReportItem](query, projection)
   }
-
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReport]] =
     candidateProgressReport(BSONDocument("$and" -> BSONArray(
@@ -469,80 +463,17 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     reportQueryWithProjectionsBSON[CandidateProgressReport](query, projection)
   }
 
-  //scalastyle:off method.length
-  private def docToOnlineTestPassMarkReport(document: BSONDocument): ApplicationForOnlineTestPassMarkReportItem = {
-    import config.MicroserviceAppConfig._
-
-    val applicationId = document.getAs[String]("applicationId").getOrElse("")
-
-    val schemesDoc = document.getAs[BSONDocument]("scheme-preferences")
-    val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
-
-    val adDoc = document.getAs[BSONDocument]("assistance-details")
-    val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
-    val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
-    val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
-    val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
-
-    val testGroupsDoc = document.getAs[BSONDocument]("testGroups")
-    val phase1Doc = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE1"))
-
-    val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
-
-    val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
-    val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
-
-    def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
-      phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
-        phase1Test.testResult.map { tr =>
-          TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
-        }
-      }
-    }
-    val behaviouralTestResult = getTestResult(phase1TestProfile, behaviouralScheduleId)
-    val situationalTestResult = getTestResult(phase1TestProfile, situationalScheduleId)
-
-    ApplicationForOnlineTestPassMarkReportItem(
-      applicationId,
-      schemes.getOrElse(List.empty[SchemeType]),
-      disability,
-      gis,
-      onlineAdjustments,
-      assessmentCentreAdjustments,
-      PassMarkReportTestResults(behaviouralTestResult, situationalTestResult))
-  }
-
-  //scalastyle:on method.length
-
-  private def docToCandidateProgressReport(document: BSONDocument): CandidateProgressReport = {
-    val schemesDoc = document.getAs[BSONDocument]("scheme-preferences")
-    val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
-
-    val adDoc = document.getAs[BSONDocument]("assistance-details")
-    val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
-    val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
-    val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
-    val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview")).map(booleanTranslator)
-
-    val fpDoc = document.getAs[BSONDocument]("civil-service-experience-details")
-    val civilServiceExperienceType = (fpType: CivilServiceExperienceType) => fpDoc.map(
-      _.getAs[CivilServiceExperienceType]("civilServiceExperienceType").contains(fpType)
+  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]] = {
+    val query = BSONDocument("frameworkId" -> frameworkId)
+    val projection = BSONDocument(
+      "userId" -> "1",
+      "scheme-preferences.schemes" -> "1",
+      "assistance-details" -> "1",
+      "civil-service-experience-details" -> "1",
+      "applicationId" -> "1",
+      "progress-status" -> "2"
     )
-    val internshipTypes = (internshipType: InternshipType) =>
-      fpDoc.map(_.getAs[List[InternshipType]]("internshipTypes").getOrElse(List.empty[InternshipType]).contains(internshipType))
-
-    val civilServant = civilServiceExperienceType(CivilServiceExperienceType.CivilServant).map(booleanTranslator)
-    val fastTrack = civilServiceExperienceType(CivilServiceExperienceType.CivilServantViaFastTrack).map(booleanTranslator)
-    val edip = internshipTypes(InternshipType.EDIP).map(booleanTranslator)
-    val sdipPrevious = internshipTypes(InternshipType.SDIPPreviousYear).map(booleanTranslator)
-    val sdip = internshipTypes(InternshipType.SDIPCurrentYear).map(booleanTranslator)
-    val fastPassCertificate = fpDoc.map(_.getAs[String]("certificateNumber").getOrElse("No"))
-
-    val applicationId = document.getAs[String]("applicationId").getOrElse("")
-    val progress: ProgressResponse = findProgress(document, applicationId)
-
-    CandidateProgressReport(applicationId, Some(getStatus(progress)), schemes.getOrElse(List.empty[SchemeType]), disability, onlineAdjustments,
-      assessmentCentreAdjustments, gis, civilServant, fastTrack, edip, sdipPrevious, sdip, fastPassCertificate)
+    reportQueryWithProjectionsBSON[ApplicationForDiversityReportItem](query, projection)
   }
 
   override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] =
@@ -622,7 +553,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   // scalstyle:on method.length
-
   override def applicationsPassedInAssessmentCentre(frameworkId: String): Future[List[ApplicationPreferencesWithTestResults]] =
     applicationPreferencesWithTestResults(BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
@@ -711,7 +641,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
   }
 
   // scalstyle:on method.length
-
   private def overallReportWithPersonalDetails(query: BSONDocument): Future[List[ReportWithPersonalDetails]] = {
     val projection = BSONDocument(
       "userId" -> "1",
@@ -738,47 +667,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
     )
 
     reportQueryWithProjectionsBSON[ReportWithPersonalDetails](query, projection)
-  }
-
-  private def docToReportWithPersonalDetails(document: BSONDocument): ReportWithPersonalDetails = {
-    val fr = document.getAs[BSONDocument]("framework-preferences")
-    val fr1 = fr.flatMap(_.getAs[BSONDocument]("firstLocation"))
-    val fr2 = fr.flatMap(_.getAs[BSONDocument]("secondLocation"))
-
-    def frLocation(root: Option[BSONDocument]) = extract("location")(root)
-    def frScheme1(root: Option[BSONDocument]) = extract("firstFramework")(root)
-    def frScheme2(root: Option[BSONDocument]) = extract("secondFramework")(root)
-
-    val personalDetails = document.getAs[BSONDocument]("personal-details")
-    val aLevel = personalDetails.flatMap(_.getAs[Boolean]("aLevel").map(booleanTranslator))
-    val stemLevel = personalDetails.flatMap(_.getAs[Boolean]("stemLevel").map(booleanTranslator))
-    val firstName = personalDetails.flatMap(_.getAs[String]("firstName"))
-    val lastName = personalDetails.flatMap(_.getAs[String]("lastName"))
-    val preferredName = personalDetails.flatMap(_.getAs[String]("preferredName"))
-    val dateOfBirth = personalDetails.flatMap(_.getAs[String]("dateOfBirth"))
-
-    val fpAlternatives = fr.flatMap(_.getAs[BSONDocument]("alternatives"))
-    val location = fpAlternatives.flatMap(_.getAs[Boolean]("location").map(booleanTranslator))
-    val framework = fpAlternatives.flatMap(_.getAs[Boolean]("framework").map(booleanTranslator))
-
-    val ad = document.getAs[BSONDocument]("assistance-details")
-    val needsAssistance = ad.flatMap(_.getAs[String]("needsAssistance"))
-    val needsAdjustment = ad.flatMap(_.getAs[String]("needsAdjustment"))
-    val guaranteedInterview = ad.flatMap(_.getAs[String]("guaranteedInterview"))
-
-    val applicationId = document.getAs[String]("applicationId").getOrElse("")
-    val userId = document.getAs[String]("userId").getOrElse("")
-    val progress: ProgressResponse = findProgress(document, applicationId)
-
-    val onlineTests = document.getAs[BSONDocument]("online-tests")
-    val cubiksUserId = onlineTests.flatMap(_.getAs[Int]("cubiksUserId"))
-
-    ReportWithPersonalDetails(
-      applicationId, userId, Some(getStatus(progress)), frLocation(fr1), frScheme1(fr1), frScheme2(fr1),
-      frLocation(fr2), frScheme1(fr2), frScheme2(fr2), aLevel,
-      stemLevel, location, framework, needsAssistance, needsAdjustment, guaranteedInterview, firstName, lastName,
-      preferredName, dateOfBirth, cubiksUserId
-    )
   }
 
   def adjustmentReport(frameworkId: String): Future[List[AdjustmentReport]] = {
@@ -1087,7 +975,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
         )
       )
     )
-    implicit val reader = bsonReader(bsonDocToApplicationForNotification)
+    implicit val reader = bsonReader(bsonToModelHelper.toApplicationForNotification)
     selectOneRandom[ApplicationForNotification](query)
   }
 
@@ -1175,28 +1063,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService)(implic
       val schemesDoc = schemes.foldRight(BSONDocument.empty)((acc, doc) => acc.add(doc))
       BSONDocument(name -> schemesDoc)
     case _ => BSONDocument.empty
-  }
-
-  private def bsonDocToApplicationsForAssessmentAllocation(doc: BSONDocument) = {
-    val userId = doc.getAs[String]("userId").get
-    val applicationId = doc.getAs[String]("applicationId").get
-    val personalDetails = doc.getAs[BSONDocument]("personal-details").get
-    val firstName = personalDetails.getAs[String]("firstName").get
-    val lastName = personalDetails.getAs[String]("lastName").get
-    val assistanceDetails = doc.getAs[BSONDocument]("assistance-details").get
-    val needsSupportAtVenue = assistanceDetails.getAs[Boolean]("needsSupportAtVenue").flatMap(b => Some(booleanTranslator(b))).get
-    val onlineTestDetails = doc.getAs[BSONDocument]("online-tests").get
-    val invitationDate = onlineTestDetails.getAs[DateTime]("invitationDate").get
-    ApplicationForAssessmentAllocation(firstName, lastName, userId, applicationId, needsSupportAtVenue, invitationDate)
-  }
-
-  private def bsonDocToApplicationForNotification(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val userId = doc.getAs[String]("userId").get
-    val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
-    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
-    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
-    ApplicationForNotification(applicationId, userId, preferredName, applicationStatus)
   }
 
   private def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {

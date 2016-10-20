@@ -26,8 +26,9 @@ import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Pha
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import play.api.Logger
+import play.api.libs.json.Json
 import reactivemongo.api.DB
-import reactivemongo.bson._
+import reactivemongo.bson.{ BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -78,8 +79,10 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
+    val submittedStatuses = List[String](ApplicationStatus.SUBMITTED, ApplicationStatus.SUBMITTED.toLowerCase)
+
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> submittedStatuses)),
       BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
     ))
 
@@ -111,9 +114,9 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val update = BSONDocument("$set" -> applicationStatusBSON(PHASE1_TESTS_INVITED)) ++ BSONDocument("$set" -> BSONDocument(
-      "testGroups" -> BSONDocument(phaseName -> phase1TestProfile)
-    ))
+    val update = BSONDocument("$set" -> applicationStatusBSON(PHASE1_TESTS_INVITED)) ++
+      BSONDocument("$set" -> BSONDocument(s"testGroups.$phaseName" -> phase1TestProfile)
+    )
 
     collection.update(query, update, upsert = false) map { status =>
       if (status.n != 1) {
@@ -158,11 +161,22 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
+
+    /*db.getCollection('application').find(
+      {"$and" : [
+         {"applicationStatus" : "PHASE1_TESTS"},
+         {"progress-status.PHASE1_TESTS_COMPLETED" : true},
+         {"progress-status.PHASE1_TESTS_RESULTS_RECEVIED" : {"$ne" : true}},
+         {"testGroups.PHASE1.tests" : {"$elemMatch" : {"resultsReadyToDownload" : true, "testResult" : {"$exists" : false}}}}
+       ]}
+    ) */
+
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_READY}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" ->
-        BSONDocument("$ne" -> true)
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_COMPLETED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> BSONDocument("$ne" -> true)),
+      BSONDocument("testGroups.PHASE1.tests" ->
+        BSONDocument("$elemMatch" -> BSONDocument("resultsReadyToDownload" -> true, "testResult" -> BSONDocument("$exists" -> false)))
       )
     ))
 

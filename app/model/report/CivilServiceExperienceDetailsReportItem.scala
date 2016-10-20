@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package model.exchange
+package model.report
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest)
+case class CivilServiceExperienceDetailsReportItem(
+                                    isCivilServant: Option[String],
+                                    isFastTrack: Option[String],
+                                    isEDIP: Option[String],
+                                    isSDIPPre2016: Option[String],
+                                    isSDIP2016: Option[String],
+                                    fastPassCertificate: Option[String])
 
-object Phase2TestGroupWithActiveTest {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithActiveTest]
+object CivilServiceExperienceDetailsReportItem {
+  implicit val civilServiceExperienceDetailsReportItemFormat = Json.format[CivilServiceExperienceDetailsReportItem]
 }

@@ -82,7 +82,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
           testFirstName,
           testLastName
         )
-      ))(any[HeaderCarrier]())
+      ))
 
       val expectedCustomInviteId = "FSINV-" + tokens.head
       verify(launchpadGatewayClientMock).inviteApplicant(eqTo(
@@ -92,7 +92,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
           expectedCustomInviteId,
           s"http://www.foo.com/test/interview/fset-fast-stream/phase3-tests/complete/$expectedCustomInviteId"
         )
-      ))(any[HeaderCarrier]())
+      ))
     }
   }
 
@@ -173,14 +173,14 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       ))
     }
 
-    when(launchpadGatewayClientMock.registerApplicant(any())(any[HeaderCarrier]())).thenReturn {
+    when(launchpadGatewayClientMock.registerApplicant(any())).thenReturn {
       Future.successful(RegisterApplicantResponse(
         testLaunchpadCandidateId,
         testFaststreamCustomCandidateId
       ))
     }
 
-    when(launchpadGatewayClientMock.inviteApplicant(any())(any[HeaderCarrier]())).thenReturn {
+    when(launchpadGatewayClientMock.inviteApplicant(any())).thenReturn {
       Future.successful(InviteApplicantResponse(
         testInviteId,
         testLaunchpadCandidateId,

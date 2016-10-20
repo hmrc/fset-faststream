@@ -20,7 +20,7 @@ import factories.DateTimeFactory
 import org.joda.time.{DateTime, LocalDate}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{CandidateAllocationMongoRepository, GeneralApplicationMongoRepository}
+import repositories.application.{CandidateAllocationMongoRepository, GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec
@@ -34,7 +34,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
   override val collectionName = "application"
   
   def candidateAllocationRepo = new CandidateAllocationMongoRepository(DateTimeFactory)
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
 
   "Next unconfirmed candidate to send a reminder" should {
     "return the unconfirmed candidate who's expiration date is today" in {
