@@ -54,7 +54,6 @@ object Phase2TestService extends Phase2TestService {
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
   val eventService = EventService
-  val clock: DateTimeFactory = DateTimeFactory
 
 }
 
@@ -62,7 +61,6 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
-  val clock: DateTimeFactory
 
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
 
@@ -270,10 +268,10 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
       progress <- progressFut
       phase2 <- phase2TestGroup
       isAlreadyExpired = progress.phase2ProgressResponse.phase2TestsExpired
-      extendDays = extendTime(isAlreadyExpired, phase2.expirationDate, clock)
+      extendDays = extendTime(isAlreadyExpired, phase2.expirationDate)
       newExpiryDate = extendDays(extraDays)
       _ <- phase2TestRepo.updateGroupExpiryTime(applicationId, newExpiryDate, phase2TestRepo.phaseName)
-      _ <- getProgressStatusesToRemove(newExpiryDate, phase2, progress)
+      _ <- progressStatusesToRemoveWhenExtendTime(newExpiryDate, phase2, progress)
         .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
       audit(isAlreadyExpired, applicationId) ::
@@ -282,18 +280,18 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     }
   }
 
-  private def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
-                                  profile: Phase2TestGroup,
-                                  progress: ProgressResponse): Option[List[ProgressStatus]] = {
-    val today = clock.nowLocalTimeZone
-    val isSecondReminderNeededForTheNewExpiryDate = extendedExpiryDate.minusHours(Phase2SecondReminder.hoursBeforeReminder).isAfter(today)
-    val isFirstReminderNeededForTheNewExpiryDate = extendedExpiryDate.minusHours(Phase2FirstReminder.hoursBeforeReminder).isAfter(today)
+  private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: DateTime,
+                                                     profile: Phase2TestGroup,
+                                                     progress: ProgressResponse): Option[List[ProgressStatus]] = {
+    val shouldRemoveExpired = progress.phase2ProgressResponse.phase2TestsExpired
+    val today = dateTimeFactory.nowLocalTimeZone
+    val shouldRemoveSecondReminder = extendedExpiryDate.minusHours(Phase2SecondReminder.hoursBeforeReminder).isAfter(today)
+    val shouldRemoveFirstReminder = extendedExpiryDate.minusHours(Phase2FirstReminder.hoursBeforeReminder).isAfter(today)
 
     val progressStatusesToRemove = (Set.empty[ProgressStatus]
-      ++ Set(PHASE2_TESTS_EXPIRED)
-      ++ (if (profile.hasNotStartedYet) Set(PHASE2_TESTS_STARTED) else Set.empty)
-      ++ (if (isSecondReminderNeededForTheNewExpiryDate) Set(PHASE2_TESTS_SECOND_REMINDER) else Set.empty)
-      ++ (if (isFirstReminderNeededForTheNewExpiryDate) Set(PHASE2_TESTS_FIRST_REMINDER) else Set.empty)).toList
+      ++ (if (shouldRemoveExpired) Set(PHASE2_TESTS_EXPIRED) else Set.empty)
+      ++ (if (shouldRemoveSecondReminder) Set(PHASE2_TESTS_SECOND_REMINDER) else Set.empty)
+      ++ (if (shouldRemoveFirstReminder) Set(PHASE2_TESTS_FIRST_REMINDER) else Set.empty)).toList
 
     if (progressStatusesToRemove.isEmpty) { None } else { Some(progressStatusesToRemove) }
   }
