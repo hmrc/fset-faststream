@@ -171,7 +171,7 @@ case class Phase2TestsPage(
 
 object Phase2TestsPage {
 
-  def apply(profile: connectors.exchange.Phase2TestGroupWithNames): Phase2TestsPage = {
+  def apply(profile: connectors.exchange.Phase2TestGroupWithActiveTest): Phase2TestsPage = {
     Phase2TestsPage(expirationDate = profile.expirationDate,
       etray = Some(CubiksTestPage.apply(profile.activeTest))
     )

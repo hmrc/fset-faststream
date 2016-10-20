@@ -28,9 +28,9 @@ object Phase1TestGroupWithNames {
 }
 
 
-case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTest: CubiksTest)
+case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest)
 
 
-object Phase2TestGroupWithNames {
-  implicit val phase2TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
+object Phase2TestGroupWithActiveTest {
+  implicit val phase2TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithActiveTest]
 }
