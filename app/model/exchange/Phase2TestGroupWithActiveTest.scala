@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package model.events
+package model.exchange
 
-import model.events.EventTypes.EventType
+import model.persisted.CubiksTest
+import org.joda.time.DateTime
+import play.api.libs.json.Json
 
-sealed trait EmailEvent extends EventType {
-  val to: String
-  val name: String
-  val template: Option[String] = None
+case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest, resetAllowed: Boolean)
 
-  require(to.contains("@"))
-}
-
-object EmailEvents {
-  case class ApplicationSubmitted(to: String, name: String) extends EmailEvent
-  case class ApplicationWithdrawn(to: String, name: String) extends EmailEvent
+object Phase2TestGroupWithActiveTest {
+  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithActiveTest]
 }

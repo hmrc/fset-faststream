@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package model.exchange
+package model
 
-import model.persisted.CubiksTest
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, ProgressStatus }
 
-case class Phase2TestGroupWithNames(expirationDate: DateTime, activeTests: List[CubiksTest])
+sealed case class TestExpirationEvent(phase: String, expiredStatus: ProgressStatus, template: String)
 
-object Phase2TestGroupWithNames {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithNames]
-}
+object Phase1ExpirationEvent extends TestExpirationEvent("PHASE1", PHASE1_TESTS_EXPIRED, "fset_faststream_app_online_phase1_test_expired")
+object Phase2ExpirationEvent extends TestExpirationEvent("PHASE2", PHASE2_TESTS_EXPIRED, "fset_faststream_app_online_phase2_test_expired")

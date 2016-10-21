@@ -78,7 +78,7 @@ trait TestDataGeneratorService {
       parNumbers.map {
         candidateGenerationId =>
           val fut = generatorForStatus.generate(candidateGenerationId, generatorConfig)
-          Await.result(fut, 5 seconds)
+          Await.result(fut, 10 seconds)
       }.toList
     }
   }
