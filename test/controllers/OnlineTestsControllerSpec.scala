@@ -18,10 +18,9 @@ package controllers
 
 import model.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.ResetPhase2Test
+import model.command.ResetOnlineTest
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
 import repositories.application.GeneralApplicationRepository
@@ -57,7 +56,7 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
-      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetPhase2Test("")))
+      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe OK
     }
     "return the response as reset limit exceeded" in {
@@ -65,7 +64,7 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
-      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetPhase2Test("")))
+      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe LOCKED
     }
     "return cannot reset phase2 tests exception" in {
@@ -73,7 +72,7 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotResetPhase2Tests()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
-      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetPhase2Test("")))
+      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe NOT_FOUND
     }
     "return not found exception" in {
@@ -81,7 +80,7 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(None))
-      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetPhase2Test("")))
+      val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe NOT_FOUND
     }
   }

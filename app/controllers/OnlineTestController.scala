@@ -19,7 +19,7 @@ package controllers
 import model.ApplicationStatus._
 import model.Commands
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.{ ResetOnlineTest, ResetPhase2Test }
+import model.command.ResetOnlineTest
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
@@ -99,7 +99,7 @@ trait OnlineTestController extends BaseController {
   }
 
   def resetPhase2OnlineTest(appId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[ResetPhase2Test] { resetPhase2Test =>
+    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
 
       def reset(onlineTestApp: OnlineTestApplication, actionTriggeredBy: String) =
         phase2TestService.resetTests(onlineTestApp, actionTriggeredBy)
@@ -112,7 +112,7 @@ trait OnlineTestController extends BaseController {
           }
 
       appRepository.getOnlineTestApplication(appId).flatMap {
-        case Some(onlineTestApp) => reset(onlineTestApp, resetPhase2Test.actionTriggeredBy)
+        case Some(onlineTestApp) => reset(onlineTestApp, resetOnlineTest.actionTriggeredBy)
         case _ => Future.successful(NotFound)
       }
     }
