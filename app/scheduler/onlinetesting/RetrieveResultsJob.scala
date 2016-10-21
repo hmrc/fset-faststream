@@ -19,17 +19,21 @@ package scheduler.onlinetesting
 
 import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.Phase1TestService
+import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object RetrieveResultsJob extends RetrieveResultsJob {
+object RetrieveResultsJob extends RetrieveResultsJob  with RetrieveResultsJobConfig {
   val onlineTestingService = Phase1TestService
 }
 
-trait RetrieveResultsJob extends SingleInstanceScheduledJob with RetrieveResultsJobConfig {
-  val onlineTestingService: Phase1TestService
+object RetrievePhase2ResultsJob extends RetrieveResultsJob  with RetrievePhase2ResultsJobConfig {
+  val onlineTestingService = Phase2TestService
+}
+
+trait RetrieveResultsJob extends SingleInstanceScheduledJob {
+  val onlineTestingService: OnlineTestService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextTestGroupWithReportReady.flatMap {
@@ -46,4 +50,11 @@ trait RetrieveResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig]
   override val conf = config.MicroserviceAppConfig.retrieveResultsJobConfig
   override val configPrefix = "scheduling.online-testing.retrieve-results-job."
   override val name = "RetrieveResultsJob"
+}
+
+trait RetrievePhase2ResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  override val conf = config.MicroserviceAppConfig.retrieveResultsJobConfig
+  override val configPrefix = "scheduling.online-testing.retrieve-phase2-results-job."
+  override val name = "RetrievePhase2ResultsJob"
 }

@@ -87,7 +87,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     }
   }
 
-  def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
+  override def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
     phase1TestRepo.nextTestGroupWithReportReady
   }
 
@@ -205,7 +205,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     }
   }
 
-  def retrieveTestResult(testProfile: Phase1TestWithUserIds)(implicit hc: HeaderCarrier): Future[Unit] = {
+  override def retrieveTestResult(testProfile: Phase1TestWithUserIds)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     def insertTests(testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
       Future.sequence(testResults.map {
@@ -230,7 +230,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
       }
     }
 
-    val testResults = Future.sequence(testProfile.phase1TestProfile.activeTests.map { test =>
+    val testResults = Future.sequence(testProfile.testGroup.activeTests.map { test =>
       test.reportId.map { reportId =>
         cubiksGatewayClient.downloadXmlReport(reportId)
       }.map(_.map(_ -> test))
@@ -334,8 +334,8 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     val updatedPhase1Test = updatePhase1Test(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)))
     updatedPhase1Test flatMap { u =>
-      require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
-      val activeTestsCompleted = u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)
+      require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
+      val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
       activeTestsCompleted match {
         case true =>
           phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
@@ -358,7 +358,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
 
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
     updatePhase1Test(cubiksUserId, updateTestReportReady(_:CubiksTest, reportReady)).flatMap { updated =>
-      val allResultReadyToDownload = updated.phase1TestProfile.activeTests forall (_.resultsReadyToDownload)
+      val allResultReadyToDownload = updated.testGroup.activeTests forall (_.resultsReadyToDownload)
       allResultReadyToDownload match {
         case true => phase1TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
         case false => Future.successful(())
@@ -371,7 +371,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   private def updatePhase1Test(cubiksUserId: Int, update: CubiksTest => CubiksTest):
   Future[Phase1TestWithUserIds] = {
     def createUpdateTestGroup(p: Phase1TestWithUserIds): Phase1TestWithUserIds = {
-      val testGroup = p.phase1TestProfile
+      val testGroup = p.testGroup
       assertUniqueTestByCubiksUserId(testGroup.tests, cubiksUserId)
       val updatedTestGroup = testGroup.copy(tests = updateCubiksTestsById(cubiksUserId, testGroup.tests, update))
       Phase1TestWithUserIds(p.applicationId, p.userId, updatedTestGroup)
@@ -379,7 +379,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     for {
       p1TestProfile <- phase1TestRepo.getTestProfileByCubiksId(cubiksUserId)
       updated = createUpdateTestGroup(p1TestProfile)
-      _ <- phase1TestRepo.insertOrUpdateTestGroup(updated.applicationId, updated.phase1TestProfile)
+      _ <- phase1TestRepo.insertOrUpdateTestGroup(updated.applicationId, updated.testGroup)
     } yield {
       updated
     }

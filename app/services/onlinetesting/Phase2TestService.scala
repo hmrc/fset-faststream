@@ -204,8 +204,8 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)))
     updatedPhase2Test flatMap { u =>
-      require(u.phase2TestGroup.activeTests.nonEmpty, "Active tests cannot be found")
-      val activeTestsCompleted = u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)
+      require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
+      val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
       activeTestsCompleted match {
         case true =>
           phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
@@ -226,7 +226,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
     updatePhase2Test(cubiksUserId, updateTestReportReady(_: CubiksTest, reportReady)).flatMap { updated =>
-      if (updated.phase2TestGroup.activeTests forall (_.resultsReadyToDownload)) {
+      if (updated.testGroup.activeTests forall (_.resultsReadyToDownload)) {
         phase2TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
       } else {
         Future.successful(())
@@ -236,7 +236,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   private def updatePhase2Test(cubiksUserId: Int, update: CubiksTest => CubiksTest): Future[Phase2TestGroupWithAppId] = {
     def createUpdateTestGroup(p: Phase2TestGroupWithAppId): Phase2TestGroupWithAppId = {
-      val testGroup = p.phase2TestGroup
+      val testGroup = p.testGroup
       assertUniqueTestByCubiksUserId(testGroup.tests, cubiksUserId)
       val updatedTestGroup = testGroup.copy(tests = updateCubiksTestsById(cubiksUserId, testGroup.tests, update))
       Phase2TestGroupWithAppId(p.applicationId, updatedTestGroup)
@@ -244,7 +244,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     for {
       p1TestProfile <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
       updated = createUpdateTestGroup(p1TestProfile)
-      _ <- phase2TestRepo.insertOrUpdateTestGroup(updated.applicationId, updated.phase2TestGroup)
+      _ <- phase2TestRepo.insertOrUpdateTestGroup(updated.applicationId, updated.testGroup)
     } yield {
       updated
     }

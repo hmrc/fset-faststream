@@ -158,7 +158,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true),(PHASE1_TESTS_RESULTS_READY, true)),
-        phase1TestProfile = Some(testProfileWithAppId.phase1TestProfile)
+        phase1TestProfile = Some(testProfileWithAppId.testGroup)
       ).futureValue
 
       val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
@@ -168,7 +168,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
     "return a test group if only one report is ready to download" in {
 
-      val profile = testProfileWithAppId.phase1TestProfile.copy(tests = List(phase1Test, phase1Test.copy(resultsReadyToDownload = true)))
+      val profile = testProfileWithAppId.testGroup.copy(tests = List(phase1Test, phase1Test.copy(resultsReadyToDownload = true)))
 
       createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
@@ -185,14 +185,14 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
        createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
-        phase1TestProfile = Some(testProfileWithAppId.phase1TestProfile)
+        phase1TestProfile = Some(testProfileWithAppId.testGroup)
       ).futureValue
 
 
       val testResult = persisted.TestResult(status = "completed", norm = "some norm",
           tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
 
-      phase1TestRepo.insertPhase1TestResult("appId", testProfileWithAppId.phase1TestProfile.tests.head,
+      phase1TestRepo.insertPhase1TestResult("appId", testProfileWithAppId.testGroup.tests.head,
         testResult
       ).futureValue
 

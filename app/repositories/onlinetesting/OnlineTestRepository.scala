@@ -129,4 +129,19 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
     val update = BSONDocument("$set" -> applicationStatusBSON(progressStatus))
     collection.update(query, update, upsert = false) map ( _ => () )
   }
+
+  def nextTestGroupWithReportReady[G](implicit reader: BSONDocumentReader[G]): Future[Option[G]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> thisApplicationStatus),
+      BSONDocument(s"progress-status.${phaseName}_TESTS_COMPLETED" -> true),
+      BSONDocument(s"progress-status.${phaseName}_TESTS_RESULTS_RECEIVED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"testGroups.$phaseName.tests" ->
+        BSONDocument("$elemMatch" -> BSONDocument("resultsReadyToDownload" -> true, "testResult" -> BSONDocument("$exists" -> false)))
+      )
+    ))
+
+    selectOneRandom[G](query)
+  }
+
+
 }

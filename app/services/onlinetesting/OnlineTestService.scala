@@ -21,7 +21,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.events.DataStoreEvents
 import model.exchange.CubiksTestResultReady
-import model.persisted.{ CubiksTest, ExpiringOnlineTest, NotificationExpiringOnlineTest }
+import model.persisted.{ CubiksTest, ExpiringOnlineTest, NotificationExpiringOnlineTest, TestGroupWithIds }
 import model.{ TestExpirationEvent, ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
 import model.events.AuditEvents
@@ -53,6 +53,8 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def nextTestGroupWithReportReady: Future[Option[TestGroupWithIds]]
+  def retrieveTestResult(testProfile: TestGroupWithIds)(implicit hc: HeaderCarrier): Future[Unit]
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
@@ -156,4 +158,3 @@ trait TimeExtension {
     }
   }
 }
-
