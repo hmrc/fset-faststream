@@ -22,14 +22,14 @@ import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
-import model.ProgressStatuses
-import model.EvaluationResults.Result
-import org.joda.time.{DateTime, LocalDate}
-import org.joda.time.format.DateTimeFormat
-import play.api.Play
 import model.ApplicationStatus._
-import model.Commands.CreateApplicationRequest
-import model.command.testdata.CreateCandidateInStatus
+import model.EvaluationResults.Result
+import model.ProgressStatuses
+import model.command.testdata.{CreateCandidateInStatusRequest, CreateCandidateInStatusRequest$}
+import model.command.testdata.CreateCandidateInStatusRequest._
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.{DateTime, LocalDate}
+import play.api.Play
 import play.api.libs.json.Json
 import play.api.mvc.{Action, RequestHeader}
 import services.testdata._
@@ -131,7 +131,7 @@ trait TestDataGeneratorController extends BaseController {
   // scalastyle:on
 
   def createCandidatesInStatusPOST() = Action.async(parse.json) { implicit request =>
-    withJsonBody[CreateCandidateInStatus] { body =>
+    withJsonBody[CreateCandidateInStatusRequest] { body =>
       createCandidateInStatus(
         requestToGeneratorConfig(body),
         body.applicationStatus,
@@ -171,10 +171,10 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def requestToGeneratorConfig(request: CreateCandidateInStatus) = {
+  private def requestToGeneratorConfig(request: CreateCandidateInStatusRequest) = {
       GeneratorConfig(
       emailPrefix = request.emailPrefix.getOrElse(""),
-      setGis = request.setGis.getOrElse(false),
+      // TODO: Map request's assistance details to config
       firstName = request.firstName,
       lastName = request.lastName,
       preferredName = request.preferredName,
