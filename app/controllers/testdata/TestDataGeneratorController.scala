@@ -24,13 +24,16 @@ import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
 import model.ProgressStatuses
 import model.EvaluationResults.Result
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
 import org.joda.time.format.DateTimeFormat
 import play.api.Play
 import model.ApplicationStatus._
+import model.Commands.CreateApplicationRequest
+import model.command.testdata.CreateCandidateInStatus
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{Action, RequestHeader}
 import services.testdata._
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -76,7 +79,7 @@ trait TestDataGeneratorController extends BaseController {
 
   // scalastyle:off parameter.number
   // scalastyle:off method.length
-  def createCandidatesInStatus(applicationStatus: String,
+  def createCandidatesInStatusGET(applicationStatus: String,
     progressStatus: Option[String],
     numberToGenerate: Int,
     emailPrefix: String,
@@ -123,18 +126,36 @@ trait TestDataGeneratorController extends BaseController {
       phase1ExpiryTime = phase1ExpiryTime.map(x => DateTime.parse(x)),
       tscore = tscore
     )
+    createCandidateInStatus(initialConfig, applicationStatus, progressStatus, numberToGenerate)
+  }
+  // scalastyle:on
 
+  def createCandidatesInStatusPOST() = Action.async(parse.json) { implicit request =>
+    withJsonBody[CreateCandidateInStatus] { body =>
+      createCandidateInStatus(
+        requestToGeneratorConfig(body),
+        body.applicationStatus,
+        body.progressStatus,
+        body.numberToGenerate)
+    }
+  }
+
+  private def createCandidateInStatus(config: GeneratorConfig,
+                                      applicationStatus: String,
+                                      progressStatus: Option[String],
+                                      numberToGenerate: Int)
+                                     (implicit hc: HeaderCarrier, rh: RequestHeader)
+  = {
     TestDataGeneratorService.createCandidatesInSpecificStatus(
       numberToGenerate,
       StatusGeneratorFactory.getGenerator(withName(applicationStatus),
         progressStatus.flatMap(ps => ProgressStatuses.nameToProgressStatus.get(ps)),
-        initialConfig),
-      initialConfig
+        config),
+      config
     ).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }
-  // scalastyle:on
 
   private def validatePostcode(postcode: String) = {
     // putting this on multiple lines won't make this regex any clearer
@@ -148,5 +169,28 @@ trait TestDataGeneratorController extends BaseController {
       case false if postcode.isEmpty => throw InvalidPostCodeFormatException(s"Postcode $postcode is empty")
       case false => throw InvalidPostCodeFormatException(s"Postcode $postcode is in an invalid format")
     }
+  }
+
+  private def requestToGeneratorConfig(request: CreateCandidateInStatus) = {
+      GeneratorConfig(
+      emailPrefix = request.emailPrefix.getOrElse(""),
+      setGis = request.setGis.getOrElse(false),
+      firstName = request.firstName,
+      lastName = request.lastName,
+      preferredName = request.preferredName,
+      isCivilServant = request.isCivilServant,
+      hasDegree = request.hasDegree,
+      region = request.region,
+      loc1scheme1Passmark = request.loc1scheme1EvaluationResult.map(Result(_)),
+      loc1scheme2Passmark = request.loc1scheme2EvaluationResult.map(Result(_)),
+      previousStatus = request.previousApplicationStatus,
+      confirmedAllocation = request.confirmedAllocation.getOrElse(false),
+      dob = request.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),      postCode = request.postCode,
+      phase1StartTime = request.phase1StartTime.map(x => DateTime.parse(x)),
+      phase1ExpiryTime = request.phase1ExpiryTime.map(x => DateTime.parse(x)),
+      tscore = request.tscore,
+      cubiksUrl = cubiksUrlFromConfig,
+      country = request.country
+    )
   }
 }

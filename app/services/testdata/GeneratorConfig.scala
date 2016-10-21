@@ -17,25 +17,26 @@
 package services.testdata
 
 import model.EvaluationResults.Result
-import org.joda.time.{ DateTime, LocalDate }
+import model.command.testdata.CreateCandidateInStatus
+import org.joda.time.{DateTime, LocalDate}
 
 case class GeneratorConfig(emailPrefix: String,
   setGis: Boolean = false,
   cubiksUrl: String,
-  firstName: Option[String],
-  lastName: Option[String],
-  preferredName: Option[String],
-  isCivilServant: Option[Boolean],
-  hasDegree: Option[Boolean],
-  region: Option[String],
-  loc1scheme1Passmark: Option[Result],
-  loc1scheme2Passmark: Option[Result],
-  previousStatus: Option[String],
+  firstName: Option[String] = None,
+  lastName: Option[String] = None,
+  preferredName: Option[String] = None,
+  isCivilServant: Option[Boolean] = None,
+  hasDegree: Option[Boolean] = None,
+  region: Option[String] = None,
+  loc1scheme1Passmark: Option[Result] = None,
+  loc1scheme2Passmark: Option[Result] = None,
+  previousStatus: Option[String] = None,
   confirmedAllocation: Boolean = true,
-  dob: Option[LocalDate],
-  postCode: Option[String],
-  country: Option[String],
-  phase1StartTime: Option[DateTime],
-  phase1ExpiryTime: Option[DateTime],
-  tscore: Option[Double]
+  dob: Option[LocalDate] = None,
+  postCode: Option[String] = None,
+  country: Option[String] = None,
+  phase1StartTime: Option[DateTime] = None,
+  phase1ExpiryTime: Option[DateTime] = None,
+  tscore: Option[Double] = None
 )
