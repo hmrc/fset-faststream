@@ -22,14 +22,14 @@ import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.{ Address, ApplicationStatus, ProgressStatuses }
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.{ Address, ApplicationStatus }
+import model.{ Address, ApplicationStatus, ProgressStatuses }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.{ ContactDetails, Phase2TestGroup }
-import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses.{ toString => _, _ }
+import model.command.{ Phase2ProgressResponse, ProgressResponse }
 import model.exchange.CubiksTestResultReady
 import model.persisted._
 import org.joda.time.DateTime
@@ -180,10 +180,120 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     }
   }
 
+  "Extend time for expired test" should {
+    val progress = phase2Progress(
+      Phase2ProgressResponse(
+        phase2TestsExpired = true,
+        phase2TestsFirstRemainder = true,
+        phase2TestsSecondRemainder = true
+      ))
+
+    "extend the test to 7 days from now and remove: expired and two reminder progresses" in new Phase2TestServiceFixture {
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
+
+      phase2TestService.extendTestGroupExpiryTime("appId", 7, "admin").futureValue
+
+      verify(otRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(7), "phase2")
+      verify(appRepositoryMock).removeProgressStatuses("appId", List(
+        PHASE2_TESTS_EXPIRED, PHASE2_TESTS_SECOND_REMINDER, PHASE2_TESTS_FIRST_REMINDER)
+      )
+    }
+
+    "extend the test to 3 days from now and remove: expired and only one reminder progresses" in new Phase2TestServiceFixture {
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
+
+      phase2TestService.extendTestGroupExpiryTime("appId", 3, "admin").futureValue
+
+      verify(otRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(3), "phase2")
+      verify(appRepositoryMock).removeProgressStatuses("appId", List(
+        PHASE2_TESTS_EXPIRED, PHASE2_TESTS_SECOND_REMINDER)
+      )
+    }
+
+    "extend the test to 1 day from now and remove: expired progress" in new Phase2TestServiceFixture {
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
+
+      phase2TestService.extendTestGroupExpiryTime("appId", 1, "admin").futureValue
+
+      verify(otRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(1), "phase2")
+      verify(appRepositoryMock).removeProgressStatuses("appId", List(PHASE2_TESTS_EXPIRED))
+    }
+  }
+
+  "Extend time for test which has not expired yet" should {
+    "extend the test to 7 days from expiration date which is in 1 day, remove two reminder progresses" in new Phase2TestServiceFixture {
+      val progress = phase2Progress(
+        Phase2ProgressResponse(
+          phase2TestsFirstRemainder = true,
+          phase2TestsSecondRemainder = true
+        ))
+
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.plusDays(1), List(phase2Test))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
+
+      phase2TestService.extendTestGroupExpiryTime("appId", 7, "admin").futureValue
+
+      verify(otRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(8), "phase2")
+      verify(appRepositoryMock).removeProgressStatuses("appId", List(
+        PHASE2_TESTS_SECOND_REMINDER, PHASE2_TESTS_FIRST_REMINDER)
+      )
+    }
+
+    "extend the test to 2 days from expiration date which is in 1 day, remove one reminder progress" in new Phase2TestServiceFixture {
+      val progress = phase2Progress(
+        Phase2ProgressResponse(
+          phase2TestsFirstRemainder = true,
+          phase2TestsSecondRemainder = true
+        ))
+
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.plusDays(1), List(phase2Test))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
+
+      phase2TestService.extendTestGroupExpiryTime("appId", 2, "admin").futureValue
+
+      val newExpirationDate = now.plusDays(3)
+      verify(otRepositoryMock).updateGroupExpiryTime("appId", newExpirationDate, "phase2")
+      verify(appRepositoryMock).removeProgressStatuses("appId", List(PHASE2_TESTS_SECOND_REMINDER))
+    }
+
+    "extend the test to 1 day from expiration date which is set to today, does not remove any progresses" in new Phase2TestServiceFixture {
+      val progress = phase2Progress(
+        Phase2ProgressResponse(
+          phase2TestsFirstRemainder = true,
+          phase2TestsSecondRemainder = true
+        ))
+
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now, List(phase2Test))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
+
+      phase2TestService.extendTestGroupExpiryTime("appId", 1, "admin").futureValue
+
+      val newExpirationDate = now.plusDays(1)
+      verify(otRepositoryMock).updateGroupExpiryTime("appId", newExpirationDate, "phase2")
+      verify(appRepositoryMock, never).removeProgressStatuses(any[String], any[List[ProgressStatus]])
+    }
+  }
+
+  private def phase2Progress(phase2ProgressResponse: Phase2ProgressResponse) =
+    ProgressResponse("appId", phase2ProgressResponse = phase2ProgressResponse)
+
   trait Phase2TestServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
     implicit val rh = mock[RequestHeader]
+
+    val clock = mock[DateTimeFactory]
+    val now = DateTimeFactory.nowLocalTimeZone
+    when(clock.nowLocalTimeZone).thenReturn(now)
 
     val gatewayConfigMock =  CubiksGatewayConfig(
       "",
@@ -203,7 +313,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     val cubiksUserId = 98765
     val token = "token"
     val authenticateUrl = "http://localhost/authenticate"
-    val invitationDate = DateTime.parse("2016-05-11")
+    val invitationDate = now
     val startedDate = invitationDate.plusDays(1)
     val expirationDate = invitationDate.plusDays(7)
 
@@ -271,6 +381,11 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     when(emailClientMock.sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
 
+    when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfile)))
+    when(otRepositoryMock.updateGroupExpiryTime(any[String], any[DateTime], any[String])).thenReturn(Future.successful(()))
+    when(appRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+    when(otRepositoryMock.phaseName).thenReturn("phase2")
+
     val phase2TestService = new Phase2TestService with EventServiceFixture {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
@@ -279,7 +394,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val tokenFactory = tokenFactoryMock
-      val dateTimeFactory = DateTimeFactory
+      val dateTimeFactory = clock
       val gatewayConfig = gatewayConfigMock
       val actor = ActorSystem()
     }
