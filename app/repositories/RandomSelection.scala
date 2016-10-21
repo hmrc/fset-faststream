@@ -25,6 +25,15 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Random
 
+object RandomSelection {
+  def calculateBatchSize(originalSize: Int, queryCount: Int): (Int, Int) = originalSize match {
+    case 1 => (Random.nextInt(queryCount), 1)
+    case _ if queryCount <= originalSize => (0, queryCount)
+    case _ => (Random.nextInt(queryCount - originalSize), originalSize)
+  }
+}
+
+
 trait RandomSelection {
   this: ReactiveRepository[_, _] =>
 
@@ -42,11 +51,7 @@ trait RandomSelection {
       } else {
         // In the event of a race-condition where the size decreases after counting, the worse-case is that
         // `None` is returned by the method instead of a Some[BSONDocument].
-        val (randomIndex, newBatchSize) = batchSize match {
-          case 1 => (Random.nextInt(count), 1)
-          case _ if count <= batchSize => (0, count)
-          case _ => (Random.nextInt(count - batchSize), batchSize)
-        }
+        val (randomIndex, newBatchSize) = RandomSelection.calculateBatchSize(batchSize, count)
 
         bsonCollection.find(query)
           .options(QueryOpts(skipN = randomIndex, batchSizeN = newBatchSize))
