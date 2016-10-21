@@ -22,10 +22,30 @@ import org.scalatestplus.play.PlaySpec
 class RandomSelectionSpec extends PlaySpec {
   "RandomSelection" should {
     "calculate the correct batch size and random offset" in {
-      RandomSelection.calculateBatchSize(1, 1) mustBe (0,1)
+
+      RandomSelection.calculateBatchSize(1, 1) mustBe ((0,1))
       val (offset, size) = RandomSelection.calculateBatchSize(1, 9)
-      offset mustBe (0 +- 8)
+      offset must (be >= (0) and be <= (8))
       size mustBe 1
+
+      1 to 200 foreach { _ =>
+        val numberOfDocs = scala.util.Random.nextInt(10000)
+        1 to calculateRepeats(numberOfDocs) foreach { _ =>
+          val (offset, size) = RandomSelection.calculateBatchSize(50, numberOfDocs)
+          if (numberOfDocs > 50) {
+            offset must (be >= (0) and be <= (numberOfDocs - 50))
+            size mustBe 50
+          } else {
+            offset mustBe 0
+            size mustBe numberOfDocs
+          }
+        }
+     }
     }
+  }
+
+  def calculateRepeats(limit: Int): Int = {
+    val adjusted = limit + 1
+    1 to adjusted map (x=> adjusted / x) sum
   }
 }
