@@ -181,8 +181,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]= eventSink {
-    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)))
-    updatedPhase2Test flatMap { u =>
+    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestStartTime(_:Int, startedTime)).flatMap { u =>
       phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
         DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
       }
@@ -190,8 +189,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)))
-    updatedPhase2Test flatMap { u =>
+    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestCompletionTime(_:Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
       require(u.phase2TestGroup.activeTests.nonEmpty, "Active tests cannot be found")
       val activeTestsCompleted = u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)
       activeTestsCompleted match {
@@ -213,7 +211,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
-    updatePhase2Test(cubiksUserId, updateTestReportReady(_: CubiksTest, reportReady)).flatMap { updated =>
+    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestReportReady(_: Int, reportReady)).flatMap { updated =>
       if (updated.phase2TestGroup.activeTests forall (_.resultsReadyToDownload)) {
         phase2TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
       } else {
@@ -222,17 +220,10 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     }
   }
 
-  private def updatePhase2Test(cubiksUserId: Int, update: CubiksTest => CubiksTest): Future[Phase2TestGroupWithAppId] = {
-    def createUpdateTestGroup(p: Phase2TestGroupWithAppId): Phase2TestGroupWithAppId = {
-      val testGroup = p.phase2TestGroup
-      assertUniqueTestByCubiksUserId(testGroup.tests, cubiksUserId)
-      val updatedTestGroup = testGroup.copy(tests = updateCubiksTestsById(cubiksUserId, testGroup.tests, update))
-      Phase2TestGroupWithAppId(p.applicationId, updatedTestGroup)
-    }
+  private def updatePhase2Test(cubiksUserId: Int, updateCubiksTest: Int => Future[Unit]): Future[Phase2TestGroupWithAppId] = {
     for {
-      p1TestProfile <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
-      updated = createUpdateTestGroup(p1TestProfile)
-      _ <- phase2TestRepo.insertOrUpdateTestGroup(updated.applicationId, updated.phase2TestGroup)
+      _ <- updateCubiksTest(cubiksUserId)
+      updated <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
     } yield {
       updated
     }
