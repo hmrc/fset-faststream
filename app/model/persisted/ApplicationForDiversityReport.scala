@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package model.report
+package model.persisted
 
 import model.Commands.{PhoneAndEmail, ReportWithPersonalDetails}
 import model.OnlineTestCommands.TestResult

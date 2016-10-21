@@ -25,7 +25,7 @@ import model.InternshipType.{InternshipType, apply => _}
 import model.OnlineTestCommands.TestResult
 import model.SchemeType._
 import model.command.ProgressResponse
-import model.persisted.{ApplicationForNotification, CivilServiceExperienceDetailsForDiversityReport, Phase1TestProfile}
+import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, CivilServiceExperienceDetailsForDiversityReport, Phase1TestProfile}
 import model.report._
 import model.{CivilServiceExperienceType, InternshipType}
 import org.joda.time.{DateTime, LocalDate}

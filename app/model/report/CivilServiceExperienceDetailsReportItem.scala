@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.report
 
+import model.persisted.CivilServiceExperienceDetailsForDiversityReport
 import play.api.libs.json.Json
 
 case class CivilServiceExperienceDetailsReportItem(

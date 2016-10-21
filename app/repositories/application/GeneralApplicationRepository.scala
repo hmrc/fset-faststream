@@ -28,7 +28,7 @@ import model.EvaluationResults._
 import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command._
-import model.persisted.ApplicationForNotification
+import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification}
 import model.report.{AdjustmentReport, CandidateProgressReport, _}
 import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
