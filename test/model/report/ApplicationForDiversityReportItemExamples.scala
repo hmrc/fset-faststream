@@ -17,7 +17,7 @@
 package model.report
 
 import model.SchemeType
-import model.persisted.CivilServiceExperienceDetailsReportItem
+import model.report.CivilServiceExperienceDetailsReportItem
 
 object ApplicationForDiversityReportItemExamples {
 

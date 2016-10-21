@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
-import model.persisted.{CivilServiceExperienceDetailsReportItem, Media}
+import model.persisted.{ApplicationForDiversityReport, Media}
 
 case class ApplicationForDiversityReportItem(
                                               progress: Option[String],

@@ -17,9 +17,8 @@
 package model.report
 
 import model.SchemeType.SchemeType
-import model.persisted.{ApplicationForOnlineTestPassMarkReport, CivilServiceExperienceDetailsReportItem}
+import model.persisted.{ApplicationForOnlineTestPassMarkReport }
 import play.api.libs.json.Json
-import model.report.TestResultsForOnlineTestPassMarkReportItem$
 
 case class ApplicationForOnlineTestPassMarkReportItem(
                                                        progress: String,

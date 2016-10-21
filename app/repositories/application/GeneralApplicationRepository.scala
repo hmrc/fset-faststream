@@ -28,8 +28,8 @@ import model.EvaluationResults._
 import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command._
-import model.persisted.{ApplicationForNotification, ApplicationForOnlineTestPassMarkReport}
-import model.report.{AdjustmentReportItem, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReportItem, _}
+import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport}
+import model.report.{AdjustmentReportItem, CandidateProgressReportItem}
 import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}

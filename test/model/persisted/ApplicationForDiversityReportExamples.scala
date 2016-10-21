@@ -18,7 +18,7 @@ package persisted
 
 import model.SchemeType
 import model.persisted.CivilServiceExperienceDetailsForDiversityReport
-import model.report.ApplicationForDiversityReport
+import model.persisted.ApplicationForDiversityReport
 
 object ApplicationForDiversityReportExamples {
 

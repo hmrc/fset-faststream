@@ -20,13 +20,13 @@ import factories.UUIDFactory
 import model.ApplicationStatus._
 import model.SchemeType.SchemeType
 import model._
-import model.report.{ApplicationForDiversityReport, CandidateProgressReportItem}
+import model.report.CandidateProgressReportItem
 import org.joda.time.LocalDate
 import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
-import model.persisted.CivilServiceExperienceDetailsForDiversityReport
+import model.persisted.{ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport}
 import testkit.MongoRepositorySpec
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
