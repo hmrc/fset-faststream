@@ -23,6 +23,7 @@ import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
 import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
@@ -33,7 +34,6 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.events.EventService
-import services.onlinetesting.Exceptions.ReportIdNotDefinedException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
@@ -261,26 +261,27 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   private def markAsInvited(application: OnlineTestApplication)
                            (newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
     currentOnlineTestProfile <- phase1TestRepo.getTestGroup(application.applicationId)
-    updatedOnlineTestProfile = merge(currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- phase1TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedOnlineTestProfile)
-    _ <- phase1TestRepo.removeTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedOnlineTestProfile))
+    updatedTestProfile <- insertOrAppendNewTests(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
+    _ <- phase1TestRepo.removeTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
   } yield {
     audit("OnlineTestInvited", application.userId)
   }
 
-  private def merge(currentProfile: Option[Phase1TestProfile], newProfile: Phase1TestProfile): Phase1TestProfile = currentProfile match {
-    case None =>
-      newProfile
-    case Some(profile) =>
-      val scheduleIdsToArchive = newProfile.tests.map(_.scheduleId)
-      val existingTestsAfterUpdate = profile.tests.map(t =>
-        if (scheduleIdsToArchive.contains(t.scheduleId)) {
-          t.copy(usedForResults = false)
-        } else {
-          t
+  private def insertOrAppendNewTests(applicationId: String, currentProfile: Option[Phase1TestProfile],
+                    newProfile: Phase1TestProfile): Future[Phase1TestProfile] = {
+    (currentProfile match {
+      case None => phase1TestRepo.insertOrUpdateTestGroup(applicationId, newProfile)
+      case Some(profile) =>
+        val scheduleIdsToArchive = newProfile.tests.map(_.scheduleId)
+        val inactiveTests = profile.tests.filter(t => scheduleIdsToArchive.contains(t.scheduleId)).map(_.cubiksUserId)
+        Future.traverse(inactiveTests)(phase1TestRepo.markTestAsInactive).flatMap { _ =>
+          phase1TestRepo.insertCubiksTests(applicationId, newProfile)
         }
-      )
-      Phase1TestProfile(newProfile.expirationDate, existingTestsAfterUpdate ++ newProfile.tests)
+    }).flatMap { _ => phase1TestRepo.getTestGroup(applicationId)
+    }.map {
+      case Some(testProfile) => testProfile
+      case None => throw ApplicationNotFound(applicationId)
+    }
   }
 
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =
