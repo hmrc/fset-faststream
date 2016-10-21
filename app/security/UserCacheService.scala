@@ -35,7 +35,6 @@ import scala.util.{Failure, Success, Try}
 class UserCacheService(applicationClient: ApplicationClient, userManagementClient: UserManagementClient) extends UserService {
 
   override def retrieve(loginInfo: LoginInfo): Future[Option[SecurityUser]] = {
-    Logger.debug("Called Retrieve!")
     Future.successful(Some(SecurityUser(userID = loginInfo.providerKey)))
   }
 
@@ -43,7 +42,6 @@ class UserCacheService(applicationClient: ApplicationClient, userManagementClien
     CSRCache.cache[CachedData](user.user.userID.toString(), user).map(_ => user)
 
   override def refreshCachedUser(userId: UniqueIdentifier)(implicit hc: HeaderCarrier, request: Request[_]): Future[CachedData] = {
-    Logger.debug("Called Refresh!")
     userManagementClient.findByUserId(userId).flatMap { userData =>
       applicationClient.findApplication(userId, FrameworkId).flatMap { appData =>
         val cd = CachedData(userData.toCached, Some(appData))

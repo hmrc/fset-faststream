@@ -55,9 +55,9 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
 
   val cacheClient: CSRCache
 
-  protected def getCachedData(securityUser: SecurityUser)(implicit hc: HeaderCarrier,
+  protected[security] def getCachedData(securityUser: SecurityUser)(implicit hc: HeaderCarrier,
                                                               request: Request[_]): Future[Option[CachedData]] = {
-    val result = cacheClient.fetchAndGetEntry[CachedData](securityUser.userID).recoverWith {
+    cacheClient.fetchAndGetEntry[CachedData](securityUser.userID).recoverWith {
       case ex: KeyStoreEntryValidationException =>
         Logger.warn(s"Retrieved invalid cache entry for userId '${securityUser.userID}' (structure changed?). " +
           s"Attempting cache refresh from database...")
@@ -66,8 +66,6 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
         Logger.warn(s"Retrieved invalid cache entry for userID '${securityUser.userID}. Could not recover!")
         throw ex
     }
-    print("Returning " + result)
-    result
   }
 
   /**
@@ -78,19 +76,15 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
     */
   def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedData => Future[Result])
   : Action[AnyContent] = {
-    Logger.debug("Starting Async")
     val result = SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
-      Logger.debug("Calling")
-      Future.successful(InternalServerError)
-      /*getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
+      getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
         case Some(data) => print("Going to SAWC")
           SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
         case None => print("None received!")
           gotoAuthentication(secondRequest)
-      }*/
+      }
     }
-    Logger.debug("Done Async")
     result
   }
 
@@ -146,7 +140,6 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
 
   // TODO: Duplicates code from SigninService. Refactoring challenge.
   private def gotoAuthentication[_](implicit request: SecuredRequest[_]) = {
-    Logger.debug("In GOTO AUTH!")
     env.eventBus.publish(LogoutEvent(request.identity, request, request2lang))
     env.authenticatorService.retrieve.flatMap {
       case Some(authenticator) =>
