@@ -20,11 +20,10 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
-import org.joda.time.DateTime
-import model.persisted.{ CubiksTest, Phase2TestGroup }
-import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase2TestGroupWithAppId, TestResult }
-import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
+import model.ProgressStatuses._
+import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
+import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson._
@@ -55,7 +54,6 @@ trait Phase2TestRepository extends OnlineTestRepository[CubiksTest, Phase2TestGr
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 
-  def nextExpiringApplication: Future[Option[ExpiringOnlineTest]]
 }
 
 class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -63,9 +61,15 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     model.persisted.Phase2TestGroup.phase2TestProfileFormat, ReactiveMongoFormats.objectIdFormats
   ) with Phase2TestRepository {
 
-  val phaseName = "PHASE2"
-  val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE2_TESTS
-  val dateTimeFactory = dateTime
+  override val phaseName = "PHASE2"
+  override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE2_TESTS
+  override val dateTimeFactory = dateTime
+  override val expiredTestQuery: BSONDocument = {
+    BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"progress-status.$PHASE2_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.$PHASE2_TESTS_EXPIRED" -> BSONDocument("$ne" -> true))
+    ))
+  }
 
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup] = Phase2TestGroup.bsonHandler
 
@@ -136,15 +140,6 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
 
     collection.update(query, update, upsert = false) map( _ => () )
-  }
-
-  override def nextExpiringApplication: Future[Option[ExpiringOnlineTest]] = {
-    val progressStatusQuery = BSONDocument("$and" -> BSONArray(
-      BSONDocument("progress-status.PHASE2_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
-      BSONDocument("progress-status.PHASE2_TESTS_EXPIRED" -> BSONDocument("$ne" -> true))
-    ))
-
-    nextExpiringApplication(progressStatusQuery, phaseName)
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
