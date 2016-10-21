@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package model.events
+package model
 
-import model.events.EventTypes.EventType
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, ProgressStatus }
 
-sealed trait EmailEvent extends EventType {
-  val to: String
-  val name: String
-  val template: Option[String] = None
+sealed case class TestExpirationEvent(phase: String, expiredStatus: ProgressStatus, template: String)
 
-  require(to.contains("@"))
-}
-
-object EmailEvents {
-  case class ApplicationSubmitted(to: String, name: String) extends EmailEvent
-  case class ApplicationWithdrawn(to: String, name: String) extends EmailEvent
-}
+object Phase1ExpirationEvent extends TestExpirationEvent("PHASE1", PHASE1_TESTS_EXPIRED, "fset_faststream_app_online_phase1_test_expired")
+object Phase2ExpirationEvent extends TestExpirationEvent("PHASE2", PHASE2_TESTS_EXPIRED, "fset_faststream_app_online_phase2_test_expired")

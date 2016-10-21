@@ -19,7 +19,7 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import model.{ Phase1SecondReminder, Phase2SecondReminder, ReminderNotice }
+import model.{ EmptyRequestHeader, Phase1SecondReminder, Phase2SecondReminder, ReminderNotice }
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -43,6 +43,7 @@ trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob {
   val reminderNotice: ReminderNotice
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    implicit val rh = EmptyRequestHeader
     implicit val hc = new HeaderCarrier()
     service.processNextTestForReminder(reminderNotice)
   }
