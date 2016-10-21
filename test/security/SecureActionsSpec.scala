@@ -18,53 +18,33 @@ package security
 
 import java.util.UUID
 
-import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import com.mohiva.play.silhouette.api.services.{ AuthenticatorResult, AuthenticatorService, IdentityService }
-import com.mohiva.play.silhouette.api.util.{ Clock, FingerprintGenerator }
-import com.mohiva.play.silhouette.api.{ Environment, EventBus, LoginInfo, Provider }
-import com.mohiva.play.silhouette.impl.User
-import com.mohiva.play.silhouette.test._
-import com.mohiva.play.silhouette.impl.authenticators._
-import com.mohiva.play.silhouette.impl.util.DefaultFingerprintGenerator
-import com.mohiva.play.silhouette.test.FakeEnvironment
-import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
-import connectors.{ ApplicationClient, UserManagementClient }
+import config.{ CSRCache, SecurityEnvironmentImpl }
 import controllers.BaseSpec
 import models.{ CachedData, CachedUser, SecurityUser, UniqueIdentifier }
-import org.joda.time.DateTime
-import org.scalatest.MustMatchers
-import org.scalatestplus.play.PlaySpec
-import play.api.mvc.{ AnyContent, Request, Result }
-import play.api.test.Helpers._
-import security.Roles.{ CsrAuthorization, NoRole }
-import security._
-
-import scala.concurrent.Future
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import org.scalatest.MustMatchers
 import org.scalatest.concurrent.ScalaFutures
-import play.api.Play
 import play.api.libs.json.{ JsString, Reads }
-import uk.gov.hmrc.play.http.HeaderCarrier
-import play.api.mvc.Results._
+import play.api.mvc.Request
 import play.api.test.FakeRequest
-import play.filters.csrf.CSRF
+import play.api.test.Helpers._
 import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-import language.postfixOps
+import scala.concurrent.Future
+import scala.language.postfixOps
 
 class SecureActionsSpec extends BaseSpec with MustMatchers with ScalaFutures {
 
   "getCachedData" should {
     "return cachedData when parsing succeeds" in new TestFixture {
-
       val result = successfulCacheParseController.getCachedData(testSecurityUser).futureValue
 
       result.get mustBe an[CachedData]
     }
 
-    "Call for cache refresh when a parsing error occurs" in new TestFixture {
-
+    "call for cache refresh when a parsing error occurs" in new TestFixture {
       val result = unSuccessfulCacheParseController.getCachedData(testSecurityUser).futureValue
 
       result.get mustBe an[CachedData]

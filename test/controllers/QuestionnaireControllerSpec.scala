@@ -23,9 +23,7 @@ import models.Progress
 import models.ApplicationData.ApplicationStatus._
 import play.api.test.Helpers._
 import play.api.mvc.Result
-
 import scala.concurrent._
-
 
 class QuestionnaireControllerSpec extends BaseControllerSpec {
 

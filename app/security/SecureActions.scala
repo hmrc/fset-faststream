@@ -76,16 +76,13 @@ trait SecureActions extends Silhouette[SecurityUser, SessionAuthenticator] {
     */
   def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedData => Future[Result])
   : Action[AnyContent] = {
-    val result = SecuredAction.async { secondRequest =>
+    SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
       getCachedData(secondRequest.identity)(carrier, secondRequest).flatMap {
-        case Some(data) => print("Going to SAWC")
-          SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
-        case None => print("None received!")
-          gotoAuthentication(secondRequest)
+        case Some(data) => SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
+        case None => gotoAuthentication(secondRequest)
       }
     }
-    result
   }
 
   def CSRSecureAppAction(role: CsrAuthorization)

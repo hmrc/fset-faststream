@@ -88,9 +88,6 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
     redirectLocation(result) must be(Some(expectedUrl))
   }
 
-  val mockSecurityEnv = mock[SecurityEnvironment]
-  val mockCSRCache = mock[CSRCache]
-
   // scalastyle:off method.name
   trait TestableSecureActions extends SecureActions {
 
