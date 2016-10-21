@@ -164,7 +164,7 @@ trait ApplicationClient {
   }
 
   def getPhase1TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
-    http.GET(s"${url.host}${url.base}/online-test/candidate/$appId").map { response =>
+    http.GET(s"${url.host}${url.base}/online-test/phase1/candidate/$appId").map { response =>
       response.json.as[Phase1TestGroupWithNames]
     } recover {
       case _: NotFoundException => throw new OnlineTestNotFound()
@@ -172,7 +172,7 @@ trait ApplicationClient {
   }
 
   def getPhase2TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest] = {
-    http.GET(s"${url.host}${url.base}/online-test-phase2/candidate/$appId").map { response =>
+    http.GET(s"${url.host}${url.base}/online-test/phase2/candidate/$appId").map { response =>
       response.json.as[Phase2TestGroupWithActiveTest]
     } recover {
       case _: NotFoundException => throw new OnlineTestNotFound()
