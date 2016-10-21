@@ -24,7 +24,8 @@ import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.exchange.{ ApplicationResponse, ProgressResponse, UserResponse }
 import connectors.{ ApplicationClient, UserManagementClient }
 import controllers.BaseSpec
-import models.{ CachedData, CachedUser, SecurityUser, UniqueIdentifier }
+import models.ApplicationData.ApplicationStatus
+import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.MustMatchers
@@ -46,7 +47,8 @@ class UserCacheServiceSpec extends BaseSpec with MustMatchers with ScalaFutures 
       val result = userAndApplicationCacheService.refreshCachedUser(testUserId).futureValue
 
       result mustBe an[CachedData]
-      result.application mustNot be(None)
+      result.user mustBe expectedCachedDataUser
+      result.application mustBe Some(expectedCachedDataApplication)
     }
 
     "return a user only when no application is found" in new TestFixture {
@@ -54,6 +56,7 @@ class UserCacheServiceSpec extends BaseSpec with MustMatchers with ScalaFutures 
 
       result mustBe an[CachedData]
       result.application mustBe None
+      result.user mustBe expectedCachedDataUser
     }
 
     "throw an Invalid Credentials exception when no user is found" in new TestFixture {
@@ -82,6 +85,22 @@ class UserCacheServiceSpec extends BaseSpec with MustMatchers with ScalaFutures 
       "SUBMITTED",
       testUserId,
       ProgressResponse(testApplicationId.toString()),
+      None
+    )
+    val expectedCachedDataUser = CachedUser(
+      testUserId,
+      testUserResponse.firstName,
+      testUserResponse.lastName,
+      testUserResponse.preferredName,
+      testUserResponse.email,
+      testUserResponse.isActive,
+      testUserResponse.lockStatus
+    )
+    val expectedCachedDataApplication = ApplicationData(
+      testApplicationId,
+      testUserId,
+      ApplicationStatus.withName(testApplicationResponse.applicationStatus),
+      Progress.fromProgressRespToAppProgress(testApplicationResponse.progressResponse),
       None
     )
 
