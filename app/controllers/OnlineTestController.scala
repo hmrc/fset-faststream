@@ -19,7 +19,7 @@ package controllers
 import model.ApplicationStatus._
 import model.Commands
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.{ ResetOnlineTest, ResetPhase2Test, ResetPhase2TestStatus }
+import model.command.{ ResetOnlineTest, ResetPhase2Test }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
@@ -103,14 +103,12 @@ trait OnlineTestController extends BaseController {
 
       def reset(onlineTestApp: OnlineTestApplication, actionTriggeredBy: String) =
         phase2TestService.resetTests(onlineTestApp, actionTriggeredBy)
-          .map { _ =>
-            Ok(Json.toJson(ResetPhase2TestStatus(success = true)))
-          }
+          .map(_ => Ok)
           .recover {
             case _: ResetLimitExceededException =>
-              Ok(Json.toJson(ResetPhase2TestStatus(success = false, resetLimitExceeded = true)))
+              Locked
             case _: CannotResetPhase2Tests =>
-              Ok(Json.toJson(ResetPhase2TestStatus(success = false)))
+              NotFound
           }
 
       appRepository.getOnlineTestApplication(appId).flatMap {

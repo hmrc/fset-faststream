@@ -18,12 +18,12 @@ package controllers
 
 import model.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.{ ResetPhase2Test, ResetPhase2TestStatus }
+import model.command.ResetPhase2Test
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
-import play.api.test.Helpers._
 import play.api.mvc._
+import play.api.test.Helpers._
 import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.{ Phase1TestService, Phase2TestService }
@@ -59,7 +59,6 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetPhase2Test("")))
       status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson(ResetPhase2TestStatus(success = true))
     }
     "return the response as reset limit exceeded" in {
       when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
@@ -67,8 +66,7 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetPhase2Test("")))
-      status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson(ResetPhase2TestStatus(success = false, resetLimitExceeded = true))
+      status(response) mustBe LOCKED
     }
     "return cannot reset phase2 tests exception" in {
       when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
@@ -76,8 +74,7 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetPhase2Test("")))
-      status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson(ResetPhase2TestStatus(success = false, resetLimitExceeded = false))
+      status(response) mustBe NOT_FOUND
     }
     "return not found exception" in {
       when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
