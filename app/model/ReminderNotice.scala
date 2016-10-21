@@ -21,12 +21,6 @@ import model.ProgressStatuses._
 import scala.concurrent.duration.{ DAYS, HOURS, TimeUnit }
 
 sealed case class ReminderNotice(hoursBeforeReminder: Int, progressStatuses: ProgressStatus) {
-  require(hoursBeforeReminder > 0, "Hours before reminder was negative")
-  require(progressStatuses == PHASE1_TESTS_FIRST_REMINDER ||
-          progressStatuses == PHASE1_TESTS_SECOND_REMINDER ||
-          progressStatuses == PHASE2_TESTS_FIRST_REMINDER ||
-          progressStatuses == PHASE2_TESTS_SECOND_REMINDER,
-          "progressStatuses value not allowed")
 
   private val Phase_1 = "PHASE1"
   private val Phase_2 = "PHASE2"

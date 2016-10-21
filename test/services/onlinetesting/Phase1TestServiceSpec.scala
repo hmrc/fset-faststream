@@ -25,7 +25,8 @@ import model.Commands.PostCode
 import model._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
-import model.ProgressStatuses.{ PHASE1_TESTS_FIRST_REMINDER, ProgressStatus }
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, ProgressStatus }
+import model.events.{ AuditEvents, DataStoreEvents }
 import model.events.EventTypes.{ toString => _, _ }
 import model.exchange.CubiksTestResultReady
 import model.persisted._
@@ -158,6 +159,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   )
 
   val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
+  val expiredApplication = ExpiringOnlineTest(applicationId, userId, preferredName)
   val expiryReminder = NotificationExpiringOnlineTest(applicationId, userId, preferredName, expirationDate)
   val success = Future.successful(())
 
@@ -561,6 +563,27 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
       verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+    }
+  }
+
+  "processNextExpiredTest" should {
+    "do nothing if there are no expired application to process" in new OnlineTest {
+      when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(None))
+      phase1TestService.processNextExpiredTest(Phase1ExpirationEvent).futureValue mustBe ()
+    }
+    "update progress status and send an email to the user when an application is expired" in new OnlineTest {
+      when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(emailClientMock.sendOnlineTestExpired(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val result = phase1TestService.processNextExpiredTest(Phase1ExpirationEvent)
+
+      result.futureValue mustBe (())
+
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_EXPIRED)
+      verify(emailClientMock).sendOnlineTestExpired(emailContactDetails, preferredName, Phase1ExpirationEvent.template)
     }
   }
 
