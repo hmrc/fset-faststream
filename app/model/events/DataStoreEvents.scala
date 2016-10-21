@@ -67,7 +67,7 @@ object DataStoreEvents {
 
   case class ETrayStarted(appId: String) extends DataStoreEventWithAppId
   case class ETrayCompleted(appId: String) extends DataStoreEventWithAppId
-  case class ETrayExtended(appId: String) extends DataStoreEventWithAppId
+  case class ETrayExtended(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class ETrayReset(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class ETrayResultSent(appId: String) extends DataStoreEventWithAppId
 

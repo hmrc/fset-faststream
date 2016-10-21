@@ -38,7 +38,7 @@ trait LaunchpadGatewayClient {
 
   // Blank out header carriers for calls to LPG. Passing on someone's true-client-ip header will cause them to be reassessed
   // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesireable behaviour.
-  implicit val blankedHeaderCarrier = new HeaderCarrier()
+  implicit def blankedHeaderCarrier = new HeaderCarrier()
 
   lazy val urlWithPathPrefix = s"$url/fset-launchpad-gateway/faststream"
 
