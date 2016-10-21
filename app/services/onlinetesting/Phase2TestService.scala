@@ -30,7 +30,7 @@ import model.events.EventTypes.EventType
 import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
 import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
-import model.{ ProgressStatuses, ReminderNotice, _ }
+import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent, _ }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -78,10 +78,14 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     for {
       phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
-      val test = phase2.activeTests.find(_.usedForResults)
+      val test = phase2.activeTests
+        .find(_.usedForResults)
         .getOrElse(throw NoActiveTestException(s"No active phase 2 test found for $applicationId"))
-      Phase2TestGroupWithActiveTest(phase2.expirationDate, test,
-        schedulesAvailable(phase2.tests.map(_.scheduleId)))
+        Phase2TestGroupWithActiveTest(
+          phase2.expirationDate,
+          test,
+          schedulesAvailable(phase2.tests.map(_.scheduleId))
+        )
     }
   }
 
@@ -89,7 +93,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     phase2TestRepo.nextApplicationsReadyForOnlineTesting
   }
 
-  override def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+  override def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     phase2TestRepo.nextTestForReminder(reminder).flatMap {
       case Some(expiringTest) => processReminder(expiringTest, reminder)
       case None => Future.successful(())
@@ -98,7 +102,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
                                                      emailAddress: String,
-                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
       reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
       audit(s"ReminderPhase2ExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
@@ -126,6 +130,13 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(List(application))
+  }
+
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    phase2TestRepo.nextExpiringApplication(expiryTest).flatMap{
+      case Some(expired) => processExpiredTest(expired, expiryTest)
+      case None => Future.successful(())
+    }
   }
 
   def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
@@ -295,9 +306,6 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   Future.sequence(candidates.map { candidate =>
     candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
   }).map( _ => () )
-
-
-  private def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
 
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {

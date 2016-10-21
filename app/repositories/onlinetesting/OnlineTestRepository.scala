@@ -38,6 +38,7 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
   val thisApplicationStatus: ApplicationStatus
   val phaseName: String
   val dateTimeFactory: DateTimeFactory
+  val expiredTestQuery: BSONDocument
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
 
   def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]]
@@ -90,14 +91,14 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
     }
   }
 
-  def nextExpiringApplication(progressStatusQuery: BSONDocument, phase: String = "PHASE1"): Future[Option[ExpiringOnlineTest]] = {
+  def nextExpiringApplication(expiryTest: TestExpirationEvent): Future[Option[ExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(
         "applicationStatus" -> thisApplicationStatus
       ),
       BSONDocument(
-        s"testGroups.$phase.expirationDate" -> BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone) // Serialises to UTC.
-      ), progressStatusQuery))
+        s"testGroups.${expiryTest.phase}.expirationDate" -> BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone) // Serialises to UTC.
+      ), expiredTestQuery))
 
     implicit val reader = bsonReader(ExpiringOnlineTest.fromBson)
     selectOneRandom[ExpiringOnlineTest](query)
