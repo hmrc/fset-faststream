@@ -227,7 +227,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     }
 
     "fail if registration fails" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])(any[HeaderCarrier])).
+      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])).
         thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
 
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
@@ -237,9 +237,9 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     }
 
     "fail and audit 'UserRegisteredForOnlineTest' if invitation fails" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant]))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier])).thenReturn(
+      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])).thenReturn(
         Future.failed(new ConnectorException(connectorErrorMessage))
       )
 
@@ -251,9 +251,9 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     }
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest' " +
       "if there is an exception retrieving the contact details" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
         .thenReturn(Future.successful(invitation))
       when(cdRepositoryMock.find(userId))
         .thenReturn(Future.failed(new Exception))
@@ -267,9 +267,9 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     }
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest'" +
       " if there is an exception sending the invitation email" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.registerApplicant(any[RegisterApplicant]))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
         .thenReturn(Future.successful(invitation))
       when(cdRepositoryMock.find(userId))
         .thenReturn(Future.successful(contactDetails))
@@ -289,9 +289,9 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     "fail, audit 'UserRegisteredForOnlineTest', audit 'UserInvitedToOnlineTest'" +
       ", not send invitation email to user" +
       "if there is an exception storing the status and the online profile data to database" in new OnlineTest {
-      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
         .thenReturn(Future.successful(invitation))
       when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
       when(emailClientMock.sendOnlineTestInvitation(
@@ -316,9 +316,9 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
         .thenReturn(Future.successful(registration))
-      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
         .thenReturn(Future.successful(invitation))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(emailClientMock.sendOnlineTestInvitation(
@@ -497,7 +497,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val failedTest = phase1Test.copy(scheduleId = 555, reportId = Some(2))
       val successfulTest = phase1Test.copy(scheduleId = 444, reportId = Some(1))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(successfulTest.reportId.get))(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(successfulTest.reportId.get)))
         .thenReturn(Future.successful(OnlineTestCommands.TestResult(status = "Completed",
           norm = "some norm",
           tScore = Some(23.9999d),
@@ -506,7 +506,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
           sten = Some(1.333d)
         )))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get))(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get)))
         .thenReturn(Future.failed(new Exception))
 
       val result = phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
@@ -519,14 +519,16 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val test = phase1Test.copy(reportId = Some(123), resultsReadyToDownload = true)
       val testProfile = phase1TestProfile.copy(tests = List(test))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(any[Int])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
       when(otRepositoryMock.insertPhase1TestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult)))))))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
+        Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult))))))
+      )
 
       phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
         "appId", "userId", testProfile
@@ -542,14 +544,16 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val testNotReady = phase1Test.copy(reportId = None, resultsReadyToDownload = false)
       val testProfile = phase1TestProfile.copy(tests = List(testReady, testNotReady))
 
-      when(cubiksGatewayClientMock.downloadXmlReport(any[Int])(any[HeaderCarrier]))
+      when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
       when(otRepositoryMock.insertPhase1TestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady)))))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
+        Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady))))
+      )
 
       phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
         "appId", "userId", testProfile
@@ -616,9 +620,9 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   }
 
   trait SuccessfulTestInviteFixture extends OnlineTest {
-    when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant))(any[HeaderCarrier]))
+    when(cubiksGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
       .thenReturn(Future.successful(registration))
-    when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant])(any[HeaderCarrier]))
+    when(cubiksGatewayClientMock.inviteApplicant(any[InviteApplicant]))
       .thenReturn(Future.successful(invitation))
     when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
     when(emailClientMock.sendOnlineTestInvitation(

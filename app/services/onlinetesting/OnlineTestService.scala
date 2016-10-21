@@ -36,7 +36,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 
-trait OnlineTestService extends EventSink  {
+trait OnlineTestService extends TimeExtension with EventSink {
   val emailClient: OnlineTestEmailClient
   val auditService: AuditService
   val tokenFactory: UUIDFactory
@@ -144,3 +144,16 @@ trait OnlineTestService extends EventSink  {
     }
   }
 }
+
+trait TimeExtension {
+  val dateTimeFactory: DateTimeFactory
+
+  def extendTime(alreadyExpired: Boolean, previousExpirationDate: DateTime) = { extraDays: Int =>
+    if (alreadyExpired) {
+      dateTimeFactory.nowLocalTimeZone.plusDays(extraDays)
+    } else {
+      previousExpirationDate.plusDays(extraDays)
+    }
+  }
+}
+

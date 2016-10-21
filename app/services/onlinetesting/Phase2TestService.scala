@@ -23,7 +23,10 @@ import connectors.ExchangeObjects._
 import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.events.DataStoreEvents
+import model.ProgressStatuses._
+import model._
+import model.command.ProgressResponse
+import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.events.EventTypes.EventType
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
 import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
@@ -56,11 +59,9 @@ object Phase2TestService extends Phase2TestService {
 }
 
 trait Phase2TestService extends OnlineTestService with ScheduleSelector {
-
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
-
 
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
 
@@ -76,7 +77,9 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     for {
       phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
-      val test = phase2.activeTests.find(_.usedForResults).getOrElse(throw new NoActiveTestException(s"No active phase 2 test found for $applicationId"))
+      val test = phase2.activeTests
+        .find(_.usedForResults)
+        .getOrElse(throw NoActiveTestException(s"No active phase 2 test found for $applicationId"))
         Phase2TestGroupWithActiveTest(
           phase2.expirationDate,
           test
@@ -260,4 +263,50 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
   }).map( _ => () )
 
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
+                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    val progressFut = appRepository.findProgress(applicationId)
+    val phase2TestGroup = phase2TestRepo.getTestGroup(applicationId)
+      .map(tg => tg.getOrElse(throw new IllegalStateException("Expiration date for Phase 2 cannot be extended. Test group not found.")))
+
+    for {
+      progress <- progressFut
+      phase2 <- phase2TestGroup
+      isAlreadyExpired = progress.phase2ProgressResponse.phase2TestsExpired
+      extendDays = extendTime(isAlreadyExpired, phase2.expirationDate)
+      newExpiryDate = extendDays(extraDays)
+      _ <- phase2TestRepo.updateGroupExpiryTime(applicationId, newExpiryDate, phase2TestRepo.phaseName)
+      _ <- progressStatusesToRemoveWhenExtendTime(newExpiryDate, phase2, progress)
+        .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
+    } yield {
+      audit(isAlreadyExpired, applicationId) ::
+        DataStoreEvents.ETrayExtended(applicationId, actionTriggeredBy) ::
+        Nil
+    }
+  }
+
+  private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: DateTime,
+                                                     profile: Phase2TestGroup,
+                                                     progress: ProgressResponse): Option[List[ProgressStatus]] = {
+    val shouldRemoveExpired = progress.phase2ProgressResponse.phase2TestsExpired
+    val today = dateTimeFactory.nowLocalTimeZone
+    val shouldRemoveSecondReminder = extendedExpiryDate.minusHours(Phase2SecondReminder.hoursBeforeReminder).isAfter(today)
+    val shouldRemoveFirstReminder = extendedExpiryDate.minusHours(Phase2FirstReminder.hoursBeforeReminder).isAfter(today)
+
+    val progressStatusesToRemove = (Set.empty[ProgressStatus]
+      ++ (if (shouldRemoveExpired) Set(PHASE2_TESTS_EXPIRED) else Set.empty)
+      ++ (if (shouldRemoveSecondReminder) Set(PHASE2_TESTS_SECOND_REMINDER) else Set.empty)
+      ++ (if (shouldRemoveFirstReminder) Set(PHASE2_TESTS_FIRST_REMINDER) else Set.empty)).toList
+
+    if (progressStatusesToRemove.isEmpty) { None } else { Some(progressStatusesToRemove) }
+  }
+
+  private def audit(isAlreadyExpired: Boolean, applicationId: String): AuditEvent = {
+    val details = Map("applicationId" -> applicationId)
+    if (isAlreadyExpired) {
+      AuditEvents.ExpiredTestsExtended(details)
+    } else {
+      AuditEvents.NonExpiredTestsExtended(details)
+    }
+  }
 }
