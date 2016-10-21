@@ -56,6 +56,8 @@ object DataStoreEvents {
   // In other words: Renaming the case class here, impacts in renaming the event name in database.
 
   case class ApplicationSubmitted(appId: String) extends DataStoreEventWithAppId
+  case class ApplicationExpired(appId: String) extends DataStoreEventWithAppId
+  case class ApplicationExpiryReminder(appId: String) extends DataStoreEventWithAppId
   case class ApplicationWithdrawn(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
 
   case class OnlineExerciseStarted(appId: String) extends DataStoreEventWithAppId
@@ -67,8 +69,8 @@ object DataStoreEvents {
 
   case class ETrayStarted(appId: String) extends DataStoreEventWithAppId
   case class ETrayCompleted(appId: String) extends DataStoreEventWithAppId
-  case class ETrayExtended(appId: String) extends DataStoreEventWithAppId
-  case class ETrayReset(appId: String) extends DataStoreEventWithAppId
+  case class ETrayExtended(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
+  case class ETrayReset(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class ETrayResultSent(appId: String) extends DataStoreEventWithAppId
 
   case class VideoInterviewStarted(appId: String) extends DataStoreEventWithAppId
