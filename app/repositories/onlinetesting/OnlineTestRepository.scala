@@ -26,7 +26,7 @@ import model.exchange.CubiksTestResultReady
 import model.persisted._
 import org.joda.time.DateTime
 import play.api.Logger
-import reactivemongo.bson._
+import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -77,12 +77,15 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
     val query = BSONDocument(
       "applicationId" -> applicationId
     )
-    val update = BSONDocument("$set" -> BSONDocument(
-       "$push" -> BSONDocument(
-          s"testGroups.$phaseName.tests" -> newTestProfile.tests
-        ),
-       s"testGroups.$phaseName.expirationDate" -> newTestProfile.expirationDate
-    ))
+    val update = BSONDocument(
+        "$push" -> BSONDocument(
+          s"testGroups.$phaseName.tests" -> BSONDocument(
+            "$each" -> newTestProfile.tests
+          )),
+        "$set" -> BSONDocument(
+         s"testGroups.$phaseName.expirationDate" -> newTestProfile.expirationDate
+        )
+      )
     collection.update(query, update, upsert = false) map {
       case lastError if lastError.nModified == 0 && lastError.n == 0 =>
         logger.error(s"""Failed to append cubiks tests for application: $applicationId""")

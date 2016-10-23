@@ -22,14 +22,14 @@ import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.NotFoundException
+import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.events.EventTypes.EventType
 import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
-import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
+import model.persisted._
 import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent, _ }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -219,20 +219,26 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }).map( _ => () )
 
   private def insertOrUpdateTestGroup(application: OnlineTestApplication)
-                           (newPhase2TestGroup: Phase2TestGroup): Future[Unit] = for {
-    currentPhase2TestGroup <- phase2TestRepo.getTestGroup(application.applicationId)
-    updatedPhase2TestGroup = merge(currentPhase2TestGroup, newPhase2TestGroup)
-    _ <- phase2TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedPhase2TestGroup)
-    _ <- phase2TestRepo.removeTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedPhase2TestGroup))
+                           (newOnlineTestProfile: Phase2TestGroup): Future[Unit] = for {
+    currentOnlineTestProfile <- phase2TestRepo.getTestGroup(application.applicationId)
+    updatedTestProfile <- insertOrAppendNewTests(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
+    _ <- phase2TestRepo.removeTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
   } yield ()
 
-  private def merge(currentProfile: Option[Phase2TestGroup], newProfile: Phase2TestGroup): Phase2TestGroup = currentProfile match {
-    case None => newProfile
-    case Some(profile) =>
-      val existingTestsAfterUpdate = profile.tests.map(t =>
-          t.copy(usedForResults = false)
-      )
-      Phase2TestGroup(newProfile.expirationDate, existingTestsAfterUpdate ++ newProfile.tests)
+  private def insertOrAppendNewTests(applicationId: String, currentProfile: Option[Phase2TestGroup],
+                                     newProfile: Phase2TestGroup): Future[Phase2TestGroup] = {
+    (currentProfile match {
+      case None => phase2TestRepo.insertOrUpdateTestGroup(applicationId, newProfile)
+      case Some(profile) =>
+        val inactiveTests = profile.tests.map(_.cubiksUserId)
+        Future.traverse(inactiveTests)(phase2TestRepo.markTestAsInactive).flatMap { _ =>
+          phase2TestRepo.insertCubiksTests(applicationId, newProfile)
+        }
+    }).flatMap { _ => phase2TestRepo.getTestGroup(applicationId)
+    }.map {
+      case Some(testProfile) => testProfile
+      case None => throw ApplicationNotFound(applicationId)
+    }
   }
 
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
