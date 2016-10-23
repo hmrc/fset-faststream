@@ -23,7 +23,7 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.persisted.ExpiringOnlineTest
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
-import model.persisted.Phase1TestWithUserIds
+import model.persisted.Phase1TestGroupWithUserIds$
 import model._
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.api.commands.WriteResult
@@ -59,7 +59,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   )
 
   val TestProfile = Phase1TestProfile(expirationDate = DatePlus7Days, tests = List(phase1Test))
-  val testProfileWithAppId = Phase1TestWithUserIds(
+  val testProfileWithAppId = Phase1TestGroupWithUserIds(
     "appId",
     "userId",
     TestProfile.copy(tests = List(
@@ -112,7 +112,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase1TestRepo.getTestProfileByCubiksId(CubiksUserId).futureValue
-      result mustBe Phase1TestWithUserIds("appId", "userId", TestProfile)
+      result mustBe Phase1TestGroupWithUserIds("appId", "userId", TestProfile)
     }
 
   }
@@ -178,7 +178,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
       phase1TestResultsReady.isDefined mustBe true
-      phase1TestResultsReady.get mustBe Phase1TestWithUserIds("appId2", "userId2", profile)
+      phase1TestResultsReady.get mustBe Phase1TestGroupWithUserIds("appId2", "userId2", profile)
     }
 
     "correctly update a test group with results" in {

@@ -32,7 +32,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelection with BSONHelpers with CommonBSONDocuments {
+trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
@@ -40,6 +40,8 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
   val dateTimeFactory: DateTimeFactory
   val expiredTestQuery: BSONDocument
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
+  type U <: Test
+  type T <: TestProfile[U]
 
   def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]]
 
@@ -130,7 +132,7 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
     collection.update(query, update, upsert = false) map ( _ => () )
   }
 
-  def nextTestGroupWithReportReady[G](implicit reader: BSONDocumentReader[G]): Future[Option[G]] = {
+  def nextTestGroupWithReportReady[TestGroup](implicit reader: BSONDocumentReader[TestGroup]): Future[Option[TestGroup]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
       BSONDocument(s"progress-status.${phaseName}_TESTS_COMPLETED" -> true),
@@ -140,7 +142,7 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
       )
     ))
 
-    selectOneRandom[G](query)
+    selectOneRandom[TestGroup](query)
   }
 
 

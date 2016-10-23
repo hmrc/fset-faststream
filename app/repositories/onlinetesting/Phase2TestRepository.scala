@@ -16,6 +16,7 @@
 
 package repositories.onlinetesting
 
+import common.Phase2TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
@@ -33,7 +34,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait Phase2TestRepository extends OnlineTestRepository[CubiksTest, Phase2TestGroup] {
+trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   this: ReactiveRepository[_, _] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup]]

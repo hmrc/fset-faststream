@@ -16,15 +16,16 @@
 
 package repositories.onlinetesting
 
+import common.Phase1TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import org.joda.time.DateTime
 import model.persisted.{ CubiksTest, Phase1TestProfile }
-import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase1TestWithUserIds, TestResult }
+import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, TestResult }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
-import model.{ ApplicationStatus, TestExpirationEvent, ProgressStatuses, ReminderNotice }
+import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import play.api.Logger
 import play.api.libs.json.Json
 import reactivemongo.api.DB
@@ -35,18 +36,18 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait Phase1TestRepository extends OnlineTestRepository[CubiksTest, Phase1TestProfile] {
+trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
   this: ReactiveRepository[_, _] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase1TestProfile]]
 
   def getTestProfileByToken(token: String): Future[Phase1TestProfile]
 
-  def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestWithUserIds]
+  def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestGroupWithUserIds]
 
   def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
 
-  def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]]
+  def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds]]
 
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
 
@@ -95,7 +96,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     selectRandom[OnlineTestApplication](query, 1)
   }
 
-  override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestWithUserIds] = {
+  override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestGroupWithUserIds] = {
     val query = BSONDocument("testGroups.PHASE1.tests" -> BSONDocument(
       "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
     ))
@@ -107,7 +108,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         val userId = doc.getAs[String]("userId").get
         val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
         val phase1TestGroup = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).getOrElse(cannotFindTestByCubiksId(cubiksUserId))
-        Phase1TestWithUserIds(applicationId, userId, phase1TestGroup)
+        Phase1TestGroupWithUserIds(applicationId, userId, phase1TestGroup)
       case _ => cannotFindTestByCubiksId(cubiksUserId)
     }
   }
@@ -156,18 +157,18 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     nextTestForReminder(reminder, progressStatusQuery)
   }
 
-  def nextTestGroupWithReportReady: Future[Option[Phase1TestWithUserIds]] = {
+  def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds]] = {
 
     implicit val reader = bsonReader { doc =>
       val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
-      Phase1TestWithUserIds(
+      Phase1TestGroupWithUserIds(
         applicationId = doc.getAs[String]("applicationId").get,
         userId = doc.getAs[String]("userId").get,
         Phase1TestProfile.bsonHandler.read(group)
       )
     }
 
-    nextTestGroupWithReportReady[Phase1TestWithUserIds]
+    nextTestGroupWithReportReady[Phase1TestGroupWithUserIds]
 
   }
 

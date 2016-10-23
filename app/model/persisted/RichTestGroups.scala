@@ -16,33 +16,34 @@
 
 package model.persisted
 
-import model.persisted.phase3tests.Phase3TestGroup
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import reactivemongo.bson.Macros
 
-trait TestGroupWithIds {
-  type U <: Test
-  type T <: TestProfile[U]
+
+trait TestGroupWithIds[U <: Test, T <: TestProfile[U]] {
   def applicationId: String
   def testGroup: T
 }
 
-case class Phase1TestWithUserIds(applicationId: String,
+case class Phase1TestGroupWithUserIds(
+  applicationId: String,
   userId: String,
   testGroup: Phase1TestProfile
-) extends TestGroupWithIds
+) extends TestGroupWithIds[CubiksTest, Phase1TestProfile]
 
-object Phase1TestWithUserIds {
-  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestWithUserIds]
+object Phase1TestGroupWithUserIds {
+  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestGroupWithUserIds]
 }
 
 case class Phase2TestGroupWithAppId(applicationId: String,
   testGroup: Phase2TestGroup
-) extends TestGroupWithIds
+) extends TestGroupWithIds[CubiksTest, Phase2TestGroup]
 
 object Phase2TestGroupWithAppId {
   implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase2TestGroupWithAppId]
 }
 
-case class Phase3TestGroupWithAppId(applicationId: String,
+case class Phase3TestGroupWithAppId(
+  applicationId: String,
   testGroup: Phase3TestGroup
-)
+) extends TestGroupWithIds[LaunchpadTest, Phase3TestGroup]

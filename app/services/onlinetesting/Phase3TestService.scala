@@ -17,13 +17,14 @@
 package services.onlinetesting
 
 import _root_.services.AuditService
+import common.Phase3TestConcern
 import config.LaunchpadGatewayConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects._
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.persisted.NotificationExpiringOnlineTest
+import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
@@ -50,9 +51,10 @@ object Phase3TestService extends Phase3TestService {
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
   val eventService = EventService
+
 }
 
-trait Phase3TestService extends OnlineTestService with ResetPhase3Test with EventSink {
+trait Phase3TestService extends OnlineTestService with Phase3TestConcern with ResetPhase3Test with EventSink {
   val appRepository: GeneralApplicationRepository
   val phase3TestRepo: Phase3TestRepository
   val cdRepository: contactdetails.ContactDetailsRepository
@@ -76,6 +78,11 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
   }
+
+  override def nextTestGroupWithReportReady: Future[Option[Phase3TestGroupWithAppId]] = ???
+
+  override def retrieveTestResult(testProfile: Phase3TestGroupWithAppId)
+    (implicit hc: HeaderCarrier): Future[Unit] = ???
 
   override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 

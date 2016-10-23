@@ -18,6 +18,7 @@ package services.onlinetesting
 
 import _root_.services.AuditService
 import akka.actor.ActorSystem
+import common.Phase2TestConcern
 import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
@@ -29,7 +30,7 @@ import model.command.ProgressResponse
 import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.events.EventTypes.EventType
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
-import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
+import model.persisted._
 import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -55,14 +56,12 @@ object Phase2TestService extends Phase2TestService {
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
   val eventService = EventService
-
 }
 
-trait Phase2TestService extends OnlineTestService with ScheduleSelector {
+trait Phase2TestService extends OnlineTestService with Phase2TestConcern with ScheduleSelector {
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
-
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
 
   case class Phase2TestInviteData(application: OnlineTestApplication,
@@ -97,6 +96,11 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
       case None => Future.successful(())
     }
   }
+
+  override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
+    phase2TestRepo.nextTestGroupWithReportReady
+  }
+
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
                                                      emailAddress: String,
@@ -141,6 +145,11 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
       audit("Phase2TestInvited", application.userId)
       Phase2TestInviteData(application, schedule.scheduleId, token, registration, invitation)
     })
+  }
+
+  override def retrieveTestResult(testProfile: RichTestGroup)
+    (implicit hc: HeaderCarrier): Future[Unit] = {
+    Future.successful(())
   }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
