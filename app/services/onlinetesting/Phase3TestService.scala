@@ -79,12 +79,15 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern with Re
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
   }
 
-  override def nextTestGroupWithReportReady: Future[Option[Phase3TestGroupWithAppId]] = ???
+  override def nextTestGroupWithReportReady: Future[Option[Phase3TestGroupWithAppId]] = {
+    Future.successful(None)
+  }
 
   override def retrieveTestResult(testProfile: Phase3TestGroupWithAppId)
-    (implicit hc: HeaderCarrier): Future[Unit] = ???
+    (implicit hc: HeaderCarrier): Future[Unit] = Future.successful(())
 
-  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = Future.successful(())
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int)
     (implicit hc: HeaderCarrier): Future[Unit] = {
