@@ -18,7 +18,7 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, CannotUpdateSchemePreferences, UnexpectedException }
+import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
@@ -73,7 +73,7 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
     findAndUpdateCubiksTest(cubiksUserId, update)
   }
 
-  def insertCubiksTests[T <: CubiksTestProfile](applicationId: String, newTestProfile: T) = {
+  def insertCubiksTests[P <: CubiksTestProfile](applicationId: String, newTestProfile: P) = {
     val query = BSONDocument(
       "applicationId" -> applicationId
     )
