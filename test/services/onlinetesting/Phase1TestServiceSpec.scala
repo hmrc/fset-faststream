@@ -591,7 +591,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
       when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
-      when(emailClientMock.sendOnlineTestExpired(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
       val result = phase1TestService.processNextExpiredTest(Phase1ExpirationEvent)
 
@@ -599,7 +599,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       verify(cdRepositoryMock).find(userId)
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_EXPIRED)
-      verify(emailClientMock).sendOnlineTestExpired(emailContactDetails, preferredName, Phase1ExpirationEvent.template)
+      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase1ExpirationEvent.template)
     }
   }
 

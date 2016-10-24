@@ -17,16 +17,16 @@
 package mocks.application
 
 import model.ApplicationStatus.ApplicationStatus
-import model.AssessmentScheduleCommands.{ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult}
+import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.OnlineTestApplication
-import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, Phase1TestProfile}
+import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest, Phase1TestProfile }
 import model._
 import model.command._
 import model.report._
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
 
 import scala.collection.mutable
@@ -140,6 +140,11 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
         CandidateAwaitingAllocation("3", "Katherine", "Jones", "Supergirl", "Queer Camel", None, new LocalDate(1990, 2, 12))
       )
     )
+
+  override def findFailedTestForNotification(appStatus: ApplicationStatus.ApplicationStatus,
+                                             progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]] = {
+    Future.successful(Some(NotificationFailedTest("31009ccc-1ac3-4d55-9c53-1908a13dc5e1", "fbb466a3-13a3-4dd0-93d6-9dfa764a5555", "George")))
+  }
 
   override def gisByApplication(userId: String): Future[Boolean] = ???
 

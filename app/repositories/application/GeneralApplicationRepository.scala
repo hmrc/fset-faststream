@@ -25,18 +25,18 @@ import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command._
-import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification}
-import model.report.{AdjustmentReport, CandidateProgressReport, _}
-import model.{ApplicationStatus, _}
+import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest }
+import model.report.{ AdjustmentReport, CandidateProgressReport, _ }
+import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, LocalDate}
-import play.api.libs.json.{Format, JsNumber, JsObject}
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{DB, QueryOpts, ReadPreference}
-import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -128,6 +128,9 @@ trait GeneralApplicationRepository {
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
 
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
+
+  def findFailedTestForNotification(appStatus: ApplicationStatus,
+                                    progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]]
 }
 
 // scalastyle:off number.of.methods
@@ -482,6 +485,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument(s"progress-status.${ASSESSMENT_SCORES_ACCEPTED.toLowerCase}" -> true),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
     )))
+
+  override def findFailedTestForNotification(appStatus: ApplicationStatus,
+                                             progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> appStatus),
+      BSONDocument(s"progress-status.$progressStatus" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
+    ))
+
+    implicit val reader = bsonReader(NotificationFailedTest.fromBson)
+    selectOneRandom[NotificationFailedTest](query)
+  }
 
   // scalastyle:off method.length
   private def applicationPreferences(query: BSONDocument): Future[List[ApplicationPreferences]] = {
