@@ -55,22 +55,26 @@ case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
   phase2TestsFailed: Boolean = false
 )
 
-case class ProgressResponse(
-                             applicationId: String,
-                             personalDetails: Boolean = false,
-                             schemePreferences: Boolean = false,
-                             partnerGraduateProgrammes: Boolean = false,
-                             assistanceDetails: Boolean = false,
-                             preview: Boolean = false,
-                             questionnaire: List[String] = Nil,
-                             submitted: Boolean = false,
-                             withdrawn: Boolean = false,
-                             phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
-                             phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
-                             failedToAttend: Boolean = false,
-                             assessmentScores: AssessmentScores = AssessmentScores(),
-                             assessmentCentre: AssessmentCentre = AssessmentCentre()
-                           )
+case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
+                                  phase3TestsStarted: Boolean = false,
+                                  phase3TestsCompleted: Boolean = false)
+
+
+case class ProgressResponse(applicationId: String,
+                            personalDetails: Boolean = false,
+                            schemePreferences: Boolean = false,
+                            partnerGraduateProgrammes: Boolean = false,
+                            assistanceDetails: Boolean = false,
+                            preview: Boolean = false,
+                            questionnaire: List[String] = Nil,
+                            submitted: Boolean = false,
+                            withdrawn: Boolean = false,
+                            phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
+                            phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
+                            phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
+                            failedToAttend: Boolean = false,
+                            assessmentScores: AssessmentScores = AssessmentScores(),
+                            assessmentCentre: AssessmentCentre = AssessmentCentre())
 
 
 object ProgressResponse {
@@ -78,5 +82,6 @@ object ProgressResponse {
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
   implicit val phase1ProgressResponseFormat = Json.format[Phase1ProgressResponse]
   implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
+  implicit val phase3ProgressResponseFormat = Json.format[Phase3ProgressResponse]
   implicit val progressResponseFormat = Json.format[ProgressResponse]
 }

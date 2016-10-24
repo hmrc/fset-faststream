@@ -17,7 +17,6 @@
 package repositories.application
 
 import model.ApplicationStatus.{apply => _, _}
-import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocation
 import model.CivilServiceExperienceType.{CivilServiceExperienceType, apply => _, _}
 import model.Commands.{Candidate, _}
@@ -72,7 +71,8 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val cubiksUserId = onlineTests.flatMap(_.getAs[Int]("cubiksUserId"))
 
     ReportWithPersonalDetails(
-      applicationId, userId, Some(getStatus(progress)), frLocation(fr1), frScheme1(fr1), frScheme2(fr1),
+      applicationId, userId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
+      frLocation(fr1), frScheme1(fr1), frScheme2(fr1),
       frLocation(fr2), frScheme1(fr2), frScheme2(fr2), aLevel,
       stemLevel, location, framework, needsAssistance, needsAdjustment, guaranteedInterview, firstName, lastName,
       preferredName, dateOfBirth, cubiksUserId
@@ -107,7 +107,8 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val applicationId = doc.getAs[String]("applicationId").getOrElse("")
     val progress: ProgressResponse = findProgress(doc, applicationId)
 
-    CandidateProgressReport(applicationId, Some(getStatus(progress)), schemes.getOrElse(List.empty[SchemeType]), disability, onlineAdjustments,
+    CandidateProgressReport(applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
+      schemes.getOrElse(List.empty[SchemeType]), disability, onlineAdjustments,
       assessmentCentreAdjustments, gis, civilServant, fastTrack, edip, sdipPrevious, sdip, fastPassCertificate)
   }
 
@@ -159,7 +160,7 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val userId = doc.getAs[String]("userId").getOrElse("")
     val progress: ProgressResponse = findProgress(doc, applicationId)
 
-    ApplicationForDiversityReportItem(applicationId, userId, Some(getStatus(progress)),
+    ApplicationForDiversityReportItem(applicationId, userId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
       schemes.getOrElse(List.empty), disability, gis, onlineAdjustments,
       assessmentCentreAdjustments, civilServiceExperience)
   }

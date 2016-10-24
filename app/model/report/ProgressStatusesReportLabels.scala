@@ -14,46 +14,15 @@
  * limitations under the License.
  */
 
-package model
+package model.report
 
+import model.ApplicationStatus._
 import model.command.ProgressResponse
-import model.ProgressStatuses._
 
-object ApplicationStatusOrder {
+trait ProgressStatusesReportLabels {
+  import ProgressStatusesReportLabels._
 
-  def getStatus(progress: Option[ProgressResponse]): String = progress match {
-    case Some(p) => getStatus(p)
-    case None => RegisteredProgress
-  }
-
-  def getStatus(progress: ProgressResponse): String = {
-    val default = 0 -> RegisteredProgress
-
-    type StatusMap = (Boolean, Int, String)
-    type HighestStatus = (Int, String)
-
-    def combineStatuses(statusMap: Seq[StatusMap]): HighestStatus = {
-      statusMap.foldLeft(default) { (highest, current) =>
-        val (highestWeighting, _) = highest
-        current match {
-          case (true, weighting, name) if weighting > highestWeighting => weighting -> name
-          case _ => highest
-        }
-      }
-    }
-
-    val (_, statusName) = combineStatuses(statusMaps(progress))
-
-    statusName
-  }
-
-  def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
-    val isNotSubmitted = !progress.submitted
-    val isNotWithdrawn = !progress.withdrawn
-    isNotWithdrawn && isNotSubmitted
-  }
-
-  def statusMaps(progress: ProgressResponse) = Seq(
+  private def statusMaps(progress: ProgressResponse) = Seq(
     (progress.personalDetails, 10, PersonalDetailsCompletedProgress),
     (progress.schemePreferences, 20, SchemePreferencesCompletedProgress),
     (progress.partnerGraduateProgrammes, 25, PartnerGraduateProgrammesCompletedProgress),
@@ -94,4 +63,74 @@ object ApplicationStatusOrder {
     (progress.assessmentCentre.passedNotified, 355, AssessmentCentrePassedNotifiedProgress),
     (progress.withdrawn, 999, WithdrawnProgress)
   )
+
+  def progressStatusNameInReports(progress: ProgressResponse): String = {
+    val default = 0 -> ProgressStatusesReportLabels.RegisteredProgress
+
+    type StatusMap = (Boolean, Int, String)
+    type HighestStatus = (Int, String)
+
+    def combineStatuses(statusMap: Seq[StatusMap]): HighestStatus = {
+      statusMap.foldLeft(default) { (highest, current) =>
+        val (highestWeighting, _) = highest
+        current match {
+          case (true, weighting, name) if weighting > highestWeighting => weighting -> name
+          case _ => highest
+        }
+      }
+    }
+
+    val (_, statusName) = combineStatuses(statusMaps(progress))
+
+    statusName
+  }
+}
+
+object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
+  val RegisteredProgress = "registered"
+  val PersonalDetailsCompletedProgress = "personal_details_completed"
+  val SchemePreferencesCompletedProgress = "scheme_preferences_completed"
+  val PartnerGraduateProgrammesCompletedProgress = "partner_graduate_programmes_completed"
+  val AssistanceDetailsCompletedProgress = "assistance_details_completed"
+  val PreviewCompletedProgress = "preview_completed"
+  val StartDiversityQuestionnaireProgress = "start_diversity_questionnaire"
+  val DiversityQuestionsCompletedProgress = "diversity_questions_completed"
+  val EducationQuestionsCompletedProgress = "education_questions_completed"
+  val OccupationQuestionsCompletedProgress = "occupation_questions_completed"
+  val SubmittedProgress = "submitted"
+  val WithdrawnProgress = "withdrawn"
+  val Phase1TestsInvited = "phase1_tests_invited"
+  val Phase1TestsFirstRemainder = "phase1_tests_first_remainder"
+  val Phase1TestsSecondRemainder = "phase1_tests_second_remainder"
+  val Phase1TestsStarted = "phase1_tests_started"
+  val Phase1TestsCompleted = "phase1_tests_completed"
+  val Phase1TestsExpired = "phase1_tests_expired"
+  val Phase1TestsResultsReady = "phase1_tests_results_ready"
+  val Phase1TestsResultsReceived = "phase1_tests_results_received"
+  val Phase1TestsPassed = "phase1_tests_passed"
+  val Phase1TestsFailed = "phase1_tests_failed"
+  val Phase2TestsInvited = "phase2_tests_invited"
+  val Phase2TestsFirstRemainder = "phase2_tests_first_remainder"
+  val Phase2TestsSecondRemainder = "phase2_tests_second_remainder"
+  val Phase2TestsStarted = "phase2_tests_started"
+  val Phase2TestsCompleted = "phase2_tests_completed"
+  val Phase2TestsExpired = "phase2_tests_expired"
+  val Phase2TestsResultsReady = "phase2_tests_results_ready"
+  val Phase2TestsResultsReceived = "phase2_tests_results_received"
+  val Phase2TestsPassed = "phase2_tests_passed"
+  val Phase2TestsFailed = "phase2_tests_failed"
+  val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
+  val OnlineTestFailedProgress = "online_test_failed"
+  val OnlineTestFailedNotifiedProgress = "online_test_failed_notified"
+  val AwaitingOnlineTestAllocationProgress = "awaiting_online_test_allocation"
+  val AllocationConfirmedProgress = "allocation_confirmed"
+  val AllocationUnconfirmedProgress = "allocation_unconfirmed"
+  val FailedToAttendProgress = FAILED_TO_ATTEND.toLowerCase()
+  val AssessmentScoresEnteredProgress = ASSESSMENT_SCORES_ENTERED.toLowerCase()
+  val AssessmentScoresAcceptedProgress = ASSESSMENT_SCORES_ACCEPTED.toLowerCase()
+  val AwaitingAssessmentCentreReevaluationProgress = AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.toLowerCase()
+  val AssessmentCentrePassedProgress = ASSESSMENT_CENTRE_PASSED.toLowerCase()
+  val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toLowerCase()
+  val AssessmentCentrePassedNotifiedProgress = ASSESSMENT_CENTRE_PASSED_NOTIFIED.toLowerCase()
+  val AssessmentCentreFailedNotifiedProgress = ASSESSMENT_CENTRE_FAILED_NOTIFIED.toLowerCase()
 }
