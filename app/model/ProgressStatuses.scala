@@ -95,6 +95,7 @@ object ProgressStatuses {
   case object PHASE1_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_PASSED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED)
   case object PHASE1_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
+  case object PHASE1_TESTS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
 
   case object PHASE2_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
@@ -120,6 +121,7 @@ object ProgressStatuses {
     PHASE1_TESTS_RESULTS_RECEIVED,
     PHASE1_TESTS_PASSED,
     PHASE1_TESTS_FAILED,
+    PHASE1_TESTS_FAILED_NOTIFIED,
     PHASE2_TESTS_INVITED,
     PHASE2_TESTS_STARTED,
     PHASE2_TESTS_COMPLETED,
