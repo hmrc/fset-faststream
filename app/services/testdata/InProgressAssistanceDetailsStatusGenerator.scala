@@ -35,24 +35,29 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    def getAssistanceDetails(generatorConfig: GeneratorConfig) = {
-      import generatorConfig._
-
-      val hasDisabilityFinalValue = hasDisability.getOrElse(Random.yesNoPreferNotToSay)
-      val hasDisabilityDescriptionFinalValue = if (hasDisabilityFinalValue == "Yes") Some(Random.hasDisabilityDescription) else None
-      val gisFinalValue = if (hasDisabilityFinalValue== "Yes" && setGis) Some(true) else Some(false)
-      val onlineAdjustmentsFinalValue = onlineAdjustments.getOrElse(Random.bool)
-      val onlineAdjustmentsDescriptionFinalValue = if (onlineAdjustmentsFinalValue) {
-        Some(onlineAdjustmentsDescription.getOrElse(Random.onlineAdjustmentsDescription))
-      } else {
-        None
-      }
-      val assessmentCentreAdjustmentsFinalValue = assessmentCentreAdjustments.getOrElse(Random.bool)
-      val assessmentCentreAdjustmentsDescriptionFinalValue = if (assessmentCentreAdjustmentsFinalValue) {
-        Some(assessmentCentreAdjustmentsDescription.getOrElse(Random.assessmentCentreAdjustmentDescription))
-      } else {
-        None
-      }
+    def getAssistanceDetails(config: GeneratorConfig) = {
+      val hasDisabilityFinalValue = config.hasDisability.getOrElse(Random.yesNoPreferNotToSay)
+      val hasDisabilityDescriptionFinalValue =
+        if (hasDisabilityFinalValue == "Yes") {
+          Some(config.hasDisabilityDescription.getOrElse(Random.hasDisabilityDescription))
+        } else {
+          None
+        }
+      val gisFinalValue = if (hasDisabilityFinalValue == "Yes" && config.setGis) Some(true) else Some(false)
+      val onlineAdjustmentsFinalValue = config.onlineAdjustments.getOrElse(Random.bool)
+      val onlineAdjustmentsDescriptionFinalValue =
+        if (onlineAdjustmentsFinalValue) {
+          Some(config.onlineAdjustmentsDescription.getOrElse(Random.onlineAdjustmentsDescription))
+        } else {
+          None
+        }
+      val assessmentCentreAdjustmentsFinalValue = config.assessmentCentreAdjustments.getOrElse(Random.bool)
+      val assessmentCentreAdjustmentsDescriptionFinalValue =
+        if (assessmentCentreAdjustmentsFinalValue) {
+          Some(config.assessmentCentreAdjustmentsDescription.getOrElse(Random.assessmentCentreAdjustmentDescription))
+        } else {
+          None
+        }
       AssistanceDetails(
         hasDisabilityFinalValue,
         hasDisabilityDescriptionFinalValue,
