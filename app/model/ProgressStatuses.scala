@@ -43,6 +43,9 @@ object ProgressStatuses {
     implicit def progressStatusToString(progressStatus: ProgressStatus): String = progressStatus.getClass.getSimpleName
   }
 
+  case object CREATED extends ProgressStatus(ApplicationStatus.CREATED) {
+    override def key = "created"}
+
   case object PERSONAL_DETAILS extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "personal-details"}
 
@@ -105,26 +108,36 @@ object ProgressStatuses {
   case object ASSESSMENT_CENTRE_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED_NOTIFIED)
   @deprecated("This status is not used in Faststream", "24/10/2016")
   case object ASSESSMENT_CENTRE_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED_NOTIFIED)
+  @deprecated("This status is not used in Faststream", "24/10/2016")
+  case object ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.ALLOCATION_CONFIRMED)
+  @deprecated("This status is not used in Faststream", "24/10/2016")
+  case object ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ALLOCATION_UNCONFIRMED)
+  @deprecated("This status is not used in Faststream", "24/10/2016")
+  case object AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.AWAITING_ALLOCATION)
+  @deprecated("This status is not used in Faststream", "24/10/2016")
+  case object ONLINE_TEST_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ONLINE_TEST_FAILED_NOTIFIED)
 
   def nameToProgressStatus(name: String) = nameToProgressStatusMap(name.toLowerCase)
 
   // Reflection is generally 'A bad thing' but in this case it ensures that all progress statues are taken into account
   // Had considered an implementation with a macro, but that would need defining in another compilation unit
   // As it is a val in a object, it is only run once upon startup
-  private val allStatuses: Seq[ProgressStatus] = {
+  private[model] val allStatuses: Seq[ProgressStatus] = {
     import scala.reflect.runtime.universe._
     val mirror = runtimeMirror(this.getClass.getClassLoader)
     val insMirror = mirror reflect this
     val originType = insMirror.symbol.typeSignature
-    val members: MemberScope = originType.members
-    members.collect(member => member.typeSignature match {
-      case tpe if tpe <:< typeOf[ProgressStatus] && member.isModule =>
-        val module = member.asModule
-        (mirror reflectModule module).instance.asInstanceOf[ProgressStatus]
-    }).toSeq
+    val members = originType.members
+    members.collect { member =>
+        member.typeSignature match {
+          case tpe if tpe <:< typeOf[ProgressStatus] && member.isModule =>
+            val module = member.asModule
+            (mirror reflectModule module).instance.asInstanceOf[ProgressStatus]
+        }
+    }.toSeq
   }
 
-  private val nameToProgressStatusMap: Map[String, ProgressStatus] = allStatuses.map { value =>
+  private[model] val nameToProgressStatusMap: Map[String, ProgressStatus] = allStatuses.map { value =>
     value.key.toLowerCase -> value
   }.toMap
 
