@@ -16,18 +16,18 @@
 
 package controllers
 
+import model.ApplicationStatus._
 import model.Commands
+import model.OnlineTestCommands.OnlineTestApplication
 import model.command.ResetOnlineTest
 import org.joda.time.DateTime
-import model.ApplicationStatus._
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.Phase1TestRepository
-import services.events.EventService
-import services.onlinetesting.{ OnlineTestExtensionService, OnlineTestService, Phase1TestService, Phase2TestService }
+import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
+import services.onlinetesting.{ Phase1TestService, Phase2TestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -55,25 +55,19 @@ case class UserIdWrapper(userId: String)
 
 object OnlineTestController extends OnlineTestController {
   override val appRepository: GeneralApplicationRepository = applicationRepository
-  override val onlineRepository: Phase1TestRepository = phase1TestRepository
-  override val onlineTestingService = Phase1TestService
+  override val phase1TestService = Phase1TestService
   override val phase2TestService = Phase2TestService
-  override val onlineTestExtensionService: OnlineTestExtensionService = OnlineTestExtensionService
-  val eventService: EventService = EventService
 }
 
 trait OnlineTestController extends BaseController {
   val appRepository: GeneralApplicationRepository
-  val onlineRepository: Phase1TestRepository
-  val onlineTestingService: Phase1TestService
+  val phase1TestService: Phase1TestService
   val phase2TestService: Phase2TestService
-  val onlineTestExtensionService: OnlineTestExtensionService
-  val eventService: EventService
 
   import Commands.Implicits._
 
   def getOnlineTest(applicationId: String) = Action.async { implicit request =>
-    onlineTestingService.getTestProfile(applicationId) map {
+    phase1TestService.getTestProfile(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
       case None => Logger.warn(s"No phase 1 tests found for applicationId '$applicationId'")
         NotFound
@@ -97,11 +91,30 @@ trait OnlineTestController extends BaseController {
   def resetOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
       appRepository.getOnlineTestApplication(appId).flatMap {
-        case Some(onlineTestApp) => onlineTestingService.resetTests(onlineTestApp, resetOnlineTest.tests,
+        case Some(onlineTestApp) => phase1TestService.resetTests(onlineTestApp, resetOnlineTest.tests,
           resetOnlineTest.actionTriggeredBy).map ( _ => Ok )
         case _ => Future.successful(NotFound)
       }
     }
+  }
 
+  def resetPhase2OnlineTest(appId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
+
+      def reset(onlineTestApp: OnlineTestApplication, actionTriggeredBy: String) =
+        phase2TestService.resetTests(onlineTestApp, actionTriggeredBy)
+          .map(_ => Ok)
+          .recover {
+            case _: ResetLimitExceededException =>
+              Locked
+            case _: CannotResetPhase2Tests =>
+              NotFound
+          }
+
+      appRepository.getOnlineTestApplication(appId).flatMap {
+        case Some(onlineTestApp) => reset(onlineTestApp, resetOnlineTest.actionTriggeredBy)
+        case _ => Future.successful(NotFound)
+      }
+    }
   }
 }
