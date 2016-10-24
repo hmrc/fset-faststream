@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package connectors.launchpadgateway.exchangeobjects
+package connectors.launchpadgateway.exchangeobjects.in
 
+import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
-case class InviteApplicantResponse(customInviteId: String, candidateId: String, customCandidateId: String,
-                                   testUrl: String, deadline: String)
+case class QuestionCallbackRequest(candidateId: String, customCandidateId: String, interviewId: Int,
+  customInterviewId: Option[String], customInviteId: String, status: String, deadline: LocalDate,
+  questionNumber: String)
 
-object InviteApplicantResponse {
-  implicit val inviteApplicantResponseFormat = Json.format[InviteApplicantResponse]
+object QuestionCallbackRequest {
+  implicit val questionCallbackFormat = Json.format[QuestionCallbackRequest]
 }

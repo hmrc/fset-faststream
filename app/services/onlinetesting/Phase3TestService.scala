@@ -21,17 +21,18 @@ import config.LaunchpadGatewayConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects._
-import factories.{ DateTimeFactory, UUIDFactory }
+import connectors.launchpadgateway.exchangeobjects.out.{InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest}
+import factories.{DateTimeFactory, UUIDFactory}
 import model.OnlineTestCommands._
 import model.persisted.NotificationExpiringOnlineTest
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
+import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
+import model.{ProgressStatuses, ReminderNotice, TestExpirationEvent}
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
-import services.events.{ EventService, EventSink }
+import services.events.{EventService, EventSink}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
