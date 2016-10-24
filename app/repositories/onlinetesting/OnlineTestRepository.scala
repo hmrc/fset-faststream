@@ -18,14 +18,15 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ CannotFindTestByCubiksId, UnexpectedException }
+import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
+import model.exchange.CubiksTestResultReady
 import model.persisted._
 import org.joda.time.DateTime
 import play.api.Logger
-import reactivemongo.bson._
+import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -56,6 +57,58 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
     phaseTestProfileByQuery(query, phase).map { x =>
       x.getOrElse(cannotFindTestByToken(token))
     }
+  }
+
+  def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
+    ))
+    findAndUpdateCubiksTest(cubiksUserId, update)
+  }
+
+  def markTestAsInactive(cubiksUserId: Int) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.usedForResults" -> false
+    ))
+    findAndUpdateCubiksTest(cubiksUserId, update)
+  }
+
+  def insertCubiksTests[P <: CubiksTestProfile](applicationId: String, newTestProfile: P) = {
+    val query = BSONDocument(
+      "applicationId" -> applicationId
+    )
+    val update = BSONDocument(
+        "$push" -> BSONDocument(
+          s"testGroups.$phaseName.tests" -> BSONDocument(
+            "$each" -> newTestProfile.tests
+          )),
+        "$set" -> BSONDocument(
+         s"testGroups.$phaseName.expirationDate" -> newTestProfile.expirationDate
+        )
+      )
+    collection.update(query, update, upsert = false) map {
+      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
+        logger.error(s"""Failed to append cubiks tests for application: $applicationId""")
+        throw ApplicationNotFound(applicationId)
+      case _ => ()
+    }
+  }
+
+  def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
+    ))
+    findAndUpdateCubiksTest(cubiksUserId, update)
+  }
+
+  def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.resultsReadyToDownload" -> (reportReady.reportStatus == "Ready"),
+      s"testGroups.$phaseName.tests.$$.reportId" -> reportReady.reportId,
+      s"testGroups.$phaseName.tests.$$.reportLinkURL" -> reportReady.reportLinkURL,
+      s"testGroups.$phaseName.tests.$$.reportStatus" -> Some(reportReady.reportStatus)
+    ))
+    findAndUpdateCubiksTest(cubiksUserId, update)
   }
 
   def cannotFindTestByCubiksId(cubiksUserId: Int) = {
@@ -128,5 +181,19 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
 
     val update = BSONDocument("$set" -> applicationStatusBSON(progressStatus))
     collection.update(query, update, upsert = false) map ( _ => () )
+  }
+
+  private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument) = {
+    val find = BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
+      )
+    )
+    collection.update(find, update, upsert = false) map {
+      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
+        logger.error(s"""Failed to update cubiks test: $cubiksUserId""")
+        throw cannotFindTestByCubiksId(cubiksUserId)
+      case _ => ()
+    }
   }
 }

@@ -22,14 +22,14 @@ import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.NotFoundException
+import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.events.EventTypes.EventType
 import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
-import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest, Phase2TestGroup, Phase2TestGroupWithAppId }
+import model.persisted._
 import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent, _ }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -219,26 +219,31 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }).map( _ => () )
 
   private def insertOrUpdateTestGroup(application: OnlineTestApplication)
-                           (newPhase2TestGroup: Phase2TestGroup): Future[Unit] = for {
-    currentPhase2TestGroup <- phase2TestRepo.getTestGroup(application.applicationId)
-    updatedPhase2TestGroup = merge(currentPhase2TestGroup, newPhase2TestGroup)
-    _ <- phase2TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedPhase2TestGroup)
-    _ <- phase2TestRepo.removeTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedPhase2TestGroup))
+                           (newOnlineTestProfile: Phase2TestGroup): Future[Unit] = for {
+    currentOnlineTestProfile <- phase2TestRepo.getTestGroup(application.applicationId)
+    updatedTestProfile <- insertOrAppendNewTests(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
+    _ <- phase2TestRepo.removeTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
   } yield ()
 
-  private def merge(currentProfile: Option[Phase2TestGroup], newProfile: Phase2TestGroup): Phase2TestGroup = currentProfile match {
-    case None => newProfile
-    case Some(profile) =>
-      val existingTestsAfterUpdate = profile.tests.map(t =>
-          t.copy(usedForResults = false)
-      )
-      Phase2TestGroup(newProfile.expirationDate, existingTestsAfterUpdate ++ newProfile.tests)
+  private def insertOrAppendNewTests(applicationId: String, currentProfile: Option[Phase2TestGroup],
+                                     newProfile: Phase2TestGroup): Future[Phase2TestGroup] = {
+    (currentProfile match {
+      case None => phase2TestRepo.insertOrUpdateTestGroup(applicationId, newProfile)
+      case Some(profile) =>
+        val existingActiveTests = profile.tests.filter(_.usedForResults).map(_.cubiksUserId)
+        Future.traverse(existingActiveTests)(phase2TestRepo.markTestAsInactive).flatMap { _ =>
+          phase2TestRepo.insertCubiksTests(applicationId, newProfile)
+        }
+    }).flatMap { _ => phase2TestRepo.getTestGroup(applicationId)
+    }.map {
+      case Some(testProfile) => testProfile
+      case None => throw ApplicationNotFound(applicationId)
+    }
   }
 
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]= eventSink {
-    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(startedDateTime = Some(startedTime)))
-    updatedPhase2Test flatMap { u =>
+    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestStartTime(_:Int, startedTime)).flatMap { u =>
       phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
         DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
       }
@@ -246,8 +251,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    val updatedPhase2Test = updatePhase2Test(cubiksUserId, t => t.copy(completedDateTime = Some(dateTimeFactory.nowLocalTimeZone)))
-    updatedPhase2Test flatMap { u =>
+    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestCompletionTime(_:Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
       require(u.phase2TestGroup.activeTests.nonEmpty, "Active tests cannot be found")
       val activeTestsCompleted = u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)
       activeTestsCompleted match {
@@ -269,7 +273,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
-    updatePhase2Test(cubiksUserId, updateTestReportReady(_: CubiksTest, reportReady)).flatMap { updated =>
+    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestReportReady(_: Int, reportReady)).flatMap { updated =>
       if (updated.phase2TestGroup.activeTests forall (_.resultsReadyToDownload)) {
         phase2TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
       } else {
@@ -278,17 +282,10 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     }
   }
 
-  private def updatePhase2Test(cubiksUserId: Int, update: CubiksTest => CubiksTest): Future[Phase2TestGroupWithAppId] = {
-    def createUpdateTestGroup(p: Phase2TestGroupWithAppId): Phase2TestGroupWithAppId = {
-      val testGroup = p.phase2TestGroup
-      assertUniqueTestByCubiksUserId(testGroup.tests, cubiksUserId)
-      val updatedTestGroup = testGroup.copy(tests = updateCubiksTestsById(cubiksUserId, testGroup.tests, update))
-      Phase2TestGroupWithAppId(p.applicationId, updatedTestGroup)
-    }
+  private def updatePhase2Test(cubiksUserId: Int, updateCubiksTest: Int => Future[Unit]): Future[Phase2TestGroupWithAppId] = {
     for {
-      p1TestProfile <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
-      updated = createUpdateTestGroup(p1TestProfile)
-      _ <- phase2TestRepo.insertOrUpdateTestGroup(updated.applicationId, updated.phase2TestGroup)
+      _ <- updateCubiksTest(cubiksUserId)
+      updated <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
     } yield {
       updated
     }
