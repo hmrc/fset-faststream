@@ -455,7 +455,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         phase1TestProfile.tests.size mustBe 2
         phase1TestProfile.activeTests.size mustBe 1
       }
-      "update " in {
+      "update test results ready" in {
         insertApplication("appId", "userId")
         phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
 
