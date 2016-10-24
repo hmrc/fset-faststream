@@ -25,7 +25,7 @@ import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 object Roles {
-
+  // scalastyle:off
   import RoleUtils._
 
   trait CsrAuthorization {
@@ -130,6 +130,11 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS) && isTestExpired(user)
   }
 
+  object Phase1TestFailedRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS_FAILED)
+  }
+
   object Phase2TestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS)
@@ -195,7 +200,7 @@ object Roles {
     UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
     WithdrawApplicationRole -> routes.HomeController.present()
   ).reverse
-
+  // scalastyle:on
 }
 
 object RoleUtils {
