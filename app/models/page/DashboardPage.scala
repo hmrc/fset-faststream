@@ -254,8 +254,18 @@ object DashboardPage {
       } else {
         ProgressInactive
       }
-      val thirdStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user)) { ProgressInactiveDisabled } else { ProgressInactive }
-      val fourthStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user)) { ProgressInactiveDisabled } else { ProgressInactive }
+      val thirdStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) || isPhase1TestFailed(user)) {
+        ProgressInactiveDisabled
+      }
+      else {
+        ProgressInactive
+      }
+      val fourthStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) || isPhase1TestFailed(user)) {
+        ProgressInactiveDisabled
+      }
+      else {
+        ProgressInactive
+      }
 
       (firstStep, secondStep, thirdStep, fourthStep)
     }
