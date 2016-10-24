@@ -230,8 +230,8 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     (currentProfile match {
       case None => phase2TestRepo.insertOrUpdateTestGroup(applicationId, newProfile)
       case Some(profile) =>
-        val inactiveTests = profile.tests.map(_.cubiksUserId)
-        Future.traverse(inactiveTests)(phase2TestRepo.markTestAsInactive).flatMap { _ =>
+        val existingActiveTests = profile.tests.filter(_.usedForResults).map(_.cubiksUserId)
+        Future.traverse(existingActiveTests)(phase2TestRepo.markTestAsInactive).flatMap { _ =>
           phase2TestRepo.insertCubiksTests(applicationId, newProfile)
         }
     }).flatMap { _ => phase2TestRepo.getTestGroup(applicationId)
