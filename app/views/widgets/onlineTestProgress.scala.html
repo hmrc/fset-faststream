@@ -6,8 +6,8 @@
 
 @import models.ApplicationData.ApplicationStatus._
 <div data-hidesdip>
-    @(dashboardPage.isTestGroupExpired, dashboardPage.phase1TestsPage) match {
-        case (true, _) => {
+    @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
+        case (true, _, _) => {
             <ul class="list-text list-withicons">
                 <li>
                     <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>Online exercises</p>
@@ -19,7 +19,18 @@
                 </li>
             </ul>
         }
-        case (_, None) => {
+        case (_, true, _) => {
+            <ul class="list-text list-withicons">
+                <li>
+                    <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>Online exercises</p>
+                    <div id="phase1TestFailed">
+                        <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
+                        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a> site for more opportunities with us.</p>
+                    </div>
+                </li>
+            </ul>
+        }
+        case (_, _, None) => {
             <ul class="list-text list-withicons" id="testsIndividual">
                 <li>
                     <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
@@ -39,7 +50,7 @@
             </ul>
             <p id="testsFindoutmore"><a href="http://www.faststream.gov.uk/faqs/" target="_blank" rel="external">Find out more about the online tests</a></p>
         }
-        case (_, Some(tests)) if cachedUserData.application.isDefined => {
+        case (_, _, Some(tests)) if cachedUserData.application.isDefined => {
             <ul class="list-text list-withicons">
             @if(tests.allCompleted) {
                 <li>
