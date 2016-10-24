@@ -22,7 +22,6 @@ import play.api.{ Application, Logger, Play }
 import scheduler.allocation.ConfirmAttendanceReminderJob
 import scheduler.assessment._
 import scheduler.onlinetesting._
-import scheduler.reporting.DiversityMonitoringJob
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.config.{ AppName, ControllerConfig }
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
@@ -76,9 +75,27 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
+  private lazy val firstPhase2ReminderExpiringTestJob: Option[ScheduledJob] =
+    if (firstPhase2ReminderJobConfigValues.enabled) Some(FirstPhase2ReminderExpiringTestJob) else {
+      Logger.warn("First Phase2 reminder for expiring test job is disabled")
+      None
+    }
+
+  private lazy val secondPhase2ReminderExpiringTestJob: Option[ScheduledJob] =
+    if (secondPhase2ReminderJobConfigValues.enabled) Some(SecondPhase2ReminderExpiringTestJob) else {
+      Logger.warn("Second Phase2 reminder for expiring test job is disabled")
+      None
+    }
+
   private lazy val expirePhase1TestJob: Option[ScheduledJob] =
     if (expirePhase1TestJobConfigValues.enabled) Some(ExpirePhase1TestJob) else {
       Logger.warn("Expire Phase1 test job is disabled")
+      None
+    }
+
+  private lazy val expirePhase2TestJob: Option[ScheduledJob] =
+    if (expirePhase2TestJobConfigValues.enabled) Some(ExpirePhase2TestJob) else {
+      Logger.warn("Expire Phase2 test job is disabled")
       None
     }
 
@@ -97,12 +114,6 @@ trait Scheduler extends RunningOfScheduledJobs {
   private lazy val evaluatePhase1ResultJob: Option[ScheduledJob] =
     if (evaluatePhase1ResultJobConfigValues.enabled) Some(EvaluatePhase1ResultJob) else {
       Logger.warn("evaluate phase1 result job is disabled")
-      None
-    }
-
-  private lazy val diversityMonitoringJob: Option[ScheduledJob] =
-    if (diversityMonitoringJobConfigValues.enabled) Some(DiversityMonitoringJob) else {
-      Logger.warn("diversity monitoring job is disabled")
       None
     }
 
@@ -128,19 +139,22 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def sendPhase2InvitationJobConfigValues = sendPhase2InvitationJobConfig
   private[config] def sendPhase3InvitationJobConfigValues = sendPhase3InvitationJobConfig
   private[config] def expirePhase1TestJobConfigValues = expirePhase1TestJobConfig
+  private[config] def expirePhase2TestJobConfigValues = expirePhase2TestJobConfig
   private[config] def firstPhase1ReminderJobConfigValues = firstPhase1ReminderJobConfig
   private[config] def secondPhase1ReminderJobConfigValues = secondPhase1ReminderJobConfig
+  private[config] def firstPhase2ReminderJobConfigValues = firstPhase2ReminderJobConfig
+  private[config] def secondPhase2ReminderJobConfigValues = secondPhase2ReminderJobConfig
   private[config] def failedOnlineTestJobConfigValues = failedOnlineTestJobConfig
   private[config] def retrieveResultsJobConfigValues = retrieveResultsJobConfig
   private[config] def evaluatePhase1ResultJobConfigValues = evaluatePhase1ResultJobConfig
-  private[config] def diversityMonitoringJobConfigValues = diversityMonitoringJobConfig
   private[config] def confirmAttendanceReminderJobConfigValues = confirmAttendanceReminderJobConfig
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
 
   lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob, firstPhase1ReminderExpiringTestJob,
-    secondPhase1ReminderExpiringTestJob, expirePhase1TestJob, failedOnlineTestJob, retrieveResultsJob, evaluatePhase1ResultJob,
-    diversityMonitoringJob, confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
+    secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob, secondPhase2ReminderExpiringTestJob, expirePhase1TestJob,
+    expirePhase2TestJob, failedOnlineTestJob, retrieveResultsJob, evaluatePhase1ResultJob,
+    confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with Scheduler {

@@ -49,25 +49,25 @@ PUT         /questionnaire/:applicationId/:sectionKey                    control
 
 GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
 POST        /search/find-by-criteria                                     controllers.SearchForApplicantsController.findByCriteria
-GET         /report/diversity-monitoring                                 controllers.ReportingController.retrieveDiversityReport
-GET         /report/adjustments/:frameworkId                             controllers.ReportingController.createAdjustmentReports(frameworkId: String)
-GET         /report/assessment-centre-allocation/:frameworkId            controllers.ReportingController.createAssessmentCentreAllocationReport(frameworkId: String)
-GET         /report/online-test-pass-mark/:frameworkId                   controllers.ReportingController.createOnlineTestPassMarkReport(frameworkId: String)
-#GET         /report/pass-mark-personal-data/:frameworkId                 controllers.ReportingController.createPassMarkWithPersonalDataReport(frameworkId: S#tring)
-GET         /report/non-submitted-applications/:frameworkId              controllers.ReportingController.createNonSubmittedAppsReports(frameworkId: String)
-GET         /report/preferences-and-contact/:frameworkId                 controllers.ReportingController.createPreferencesAndContactReports(frameworkId: String)
-GET         /report/application-user-ids/:frameworkId                    controllers.ReportingController.applicationAndUserIdsReport(frameworkId: String)
-GET         /report/assessment-results/:frameworkId                      controllers.ReportingController.createAssessmentResultsReport(frameworkId: String)
-GET         /report/successful-candidates/:frameworkId                   controllers.ReportingController.createSuccessfulCandidatesReport(frameworkId: String)
+GET         /report/diversity/:frameworkId                               controllers.ReportingController.diversityReport(frameworkId: String)
+GET         /report/adjustments/:frameworkId                             controllers.ReportingController.adjustmentReport(frameworkId: String)
 GET         /report/candidate-progress/:frameworkId                      controllers.ReportingController.candidateProgressReport(frameworkId: String)
+GET         /report/online-test-pass-mark/:frameworkId                   controllers.ReportingController.onlineTestPassMarkReport(frameworkId: String)
+#GET         /report/assessment-centre-allocation/:frameworkId            controllers.ReportingController.createAssessmentCentreAllocationReport(frameworkId: String)
+#GET         /report/pass-mark-personal-data/:frameworkId                 controllers.ReportingController.createPassMarkWithPersonalDataReport(frameworkId: S#tring)
+#GET         /report/non-submitted-applications/:frameworkId              controllers.ReportingController.createNonSubmittedAppsReports(frameworkId: String)
+#GET         /report/preferences-and-contact/:frameworkId                 controllers.ReportingController.createPreferencesAndContactReports(frameworkId: String)
+#GET         /report/application-user-ids/:frameworkId                    controllers.ReportingController.applicationAndUserIdsReport(frameworkId: String)
+#GET         /report/assessment-results/:frameworkId                      controllers.ReportingController.createAssessmentResultsReport(frameworkId: String)
+#GET         /report/successful-candidates/:frameworkId                   controllers.ReportingController.createSuccessfulCandidatesReport(frameworkId: String)
 
 GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getUserById(userId: String)
 
-GET         /online-test/candidate/:applicationId                        controllers.OnlineTestController.getOnlineTest(applicationId: String)
-GET         /online-test-phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
+GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getOnlineTest(applicationId: String)
+GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
 POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
-POST        /online-test/reset/:appId                                    controllers.OnlineTestController.resetOnlineTests(appId: String)
-
+POST        /online-test/phase1/reset/:appId                             controllers.OnlineTestController.resetOnlineTests(appId: String)
+POST        /online-test/phase2/reset/:appId                             controllers.OnlineTestController.resetPhase2OnlineTest(appId: String)
 
 PUT         /cubiks/:cubiksUserId/start                                  controllers.CubiksTestsController.start(cubiksUserId: Int)
 PUT         /cubiks/:cubiksUserId/complete                               controllers.CubiksTestsController.complete(cubiksUserId: Int)
@@ -75,7 +75,7 @@ PUT         /cubiks/complete-by-token/:token                             control
 PUT         /cubiks/:cubiksUserId/results-ready                          controllers.CubiksTestsController.markResultsReady(cubiksUserId: Int)
 
 POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
-
+POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
 GET         /phase3-test-group/:applicationId                            controllers.Phase3TestGroupController.getTestGroup(applicationId: String)
 
 GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)

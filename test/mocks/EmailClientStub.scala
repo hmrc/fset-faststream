@@ -33,7 +33,7 @@ object EmailClientStub extends CSREmailClient {
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit] =
     Future.successful(Unit)
 
-  override def sendOnlineTestExpired(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
+  override def sendOnlineTestExpired(to: String, name: String, template: String)(implicit hc: HeaderCarrier): Future[Unit] =
     Future.successful(Unit)
 
   override def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
@@ -55,4 +55,5 @@ object EmailClientStub extends CSREmailClient {
   override def sendTestExpiringReminder(to: String, name: String, timeLeft: Int,
                                timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
 
+  override def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = Future.successful(Unit)
 }

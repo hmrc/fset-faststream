@@ -19,23 +19,32 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import model.{ Phase1FirstReminder, ReminderNotice }
+import model.{ EmptyRequestHeader, Phase1FirstReminder, Phase2FirstReminder, ReminderNotice }
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.OnlineTestExpiryService
+import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object FirstPhase1ReminderExpiringTestJob extends FirstReminderExpiringTestJob with FirstPhase1ReminderExpiringTestJobConfig {
-  override val service = OnlineTestExpiryService
+  override val service = Phase1TestService
   override val reminderNotice: ReminderNotice = Phase1FirstReminder
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 }
 
+object FirstPhase2ReminderExpiringTestJob extends FirstReminderExpiringTestJob with FirstPhase2ReminderExpiringTestJobConfig {
+  override val service = Phase2TestService
+  override val reminderNotice: ReminderNotice = Phase2FirstReminder
+  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+}
+
 trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob {
-  val service: OnlineTestExpiryService
+  val service: OnlineTestService
   val reminderNotice: ReminderNotice
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    implicit val rh = EmptyRequestHeader
+    implicit val hc = new HeaderCarrier()
     service.processNextTestForReminder(reminderNotice)
   }
 
@@ -46,4 +55,11 @@ trait FirstPhase1ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJ
   override val conf = config.MicroserviceAppConfig.firstPhase1ReminderJobConfig
   val configPrefix = "scheduling.online-testing.first-phase1-reminder-expiring-test-job."
   val name = "FirstPhase1ReminderExpiringTestJob"
+}
+
+trait FirstPhase2ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  override val conf = config.MicroserviceAppConfig.firstPhase2ReminderJobConfig
+  val configPrefix = "scheduling.online-testing.first-phase2-reminder-expiring-test-job."
+  val name = "FirstPhase2ReminderExpiringTestJob"
 }

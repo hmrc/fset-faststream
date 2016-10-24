@@ -4,16 +4,17 @@ import factories.DateTimeFactory
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.Phase1TestProfile
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument }
-import repositories.application.GeneralApplicationMongoRepository
+import reactivemongo.bson.{BSONArray, BSONDocument}
+import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 import reactivemongo.json.ImplicitBSONHandlers
 
 import scala.concurrent.Future
+import config.MicroserviceAppConfig.cubiksGatewayConfig
 
 trait ApplicationDataFixture extends MongoRepositorySpec {
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
   def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
   def phase3TestRepo = new Phase3TestMongoRepository(DateTimeFactory)
@@ -187,13 +188,13 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
     )
   }
 
-  private def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean,
+  private def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean,
     timeExtensionAdjustments:Boolean, isGis: Boolean = false) = {
-    if (needsAdjustment) {
+    if (needsSupportForOnlineAssessment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
           BSONDocument(
-            "needsAdjustment" -> "Yes",
+            "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
             "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
             "adjustments-confirmed" -> true,
             "verbalTimeAdjustmentPercentage" -> 9,
@@ -202,7 +203,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
           )
         } else {
           BSONDocument(
-            "needsAdjustment" -> "Yes",
+            "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
             "typeOfAdjustments" -> BSONArray("room alone"),
             "adjustments-confirmed" -> true,
             "guaranteedInterview" -> isGis
@@ -210,7 +211,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
         }
       } else {
         BSONDocument(
-          "needsAdjustment" -> "Yes",
+          "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
           "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
           "adjustments-confirmed" -> false,
           "guaranteedInterview" -> isGis
@@ -218,7 +219,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
       }
     } else {
       BSONDocument(
-        "needsAdjustment" -> "No",
+        "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
         "guaranteedInterview" -> isGis
       )
     }

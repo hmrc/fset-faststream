@@ -17,14 +17,12 @@
 package repositories.onlinetesting
 
 import factories.DateTimeFactory
+import model.ApplicationStatus
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
-import org.joda.time.DateTime
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
-import model.persisted.Phase1TestProfile
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -50,9 +48,11 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     model.persisted.phase3tests.Phase3TestGroup.phase3TestGroupFormat, ReactiveMongoFormats.objectIdFormats
   ) with Phase3TestRepository with CommonBSONDocuments {
 
-  val phaseName = "PHASE3"
-  val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE3_TESTS
-  val dateTimeFactory = dateTime
+  override val phaseName = "PHASE3"
+  override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE3_TESTS
+  override val dateTimeFactory = dateTime
+  // TO DO: expiredTestQuery need to be changed once we tackle the expiry test in phase 3
+  override val expiredTestQuery: BSONDocument = BSONDocument()
 
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
 

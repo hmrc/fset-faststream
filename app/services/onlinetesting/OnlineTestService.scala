@@ -16,14 +16,19 @@
 
 package services.onlinetesting
 
-import connectors.{ EmailClient, OnlineTestEmailClient }
+import connectors.OnlineTestEmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
+import model.events.DataStoreEvents
 import model.exchange.CubiksTestResultReady
-import model.persisted.CubiksTest
+import model.persisted.{ CubiksTest, ExpiringOnlineTest, NotificationExpiringOnlineTest }
+import model.{ TestExpirationEvent, ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
+import model.events.AuditEvents
 import play.api.Logger
 import play.api.mvc.RequestHeader
+import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import services.AuditService
 import services.events.EventSink
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -31,17 +36,23 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 
-trait OnlineTestService extends EventSink  {
+trait OnlineTestService extends TimeExtension with EventSink {
   val emailClient: OnlineTestEmailClient
   val auditService: AuditService
   val tokenFactory: UUIDFactory
   val dateTimeFactory: DateTimeFactory
+  val cdRepository: ContactDetailsRepository
+  val appRepository: GeneralApplicationRepository
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
+                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
@@ -58,6 +69,7 @@ trait OnlineTestService extends EventSink  {
     (invitationDate, expirationDate)
   }
 
+  @deprecated("use event sink instead")
   protected def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
     Logger.info(s"$event for user $userId")
 
@@ -66,6 +78,13 @@ trait OnlineTestService extends EventSink  {
       Map("userId" -> userId) ++ emailAddress.map("email" -> _).toMap
     )
   }
+
+  protected def processExpiredTest(expiringTest: ExpiringOnlineTest, expiryTest: TestExpirationEvent)
+                                  (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = for {
+    emailAddress <- candidateEmailAddress(expiringTest.userId)
+    _ <- commitProgressStatus(expiringTest.applicationId, expiryTest.expiredStatus)
+    _ <- emailCandidate(expiringTest, emailAddress, expiryTest.template)
+  } yield ()
 
   def updateTestReportReady(cubiksTest: CubiksTest, reportReady: CubiksTestResultReady) = cubiksTest.copy(
     resultsReadyToDownload = reportReady.reportStatus == "Ready",
@@ -88,4 +107,53 @@ trait OnlineTestService extends EventSink  {
     val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))
     math.min(adjustedValue, maximum).toInt
   }
+
+  private def emailCandidate(expiringTest: ExpiringOnlineTest, emailAddress: String, template: String)
+                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    emailClient.sendOnlineTestExpired(emailAddress, expiringTest.preferredName, template).map { _ =>
+      AuditEvents.ExpiredTestEmailSent(Map("applicationId" -> expiringTest.applicationId,
+        "emailAddress" -> emailAddress, "to" -> expiringTest.preferredName, "template" -> template )) :: Nil
+    }
+  }
+
+  def commitProgressStatus(applicationId: String, status: ProgressStatuses.ProgressStatus)
+                          (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    appRepository.addProgressStatusAndUpdateAppStatus(applicationId, status).map { r =>
+      AuditEvents.ApplicationExpired(Map("applicationId" -> applicationId, "status" -> status )) ::
+        DataStoreEvents.ApplicationExpired(applicationId) :: Nil
+    }
+  }
+
+  protected def candidateEmailAddress(userId: String): Future[String] = cdRepository.find(userId).map(_.email)
+
+  protected def processReminder(expiringTest: NotificationExpiringOnlineTest,
+                                reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+    for {
+      emailAddress <- candidateEmailAddress(expiringTest.userId)
+      _ <- commitNotificationExpiringTestProgressStatus(expiringTest, reminder, emailAddress)
+      _ <- emailCandidateForExpiringTestReminder(expiringTest, emailAddress, reminder)
+    } yield ()
+
+  private def commitNotificationExpiringTestProgressStatus(
+    expiringTest: NotificationExpiringOnlineTest,
+    reminder: ReminderNotice,
+    email: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    appRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, reminder.progressStatuses).map { _ =>
+      AuditEvents.ApplicationExpiryReminder(Map("applicationId" -> expiringTest.applicationId, "status" -> reminder.progressStatuses )) ::
+        DataStoreEvents.ApplicationExpiryReminder(expiringTest.applicationId) :: Nil
+    }
+  }
 }
+
+trait TimeExtension {
+  val dateTimeFactory: DateTimeFactory
+
+  def extendTime(alreadyExpired: Boolean, previousExpirationDate: DateTime) = { extraDays: Int =>
+    if (alreadyExpired) {
+      dateTimeFactory.nowLocalTimeZone.plusDays(extraDays)
+    } else {
+      previousExpirationDate.plusDays(extraDays)
+    }
+  }
+}
+

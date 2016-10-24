@@ -34,6 +34,7 @@ trait EmailEventHandler extends EventHandler[EmailEvent] {
   def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     Logger.info(s"Email event ${event.name}")
     event match {
+      case _: EmailEvents.ApplicationWithdrawn => emailClient.sendWithdrawnConfirmation(event.to, event.name)
       case _: EmailEvents.ApplicationSubmitted => emailClient.sendApplicationSubmittedConfirmation(event.to, event.name)
     }
   }

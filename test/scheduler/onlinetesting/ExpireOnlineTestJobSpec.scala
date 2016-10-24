@@ -16,14 +16,17 @@
 
 package scheduler.onlinetesting
 
-import org.mockito.Matchers.{ eq => eqTo }
+import model.Phase1ExpirationEvent
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import play.api.mvc.RequestHeader
 import play.api.test.WithApplication
-import services.onlinetesting.OnlineTestExpiryService
+import services.onlinetesting.OnlineTestService
 import testkit.ShortTimeout
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -31,10 +34,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 class ExpireOnlineTestJobSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val serviceMock = mock[OnlineTestExpiryService]
+  val serviceMock = mock[OnlineTestService]
 
   object TestableExpireTestJob extends ExpireOnlineTestJob {
-    val service = serviceMock
+    val onlineTestingService = serviceMock
+    val expiryTest = Phase1ExpirationEvent
     val lockId: String = "1"
     val forceLockReleaseAfter: Duration = mock[Duration]
     implicit val ec: ExecutionContext = mock[ExecutionContext]
@@ -43,14 +47,16 @@ class ExpireOnlineTestJobSpec extends PlaySpec with MockitoSugar with ScalaFutur
     def interval: FiniteDuration = mock[FiniteDuration]
   }
 
-  "send invitation job" should {
+  "expire test phase 1 job" should {
     "complete successfully when service completes successfully" in new WithApplication {
-      when(serviceMock.processNextExpiredTest()).thenReturn(Future.successful(()))
+      when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
+        .thenReturn(Future.successful(()))
       TestableExpireTestJob.tryExecute().futureValue mustBe (())
     }
 
     "fail when the service fails" in new WithApplication {
-      when(serviceMock.processNextExpiredTest()).thenReturn(Future.failed(new Exception))
+      when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
+        .thenReturn(Future.failed(new Exception))
       TestableExpireTestJob.tryExecute().failed.futureValue mustBe an[Exception]
     }
   }

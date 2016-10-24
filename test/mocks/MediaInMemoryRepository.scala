@@ -16,7 +16,7 @@
 
 package mocks
 
-import model.Commands.AddMedia
+import model.persisted.Media
 import repositories.MediaRepository
 
 import scala.collection.mutable
@@ -24,12 +24,15 @@ import scala.concurrent.Future
 
 object MediaInMemoryRepository extends MediaRepository {
 
-  override def create(addMedia: AddMedia): Future[Unit] = {
-
+  override def create(addMedia: Media): Future[Unit] = {
     inMemoryRepo += addMedia.userId -> addMedia
     Future.successful(Unit)
   }
 
-  val inMemoryRepo = new mutable.HashMap[String, AddMedia]
+  override def findAll(): Future[Map[String, Media]] = {
+    Future.successful(inMemoryRepo.toMap)
+  }
+
+  val inMemoryRepo = new mutable.HashMap[String, Media]
 
 }
