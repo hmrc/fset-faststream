@@ -22,11 +22,10 @@ import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.OnlineTestApplication
-import model.persisted.Phase1TestProfile
+import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, Phase1TestProfile}
 import model._
 import model.command._
-import model.persisted.ApplicationForNotification
-import model.report.{AdjustmentReport, ApplicationForDiversityReportItem, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport}
+import model.report._
 import org.joda.time.{DateTime, LocalDate}
 import repositories.application.GeneralApplicationRepository
 
@@ -109,8 +108,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
       List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None))
   )
 
-  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]] = ???
-
+  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = ???
 
   override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]] = ???
 

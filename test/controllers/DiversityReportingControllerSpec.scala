@@ -23,6 +23,7 @@ import model.report.{ApplicationForDiversityReportItemExamples, DiversityReportI
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatestplus.play.PlaySpec
+import persisted.ApplicationForDiversityReportExamples
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Helpers}
@@ -135,13 +136,13 @@ class DiversityReportingControllerSpec extends PlaySpec with Results with Mockit
       val medRepository: MediaRepository = mockMediaRepository
     }
 
-    val applications = List(ApplicationForDiversityReportItemExamples.Example1,
-      ApplicationForDiversityReportItemExamples.Example2)
+    val applications = List(ApplicationForDiversityReportExamples.Example1,
+      ApplicationForDiversityReportExamples.Example2)
 
     val questionnaires = Map(
-      ApplicationForDiversityReportItemExamples.Example1.applicationId ->
+      ApplicationForDiversityReportExamples.Example1.applicationId ->
         QuestionnaireReportItemExamples.NoParentOccupation1,
-      ApplicationForDiversityReportItemExamples.Example2.applicationId ->
+      ApplicationForDiversityReportExamples.Example2.applicationId ->
         QuestionnaireReportItemExamples.NoParentOccupation2)
 
     val notFoundQuestionnaires = Map(
@@ -149,8 +150,8 @@ class DiversityReportingControllerSpec extends PlaySpec with Results with Mockit
       "NotFoundApplicationId2" -> QuestionnaireReportItemExamples.NoParentOccupation2)
 
     val medias = Map(
-      ApplicationForDiversityReportItemExamples.Example1.userId -> MediaExamples.Example1,
-      ApplicationForDiversityReportItemExamples.Example2.userId -> MediaExamples.Example2)
+      ApplicationForDiversityReportExamples.Example1.userId -> MediaExamples.Example1,
+      ApplicationForDiversityReportExamples.Example2.userId -> MediaExamples.Example2)
 
     val notFoundMedias = Map(
       "NotFoundUserId1" -> MediaExamples.Example1,
