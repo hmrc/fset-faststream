@@ -130,7 +130,7 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS) && isTestExpired(user)
   }
 
-  object Pase1TestFailedRole extends CsrAuthorization {
+  object Phase1TestFailedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS_FAILED)
   }

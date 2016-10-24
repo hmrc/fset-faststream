@@ -185,7 +185,7 @@ object DashboardPage {
     OnlineTestExpiredRole.isAuthorized(user)
 
   private def isPhase1TestFailed(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    Pase1TestFailedRole.isAuthorized(user)
+    Phase1TestFailedRole.isAuthorized(user)
 
   private def isPhase2TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     Phase2TestExpiredRole.isAuthorized(user)
