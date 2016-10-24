@@ -27,14 +27,14 @@ class ScheduleSelectorSpec extends PlaySpec {
       val selector = createSelector(Map())
 
       intercept[IllegalArgumentException] {
-        selector.getRandomSchedule
+        selector.getRandomSchedule()
       }
     }
 
     "return a schedule randomly" in {
       val schedules = Map("daro" -> DaroShedule, "irad" -> IradShedule, "ward" -> WardShedule)
       val selector = createSelector(schedules)
-      val randomSchedules = 1 to 1000 map (_ => selector.getRandomSchedule)
+      val randomSchedules = 1 to 1000 map (_ => selector.getRandomSchedule())
 
       randomSchedules.distinct must contain theSameElementsAs schedules.values
     }
