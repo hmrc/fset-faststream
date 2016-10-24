@@ -128,15 +128,6 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
   }
 
-  def cubiksTestQuery(applicationId: String, cubiksUserId: Int) = {
-    BSONDocument(
-      "applicationId" -> applicationId,
-      s"testGroups.$phaseName.tests" -> BSONDocument(
-        "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
-      )
-    )
-  }
-
   override def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit] = {
     val query = BSONDocument(
       "applicationId" -> appId,
