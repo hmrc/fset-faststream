@@ -24,18 +24,18 @@ import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command._
-import model.persisted.ApplicationForNotification
-import model.report.{AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, _}
-import model.{ApplicationStatus, _}
+import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest }
+import model.report.{ AdjustmentReport, CandidateProgressReport, _ }
+import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, LocalDate}
-import play.api.libs.json.{Format, JsNumber, JsObject}
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{DB, QueryOpts, ReadPreference}
-import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -84,7 +84,7 @@ trait GeneralApplicationRepository {
   // Reports
   def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]]
 
-  def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]]
+  def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
 
   def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]]
 
@@ -127,6 +127,9 @@ trait GeneralApplicationRepository {
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
 
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
+
+  def findFailedTestForNotification(appStatus: ApplicationStatus,
+                                    progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]]
 }
 
 // scalastyle:off number.of.methods
@@ -214,7 +217,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   implicit val readerTPM = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem)
   implicit val readerCandidate = bsonReader(bsonToModelHelper.toCandidate)
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReport(findProgress))
-  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReportItem(findProgress))
+  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
   override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -463,7 +466,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     reportQueryWithProjectionsBSON[CandidateProgressReport](query, projection)
   }
 
-  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]] = {
+  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = {
     val query = BSONDocument("frameworkId" -> frameworkId)
     val projection = BSONDocument(
       "userId" -> "1",
@@ -473,7 +476,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "applicationId" -> "1",
       "progress-status" -> "2"
     )
-    reportQueryWithProjectionsBSON[ApplicationForDiversityReportItem](query, projection)
+    reportQueryWithProjectionsBSON[ApplicationForDiversityReport](query, projection)
   }
 
   override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] =
@@ -482,6 +485,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument(s"progress-status.${ASSESSMENT_SCORES_ACCEPTED.toLowerCase}" -> true),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
     )))
+
+  override def findFailedTestForNotification(appStatus: ApplicationStatus,
+                                             progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> appStatus),
+      BSONDocument(s"progress-status.$progressStatus" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
+    ))
+
+    implicit val reader = bsonReader(NotificationFailedTest.fromBson)
+    selectOneRandom[NotificationFailedTest](query)
+  }
 
   // scalastyle:off method.length
   private def applicationPreferences(query: BSONDocument): Future[List[ApplicationPreferences]] = {

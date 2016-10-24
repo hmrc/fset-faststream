@@ -27,6 +27,7 @@ import services.testdata.faker.DataFaker.ExchangeObjects.AvailableAssessmentSlot
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+//scalastyle:off number.of.methods
 object DataFaker {
 
   object ExchangeObjects {
@@ -83,6 +84,18 @@ object DataFaker {
       Some("University event (Guest lecture or skills session)"),
       Some("Other")
     ))
+
+    def hasDisabilityDescription: String = randOne(List("I am too tall", "I am too good", "I get bored easily"))
+
+    def onlineAdjustmentsDescription: String = randOne(List(
+      "I am too sensitive to the light screens",
+      "I am allergic to electronic-magnetic waves",
+      "I was a cracker who was asked by the court to be away computer for 5 years"))
+
+    def assessmentCentreAdjustmentDescription: String = randOne(List(
+      "I am very week, I need constant support",
+      "I need a confortable chair because of my back problem",
+      "I need to take rest every 10 minutes"))
 
     def passmark: Result = randOne(List(EvaluationResults.Green, EvaluationResults.Amber, EvaluationResults.Red))
 
@@ -656,3 +669,4 @@ object DataFaker {
   }
 
 }
+//scalastyle:on number.of.methods

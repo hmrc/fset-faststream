@@ -99,9 +99,9 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
-  private lazy val failedOnlineTestJob: Option[ScheduledJob] =
-    if (failedOnlineTestJobConfigValues.enabled) Some(FailedOnlineTestJob) else {
-      Logger.warn("Failed online test job is disabled")
+  private lazy val failedPhase1TestJob: Option[ScheduledJob] =
+    if (failedPhase1TestJobConfigValues.enabled) Some(FailedPhase1TestJob) else {
+      Logger.warn("Failed Phase1 online test job is disabled")
       None
     }
 
@@ -144,7 +144,7 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def secondPhase1ReminderJobConfigValues = secondPhase1ReminderJobConfig
   private[config] def firstPhase2ReminderJobConfigValues = firstPhase2ReminderJobConfig
   private[config] def secondPhase2ReminderJobConfigValues = secondPhase2ReminderJobConfig
-  private[config] def failedOnlineTestJobConfigValues = failedOnlineTestJobConfig
+  private[config] def failedPhase1TestJobConfigValues = failedPhase1TestJobConfig
   private[config] def retrieveResultsJobConfigValues = retrieveResultsJobConfig
   private[config] def evaluatePhase1ResultJobConfigValues = evaluatePhase1ResultJobConfig
   private[config] def confirmAttendanceReminderJobConfigValues = confirmAttendanceReminderJobConfig
@@ -153,7 +153,7 @@ trait Scheduler extends RunningOfScheduledJobs {
 
   lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob, firstPhase1ReminderExpiringTestJob,
     secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob, secondPhase2ReminderExpiringTestJob, expirePhase1TestJob,
-    expirePhase2TestJob, failedOnlineTestJob, retrieveResultsJob, evaluatePhase1ResultJob,
+    expirePhase2TestJob, failedPhase1TestJob, retrieveResultsJob, evaluatePhase1ResultJob,
     confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 

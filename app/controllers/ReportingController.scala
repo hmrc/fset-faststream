@@ -19,6 +19,8 @@ package controllers
 import connectors.AuthProviderClient
 import model.Commands._
 import model.PersistedObjects.ContactDetailsWithId
+import model.PersistedObjects.Implicits._
+import model.report._
 import model.command.ProgressResponse
 import model.report.{ DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels }
 import play.api.libs.json.Json
@@ -62,7 +64,10 @@ trait ReportingController extends BaseController {
       medias <- medRepository.findAll()
     } yield {
       applications.map { application =>
-        DiversityReportItem(application, questionnaires.get(application.applicationId), medias.get(application.userId))
+        DiversityReportItem(
+          ApplicationForDiversityReportItem.create(application),
+          questionnaires.get(application.applicationId),
+          medias.get(application.userId).map { m => MediaReportItem(m.media)})
       }
     }
     reports.map { list =>

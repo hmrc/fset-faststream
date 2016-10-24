@@ -22,26 +22,40 @@ import play.api.libs.json.Json
 import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
-import model.persisted.Media
+import model.persisted.{ApplicationForDiversityReport, Media}
 
-case class ApplicationForDiversityReportItem(applicationId: String,
-                                             userId: String,
-                                             progress: Option[String],
-                                             schemes: List[SchemeType],
-                                             disability: Option[String],
-                                             gis: Option[Boolean],
-                                             onlineAdjustments: Option[String],
-                                             assessmentCentreAdjustments: Option[String],
-                                             civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsReportItem]
-                                            )
+case class ApplicationForDiversityReportItem(
+                                              progress: Option[String],
+                                              schemes: List[SchemeType],
+                                              disability: Option[String],
+                                              gis: Option[Boolean],
+                                              onlineAdjustments: Option[String],
+                                              assessmentCentreAdjustments: Option[String],
+                                              civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsReportItem]
+                                            ) {
+
+}
 
 case class DiversityReportItem(
-                           application: ApplicationForDiversityReportItem,
-                           questionnaire: Option[QuestionnaireReportItem],
-                           media: Option[Media])
+                                application: ApplicationForDiversityReportItem,
+                                questionnaire: Option[QuestionnaireReportItem],
+                                media: Option[MediaReportItem])
 
 object ApplicationForDiversityReportItem {
   implicit val applicationForDiversityReportItemFormat = Json.format[ApplicationForDiversityReportItem]
+
+  def create(a: ApplicationForDiversityReport): ApplicationForDiversityReportItem = {
+    ApplicationForDiversityReportItem(progress = a.progress,
+      schemes = a.schemes,
+      disability = a.disability,
+      gis = a.gis,
+      onlineAdjustments = a.onlineAdjustments,
+      assessmentCentreAdjustments = a.assessmentCentreAdjustments,
+      civilServiceExperiencesDetails = a.civilServiceExperiencesDetails.map { c =>
+        CivilServiceExperienceDetailsReportItem.create(c)
+      }
+    )
+  }
 }
 
 object DiversityReportItem {

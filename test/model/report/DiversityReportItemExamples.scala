@@ -17,17 +17,18 @@
 package model.report
 
 import model.persisted.{Media, MediaExamples}
+import report.MediaReportItemExamples
 
 object DiversityReportItemExamples {
   val AllFields1 = DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example1,
     Some(QuestionnaireReportItemExamples.NoParentOccupation1),
-    Some(MediaExamples.Example1)
+    Some(MediaReportItemExamples.Example1)
   )
   val AllFields2 = DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example2,
     Some(QuestionnaireReportItemExamples.NoParentOccupation2),
-    Some(MediaExamples.Example2)
+    Some(MediaReportItemExamples.Example2)
   )
 
   val OnlyApplication1 =DiversityReportItem(
@@ -51,9 +52,9 @@ object DiversityReportItemExamples {
   val OnlyApplicationAndMedia1 =DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example1,
     None,
-    Some(MediaExamples.Example1))
+    Some(MediaReportItemExamples.Example1))
   val OnlyApplicationAndMedia2 =DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example2,
     None,
-    Some(MediaExamples.Example2))
+    Some(MediaReportItemExamples.Example2))
 }
