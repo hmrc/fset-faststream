@@ -179,6 +179,13 @@ trait ApplicationClient {
     }
   }
 
+  def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/cubiks/$cubiksUserId/start", "").map(_ => ())
+  }
+
+  def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/cubiks/complete-by-token/$token", "").map(_ => ())
+  }
 
   def getAllocationDetails(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[AllocationDetails]] = {
     http.GET(s"${url.host}${url.base}/allocation-status/$appId").map { response =>
@@ -192,13 +199,6 @@ trait ApplicationClient {
     http.POST(s"${url.host}${url.base}/allocation-status/confirm/$appId", "").map(_ => ())
   }
 
-  def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(s"${url.host}${url.base}/cubiks/$cubiksUserId/start", "").map(_ => ())
-  }
-
-  def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(s"${url.host}${url.base}/cubiks/complete-by-token/$token", "").map(_ => ())
-  }
 }
 
 trait TestDataClient {
