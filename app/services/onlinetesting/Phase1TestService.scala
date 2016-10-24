@@ -280,8 +280,9 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
       case None => phase1TestRepo.insertOrUpdateTestGroup(applicationId, newProfile)
       case Some(profile) =>
         val scheduleIdsToArchive = newProfile.tests.map(_.scheduleId)
-        val inactiveTests = profile.tests.filter(t => scheduleIdsToArchive.contains(t.scheduleId)).map(_.cubiksUserId)
-        Future.traverse(inactiveTests)(phase1TestRepo.markTestAsInactive).flatMap { _ =>
+        val existingActiveTests = profile.tests.filter(t =>
+          scheduleIdsToArchive.contains(t.scheduleId) && t.usedForResults).map(_.cubiksUserId)
+        Future.traverse(existingActiveTests)(phase1TestRepo.markTestAsInactive).flatMap { _ =>
           phase1TestRepo.insertCubiksTests(applicationId, newProfile)
         }
     }).flatMap { _ => phase1TestRepo.getTestGroup(applicationId)
