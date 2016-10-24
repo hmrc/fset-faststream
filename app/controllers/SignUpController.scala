@@ -19,7 +19,7 @@ package controllers
 import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
-import config.CSRHttp
+import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange.Implicits._
@@ -29,15 +29,15 @@ import security.SignInService
 
 import scala.concurrent.Future
 
-object SignUpController extends SignUpController(ApplicationClient) {
+object SignUpController extends SignUpController(ApplicationClient, CSRCache) {
   val http = CSRHttp
 }
 
-abstract class SignUpController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
+abstract class SignUpController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) with SignInService {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
-
       Future.successful(request.identity match {
         case Some(_) => Redirect(routes.HomeController.present()).flashing(warning("activation.already"))
         case None => Ok(views.html.registration.signup(SignUpForm.form))

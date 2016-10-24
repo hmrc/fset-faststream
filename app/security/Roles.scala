@@ -42,7 +42,7 @@ object Roles {
       activeUserWithApp(user) && isEnabled(user)
   }
 
-  //all the roles
+  // All the roles
 
   object NoRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) = true

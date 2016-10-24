@@ -21,15 +21,13 @@ import config.CSRCache
 import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.exchange._
-import models.{ CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier }
+import models.{ CachedData, SecurityUser, UniqueIdentifier }
 import play.api.mvc.Request
 import uk.gov.hmrc.play.http.HeaderCarrier
 import Implicits.exchangeUserToCachedUser
-import connectors.UserManagementClient.InvalidCredentialsException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
 
 class UserCacheService(applicationClient: ApplicationClient, userManagementClient: UserManagementClient) extends UserService {
 

@@ -17,16 +17,17 @@
 package controllers
 
 import _root_.forms.LockAccountForm
-import config.CSRHttp
+import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 
 import scala.concurrent.Future
 
-object LockAccountController extends LockAccountController(ApplicationClient) {
+object LockAccountController extends LockAccountController(ApplicationClient, CSRCache) {
   val http = CSRHttp
 }
 
-abstract class LockAccountController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+abstract class LockAccountController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

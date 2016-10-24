@@ -58,8 +58,7 @@ object CSRCache extends CSRCache {
   )
 }
 
-object SecurityEnvironmentImpl extends security.SecurityEnvironment {
-
+trait SecurityEnvironmentImpl extends security.SecurityEnvironment {
   override lazy val eventBus: EventBus = EventBus()
 
   override val userService = new UserCacheService(ApplicationClient, UserManagementClient)
@@ -80,6 +79,8 @@ object SecurityEnvironmentImpl extends security.SecurityEnvironment {
   override def providers = Map(credentialsProvider.id -> credentialsProvider)
   val http: CSRHttp = CSRHttp
 }
+
+object SecurityEnvironmentImpl extends SecurityEnvironmentImpl
 
 object WhitelistFilter extends AkamaiWhitelistFilter with RunMode {
 
