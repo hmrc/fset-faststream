@@ -22,10 +22,12 @@ import model.ApplicationStatus._
 import model.SchemeType.SchemeType
 import model.report.CandidateProgressReport
 import org.joda.time.LocalDate
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
+import config.MicroserviceAppConfig._
+import model.persisted.{ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport}
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -33,7 +35,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   val collectionName = "application"
 
-  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService)
+  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
 
   "General Application repository" should {
     "Get overall report for an application with all fields" in {
@@ -61,7 +63,50 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       result.head must be(CandidateProgressReport(appId, Some("registered"),
         List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None)
       )
+    }
 
+    "Get diversity report for the minimum application" in {
+      val userId = generateUUID()
+      val appId = generateUUID()
+      createMinimumApplication(userId, appId, "FastStream-2016")
+
+      val result = repository.diversityReport("FastStream-2016").futureValue
+
+      result must not be empty
+      result.head must be(ApplicationForDiversityReport(appId, userId, Some("registered"), List.empty, None, None, None, None, None))
+    }
+
+    "Get diversity report for an application with all fields" in {
+      val userId1 = generateUUID()
+      val userId2 = generateUUID()
+      val userId3 = generateUUID()
+      val appId1 = generateUUID()
+      val appId2 = generateUUID()
+      val appId3 = generateUUID()
+      createApplicationWithAllFields(userId1, appId1, "FastStream-2016", guaranteedInterview = true, needsSupportForOnlineAssessment = true)
+      createApplicationWithAllFields(userId2, appId2, "FastStream-2016", hasDisability = "No")
+      createApplicationWithAllFields(userId3, appId3, "FastStream-2016", needsSupportAtVenue = true)
+
+      val result = repository.diversityReport("FastStream-2016").futureValue
+
+      result must have size (3)
+      result must contain
+      ApplicationForDiversityReport(appId1, userId1, Some("registered"),
+        List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+        Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
+          Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
+      result must contain
+      ApplicationForDiversityReport(
+          appId2, userId2, Some("registered"),
+          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+          Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))) //,
+      result must contain
+      ApplicationForDiversityReport(
+          appId3, userId3, Some("registered"),
+          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+          Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
     }
 
     "Find user by id" in {

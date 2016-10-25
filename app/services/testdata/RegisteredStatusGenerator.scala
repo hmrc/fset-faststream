@@ -18,6 +18,7 @@ package services.testdata
 
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.persisted.Media
 import play.api.mvc.RequestHeader
 import repositories._
 import services.testdata.faker.DataFaker._
@@ -25,23 +26,29 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 object RegisteredStatusGenerator extends RegisteredStatusGenerator {
   override val authProviderClient = AuthProviderClient
+  override val medRepository = mediaRepository
+
 }
 
 trait RegisteredStatusGenerator extends BaseGenerator {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val authProviderClient: AuthProviderClient.type
+  val medRepository: MediaRepository
+
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val firstName = generatorConfig.firstName.getOrElse(Random.getFirstname(generationId))
     val lastName = generatorConfig.lastName.getOrElse(Random.getLastname(generationId + 4000))
     val preferredName = generatorConfig.preferredName.getOrElse(s"Pref$firstName")
     val email = s"${generatorConfig.emailPrefix}${generationId + 4000}@mailinator.com"
+    val mediaReferrer = Random.mediaReferrer
 
     for {
       user <- createUser(generationId, email, firstName, lastName, preferredName, AuthProviderClient.CandidateRole)
+      _ <- medRepository.create(Media(user.userId, mediaReferrer.getOrElse("")))
     } yield {
-      DataGenerationResponse(generationId, user.userId, None, email, firstName, lastName, preferredName)
+      DataGenerationResponse(generationId, user.userId, None, email, firstName, lastName, preferredName, mediaReferrer = mediaReferrer)
     }
   }
 

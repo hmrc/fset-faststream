@@ -88,9 +88,6 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
                              interviewsByAdjustmentPercentage: Map[String, Int])
 
-case class DiversityMonitoringJobConfig(enabled: Boolean, lockId: Option[String], initialDelaySecs: Option[Int],
-  intervalSecs: Option[Int], forceStopActorsSecs: Option[Int])
-
 case class AssessmentCentresLocationsConfig(yamlFilePath: String)
 case class AssessmentCentresConfig(yamlFilePath: String)
 
@@ -122,13 +119,17 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-phase1-reminder-expiring-test-job")
   lazy val secondPhase1ReminderJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-phase1-reminder-expiring-test-job")
+  lazy val firstPhase2ReminderJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-phase2-reminder-expiring-test-job")
+  lazy val secondPhase2ReminderJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-phase2-reminder-expiring-test-job")
 
   lazy val expirePhase1TestJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase1-job")
-  lazy val failedOnlineTestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-test-job")
-  lazy val diversityMonitoringJobConfig =
-    configuration.underlying.as[DiversityMonitoringJobConfig]("scheduling.diversity-monitoring-job")
+  lazy val expirePhase2TestJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase2-job")
+  lazy val failedPhase1TestJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-phase1-test-job")
   lazy val retrieveResultsJobConfig =
     configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-results-job")
   lazy val evaluatePhase1ResultJobConfig =

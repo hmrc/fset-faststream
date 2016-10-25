@@ -35,17 +35,25 @@ object ProgressStatuses {
   val SubmittedProgress = "submitted"
   val WithdrawnProgress = "withdrawn"
   val Phase1TestsInvited = "phase1_tests_invited"
+  val Phase1TestsFirstRemainder = "phase1_tests_first_remainder"
+  val Phase1TestsSecondRemainder = "phase1_tests_second_remainder"
   val Phase1TestsStarted = "phase1_tests_started"
   val Phase1TestsCompleted = "phase1_tests_completed"
   val Phase1TestsExpired = "phase1_tests_expired"
-  val Phase1TestsResultsReady = "phase1_tests_ready"
+  val Phase1TestsResultsReady = "phase1_tests_results_ready"
   val Phase1TestsResultsReceived = "phase1_tests_results_received"
+  val Phase1TestsPassed = "phase1_tests_passed"
+  val Phase1TestsFailed = "phase1_tests_failed"
   val Phase2TestsInvited = "phase2_tests_invited"
+  val Phase2TestsFirstRemainder = "phase2_tests_first_remainder"
+  val Phase2TestsSecondRemainder = "phase2_tests_second_remainder"
   val Phase2TestsStarted = "phase2_tests_started"
   val Phase2TestsCompleted = "phase2_tests_completed"
   val Phase2TestsExpired = "phase2_tests_expired"
-  val Phase2TestsResultsReady = "phase2_tests_ready"
+  val Phase2TestsResultsReady = "phase2_tests_results_ready"
   val Phase2TestsResultsReceived = "phase2_tests_results_received"
+  val Phase2TestsPassed = "phase2_tests_passed"
+  val Phase2TestsFailed = "phase2_tests_failed"
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
   val OnlineTestFailedNotifiedProgress = "online_test_failed_notified"
@@ -87,6 +95,7 @@ object ProgressStatuses {
   case object PHASE1_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_PASSED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED)
   case object PHASE1_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
+  case object PHASE1_TESTS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
 
   case object PHASE2_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
@@ -117,6 +126,7 @@ object ProgressStatuses {
     PHASE1_TESTS_RESULTS_RECEIVED,
     PHASE1_TESTS_PASSED,
     PHASE1_TESTS_FAILED,
+    PHASE1_TESTS_FAILED_NOTIFIED,
     PHASE2_TESTS_INVITED,
     PHASE2_TESTS_STARTED,
     PHASE2_TESTS_COMPLETED,

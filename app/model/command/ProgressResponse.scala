@@ -32,24 +32,28 @@ case class AssessmentCentre(
                            )
 
 case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
-                                  phase1TestsStarted: Boolean = false,
-                                  phase1TestsCompleted: Boolean = false,
-                                  phase1TestsExpired: Boolean = false,
-                                  phase1TestsResultsReady: Boolean = false,
-                                  phase1TestsResultsReceived: Boolean = false,
-                                  phase1TestsPassed: Boolean = false,
-                                  phase1TestsFailed: Boolean = false
-                                 )
+  phase1TestsFirstRemainder: Boolean = false,
+  phase1TestsSecondRemainder: Boolean = false,
+  phase1TestsStarted: Boolean = false,
+  phase1TestsCompleted: Boolean = false,
+  phase1TestsExpired: Boolean = false,
+  phase1TestsResultsReady: Boolean = false,
+  phase1TestsResultsReceived: Boolean = false,
+  phase1TestsPassed: Boolean = false,
+  phase1TestsFailed: Boolean = false
+)
 
 case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
-                                  phase2TestsStarted: Boolean = false,
-                                  phase2TestsCompleted: Boolean = false,
-                                  phase2TestsExpired: Boolean = false,
-                                  phase2TestsResultsReady: Boolean = false,
-                                  phase2TestsResultsReceived: Boolean = false,
-                                  phase2TestsPassed: Boolean = false,
-                                  phase2TestsFailed: Boolean = false
-                                 )
+  phase2TestsFirstRemainder: Boolean = false,
+  phase2TestsSecondRemainder: Boolean = false,
+  phase2TestsStarted: Boolean = false,
+  phase2TestsCompleted: Boolean = false,
+  phase2TestsExpired: Boolean = false,
+  phase2TestsResultsReady: Boolean = false,
+  phase2TestsResultsReceived: Boolean = false,
+  phase2TestsPassed: Boolean = false,
+  phase2TestsFailed: Boolean = false
+)
 
 case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
                                   phase3TestsStarted: Boolean = false,
@@ -71,9 +75,9 @@ case class ProgressResponse(
                              questionnaire: List[String] = Nil,
                              submitted: Boolean = false,
                              withdrawn: Boolean = false,
-                             phase1ProgressResponse: Phase1ProgressResponse = new Phase1ProgressResponse,
-                             phase2ProgressResponse: Phase2ProgressResponse = new Phase2ProgressResponse,
-                             phase3ProgressResponse: Phase3ProgressResponse = new Phase3ProgressResponse,
+                             phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
+                             phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
+                             phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
                              failedToAttend: Boolean = false,
                              assessmentScores: AssessmentScores = AssessmentScores(),
                              assessmentCentre: AssessmentCentre = AssessmentCentre()

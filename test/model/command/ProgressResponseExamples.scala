@@ -28,12 +28,13 @@ object ProgressResponseExamples {
     questionnaire = Nil,
     submitted = false,
     withdrawn = false,
-    phase1ProgressResponse = Phase1ProgressResponse(phase1TestsInvited = false,
+    phase1ProgressResponse = Phase1ProgressResponse(
+      phase1TestsInvited = false,
       phase1TestsStarted = false,
       phase1TestsCompleted = false,
       phase1TestsExpired = false,
-      phase1TestsResultsReceived = false,
       phase1TestsResultsReady = false,
+      phase1TestsResultsReceived = false,
       phase1TestsPassed = false,
       phase1TestsFailed = false
     ),

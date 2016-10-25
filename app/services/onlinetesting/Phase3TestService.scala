@@ -18,24 +18,25 @@ package services.onlinetesting
 
 import _root_.services.AuditService
 import config.LaunchpadGatewayConfig
-import connectors.launchpadgateway.exchangeobjects._
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
+import connectors.launchpadgateway.exchangeobjects._
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.ProgressStatuses
+import model.persisted.NotificationExpiringOnlineTest
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import repositories.application.GeneralApplicationRepository
 import repositories._
+import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.{ EventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase3TestService extends Phase3TestService {
   import config.MicroserviceAppConfig._
@@ -76,6 +77,8 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
   }
 
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+
   def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int)
     (implicit hc: HeaderCarrier): Future[Unit] = {
     val (invitationDate, expirationDate) =
@@ -89,6 +92,12 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
     } yield audit("Phase3TestInvitationProcessComplete", application.userId)
   }
+
+  override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+
+  override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
+    emailAddress: String,
+    reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
     expirationDate: DateTime

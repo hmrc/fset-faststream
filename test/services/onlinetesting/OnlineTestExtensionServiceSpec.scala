@@ -46,6 +46,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
           createSuccessfulProgressResponse(Phase1ProgressResponse(phase1TestsExpired = true)
           ))
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
         when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
@@ -65,6 +66,8 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
           phase1TestsStarted = true))
         )
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(false)
+        when(mockProgressResponse.phase1ProgressResponse.phase1TestsStarted).thenReturn(true)
         when(mockProfile.expirationDate).thenReturn(InFiveHours)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
@@ -110,6 +113,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
           createSuccessfulProgressResponse(Phase1ProgressResponse(phase1TestsExpired = true))
         )
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
+        when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
         when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
@@ -175,6 +179,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
     val InTwentyFiveHours = Now.plusHours(25)
     val InMoreThanThreeDays = Now.plusHours(73)
     val mockProfile = mock[Phase1TestProfile]
+    val mockPhase1ProgressResponse = mock[Phase1ProgressResponse]
     val mockProgressResponse = mock[ProgressResponse]
 
     def createSuccessfulProgressResponse(phase1Progress: Phase1ProgressResponse = Phase1ProgressResponse()): ProgressResponse =
@@ -190,5 +195,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
       val auditService = mockAuditService
       val dateTimeFactory = mockDateFactory
     }
+
+    when(mockProgressResponse.phase1ProgressResponse).thenReturn(mockPhase1ProgressResponse)
   }
 }
