@@ -32,6 +32,7 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
     PHASE1_TESTS_RESULTS_RECEIVED -> "phase1_tests_results_received",
     PHASE1_TESTS_PASSED -> "phase1_tests_passed",
     PHASE1_TESTS_FAILED -> "phase1_tests_failed",
+    PHASE1_TESTS_FAILED_NOTIFIED -> "phase1_tests_failed_notified",
     PHASE2_TESTS_INVITED -> "phase2_tests_invited",
     PHASE2_TESTS_FIRST_REMINDER -> "phase2_tests_first_remainder",
     PHASE2_TESTS_SECOND_REMINDER -> "phase2_tests_second_remainder",

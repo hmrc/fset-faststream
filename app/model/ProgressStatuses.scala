@@ -61,8 +61,7 @@ object ProgressStatuses {
   case object PREVIEW extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "preview"}
 
-  case object SUBMITTED extends ProgressStatus(ApplicationStatus.SUBMITTED) {
-    override def key = "submitted"}
+  case object SUBMITTED extends ProgressStatus(ApplicationStatus.SUBMITTED)
 
   case object WITHDRAWN extends ProgressStatus(ApplicationStatus.WITHDRAWN)
 
@@ -142,7 +141,7 @@ object ProgressStatuses {
     value.key.toLowerCase -> value
   }.toMap
 
-  def getDefaultProgressStatus(applicationStatus: ApplicationStatus): Option[ProgressStatus] = {
+  def tryToGetDefaultProgressStatus(applicationStatus: ApplicationStatus): Option[ProgressStatus] = {
     val matching = allStatuses.filter(_.applicationStatus == applicationStatus)
     if (matching.size == 1) matching.headOption else None
   }

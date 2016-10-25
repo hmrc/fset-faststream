@@ -184,7 +184,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.key),
           phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.key),
           phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.key),
-          phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key)
+          phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key),
+          phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key)
         ),
         phase2ProgressResponse = Phase2ProgressResponse(
           phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
