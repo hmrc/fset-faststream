@@ -17,7 +17,6 @@
 package model.report
 
 import model.SchemeType
-import model.report.CivilServiceExperienceDetailsReportItem
 
 object ApplicationForDiversityReportItemExamples {
 

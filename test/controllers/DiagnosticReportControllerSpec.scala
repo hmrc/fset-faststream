@@ -33,13 +33,13 @@ import scala.concurrent.Future
 
 class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoSugar {
 
-  val mockSecretReportRepository = mock[DiagnosticReportingRepository]
+  val mockdiagnosticReportRepository = mock[DiagnosticReportingRepository]
 
-  "Get user by id" should {
-    "return all information about the user" in new TestFixture {
+  "Get application by id" should {
+    "return all non-sensitive information about the user application" in new TestFixture {
       val expectedApplications = List(Json.obj("applicationId" -> "app1", "userId" -> "user1", "frameworkId" -> "FastStream-2016"))
-      when(mockSecretReportRepository.findByUserId("user1")).thenReturn(Future.successful(expectedApplications))
-      val result = TestableSecretReportingController.getUserById("user1")(createOnlineTestRequest(
+      when(mockdiagnosticReportRepository.findByUserId("user1")).thenReturn(Future.successful(expectedApplications))
+      val result = TestableDiagnosticReportingController.getApplicationByUserId("user1")(createGetUserByIdRequest(
         "user1"
       )).run
 
@@ -52,22 +52,54 @@ class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoS
 
     "return NotFound if the user cannot be found" in new TestFixture {
       val IncorrectUserId = "1234"
-      when(mockSecretReportRepository.findByUserId(IncorrectUserId)).thenReturn(Future.failed(
+      when(mockdiagnosticReportRepository.findByUserId(IncorrectUserId)).thenReturn(Future.failed(
         new ApplicationNotFound(IncorrectUserId)
       ))
-      val result = TestableSecretReportingController.getUserById(IncorrectUserId)(createOnlineTestRequest(IncorrectUserId)).run
+      val result = TestableDiagnosticReportingController.getApplicationByUserId(IncorrectUserId)(createGetUserByIdRequest(IncorrectUserId)).run
 
       status(result) must be(NOT_FOUND)
     }
   }
 
-  trait TestFixture extends TestFixtureBase {
-    object TestableSecretReportingController extends DiagnosticReportController {
-      val drRepository = mockSecretReportRepository
+  "All users report" should {
+    "return all non-sensitive information about the users" in new TestFixture {
+      val expectedApplications = List(
+        Json.obj("applicationId" -> "app1", "userId" -> "user1", "frameworkId" -> "FastStream-2016"),
+        Json.obj("applicationId" -> "app2", "userId" -> "user2", "frameworkId" -> "EDIP-2016")
+      )
+      when(mockdiagnosticReportRepository.findAll()).thenReturn(Future.successful(expectedApplications))
+      val result = TestableDiagnosticReportingController.getAllApplications()(createGetAllUsersRequest).run
+
+      val resultJson = contentAsJson(result)
+
+      val actualApplications = resultJson.as[JsValue]
+      status(result) must be(200)
+      resultJson mustBe JsArray(expectedApplications)
     }
 
-    def createOnlineTestRequest(userId: String) = {
-      FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getUserById(userId).url, FakeHeaders(), "")
+    "return an empty list if there are no users" in new TestFixture {
+      when(mockdiagnosticReportRepository.findAll()).thenReturn(Future.successful(Nil))
+      val result = TestableDiagnosticReportingController.getAllApplications()(createGetAllUsersRequest).run
+
+      val resultJson = contentAsJson(result)
+      val actualApplications = resultJson.as[JsValue]
+      status(result) mustBe 200
+      resultJson mustBe JsArray()
+    }
+  }
+
+  trait TestFixture extends TestFixtureBase {
+    object TestableDiagnosticReportingController extends DiagnosticReportController {
+      val drRepository = mockdiagnosticReportRepository
+    }
+
+    def createGetUserByIdRequest(userId: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getApplicationByUserId(userId).url, FakeHeaders(), "")
+        .withHeaders("Content-Type" -> "application/json")
+    }
+
+    def createGetAllUsersRequest() = {
+      FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getAllApplications().url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
   }
