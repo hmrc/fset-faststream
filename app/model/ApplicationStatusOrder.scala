@@ -53,6 +53,7 @@ object ApplicationStatusOrder {
     isNotWithdrawn && isNotSubmitted
   }
 
+  // scalastyle:off
   def statusMaps(progress: ProgressResponse) = Seq(
     (progress.personalDetails, 10, PersonalDetailsCompletedProgress),
     (progress.schemePreferences, 20, SchemePreferencesCompletedProgress),
@@ -84,39 +85,29 @@ object ApplicationStatusOrder {
     (progress.phase2ProgressResponse.phase2TestsResultsReceived, 270, Phase2TestsResultsReceived),
     (progress.phase2ProgressResponse.phase2TestsPassed, 280, Phase2TestsPassed),
     (progress.phase2ProgressResponse.phase2TestsFailed, 290, Phase2TestsFailed),
-    (progress.assessmentScores.entered, 300, AssessmentScoresEnteredProgress),
-    (progress.failedToAttend, 310, FailedToAttendProgress),
-    (progress.assessmentScores.accepted, 320, AssessmentScoresAcceptedProgress),
-    (progress.assessmentCentre.awaitingReevaluation, 330, AwaitingAssessmentCentreReevaluationProgress),
-    (progress.assessmentCentre.failed, 340, AssessmentCentreFailedProgress),
-    (progress.assessmentCentre.failedNotified, 345, AssessmentCentreFailedNotifiedProgress),
-    (progress.assessmentCentre.passed, 350, AssessmentCentrePassedProgress),
-    (progress.assessmentCentre.passedNotified, 355, AssessmentCentrePassedNotifiedProgress),
-    (progress.phase1ProgressResponse.phase1TestsInvited, 100, Phase1TestsInvited),
-    (progress.phase1ProgressResponse.phase1TestsStarted, 105, Phase1TestsStarted),
-    (progress.phase1ProgressResponse.phase1TestsCompleted, 110, Phase1TestsCompleted),
-    (progress.phase1ProgressResponse.phase1TestsExpired, 115, Phase1TestsExpired),
-    (progress.phase1ProgressResponse.phase1TestsResultsReceived, 120, Phase1TestsResultsReceived),
-    (progress.phase2ProgressResponse.phase2TestsInvited, 150, Phase2TestsInvited),
-    (progress.phase2ProgressResponse.phase2TestsStarted, 155, Phase2TestsStarted),
-    (progress.phase2ProgressResponse.phase2TestsCompleted, 160, Phase2TestsCompleted),
-    (progress.phase2ProgressResponse.phase2TestsExpired, 165, Phase2TestsExpired),
-    (progress.phase2ProgressResponse.phase2TestsResultsReceived, 170, Phase2TestsResultsReceived),
-    /*
-    (progress.phase3ProgressResponse.phase3TestsInvited, 200, Phase1TestsInvited),
-    (progress.phase3ProgressResponse.phase3TestsStarted, 205, Phase1TestsStarted),
-    (progress.phase3ProgressResponse.phase3TestsCompleted, 210, Phase1TestsCompleted),
-    (progress.phase3ProgressResponse.phase3TestsExpired, 215, Phase1TestsExpired),
-    (progress.phase3ProgressResponse.phase3TestsResultsReceived, 220, Phase1TestsResultsReceived),*/
-    (progress.assessmentScores.entered, 300, AssessmentScoresEnteredProgress),
-    (progress.failedToAttend, 310, FailedToAttendProgress),
-    (progress.assessmentScores.accepted, 320, AssessmentScoresAcceptedProgress),
-    (progress.assessmentCentre.awaitingReevaluation, 330, AwaitingAssessmentCentreReevaluationProgress),
-    (progress.assessmentCentre.failed, 340, AssessmentCentreFailedProgress),
-    (progress.assessmentCentre.failedNotified, 345, AssessmentCentreFailedNotifiedProgress),
-    (progress.assessmentCentre.passed, 350, AssessmentCentrePassedProgress),
-    (progress.assessmentCentre.passedNotified, 355, AssessmentCentrePassedNotifiedProgress),
-
+    (progress.phase2ProgressResponse.phase2TestsResultsReceived, 300, Phase2TestsResultsReceived),
+    (progress.phase3ProgressResponse.phase3TestsInvited, 305, Phase1TestsInvited),
+    (progress.phase3ProgressResponse.phase3TestsStarted, 310, Phase1TestsStarted),
+    (progress.phase3ProgressResponse.phase3TestsCompleted, 315, Phase1TestsCompleted),
+    (progress.phase3ProgressResponse.phase3TestsExpired, 320, Phase1TestsExpired),
+    (progress.phase3ProgressResponse.phase3TestsResultsReceived, 325, Phase1TestsResultsReceived),
+    (progress.assessmentScores.entered, 330, AssessmentScoresEnteredProgress),
+    (progress.failedToAttend, 335, FailedToAttendProgress),
+    (progress.assessmentScores.accepted, 340, AssessmentScoresAcceptedProgress),
+    (progress.assessmentCentre.awaitingReevaluation, 345, AwaitingAssessmentCentreReevaluationProgress),
+    (progress.assessmentCentre.failed, 350, AssessmentCentreFailedProgress),
+    (progress.assessmentCentre.failedNotified, 360, AssessmentCentreFailedNotifiedProgress),
+    (progress.assessmentCentre.passed, 365, AssessmentCentrePassedProgress),
+    (progress.assessmentCentre.passedNotified, 370, AssessmentCentrePassedNotifiedProgress),
+    (progress.assessmentScores.entered, 375, AssessmentScoresEnteredProgress),
+    (progress.failedToAttend, 380, FailedToAttendProgress),
+    (progress.assessmentScores.accepted, 385, AssessmentScoresAcceptedProgress),
+    (progress.assessmentCentre.awaitingReevaluation, 390, AwaitingAssessmentCentreReevaluationProgress),
+    (progress.assessmentCentre.failed, 395, AssessmentCentreFailedProgress),
+    (progress.assessmentCentre.failedNotified, 400, AssessmentCentreFailedNotifiedProgress),
+    (progress.assessmentCentre.passed, 405, AssessmentCentrePassedProgress),
+    (progress.assessmentCentre.passedNotified, 410, AssessmentCentrePassedNotifiedProgress),
     (progress.withdrawn, 999, WithdrawnProgress)
   )
+  // scalastyle:on
 }
