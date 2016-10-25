@@ -17,22 +17,23 @@
 package model
 
 import controllers._
+import model.ApplicationRoute.ApplicationRoute
 import model.CandidateScoresCommands.CandidateScoresAndFeedback
 import model.CandidateScoresCommands.Implicits._
-import model.Exceptions.{NoResultsReturned, TooManyEntries}
+import model.Exceptions.{ NoResultsReturned, TooManyEntries }
 import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands.TestResult
-import model.PassmarkPersistedObjects.{AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme}
+import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme }
 import model.PassmarkPersistedObjects.Implicits._
-import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
+import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import model.SchemeType.SchemeType
-import org.joda.time.{DateTime, LocalDate, LocalTime}
+import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
 
 import scala.language.implicitConversions
-import model.command.{AssessmentCentre, ProgressResponse}
+import model.command.{ AssessmentCentre, ProgressResponse }
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.report.{CandidateProgressReport, QuestionnaireReportItem, QuestionnaireReportItem$}
+import model.report.{ CandidateProgressReport, QuestionnaireReportItem }
 
 //scalastyle:off
 object Commands {
@@ -151,7 +152,8 @@ object Commands {
                                                phoneAndEmail: PhoneAndEmail
                                              )
 
-  case class ApplicationResponse(applicationId: String, applicationStatus: String, userId: String, progressResponse: ProgressResponse,
+  case class ApplicationResponse(applicationId: String, applicationStatus: String,  applicationRoute: ApplicationRoute,
+                                 userId: String, progressResponse: ProgressResponse,
                                  civilServiceExperienceDetails: Option[CivilServiceExperienceDetails])
 
   case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: DateTime)
