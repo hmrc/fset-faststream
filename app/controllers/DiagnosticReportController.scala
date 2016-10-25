@@ -32,7 +32,7 @@ trait DiagnosticReportController extends BaseController {
 
   val drRepository: DiagnosticReportingRepository
 
-  def getApplicationById(userId: String) = Action.async { implicit request =>
+  def getApplicationByUserId(userId: String) = Action.async { implicit request =>
     val applicationUser = drRepository.findByUserId(userId)
 
     applicationUser.map { au =>

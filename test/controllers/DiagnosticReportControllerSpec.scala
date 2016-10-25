@@ -39,7 +39,7 @@ class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoS
     "return all non-sensitive information about the user application" in new TestFixture {
       val expectedApplications = List(Json.obj("applicationId" -> "app1", "userId" -> "user1", "frameworkId" -> "FastStream-2016"))
       when(mockdiagnosticReportRepository.findByUserId("user1")).thenReturn(Future.successful(expectedApplications))
-      val result = TestableDiagnosticReportingController.getApplicationById("user1")(createGetUserByIdRequest(
+      val result = TestableDiagnosticReportingController.getApplicationByUserId("user1")(createGetUserByIdRequest(
         "user1"
       )).run
 
@@ -55,7 +55,7 @@ class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoS
       when(mockdiagnosticReportRepository.findByUserId(IncorrectUserId)).thenReturn(Future.failed(
         new ApplicationNotFound(IncorrectUserId)
       ))
-      val result = TestableDiagnosticReportingController.getApplicationById(IncorrectUserId)(createGetUserByIdRequest(IncorrectUserId)).run
+      val result = TestableDiagnosticReportingController.getApplicationByUserId(IncorrectUserId)(createGetUserByIdRequest(IncorrectUserId)).run
 
       status(result) must be(NOT_FOUND)
     }
@@ -94,7 +94,7 @@ class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoS
     }
 
     def createGetUserByIdRequest(userId: String) = {
-      FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getApplicationById(userId).url, FakeHeaders(), "")
+      FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getApplicationByUserId(userId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
 

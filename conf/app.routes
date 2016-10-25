@@ -61,7 +61,7 @@ GET         /report/online-test-pass-mark/:frameworkId                   control
 #GET         /report/assessment-results/:frameworkId                      controllers.ReportingController.createAssessmentResultsReport(frameworkId: String)
 #GET         /report/successful-candidates/:frameworkId                   controllers.ReportingController.createSuccessfulCandidatesReport(frameworkId: String)
 
-GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getApplicationById(userId: String)
+GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
 GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getOnlineTest(applicationId: String)
