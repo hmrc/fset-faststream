@@ -36,7 +36,7 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
 
   "Scheduler execution" should {
     "evaluate applications ready for evaluation" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])).thenReturn(Future.successful(Some(apps.toList, passmark)))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])).thenReturn(Future.successful(Some((apps.toList, passmark))))
 
       scheduler.tryExecute().futureValue
 
@@ -44,7 +44,7 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
     }
 
     "evaluate all applications even when some of them fail" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])).thenReturn(Future.successful(Some(apps.toList, passmark)))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])).thenReturn(Future.successful(Some((apps.toList, passmark))))
       when(mockEvaluateService.evaluate(apps(0), passmark)).thenReturn(Future.failed(new IllegalStateException("first application fails")))
       when(mockEvaluateService.evaluate(apps(5), passmark)).thenReturn(Future.failed(new Exception("fifth application fails")))
 
@@ -73,7 +73,7 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
     }
 
     apps.foreach { app =>
-      when(mockEvaluateService.evaluate(app, passmark)).thenReturn(Future.successful())
+      when(mockEvaluateService.evaluate(app, passmark)).thenReturn(Future.successful(()))
     }
 
     lazy val scheduler = new EvaluatePhase1ResultJob {
