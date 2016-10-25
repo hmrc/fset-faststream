@@ -19,11 +19,10 @@ package models.page
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 import org.joda.time.{ DateTime, Period, PeriodType }
 
-
 case class Phase2TestsPage(
-  expirationDate: DateTime,
-  etray: Option[CubiksTestPage]
-) {
+                            expirationDate: DateTime,
+                            etray: Option[CubiksTestPage]
+                          ) {
 
   def isStarted: Boolean = etray.exists(_.started)
 
@@ -82,9 +81,9 @@ case class Phase2TestsPage(
 
 object Phase2TestsPage {
 
-  def apply(profile: connectors.exchange.Phase2TestGroupWithNames): Phase2TestsPage = {
+  def apply(profile: connectors.exchange.Phase2TestGroupWithActiveTest): Phase2TestsPage = {
     Phase2TestsPage(expirationDate = profile.expirationDate,
-      etray = profile.activeTests.headOption.map(CubiksTestPage.apply)
+      etray = Some(CubiksTestPage.apply(profile.activeTest))
     )
   }
 }

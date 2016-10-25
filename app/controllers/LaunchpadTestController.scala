@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.CSRHttp
+import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
@@ -25,11 +25,11 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object LaunchpadTestController extends LaunchpadTestController(ApplicationClient) {
+object LaunchpadTestController extends LaunchpadTestController(ApplicationClient, CSRCache) {
   val http = CSRHttp
 }
 
-abstract class LaunchpadTestController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+abstract class LaunchpadTestController(applicationClient: ApplicationClient, cache: CSRCache) extends BaseController(applicationClient, cache) {
 
   def startPhase3Tests = CSRSecureAppAction(Phase3TestInvitedRole) { implicit request =>
     implicit cachedUserData =>

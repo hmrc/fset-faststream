@@ -24,8 +24,8 @@ import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+// scalastyle:off
 object Roles {
-  // scalastyle:off
   import RoleUtils._
 
   trait CsrAuthorization {
@@ -44,8 +44,6 @@ object Roles {
 
   // All the roles
 
-  // All the roles
-  // scalastyle:off number.of.types
   object NoRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) = true
   }
@@ -215,7 +213,6 @@ object Roles {
   ).reverse
 
 }
-// scalastyle:on
 
 object RoleUtils {
 
@@ -266,3 +263,4 @@ object RoleUtils {
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
   def isPhase3TestExpired(implicit user: CachedData) = progress.phase3TestProgress.phase3TestsExpired
 }
+// scalastyle:on
