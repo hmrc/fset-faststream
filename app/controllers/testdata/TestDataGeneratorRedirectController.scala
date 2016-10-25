@@ -16,18 +16,18 @@
 
 package controllers.testdata
 
-import config.CSRHttp
-import connectors.{ApplicationClient, TestDataClient}
+import config.{ CSRCache, CSRHttp }
+import connectors.{ ApplicationClient, TestDataClient }
 import controllers.BaseController
 
 import scala.concurrent.Future
 
-object TestDataGeneratorRedirectController extends TestDataGeneratorRedirectController(ApplicationClient) {
+object TestDataGeneratorRedirectController extends TestDataGeneratorRedirectController(ApplicationClient, CSRCache) {
   val http = CSRHttp
 }
 
-abstract class TestDataGeneratorRedirectController(applicationClient: ApplicationClient with TestDataClient)
-  extends BaseController(applicationClient) {
+abstract class TestDataGeneratorRedirectController(applicationClient: ApplicationClient with TestDataClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) {
 
   def generateTestData(path: String) = CSRUserAwareAction { implicit request =>
     implicit user =>

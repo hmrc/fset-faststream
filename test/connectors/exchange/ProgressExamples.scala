@@ -20,21 +20,11 @@ import models.{ Phase1TestProgress, Phase2TestProgress, Phase3TestProgress, Prog
 
 object ProgressExamples {
   val InitialProgress = Progress(false, false, false, false, false, false, false, false, false, false, false,
-    Phase1TestProgress(phase1TestsInvited = false,
-      phase1TestsStarted = false,
-      phase1TestsCompleted = false,
-      phase1TestsExpired = false,
-      phase1TestsResultsReady = false,
-      phase1TestsResultsReceived = false
-    ),
-    Phase2TestProgress(phase2TestsInvited = false,
-      phase2TestsStarted = false,
-      phase2TestsCompleted = false,
-      phase2TestsExpired = false,
-      phase2TestsResultsReady = false,
-      phase2TestsResultsReceived = false
-    ),
-    Phase3TestProgress(phase3TestsInvited = false,
+    phase1TestProgress = Phase1TestProgress(false, false, false, false, false, false,
+      false, false, false, false),
+    phase2TestProgress = Phase2TestProgress(false, false, false, false, false, false,
+      false, false, false, false),
+    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = false,
       phase3TestsStarted = false,
       phase3TestsCompleted = false,
       phase3TestsExpired = false,
@@ -46,21 +36,11 @@ object ProgressExamples {
     AssessmentCentre(false, false, false)
   )
   val FullProgress = Progress(true, true, true, true, true, true, true, true, true, true, true,
-    Phase1TestProgress(phase1TestsInvited = true,
-      phase1TestsStarted = true,
-      phase1TestsCompleted = true,
-      phase1TestsExpired = true,
-      phase1TestsResultsReady = true,
-      phase1TestsResultsReceived = true
-    ),
-    Phase2TestProgress(phase2TestsInvited = true,
-      phase2TestsStarted = true,
-      phase2TestsCompleted = true,
-      phase2TestsExpired = true,
-      phase2TestsResultsReady = true,
-      phase2TestsResultsReceived = true
-    ),
-    Phase3TestProgress(phase3TestsInvited = true,
+    phase1TestProgress = Phase1TestProgress(true, true, true, true, true, true,
+      true, true, true, true),
+    phase2TestProgress = Phase2TestProgress(true, true, true, true, true, true,
+      true, true, true, true),
+    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = true,
       phase3TestsStarted = true,
       phase3TestsCompleted = true,
       phase3TestsExpired = true,

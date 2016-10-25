@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.CSRHttp
+import config.{ CSRCache, CSRHttp }
 import connectors.{ ApplicationClient, SchemeClient }
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
@@ -104,6 +104,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
+    val mockCacheClient = mock[CSRCache]
     val mockSchemeClient = mock[SchemeClient]
     val mockSecurityEnvironment = mock[security.SecurityEnvironment]
     val mockUserService = mock[UserService]
@@ -117,7 +118,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(PartnerGraduateProgrammesExamples.InterestedNotAll))
 
-    class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient,
+    class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient, mockCacheClient,
       mockSchemeClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp

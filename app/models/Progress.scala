@@ -17,25 +17,35 @@
 package models
 
 import connectors.exchange.{ AssessmentCentre, AssessmentScores, ProgressResponse }
-import play.api.libs.json.Json
+import play.api.libs.json.{ Format, Json }
 
 import scala.language.implicitConversions
 
-case class Phase1TestProgress(phase1TestsInvited: Boolean = false,
-                              phase1TestsStarted: Boolean = false,
-                              phase1TestsCompleted: Boolean = false,
-                              phase1TestsExpired: Boolean = false,
-                              phase1TestsResultsReady: Boolean = false,
-                              phase1TestsResultsReceived: Boolean = false
-                             )
+case class Phase1TestProgress(
+  phase1TestsInvited: Boolean = false,
+  phase1TestsFirstRemainder: Boolean = false,
+  phase1TestsSecondRemainder: Boolean = false,
+  phase1TestsStarted: Boolean = false,
+  phase1TestsCompleted: Boolean = false,
+  phase1TestsExpired: Boolean = false,
+  phase1TestsResultsReady: Boolean = false,
+  phase1TestsResultsReceived: Boolean = false,
+  phase1TestsPassed: Boolean = false,
+  phase1TestsFailed: Boolean = false
+ )
 
-case class Phase2TestProgress(phase2TestsInvited: Boolean = false,
-                              phase2TestsStarted: Boolean = false,
-                              phase2TestsCompleted: Boolean = false,
-                              phase2TestsExpired: Boolean = false,
-                              phase2TestsResultsReady: Boolean = false,
-                              phase2TestsResultsReceived: Boolean = false
-                             )
+case class Phase2TestProgress(
+  phase2TestsInvited: Boolean = false,
+  phase2TestsFirstRemainder: Boolean = false,
+  phase2TestsSecondRemainder: Boolean = false,
+  phase2TestsStarted: Boolean = false,
+  phase2TestsCompleted: Boolean = false,
+  phase2TestsExpired: Boolean = false,
+  phase2TestsResultsReady: Boolean = false,
+  phase2TestsResultsReceived: Boolean = false,
+  phase2TestsPassed: Boolean = false,
+  phase2TestsFailed: Boolean = false
+)
 
 case class Phase3TestProgress(phase3TestsInvited: Boolean = false,
                               phase3TestsStarted: Boolean = false,
@@ -56,8 +66,10 @@ case class Progress(personalDetails: Boolean,
   occupationQuestionnaire: Boolean,
   submitted: Boolean,
   withdrawn: Boolean = false,
-  phase1TestProgress: Phase1TestProgress = Phase1TestProgress(),
-  phase2TestProgress: Phase2TestProgress = Phase2TestProgress(),
+  phase1TestProgress: Phase1TestProgress = Phase1TestProgress(false, false, false, false, false,
+    false, false, false, false, false),
+  phase2TestProgress: Phase2TestProgress = Phase2TestProgress(false, false, false, false,
+    false, false, false, false, false, false),
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
   failedToAttend: Boolean = false,
   assessmentScores: AssessmentScores,
@@ -70,7 +82,7 @@ object Progress {
   implicit val phase1TestProgressFormat = Json.format[Phase1TestProgress]
   implicit val phase2TestProgressFormat = Json.format[Phase2TestProgress]
   implicit val phase3TestProgressFormat = Json.format[Phase3TestProgress]
-  implicit val progressFormat = Json.format[Progress]
+  implicit val progressFormat: Format[Progress] = Json.format[Progress]
 
   implicit def fromProgressRespToAppProgress(progressResponse: ProgressResponse): Progress =
     Progress(
@@ -85,19 +97,29 @@ object Progress {
       occupationQuestionnaire = progressResponse.questionnaire.contains("occupation_questionnaire"),
       submitted = progressResponse.submitted,
       withdrawn = progressResponse.withdrawn,
-      phase1TestProgress = Phase1TestProgress(phase1TestsInvited = progressResponse.phase1ProgressResponse.phase1TestsInvited,
+      phase1TestProgress = Phase1TestProgress(
+        phase1TestsInvited = progressResponse.phase1ProgressResponse.phase1TestsInvited,
         phase1TestsStarted  = progressResponse.phase1ProgressResponse.phase1TestsStarted,
+        phase1TestsFirstRemainder = progressResponse.phase1ProgressResponse.phase1TestsFirstRemainder,
+        phase1TestsSecondRemainder = progressResponse.phase1ProgressResponse.phase1TestsSecondRemainder,
         phase1TestsCompleted = progressResponse.phase1ProgressResponse.phase1TestsCompleted,
-        phase1TestsExpired = progressResponse.phase1ProgressResponse.phase1TestsExpired,
+        phase1TestsExpired= progressResponse.phase1ProgressResponse.phase1TestsExpired,
         phase1TestsResultsReady = progressResponse.phase1ProgressResponse.phase1TestsResultsReady,
-        phase1TestsResultsReceived = progressResponse.phase1ProgressResponse.phase1TestsResultsReceived
+        phase1TestsResultsReceived = progressResponse.phase1ProgressResponse.phase1TestsResultsReceived,
+        phase1TestsPassed = progressResponse.phase1ProgressResponse.phase1TestsPassed,
+        phase1TestsFailed = progressResponse.phase1ProgressResponse.phase1TestsFailed
       ),
-      phase2TestProgress = Phase2TestProgress(phase2TestsInvited = progressResponse.phase2ProgressResponse.phase2TestsInvited,
+      phase2TestProgress = Phase2TestProgress(
+        phase2TestsInvited = progressResponse.phase2ProgressResponse.phase2TestsInvited,
         phase2TestsStarted  = progressResponse.phase2ProgressResponse.phase2TestsStarted,
+        phase2TestsFirstRemainder = progressResponse.phase2ProgressResponse.phase2TestsFirstRemainder,
+        phase2TestsSecondRemainder = progressResponse.phase2ProgressResponse.phase2TestsSecondRemainder,
         phase2TestsCompleted = progressResponse.phase2ProgressResponse.phase2TestsCompleted,
-        phase2TestsExpired = progressResponse.phase2ProgressResponse.phase2TestsExpired,
+        phase2TestsExpired= progressResponse.phase2ProgressResponse.phase2TestsExpired,
         phase2TestsResultsReady = progressResponse.phase2ProgressResponse.phase2TestsResultsReady,
-        phase2TestsResultsReceived = progressResponse.phase2ProgressResponse.phase2TestsResultsReceived
+        phase2TestsResultsReceived = progressResponse.phase2ProgressResponse.phase2TestsResultsReceived,
+        phase2TestsPassed = progressResponse.phase2ProgressResponse.phase2TestsPassed,
+        phase2TestsFailed = progressResponse.phase2ProgressResponse.phase2TestsFailed
       ),
       phase3TestProgress = Phase3TestProgress(phase3TestsInvited = progressResponse.phase3ProgressResponse.phase3TestsInvited,
         phase3TestsStarted  = progressResponse.phase3ProgressResponse.phase3TestsStarted,

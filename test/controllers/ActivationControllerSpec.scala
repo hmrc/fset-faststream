@@ -16,12 +16,13 @@
 
 package controllers
 
+import config.CSRCache
 import connectors.ApplicationClient
-import connectors.UserManagementClient.{TokenEmailPairInvalidException, TokenExpiredException}
+import connectors.UserManagementClient.{ TokenEmailPairInvalidException, TokenExpiredException }
 import models.CachedData
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import play.api.mvc.{Request, Result, Results}
+import play.api.mvc.{ Request, Result, Results }
 import play.api.test.Helpers._
 import security.SignInService
 
@@ -29,12 +30,13 @@ import scala.concurrent.Future
 
 class ActivationControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]
+  val mockCacheClient = mock[CSRCache]
   val mockEnvironment = mock[security.SecurityEnvironment]
   val mockSignInService = mock[SignInService]
 
   import models.SecurityUserExamples._
 
-  class TestableActivationController extends ActivationController(mockApplicationClient) with TestableSignInService
+  class TestableActivationController extends ActivationController(mockApplicationClient, mockCacheClient) with TestableSignInService
     with TestableSecureActions {
     val signInService = mockSignInService
     override protected def env = mockEnvironment

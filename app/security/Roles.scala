@@ -16,7 +16,7 @@
 
 package security
 
-import controllers.{ PartnerGraduateProgrammesController, routes }
+import controllers.routes
 import models.ApplicationData.ApplicationStatus._
 import models.{ CachedData, CachedDataWithApp, Progress }
 import play.api.i18n.Lang
@@ -25,7 +25,7 @@ import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 object Roles {
-
+  // scalastyle:off
   import RoleUtils._
 
   trait CsrAuthorization {
@@ -41,6 +41,8 @@ object Roles {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && isEnabled(user)
   }
+
+  // All the roles
 
   // All the roles
   // scalastyle:off number.of.types
@@ -130,6 +132,11 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS) && isTestExpired(user)
   }
 
+  object Phase1TestFailedRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS_FAILED)
+  }
+
   object Phase2TestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS)
@@ -190,7 +197,7 @@ object Roles {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
   }
-  // scalastyle:on number.of.types
+
 
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
     ApplicationStartRole -> routes.HomeController.present(),
@@ -208,6 +215,7 @@ object Roles {
   ).reverse
 
 }
+// scalastyle:on
 
 object RoleUtils {
 
@@ -252,6 +260,9 @@ object RoleUtils {
       .getOrElse(false)
 
   def isTestExpired(implicit user: CachedData) = progress.phase1TestProgress.phase1TestsExpired
+  def isPhase1TestsPassed(implicit user: CachedData) = {
+    user.application.isDefined && progress.phase1TestProgress.phase1TestsPassed
+  }
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
   def isPhase3TestExpired(implicit user: CachedData) = progress.phase3TestProgress.phase3TestsExpired
 }

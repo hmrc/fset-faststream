@@ -17,7 +17,6 @@
 package models
 
 import com.mohiva.play.silhouette.api.Identity
-import config.CSRCache
 import play.api.libs.json._
 import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -61,19 +60,5 @@ object CachedData {
 }
 
 object SecurityUser {
-
-  implicit class loginInfoToCachedUser(securityUser: SecurityUser) {
-    def toUserFuture(secondAttempt: Boolean = false)(implicit hc: HeaderCarrier): Future[Option[models.CachedData]] =
-      CSRCache.fetchAndGetEntry[CachedData](securityUser.userID).recover {
-        case ex: KeyStoreEntryValidationException if !secondAttempt =>
-          refreshUserCache()
-          Await.result(toUserFuture(secondAttempt = true)(hc), 5 seconds)
-        case ex => throw ex
-      }
-
-    private def refreshUserCache() = {
-
-    }
-  }
 
 }

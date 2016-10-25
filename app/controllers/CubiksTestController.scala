@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.CSRHttp
+import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
@@ -25,11 +25,12 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object CubiksTestController extends CubiksTestController(ApplicationClient) {
+object CubiksTestController extends CubiksTestController(ApplicationClient, CSRCache) {
   val http = CSRHttp
 }
 
-abstract class CubiksTestController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+abstract class CubiksTestController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) {
 
   def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>
@@ -41,7 +42,7 @@ abstract class CubiksTestController(applicationClient: ApplicationClient) extend
   def startPhase2Tests = CSRSecureAppAction(Phase2TestInvitedRole) { implicit request =>
     implicit cachedUserData =>
       applicationClient.getPhase2TestProfile(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
-        startCubiksTest(phase2TestProfile.activeTests)
+        startCubiksTest(phase2TestProfile.activeTest :: Nil)
       }
   }
 
@@ -75,7 +76,7 @@ abstract class CubiksTestController(applicationClient: ApplicationClient) extend
   def completePhase2TestsByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByToken(token).map { _ =>
-        Redirect(routes.HomeController.present())
+        Ok(views.html.application.onlineTests.etrayTestsComplete())
       }
   }
 

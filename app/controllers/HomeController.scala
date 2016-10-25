@@ -17,9 +17,10 @@
 package controllers
 
 import _root_.forms.WithdrawApplicationForm
+import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.{ FrameworkId, Phase2TestGroupWithNames, Phase3TestGroup, WithdrawApplication }
+import connectors.exchange.{ FrameworkId, Phase2TestGroupWithActiveTest, Phase3TestGroup, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
@@ -29,15 +30,15 @@ import security.Roles._
 
 import scala.concurrent.Future
 
-object HomeController extends HomeController(ApplicationClient)
+object HomeController extends HomeController(ApplicationClient, CSRCache)
 
-class HomeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache) extends BaseController(applicationClient, cacheClient) {
   val Withdrawer = "Candidate"
 
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     cachedData.application.map { application =>
 
-      def getPhase2Test: Future[Option[Phase2TestGroupWithNames]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
+      def getPhase2Test: Future[Option[Phase2TestGroupWithActiveTest]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
         applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
       } else { Future.successful(None) }
 
@@ -50,9 +51,7 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
         phase2TestsWithNames <- getPhase2Test
         phase3Tests <- getPhase3Test
         allocationDetails <- applicationClient.getAllocationDetails(application.applicationId)
-        // TODO Work out a better way to invalidate the cache across the site
-        app = CachedDataWithApp(cachedData.user, application)
-        updatedData <- refreshCachedUser()(app, hc, request)
+        updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
       } yield {
         val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)),
           phase2TestsWithNames.map(Phase2TestsPage.apply),

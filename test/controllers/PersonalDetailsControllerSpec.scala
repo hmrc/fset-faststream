@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.CSRHttp
+import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
 import controllers.forms.GeneralDetailsFormExamples._
@@ -33,11 +33,12 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 
 class PersonalDetailsControllerSpec extends BaseControllerSpec {
-  val applicationClient = mock[ApplicationClient]
-  val userManagementClient = mock[UserManagementClient]
+  val mockApplicationClient = mock[ApplicationClient]
+  val mockCacheClient = mock[CSRCache]
+  val mockUserManagementClient = mock[UserManagementClient]
   val userService = mock[UserService]
 
-  class TestablePersonalDetailsController extends PersonalDetailsController(applicationClient, userManagementClient)
+  class TestablePersonalDetailsController extends PersonalDetailsController(mockApplicationClient, mockCacheClient, mockUserManagementClient)
     with TestableSecureActions {
     val http: CSRHttp = CSRHttp
     override protected def env = securityEnvironment
@@ -49,7 +50,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
   "present and continue" should {
     "load general details page for the new user and generate submit link for continue the journey" in {
-      when(applicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
       val result = controller.presentAndContinue()(fakeRequest)
@@ -62,7 +63,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "load general details page for the already created personal details" in {
-      when(applicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
 
       val result = controller.present()(fakeRequest)
@@ -77,7 +78,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
   "present" should {
     "load general details page for the new user and generate return to dashboard link" in {
-      when(applicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
       val result = controller.presentAndContinue()(fakeRequest)
@@ -89,18 +90,18 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
   }
 
   "submit general details" should {
-    when(userManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
+    when(mockUserManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
       eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
     "update candidate's details and return to scheme preferences" in {
-      when(applicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InProgress))
       val Application = currentCandidateWithApp.application
         .copy(progress = ProgressResponseExamples.InProgress, applicationStatus = ApplicationStatus.IN_PROGRESS,
           civilServiceExperienceDetails = Some(CivilServiceExperienceDetailsExamples.CivilServantExperience))
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitGeneralDetailsAndContinue()(Request)
@@ -110,15 +111,15 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "update candidate's details and return to dashboard page" in {
-      when(userManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
+      when(mockUserManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
         eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
-      when(applicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.Submitted))
       val Application = currentCandidateWithApp.application
         .copy(progress = ProgressResponseExamples.Submitted, applicationStatus = ApplicationStatus.SUBMITTED)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-      when(applicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(false))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitGeneralDetails()(Request)

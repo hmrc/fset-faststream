@@ -30,7 +30,14 @@ object ProgressResponseExamples {
     questionnaire = Nil,
     submitted = false,
     withdrawn = false,
-    Phase1ProgressResponse()
+    phase1ProgressResponse = Phase1ProgressResponse(
+      phase1TestsInvited = false,
+      phase1TestsStarted = false,
+      phase1TestsCompleted = false,
+      phase1TestsExpired = false,
+      phase1TestsResultsReady = false,
+      phase1TestsResultsReceived = false
+    )
   )
   val InProgress = Initial.copy(personalDetails = true)
   val InPersonalDetails = Initial.copy(personalDetails = true)

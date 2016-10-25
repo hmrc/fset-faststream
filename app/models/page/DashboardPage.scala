@@ -33,9 +33,11 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isApplicationWithdrawn: Boolean,
   isApplicationCreatedOrInProgress: Boolean,
   isUserWithNoApplication: Boolean,
+  isPhase1TestsPassed: Boolean,
   isTestGroupExpired: Boolean,
   isPhase2TestGroupExpired: Boolean,
   isPhase3TestGroupExpired: Boolean,
+  isPhase1TestFailed: Boolean,
   fullName: String,
   phase1TestsPage: Option[Phase1TestsPage],
   phase2TestsPage: Option[Phase2TestsPage],
@@ -68,9 +70,11 @@ object DashboardPage {
       isApplicationWithdrawn(user),
       isApplicationCreatedOrInProgress(user),
       isUserWithNoApplication(user),
+      isPhase1TestsPassed(user),
       isTestGroupExpired(user),
       isPhase2TestGroupExpired(user),
       isPhase3TestGroupExpired(user),
+      isPhase1TestFailed(user),
       user.user.firstName + " " + user.user.lastName,
       phase1TestGroup,
       phase2TestGroup,
@@ -184,6 +188,9 @@ object DashboardPage {
   private def isTestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     OnlineTestExpiredRole.isAuthorized(user)
 
+  private def isPhase1TestFailed(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    Phase1TestFailedRole.isAuthorized(user)
+
   private def isPhase2TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     Phase2TestExpiredRole.isAuthorized(user)
 
@@ -254,8 +261,18 @@ object DashboardPage {
       } else {
         ProgressInactive
       }
-      val thirdStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user)) { ProgressInactiveDisabled } else { ProgressInactive }
-      val fourthStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user)) { ProgressInactiveDisabled } else { ProgressInactive }
+      val thirdStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) || isPhase1TestFailed(user)) {
+        ProgressInactiveDisabled
+      }
+      else {
+        ProgressInactive
+      }
+      val fourthStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) || isPhase1TestFailed(user)) {
+        ProgressInactiveDisabled
+      }
+      else {
+        ProgressInactive
+      }
 
       (firstStep, secondStep, thirdStep, fourthStep)
     }

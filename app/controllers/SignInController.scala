@@ -19,18 +19,25 @@ package controllers
 import _root_.forms.SignInForm
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.{ CSRCache, CSRHttp }
+import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import helpers.NotificationType._
+import models.{ CachedData, SecurityUser }
+import play.api.i18n.Lang
+import play.api.mvc.{ AnyContent, RequestHeader, Result }
+import play.mvc.Http.Request
 import security.{ SignInService, _ }
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object SignInController extends SignInController(ApplicationClient) with SignInService {
+object SignInController extends SignInController(ApplicationClient, CSRCache) with SignInService {
   val http = CSRHttp
 }
 
-abstract class SignInController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
+abstract class SignInController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) with SignInService {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
@@ -63,15 +70,10 @@ abstract class SignInController(val applicationClient: ApplicationClient) extend
 
   def signOut = CSRUserAwareAction { implicit request =>
     implicit user =>
-      request.identity.map(identity => env.eventBus.publish(LogoutEvent(identity, request, request2lang)))
-      env.authenticatorService.retrieve.flatMap {
-        case Some(authenticator) =>
-          CSRCache.remove()
-          authenticator.discard(Future.successful(Redirect(routes.SignInController.present()).
-            flashing(success("feedback", config.FrontendAppConfig.feedbackUrl)).withNewSession))
-        case None => Future.successful(Redirect(routes.SignInController.present()).
+      logOutAndRedirectUserAware(successAction = Future.successful(Redirect(routes.SignInController.present()).
+          flashing(success("feedback", config.FrontendAppConfig.feedbackUrl)).withNewSession),
+        failAction = Future.successful(Redirect(routes.SignInController.present()).
           flashing(danger("You have already signed out")).withNewSession)
-      }
+      )
   }
-
 }
