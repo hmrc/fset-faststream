@@ -421,15 +421,34 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   }
 
   "mark as completed" should {
-    "change progress to completed if there are all tests completed" in new OnlineTest {
+    "change progress to completed if there are all tests completed and the test profile hasn't expired" in new OnlineTest {
       when(otRepositoryMock.updateTestCompletionTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
-      val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))))
+      val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().plusDays(2)
+      )
+
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
         .thenReturn(Future.successful(Phase1TestWithUserIds("appId123", "userId", phase1Tests)))
       when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful(()))
+
       phase1TestService.markAsCompleted(cubiksUserId).futureValue
 
       verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
+    }
+
+    "not change the progress to completed if the test profile has expired" in new OnlineTest {
+      val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().minusDays(5)
+      )
+
+      when(otRepositoryMock.updateTestCompletionTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
+        .thenReturn(Future.successful(Phase1TestWithUserIds("appId123", "userId", phase1Tests)))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful(()))
+
+      phase1TestService.markAsCompleted(cubiksUserId).futureValue
+
+      verify(otRepositoryMock, times(0)).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
     }
   }
 
@@ -585,7 +604,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   "processNextExpiredTest" should {
     "do nothing if there are no expired application to process" in new OnlineTest {
       when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(None))
-      phase1TestService.processNextExpiredTest(Phase1ExpirationEvent).futureValue mustBe ()
+      phase1TestService.processNextExpiredTest(Phase1ExpirationEvent).futureValue mustBe (())
     }
     "update progress status and send an email to the user when an application is expired" in new OnlineTest {
       when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
@@ -606,7 +625,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   "processNextTestForReminder" should {
     "do nothing if there are no application to process for reminders" in new OnlineTest {
       when(otRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(None))
-      phase1TestService.processNextTestForReminder(Phase1FirstReminder).futureValue mustBe ()
+      phase1TestService.processNextTestForReminder(Phase1FirstReminder).futureValue mustBe (())
     }
     "update progress status and send an email to the user when an application is about to expire" in new OnlineTest {
       when(otRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(Some(expiryReminder)))

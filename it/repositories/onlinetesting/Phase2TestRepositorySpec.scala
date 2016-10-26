@@ -3,6 +3,7 @@ package repositories.onlinetesting
 import java.util.UUID
 
 import model.persisted.{ CubiksTest, Phase2TestGroup }
+import model.ProgressStatuses
 import org.joda.time.{ DateTime, DateTimeZone }
 import testkit.MongoRepositorySpec
 
@@ -43,7 +44,7 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     "return one application if there is only one" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false
+        fastPassReceived = false, additionalProgressStatuses = List((ProgressStatuses.PHASE1_TESTS_COMPLETED, true))
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
@@ -56,12 +57,12 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     "exclude adjustment applications" in {
       createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = true,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false
+        fastPassReceived = false, additionalProgressStatuses = List((ProgressStatuses.PHASE1_TESTS_COMPLETED, true))
       ).futureValue
 
       createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false
+        fastPassReceived = false, additionalProgressStatuses = List((ProgressStatuses.PHASE1_TESTS_COMPLETED, true))
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
@@ -73,6 +74,16 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
     "return more than one candidate for batch processing" in {
       pending
+    }
+
+    "Not return candidates whose phase 1 tests have expired" in {
+      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = true,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((model.ProgressStatuses.PHASE1_TESTS_EXPIRED -> true))
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      results.isEmpty mustBe true
     }
   }
 

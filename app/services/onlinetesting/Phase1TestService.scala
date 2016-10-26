@@ -136,7 +136,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   def resetTests(application: OnlineTestApplication, testNamesToRemove: List[String], actionTriggeredBy: String)
                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
-      - <- registerAndInviteForTestGroup(application, testNamesToRemove)
+      _ <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
       AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))) ::
         DataStoreEvents.OnlineExerciseReset(application.applicationId, actionTriggeredBy) ::
@@ -147,12 +147,6 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String])
                                    (implicit hc: HeaderCarrier): Future[Unit] = {
     val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase1Tests.expiryTimeInDays)
-
-    def mapValue[T](f: Future[T]): Future[Try[T]] = {
-      val prom = Promise[Try[T]]()
-      f onComplete prom.success
-      prom.future
-    }
 
     // TODO work out a better way to do this
     // The problem is that the standard future sequence returns at the point when the first future has failed
@@ -332,19 +326,27 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     }
   }
 
-  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase1Test(cubiksUserId, phase1TestRepo.updateTestCompletionTime(_:Int, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
-      require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
-      val activeTestsCompleted = u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)
-      activeTestsCompleted match {
-        case true =>
-          phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
-            DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
-              DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
-              Nil
-          }
-        case false =>
-          Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
+  private def isTestGroupExpired(cubiksUserId: Int) = for {
+      profile <- phase1TestRepo.getTestProfileByCubiksId(cubiksUserId)
+  } yield profile.phase1TestProfile.expirationDate.isBeforeNow()
+
+
+  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = isTestGroupExpired(cubiksUserId).flatMap {
+    case true => Future.successful(())
+    case false => eventSink {
+      updatePhase1Test(cubiksUserId, phase1TestRepo.updateTestCompletionTime(_:Int, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
+        require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
+        val activeTestsCompleted = u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)
+        activeTestsCompleted match {
+          case true =>
+            phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
+              DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
+                DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
+                Nil
+            }
+          case false =>
+            Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
+        }
       }
     }
   }
