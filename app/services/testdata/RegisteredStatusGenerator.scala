@@ -41,7 +41,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
     val firstName = generatorConfig.firstName.getOrElse(Random.getFirstname(generationId))
     val lastName = generatorConfig.lastName.getOrElse(Random.getLastname(generationId))
     val preferredName = generatorConfig.preferredName.getOrElse(s"Pref$firstName")
-    val email = s"${generatorConfig.emailPrefix.getOrElse(Random.number())}a${generationId}@mailinator.com"
+    val email = s"${generatorConfig.emailPrefix.getOrElse("tesf" + Random.number())}a${generationId}@mailinator.com"
     val mediaReferrer = Random.mediaReferrer
 
     for {
