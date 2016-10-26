@@ -53,7 +53,9 @@ trait CandidateDetailsService {
     }
 
     val contactDetailsFut = cdRepository.update(userId, contactDetails)
-    val civilServiceExperienceDetailsFut = fpdRepository.update(applicationId, candidateDetails.civilServiceExperienceDetails)
+    val civilServiceExperienceDetailsFut = candidateDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
+      fpdRepository.update(applicationId, civilServiceExperienceDetails)
+    } getOrElse Future.successful(())
 
     for {
       _ <- updatePersonalDetailsFut
