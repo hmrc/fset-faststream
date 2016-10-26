@@ -42,34 +42,34 @@ trait LaunchpadTestsController extends BaseController {
 
   def setupProcessCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[SetupProcessCallbackRequest] { jsonBody =>
-      Logger.debug("Received setup process callback request -> " + jsonBody)
+      Logger.warn("Received setup process callback request -> " + jsonBody)
       Future.successful(Ok)
     }
   }
 
   def viewPracticeQuestionCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ViewPracticeQuestionCallbackRequest] { jsonBody =>
-      Logger.debug("Received view practice question callback request -> " + jsonBody)
+      Logger.warn("Received view practice question callback request -> " + jsonBody)
       Future.successful(Ok)
     }
   }
 
   def questionCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[QuestionCallbackRequest] { jsonBody =>
-      Logger.debug("Received question request -> " + jsonBody)
+      Logger.warn("Received question request -> " + jsonBody)
       Future.successful(Ok)
     }
   }
 
   def finalCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FinalCallbackRequest] { jsonBody =>
-      Logger.debug("Received final callback request -> " + jsonBody)
+      Logger.warn("Received final callback request -> " + jsonBody)
       Future.successful(Ok)
     }
   }
   def finishedCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FinishedCallbackRequest] { jsonBody =>
-      Logger.debug("Received finished callback request -> " + jsonBody)
+      Logger.warn("Received finished callback request -> " + jsonBody)
       Future.successful(Ok)
     }
   }
