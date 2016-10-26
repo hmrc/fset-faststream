@@ -16,7 +16,6 @@
 
 package controllers
 
-import model.ApplicationRoute
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.command.WithdrawApplication
@@ -45,7 +44,7 @@ trait ApplicationController extends BaseController {
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
-      appRepository.create(applicationRequest.userId, applicationRequest.frameworkId, ApplicationRoute.EDIP).map { result =>
+      appRepository.create(applicationRequest.userId, applicationRequest.frameworkId, applicationRequest.applicationRoute).map { result =>
         auditService.logEvent("ApplicationCreated")
         Ok(Json.toJson(result))
       }

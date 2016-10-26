@@ -38,7 +38,7 @@ import model.report.{ CandidateProgressReport, QuestionnaireReportItem }
 //scalastyle:off
 object Commands {
 
-  case class CreateApplicationRequest(userId: String, frameworkId: String)
+  case class CreateApplicationRequest(userId: String, applicationRoute: ApplicationRoute, frameworkId: String)
 
   case class ApplicationCreated(applicationId: String, applicationStatus: String, userId: String)
 
