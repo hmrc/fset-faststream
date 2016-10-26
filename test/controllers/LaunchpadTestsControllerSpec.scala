@@ -16,16 +16,18 @@
 
 package controllers
 
+import java.util.UUID
+
 import connectors.launchpadgateway.exchangeobjects.in._
 import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
-import org.joda.time.DateTime
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.joda.time.{ DateTime, LocalDate }
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
 import services.events.EventService
-import services.onlinetesting.{Phase1TestService, Phase2TestService, Phase3TestService}
+import services.onlinetesting.{ Phase1TestService, Phase2TestService, Phase3TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -36,7 +38,11 @@ class LaunchpadTestsControllerSpec extends BaseControllerSpec {
     val mockPhase3TestService = mock[Phase3TestService]
     val mockEventService = mock[EventService]
 
+    val sampleCandidateId = UUID.randomUUID().toString
+    val sampleCustomCandidateId = "FSCND-456"
     val sampleInviteId = "FSINV-123"
+    val sampleInterviewId = 123
+    val sampleDeadline = LocalDate.now.plusDays(7)
 
     def controllerUnderTest = new LaunchpadTestsController {
       val phase3TestService = mockPhase3TestService
@@ -44,23 +50,49 @@ class LaunchpadTestsControllerSpec extends BaseControllerSpec {
     }
 
     val sampleSetupProcessCallback = SetupProcessCallbackRequest(
-      // TODO
+      sampleCandidateId,
+      sampleCustomCandidateId,
+      sampleInterviewId,
+      None,
+      sampleInviteId,
+      sampleDeadline
     )
 
     val sampleViewPracticeQuestionCallback = ViewPracticeQuestionCallbackRequest(
-      // TODO
+      sampleCandidateId,
+      sampleCustomCandidateId,
+      sampleInterviewId,
+      None,
+      sampleInviteId,
+      sampleDeadline
     )
 
     val sampleQuestionCallback = QuestionCallbackRequest(
-      // TODO
+      sampleCandidateId,
+      sampleCustomCandidateId,
+      sampleInterviewId,
+      None,
+      sampleInviteId,
+      sampleDeadline,
+      "1"
     )
 
     val finalCallback = FinalCallbackRequest(
-      // TODO
+      sampleCandidateId,
+      sampleCustomCandidateId,
+      sampleInterviewId,
+      None,
+      sampleInviteId,
+      sampleDeadline
     )
 
     val finishedCallback = FinishedCallbackRequest(
-      // TODO
+      sampleCandidateId,
+      sampleCustomCandidateId,
+      sampleInterviewId,
+      None,
+      sampleInviteId,
+      sampleDeadline
     )
   }
 

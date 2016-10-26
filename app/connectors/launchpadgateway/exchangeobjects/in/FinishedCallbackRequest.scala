@@ -20,7 +20,7 @@ import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
 case class FinishedCallbackRequest(candidateId: String, customCandidateId: String, interviewId: Int,
-  customInterviewId: Option[String], customInviteId: String, status: String, deadline: LocalDate)
+  customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
 
 object FinishedCallbackRequest {
   implicit val finishedCallbackFormat = Json.format[FinishedCallbackRequest]
