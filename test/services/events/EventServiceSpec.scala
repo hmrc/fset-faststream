@@ -16,6 +16,7 @@
 
 package services.events
 
+import model.events.EventTypes.EventType
 import model.events.{ AuditEvent, DataStoreEvent, EmailEvent }
 import org.mockito.ArgumentCaptor
 import org.scalatest.Matchers
@@ -28,6 +29,7 @@ import services.events.handler.{ AuditEventHandler, DataStoreEventHandler, Email
 import uk.gov.hmrc.play.http.HeaderCarrier
 import services.events.EventService.toEvents
 
+import scala.collection.JavaConversions._
 import scala.concurrent.Future
 
 class EventServiceSpec extends PlaySpec with MockitoSugar with EventServiceFixture {
@@ -66,7 +68,7 @@ trait EventServiceFixture extends MockitoSugar {
   def verifyDataStoreEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[DataStoreEvent])
     verify(dataStoreEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
-    assert(eventCaptor.getValue.eventName == eventName)
+    assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
   }
 
   def verifyAuditEvents(n: Int): Unit =
@@ -75,7 +77,7 @@ trait EventServiceFixture extends MockitoSugar {
   def verifyAuditEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[AuditEvent])
     verify(auditEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
-    assert(eventCaptor.getValue.eventName == eventName)
+    assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
   }
 
   def verifyEmailEvents(n: Int): Unit =
@@ -84,7 +86,7 @@ trait EventServiceFixture extends MockitoSugar {
   def verifyEmailEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[EmailEvent])
     verify(emailEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
-    assert(eventCaptor.getValue.eventName == eventName)
+    assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
   }
 }
 
