@@ -435,21 +435,6 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
     }
-
-    "not change the progress to completed if the test profile has expired" in new OnlineTest {
-      val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
-        expirationDate = DateTime.now().minusDays(5)
-      )
-
-      when(otRepositoryMock.updateTestCompletionTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase1TestWithUserIds("appId123", "userId", phase1Tests)))
-      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful(()))
-
-      phase1TestService.markAsCompleted(cubiksUserId).futureValue
-
-      verify(otRepositoryMock, times(0)).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
-    }
   }
 
   "mark report as ready to download" should {
