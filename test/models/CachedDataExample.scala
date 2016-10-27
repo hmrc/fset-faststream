@@ -33,6 +33,7 @@ object CachedDataExample {
     UniqueIdentifier(UUID.randomUUID.toString),
     UniqueIdentifier(UUID.randomUUID.toString),
     ApplicationStatus.CREATED,
+    ApplicationRoutes.FASTSTREAM,
     ProgressExamples.InitialProgress,
     Some(CivilServiceExperienceDetails(applicable = false))
   )

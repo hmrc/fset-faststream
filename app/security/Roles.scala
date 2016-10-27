@@ -18,7 +18,7 @@ package security
 
 import controllers.routes
 import models.ApplicationData.ApplicationStatus._
-import models.{ CachedData, CachedDataWithApp, Progress }
+import models.{ ApplicationRoutes, CachedData, CachedDataWithApp, Progress }
 import play.api.i18n.Lang
 import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
@@ -196,7 +196,6 @@ object Roles {
       !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
   }
 
-
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
     ApplicationStartRole -> routes.HomeController.present(),
     EditPersonalDetailsAndContinueRole -> routes.PersonalDetailsController.presentAndContinue(),
@@ -262,5 +261,15 @@ object RoleUtils {
   }
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
   def isPhase3TestExpired(implicit user: CachedData) = progress.phase3TestProgress.phase3TestsExpired
+
+  def isFaststream(implicit user: CachedData) = {
+    // TODO: Once the application creation is moved, we may use this line check explicitly:
+    // user.application exists (_.applicationRoute == ApplicationRoutes.FASTSTREAM)
+    !isEdip
+  }
+
+  def isEdip(implicit user: CachedData) = {
+    user.application exists (_.applicationRoute == ApplicationRoutes.EDIP)
+  }
 }
 // scalastyle:on
