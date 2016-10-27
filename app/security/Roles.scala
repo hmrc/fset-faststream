@@ -90,8 +90,10 @@ object Roles {
 
   object AssistanceDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && (hasPartnerGraduateProgrammes(user) ||
-        (hasSchemes(user) && isCivilServant(user)))
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
+        (hasPartnerGraduateProgrammes(user) ||
+          (hasSchemes(user) && isCivilServant(user)) ||
+          (hasSchemes(user) && isEdip(user)))
   }
 
   object PreviewApplicationRole extends CsrAuthorization {
@@ -254,10 +256,14 @@ object RoleUtils {
   def isFaststream(implicit user: CachedData) = {
     // TODO: Once the application creation is moved, we may use this line check explicitly:
     // user.application exists (_.applicationRoute == ApplicationRoutes.FASTSTREAM)
-    !isEdip
+    !isEdip(user)
   }
 
   def isEdip(implicit user: CachedData) = {
     user.application exists (_.applicationRoute == ApplicationRoutes.EDIP)
+  }
+
+  def isEdip(implicit user: Option[CachedData]) = {
+    user.fold(false)(_.application.fold(false)(_.applicationRoute == ApplicationRoutes.EDIP))
   }
 }

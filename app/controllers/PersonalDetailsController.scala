@@ -25,7 +25,7 @@ import connectors.exchange.CivilServiceExperienceDetails
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.ApplicationData.ApplicationStatus._
-import models.CachedDataWithApp
+import models.{ ApplicationRoutes, CachedDataWithApp }
 import org.joda.time.LocalDate
 import play.api.data.Form
 import play.api.mvc.{ Request, Result }
@@ -93,7 +93,13 @@ class PersonalDetailsController(applicationClient: ApplicationClient, cacheClien
 
   def submitGeneralDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
     implicit user =>
-      submit(GeneralDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, Redirect(routes.SchemePreferencesController.present()))
+      val redirect = if(user.application.applicationRoute == ApplicationRoutes.FASTSTREAM) {
+        Redirect(routes.SchemePreferencesController.present())
+      } else {
+        // Assuming is an EDIP
+        Redirect(routes.AssistanceDetailsController.present())
+      }
+      submit(GeneralDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, redirect)
   }
 
   def submitGeneralDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>

@@ -4,6 +4,7 @@
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
 @import views.html.widgets.{pageProgress, saveAndContinueButton}
 @import security.Roles.EditPersonalDetailsAndContinueRole
+@import security.RoleUtils
 
 @redirectUrl = @{
     if (updateStatus) routes.PersonalDetailsController.submitGeneralDetailsAndContinue()
@@ -12,6 +13,7 @@
 
 @main_template(title = "Personal details", pageForms = Seq(details)) {
     @pageProgress(1, 7)
+
     <h1 class="heading-xlarge" id="personalDetailsHeading">Personal details</h1>
 
     @helper.form(action = redirectUrl, 'novalidate -> "novalidate") {
@@ -19,10 +21,10 @@
 
         @nameAndDateOfBirth(details)
         @contactDetails(details)
-        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData))){
+        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
+            !RoleUtils.isEdip(optCachedData)){
             @civilServiceExperienceDetailsPanel(details)
         }
         @saveAndContinueButton()
     }
 }
-
