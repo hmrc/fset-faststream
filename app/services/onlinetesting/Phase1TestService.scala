@@ -326,14 +326,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
     }
   }
 
-  private def isTestGroupExpired(cubiksUserId: Int) = for {
-      profile <- phase1TestRepo.getTestProfileByCubiksId(cubiksUserId)
-  } yield profile.phase1TestProfile.expirationDate.isBeforeNow()
-
-
-  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = isTestGroupExpired(cubiksUserId).flatMap {
-    case true => Future.successful(())
-    case false => eventSink {
+  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
       updatePhase1Test(cubiksUserId, phase1TestRepo.updateTestCompletionTime(_:Int, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
         require(u.phase1TestProfile.activeTests.nonEmpty, "Active tests cannot be found")
         val activeTestsCompleted = u.phase1TestProfile.activeTests forall (_.completedDateTime.isDefined)
