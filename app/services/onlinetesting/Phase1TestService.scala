@@ -341,7 +341,6 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
             Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
         }
       }
-    }
   }
 
   def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
