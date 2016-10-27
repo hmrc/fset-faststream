@@ -53,7 +53,6 @@ object ApplicationStatusOrder {
     isNotWithdrawn && isNotSubmitted
   }
 
-  // scalastyle:off
   def statusMaps(progress: ProgressResponse) = Seq(
     (progress.personalDetails, 10, PersonalDetailsCompletedProgress),
     (progress.schemePreferences, 20, SchemePreferencesCompletedProgress),
@@ -102,5 +101,4 @@ object ApplicationStatusOrder {
     (progress.assessmentScores.entered, 375, AssessmentScoresEnteredProgress),
     (progress.withdrawn, 999, WithdrawnProgress)
   )
-  // scalastyle:on
 }
