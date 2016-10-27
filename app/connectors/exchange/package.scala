@@ -19,11 +19,9 @@ package connectors
 import mappings.Address
 import mappings.PhoneNumberMapping._
 import mappings.PostCodeMapping._
-import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.ApplicationRoute.ApplicationRoute
 import models.UniqueIdentifier
-import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
-import org.joda.time.{ DateTime, LocalDate, Period }
+import org.joda.time.LocalDate
 import play.api.libs.json.{ Format, Json }
 
 package object exchange {

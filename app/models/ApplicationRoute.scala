@@ -18,16 +18,14 @@ package models
 
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 
-
 object ApplicationRoute extends Enumeration {
-
   type ApplicationRoute = Value
 
-  val FASTSTREAM, EDIP, SDIP = Value
+  val FASTSTREAM, EDIP, SDIP, FASTSTREAM_WITH_SDIP = Value
 
   implicit val applicationRouteFormat = new Format[ApplicationRoute] {
-    def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String].toUpperCase()))
-    def writes(myEnum: ApplicationRoute) = JsString(myEnum.toString)
-  }
+    def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String]))
 
+    def writes(routeEnum: ApplicationRoute) = JsString(routeEnum.toString)
+  }
 }
