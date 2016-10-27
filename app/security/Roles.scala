@@ -18,7 +18,7 @@ package security
 
 import controllers.routes
 import models.ApplicationData.ApplicationStatus._
-import models.{ CachedData, CachedDataWithApp, Progress }
+import models.{ ApplicationRoutes, CachedData, CachedDataWithApp, Progress }
 import play.api.i18n.Lang
 import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
@@ -251,4 +251,13 @@ object RoleUtils {
   }
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
 
+  def isFaststream(implicit user: CachedData) = {
+    // TODO: Once the application creation is moved, we may use this line check explicitly:
+    // user.application exists (_.applicationRoute == ApplicationRoutes.FASTSTREAM)
+    !isEdip
+  }
+
+  def isEdip(implicit user: CachedData) = {
+    user.application exists (_.applicationRoute == ApplicationRoutes.EDIP)
+  }
 }

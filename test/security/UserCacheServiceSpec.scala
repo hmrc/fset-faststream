@@ -83,6 +83,7 @@ class UserCacheServiceSpec extends BaseSpec with MustMatchers with ScalaFutures 
     val testApplicationResponse = ApplicationResponse(
       testApplicationId,
       "SUBMITTED",
+      Some(ApplicationRoutes.FASTSTREAM.toString),
       testUserId,
       ProgressResponse(testApplicationId.toString()),
       None
@@ -100,6 +101,7 @@ class UserCacheServiceSpec extends BaseSpec with MustMatchers with ScalaFutures 
       testApplicationId,
       testUserId,
       ApplicationStatus.withName(testApplicationResponse.applicationStatus),
+      ApplicationRoutes.FASTSTREAM,
       Progress.fromProgressRespToAppProgress(testApplicationResponse.progressResponse),
       None
     )
