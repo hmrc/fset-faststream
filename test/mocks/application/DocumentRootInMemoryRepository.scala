@@ -132,6 +132,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit] = Future.successful(Unit)
 
+  override def confirmAdjustmentNew(applicationId: String, data: AdjustmentManagementNew): Future[Unit] = Future.successful(Unit)
+
   override def rejectAdjustment(applicationId: String): Future[Unit] = Future.successful(Unit)
 
   override def candidatesAwaitingAllocation(frameworkId: String): Future[List[CandidateAwaitingAllocation]] =
