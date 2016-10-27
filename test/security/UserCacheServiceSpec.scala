@@ -18,7 +18,6 @@ package security
 
 import java.util.UUID
 
-import config.{ CSRCache, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.exchange.{ ApplicationResponse, ProgressResponse, UserResponse }
@@ -26,15 +25,12 @@ import connectors.{ ApplicationClient, UserManagementClient }
 import controllers.BaseSpec
 import models.ApplicationData.ApplicationStatus
 import models._
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.MustMatchers
 import org.scalatest.concurrent.ScalaFutures
-import play.api.libs.json.{ JsString, Reads }
-import play.api.mvc.Request
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -83,7 +79,7 @@ class UserCacheServiceSpec extends BaseSpec with MustMatchers with ScalaFutures 
     val testApplicationResponse = ApplicationResponse(
       testApplicationId,
       "SUBMITTED",
-      Some(ApplicationRoute.FASTSTREAM.toString),
+      ApplicationRoute.Faststream,
       testUserId,
       ProgressResponse(testApplicationId.toString()),
       None
@@ -101,7 +97,7 @@ class UserCacheServiceSpec extends BaseSpec with MustMatchers with ScalaFutures 
       testApplicationId,
       testUserId,
       ApplicationStatus.withName(testApplicationResponse.applicationStatus),
-      ApplicationRoute.FASTSTREAM,
+      ApplicationRoute.Faststream,
       Progress.fromProgressRespToAppProgress(testApplicationResponse.progressResponse),
       None
     )

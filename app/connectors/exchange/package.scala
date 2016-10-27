@@ -52,8 +52,7 @@ package object exchange {
 
   case class AddReferral(userId: UniqueIdentifier, media: String)
 
-  // TODO: option just for test - remove once backend is finished
-  case class ApplicationResponse(applicationId: UniqueIdentifier, applicationStatus: String, applicationRoute: Option[String],
+  case class ApplicationResponse(applicationId: UniqueIdentifier, applicationStatus: String, applicationRoute: ApplicationRoute,
                                  userId: UniqueIdentifier, progressResponse: ProgressResponse,
                                  civilServiceExperienceDetails: Option[CivilServiceExperienceDetails])
 

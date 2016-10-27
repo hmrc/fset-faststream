@@ -21,7 +21,7 @@ import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 object ApplicationRoute extends Enumeration {
   type ApplicationRoute = Value
 
-  val FASTSTREAM, EDIP, SDIP, FASTSTREAM_WITH_SDIP = Value
+  val Faststream, Edip, Sdip, Faststream_With_Sdip = Value
 
   implicit val applicationRouteFormat = new Format[ApplicationRoute] {
     def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String]))

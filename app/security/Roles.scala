@@ -258,6 +258,6 @@ object RoleUtils {
   }
 
   def isEdip(implicit user: CachedData) = {
-    user.application exists (_.applicationRoute == ApplicationRoute.EDIP)
+    user.application exists (_.applicationRoute == ApplicationRoute.Edip)
   }
 }

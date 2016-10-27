@@ -66,8 +66,7 @@ object ApplicationData {
 
   implicit def fromAppRespToAppData(resp: ApplicationResponse): ApplicationData =
     new ApplicationData(resp.applicationId, resp.userId, ApplicationStatus.withName(resp.applicationStatus),
-      ApplicationRoute.withName(resp.applicationRoute.getOrElse("FASTSTREAM")),
-      resp.progressResponse, resp.civilServiceExperienceDetails)
+      resp.applicationRoute, resp.progressResponse, resp.civilServiceExperienceDetails)
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
 
