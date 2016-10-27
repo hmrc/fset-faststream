@@ -20,6 +20,7 @@ import _root_.forms.GeneralDetailsForm
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.FastPassForm._
+import config.CSRCache
 import connectors.exchange.CivilServiceExperienceDetails
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
@@ -33,10 +34,10 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, UserManagementClient)
+object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, CSRCache, UserManagementClient)
 
-class PersonalDetailsController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
-  extends BaseController(applicationClient) with GeneralDetailsToExchangeConverter {
+class PersonalDetailsController(applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
+  extends BaseController(applicationClient, cacheClient) with GeneralDetailsToExchangeConverter {
 
   private sealed trait OnSuccess
   private case object ContinueToNextStepInJourney extends OnSuccess

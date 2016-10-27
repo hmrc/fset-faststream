@@ -17,15 +17,16 @@
 package controllers
 
 import com.mohiva.play.silhouette.api.EventBus
-import com.mohiva.play.silhouette.impl.authenticators.{SessionAuthenticator, SessionAuthenticatorService}
+import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticator, SessionAuthenticatorService }
+import config.CSRCache
 import connectors.ApplicationClient
 import models.CachedDataExample
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import play.api.mvc.{Flash, Request, Result, Results}
+import play.api.mvc.{ Flash, Request, Result, Results }
 import play.api.test.Helpers._
 import security._
-import testables.{NoIdentityTestableCSRUserAwareAction, TestableCSRUserAwareAction}
+import testables.{ NoIdentityTestableCSRUserAwareAction, TestableCSRUserAwareAction }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -194,6 +195,7 @@ class SignInControllerSpec extends BaseControllerSpec {
     )
 
     val mockApplicationClient = mock[ApplicationClient]
+    val mockCacheClient = mock[CSRCache]
     val mockSignInService = mock[SignInService]
 
     val mockEnvironment = mock[SecurityEnvironment]
@@ -207,7 +209,7 @@ class SignInControllerSpec extends BaseControllerSpec {
     val mockAuthenticator = mock[SessionAuthenticator]
 
 
-    class TestableSignInController extends SignInController(mockApplicationClient) with TestableSignInService {
+    class TestableSignInController extends SignInController(mockApplicationClient, mockCacheClient) with TestableSignInService {
       override val signInService = mockSignInService
       override protected def env = mockEnvironment
     }

@@ -16,6 +16,7 @@
 
 package controllers
 
+import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
 import helpers.NotificationType._
@@ -25,9 +26,10 @@ import security.Roles.{ SubmitApplicationRole, WithdrawApplicationRole }
 
 import scala.concurrent.Future
 
-object SubmitApplicationController extends SubmitApplicationController(ApplicationClient)
+object SubmitApplicationController extends SubmitApplicationController(ApplicationClient, CSRCache)
 
-class SubmitApplicationController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class SubmitApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>

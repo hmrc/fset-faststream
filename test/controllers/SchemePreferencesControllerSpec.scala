@@ -22,6 +22,7 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import _root_.forms.SelectedSchemesForm._
+import config.CSRCache
 import connectors.exchange.{ ApplicationResponse, CivilServiceExperienceDetails, SchemePreferencesExamples }
 import connectors.exchange.CivilServiceExperienceDetailsExamples._
 import models.ApplicationData.ApplicationStatus
@@ -36,10 +37,11 @@ import scala.concurrent.Future
 class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   val applicationClient = mock[ApplicationClient]
+  val mockCacheClient = mock[CSRCache]
   val schemeClient  = mock[SchemeClient]
   val userService = mock[UserService]
 
-  def controllerUnderTest = new SchemePreferencesController(applicationClient, schemeClient) with TestableSecureActions {
+  def controllerUnderTest = new SchemePreferencesController(applicationClient, mockCacheClient, schemeClient) with TestableSecureActions {
     override protected def env = securityEnvironment
     when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any())).thenReturn(Future.successful(CachedData(
       mock[CachedUser],
@@ -83,6 +85,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "European", "orderAgreed" -> "true",
         "eligible" -> "true")
       val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
+        Some(ApplicationRoutes.FASTSTREAM.toString),
         currentUserId, ProgressResponseExamples.InProgress, Some(CivilServantExperience))
       val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true)
 

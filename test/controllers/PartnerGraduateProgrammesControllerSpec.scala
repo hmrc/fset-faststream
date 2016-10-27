@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.CSRHttp
+import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
 import connectors.exchange.PartnerGraduateProgrammesExamples
@@ -85,10 +85,11 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
+    val mockCacheClient = mock[CSRCache]
     val mockSecurityEnvironment = mock[security.SecurityEnvironment]
     val mockUserService = mock[UserService]
 
-    class TestablePartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(mockApplicationClient)
+    class TestablePartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(mockApplicationClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override protected def env = mockSecurityEnvironment

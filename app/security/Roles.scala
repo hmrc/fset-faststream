@@ -18,14 +18,14 @@ package security
 
 import controllers.routes
 import models.ApplicationData.ApplicationStatus._
-import models.{ CachedData, CachedDataWithApp, Progress }
+import models.{ ApplicationRoutes, CachedData, CachedDataWithApp, Progress }
 import play.api.i18n.Lang
 import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 object Roles {
-
+  // scalastyle:off
   import RoleUtils._
 
   trait CsrAuthorization {
@@ -42,7 +42,7 @@ object Roles {
       activeUserWithApp(user) && isEnabled(user)
   }
 
-  //all the roles
+  // All the roles
 
   object NoRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) = true
@@ -130,6 +130,11 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS) && isTestExpired(user)
   }
 
+  object Phase1TestFailedRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS_FAILED)
+  }
+
   object Phase2TestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS)
@@ -195,7 +200,7 @@ object Roles {
     UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
     WithdrawApplicationRole -> routes.HomeController.present()
   ).reverse
-
+  // scalastyle:on
 }
 
 object RoleUtils {
@@ -246,4 +251,13 @@ object RoleUtils {
   }
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
 
+  def isFaststream(implicit user: CachedData) = {
+    // TODO: Once the application creation is moved, we may use this line check explicitly:
+    // user.application exists (_.applicationRoute == ApplicationRoutes.FASTSTREAM)
+    !isEdip
+  }
+
+  def isEdip(implicit user: CachedData) = {
+    user.application exists (_.applicationRoute == ApplicationRoutes.EDIP)
+  }
 }

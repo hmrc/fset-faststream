@@ -77,7 +77,7 @@ object RolesSpec {
   def activeUser(applicationStatus: ApplicationStatus) = CachedData(CachedUser(
     id,
     "John", "Biggs", None, "aaa@bbb.com", isActive = true, "locked"
-  ), Some(ApplicationData(id, id, applicationStatus, ProgressExamples.FullProgress, None)))
+  ), Some(ApplicationData(id, id, applicationStatus, ApplicationRoutes.FASTSTREAM, ProgressExamples.FullProgress, None)))
 
   def registeredUser(applicationStatus: ApplicationStatus) = CachedData(CachedUser(
     id,
