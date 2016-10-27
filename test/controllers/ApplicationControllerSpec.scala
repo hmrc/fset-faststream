@@ -18,6 +18,7 @@ package controllers
 
 import config.TestFixtureBase
 import mocks.application.DocumentRootInMemoryRepository
+import model.ApplicationRoute
 import model.command.WithdrawApplication
 import model.events.EventTypes.Events
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -51,7 +52,7 @@ class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results 
            |{
            |  "userId":"1234",
            |  "frameworkId":"FASTSTREAM-2016",
-           |  "applicationRoute":"FASTSTREAM"
+           |  "applicationRoute":"${ApplicationRoute.Faststream}"
            |}
         """.stripMargin
       ))

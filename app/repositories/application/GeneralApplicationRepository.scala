@@ -282,7 +282,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
-        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.FASTSTREAM)
+        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
         findProgress(applicationId).map { progress =>
           ApplicationResponse(applicationId, applicationStatus, applicationRoute, userId, progress, fastPassReceived)

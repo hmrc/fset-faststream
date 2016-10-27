@@ -24,16 +24,16 @@ object ApplicationRoute extends Enumeration {
 
   type ApplicationRoute = Value
 
-  val FASTSTREAM, EDIP, SDIP = Value
+  val Faststream, Edip, Sdip, Faststream_With_Sdip = Value
 
   implicit val applicationRouteFormat = new Format[ApplicationRoute] {
-    def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String].toUpperCase()))
+    def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String]))
     def writes(myEnum: ApplicationRoute) = JsString(myEnum.toString)
   }
 
   implicit object BSONEnumHandler extends BSONHandler[BSONString, ApplicationRoute] {
-    def read(doc: BSONString) = ApplicationRoute.withName(doc.value.toUpperCase())
-    def write(stats: ApplicationRoute) = BSON.write(stats.toString)
+    def read(doc: BSONString) = ApplicationRoute.withName(doc.value)
+    def write(myEnum: ApplicationRoute) = BSON.write(myEnum.toString)
   }
 
 }

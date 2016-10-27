@@ -61,7 +61,7 @@ trait CreatedStatusGenerator extends ConstructiveGenerator {
   }
 
   private def createApplication(userId: String): Future[String] = {
-    appRepository.create(userId, ExchangeObjects.frameworkId, ApplicationRoute.FASTSTREAM).map { application =>
+    appRepository.create(userId, ExchangeObjects.frameworkId, ApplicationRoute.Faststream).map { application =>
       application.applicationId
     }
   }
