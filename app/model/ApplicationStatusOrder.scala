@@ -100,13 +100,6 @@ object ApplicationStatusOrder {
     (progress.assessmentCentre.passed, 365, AssessmentCentrePassedProgress),
     (progress.assessmentCentre.passedNotified, 370, AssessmentCentrePassedNotifiedProgress),
     (progress.assessmentScores.entered, 375, AssessmentScoresEnteredProgress),
-    (progress.failedToAttend, 380, FailedToAttendProgress),
-    (progress.assessmentScores.accepted, 385, AssessmentScoresAcceptedProgress),
-    (progress.assessmentCentre.awaitingReevaluation, 390, AwaitingAssessmentCentreReevaluationProgress),
-    (progress.assessmentCentre.failed, 395, AssessmentCentreFailedProgress),
-    (progress.assessmentCentre.failedNotified, 400, AssessmentCentreFailedNotifiedProgress),
-    (progress.assessmentCentre.passed, 405, AssessmentCentrePassedProgress),
-    (progress.assessmentCentre.passedNotified, 410, AssessmentCentrePassedNotifiedProgress),
     (progress.withdrawn, 999, WithdrawnProgress)
   )
   // scalastyle:on
