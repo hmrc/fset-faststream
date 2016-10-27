@@ -2,7 +2,7 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ProgressStatuses.ProgressStatus
-import model.persisted.Phase1TestProfile
+import model.persisted.{ Phase1TestProfile, Phase2TestGroup }
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{BSONArray, BSONDocument}
 import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
@@ -114,7 +114,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
     timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false,
     fastPassReceived: Boolean = false, isGis: Boolean = false,
     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
-    phase1TestProfile: Option[Phase1TestProfile] = None
+    phase1TestProfile: Option[Phase1TestProfile] = None, phase2TestGroup: Option[Phase2TestGroup] = None
   ): Future[WriteResult] = {
     val doc = BSONDocument(
       "applicationId" -> appId,
@@ -153,15 +153,17 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
       "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments, isGis),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
-      "testGroups" -> phase1TestGroup(phase1TestProfile)
+      "testGroups" -> phase1TestGroup(phase1TestProfile, phase2TestGroup)
     )
 
     helperRepo.collection.insert(doc)
   }
   // scalastyle:on parameter.number
 
-  private def phase1TestGroup(o: Option[Phase1TestProfile]): BSONDocument = {
-    BSONDocument("PHASE1" -> o.map(Phase1TestProfile.bsonHandler.write))
+  private def phase1TestGroup(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup]): BSONDocument = {
+    BSONDocument("PHASE1" -> p1.map(Phase1TestProfile.bsonHandler.write),
+                 "PHASE2" -> p2.map(Phase2TestGroup.bsonHandler.write)
+                 )
   }
 
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {

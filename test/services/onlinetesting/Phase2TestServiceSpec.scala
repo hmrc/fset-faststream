@@ -127,7 +127,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
   }
 
   "mark as completed" should {
-    "change progress to completed if there are all tests completed and the profile has not expired" in new Phase2TestServiceFixture {
+    "change progress to completed if there are all tests completed" in new Phase2TestServiceFixture {
       when(otRepositoryMock.updateTestCompletionTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
       val phase2Tests = phase2TestProfile.copy(tests = phase2TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
         expirationDate = DateTime.now().plusDays(2)
@@ -140,18 +140,6 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       phase2TestService.markAsCompleted(cubiksUserId).futureValue
 
       verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED)
-    }
-    "not change progress to completed if there are all tests completed and the profile has not expired" in new Phase2TestServiceFixture {
-      val phase2Tests = phase2TestProfile.copy(tests = phase2TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
-        expirationDate = DateTime.now().minusDays(2)
-      )
-
-      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase2TestGroupWithAppId("appId123", phase2Tests)))
-
-      phase2TestService.markAsCompleted(cubiksUserId).futureValue
-
-      verify(otRepositoryMock, times(0)).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED)
     }
   }
 
@@ -430,8 +418,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     val candidates = List(onlineTestApplication, onlineTestApplication2)
 
     val registeredMap = Map(
-      registrations.head.userId -> (onlineTestApplication, tokens.head, registrations.head),
-      registrations.last.userId -> (onlineTestApplication2, tokens.last, registrations.last)
+      (registrations.head.userId, (onlineTestApplication, tokens.head, registrations.head)),
+      (registrations.last.userId, (onlineTestApplication2, tokens.last, registrations.last))
     )
 
     val invites = List(Invitation(userId = registrations.head.userId, email = "email@test.com", accessCode = "accessCode",

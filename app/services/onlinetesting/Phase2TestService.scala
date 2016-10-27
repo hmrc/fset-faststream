@@ -250,24 +250,17 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     }
   }
 
-  private def isTestGroupExpired(cubiksUserId: Int) = for {
-    profile <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
-  } yield profile.phase2TestGroup.expirationDate.isBeforeNow()
+  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestCompletionTime(_:Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
+      require(u.phase2TestGroup.activeTests.nonEmpty, "Active tests cannot be found")
+      val activeTestsCompleted = u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)
 
-  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = isTestGroupExpired(cubiksUserId).flatMap {
-    case true => Future.successful(())
-    case false => eventSink {
-      updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestCompletionTime(_:Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
-        require(u.phase2TestGroup.activeTests.nonEmpty, "Active tests cannot be found")
-        val activeTestsCompleted = u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)
-
-        activeTestsCompleted match {
-          case true => phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
-            DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
-          }
-
-          case false => Future.successful(List.empty[EventType])
+      activeTestsCompleted match {
+        case true => phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
+          DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
         }
+
+        case false => Future.successful(List.empty[EventType])
       }
     }
   }

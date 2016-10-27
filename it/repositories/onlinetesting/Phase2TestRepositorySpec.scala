@@ -115,4 +115,54 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       result.get.tests mustBe input.tests
     }
   }
+
+  "Updating completion time" must {
+    "update test completion time" in {
+
+      val now =  DateTime.now(DateTimeZone.UTC)
+      val input = Phase2TestGroup(expirationDate = now.plusDays(5),
+        tests = List(CubiksTest(scheduleId = 1,
+          usedForResults = true,
+          token = "token",
+          cubiksUserId = 111,
+          testUrl = "testUrl",
+          invitationDate = now,
+          participantScheduleId = 222
+        ))
+      )
+
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, phase2TestGroup = Some(input)
+      ).futureValue
+
+      phase2TestRepo.updateTestCompletionTime(111, now).futureValue
+      val result = phase2TestRepo.getTestProfileByCubiksId(111).futureValue
+      result.phase2TestGroup.tests.head.completedDateTime mustBe Some(now)
+    }
+
+    "not update profiles that have expired" in {
+
+      val now =  DateTime.now(DateTimeZone.UTC)
+      val input = Phase2TestGroup(expirationDate = now,
+        tests = List(CubiksTest(scheduleId = 1,
+          usedForResults = true,
+          token = "token",
+          cubiksUserId = 111,
+          testUrl = "testUrl",
+          invitationDate = now,
+          participantScheduleId = 222
+        ))
+      )
+
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, phase2TestGroup = Some(input)
+      ).futureValue
+
+      phase2TestRepo.updateTestCompletionTime(111, now).futureValue
+      val result = phase2TestRepo.getTestProfileByCubiksId(111).futureValue
+      result.phase2TestGroup.tests.head.completedDateTime mustBe None
+    }
+  }
 }
