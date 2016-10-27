@@ -29,7 +29,7 @@ import model.events.DataStoreEvents
 import model.exchange.CubiksTestResultReady
 import model.persisted.{ ContactDetails, Phase2TestGroup, _ }
 import model.{ Address, ApplicationStatus, ProgressStatuses }
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -48,6 +48,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
+import scala.language.postfixOps
 
 class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
 
@@ -348,7 +349,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     implicit val rh = mock[RequestHeader]
 
     val clock = mock[DateTimeFactory]
-    val now = DateTimeFactory.nowLocalTimeZone
+    val now = DateTimeFactory.nowLocalTimeZone.withZone(DateTimeZone.UTC)
     when(clock.nowLocalTimeZone).thenReturn(now)
 
     val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase2"

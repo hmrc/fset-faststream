@@ -29,8 +29,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait DiagnosticReportingRepository {
-
   def findByUserId(userId: String): Future[List[JsObject]]
+  def findAll(): Future[List[JsObject]]
 }
 
 class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
@@ -38,7 +38,8 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
     Commands.Implicits.createApplicationRequestFormats, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
 
   def findByUserId(userId: String): Future[List[JsObject]] = {
-    val results = collection.find(Json.obj("userId" -> userId))
+    val projection = Json.obj("personal-details" -> 0)
+    val results = collection.find(Json.obj("userId" -> userId), projection)
       .cursor[JsObject](ReadPreference.primaryPreferred)
       .collect[List]()
 
@@ -46,6 +47,12 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
       if (r.isEmpty) { throw ApplicationNotFound(userId) }
       else { r }
     }
+  }
 
+  def findAll(): Future[List[JsObject]] = {
+    val projection = Json.obj("personal-details" -> 0)
+    collection.find(Json.obj(), projection)
+      .cursor[JsObject](ReadPreference.primaryPreferred)
+      .collect[List]()
   }
 }

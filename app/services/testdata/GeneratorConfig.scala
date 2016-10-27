@@ -20,7 +20,7 @@ import model.EvaluationResults.Result
 import model.command.testdata.CreateCandidateInStatusRequest$
 import org.joda.time.{DateTime, LocalDate}
 
-case class GeneratorConfig(emailPrefix: String,
+case class GeneratorConfig(emailPrefix: Option[String],
                            hasDisability: Option[String] = None,
                            hasDisabilityDescription: Option[String] = None,
                            setGis: Boolean = false,
