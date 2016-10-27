@@ -20,10 +20,11 @@ import mappings.Address
 import mappings.PhoneNumberMapping._
 import mappings.PostCodeMapping._
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
+import models.ApplicationRoute.ApplicationRoute
 import models.UniqueIdentifier
-import org.joda.time.format.{DateTimeFormatterBuilder, PeriodFormatterBuilder}
-import org.joda.time.{DateTime, LocalDate, Period}
-import play.api.libs.json.{Format, Json}
+import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
+import org.joda.time.{ DateTime, LocalDate, Period }
+import play.api.libs.json.{ Format, Json }
 
 package object exchange {
 
@@ -35,7 +36,7 @@ package object exchange {
 
   case class FindByUserIdRequest(userId: UniqueIdentifier)
 
-  case class CreateApplicationRequest(userId: UniqueIdentifier, frameworkId: String)
+  case class CreateApplicationRequest(userId: UniqueIdentifier, frameworkId: String, applicationRoute: ApplicationRoute)
 
   case class GeneralDetails(firstName: String,
                             lastName: String,

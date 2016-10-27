@@ -22,8 +22,8 @@ import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange.{ FrameworkId, Phase2TestGroupWithActiveTest, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
+import models.CachedData
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage }
-import models.{ CachedData, CachedDataWithApp }
 import security.Roles
 import security.Roles._
 

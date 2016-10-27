@@ -20,7 +20,7 @@ import config.CSRHttp
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
-import models.UniqueIdentifier
+import models.{ ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
@@ -37,7 +37,8 @@ trait ApplicationClient {
   import exchange.Implicits._
 
   def createApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier) = {
-    http.PUT(s"${url.host}${url.base}/application/create", CreateApplicationRequest(userId, frameworkId)).map { response =>
+    http.PUT(s"${url.host}${url.base}/application/create", CreateApplicationRequest(userId,
+      frameworkId, ApplicationRoute.FASTSTREAM)).map { response =>
       response.json.as[ApplicationResponse]
     }
   }
