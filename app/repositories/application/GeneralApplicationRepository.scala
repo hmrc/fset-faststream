@@ -885,6 +885,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   def confirmAdjustmentNew(applicationId: String, data: AdjustmentManagementNew): Future[Unit] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
+    /*val etrayAdjustment = data.etray.map(i => )
+
     val etrayTimeAdjustment = data.etrayTimeNeeded.map(i => BSONDocument("assistance-details.etrayTimeAdjustmentPercentage" -> i))
       .getOrElse(BSONDocument.empty)
     val eTrayInvigilatedAdjustment = data.etrayInvigilatedInfo.map(i => BSONDocument("assistance-details.etrayInvigilatedInfo" -> i))
@@ -898,12 +900,13 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       .getOrElse(BSONDocument.empty)
     val videoOtherAdjustment = data.videoOtherInfo.map(i => BSONDocument("assistance-details.videoOtherInfo" -> i))
       .getOrElse(BSONDocument.empty)
-
+*/
     val adjustmentsConfirmationBSON = BSONDocument("$set" -> BSONDocument(
       "assistance-details.typeOfAdjustments" -> data.adjustments.getOrElse(List.empty[String]),
-      "assistance-details.adjustments-confirmed" -> true
-    ).add(etrayTimeAdjustment).add(eTrayInvigilatedAdjustment).add(eTrayOtherAdjustment)
-      .add(videoTimeAdjustment).add(videoInvigilatedAdjustment).add(videoOtherAdjustment))
+      "assistance-details.adjustments-confirmed" -> true,
+      "assistance-details.etray" -> data.etray,
+      "assistance-details.video" -> data.video
+    ))
 
     collection.update(query, adjustmentsConfirmationBSON, upsert = false) map { _ => }
   }

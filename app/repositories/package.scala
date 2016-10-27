@@ -192,6 +192,8 @@ package object repositories {
   implicit val competencyAverageResultHandler: BSONHandler[BSONDocument, CompetencyAverageResult] =
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
+  implicit val adjustmentDetailHandler: BSONHandler[BSONDocument, AdjustmentDetail] = Macros.handler[AdjustmentDetail]
+
 
   def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
