@@ -20,6 +20,7 @@ import model.ApplicationStatus._
 import model.command.GeneralDetails
 import model.persisted.{ ContactDetails, PersonalDetails }
 import repositories._
+import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.AuditService
@@ -53,7 +54,9 @@ trait CandidateDetailsService {
     }
 
     val contactDetailsFut = cdRepository.update(userId, contactDetails)
-    val civilServiceExperienceDetailsFut = fpdRepository.update(applicationId, candidateDetails.civilServiceExperienceDetails)
+    val civilServiceExperienceDetailsFut = candidateDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
+      fpdRepository.update(applicationId, civilServiceExperienceDetails)
+    } getOrElse Future.successful(())
 
     for {
       _ <- updatePersonalDetailsFut

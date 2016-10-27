@@ -20,6 +20,7 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 import config.CubiksGatewayConfig
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
@@ -53,7 +54,7 @@ import scala.concurrent.Future
 // scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
 
-  def create(userId: String, frameworkId: String): Future[ApplicationResponse]
+  def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse]
 
   def find(applicationId: String): Future[Option[Candidate]]
 
@@ -219,17 +220,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReport(findProgress))
   implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
-  override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
+  override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
     val applicationBSON = BSONDocument(
       "applicationId" -> applicationId,
       "userId" -> userId,
       "frameworkId" -> frameworkId,
-      "applicationStatus" -> CREATED
+      "applicationStatus" -> CREATED,
+      "applicationRoute" -> route
     )
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, CREATED, userId, p, None)
+        ApplicationResponse(applicationId, CREATED, route, userId, p, None)
       }
     }
   }
@@ -280,9 +282,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
         findProgress(applicationId).map { progress =>
-          ApplicationResponse(applicationId, applicationStatus, userId, progress, fastPassReceived)
+          ApplicationResponse(applicationId, applicationStatus, applicationRoute, userId, progress, fastPassReceived)
         }
       case None => throw ApplicationNotFound(userId)
     }

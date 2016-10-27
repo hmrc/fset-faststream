@@ -17,6 +17,7 @@
 package services.testdata
 
 import connectors.{ AuthProviderClient, ExchangeObjects }
+import model.ApplicationRoute
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import play.api.mvc.RequestHeader
 import repositories._
@@ -47,7 +48,7 @@ trait CreatedStatusGenerator extends ConstructiveGenerator {
   }
 
   private def createApplication(userId: String): Future[String] = {
-    appRepository.create(userId, ExchangeObjects.frameworkId).map { application =>
+    appRepository.create(userId, ExchangeObjects.frameworkId, ApplicationRoute.Faststream).map { application =>
       application.applicationId
     }
   }

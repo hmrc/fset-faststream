@@ -31,7 +31,7 @@ case class GeneralDetails(firstName: String,
                           postCode: Option[PostCode],
                           country: Option[String],
                           phone: PhoneNumber,
-                          civilServiceExperienceDetails: CivilServiceExperienceDetails,
+                          civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
                           updateApplicationStatus: Option[Boolean] = None)
 
 object GeneralDetails {
