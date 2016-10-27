@@ -20,14 +20,13 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
+import model.ProgressStatuses._
+import model.persisted._
+import model.{ApplicationStatus, ProgressStatuses, ReminderNotice}
 import org.joda.time.DateTime
-import model.persisted.{ CubiksTest, Phase2TestGroup }
-import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase2TestGroupWithAppId, TestResult }
-import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson._
+import reactivemongo.bson.{BSONDocument, _}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -78,10 +77,29 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    val query = BSONDocument(
-      "applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED,
-      "assistance-details.needsSupportForOnlineAssessment" -> false
-    )
+    // new
+    val query =
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
+        BSONDocument("$or" -> BSONArray(
+          // No need to confirm adjustments
+          BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
+          // Invigilated etray with adjustments confirmed
+          /*BSONDocument("$and" -> BSONArray(
+            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+            BSONDocument("assistance-details.adjustments-confirmed" -> true),
+            BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
+          )),*/
+          // Non Invigilated etray with adjustments confirmed
+          BSONDocument("$and" -> BSONArray(
+            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+            BSONDocument("assistance-details.adjustments-confirmed" -> true),
+            BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated"))
+          ))
+          // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver
+          // functionality even if invigilated test functionality is not ready. In that case we will remove some code
+        ))
+      ))
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, 50)
@@ -135,7 +153,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
     ))
 
-    collection.update(query, update, upsert = false) map( _ => () )
+    collection.update(query, update, upsert = false) map (_ => ())
   }
 
   override def nextExpiringApplication: Future[Option[ExpiringOnlineTest]] = {
@@ -148,11 +166,11 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
-      val progressStatusQuery = BSONDocument("$and" -> BSONArray(
-        BSONDocument(s"progress-status.$PHASE2_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
-        BSONDocument(s"progress-status.$PHASE2_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
-        BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
-      ))
+    val progressStatusQuery = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"progress-status.$PHASE2_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.$PHASE2_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
+    ))
 
     nextTestForReminder(reminder, progressStatusQuery)
   }
@@ -189,7 +207,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val updateQuery = BSONDocument("$unset" -> BSONDocument(progressesToRemoveQueryPartial))
 
-    collection.update(query, updateQuery, upsert = false) map ( _ => () )
+    collection.update(query, updateQuery, upsert = false) map (_ => ())
   }
 
 }

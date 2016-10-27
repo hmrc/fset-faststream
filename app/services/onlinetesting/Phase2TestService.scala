@@ -76,7 +76,8 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     for {
       phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
-      val test = phase2.activeTests.find(_.usedForResults).getOrElse(throw new NoActiveTestException(s"No active phase 2 test found for $applicationId"))
+      val test = phase2.activeTests.find(_.usedForResults).getOrElse(
+        throw new NoActiveTestException(s"No active phase 2 test found for $applicationId"))
         Phase2TestGroupWithActiveTest(
           phase2.expirationDate,
           test
@@ -161,7 +162,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
       userId,
       s"$scheduleCompletionBaseUrl/complete/$token",
       resultsURL = None,
-      timeAdjustments = buildTimeAdjustments(application.needsAdjustments, schedule.assessmentId)
+      timeAdjustments = buildTimeAdjustments(schedule.assessmentId, application)
     )
   }
 
@@ -240,9 +241,9 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     }
   }
 
-  //TODO Once the time adjustments ticket has been done then this should be updated to apply the etray adjustment settings.
-  def buildTimeAdjustments(needsAdjustment: Boolean, assessmentId: Int) = if (needsAdjustment) {
-    List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = 100))
+  def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication) = if (application.needsAdjustments) {
+    val time = application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(100)
+    List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = time))
   } else {
     Nil
   }

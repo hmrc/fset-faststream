@@ -82,7 +82,8 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     needsAdjustments = false,
     preferredName,
     lastName,
-    timeAdjustments = None
+    None,
+    None
   )
 
   val cubiksUserId = 98765
