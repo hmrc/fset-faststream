@@ -31,9 +31,8 @@ case class Phase2TestsPage(
   def getDuration: String = {
 
     val now = DateTime.now
-    val date = expirationDate
 
-    val period = new Period(now, date).normalizedStandard(PeriodType.dayTime())
+    val period = new Period(now, expirationDate).normalizedStandard(PeriodType.dayTime())
 
     val periodFormat = new PeriodFormatterBuilder().
       printZeroAlways().
