@@ -20,13 +20,13 @@ import forms.AssistanceDetailsForm
 
 object AssistanceDetailsFormExamples {
   val DisabilityGisAndAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Epilepsy"), Some("Yes"), "Yes", Some("Some adjustment"),
-    "Yes", Some("Some other adjustements"))
+    Some("Yes"), Some("Some other adjustements"))
 
-  val NoDisabilitiesForm = AssistanceDetailsForm.Data("No", None, None, "No", None, "No", None)
+  val NoDisabilitiesForm = AssistanceDetailsForm.Data("No", None, None, "No", None, Some("No"), None)
 
-  val NoAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("No"), "No", None, "No", None)
+  val NoAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("No"), "No", None, Some("No"), None)
 
-  val FullForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("Yes"), "Yes", Some("Some adjustments online"), "Yes",
+  val FullForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("Yes"), "Yes", Some("Some adjustments online"), Some("Yes"),
     Some("Some adjustments at venue"))
 
 
