@@ -1,4 +1,5 @@
-@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit lang: play.api.i18n.Lang)
+@import security.RoleUtils._
+@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit user: Option[CachedData], lang: play.api.i18n.Lang)
 
 @import views.html.widgets.checkbox
 @import helpers.CSRSkinnyFieldConstructor._
@@ -9,8 +10,14 @@
         'class -> "form-control",
         '_showConstraints -> false
     ) { (id, name, value, args) =>
-        <label for="@id" class="form-label">@Messages("university.question")</label>
-        <span>Your first degree or your current university if you haven't finished yet</span>
+        <label for="@id" class="form-label">
+            @if(isFaststream(user)) {
+                @Messages("university.question")
+                <span>Your first degree or your current university if you haven't finished yet</span>
+            } else {@if(isEdip(user)) {
+                @Messages("edip.university.question")
+            }}
+        </label>
         <input id="@{id}" name="@{name}" type="text" class="form-control" value="@value" @{if (questionnaireForm("preferNotSay_university").value.getOrElse("false")=="true") "disabled='disabled'"}>
     }
 
