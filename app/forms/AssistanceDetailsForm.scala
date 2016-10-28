@@ -17,10 +17,14 @@
 package forms
 
 import connectors.exchange.AssistanceDetails
+import models.ApplicationRoute._
 import play.api.data.Form
 import play.api.data.Forms._
 
 object AssistanceDetailsForm {
+
+  val isFastStream = (requestParams: Map[String, String]) =>
+    requestParams.getOrElse("applicationRoute", Faststream.toString) == Faststream.toString
 
   val form = Form(
     mapping(
@@ -30,7 +34,7 @@ object AssistanceDetailsForm {
       "needsSupportForOnlineAssessment" -> Mappings.nonEmptyTrimmedText("error.needsSupportForOnlineAssessment.required", 31),
       "needsSupportForOnlineAssessmentDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportForOnlineAssessment",
         "needsSupportForOnlineAssessmentDescription", Some(2048))),
-      "needsSupportAtVenue" -> Mappings.nonEmptyTrimmedText("error.needsSupportAtVenue.required", 31),
+      "needsSupportAtVenue" -> of(Mappings.mayBeOptionalString("error.needsSupportAtVenue.required", 31, isFastStream)),
       "needsSupportAtVenueDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportAtVenue", "needsSupportAtVenueDescription",
         Some(2048)))
     )(Data.apply)(Data.unapply)
@@ -42,7 +46,7 @@ object AssistanceDetailsForm {
                    guaranteedInterview: Option[String],
                    needsSupportForOnlineAssessment: String,
                    needsSupportForOnlineAssessmentDescription: Option[String],
-                   needsSupportAtVenue: String,
+                   needsSupportAtVenue: Option[String],
                    needsSupportAtVenueDescription: Option[String]) {
 
     def exchange: AssistanceDetails = {
@@ -61,9 +65,9 @@ object AssistanceDetailsForm {
         },
         needsSupportForOnlineAssessmentDescription,
         needsSupportAtVenue match {
-          case "Yes" => true
-          case "No" => false
-          case _ => false
+          case Some("Yes") => Some(true)
+          case Some("No") => Some(false)
+          case _ => None
         },
         needsSupportAtVenueDescription
       )
@@ -77,7 +81,7 @@ object AssistanceDetailsForm {
         needsSupportForOnlineAssessment,
         if (needsSupportForOnlineAssessment == "Yes") needsSupportForOnlineAssessmentDescription else None,
         needsSupportAtVenue,
-        if (needsSupportAtVenue == "Yes") needsSupportAtVenueDescription else None)
+        if (needsSupportAtVenue.contains("Yes")) needsSupportAtVenueDescription else None)
     }
   }
 
@@ -96,8 +100,9 @@ object AssistanceDetailsForm {
         },
         ad.needsSupportForOnlineAssessmentDescription,
         ad.needsSupportAtVenue match {
-          case true => "Yes"
-          case false => "No"
+          case Some(true) => Some("Yes")
+          case Some(false) => Some("No")
+          case _ => None
         },
         ad.needsSupportAtVenueDescription
       )
