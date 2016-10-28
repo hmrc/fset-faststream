@@ -18,23 +18,29 @@ package services.onlinetesting.phase1
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.SchemeType._
-import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings }
+import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings, Phase1PassMarkThresholds }
 import model.persisted.{ SchemeEvaluationResult, TestResult }
 
 trait Phase1TestEvaluation {
 
   def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult, passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
-    schemes map { scheme =>
-      val schemePassmark = passmark.findPassmarkForScheme(scheme)
+    for {
+      schemeToEvaluate <- schemes
+      schemePassmarkOpt = passmark.schemes find (_.schemeName == schemeToEvaluate)
+      schemePassmark <- schemePassmarkOpt
+    } yield {
       val sjqResult = evaluateResultsForExercise(sjqTestResult, schemePassmark.schemeThresholds.situational)
-      SchemeEvaluationResult(scheme, sjqResult.toString)
+      SchemeEvaluationResult(schemeToEvaluate, sjqResult.toString)
     }
   }
 
   def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult,
                         passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
-    schemes map { scheme =>
-      val schemePassmark = passmark.findPassmarkForScheme(scheme)
+    for {
+      schemeToEvaluate <- schemes
+      schemePassmarkOpt = passmark.schemes find (_.schemeName == schemeToEvaluate)
+      schemePassmark <- schemePassmarkOpt
+    } yield {
       val sjqResult = evaluateResultsForExercise(sjqTestResult, schemePassmark.schemeThresholds.situational)
       val bqResult = evaluateResultsForExercise(bqTestResult, schemePassmark.schemeThresholds.behavioural)
 
@@ -46,7 +52,7 @@ trait Phase1TestEvaluation {
         case (Green, Green) => Green
       }
 
-      SchemeEvaluationResult(scheme, result.toString)
+      SchemeEvaluationResult(schemeToEvaluate, result.toString)
     }
   }
 
