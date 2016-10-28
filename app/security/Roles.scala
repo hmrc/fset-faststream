@@ -251,13 +251,21 @@ object RoleUtils {
   }
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
 
-  def isFaststream(implicit user: CachedData) = {
+  def isFaststream(implicit user: CachedData): Boolean = {
     // TODO: Once the application creation is moved, we may use this line check explicitly:
     // user.application exists (_.applicationRoute == ApplicationRoutes.FASTSTREAM)
-    !isEdip
+    !isEdip(user)
   }
 
-  def isEdip(implicit user: CachedData) = {
+  def isFaststream(implicit user: Option[CachedData]): Boolean = {
+    user.forall(u => isFaststream(u))
+  }
+
+  def isEdip(implicit user: CachedData): Boolean = {
     user.application exists (_.applicationRoute == ApplicationRoute.Edip)
+  }
+
+  def isEdip(implicit user: Option[CachedData]): Boolean = {
+    user.forall(u => isEdip(u))
   }
 }
