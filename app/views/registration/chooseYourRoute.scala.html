@@ -2,7 +2,7 @@
 
 @import helpers.CSRFieldConstructor._
 @import models.ApplicationRoute
-@import views.html.widgets.{radioBox, radioBoxHorizontalMulti, yesNoQuestion}
+@import views.html.widgets.{radioBox, radioBoxVerticalMultiToggle, yesNoQuestion}
 
 <section class="section-border clearfix" id="routeElig">
     <div class="text">
@@ -10,7 +10,7 @@
     </div>
     <fieldset class="form-group">
         <legend class="form-label">Which route do you want to choose?</legend>
-        @radioBoxHorizontalMulti(form("applicationRoute"),
+        @radioBoxVerticalMultiToggle(form("applicationRoute"),
                                  options = List((ApplicationRoute.Faststream.toString, "Civil Service Fast Stream", "faststream-elig-describe"),
                                                 (ApplicationRoute.Edip.toString, "Early Diversity Internship Programme", "edip-elig-describe"))
         )
@@ -44,28 +44,3 @@
         </div>
     </fieldset>
 </section>
-<!--
-        <section class="section-border clearfix toggle-content" id="routeElig">
-            <div class="text">
-                <h2 class="heading-large">Choose your route</h2>
-            </div>
-            <div>
-                <fieldset>
-                    <legend class="form-label">Which route do you want to choose?</legend>
-                    <div class="form-group">
-                        <div>
-                            <label data-target="fs-panel" for="route-fs" class="block-label">
-                                <input name="route" type="radio" id="route-fs" aria-controls="fs-panel" aria-expanded="false">Civil Service Fast Stream
-                            </label>
-                        </div>
-                        <div>
-                            <label data-target="edip-panel" for="route-edip" class="block-label">
-                                <input name="route" type="radio" id="route-edip" aria-controls="edip-panel" aria-expanded="false">Early Diversity Internship Programme (EDIP)
-                            </label>
-                        </div>
-                    </div>
-
-                </fieldset>
-            </div>
-        </section>
--->
