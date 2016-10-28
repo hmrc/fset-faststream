@@ -18,7 +18,7 @@ package security
 
 import controllers.routes
 import models.ApplicationData.ApplicationStatus._
-import models.{ ApplicationRoutes, CachedData, CachedDataWithApp, Progress }
+import models.{ ApplicationRoute, CachedData, CachedDataWithApp, Progress }
 import play.api.i18n.Lang
 import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
@@ -269,7 +269,7 @@ object RoleUtils {
   }
 
   def isEdip(implicit user: CachedData) = {
-    user.application exists (_.applicationRoute == ApplicationRoutes.EDIP)
+    user.application exists (_.applicationRoute == ApplicationRoute.Edip)
   }
 }
 // scalastyle:on

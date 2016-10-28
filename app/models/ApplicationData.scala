@@ -19,7 +19,7 @@ package models
 import connectors.exchange.ApplicationResponse
 import connectors.exchange.CivilServiceExperienceDetails
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
-import models.ApplicationRoutes.ApplicationRoute
+import models.ApplicationRoute.ApplicationRoute
 import play.api.libs.json._
 
 import scala.language.implicitConversions
@@ -67,8 +67,7 @@ object ApplicationData {
 
   implicit def fromAppRespToAppData(resp: ApplicationResponse): ApplicationData =
     new ApplicationData(resp.applicationId, resp.userId, ApplicationStatus.withName(resp.applicationStatus),
-      ApplicationRoutes.withName(resp.applicationRoute.getOrElse("FASTSTREAM")),
-      resp.progressResponse, resp.civilServiceExperienceDetails)
+      resp.applicationRoute, resp.progressResponse, resp.civilServiceExperienceDetails)
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
 
