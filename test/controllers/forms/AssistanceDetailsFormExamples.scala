@@ -17,6 +17,7 @@
 package controllers.forms
 
 import forms.AssistanceDetailsForm
+import models.ApplicationRoute
 
 object AssistanceDetailsFormExamples {
   val DisabilityGisAndAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Epilepsy"), Some("Yes"), "Yes", Some("Some adjustment"),
@@ -29,8 +30,8 @@ object AssistanceDetailsFormExamples {
   val FullForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("Yes"), "Yes", Some("Some adjustments online"), Some("Yes"),
     Some("Some adjustments at venue"))
 
-
   val DisabilityGisAndAdjustmentsMap = Map[String, String](
+    "applicationRoute" -> ApplicationRoute.Faststream.toString,
     "hasDisability" -> "Yes",
     "hasDisabilityDescription" -> "Epilepsy",
     "guaranteedInterview" -> "Yes",
@@ -40,6 +41,7 @@ object AssistanceDetailsFormExamples {
     "needsSupportAtVenueDescription" -> "Some other adjustements")
 
   val DisabilityGisAndAdjustmentsFormUrlEncodedBody = Seq(
+    "applicationRoute" -> ApplicationRoute.Faststream.toString,
     "hasDisability" -> "Yes",
     "hasDisabilityDescription" -> "Epilepsy",
     "guaranteedInterview" -> "Yes",
