@@ -22,10 +22,11 @@ import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.FastPassForm._
 import config.CSRCache
 import connectors.exchange.CivilServiceExperienceDetails
+import connectors.exchange.CivilServiceExperienceDetails._
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.ApplicationData.ApplicationStatus._
-import models.{ ApplicationRoutes, CachedDataWithApp }
+import models.{ ApplicationRoute, CachedDataWithApp }
 import org.joda.time.LocalDate
 import play.api.data.Form
 import play.api.mvc.{ Request, Result }
@@ -93,11 +94,11 @@ class PersonalDetailsController(applicationClient: ApplicationClient, cacheClien
 
   def submitGeneralDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
     implicit user =>
-      val redirect = if(user.application.applicationRoute == ApplicationRoutes.FASTSTREAM) {
-        Redirect(routes.SchemePreferencesController.present())
-      } else {
-        // Assuming is an EDIP
+      val redirect = if(user.application.applicationRoute == ApplicationRoute.Edip) {
         Redirect(routes.AssistanceDetailsController.present())
+      } else {
+        // Assuming is an Faststream
+        Redirect(routes.SchemePreferencesController.present())
       }
       submit(GeneralDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, redirect)
   }
@@ -123,14 +124,14 @@ class PersonalDetailsController(applicationClient: ApplicationClient, cacheClien
       )
     }
     val handleValidForm = (form: GeneralDetailsForm.Data) => {
-      val civilServiceExperienceDetails: CivilServiceExperienceDetails =
-        overrideCivilServiceExperienceDetails.getOrElse(form.civilServiceExperienceDetails)
+      val civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] =
+        overrideCivilServiceExperienceDetails.orElse(form.civilServiceExperienceDetails)
       for {
         _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
           toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideCivilServiceExperienceDetails))
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
         redirect <- updateProgress(data => {
-          val applicationCopy = data.application.map(_.copy(civilServiceExperienceDetails = Some(civilServiceExperienceDetails)))
+          val applicationCopy = data.application.map(_.copy(civilServiceExperienceDetails = civilServiceExperienceDetails))
           data.copy(user = cachedData.user.copy(firstName = form.firstName, lastName = form.lastName,
             preferredName = Some(form.preferredName)), application =
             if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)

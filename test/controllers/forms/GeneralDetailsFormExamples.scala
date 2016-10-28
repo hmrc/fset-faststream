@@ -17,6 +17,7 @@
 package controllers.forms
 
 import connectors.exchange.CivilServiceExperienceDetails
+import connectors.exchange.CivilServiceExperienceDetails.toData
 import forms.GeneralDetailsForm
 import mappings.{ AddressExamples, DayMonthYear }
 import org.joda.time.{ DateTime, LocalDate }
@@ -51,17 +52,16 @@ object GeneralDetailsFormExamples {
     "dateOfBirth.year",
     "address.line1",
     "postCode",
-    "phone",
-    "civilServiceExperienceDetails.applicable"
+    "phone"
   )
 
   val ValidUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
     outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), None, Some("1234567890"),
-    CivilServiceExperienceDetails(applicable = false))
+    toData(Some(CivilServiceExperienceDetails(applicable = false))))
 
   val ValidNonUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
     outsideUk = Some(true), AddressExamples.FullAddress, None, Some("France"), Some("1234567890"),
-    CivilServiceExperienceDetails(applicable = false))
+    toData(Some(CivilServiceExperienceDetails(applicable = false))))
 
   val ValidFormUrlEncodedBody = Seq(
     "firstName" -> ValidUKAddressForm.firstName,
@@ -76,7 +76,22 @@ object GeneralDetailsFormExamples {
     "address.line4" -> ValidUKAddressForm.address.line4.getOrElse(""),
     "postCode" -> ValidUKAddressForm.postCode.getOrElse(""),
     "phone" -> ValidUKAddressForm.phone.map(_.toString).getOrElse(""),
-    "civilServiceExperienceDetails.applicable" -> ValidUKAddressForm.civilServiceExperienceDetails.applicable.toString
+    "civilServiceExperienceDetails.applicable" -> ValidUKAddressForm.civilServiceExperienceDetails.get.applicable.toString
+  )
+
+  val ValidFormUrlEncodedBodyEdip = Seq(
+    "firstName" -> ValidUKAddressForm.firstName,
+    "lastName" -> ValidUKAddressForm.lastName,
+    "preferredName" -> ValidUKAddressForm.preferredName,
+    "dateOfBirth.day" -> ValidUKAddressForm.dateOfBirth.day,
+    "dateOfBirth.month" -> ValidUKAddressForm.dateOfBirth.month,
+    "dateOfBirth.year" -> ValidUKAddressForm.dateOfBirth.year,
+    "address.line1" -> ValidUKAddressForm.address.line1,
+    "address.line2" -> ValidUKAddressForm.address.line2.getOrElse(""),
+    "address.line3" -> ValidUKAddressForm.address.line3.getOrElse(""),
+    "address.line4" -> ValidUKAddressForm.address.line4.getOrElse(""),
+    "postCode" -> ValidUKAddressForm.postCode.getOrElse(""),
+    "phone" -> ValidUKAddressForm.phone.map(_.toString).getOrElse("")
   )
 
 

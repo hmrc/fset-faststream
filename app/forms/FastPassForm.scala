@@ -24,7 +24,7 @@ import play.api.i18n.Messages
 
 object FastPassForm {
 
-  val EmptyCivilServiceExperienceDetails: Data = Data("", None, None, None, None)
+  val EmptyCivilServiceExperienceDetails: Option[Data] = Some(Data("", None, None, None, None))
 
   val CivilServant = "CivilServant"
   val CivilServantViaFastTrack = "CivilServantViaFastTrack"

@@ -58,7 +58,7 @@ object GeneralDetailsForm {
         postCode -> of(postCodeFormatter),
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
-        FastPassForm.formQualifier -> fastPassFormMapping
+        FastPassForm.formQualifier -> optional(fastPassFormMapping)
       )(Data.apply)(Data.unapply)
     )
   }
@@ -114,7 +114,7 @@ object GeneralDetailsForm {
                   postCode: Option[PostCode],
                   country: Option[String],
                   phone: Option[PhoneNumber],
-                  civilServiceExperienceDetails: FastPassForm.Data
+                  civilServiceExperienceDetails: Option[FastPassForm.Data]
                  ) {
 
     def insideUk = outsideUk match {
@@ -134,7 +134,7 @@ object GeneralDetailsForm {
       postCode.map(p => PostCodeMapping.formatPostcode(p)),
       country,
       phone,
-      overrideCivilServiceExperienceDetails.getOrElse(civilServiceExperienceDetails),
+      overrideCivilServiceExperienceDetails.orElse(civilServiceExperienceDetails),
       updateApplicationStatus
     )
   }
