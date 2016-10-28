@@ -16,31 +16,23 @@
 
 package models.page
 
-import org.joda.time.{ DateTime, Period, PeriodType }
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
+import org.joda.time.{ DateTime, Period, PeriodType }
 
-case class Phase1TestsPage(
-  expirationDate: DateTime,
-  sjq: Option[CubiksTestPage],
-  bq: Option[CubiksTestPage]
-) {
+case class Phase2TestsPage(
+                            expirationDate: DateTime,
+                            etray: Option[CubiksTestPage]
+                          ) {
 
-  def areStarted: Boolean = {
-    sjq.exists(_.started) || bq.exists(_.started)
-  }
+  def isStarted: Boolean = etray.exists(_.started)
 
-  def allCompleted: Boolean = (sjq, bq) match {
-    case (Some(anSjq), Some(aBq)) => anSjq.completed && aBq.completed
-    case (Some(anSjq), None) => anSjq.completed
-    case _ => false
-  }
+  def isCompleted: Boolean = etray.exists(_.completed)
 
   def getDuration: String = {
 
     val now = DateTime.now
-    val date = expirationDate
 
-    val period = new Period(now, date).normalizedStandard(PeriodType.dayTime())
+    val period = new Period(now, expirationDate).normalizedStandard(PeriodType.dayTime())
 
     val periodFormat = new PeriodFormatterBuilder().
       printZeroAlways().
@@ -86,12 +78,13 @@ case class Phase1TestsPage(
   }
 }
 
-object Phase1TestsPage {
+object Phase2TestsPage {
 
-  def apply(profile: connectors.exchange.Phase1TestGroupWithNames): Phase1TestsPage = {
-    Phase1TestsPage(expirationDate = profile.expirationDate,
-      sjq = profile.activeTests.get("sjq").map(CubiksTestPage.apply),
-      bq = profile.activeTests.get("bq").map(CubiksTestPage.apply)
+  def apply(profile: connectors.exchange.Phase2TestGroupWithActiveTest): Phase2TestsPage = {
+    Phase2TestsPage(expirationDate = profile.expirationDate,
+      etray = Some(CubiksTestPage.apply(profile.activeTest))
     )
   }
 }
+
+
