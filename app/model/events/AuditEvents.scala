@@ -45,5 +45,13 @@ object AuditEvents {
   case class ApplicationExpiryReminder(details: Map[String, String]) extends AuditEvent
   case class ExpiredTestEmailSent(details: Map[String, String]) extends AuditEventNoRequest
   case class FailedTestEmailSent(details: Map[String, String]) extends AuditEventNoRequest
+
   case class Phase2TestsReset(details: Map[String, String]) extends AuditEventNoRequest
+
+  case class VideoInterviewCandidateRegistered(details: (String, String)*) extends AuditEventNoRequest
+  case class VideoInterviewInvited(details: (String, String)*) extends AuditEventNoRequest
+  case class VideoInterviewInvitationEmailSent(details: (String, String)*) extends AuditEventNoRequest
+  case class VideoInterviewRegistrationAndInviteComplete(details: (String, String)*) extends AuditEventNoRequest
+  case class VideoInterviewExtended(details: (String, String)*) extends AuditEventNoRequest
+  case class VideoInterviewReset(details: (String, String)*) extends AuditEventNoRequest
 }

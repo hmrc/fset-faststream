@@ -23,15 +23,18 @@ import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects._
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.persisted.NotificationExpiringOnlineTest
+import model.ProgressStatuses._
+import model.command.ProgressResponse
+import model.events.{ AuditEventNoRequest, AuditEvents, DataStoreEventWithAppId, DataStoreEvents }
+import model.persisted.{ NotificationExpiringOnlineTest, Phase2TestGroup }
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
+import model._
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
-import services.events.{ EventService, EventSink }
+import services.events.EventService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -52,7 +55,7 @@ object Phase3TestService extends Phase3TestService {
   val eventService = EventService
 }
 
-trait Phase3TestService extends OnlineTestService with ResetPhase3Test with EventSink {
+trait Phase3TestService extends OnlineTestService with ResetPhase3Test {
   val appRepository: GeneralApplicationRepository
   val phase3TestRepo: Phase3TestRepository
   val cdRepository: contactdetails.ContactDetailsRepository
@@ -90,7 +93,11 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
       // TODO: Trigger email when template is available
       // _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
-    } yield audit("Phase3TestInvitationProcessComplete", application.userId)
+      _ <- eventService.handle(
+        AuditEvents.VideoInterviewRegistrationAndInviteComplete("userId" -> application.userId) ::
+        DataStoreEvents.VideoInterviewRegistrationAndInviteComplete(application.applicationId) :: Nil
+      )
+    } yield {}
   }
 
   override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
@@ -121,11 +128,41 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
     }
   }
 
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
+                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    val progressFut = appRepository.findProgress(applicationId)
+    val phase3TestGroup = phase3TestRepo.getTestGroup(applicationId)
+      .map(tg => tg.getOrElse(throw new IllegalStateException("Expiration date for Phase 3 cannot be extended. Test group not found.")))
+
+    for {
+      progress <- progressFut
+      phase3 <- phase3TestGroup
+      isAlreadyExpired = progress.phase3ProgressResponse.phase3TestsExpired
+      extendDays = extendTime(isAlreadyExpired, phase3.expirationDate)
+      newExpiryDate = extendDays(extraDays)
+      _ <- phase3TestRepo.updateGroupExpiryTime(applicationId, newExpiryDate, phase3TestRepo.phaseName)
+      _ <- progressStatusesToRemoveWhenExtendTime(newExpiryDate, phase3, progress)
+        .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
+      _ <- eventService.handle(AuditEvents.VideoInterviewExtended(
+        "isAlreadyExpired" -> isAlreadyExpired.toString,
+        "applicationId" -> applicationId) ::
+        DataStoreEvents.VideoInterviewExtended(applicationId, actionTriggeredBy) :: Nil)
+    } yield {}
+  }
+
+  def logEvent(auditClass: Map[String, String] => AuditEventNoRequest,
+                        dataStoreEvent: Map[String, String] => DataStoreEventWithAppId,
+                        params: (String, String)*): Future[Unit] =
+    eventService.handle(auditClass(params.toMap) :: dataStoreEvent(params.toMap) :: Nil)
+
   private def registerApplicant(application: OnlineTestApplication,
                         emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
     launchpadGatewayClient.registerApplicant(registerApplicant).map { registration =>
-      audit("Phase3UserRegistered", application.userId)
+      eventService.handle(
+        AuditEvents.VideoInterviewCandidateRegistered("userId" -> application.userId) ::
+        DataStoreEvents.VideoInterviewCandidateRegistered(application.applicationId) :: Nil
+      )
       registration.candidateId
     }
   }
@@ -148,7 +185,15 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
   )(implicit hc: HeaderCarrier): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
-      audit("Phase3TestInvitationEmailSent", application.userId, Some(emailAddress))
+     eventService.handle(
+       AuditEvents.VideoInterviewInvitationEmailSent(
+        "userId" -> application.userId,
+        "emailAddress" -> emailAddress
+      ) ::
+       DataStoreEvents.VideoInterviewInvitationEmailSent(
+        application.applicationId
+       ) :: Nil
+     )
     }
   }
 
@@ -175,9 +220,25 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test with Even
       updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
       _ <- phase3TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
       _ <- appRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(updatedPhase3TestGroup))
-    } yield {
-      audit("Phase3TestInvited", application.userId)
-    }
+      _ <- eventService.handle(AuditEvents.VideoInterviewInvited("userId" -> application.userId) ::
+        DataStoreEvents.VideoInterviewInvited(application.applicationId) :: Nil)
+    } yield {}
+  }
+
+  private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: DateTime,
+                                                     profile: Phase3TestGroup,
+                                                     progress: ProgressResponse): Option[List[ProgressStatus]] = {
+    val shouldRemoveExpired = progress.phase3ProgressResponse.phase3TestsExpired
+    val today = dateTimeFactory.nowLocalTimeZone
+    val shouldRemoveSecondReminder = extendedExpiryDate.minusHours(Phase3SecondReminder.hoursBeforeReminder).isAfter(today)
+    val shouldRemoveFirstReminder = extendedExpiryDate.minusHours(Phase3FirstReminder.hoursBeforeReminder).isAfter(today)
+
+    val progressStatusesToRemove = (Set.empty[ProgressStatus]
+      ++ (if (shouldRemoveExpired) Set(PHASE3_TESTS_EXPIRED) else Set.empty)
+      ++ (if (shouldRemoveSecondReminder) Set(PHASE3_TESTS_SECOND_REMINDER) else Set.empty)
+      ++ (if (shouldRemoveFirstReminder) Set(PHASE3_TESTS_FIRST_REMINDER) else Set.empty)).toList
+
+    if (progressStatusesToRemove.isEmpty) { None } else { Some(progressStatusesToRemove) }
   }
 
   private def candidateEmailAddress(application: OnlineTestApplication): Future[String] =

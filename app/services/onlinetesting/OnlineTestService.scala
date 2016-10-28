@@ -175,7 +175,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 trait TimeExtension {
   val dateTimeFactory: DateTimeFactory
 
-  def extendTime(alreadyExpired: Boolean, previousExpirationDate: DateTime) = { extraDays: Int =>
+  def extendTime(alreadyExpired: Boolean, previousExpirationDate: DateTime): (Int) => DateTime = { extraDays: Int =>
     if (alreadyExpired) {
       dateTimeFactory.nowLocalTimeZone.plusDays(extraDays)
     } else {

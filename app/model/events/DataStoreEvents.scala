@@ -73,11 +73,15 @@ object DataStoreEvents {
   case class ETrayReset(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class ETrayResultSent(appId: String) extends DataStoreEventWithAppId
 
+  case class VideoInterviewInvited(appId: String) extends DataStoreEventWithAppId
+  case class VideoInterviewCandidateRegistered(appId: String) extends DataStoreEventWithAppId
+  case class VideoInterviewRegistrationAndInviteComplete(appId: String) extends DataStoreEventWithAppId
+  case class VideoInterviewInvitationEmailSent(appId: String extends DataStoreEventWithAppId
   case class VideoInterviewStarted(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewCompleted(appId: String) extends DataStoreEventWithAppId
-  case class VideoInterviewExtended(appId: String) extends DataStoreEventWithAppId
-  case class VideoInterviewReset(appId: String) extends DataStoreEventWithAppId
-  case class VideoInterviewResultSnet(appId: String) extends DataStoreEventWithAppId
+  case class VideoInterviewExtended(appId: String, createdByUser: String) extends DataStoreEventWithAppId
+  case class VideoInterviewReset(appId: String, createdByUser: String) extends DataStoreEventWithAppId
+  case class VideoInterviewResultSent(appId: String) extends DataStoreEventWithAppId
 
   case class ManageAdjustmentsUpdated(appId: String) extends DataStoreEventWithAppId
   case class FastPassApproved(appId: String) extends DataStoreEventWithAppId
