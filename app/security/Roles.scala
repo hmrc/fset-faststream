@@ -24,8 +24,8 @@ import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+// scalastyle:off
 object Roles {
-  // scalastyle:off
   import RoleUtils._
 
   trait CsrAuthorization {
@@ -147,6 +147,16 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS) && isPhase2TestExpired(user)
   }
 
+  object Phase3TestInvitedRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE3_TESTS)
+  }
+
+  object Phase3TestExpiredRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE3_TESTS) && isPhase3TestExpired(user)
+  }
+
   object DisplayOnlineTestSectionRole extends CsrAuthorization {
     // format: OFF
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
@@ -202,7 +212,7 @@ object Roles {
     UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
     WithdrawApplicationRole -> routes.HomeController.present()
   ).reverse
-  // scalastyle:on
+
 }
 
 object RoleUtils {
@@ -252,6 +262,7 @@ object RoleUtils {
     user.application.isDefined && progress.phase1TestProgress.phase1TestsPassed
   }
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
+  def isPhase3TestExpired(implicit user: CachedData) = progress.phase3TestProgress.phase3TestsExpired
 
   def isFaststream(implicit user: CachedData) = {
     // TODO: Once the application creation is moved, we may use this line check explicitly:
@@ -269,3 +280,4 @@ object RoleUtils {
     true
   }
 }
+// scalastyle:on

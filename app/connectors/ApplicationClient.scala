@@ -180,6 +180,13 @@ trait ApplicationClient {
     }
   }
 
+  def getPhase3TestGroup(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase3TestGroup] = {
+    http.GET(s"${url.host}${url.base}/phase3-test-group/$appId").map { response =>
+      response.json.as[Phase3TestGroup]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
   def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"${url.host}${url.base}/cubiks/$cubiksUserId/start", "").map(_ => ())
   }
@@ -199,7 +206,6 @@ trait ApplicationClient {
   def confirmAllocation(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(s"${url.host}${url.base}/allocation-status/confirm/$appId", "").map(_ => ())
   }
-
 }
 
 trait TestDataClient {

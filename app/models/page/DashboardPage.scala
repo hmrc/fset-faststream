@@ -36,10 +36,12 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isPhase1TestsPassed: Boolean,
   isTestGroupExpired: Boolean,
   isPhase2TestGroupExpired: Boolean,
+  isPhase3TestGroupExpired: Boolean,
   isPhase1TestFailed: Boolean,
   fullName: String,
   phase1TestsPage: Option[Phase1TestsPage],
   phase2TestsPage: Option[Phase2TestsPage],
+  phase3TestsPage: Option[Phase3TestsPage],
   assessmentStageStatus: AssessmentStageStatus,
   postAssessmentStageStatus: PostAssessmentStageStatus
 )
@@ -51,7 +53,7 @@ object DashboardPage {
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
   def apply(user: CachedData, allocationDetails: Option[AllocationDetails], phase1TestGroup: Option[Phase1TestsPage],
-    phase2TestGroup: Option[Phase2TestsPage]
+    phase2TestGroup: Option[Phase2TestsPage], phase3TestGroup: Option[Phase3TestsPage]
   )(implicit request: RequestHeader, lang: Lang): DashboardPage = {
 
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility,
@@ -71,10 +73,12 @@ object DashboardPage {
       isPhase1TestsPassed(user),
       isTestGroupExpired(user),
       isPhase2TestGroupExpired(user),
+      isPhase3TestGroupExpired(user),
       isPhase1TestFailed(user),
       user.user.firstName + " " + user.user.lastName,
       phase1TestGroup,
       phase2TestGroup,
+      phase3TestGroup,
       getAssessmentInProgressStatus(user, allocationDetails),
       getPostAssessmentStatus(user, allocationDetails)
     )
@@ -189,6 +193,9 @@ object DashboardPage {
 
   private def isPhase2TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     Phase2TestExpiredRole.isAuthorized(user)
+
+  private def isPhase3TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    Phase3TestExpiredRole.isAuthorized(user)
 
   private def getAssessmentInProgressStatus(user: CachedData,
     allocationDetails: Option[AllocationDetails])
