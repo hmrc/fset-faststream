@@ -28,7 +28,6 @@ object ProgressExamples {
       phase3TestsStarted = false,
       phase3TestsCompleted = false,
       phase3TestsExpired = false,
-      phase3TestsResultsReady = false,
       phase3TestsResultsReceived = false
     ),
     false,
@@ -44,7 +43,6 @@ object ProgressExamples {
       phase3TestsStarted = true,
       phase3TestsCompleted = true,
       phase3TestsExpired = true,
-      phase3TestsResultsReady = true,
       phase3TestsResultsReceived = true
     ),
     true,
