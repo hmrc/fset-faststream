@@ -44,7 +44,7 @@ trait ApplicationController extends BaseController {
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
-      appRepository.create(applicationRequest.userId, applicationRequest.frameworkId).map { result =>
+      appRepository.create(applicationRequest.userId, applicationRequest.frameworkId, applicationRequest.applicationRoute).map { result =>
         auditService.logEvent("ApplicationCreated")
         Ok(Json.toJson(result))
       }

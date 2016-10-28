@@ -21,7 +21,7 @@ import config.MicroserviceAppConfig.cubiksGatewayConfig
 import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
-import model.EvaluationResults
+import model.{ ApplicationRoute, EvaluationResults }
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
@@ -30,7 +30,7 @@ import model.report.AdjustmentReport
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper, TestDataMongoRepository}
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper, TestDataMongoRepository }
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
@@ -69,7 +69,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
     "return the gis parameter" in {
       val userId = "userId9876"
-      val applicationId = applicationRepo.create(userId, "frameworkId").futureValue.applicationId
+      val applicationId = applicationRepo.create(userId, "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId
 
       val details = AssistanceDetails("Yes", Some("disability"), Some(true), true, Some("adjustment online"), true, Some("adjustment venue"))
       assistanceRepo.update(applicationId, userId, details).futureValue
@@ -103,7 +103,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
 
     "return a list of Candidates when records for an applicationid exist" in {
-      val appResponse = applicationRepo.create("userId1", "framework").futureValue
+      val appResponse = applicationRepo.create("userId1", "framework", ApplicationRoute.Faststream).futureValue
 
       val result = applicationRepo.find(List(appResponse.applicationId)).futureValue
 
@@ -116,7 +116,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   "Submit application" should {
     "capture the submission date and change the application status to submitted" in {
       val applicationStatus = (for {
-        app <- applicationRepo.create("userId1", frameworkId)
+        app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
         _ <- applicationRepo.submit(app.applicationId)
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
@@ -129,7 +129,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   "Withdrawn application" should {
     "capture the withdrawn date and change the application status to withdrawn" in {
       val applicationStatus = (for {
-        app <- applicationRepo.create("userId1", frameworkId)
+        app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
         _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplication("test", None, "test"))
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
@@ -148,8 +148,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "return a list of non submitted applications when there are only non submitted applications" in {
       Await.ready({
         for {
-          _ <- applicationRepo.create("userId1", frameworkId)
-          _ <- applicationRepo.create("userId2", frameworkId)
+          _ <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
         } yield {
           Unit
         }
@@ -166,9 +166,9 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "return only submitted applications" in {
       Await.ready({
         for {
-          app <- applicationRepo.create("userId1", frameworkId)
+          app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
           _ <- applicationRepo.submit(app.applicationId)
-          app2 <- applicationRepo.create("userId2", frameworkId)
+          app2 <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
           _ <- applicationRepo.submit(app2.applicationId)
         } yield {
           Unit
@@ -186,8 +186,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "return only the applications in a specific framework id" in {
       Await.ready({
         for {
-          app <- applicationRepo.create("userId1", frameworkId)
-          app2 <- applicationRepo.create("userId2", "otherFramework")
+          app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+          app2 <- applicationRepo.create("userId2", "otherFramework", ApplicationRoute.Faststream)
         } yield {
           Unit
         }
@@ -200,14 +200,14 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "return a list of non submitted applications with submitted applications" in {
       Await.ready({
         for {
-          app1 <- applicationRepo.create("userId1", frameworkId)
+          app1 <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
           _ <- applicationRepo.submit(app1.applicationId)
-          _ <- applicationRepo.create("userId2", frameworkId)
-          app3 <- applicationRepo.create("userId3", frameworkId)
+          _ <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
+          app3 <- applicationRepo.create("userId3", frameworkId, ApplicationRoute.Faststream)
           _ <- applicationRepo.submit(app3.applicationId)
-          app4 <- applicationRepo.create("userId4", frameworkId)
+          app4 <- applicationRepo.create("userId4", frameworkId, ApplicationRoute.Faststream)
           _ <- applicationRepo.submit(app4.applicationId)
-          _ <- applicationRepo.create("userId5", frameworkId)
+          _ <- applicationRepo.create("userId5", frameworkId, ApplicationRoute.Faststream)
         } yield {
           Unit
         }
