@@ -21,6 +21,7 @@ import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 import scala.language.implicitConversions
 
+// scalastyle:off number.of.methods
 object ProgressStatuses {
   val RegisteredProgress = "registered"
   val PersonalDetailsCompletedProgress = "personal_details_completed"
@@ -54,6 +55,15 @@ object ProgressStatuses {
   val Phase2TestsResultsReceived = "phase2_tests_results_received"
   val Phase2TestsPassed = "phase2_tests_passed"
   val Phase2TestsFailed = "phase2_tests_failed"
+  val Phase3TestsInvited = "phase3_tests_invited"
+  val Phase3TestsFirstReminder = "phase3_tests_first_reminder"
+  val Phase3TestsSecondReminder = "phase3_tests_second_reminder"
+  val Phase3TestsStarted = "phase3_tests_started"
+  val Phase3TestsCompleted = "phase3_tests_completed"
+  val Phase3TestsExpired = "phase3_tests_expired"
+  val Phase3TestsResultsReceived = "phase3_tests_results_received"
+  val Phase3TestsPassed = "phase3_tests_passed"
+  val Phase3TestsFailed = "phase3_tests_failed"
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
   val OnlineTestFailedNotifiedProgress = "online_test_failed_notified"
@@ -110,9 +120,10 @@ object ProgressStatuses {
 
   case object PHASE3_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_FIRST_REMINDER extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_SECOND_REMINDER extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
-  case object PHASE3_TESTS_RESULTS_READY extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_PASSED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
@@ -143,4 +154,4 @@ object ProgressStatuses {
   }.toMap
 
 }
-
+// scalastyle:on

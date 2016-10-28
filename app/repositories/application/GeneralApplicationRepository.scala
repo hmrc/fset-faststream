@@ -202,10 +202,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         ),
         phase3ProgressResponse = Phase3ProgressResponse(
           phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
+          phase3TestsFirstReminder = getProgress(ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER.toString),
+          phase3TestsSecondReminder = getProgress(ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER.toString),
           phase3TestsStarted = getProgress(ProgressStatuses.PHASE3_TESTS_STARTED.toString),
           phase3TestsCompleted = getProgress(ProgressStatuses.PHASE3_TESTS_COMPLETED.toString),
           phase3TestsExpired = getProgress(ProgressStatuses.PHASE3_TESTS_EXPIRED.toString),
-          phase3TestsResultsReady = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_READY.toString),
           phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
           phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
           phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString)

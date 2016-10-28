@@ -53,6 +53,7 @@ object ApplicationStatusOrder {
     isNotWithdrawn && isNotSubmitted
   }
 
+  // scalastyle:off method.length
   def statusMaps(progress: ProgressResponse) = Seq(
     (progress.personalDetails, 10, PersonalDetailsCompletedProgress),
     (progress.schemePreferences, 20, SchemePreferencesCompletedProgress),
@@ -85,11 +86,15 @@ object ApplicationStatusOrder {
     (progress.phase2ProgressResponse.phase2TestsPassed, 280, Phase2TestsPassed),
     (progress.phase2ProgressResponse.phase2TestsFailed, 290, Phase2TestsFailed),
     (progress.phase2ProgressResponse.phase2TestsResultsReceived, 300, Phase2TestsResultsReceived),
-    (progress.phase3ProgressResponse.phase3TestsInvited, 305, Phase1TestsInvited),
-    (progress.phase3ProgressResponse.phase3TestsStarted, 310, Phase1TestsStarted),
-    (progress.phase3ProgressResponse.phase3TestsCompleted, 315, Phase1TestsCompleted),
-    (progress.phase3ProgressResponse.phase3TestsExpired, 320, Phase1TestsExpired),
-    (progress.phase3ProgressResponse.phase3TestsResultsReceived, 325, Phase1TestsResultsReceived),
+    (progress.phase3ProgressResponse.phase3TestsInvited, 305, Phase3TestsInvited),
+    (progress.phase3ProgressResponse.phase3TestsFirstReminder, 210, Phase3TestsFirstReminder),
+    (progress.phase3ProgressResponse.phase3TestsSecondReminder, 220, Phase3TestsSecondReminder),
+    (progress.phase3ProgressResponse.phase3TestsStarted, 310, Phase3TestsStarted),
+    (progress.phase3ProgressResponse.phase3TestsCompleted, 315, Phase3TestsCompleted),
+    (progress.phase3ProgressResponse.phase3TestsExpired, 320, Phase3TestsExpired),
+    (progress.phase3ProgressResponse.phase3TestsResultsReceived, 325, Phase3TestsResultsReceived),
+    (progress.phase3ProgressResponse.phase3TestsPassed, 280, Phase3TestsPassed),
+    (progress.phase3ProgressResponse.phase3TestsFailed, 280, Phase3TestsFailed),
     (progress.assessmentScores.entered, 330, AssessmentScoresEnteredProgress),
     (progress.failedToAttend, 335, FailedToAttendProgress),
     (progress.assessmentScores.accepted, 340, AssessmentScoresAcceptedProgress),
@@ -101,4 +106,5 @@ object ApplicationStatusOrder {
     (progress.assessmentScores.entered, 375, AssessmentScoresEnteredProgress),
     (progress.withdrawn, 999, WithdrawnProgress)
   )
+  // scalastyle:on
 }
