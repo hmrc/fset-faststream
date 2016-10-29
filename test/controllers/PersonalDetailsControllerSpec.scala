@@ -23,8 +23,7 @@ import connectors.{ ApplicationClient, UserManagementClient }
 import controllers.forms.GeneralDetailsFormExamples._
 import connectors.exchange.{ CivilServiceExperienceDetailsExamples, GeneralDetailsExamples }
 import models.ApplicationData.ApplicationStatus
-import models.ApplicationRoute._
-import models.{ ApplicationRoute, CachedData, ProgressResponseExamples }
+import models.{ CachedData, ProgressResponseExamples }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
@@ -109,23 +108,6 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))
-    }
-
-    "update candidate's details and return to scheme preferences fo EDIP" in {
-      when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(ProgressResponseExamples.InProgress))
-      val Application = currentCandidateWithApp.application
-        .copy(progress = ProgressResponseExamples.InProgress, applicationStatus = ApplicationStatus.IN_PROGRESS, applicationRoute = ApplicationRoute.Edip,
-          civilServiceExperienceDetails = Some(CivilServiceExperienceDetailsExamples.CivilServantExperience))
-      val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
-      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
-        eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
-      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBodyEdip: _*)
-      val result = controller.submitGeneralDetailsAndContinue()(Request)
-
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
     }
 
     "update candidate's details and return to dashboard page" in {

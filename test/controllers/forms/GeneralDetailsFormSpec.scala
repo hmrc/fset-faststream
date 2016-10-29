@@ -33,7 +33,7 @@ class GeneralDetailsFormSpec extends PlaySpec {
       form.hasErrors must be(true)
       form.hasGlobalErrors must be(false)
 
-      form.errors.map(_.key) must be(InsideUKMandatoryFieldsFastream)
+      form.errors.map(_.key) must be(InsideUKMandatoryFieldsFaststream)
     }
 
     "be successful for outside UK address without post code, but with country" in {

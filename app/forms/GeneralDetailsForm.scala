@@ -46,7 +46,6 @@ object GeneralDetailsForm {
   def maxDob(implicit now: LocalDate) = Some(ageReference.minusYears(MinAge))
 
   def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false) = {
-    val fastPassFormMapping = if(ignoreFastPassValidations) FastPassForm.ignoreForm.mapping else FastPassForm.form.mapping
 
     Form(
       mapping(
@@ -59,7 +58,7 @@ object GeneralDetailsForm {
         postCode -> of(postCodeFormatter),
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
-        FastPassForm.formQualifier -> of(fastPassFormFormatter(fastPassFormMapping))
+        FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations))
       )(Data.apply)(Data.unapply)
     )
   }
@@ -67,11 +66,11 @@ object GeneralDetailsForm {
   val isFastStream = (requestParams: Map[String, String]) => {
     requestParams.getOrElse("applicationRoute", ApplicationRoute.Faststream.toString) == ApplicationRoute.Faststream.toString}
 
-  def fastPassFormFormatter(mapping: Mapping[FastPassForm.Data]) = new Formatter[Option[FastPassForm.Data]] {
+  def fastPassFormFormatter(ignoreValidations:Boolean) = new Formatter[Option[FastPassForm.Data]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[FastPassForm.Data]] = {
-      isFastStream(data) match {
-        case true => mapping.bind(data).right.map(Some(_))
-        case false => Right(None)
+      (ignoreValidations, isFastStream(data)) match {
+        case (false, true) => FastPassForm.form.mapping.bind(data).right.map(Some(_))
+        case _ => Right(None)
       }
     }
     override def unbind(key: String, fastPassData: Option[FastPassForm.Data]) =
