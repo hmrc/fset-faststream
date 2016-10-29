@@ -38,7 +38,7 @@ trait ApplicationClient {
 
   def createApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier) = {
     http.PUT(s"${url.host}${url.base}/application/create", CreateApplicationRequest(userId,
-      frameworkId, ApplicationRoute.Edip)).map { response =>
+      frameworkId, ApplicationRoute.Faststream)).map { response =>
       response.json.as[ApplicationResponse]
     }
   }
