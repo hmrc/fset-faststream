@@ -36,16 +36,18 @@
             }
         }
     </section>
-    <section>
-        <h3 class="heading-small">When you visit any of our venues will you need any extra support?</h3>
-        @assistanceDetails.needsSupportAtVenue match {
-            case true => {
-                <p id="needsSupportAtVenue">Yes</p>
-                <p id="needsSupportAtVenueDescription">@assistanceDetails.needsSupportAtVenueDescription</p>
+    @assistanceDetails.needsSupportAtVenue.map { needsSupportAtVenue =>
+        <section>
+            <h3 class="heading-small">When you visit any of our venues will you need any extra support?</h3>
+            @needsSupportAtVenue match {
+                case true => {
+                    <p id="needsSupportAtVenue">Yes</p>
+                    <p id="needsSupportAtVenueDescription">@assistanceDetails.needsSupportAtVenueDescription</p>
+                }
+                case false => {
+                    <p>No</p>
+                }
             }
-            case false => {
-                <p>No</p>
-            }
-        }
-    </section>
+        </section>
+    }
 </section>

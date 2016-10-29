@@ -19,6 +19,7 @@ package controllers.forms
 import controllers.BaseSpec
 import forms.AssistanceDetailsForm
 import forms.AssistanceDetailsForm.Data
+import models.ApplicationRoute
 import play.api.data.Form
 
 class AssistanceDetailsFormSpec extends BaseSpec {
@@ -43,6 +44,19 @@ class AssistanceDetailsFormSpec extends BaseSpec {
       assertFormError(Seq(
         "Tell us if you wish to apply under the Guaranteed interview scheme"
       ), AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "guaranteedInterview")
+    }
+
+    "be invalid when venue adjustments are not selected for a fast-stream application" in new Fixture {
+      assertFormError(Seq(
+        "Tell us if you need extra support when you visit any of our venues"
+      ), AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "needsSupportAtVenue")
+    }
+
+    "be valid when venue adjustments are not selected for an edip application" in new Fixture {
+      val requestParams = (AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "needsSupportAtVenue") +
+        ("applicationRoute" -> ApplicationRoute.Edip.toString)
+
+      AssistanceDetailsForm.form.bind(requestParams).hasErrors mustBe false
     }
   }
 
