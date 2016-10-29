@@ -16,7 +16,6 @@
 
 package connectors.exchange
 
-import forms.AssistanceDetailsForm
 import play.api.libs.json.Json
 
 
@@ -25,7 +24,7 @@ case class AssistanceDetails(hasDisability: String,
                              guaranteedInterview: Option[Boolean],
                              needsSupportForOnlineAssessment: Boolean,
                              needsSupportForOnlineAssessmentDescription: Option[String],
-                             needsSupportAtVenue: Boolean,
+                             needsSupportAtVenue: Option[Boolean],
                              needsSupportAtVenueDescription: Option[String])
 
 object AssistanceDetails {
