@@ -36,9 +36,11 @@ trait ApplicationClient {
   import config.FrontendAppConfig.faststreamConfig._
   import exchange.Implicits._
 
-  def createApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier) = {
+  def createApplication(userId: UniqueIdentifier, frameworkId: String,
+    applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream)
+    (implicit hc: HeaderCarrier) = {
     http.PUT(s"${url.host}${url.base}/application/create", CreateApplicationRequest(userId,
-      frameworkId, ApplicationRoute.Faststream)).map { response =>
+      frameworkId, applicationRoute)).map { response =>
       response.json.as[ApplicationResponse]
     }
   }

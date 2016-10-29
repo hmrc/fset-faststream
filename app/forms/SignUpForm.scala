@@ -100,7 +100,7 @@ object SignUpForm {
           if (fsEligable) { Right(appRoute) }
             else { Left(List(FormError("faststreamEligible", Messages("agree.faststreamEligible")))) }
 
-        case ApplicationRoute.Edip => val edipEligable = data.getOrElse("edipEligable", "false").toBoolean
+        case ApplicationRoute.Edip => val edipEligable = data.getOrElse("edipEligible", "false").toBoolean
           if (edipEligable) { Right(appRoute) }
             else { Left(List(FormError("edipEligible", Messages("agree.edipEligible")))) }
 

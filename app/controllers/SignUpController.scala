@@ -24,7 +24,7 @@ import connectors.ApplicationClient
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange.Implicits._
 import helpers.NotificationType._
-import models.SecurityUser
+import models.{ ApplicationRoute, SecurityUser }
 import security.SignInService
 
 import scala.concurrent.Future
@@ -52,13 +52,15 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
         data => {
           env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
             applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
-              signInUser(
-                u.toCached,
-                redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
-                env = env
-              ).map { r =>
-                env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
-                r
+              applicationClient.createApplication(u.userId, "FastStream-2016", ApplicationRoute.withName(data.applicationRoute)).flatMap { _ =>
+                signInUser(
+                  u.toCached,
+                  redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
+                  env = env
+                ).map { r =>
+                  env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
+                  r
+                }
               }
             }
           }.recover {
