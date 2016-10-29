@@ -24,13 +24,14 @@ import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
 import model.ApplicationStatus._
 import model.EvaluationResults.Result
+import model.Exceptions.EmailTakenException
 import model.ProgressStatuses
-import model.command.testdata.{CreateCandidateInStatusRequest, CreateCandidateInStatusRequest$}
+import model.command.testdata.{CreateCandidateInStatusRequest }
 import model.command.testdata.CreateCandidateInStatusRequest._
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}
 import play.api.Play
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.mvc.{Action, RequestHeader}
 import services.testdata._
 import services.testdata.faker.DataFaker.Random
@@ -58,9 +59,14 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  def createAdminUsers(numberToGenerate: Int, emailPrefix: String, role: String) = Action.async { implicit request =>
-    TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
-      Ok(Json.toJson(candidates))
+  def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String) = Action.async { implicit request =>
+    try {
+      TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
+        Ok(Json.toJson(candidates))
+      }
+    } catch {
+      case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
+          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
   }
 
@@ -83,8 +89,8 @@ trait TestDataGeneratorController extends BaseController {
   def createCandidatesInStatusGET(applicationStatus: String,
                                   progressStatus: Option[String],
                                   numberToGenerate: Int,
-                                  emailPrefix: String,
                                   setGis: Boolean,
+                                  emailPrefix: Option[String],
                                   firstName: Option[String],
                                   lastName: Option[String],
                                   preferredName: Option[String],
@@ -148,14 +154,19 @@ trait TestDataGeneratorController extends BaseController {
                                       numberToGenerate: Int)
                                      (implicit hc: HeaderCarrier, rh: RequestHeader)
   = {
-    TestDataGeneratorService.createCandidatesInSpecificStatus(
-      numberToGenerate,
-      StatusGeneratorFactory.getGenerator(withName(applicationStatus),
-        progressStatus.map(ps => ProgressStatuses.nameToProgressStatus(ps)),
-        config),
-      config
-    ).map { candidates =>
-      Ok(Json.toJson(candidates))
+    try {
+      TestDataGeneratorService.createCandidatesInSpecificStatus(
+        numberToGenerate,
+        StatusGeneratorFactory.getGenerator(withName(applicationStatus),
+          progressStatus.flatMap(ps => ProgressStatuses.nameToProgressStatus.get(ps)),
+          config),
+        config
+      ).map { candidates =>
+        Ok(Json.toJson(candidates))
+      }
+    } catch {
+      case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
+          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
   }
 
@@ -175,7 +186,7 @@ trait TestDataGeneratorController extends BaseController {
 
   private def requestToGeneratorConfig(request: CreateCandidateInStatusRequest) = {
     GeneratorConfig(
-      emailPrefix = request.emailPrefix.getOrElse(""),
+      emailPrefix = request.emailPrefix,
       hasDisability = request.assistanceDetails.flatMap { ad => ad.hasDisability },
       hasDisabilityDescription = request.assistanceDetails.flatMap { ad => ad.hasDisabilityDescription },
       setGis = request.assistanceDetails.flatMap { ad => ad.setGis }.getOrElse(false),

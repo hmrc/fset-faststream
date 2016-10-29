@@ -22,7 +22,6 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 import scala.language.implicitConversions
 
-// scalastyle:off number.of.types
 // scalastyle:off number.of.methods
 object ProgressStatuses {
   sealed abstract class ProgressStatus(val applicationStatus: ApplicationStatus) {
@@ -90,7 +89,13 @@ object ProgressStatuses {
 
   case object PHASE3_TESTS_INVITED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_STARTED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_FIRST_REMINDER extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_SECOND_REMINDER extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_PASSED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
 
   @deprecated("This status is not used in Faststream", "24/10/2016")
   case object FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FAILED_TO_ATTEND)
@@ -146,4 +151,4 @@ object ProgressStatuses {
     if (matching.size == 1) matching.headOption else None
   }
 }
-
+// scalastyle:on

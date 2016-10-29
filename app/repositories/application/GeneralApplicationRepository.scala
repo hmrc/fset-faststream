@@ -52,7 +52,7 @@ import scala.concurrent.Future
 // scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
 
-  def create(userId: String, frameworkId: String): Future[ApplicationResponse]
+  def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse]
 
   def find(applicationId: String): Future[Option[Candidate]]
 
@@ -199,9 +199,19 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
           phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key)
         ),
-        failedToAttend = getProgress(ProgressStatuses.FAILED_TO_ATTEND.key),
-        assessmentScores = AssessmentScores(getProgress(ProgressStatuses.ASSESSMENT_SCORES_ENTERED.key),
-          getProgress(ProgressStatuses.ASSESSMENT_SCORES_ACCEPTED.key)),
+        phase3ProgressResponse = Phase3ProgressResponse(
+          phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
+          phase3TestsFirstReminder = getProgress(ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER.toString),
+          phase3TestsSecondReminder = getProgress(ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER.toString),
+          phase3TestsStarted = getProgress(ProgressStatuses.PHASE3_TESTS_STARTED.toString),
+          phase3TestsCompleted = getProgress(ProgressStatuses.PHASE3_TESTS_COMPLETED.toString),
+          phase3TestsExpired = getProgress(ProgressStatuses.PHASE3_TESTS_EXPIRED.toString),
+          phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
+          phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
+          phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString)
+        ),
+        failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
+        assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
         assessmentCentre = AssessmentCentre(
           getProgress(ProgressStatuses.AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.key),
           getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
@@ -220,17 +230,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReport(findProgress))
   implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
-  override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
+  override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
     val applicationBSON = BSONDocument(
       "applicationId" -> applicationId,
       "userId" -> userId,
       "frameworkId" -> frameworkId,
-      "applicationStatus" -> CREATED
+      "applicationStatus" -> CREATED,
+      "applicationRoute" -> route
     )
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, CREATED, userId, p, None)
+        ApplicationResponse(applicationId, CREATED, route, userId, p, None)
       }
     }
   }
@@ -281,9 +292,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
         findProgress(applicationId).map { progress =>
-          ApplicationResponse(applicationId, applicationStatus, userId, progress, fastPassReceived)
+          ApplicationResponse(applicationId, applicationStatus, applicationRoute, userId, progress, fastPassReceived)
         }
       case None => throw ApplicationNotFound(userId)
     }

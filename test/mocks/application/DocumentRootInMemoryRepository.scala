@@ -16,6 +16,7 @@
 
 package mocks.application
 
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
 import model.Commands._
@@ -43,10 +44,10 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def find(applicationId: String): Future[Option[Candidate]] = ???
 
-  override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
+  override def create(userId: String, frameworkId: String, applicationRoute:ApplicationRoute): Future[ApplicationResponse] = {
 
     val applicationId = java.util.UUID.randomUUID().toString
-    val applicationCreated = ApplicationResponse(applicationId, "CREATED", userId,
+    val applicationCreated = ApplicationResponse(applicationId, "CREATED", ApplicationRoute.Faststream, userId,
       ProgressResponse(applicationId), None)
 
     inMemoryRepo += applicationId -> applicationCreated
@@ -64,7 +65,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
     case "invalidUser" => Future.failed(new ApplicationNotFound("invalidUser"))
     case _ =>
       val applicationId = "1111-1111"
-      val applicationCreated = ApplicationResponse(applicationId, "CREATED", userId,
+      val applicationCreated = ApplicationResponse(applicationId, "CREATED", ApplicationRoute.Faststream, userId,
         ProgressResponse(applicationId), None)
       Future.successful(applicationCreated)
   }
