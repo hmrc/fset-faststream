@@ -16,22 +16,15 @@
 
 package model.exchange.passmarksettings
 
-import model.SchemeType.SchemeType
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-// format: OFF
 case class Phase1PassMarkSettings(schemes: List[Phase1PassMark],
                                   version: String,
                                   createDate: DateTime,
-                                  createdBy: String
-) {
-  def findPassmarkForScheme(scheme: SchemeType): Phase1PassMark =
-    schemes.find(_.schemeName == scheme).getOrElse(throw new IllegalStateException(s"Cannot find passmark for $scheme"))
-}
+                                  createdBy: String)
 
-// format: ON
 object Phase1PassMarkSettings {
   import repositories.BSONDateTimeHandler
   implicit val phase1PassMarkSettings = Json.format[Phase1PassMarkSettings]
