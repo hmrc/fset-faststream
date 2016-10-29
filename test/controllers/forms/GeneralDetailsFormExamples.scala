@@ -80,22 +80,6 @@ object GeneralDetailsFormExamples {
     "civilServiceExperienceDetails.applicable" -> ValidUKAddressForm.civilServiceExperienceDetails.get.applicable.toString
   )
 
-  val ValidFormUrlEncodedBodyEdip = Seq(
-    "firstName" -> ValidUKAddressForm.firstName,
-    "lastName" -> ValidUKAddressForm.lastName,
-    "preferredName" -> ValidUKAddressForm.preferredName,
-    "dateOfBirth.day" -> ValidUKAddressForm.dateOfBirth.day,
-    "dateOfBirth.month" -> ValidUKAddressForm.dateOfBirth.month,
-    "dateOfBirth.year" -> ValidUKAddressForm.dateOfBirth.year,
-    "address.line1" -> ValidUKAddressForm.address.line1,
-    "address.line2" -> ValidUKAddressForm.address.line2.getOrElse(""),
-    "address.line3" -> ValidUKAddressForm.address.line3.getOrElse(""),
-    "address.line4" -> ValidUKAddressForm.address.line4.getOrElse(""),
-    "postCode" -> ValidUKAddressForm.postCode.getOrElse(""),
-    "phone" -> ValidUKAddressForm.phone.map(_.toString).getOrElse("")
-  )
-
-
   private def yearInTheFuture = DateTime.now().plusYears(2).year().get().toString
 
   def birthYear = LocalDate.now.minusYears(18).year().get().toString
