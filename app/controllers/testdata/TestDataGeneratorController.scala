@@ -158,7 +158,7 @@ trait TestDataGeneratorController extends BaseController {
       TestDataGeneratorService.createCandidatesInSpecificStatus(
         numberToGenerate,
         StatusGeneratorFactory.getGenerator(withName(applicationStatus),
-          progressStatus.flatMap(ps => ProgressStatuses.nameToProgressStatus.get(ps)),
+          progressStatus.map(ps => ProgressStatuses.nameToProgressStatus(ps)),
           config),
         config
       ).map { candidates =>
