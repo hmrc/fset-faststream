@@ -1,0 +1,4 @@
+@(optCachedData: Option[CachedData])
+@defining(optCachedData.fold("")(_.application.fold("")(_.applicationRoute.toString))) { applicationRoute =>
+    <input type="hidden" id="applicationRoute" name="applicationRoute" value="@applicationRoute" />
+}

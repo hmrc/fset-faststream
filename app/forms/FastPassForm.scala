@@ -24,7 +24,7 @@ import play.api.i18n.Messages
 
 object FastPassForm {
 
-  val EmptyCivilServiceExperienceDetails: Data = Data("", None, None, None, None)
+  val EmptyCivilServiceExperienceDetails: Option[Data] = Some(Data("", None, None, None, None))
 
   val CivilServant = "CivilServant"
   val CivilServantViaFastTrack = "CivilServantViaFastTrack"
@@ -66,21 +66,11 @@ object FastPassForm {
 
   def form = {
     Form(mapping(
-      applicable -> nonemptyBooleanText("error.applicable.required"),
-      civilServiceExperienceType -> of(civilServiceExperienceTypeFormatter),
-      internshipTypes -> of(internshipTypesFormatter),
-      fastPassReceived -> of(fastPassReceivedFormatter),
-      certificateNumber -> of(fastPassCertificateFormatter)
-    )(Data.apply)(Data.unapply))
-  }
-
-  def ignoreForm = {
-    Form(mapping(
-      applicable -> ignored(""),
-      civilServiceExperienceType -> ignored(Option("")),
-      internshipTypes -> ignored(Option(Seq(""))),
-      fastPassReceived -> ignored(Option(false)),
-      certificateNumber -> ignored(Option(""))
+      s"$formQualifier.applicable" -> nonemptyBooleanText("error.applicable.required"),
+      s"$formQualifier.civilServiceExperienceType" -> of(civilServiceExperienceTypeFormatter),
+      s"$formQualifier.internshipTypes" -> of(internshipTypesFormatter),
+      s"$formQualifier.fastPassReceived" -> of(fastPassReceivedFormatter),
+      s"$formQualifier.certificateNumber" -> of(fastPassCertificateFormatter)
     )(Data.apply)(Data.unapply))
   }
 

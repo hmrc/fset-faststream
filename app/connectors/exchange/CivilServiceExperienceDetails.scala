@@ -36,19 +36,23 @@ object CivilServiceExperienceDetails {
 
   implicit val civilServiceExperienceDetailsFormat = Json.format[CivilServiceExperienceDetails]
 
-  implicit def toData(exchange: CivilServiceExperienceDetails): Data = Data(
+  implicit def toData(optExchange: Option[CivilServiceExperienceDetails]): Option[Data] = optExchange.map(exchange => Data(
     exchange.applicable.toString,
     exchange.civilServiceExperienceType,
     exchange.internshipTypes,
     exchange.fastPassReceived,
     exchange.certificateNumber
-  )
+  ))
 
-  implicit def toExchange(data: Data): CivilServiceExperienceDetails = CivilServiceExperienceDetails(
-    data.applicable.toBoolean,
-    data.civilServiceExperienceType,
-    data.internshipTypes,
-    data.fastPassReceived,
-    data.certificateNumber
-  )
+  implicit def toExchange(optData: Option[Data]): Option[CivilServiceExperienceDetails] = {
+    optData.map( data =>
+      CivilServiceExperienceDetails(
+        data.applicable.toBoolean,
+        data.civilServiceExperienceType,
+        data.internshipTypes,
+        data.fastPassReceived,
+        data.certificateNumber
+      )
+    )
+  }
 }

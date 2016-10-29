@@ -1,5 +1,7 @@
-@(currentPage: Int, numberOfPages: Int)
-
-<section class="page-progress">
-    <p><span class="lede">Page @currentPage of @numberOfPages</span></p>
-</section>
+@(currentPage: Int, numberOfPages: Int)(implicit user: Option[CachedData])
+@import security.RoleUtils._
+@if(!isEdip(user)) {
+    <section class="page-progress">
+        <p><span class="lede">Page @currentPage of @numberOfPages</span></p>
+    </section>
+}

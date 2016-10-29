@@ -90,8 +90,10 @@ object Roles {
 
   object AssistanceDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && (hasPartnerGraduateProgrammes(user) ||
-        (hasSchemes(user) && isCivilServant(user)))
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
+        (hasPartnerGraduateProgrammes(user) ||
+          (hasSchemes(user) && isCivilServant(user)) ||
+          hasPersonalDetails(user) && isEdip(user))
   }
 
   object PreviewApplicationRole extends CsrAuthorization {
@@ -262,6 +264,10 @@ object RoleUtils {
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
   def isPhase3TestExpired(implicit user: CachedData) = progress.phase3TestProgress.phase3TestsExpired
 
+  def isFaststream(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Faststream
+
+  def isEdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Edip
+
   def isFaststream(implicit user: CachedData) = {
     user.application exists (_.applicationRoute == ApplicationRoute.Faststream)
   }
@@ -275,7 +281,7 @@ object RoleUtils {
   }
 
   def isEdip(implicit user: Option[CachedData]): Boolean = {
-    user.forall(u => isEdip(u))
+    user.exists(isEdip(_))
   }
 }
 // scalastyle:on
