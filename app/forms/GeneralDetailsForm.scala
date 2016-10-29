@@ -21,10 +21,11 @@ import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping._
 import mappings.{ Address, DayMonthYear, PhoneNumberMapping, PostCodeMapping }
+import models.ApplicationRoute
 import org.joda.time.LocalDate
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError }
+import play.api.data.{ Form, FormError, Mapping }
 
 object GeneralDetailsForm {
   private val MinAge = 16
@@ -58,9 +59,23 @@ object GeneralDetailsForm {
         postCode -> of(postCodeFormatter),
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
-        FastPassForm.formQualifier -> optional(fastPassFormMapping)
+        FastPassForm.formQualifier -> of(fastPassFormFormatter(fastPassFormMapping))
       )(Data.apply)(Data.unapply)
     )
+  }
+
+  val isFastStream = (requestParams: Map[String, String]) => {
+    requestParams.getOrElse("applicationRoute", ApplicationRoute.Faststream.toString) == ApplicationRoute.Faststream.toString}
+
+  def fastPassFormFormatter(mapping: Mapping[FastPassForm.Data]) = new Formatter[Option[FastPassForm.Data]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[FastPassForm.Data]] = {
+      isFastStream(data) match {
+        case true => mapping.bind(data).right.map(Some(_))
+        case false => Right(None)
+      }
+    }
+    override def unbind(key: String, fastPassData: Option[FastPassForm.Data]) =
+      fastPassData.map(fpd => FastPassForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 
   val phoneNumberFormatter = new Formatter[Option[String]] {

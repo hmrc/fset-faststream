@@ -43,7 +43,7 @@ object GeneralDetailsFormExamples {
 
   val InvalidAddressDoBInFuture = ValidUKAddress + ("dateOfBirth.year" -> yearInTheFuture)
 
-  val InsideUKMandatoryFields = List(
+  val InsideUKMandatoryFieldsFastream = List(
     "firstName",
     "lastName",
     "preferredName",
@@ -52,7 +52,8 @@ object GeneralDetailsFormExamples {
     "dateOfBirth.year",
     "address.line1",
     "postCode",
-    "phone"
+    "phone",
+    "civilServiceExperienceDetails.applicable"
   )
 
   val ValidUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),

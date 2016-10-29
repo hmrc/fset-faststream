@@ -93,7 +93,7 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
         (hasPartnerGraduateProgrammes(user) ||
           (hasSchemes(user) && isCivilServant(user)) ||
-          (hasSchemes(user) && isEdip(user)))
+          hasPersonalDetails(user) && isEdip(user))
   }
 
   object PreviewApplicationRole extends CsrAuthorization {
@@ -271,13 +271,11 @@ object RoleUtils {
   }
 
   def isEdip(implicit user: CachedData) = {
-    //user.application exists (_.applicationRoute == ApplicationRoute.Edip)
-    true
+    user.application exists (_.applicationRoute == ApplicationRoute.Edip)
   }
 
   def isEdip(implicit user: Option[CachedData]) = {
-    //user.fold(false)(_.application.fold(false)(_.applicationRoute == ApplicationRoute.Edip))
-    true
+    user.fold(false)(_.application.fold(false)(_.applicationRoute == ApplicationRoute.Edip))
   }
 }
 // scalastyle:on

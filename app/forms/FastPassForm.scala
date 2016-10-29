@@ -66,11 +66,11 @@ object FastPassForm {
 
   def form = {
     Form(mapping(
-      applicable -> nonemptyBooleanText("error.applicable.required"),
-      civilServiceExperienceType -> of(civilServiceExperienceTypeFormatter),
-      internshipTypes -> of(internshipTypesFormatter),
-      fastPassReceived -> of(fastPassReceivedFormatter),
-      certificateNumber -> of(fastPassCertificateFormatter)
+      s"$formQualifier.applicable" -> nonemptyBooleanText("error.applicable.required"),
+      s"$formQualifier.civilServiceExperienceType" -> of(civilServiceExperienceTypeFormatter),
+      s"$formQualifier.internshipTypes" -> of(internshipTypesFormatter),
+      s"$formQualifier.fastPassReceived" -> of(fastPassReceivedFormatter),
+      s"$formQualifier.certificateNumber" -> of(fastPassCertificateFormatter)
     )(Data.apply)(Data.unapply))
   }
 
