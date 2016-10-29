@@ -17,7 +17,7 @@
 package model.persisted
 
 object AssistanceDetailsExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, false, None)
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, Some(false), None)
   val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("disability description"), Some(true), true,
-    Some("online adjustment description"), true, Some("venue adjustment description"))
+    Some("online adjustment description"), Some(true), Some("venue adjustment description"))
 }
