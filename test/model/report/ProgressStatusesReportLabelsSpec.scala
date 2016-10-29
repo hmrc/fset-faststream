@@ -79,32 +79,12 @@ class ProgressStatusesReportLabelsSpec extends PlaySpec {
       ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("personal_details_completed")
     }
   }
-
-  // TODO Move it to Reporting Specs
-//  "non-submitted status" should {
-//    import ApplicationStatusOrder._
-//
-//    "be true for non submitted progress" in {
-//      isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = false)) must be(true)
-//    }
-//
-//    "be false for withdrawn progress" in {
-//      isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = true)) must be(false)
-//      isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = true)) must be(false)
-//    }
-//
-//    "be false for submitted but not withdrawn progress" in {
-//      isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = false)) must be(false)
-//    }
-//  }
 }
 
 object ProgressStatusesReportLabelsSpec {
 
   val progressResponse = ProgressResponse("1", true, true, true, true, true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"), true, true)
-
-  val emptyProgressResponse = ProgressResponse("1")
 
   val completeProgressResponse = ProgressResponse("1", true, true, true, true, true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire",

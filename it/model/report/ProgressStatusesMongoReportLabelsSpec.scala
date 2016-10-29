@@ -20,7 +20,6 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
     PARTNER_GRADUATE_PROGRAMMES -> "partner_graduate_programmes_completed",
     ASSISTANCE_DETAILS -> "assistance_details_completed",
     PREVIEW -> "preview_completed",
-    PHASE1_TESTS_INVITED -> "phase1_tests_invited",
     PHASE1_TESTS_FIRST_REMINDER -> "phase1_tests_first_remainder",
     PHASE1_TESTS_SECOND_REMINDER -> "phase1_tests_second_remainder",
     PHASE2_TESTS_FIRST_REMINDER -> "phase2_tests_first_remainder",
@@ -33,13 +32,13 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
   "All progress status in the application" should {
     "be mapped to the report labels" in {
       ProgressStatuses.allStatuses
-        .filterNot(_.key.contains("ASSESSMENT"))
+        .filterNot(_.key.contains("ASSESSMENT")) // TODO: Legacy statuses which should be removed
         .foreach { progressStatus =>
         val userId = UUID.randomUUID().toString
         val appId = appRepo.create(userId, "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId
 
         //scalastyle:off
-        println(s"Checking progress consistency in the report module for: $progressStatus")
+        println(s"Checking 'application progress' consistency in reports for: $progressStatus")
         //scalastyle:on
 
         appRepo.addProgressStatusAndUpdateAppStatus(appId, progressStatus).futureValue

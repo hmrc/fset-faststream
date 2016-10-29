@@ -849,7 +849,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     }
   }
 
-  private def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
+  private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
     val isNotSubmitted = !progress.submitted
     val isNotWithdrawn = !progress.withdrawn
     isNotWithdrawn && isNotSubmitted
