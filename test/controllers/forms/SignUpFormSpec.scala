@@ -20,6 +20,7 @@ import controllers.BaseSpec
 import forms.SignUpForm
 import _root_.forms.SignUpForm._
 import forms.SignUpForm.Data
+import models.ApplicationRoute
 import play.api.data.Form
 import play.api.i18n.Messages
 
@@ -73,11 +74,18 @@ class SignUpFormSpec extends BaseSpec {
       signUpForm.errors("password").head.messages must be(Seq(Messages("error.password")))
     }
 
-    "throw an error if I haven't click on the I am eligible" in {
-      val (_, signUpForm) = SignupFormGenerator(eligible = false).get
+    "throw an error if I haven't click on the I am eligible for Fast Stream" in {
+      val (_, signUpForm) = SignupFormGenerator(faststreamEligable = false).get
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
-      signUpForm.errors("eligible").head.messages must be(Seq(Messages("agree.eligible")))
+      signUpForm.errors("faststreamEligible").head.messages must be(Seq(Messages("agree.faststreamEligible")))
+    }
+
+    "throw an error if I haven't click on the I am eligible for EDIP" in {
+      val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Edip), faststreamEligable = false, edipEligable = false).get
+      signUpForm.hasErrors must be(true)
+      signUpForm.errors.length must be(1)
+      signUpForm.errors("edipEligible").head.messages must be(Seq(Messages("agree.edipEligible")))
     }
 
     "throw an error if I haven't click on the I agree" in {
@@ -85,6 +93,13 @@ class SignUpFormSpec extends BaseSpec {
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
       signUpForm.errors("agree").head.messages must be(Seq(Messages("agree.accept")))
+    }
+
+    "throw and error if I haven't selected a route" in {
+      val (_, signUpForm) = SignupFormGenerator(applicationRoute = None).get
+      signUpForm.hasErrors must be(true)
+      signUpForm.errors.length must be(1)
+      signUpForm.errors("appRoute").head.messages must be(Seq(Messages("error.appRoute")))
     }
 
   }
@@ -115,9 +130,23 @@ case class SignupFormGenerator(firstName: String = "name",
                                campaignReferrer: Option[String] = Some("Recruitment website"),
                                campaignOther: Option[String] = None,
                                agree: Boolean = true,
-                               eligible: Boolean = true) {
+                               applicationRoute: Option[ApplicationRoute.ApplicationRoute] = Some(ApplicationRoute.Faststream),
+                               faststreamEligable: Boolean = true,
+                               edipEligable: Boolean = false) {
 
-  private val data = Data(firstName, lastName, email, confirmEmail, password, confirm, campaignReferrer, campaignOther, agree, eligible)
+  private val data = Data(firstName,
+    lastName,
+    email,
+    confirmEmail,
+    password,
+    confirm,
+    campaignReferrer,
+    campaignOther,
+    applicationRoute.map(_.toString).getOrElse(""),
+    agree,
+    faststreamEligable,
+    edipEligable
+  )
 
   private val validFormData = Map(
     "firstName" -> data.firstName,
@@ -129,7 +158,9 @@ case class SignupFormGenerator(firstName: String = "name",
     "campaignReferrer" -> data.campaignReferrer.get,
     "campaignOther" -> data.campaignOther.getOrElse(""),
     "agree" -> data.agree.toString,
-    "eligible" -> data.eligibility.toString
+    "applicationRoute" -> applicationRoute.map(_.toString).getOrElse(""),
+    "faststreamEligible" -> data.faststreamEligible.toString,
+    "edipEligible" -> data.edipEligible.toString
   )
 
   private def signUpForm = Form(SignUpForm.form.mapping).bind(validFormData)

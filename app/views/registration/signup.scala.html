@@ -16,7 +16,7 @@
     @helper.form(action = routes.SignUpController.signUp(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
 
-            <!-- The following will stop browsers from trying to autofill the username and password fields in the create account page -->
+        <!-- The following will stop browsers from trying to autofill the username and password fields in the create account page -->
         <input type="text" title="Hidden username" class="alwayshidden">
         <input type="password" name="Hidden password" class="alwayshidden">
             <!-- End -->
@@ -91,20 +91,8 @@
             </div>
         </section>
 
-        <section class="section-border clearfix">
-            <h2 class="heading-large">Eligibility</h2>
-            <div class="text">
-                <h2 class="heading-medium">Confirm the following statements are true</h2>
-            </div>
-            <ul id="eligibility-list" class="para-btm-margin text">
-                <li>I'm <a href="http://www.faststream.gov.uk/faqs/" target="_blank" rel="external">eligible to work in the UK</a></li>
-                <li>I have a relevant degree or qualify as a current civil servant</li>
-                <li>I meet my scheme's eligibility requirements</li>
-            </ul>
+        @chooseYourRoute(signUpForm)
 
-            @yesNoQuestion(signUpForm("eligible"), question = "Are you eligible to apply?",
-                noMessage = "You must be eligible to apply for the Civil Service Fast Stream")
-        </section>
         <section class="section-border">
             <h2 class="heading-large">How did you hear about us?</h2>
             <div data-optional>
