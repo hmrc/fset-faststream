@@ -25,7 +25,8 @@ error.campaignOther.maxLength = Maximum length is 256
 error.password.empty = Enter your password
 error.password.dontmatch = Your passwords don''t match
 agree.accept = Accept the terms and conditions
-agree.eligible = Confirm that you''re eligible to apply
+agree.faststreamEligible = Confirm that you''re eligible to apply for the Civil Service Fast Stream
+agree.edipEligible = Confirm that you''re eligible to apply for the Civil Service Early Diversity Internship Programme
 error.emailconfirm.notmatch = You must enter the same email address
 
 # Reset password form

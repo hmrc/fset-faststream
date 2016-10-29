@@ -14,9 +14,26 @@
  * limitations under the License.
  */
 
+/*
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package forms
 
 import forms.Mappings._
+import models.ApplicationRoute
 import models.view.CampaignReferrers
 import play.api.data.Forms._
 import play.api.data.format.Formatter
@@ -75,6 +92,26 @@ object SignUpForm {
     override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
   }
 
+  val applicationRouteFormatter = new Formatter[String] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] = {
+      val appRoute = data.getOrElse(key, "")
+      ApplicationRoute.withName(appRoute) match {
+        case ApplicationRoute.Faststream => val fsEligable = data.getOrElse("faststreamEligible", "false").toBoolean
+          if (fsEligable) { Right(appRoute) }
+            else { Left(List(FormError("faststreamEligible", Messages("agree.faststreamEligible")))) }
+
+        case ApplicationRoute.Edip => val edipEligable = data.getOrElse("edipEligable", "false").toBoolean
+          if (edipEligable) { Right(appRoute) }
+            else { Left(List(FormError("edipEligible", Messages("agree.edipEligible")))) }
+
+
+        case unknown => Left(List(FormError("eligible", s"Unrecognised application route $unknown")))
+      }
+    }
+
+    override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
+  }
+
   val form = Form(
     mapping(
       "firstName" -> nonEmptyTrimmedText("error.firstName", 256),
@@ -85,8 +122,10 @@ object SignUpForm {
       confirmPasswordField -> nonEmptyTrimmedText("error.confirmpwd", passwordMaxLength),
       "campaignReferrer" -> Mappings.optionalTrimmedText(64),
       "campaignOther" -> of(campaignOtherFormatter),
+      "applicationRoute" -> of(applicationRouteFormatter),
       "agree" -> checked(Messages("agree.accept")),
-      "eligible" -> checked(Messages("agree.eligible"))
+      "faststreamEligible" -> boolean,
+      "edipEligible" -> boolean
     )(Data.apply)(Data.unapply)
   )
 
@@ -117,14 +156,17 @@ object SignUpForm {
   }
 
   case class Data(firstName: String,
-                  lastName: String,
-                  email: String,
-                  confirmEmail: String,
-                  password: String,
-                  confirmpwd: String,
-                  campaignReferrer: Option[String],
-                  campaignOther: Option[String],
-                  agree: Boolean,
-                  eligibility: Boolean)
+    lastName: String,
+    email: String,
+    confirmEmail: String,
+    password: String,
+    confirmpwd: String,
+    campaignReferrer: Option[String],
+    campaignOther: Option[String],
+    applicationRoute: String,
+    agree: Boolean,
+    faststreamEligible: Boolean,
+    edipEligible: Boolean
+  )
 
 }
