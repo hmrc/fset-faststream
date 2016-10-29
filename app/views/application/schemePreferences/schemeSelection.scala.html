@@ -28,7 +28,7 @@
             <legend class="visuallyhidden">In preference order, select only the schemes you'd like to work in.</legend>
             <section class="grid-wrapper scheme-wrapper">
                 <div class="scheme-input-container">
-                @schemesCheckboxGroup(isCandidateCivilServant, form("schemes"), SelectedSchemesForm.AllSchemesToDisplay,
+                @schemesCheckboxGroup(isCandidateCivilServant, form("schemes"), SelectedSchemesForm.VisibleSchemes,
                     '_label -> "",
                     '_class -> ""
                 )
@@ -43,7 +43,7 @@
                     <p>Your schemes will appear here as you select them from the list</p>
                 </div>
             </div>
-            @for(i <- 0 until SelectedSchemesForm.AllSchemesToDisplay.size) {
+            @for(i <- 0 until SelectedSchemesForm.VisibleSchemes.size) {
                 <input type="hidden" id="scheme_@i" name="scheme_@i" value='@selectedSchemes(i).getOrElse("")' />
             }
             <ol id="selectedPrefList" class="list-text">

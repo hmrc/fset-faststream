@@ -24,6 +24,7 @@ error.password = Your password requires upper and lowercase letters, a number an
 error.campaignOther.maxLength = Maximum length is 256
 error.password.empty = Enter your password
 error.password.dontmatch = Your passwords don''t match
+error.appRoute = You must select an application route
 agree.accept = Accept the terms and conditions
 agree.faststreamEligible = Confirm that you''re eligible to apply for the Civil Service Fast Stream
 agree.edipEligible = Confirm that you''re eligible to apply for the Civil Service Early Diversity Internship Programme

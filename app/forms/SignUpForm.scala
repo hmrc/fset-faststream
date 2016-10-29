@@ -94,18 +94,23 @@ object SignUpForm {
 
   val applicationRouteFormatter = new Formatter[String] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] = {
-      val appRoute = data.getOrElse(key, throw new Exception(s"$key is not a valid form attribute"))
-      ApplicationRoute.withName(appRoute) match {
-        case ApplicationRoute.Faststream => val fsEligable = data.getOrElse("faststreamEligible", "false").toBoolean
-          if (fsEligable) { Right(appRoute) }
-            else { Left(List(FormError("faststreamEligible", Messages("agree.faststreamEligible")))) }
+      data.get(key) match {
+        case Some(appRoute) if appRoute.nonEmpty =>
 
-        case ApplicationRoute.Edip => val edipEligable = data.getOrElse("edipEligible", "false").toBoolean
-          if (edipEligable) { Right(appRoute) }
-            else { Left(List(FormError("edipEligible", Messages("agree.edipEligible")))) }
+          ApplicationRoute.withName(appRoute) match {
+            case ApplicationRoute.Faststream => val fsEligable = data.getOrElse("faststreamEligible", "false").toBoolean
+              if (fsEligable) { Right(appRoute) }
+                else { Left(List(FormError("faststreamEligible", Messages("agree.faststreamEligible")))) }
+
+            case ApplicationRoute.Edip => val edipEligable = data.getOrElse("edipEligible", "false").toBoolean
+              if (edipEligable) { Right(appRoute) }
+                else { Left(List(FormError("edipEligible", Messages("agree.edipEligible")))) }
 
 
-        case unknown => Left(List(FormError("eligible", s"Unrecognised application route $unknown")))
+            case unknown => Left(List(FormError("eligible", s"Unrecognised application route $unknown")))
+          }
+
+        case _ => Left(List(FormError("appRoute", Messages("error.appRoute"))))
       }
     }
 

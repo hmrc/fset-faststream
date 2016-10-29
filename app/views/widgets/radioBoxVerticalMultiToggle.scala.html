@@ -8,7 +8,7 @@
     @for((key, displayText, shouldTrigger)  <- options){
         <div>
             <label for="@createId(id, key)" class="block-label" data-target="@shouldTrigger">
-                <input name="@name" type="radio" id="@createId(id, key)" value="@key" @(if(value.contains(displayText)) "checked" else "")>@displayText
+                <input name="@name" type="radio" id="@createId(id, key)" value="@key" @(if(value.contains(key)) "checked" else "")>@displayText
             </label>
         </div>
     }

@@ -82,7 +82,7 @@ class SignUpFormSpec extends BaseSpec {
     }
 
     "throw an error if I haven't click on the I am eligible for EDIP" in {
-      val (_, signUpForm) = SignupFormGenerator(applicationRoute = ApplicationRoute.Edip, faststreamEligable = false, edipEligable = false).get
+      val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Edip), faststreamEligable = false, edipEligable = false).get
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
       signUpForm.errors("edipEligible").head.messages must be(Seq(Messages("agree.edipEligible")))
@@ -93,6 +93,13 @@ class SignUpFormSpec extends BaseSpec {
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
       signUpForm.errors("agree").head.messages must be(Seq(Messages("agree.accept")))
+    }
+
+    "throw and error if I haven't selected a route" in {
+      val (_, signUpForm) = SignupFormGenerator(applicationRoute = None).get
+      signUpForm.hasErrors must be(true)
+      signUpForm.errors.length must be(1)
+      signUpForm.errors("appRoute").head.messages must be(Seq(Messages("error.appRoute")))
     }
 
   }
@@ -123,7 +130,7 @@ case class SignupFormGenerator(firstName: String = "name",
                                campaignReferrer: Option[String] = Some("Recruitment website"),
                                campaignOther: Option[String] = None,
                                agree: Boolean = true,
-                               applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream,
+                               applicationRoute: Option[ApplicationRoute.ApplicationRoute] = Some(ApplicationRoute.Faststream),
                                faststreamEligable: Boolean = true,
                                edipEligable: Boolean = false) {
 
@@ -135,7 +142,7 @@ case class SignupFormGenerator(firstName: String = "name",
     confirm,
     campaignReferrer,
     campaignOther,
-    applicationRoute.toString,
+    applicationRoute.map(_.toString).getOrElse(""),
     agree,
     faststreamEligable,
     edipEligable
@@ -151,7 +158,7 @@ case class SignupFormGenerator(firstName: String = "name",
     "campaignReferrer" -> data.campaignReferrer.get,
     "campaignOther" -> data.campaignOther.getOrElse(""),
     "agree" -> data.agree.toString,
-    "applicationRoute" -> applicationRoute.toString,
+    "applicationRoute" -> applicationRoute.map(_.toString).getOrElse(""),
     "faststreamEligible" -> data.faststreamEligible.toString,
     "edipEligible" -> data.edipEligible.toString
   )
