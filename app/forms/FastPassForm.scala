@@ -74,16 +74,6 @@ object FastPassForm {
     )(Data.apply)(Data.unapply))
   }
 
-  def ignoreForm = {
-    Form(mapping(
-      applicable -> ignored(""),
-      civilServiceExperienceType -> ignored(Option("")),
-      internshipTypes -> ignored(Option(Seq(""))),
-      fastPassReceived -> ignored(Option(false)),
-      certificateNumber -> ignored(Option(""))
-    )(Data.apply)(Data.unapply))
-  }
-
   def civilServiceExperienceTypeFormatter = new Formatter[Option[String]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       bindOptionalParam(request.isCivilServantOrFastTrackOrIntern, request.isValidCivilServiceExperienceTypeSelected,

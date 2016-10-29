@@ -1,4 +1,4 @@
-@(cacheUser: CachedData, form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit lang: play.api.i18n.Lang)
+@(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit lang: play.api.i18n.Lang, user: Option[CachedData])
 
 @import security.RoleUtils._
 @import models.CachedData
@@ -6,7 +6,7 @@
 @import views.html.widgets.radioBoxHorizontal
 
 @displayExtraSupportLabel = @{
-    if(isEdip(cacheUser)) {
+    if(isEdip(user)) {
         <legend class="form-label">Will you need extra support?</legend>
     } else {
         <legend class="form-label">Will you need extra support for your online tests?</legend>

@@ -25,7 +25,7 @@ import models.ApplicationRoute
 import org.joda.time.LocalDate
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError, Mapping }
+import play.api.data.{ Form, FormError }
 
 object GeneralDetailsForm {
   private val MinAge = 16

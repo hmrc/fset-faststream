@@ -18,15 +18,15 @@ package controllers
 
 import _root_.forms.GeneralDetailsForm
 import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.{ ApplicationClient, UserManagementClient }
+import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
 import _root_.forms.FastPassForm._
 import config.CSRCache
-import connectors.exchange.CivilServiceExperienceDetails
+import connectors.exchange.{ CivilServiceExperienceDetails, SelectedSchemes }
 import connectors.exchange.CivilServiceExperienceDetails._
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.ApplicationData.ApplicationStatus._
-import models.{ ApplicationRoute, CachedDataWithApp }
+import models.{ ApplicationRoute, CachedDataWithApp, SchemeType }
 import org.joda.time.LocalDate
 import play.api.data.Form
 import play.api.mvc.{ Request, Result }
@@ -35,9 +35,12 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, CSRCache, UserManagementClient)
+object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, CSRCache, UserManagementClient)
 
-class PersonalDetailsController(applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
+class PersonalDetailsController(applicationClient: ApplicationClient,
+                                schemeClient: SchemeClient,
+                                cacheClient: CSRCache,
+                                userManagementClient: UserManagementClient)
   extends BaseController(applicationClient, cacheClient) with GeneralDetailsToExchangeConverter {
 
   private sealed trait OnSuccess
@@ -97,7 +100,6 @@ class PersonalDetailsController(applicationClient: ApplicationClient, cacheClien
       val redirect = if(user.application.applicationRoute == ApplicationRoute.Edip) {
         Redirect(routes.AssistanceDetailsController.present())
       } else {
-        // Assuming is an Faststream
         Redirect(routes.SchemePreferencesController.present())
       }
       submit(GeneralDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, redirect)
@@ -123,12 +125,21 @@ class PersonalDetailsController(applicationClient: ApplicationClient, cacheClien
         generalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess)))
       )
     }
+
+    // TODO Remove this once create application is done for edip
+    val mayBeAddScheme = if(cachedData.application.applicationRoute == ApplicationRoute.Edip) {
+      schemeClient.updateSchemePreferences(SelectedSchemes(List(SchemeType.Edip.toString), true, true))(cachedData.application.applicationId)
+    } else {
+      Future.successful(())
+    }
+
     val handleValidForm = (form: GeneralDetailsForm.Data) => {
       val civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] =
         overrideCivilServiceExperienceDetails.orElse(form.civilServiceExperienceDetails)
       for {
         _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
           toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideCivilServiceExperienceDetails))
+        _ <- mayBeAddScheme
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
         redirect <- updateProgress(data => {
           val applicationCopy = data.application.map(_.copy(civilServiceExperienceDetails = civilServiceExperienceDetails))

@@ -19,7 +19,7 @@ package controllers
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.{ ApplicationClient, UserManagementClient }
+import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
 import controllers.forms.GeneralDetailsFormExamples._
 import connectors.exchange.{ CivilServiceExperienceDetailsExamples, GeneralDetailsExamples }
 import models.ApplicationData.ApplicationStatus
@@ -35,10 +35,12 @@ import scala.concurrent.Future
 class PersonalDetailsControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]
   val mockCacheClient = mock[CSRCache]
+  val mockSchemeClient = mock[SchemeClient]
   val mockUserManagementClient = mock[UserManagementClient]
   val userService = mock[UserService]
 
-  class TestablePersonalDetailsController extends PersonalDetailsController(mockApplicationClient, mockCacheClient, mockUserManagementClient)
+  class TestablePersonalDetailsController extends PersonalDetailsController(mockApplicationClient, mockSchemeClient,
+    mockCacheClient, mockUserManagementClient)
     with TestableSecureActions {
     val http: CSRHttp = CSRHttp
     override protected def env = securityEnvironment
@@ -58,7 +60,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content must include
-      (s"""<input name="civilServiceExperienceDetails.applicable" type="radio" id="civilServiceExperienceDetails_applicable-yes"""")
+      s"""<input name="civilServiceExperienceDetails.applicable" type="radio" id="civilServiceExperienceDetails_applicable-yes""""
       content must include(routes.PersonalDetailsController.submitGeneralDetailsAndContinue().url)
     }
 
