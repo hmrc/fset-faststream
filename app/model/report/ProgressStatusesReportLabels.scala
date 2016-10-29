@@ -22,6 +22,7 @@ import model.command.ProgressResponse
 trait ProgressStatusesReportLabels {
   import ProgressStatusesReportLabels._
 
+  // scalastyle:off
   private def statusMaps(progress: ProgressResponse) = Seq(
     (progress.personalDetails, 10, PersonalDetailsCompletedProgress),
     (progress.schemePreferences, 20, SchemePreferencesCompletedProgress),
@@ -75,6 +76,7 @@ trait ProgressStatusesReportLabels {
     (progress.assessmentScores.entered, 375, AssessmentScoresEnteredProgress),
     (progress.withdrawn, 999, WithdrawnProgress)
   )
+  // scalastyle:on
 
   def progressStatusNameInReports(progress: ProgressResponse): String = {
     val default = 0 -> ProgressStatusesReportLabels.RegisteredProgress
@@ -132,6 +134,16 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase2TestsResultsReceived = "phase2_tests_results_received"
   val Phase2TestsPassed = "phase2_tests_passed"
   val Phase2TestsFailed = "phase2_tests_failed"
+  val Phase3TestsInvited = "phase3_tests_invited"
+  val Phase3TestsFirstReminder = "phase3_tests_first_reminder"
+  val Phase3TestsSecondReminder = "phase3_tests_second_reminder"
+  val Phase3TestsStarted = "phase3_tests_started"
+  val Phase3TestsCompleted = "phase3_tests_completed"
+  val Phase3TestsExpired = "phase3_tests_expired"
+  val Phase3TestsResultsReceived = "phase3_tests_results_received"
+  val Phase3TestsPassed = "phase3_tests_passed"
+  val Phase3TestsFailed = "phase3_tests_failed"
+
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
   val FailedToAttendProgress = FAILED_TO_ATTEND.toLowerCase()
@@ -142,5 +154,4 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val AssessmentCentreFailedProgress = ASSESSMENT_CENTRE_FAILED.toLowerCase()
   val AssessmentCentrePassedNotifiedProgress = ASSESSMENT_CENTRE_PASSED_NOTIFIED.toLowerCase()
   val AssessmentCentreFailedNotifiedProgress = ASSESSMENT_CENTRE_FAILED_NOTIFIED.toLowerCase()
-  // scalastyle:on
 }

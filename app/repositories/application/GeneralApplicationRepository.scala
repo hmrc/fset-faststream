@@ -20,6 +20,7 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 import config.CubiksGatewayConfig
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
