@@ -28,7 +28,7 @@
             <legend class="visuallyhidden">In preference order, select only the schemes you'd like to work in.</legend>
             <section class="grid-wrapper scheme-wrapper">
                 <div class="scheme-input-container">
-                @schemesCheckboxGroup(isCandidateCivilServant, form("schemes"), SelectedSchemesForm.AllSchemes,
+                @schemesCheckboxGroup(isCandidateCivilServant, form("schemes"), SelectedSchemesForm.AllSchemesToDisplay,
                     '_label -> "",
                     '_class -> ""
                 )
@@ -43,7 +43,7 @@
                     <p>Your schemes will appear here as you select them from the list</p>
                 </div>
             </div>
-            @for(i <- 0 until SelectedSchemesForm.AllSchemes.size) {
+            @for(i <- 0 until SelectedSchemesForm.AllSchemesToDisplay.size) {
                 <input type="hidden" id="scheme_@i" name="scheme_@i" value='@selectedSchemes(i).getOrElse("")' />
             }
             <ol id="selectedPrefList" class="list-text">
@@ -71,4 +71,3 @@
     }
 }
 <script src='@routes.Assets.versioned("js/schemeSelection.js")' type="text/javascript"></script>
-

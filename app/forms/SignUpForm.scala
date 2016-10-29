@@ -94,7 +94,7 @@ object SignUpForm {
 
   val applicationRouteFormatter = new Formatter[String] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] = {
-      val appRoute = data.getOrElse(key, "")
+      val appRoute = data.getOrElse(key, throw new Exception(s"$key is not a valid form attribute"))
       ApplicationRoute.withName(appRoute) match {
         case ApplicationRoute.Faststream => val fsEligable = data.getOrElse("faststreamEligible", "false").toBoolean
           if (fsEligable) { Right(appRoute) }

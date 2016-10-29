@@ -20,20 +20,22 @@ import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
 import config.{ CSRCache, CSRHttp }
-import connectors.ApplicationClient
+import connectors.exchange.SelectedSchemes
+import connectors.{ ApplicationClient, SchemeClient }
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange.Implicits._
 import helpers.NotificationType._
-import models.{ ApplicationRoute, SecurityUser }
+import models.{ ApplicationRoute, SecurityUser, UniqueIdentifier }
 import security.SignInService
 
 import scala.concurrent.Future
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-object SignUpController extends SignUpController(ApplicationClient, CSRCache) {
+object SignUpController extends SignUpController(ApplicationClient, SchemeClient, CSRCache) {
   val http = CSRHttp
 }
 
-abstract class SignUpController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
+abstract class SignUpController(val applicationClient: ApplicationClient, schemeClient: SchemeClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with SignInService {
 
   def present = CSRUserAwareAction { implicit request =>
@@ -50,16 +52,20 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
       SignUpForm.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize)))),
         data => {
+          // TODO the map nesting is a bit deep here, should refactor this
+          val appRoute = ApplicationRoute.withName(data.applicationRoute)
           env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
             applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
-              applicationClient.createApplication(u.userId, "FastStream-2016", ApplicationRoute.withName(data.applicationRoute)).flatMap { _ =>
-                signInUser(
-                  u.toCached,
-                  redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
-                  env = env
-                ).map { r =>
-                  env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
-                  r
+              applicationClient.createApplication(u.userId, "FastStream-2016", appRoute).flatMap { appResponse =>
+                createDefaultSchemes(appResponse.applicationId, appRoute).flatMap { _ =>
+                  signInUser(
+                    u.toCached,
+                    redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
+                    env = env
+                  ).map { r =>
+                    env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
+                    r
+                  }
                 }
               }
             }
@@ -77,5 +83,13 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
     } else {
       data.campaignReferrer.getOrElse("")
     }
+  }
+
+  private def createDefaultSchemes(appId: UniqueIdentifier, appRoute: ApplicationRoute.ApplicationRoute)
+      (implicit hc: HeaderCarrier): Future[Unit] = appRoute match {
+    case ApplicationRoute.Edip =>
+      // TODO schemes should be refactored to be more typesafe
+      schemeClient.updateSchemePreferences(SelectedSchemes(List("Edip"), true, true))(appId)
+    case _ => Future.successful(())
   }
 }

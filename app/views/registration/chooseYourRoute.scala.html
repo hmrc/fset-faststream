@@ -12,7 +12,7 @@
         <legend class="form-label">Which route do you want to choose?</legend>
         @radioBoxVerticalMultiToggle(form("applicationRoute"),
                                  options = List((ApplicationRoute.Faststream.toString, "Civil Service Fast Stream", "faststream-elig-describe"),
-                                                (ApplicationRoute.Edip.toString, "Early Diversity Internship Programme", "edip-elig-describe"))
+                                                (ApplicationRoute.Edip.toString, "Early Diversity Internship Programme (EDIP)", "edip-elig-describe"))
         )
         <div class="toggle-content form-group form-group-compound" id="faststream-elig-describe">
             <div id="fs-panel" class="clearfix">
@@ -39,7 +39,7 @@
                 <li>I qualify to apply according to the <a href="http://www.faststream.gov.uk/early-diversity-internship-programme/"
                                                             rel="external" target="_blank">eligibility requirements</a></li>
             </ul>
-                @yesNoQuestion(form("edipEligible"), question = "Are you eligible to apply for the Early Diversity Internship Programme?",
+                @yesNoQuestion(form("edipEligible"), question = "Are you eligible to apply for the Early Diversity Internship Programme (EDIP)?",
                                noMessage = "You must be eligible to apply for the Early Diversity Internship Programme.")
         </div>
     </fieldset>
