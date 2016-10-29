@@ -47,7 +47,7 @@ trait SearchForApplicantsController extends BaseController {
 
   val MAX_RESULTS = 25
 
-  def findById(userId: String, frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findById(userId: String, frameworkId: String, appRoute: String): Action[AnyContent] = Action.async { implicit request =>
 
     appRepository.findByUserId(userId, frameworkId).flatMap { application =>
       psRepository.find(application.applicationId).flatMap { pd =>

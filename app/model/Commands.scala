@@ -170,7 +170,7 @@ object Commands {
   case class AdjustmentManagement(adjustments: Option[List[String]], otherAdjustments: Option[String],
                                   timeNeeded: Option[Int], timeNeededNum: Option[Int])
 
-  case class SearchCandidate(firstOrPreferredName: Option[String], lastName: Option[String], dateOfBirth: Option[LocalDate], postCode: Option[PostCode])
+  case class SearchCandidate(applicationRoute: ApplicationRoute, firstOrPreferredName: Option[String], lastName: Option[String], dateOfBirth: Option[LocalDate], postCode: Option[PostCode])
 
   case class Candidate(userId: String, applicationId: Option[String], email: Option[String], firstName: Option[String], lastName: Option[String],
                        preferredName: Option[String], dateOfBirth: Option[LocalDate], address: Option[Address], postCode: Option[PostCode],
