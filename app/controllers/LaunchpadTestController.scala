@@ -25,60 +25,49 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object CubiksTestController extends CubiksTestController(ApplicationClient, CSRCache) {
+object LaunchpadTestController extends LaunchpadTestController(ApplicationClient, CSRCache) {
   val http = CSRHttp
 }
 
-abstract class CubiksTestController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) {
+abstract class LaunchpadTestController(applicationClient: ApplicationClient, cache: CSRCache) extends BaseController(applicationClient, cache) {
 
-  def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
+  def startPhase3Tests = CSRSecureAppAction(Phase3TestInvitedRole) { implicit request =>
     implicit cachedUserData =>
-     applicationClient.getPhase1TestProfile(cachedUserData.application.applicationId).flatMap { phase1TestProfile =>
-       startCubiksTest(phase1TestProfile.tests)
+      applicationClient.getPhase3TestGroup(cachedUserData.application.applicationId).flatMap { testProfile =>
+        // If we've started but not completed a test we still want to send them to that
+        // test link to continue with it
+        testProfile.tests.find(!_.completed).map { testToStart =>
+          // applicationClient.startTest(testToStart.cubiksUserId)
+          Future.successful(Redirect(testToStart.testUrl))
+        }.getOrElse(Future.successful(NotFound))
       }
   }
 
-  def startPhase2Tests = CSRSecureAppAction(Phase2TestInvitedRole) { implicit request =>
-    implicit cachedUserData =>
-      applicationClient.getPhase2TestProfile(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
-        startCubiksTest(phase2TestProfile.activeTest :: Nil)
-      }
-  }
-
+  /*
+   * TODO
   def completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByToken(token).map { _ =>
         Ok(views.html.application.onlineTests.sjqComplete_continuePhase1Tests())
       }
-  }
+  }*/
 
-  def completePhase1TestsByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
+  /*
+   * TODO
+  def completePhase3TestsByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByToken(token).map { _ =>
         Ok(views.html.application.onlineTests.phase1TestsComplete())
       }
-  }
+  }*/
 
-  def completePhase2TestsByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
-    implicit user =>
-      applicationClient.completeTestByToken(token).map { _ =>
-        Ok(views.html.application.onlineTests.etrayTestsComplete())
-      }
-  }
-
-  def completeTestByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
-    implicit user =>
-      applicationClient.completeTestByToken(token).map { _ =>
-        Ok(views.html.application.onlineTests.onlineTestSuccess())
-      }
-  }
-
-  private def startCubiksTest(cubiksTests: Iterable[CubiksTest])(implicit hc: HeaderCarrier) = {
+  /*
+   * TODO
+  private def startLaunchpadTest(cubiksTests: Iterable[CubiksTest])(implicit hc: HeaderCarrier) = {
     cubiksTests.find(!_.completed).map { testToStart =>
       applicationClient.startTest(testToStart.cubiksUserId)
       Future.successful(Redirect(testToStart.testUrl))
     }.getOrElse(Future.successful(NotFound))
   }
-
+  */
 }
