@@ -24,7 +24,7 @@ object ApplicationRoute extends Enumeration {
 
   type ApplicationRoute = Value
 
-  val Faststream, Edip, Sdip, Faststream_With_Sdip = Value
+  val Faststream, Edip = Value
 
   implicit val applicationRouteFormat = new Format[ApplicationRoute] {
     def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String]))
