@@ -25,7 +25,7 @@ import play.api.i18n.Messages
 
 object EducationQuestionnaireForm {
 
-  val form = Form(
+  def form(universityQuestionKey: String) = Form(
     mapping(
       "liveInUKBetween14and18" -> Mappings.nonEmptyTrimmedText("error.liveInUKBetween14and18.required", 31),
       "postcodeQ" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
@@ -44,8 +44,8 @@ object EducationQuestionnaireForm {
       "isCandidateCivilServant" -> Mappings.nonEmptyTrimmedText("error.isCandidateCivilServant.required", 31),
       "haveDegree" -> of(requiredFormatterWithMaxLengthCheck("isCandidateCivilServant", "haveDegree", Some(31))),
       "university" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("haveDegree",
-        "university", "preferNotSay_university", Some(256))),
-      "preferNotSay_university" -> optional(checked(Messages("error.university.required"))),
+        "universityQuestionKey", "preferNotSay_university", Some(256), Some(Messages(s"error.$universityQuestionKey.required")))),
+      "preferNotSay_university" -> optional(checked(Messages(s"error.$universityQuestionKey.required"))),
       "universityDegreeCategory" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("haveDegree",
         "universityDegreeCategory", "preferNotSay_universityDegreeCategory", Some(256))),
       "preferNotSay_universityDegreeCategory" -> optional(checked(Messages("error.universityDegreeCategory.required")))
@@ -128,8 +128,8 @@ object EducationQuestionnaireForm {
       )
     }
 
-    /** It makes sure that when you select "No" as an answer to "live in uk between 14 and 18" question, the dependent
-      * questions are resetted to None.
+    /** It makes sure that when you select "No" as an answer to "live in the UK between 14 and 18" question, the dependent
+      * questions are reset to None.
       *
       * This is a kind of backend partial clearing form functionality.
       */

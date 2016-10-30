@@ -190,6 +190,7 @@ error.schoolName16to18.maxLength = Maximum length is 256
 error.freeSchoolMeals.required = You must tell us if you were at any time eligible for free school meals, or choose ''prefer not to say''
 error.haveDegree.required = You must tell us if you have a degree
 error.university.required = You must tell us what is the name of the university you received your degree from, or choose ''prefer not to say''
+error.currentUniversity.required = You must tell us what is the name of your current university, or choose ''prefer not to say''
 error.universityDegreeCategory.required = You must tell us which category best describes your degree, or choose ''prefer not to say''
 
 # Parental Questionnaire error messages
