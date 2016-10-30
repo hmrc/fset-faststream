@@ -72,7 +72,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
 
-      val result = controller().present()(fakeRequest)
+      val result = controller.present()(fakeRequest)
 
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
