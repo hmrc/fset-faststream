@@ -49,7 +49,7 @@ trait SearchForApplicantsController extends BaseController {
 
   def findById(userId: String, frameworkId: String, appRoute: String): Action[AnyContent] = Action.async { implicit request =>
 
-    appRepository.findByUserId(userId, frameworkId).flatMap { application =>
+    appRepository.findByUserId(userId, frameworkId, appRoute).flatMap { application =>
       psRepository.find(application.applicationId).flatMap { pd =>
         cdRepository.find(userId).map { cd =>
           Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
