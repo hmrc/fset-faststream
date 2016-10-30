@@ -17,6 +17,7 @@
 package services.search
 
 import connectors.AuthProviderClient
+import model.ApplicationRoute.ApplicationRoute
 import model.Commands.{ Candidate, SearchCandidate }
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
 import model.PersistedObjects.ContactDetailsWithId
@@ -43,13 +44,13 @@ trait SearchForApplicantService {
   val authProviderClient: AuthProviderClient
 
   def findByCriteria(searchCandidate: SearchCandidate)(implicit hc: HeaderCarrier): Future[List[Candidate]] = searchCandidate match {
-    case SearchCandidate(None, None, None, Some(postCode)) => searchByPostCode(postCode)
+    case SearchCandidate(applicationRoute, None, None, None, Some(postCode)) => searchByPostCode(applicationRoute, postCode)
 
-    case SearchCandidate(firstOrPreferredName, lastName, dateOfBirth, postCode) =>
-      searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName, lastName, dateOfBirth, postCode)
+    case SearchCandidate(applicationRoute, firstOrPreferredName, lastName, dateOfBirth, postCode) =>
+      searchByAllNamesOrDobAndFilterPostCode(applicationRoute, firstOrPreferredName, lastName, dateOfBirth, postCode)
   }
 
-  private def searchByPostCode(postCode: String): Future[List[Candidate]] = {
+  private def searchByPostCode(applicationRoute: ApplicationRoute, postCode: String): Future[List[Candidate]] = {
     cdRepository.findByPostCode(postCode).flatMap { cdList =>
       Future.sequence(cdList.map { cd =>
         appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
@@ -61,7 +62,8 @@ trait SearchForApplicantService {
     }.map(_.flatten)
   }
 
-  private def searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName: Option[String],
+  private def searchByAllNamesOrDobAndFilterPostCode(applicationRoute: ApplicationRoute,
+                                                     firstOrPreferredName: Option[String],
                                                      lastName: Option[String],
                                                      dateOfBirth: Option[LocalDate],
                                                      postCodeOpt: Option[String]

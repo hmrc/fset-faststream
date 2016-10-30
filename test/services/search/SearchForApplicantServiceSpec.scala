@@ -17,7 +17,7 @@
 package services.search
 
 import connectors.AuthProviderClient
-import model.Address
+import model.{ Address, ApplicationRoute }
 import model.Commands.{ Candidate, SearchCandidate }
 import model.PersistedObjects.ContactDetailsWithId
 import org.joda.time.LocalDate
@@ -74,7 +74,7 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec {
         any[Option[LocalDate]], any[List[String]])
       ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None, None, None, None))))
 
-      val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = Some("Leia"),
+      val actual = searchForApplicantService.findByCriteria(SearchCandidate(ApplicationRoute.Faststream, firstOrPreferredName = Some("Leia"),
         lastName = Some("Amadala"), dateOfBirth = None, postCode = Some("QQ1 1QQ"))).futureValue
 
       val expected = Candidate("123", None, Some(testEmail), Some("Leia"), Some("Amadala"),

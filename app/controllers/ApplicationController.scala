@@ -67,8 +67,8 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def findApplication(userId: String, frameworkId: String) = Action.async { implicit request =>
-    appRepository.findByUserId(userId, frameworkId).map(result =>
+  def findApplication(userId: String, frameworkId: String, appRoute: String) = Action.async { implicit request =>
+    appRepository.findByUserId(userId, frameworkId, appRoute).map(result =>
       Ok(Json.toJson(result))).recover {
       case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
     }

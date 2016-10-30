@@ -63,7 +63,7 @@ trait GeneralApplicationRepository {
 
   def findStatus(applicationId: String): Future[ApplicationStatusDetails]
 
-  def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
+  def findByUserId(userId: String, frameworkId: String, applicaitonRoute: String): Future[ApplicationResponse]
 
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
 
@@ -286,7 +286,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     }
   }
 
-  def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = {
+  def findByUserId(userId: String, frameworkId: String, applicaitonRoute: String): Future[ApplicationResponse] = {
     val query = BSONDocument("userId" -> userId, "frameworkId" -> frameworkId)
 
     collection.find(query).one[BSONDocument] flatMap {
