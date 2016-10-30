@@ -48,6 +48,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content must include(s"""<p id="fastPassApplicable">No</p>""")
       content must include("""<ul id="schemePreferenceList" class="list-text">""")
+      content must include("Will you need extra support for your online tests?")
     }
 
     "load preview page for existing edip application" in new TestFixture {
@@ -57,6 +58,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       content must include("<title>Check your application")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content mustNot include("""<ul id="schemePreferenceList" class="list-text">""")
+      content must include("Will you need extra support?")
     }
 
     "redirect to home page with error when personal details cannot be found" in new TestFixture {
