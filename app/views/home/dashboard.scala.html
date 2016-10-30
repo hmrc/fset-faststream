@@ -58,14 +58,14 @@
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
-                            <h2 class='@if(dashboardPage.isApplicationCreatedOrInProgress) {heading-large} else {heading-medium} '>
+                            <h2 class='@if(dashboardPage.isApplicationInProgress) {heading-large} else {heading-medium} '>
                                 1. Fill in your application form</h2>
                             @if(!dashboardPage.isApplicationWithdrawn) {
                                 <ul class="list-text list-withicons">
                                     @if(dashboardPage.isApplicationSubmittedAndNotWithdrawn) {
                                         <li><i class='fa fa-check the-icon'></i>Your application has been submitted</li>
                                     }
-                                    @if(dashboardPage.isApplicationInProgressAndNotWithdrawn) {
+                                    @if(dashboardPage.isApplicationInProgress) {
                                         @renderProgressElements
                                     }
                                 </ul>
@@ -80,7 +80,7 @@
                                  View your withdrawn application</a>
                             }
 
-                            @if(dashboardPage.isApplicationCreatedOrInProgress) {
+                            @if(dashboardPage.isApplicationInProgress) {
                                 <a class="" id="continue-application" href="@routes.HomeController.resume()">
                                     Continue with your application</a>
                                 <p>(Should take 5 to 10 minutes to fill in)</p>

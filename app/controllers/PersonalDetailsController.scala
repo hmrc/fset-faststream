@@ -16,17 +16,17 @@
 
 package controllers
 
-import _root_.forms.GeneralDetailsForm
-import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
 import _root_.forms.FastPassForm._
+import _root_.forms.GeneralDetailsForm
 import config.CSRCache
-import connectors.exchange.{ CivilServiceExperienceDetails, SelectedSchemes }
+import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.CivilServiceExperienceDetails._
+import connectors.exchange.{ CivilServiceExperienceDetails, SelectedSchemes }
+import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.ApplicationData.ApplicationStatus._
-import models.{ ApplicationRoute, CachedDataWithApp, SchemeType }
+import models.{ ApplicationRoute, CachedDataWithApp }
 import org.joda.time.LocalDate
 import play.api.data.Form
 import play.api.mvc.{ Request, Result }
@@ -126,20 +126,13 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
       )
     }
 
-    // TODO Remove this once create application is done for edip
-    val mayBeAddScheme = if(cachedData.application.applicationRoute == ApplicationRoute.Edip) {
-      schemeClient.updateSchemePreferences(SelectedSchemes(List(SchemeType.Edip.toString), true, true))(cachedData.application.applicationId)
-    } else {
-      Future.successful(())
-    }
-
     val handleValidForm = (form: GeneralDetailsForm.Data) => {
       val civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] =
         overrideCivilServiceExperienceDetails.orElse(form.civilServiceExperienceDetails)
       for {
         _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
           toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideCivilServiceExperienceDetails))
-        _ <- mayBeAddScheme
+        _ <- createDefaultSchemes
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
         redirect <- updateProgress(data => {
           val applicationCopy = data.application.map(_.copy(civilServiceExperienceDetails = civilServiceExperienceDetails))
@@ -152,6 +145,17 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
       }
     }
     generalDetailsForm.bindFromRequest.fold(handleFormWithErrors, handleValidForm)
+  }
+
+  private def createDefaultSchemes(implicit cacheData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Unit] =
+    cacheData.application.applicationRoute match {
+    case appRoute if appRoute == ApplicationRoute.Edip =>
+      for {
+        _ <- schemeClient.updateSchemePreferences(SelectedSchemes(List(appRoute), orderAgreed = true,
+          eligible = true))(cacheData.application.applicationId)
+        _ <- env.userService.refreshCachedUser(cacheData.user.userID)
+      } yield ()
+    case _ => Future.successful(())
   }
 
 }

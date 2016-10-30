@@ -74,7 +74,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${GeneralDetailsExamples.FullDetails.preferredName}"""")
       content must include
-      (s"""<input name="civilServiceExperienceDetails.applicable" type="radio" id="civilServiceExperienceDetails_applicable-yes"""")
+      """"<input name="civilServiceExperienceDetails.applicable" type="radio" id="civilServiceExperienceDetails_applicable-yes""""
     }
   }
 

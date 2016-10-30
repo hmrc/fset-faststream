@@ -60,7 +60,7 @@ object Roles {
 
   object ApplicationStartRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      user.user.isActive && user.application.isEmpty
+      user.user.isActive && (user.application.isEmpty || statusIn(user)(CREATED))
   }
 
   object EditPersonalDetailsAndContinueRole extends CsrAuthorization {

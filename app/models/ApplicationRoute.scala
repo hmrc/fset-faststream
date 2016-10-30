@@ -17,6 +17,7 @@
 package models
 
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
+import scala.language.implicitConversions
 
 object ApplicationRoute extends Enumeration {
   type ApplicationRoute = Value
@@ -25,7 +26,8 @@ object ApplicationRoute extends Enumeration {
 
   implicit val applicationRouteFormat = new Format[ApplicationRoute] {
     def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String]))
-
     def writes(routeEnum: ApplicationRoute) = JsString(routeEnum.toString)
   }
+
+  implicit def applicationRouteToStr(appRoute: ApplicationRoute): String = appRoute.toString
 }
