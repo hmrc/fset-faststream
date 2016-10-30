@@ -49,6 +49,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
+      content must include("Will you need extra support for your online tests?")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
     }
 
@@ -61,6 +62,33 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
+      content must include("Will you need extra support for your online tests?")
+      content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
+      content must include("Some adjustment")
+    }
+
+    "load edip assistance details page for the new user" in new TestFixture {
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new AssistanceDetailsNotFound))
+
+      val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+      content must include("<title>Disability and health conditions")
+      content must include("Will you need extra support?")
+      content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
+    }
+
+    "load edip assistance details page for the already created assistance details" in new TestFixture {
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
+
+      val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
+
+      status(result) must be(OK)
+      val content = contentAsString(result)
+      content must include("<title>Disability and health conditions")
+      content must include("Will you need extra support?")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content must include("Some adjustment")
     }
@@ -92,7 +120,8 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
           CachedDataExample.InProgressInQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
       }
 
-      override def controller = new TestableAssistanceDetailsControllerWithUserInQuestionnaire
+      override def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) =
+        new TestableAssistanceDetailsControllerWithUserInQuestionnaire
 
       val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
       when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
@@ -126,7 +155,9 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       when(securityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller = new TestableAssistanceDetailsController
+    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp)  = new TestableAssistanceDetailsController {
+      override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+    }
 
   }
 
