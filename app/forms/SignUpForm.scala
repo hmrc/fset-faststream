@@ -110,7 +110,7 @@ object SignUpForm {
             case unknown => Left(List(FormError("eligible", s"Unrecognised application route $unknown")))
           }
 
-        case _ => Left(List(FormError("appRoute", Messages("error.appRoute"))))
+        case _ => Left(List(FormError("applicationRoute", Messages("error.appRoute"))))
       }
     }
 

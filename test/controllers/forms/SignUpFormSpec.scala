@@ -82,7 +82,8 @@ class SignUpFormSpec extends BaseSpec {
     }
 
     "throw an error if I haven't click on the I am eligible for EDIP" in {
-      val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Edip), faststreamEligable = false, edipEligable = false).get
+      val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Edip),
+        faststreamEligable = false, edipEligable = false).get
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
       signUpForm.errors("edipEligible").head.messages must be(Seq(Messages("agree.edipEligible")))
@@ -99,7 +100,7 @@ class SignUpFormSpec extends BaseSpec {
       val (_, signUpForm) = SignupFormGenerator(applicationRoute = None).get
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
-      signUpForm.errors("appRoute").head.messages must be(Seq(Messages("error.appRoute")))
+      signUpForm.errors("applicationRoute").head.messages must be(Seq(Messages("error.appRoute")))
     }
 
   }

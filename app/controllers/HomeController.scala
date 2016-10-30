@@ -19,7 +19,7 @@ package controllers
 import _root_.forms.WithdrawApplicationForm
 import config.CSRCache
 import connectors.ApplicationClient
-import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
+import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange.{ FrameworkId, Phase2TestGroupWithActiveTest, Phase3TestGroup, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
@@ -94,7 +94,9 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
   def create = CSRSecureAction(ApplicationStartRole) { implicit request =>
     implicit user =>
       for {
-        response <- applicationClient.createApplication(user.user.userID, FrameworkId)
+        response <- applicationClient.findApplication(user.user.userID, FrameworkId).recoverWith {
+          case _: ApplicationNotFound => applicationClient.createApplication(user.user.userID, FrameworkId)
+        }
         _ <- env.userService.save(user.copy(application = Some(response)))
         if faststreamConfig.applicationsSubmitEnabled
       } yield {
@@ -138,7 +140,7 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
     implicit user =>
 
       applicationClient.confirmAllocation(user.application.get.applicationId).map { _ =>
-        Redirect(controllers.routes.HomeController.present).flashing(success("success.allocation.confirmed"))
+        Redirect(controllers.routes.HomeController.present()).flashing(success("success.allocation.confirmed"))
       }
   }
 }

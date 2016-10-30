@@ -27,6 +27,7 @@ import connectors.exchange.Implicits._
 import helpers.NotificationType._
 import models.{ ApplicationRoute, SecurityUser, UniqueIdentifier }
 import security.SignInService
+import connectors.exchange._
 
 import scala.concurrent.Future
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -52,12 +53,10 @@ abstract class SignUpController(val applicationClient: ApplicationClient, scheme
       SignUpForm.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize)))),
         data => {
-          // TODO the map nesting is a bit deep here, should refactor this
           val appRoute = ApplicationRoute.withName(data.applicationRoute)
           env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
             applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
-              applicationClient.createApplication(u.userId, "FastStream-2016", appRoute).flatMap { appResponse =>
-                createDefaultSchemes(appResponse.applicationId, appRoute).flatMap { _ =>
+              applicationClient.createApplication(u.userId, FrameworkId, appRoute).flatMap { appResponse =>
                   signInUser(
                     u.toCached,
                     redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
@@ -66,7 +65,6 @@ abstract class SignUpController(val applicationClient: ApplicationClient, scheme
                     env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
                     r
                   }
-                }
               }
             }
           }.recover {
@@ -83,13 +81,5 @@ abstract class SignUpController(val applicationClient: ApplicationClient, scheme
     } else {
       data.campaignReferrer.getOrElse("")
     }
-  }
-
-  private def createDefaultSchemes(appId: UniqueIdentifier, appRoute: ApplicationRoute.ApplicationRoute)
-      (implicit hc: HeaderCarrier): Future[Unit] = appRoute match {
-    case ApplicationRoute.Edip =>
-      // TODO schemes should be refactored to be more typesafe
-      schemeClient.updateSchemePreferences(SelectedSchemes(List("Edip"), true, true))(appId)
-    case _ => Future.successful(())
   }
 }
