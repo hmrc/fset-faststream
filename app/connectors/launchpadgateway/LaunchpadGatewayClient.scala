@@ -48,6 +48,14 @@ trait LaunchpadGatewayClient {
   def inviteApplicant(inviteApplicant: InviteApplicantRequest): Future[InviteApplicantResponse] =
     http.POST(s"$urlWithPathPrefix/invite", inviteApplicant).map(responseAsOrThrow[InviteApplicantResponse])
 
+  def extendDeadline(extendDeadline: ExtendDeadlineRequest): Future[Unit] =
+    http.POST(s"$urlWithPathPrefix/extend", extendDeadline).map { response =>
+      if (response.status != OK) {
+        throw new ConnectorException(s"There was a general problem connecting with the Launchpad Gateway. HTTP status " +
+          s"was ${response.status} and response was ${response.body}")
+      }
+    }
+
   private def responseAsOrThrow[A](response: HttpResponse)(implicit jsonFormat: Reads[A]) = {
     if (response.status == OK) {
       response.json.as[A]

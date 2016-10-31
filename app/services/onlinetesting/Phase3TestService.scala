@@ -55,7 +55,7 @@ object Phase3TestService extends Phase3TestService {
   val eventService = EventService
 }
 
-trait Phase3TestService extends OnlineTestService with ResetPhase3Test {
+trait Phase3TestService extends OnlineTestService {
   val appRepository: GeneralApplicationRepository
   val phase3TestRepo: Phase3TestRepository
   val cdRepository: contactdetails.ContactDetailsRepository
@@ -83,7 +83,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test {
   override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int)
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val (invitationDate, expirationDate) =
       dateTimeFactory.nowLocalTimeZone -> dateTimeFactory.nowLocalTimeZone.plusDays(gatewayConfig.phase3Tests.timeToExpireInDays)
 
@@ -108,7 +108,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test {
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
     expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[LaunchpadTest] = {
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
     val customCandidateId = "FSCND-" + tokenFactory.generateUUID()
 
     for {
@@ -140,6 +140,9 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test {
       isAlreadyExpired = progress.phase3ProgressResponse.phase3TestsExpired
       extendDays = extendTime(isAlreadyExpired, phase3.expirationDate)
       newExpiryDate = extendDays(extraDays)
+      activeTest = phase3.activeTests.head
+      launchpadExtendRequest = ExtendDeadlineRequest(activeTest.interviewId, activeTest.candidateId, newExpiryDate.toLocalDate)
+      _ <- launchpadGatewayClient.extendDeadline(launchpadExtendRequest)
       _ <- phase3TestRepo.updateGroupExpiryTime(applicationId, newExpiryDate, phase3TestRepo.phaseName)
       _ <- progressStatusesToRemoveWhenExtendTime(newExpiryDate, phase3, progress)
         .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
@@ -150,13 +153,8 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test {
     } yield {}
   }
 
-  def logEvent(auditClass: Map[String, String] => AuditEventNoRequest,
-                        dataStoreEvent: Map[String, String] => DataStoreEventWithAppId,
-                        params: (String, String)*): Future[Unit] =
-    eventService.handle(auditClass(params.toMap) :: dataStoreEvent(params.toMap) :: Nil)
-
   private def registerApplicant(application: OnlineTestApplication,
-                        emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier): Future[String] = {
+                        emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
     launchpadGatewayClient.registerApplicant(registerApplicant).map { registration =>
       eventService.handle(
@@ -182,7 +180,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test {
 
   override def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[Unit] = {
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
      eventService.handle(
@@ -214,7 +212,7 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test {
   }
 
   private def markAsInvited(application: OnlineTestApplication)
-                           (newPhase3TestGroup: Phase3TestGroup): Future[Unit] = {
+                           (newPhase3TestGroup: Phase3TestGroup)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       currentPhase3TestGroup <- phase3TestRepo.getTestGroup(application.applicationId)
       updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
@@ -247,14 +245,5 @@ trait Phase3TestService extends OnlineTestService with ResetPhase3Test {
   // TODO: This needs to cater for 10% extra, 33% extra etc. See FSET-656
   private def getInterviewIdForApplication(application: OnlineTestApplication): Int = {
       gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0pc")
-  }
-}
-
-trait ResetPhase3Test {
-  import ProgressStatuses._
-
-  // TODO: Implement for resets/extends
-  def determineStatusesToRemove(testGroup: Phase3TestGroup): List[ProgressStatus] = {
-    List(PHASE3_TESTS_STARTED, PHASE3_TESTS_COMPLETED)
   }
 }

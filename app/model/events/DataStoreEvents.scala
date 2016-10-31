@@ -76,7 +76,7 @@ object DataStoreEvents {
   case class VideoInterviewInvited(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewCandidateRegistered(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewRegistrationAndInviteComplete(appId: String) extends DataStoreEventWithAppId
-  case class VideoInterviewInvitationEmailSent(appId: String extends DataStoreEventWithAppId
+  case class VideoInterviewInvitationEmailSent(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewStarted(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewCompleted(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewExtended(appId: String, createdByUser: String) extends DataStoreEventWithAppId
