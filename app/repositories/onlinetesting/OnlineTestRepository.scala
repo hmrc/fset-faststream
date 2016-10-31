@@ -41,6 +41,7 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
   val dateTimeFactory: DateTimeFactory
   val expiredTestQuery: BSONDocument
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
+
   type U <: Test
   type T <: TestProfile[U]
 
@@ -210,5 +211,18 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
         throw cannotFindTestByCubiksId(cubiksUserId)
       case _ => ()
     }
+  }
+
+  def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("cubiksUserId" -> phase1Test.cubiksUserId)
+      )
+    )
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
+    ))
+    collection.update(query, update, upsert = false) map( _ => () )
   }
 }

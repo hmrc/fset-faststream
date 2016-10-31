@@ -53,8 +53,6 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
 
   def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
 
-  def insertPhase1TestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit]
-
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 
 }
@@ -132,19 +130,6 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       }
       ()
     }
-  }
-
-  override def insertPhase1TestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
-    val query = BSONDocument(
-      "applicationId" -> appId,
-      s"testGroups.$phaseName.tests" -> BSONDocument(
-        "$elemMatch" -> BSONDocument("cubiksUserId" -> phase1Test.cubiksUserId)
-      )
-    )
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
-    ))
-    collection.update(query, update, upsert = false) map( _ => () )
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {

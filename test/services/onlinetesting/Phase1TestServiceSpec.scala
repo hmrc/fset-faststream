@@ -540,7 +540,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertPhase1TestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
+      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))
@@ -565,7 +565,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertPhase1TestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
+      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))

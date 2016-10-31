@@ -206,7 +206,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
 
     def insertTests(testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
       Future.sequence(testResults.map {
-        case (result, phase1Test) => phase1TestRepo.insertPhase1TestResult(
+        case (result, phase1Test) => phase1TestRepo.insertTestResult(
           testProfile.applicationId,
           phase1Test, model.persisted.TestResult.fromCommandObject(result)
         )

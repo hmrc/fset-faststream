@@ -177,7 +177,9 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       phase1TestResultsReady.isDefined mustBe true
       phase1TestResultsReady.get mustBe Phase1TestGroupWithUserIds("appId2", "userId2", profile)
     }
+  }
 
+  "Insert test result" should {
     "correctly update a test group with results" in {
        createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
@@ -189,7 +191,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       val testResult = persisted.TestResult(status = "completed", norm = "some norm",
           tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
 
-      phase1TestRepo.insertPhase1TestResult("appId", testProfileWithAppId.testGroup.tests.head,
+      phase1TestRepo.insertTestResult("appId", testProfileWithAppId.testGroup.tests.head,
         testResult
       ).futureValue
 

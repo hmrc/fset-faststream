@@ -22,7 +22,6 @@ import play.api.libs.json.Json
 import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
-import model.report.QuestionnaireReportItem
 
 case class OnlineTestPassMarkReportItem(
                            application: ApplicationForOnlineTestPassMarkReportItem,
@@ -66,7 +65,3 @@ object ApplicationForOnlineTestPassMarkReportItem {
 object OnlineTestPassMarkReportItem {
   implicit val onlineTestPassMarkReportFormat = Json.format[OnlineTestPassMarkReportItem]
 }
-
-
-
-
