@@ -35,8 +35,8 @@ trait ProgressStatusesReportLabels {
     (progress.preview, 80, PreviewCompletedProgress),
     (progress.submitted, 90, SubmittedProgress),
     (progress.phase1ProgressResponse.phase1TestsInvited, 100, Phase1TestsInvited),
-    (progress.phase1ProgressResponse.phase1TestsFirstRemainder, 110, Phase1TestsFirstRemainder),
-    (progress.phase1ProgressResponse.phase1TestsSecondRemainder, 120, Phase1TestsSecondRemainder),
+    (progress.phase1ProgressResponse.phase1TestsFirstReminder, 110, Phase1TestsFirstReminder),
+    (progress.phase1ProgressResponse.phase1TestsSecondReminder, 120, Phase1TestsSecondReminder),
     (progress.phase1ProgressResponse.phase1TestsStarted, 130, Phase1TestsStarted),
     (progress.phase1ProgressResponse.phase1TestsCompleted, 140, Phase1TestsCompleted),
     (progress.phase1ProgressResponse.phase1TestsExpired, 150, Phase1TestsExpired),
@@ -46,8 +46,8 @@ trait ProgressStatusesReportLabels {
     (progress.phase1ProgressResponse.phase1TestsFailed, 190, Phase1TestsFailed),
     (progress.phase1ProgressResponse.phase1TestsFailedNotified, 195, Phase1TestsFailedNotified),
     (progress.phase2ProgressResponse.phase2TestsInvited, 200, Phase2TestsInvited),
-    (progress.phase2ProgressResponse.phase2TestsFirstRemainder, 210, Phase2TestsFirstRemainder),
-    (progress.phase2ProgressResponse.phase2TestsSecondRemainder, 220, Phase2TestsSecondRemainder),
+    (progress.phase2ProgressResponse.phase2TestsFirstReminder, 210, Phase2TestsFirstReminder),
+    (progress.phase2ProgressResponse.phase2TestsSecondReminder, 220, Phase2TestsSecondReminder),
     (progress.phase2ProgressResponse.phase2TestsStarted, 230, Phase2TestsStarted),
     (progress.phase2ProgressResponse.phase2TestsCompleted, 240, Phase2TestsCompleted),
     (progress.phase2ProgressResponse.phase2TestsExpired, 250, Phase2TestsExpired),
@@ -114,8 +114,8 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val SubmittedProgress = "submitted"
   val WithdrawnProgress = "withdrawn"
   val Phase1TestsInvited = "phase1_tests_invited"
-  val Phase1TestsFirstRemainder = "phase1_tests_first_remainder"
-  val Phase1TestsSecondRemainder = "phase1_tests_second_remainder"
+  val Phase1TestsFirstReminder = "phase1_tests_first_reminder"
+  val Phase1TestsSecondReminder = "phase1_tests_second_reminder"
   val Phase1TestsStarted = "phase1_tests_started"
   val Phase1TestsCompleted = "phase1_tests_completed"
   val Phase1TestsExpired = "phase1_tests_expired"
@@ -125,8 +125,8 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase1TestsFailed = "phase1_tests_failed"
   val Phase1TestsFailedNotified = "phase1_tests_failed_notified"
   val Phase2TestsInvited = "phase2_tests_invited"
-  val Phase2TestsFirstRemainder = "phase2_tests_first_remainder"
-  val Phase2TestsSecondRemainder = "phase2_tests_second_remainder"
+  val Phase2TestsFirstReminder = "phase2_tests_first_reminder"
+  val Phase2TestsSecondReminder = "phase2_tests_second_reminder"
   val Phase2TestsStarted = "phase2_tests_started"
   val Phase2TestsCompleted = "phase2_tests_completed"
   val Phase2TestsExpired = "phase2_tests_expired"
