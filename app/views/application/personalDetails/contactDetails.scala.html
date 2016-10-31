@@ -1,4 +1,4 @@
-@(form: Form[_root_.forms.GeneralDetailsForm.Data])(implicit lang: play.api.i18n.Lang)
+@(form: Form[_root_.forms.GeneralDetailsForm.Data], isLastSection: Boolean)(implicit lang: play.api.i18n.Lang)
 
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.checkbox
@@ -10,7 +10,7 @@
     }
 }
 
-<section class="section-border">
+<section @if(!isLastSection){ class="section-border" } >
     <h2 class="heading-medium">Contact details</h2>
 
     <div class="form-group">

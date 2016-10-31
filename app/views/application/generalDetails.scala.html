@@ -20,7 +20,7 @@
         @helper.CSRF.formField
         @applicationRoute(optCachedData)
         @nameAndDateOfBirth(details)
-        @contactDetails(details)
+        @contactDetails(details, isLastSection = optCachedData.exists(cachedData => RoleUtils.isEdip(optCachedData)))
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
             !RoleUtils.isEdip(optCachedData)){
             @civilServiceExperienceDetailsPanel(details)
