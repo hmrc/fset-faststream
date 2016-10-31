@@ -102,7 +102,6 @@ trait OnlineTestRepository[U <: Test, T <: TestProfile[U]] extends RandomSelecti
       s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
     ))
 
-    play.api.Logger.debug(play.api.libs.json.Json.toJson(query).toString)
     val errorActionHandler: Int => Unit = cubiksUserId => {
       logger.warn(s"""Failed to update cubiks test: $cubiksUserId - test has expired or does not exist""")
       ()

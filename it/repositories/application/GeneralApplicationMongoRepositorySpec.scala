@@ -260,16 +260,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-  "progress status check" should {
-    "return true for porgress status" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016",
-        additionalProgressStatuses = List((ProgressStatuses.PHASE1_TESTS_EXPIRED, true)))
-
-      repository.progressCheck("appId123", ProgressStatuses.PHASE1_TESTS_EXPIRED).futureValue mustBe true
-      repository.progressCheck("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED).futureValue mustBe false
-    }
-  }
-
   val testCandidate = Map(
     "firstName" -> "George",
     "lastName" -> "Jetson",

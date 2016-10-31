@@ -132,8 +132,6 @@ trait GeneralApplicationRepository {
 
   def findFailedTestForNotification(appStatus: ApplicationStatus,
                                     progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]]
-
-  def progressCheck(applicationId: String, progressStatus: ProgressStatus): Future[Boolean]
 }
 
 // scalastyle:off number.of.methods
@@ -1078,15 +1076,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     collection.update(query, unsetDoc)
       .map { _ => () }
-  }
-
-  def progressCheck(applicationId: String, progressStatus: ProgressStatus): Future[Boolean] = {
-    collection.find(BSONDocument("applicationId" -> applicationId),
-                    BSONDocument(s"progress-status.${progressStatus}" -> 1)
-    ).one[BSONDocument].map {
-      case None => false
-      case Some(doc) => doc.getAs[BSONDocument]("progress-status").get.getAs[Boolean](progressStatus.toString).getOrElse(false)
-    }
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

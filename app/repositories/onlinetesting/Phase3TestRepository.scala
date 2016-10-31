@@ -58,7 +58,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     val query = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS_PASSED,
-      s"progress-status.${PHASE2_TESTS_COMPLETED}" -> true
+      s"progress-status.${PHASE2_TESTS_PASSED}" -> true
     )
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)

@@ -174,6 +174,4 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def removeProgressStatuses(appId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = ???
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
-
-  def progressCheck(applicationId: String, progressStatus: ProgressStatus): Future[Boolean] = ???
 }

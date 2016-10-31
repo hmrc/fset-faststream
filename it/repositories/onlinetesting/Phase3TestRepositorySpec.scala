@@ -44,7 +44,7 @@ class Phase3TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     "return one application if there is only one" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((model.ProgressStatuses.PHASE2_TESTS_COMPLETED, true))
+        fastPassReceived = false, additionalProgressStatuses = List((model.ProgressStatuses.PHASE2_TESTS_PASSED, true))
       ).futureValue
 
       val result = phase3TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
