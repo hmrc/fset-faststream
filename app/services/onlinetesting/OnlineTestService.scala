@@ -79,7 +79,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[Unit] = {
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
       audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))

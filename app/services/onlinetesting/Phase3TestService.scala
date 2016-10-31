@@ -211,13 +211,14 @@ trait Phase3TestService extends OnlineTestService {
       Phase3TestGroup(newTestGroup.expirationDate, existingTestsAfterUpdate ++ newTestGroup.tests)
   }
 
+  // TODO: All resets are launchpad side, contemplate whether we should be able to call this invite method twice
+  // or what we do if we want to reinvite
   private def markAsInvited(application: OnlineTestApplication)
                            (newPhase3TestGroup: Phase3TestGroup)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       currentPhase3TestGroup <- phase3TestRepo.getTestGroup(application.applicationId)
       updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
       _ <- phase3TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
-      _ <- appRepository.removeProgressStatuses(application.applicationId, determineStatusesToRemove(updatedPhase3TestGroup))
       _ <- eventService.handle(AuditEvents.VideoInterviewInvited("userId" -> application.userId) ::
         DataStoreEvents.VideoInterviewInvited(application.applicationId) :: Nil)
     } yield {}
