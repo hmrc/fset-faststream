@@ -148,7 +148,7 @@ sealed trait OnlineTestEmailClient {
   self: EmailClient =>
 
   def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
-  def sendOnlineTestExpired(to: String, name: String, template: String)(implicit hc: HeaderCarrier): Future[Unit] = sendEmail(
+  def sendEmailWithName(to: String, name: String, template: String)(implicit hc: HeaderCarrier): Future[Unit] = sendEmail(
     to,
     template,
     Map("name" -> name)

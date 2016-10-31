@@ -30,21 +30,6 @@ GET         /phase1/pass-mark-settings/getLatestVersion                  control
 GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 PUT         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.create
 
-GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
-GET         /assessment-schedule/venue/:venue/date/:date                 controllers.AssessmentScheduleController.getVenueDayCandidateSchedule(venue: String, date: String)
-GET         /assessment-schedule/details/venue/:venue/date/:date         controllers.AssessmentScheduleController.getVenueDayCandidateScheduleWithDetails(venue: String, date: String)
-GET         /assessment-schedule/application/:applicationId              controllers.AssessmentScheduleController.getApplicationAssessment(applicationId: String)
-DELETE      /assessment-schedule/application/:applicationId              controllers.AssessmentScheduleController.deleteApplicationAssessment(applicationId: String)
-GET         /assessment-schedule/centre-location/location/:locationName  controllers.AssessmentScheduleController.locationToAssessmentCentreLocation(locationName: String)
-GET         /assessment-schedule/location/:location                      controllers.AssessmentScheduleController.getApplicationForAssessmentAllocation(location: String, start: Int, end: Int)
-GET         /assessment-centres                                          controllers.AssessmentScheduleController.assessmentCentres
-GET         /assessment-centre-capacities/venue/:venue                   controllers.AssessmentScheduleController.getAssessmentCentreCapacities(venue: String)
-GET         /assessment-centre-allocation/venue/:venue                   controllers.AssessmentScheduleController.getAllocationsForVenue(venue: String)
-POST        /assessment-centre-allocation                                controllers.AssessmentScheduleController.allocate
-
-GET         /allocation-status/:applicationId                            controllers.AssessmentScheduleController.allocationStatus(applicationId)
-POST        /allocation-status/confirm/:applicationId                    controllers.AssessmentScheduleController.confirmAllocation(applicationId)
-
 PUT         /questionnaire/:applicationId/:sectionKey                    controllers.QuestionnaireController.addSection(applicationId: String,sectionKey: String)
 
 GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
@@ -61,12 +46,14 @@ GET         /report/online-test-pass-mark/:frameworkId                   control
 #GET         /report/assessment-results/:frameworkId                      controllers.ReportingController.createAssessmentResultsReport(frameworkId: String)
 #GET         /report/successful-candidates/:frameworkId                   controllers.ReportingController.createSuccessfulCandidatesReport(frameworkId: String)
 
-GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getUserById(userId: String)
+GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
+GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
 
-GET         /online-test/candidate/:applicationId                        controllers.OnlineTestController.getOnlineTest(applicationId: String)
-GET         /online-test-phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
+GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getOnlineTest(applicationId: String)
+GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
 POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
-POST        /online-test/reset/:appId                                    controllers.OnlineTestController.resetOnlineTests(appId: String)
+POST        /online-test/phase1/reset/:appId                             controllers.OnlineTestController.resetOnlineTests(appId: String)
+POST        /online-test/phase2/reset/:appId                             controllers.OnlineTestController.resetPhase2OnlineTest(appId: String)
 
 PUT         /cubiks/:cubiksUserId/start                                  controllers.CubiksTestsController.start(cubiksUserId: Int)
 PUT         /cubiks/:cubiksUserId/complete                               controllers.CubiksTestsController.complete(cubiksUserId: Int)
@@ -76,6 +63,12 @@ PUT         /cubiks/:cubiksUserId/results-ready                          control
 POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
 POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
 GET         /phase3-test-group/:applicationId                            controllers.Phase3TestGroupController.getTestGroup(applicationId: String)
+
+PUT         /launchpad/:inviteId/setupProcessCallback                    controllers.LaunchpadTestsController.setupProcessCallback(inviteId: String)
+PUT         /launchpad/:inviteId/viewPracticeQuestionCallback            controllers.LaunchpadTestsController.viewPracticeQuestionCallback(inviteId: String)
+PUT         /launchpad/:inviteId/questionCallback                        controllers.LaunchpadTestsController.questionCallback(inviteId: String)
+PUT         /launchpad/:inviteId/finalCallback                           controllers.LaunchpadTestsController.finalCallback(inviteId: String)
+PUT         /launchpad/:inviteId/finishedCallback                        controllers.LaunchpadTestsController.finishedCallback(inviteId: String)
 
 GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
 PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)

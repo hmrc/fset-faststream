@@ -22,7 +22,7 @@ class CivilServiceExperienceDetailsSpec extends MongoRepositorySpec {
         _ <- repository.update(AppId, civilServant)
         fpDetails <- repository.find(AppId)
       } yield fpDetails).futureValue
-      civilServiceExperienceDetails mustBe civilServant
+      civilServiceExperienceDetails mustBe Some(civilServant)
     }
 
     "return exception when fast pass details does not exist" in {
@@ -36,12 +36,12 @@ class CivilServiceExperienceDetailsSpec extends MongoRepositorySpec {
 
   "find" should {
     "return exception when fast pass details not found" in {
-      val exception = (for {
+      val civilServiceDetails = (for {
         _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED))
-        _ <- repository.find(AppId)
-      } yield ()).failed.futureValue
+        civilServiceDetails <- repository.find(AppId)
+      } yield civilServiceDetails).futureValue
 
-      exception mustBe CivilServiceExperienceDetailsNotFound(AppId)
+      civilServiceDetails mustBe None
     }
   }
 

@@ -142,10 +142,9 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
-      result mustBe List(
-        OnlineTestPassMarkReportItem(applicationWithNoTestResult1, questionnaire1),
-        OnlineTestPassMarkReportItem(applicationWithNoTestResult2, questionnaire2)
-      )
+      result must have size(2)
+      result must contain (OnlineTestPassMarkReportItem(applicationWithNoTestResult1, questionnaire1))
+      result must contain (OnlineTestPassMarkReportItem(applicationWithNoTestResult2, questionnaire2))
     }
 
     "return applications with questionnaire and test results" in new PassMarkReportTestFixture {
@@ -158,10 +157,9 @@ class ReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
 
       status(response) mustBe OK
-      result mustBe List(
-        OnlineTestPassMarkReportItem(application1, questionnaire1),
-        OnlineTestPassMarkReportItem(application2, questionnaire2)
-      )
+      result must have size(2)
+      result must contain (OnlineTestPassMarkReportItem(application1, questionnaire1))
+      result must contain (OnlineTestPassMarkReportItem(application2, questionnaire2))
     }
   }
 

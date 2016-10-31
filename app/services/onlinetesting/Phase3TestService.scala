@@ -22,6 +22,7 @@ import config.LaunchpadGatewayConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects._
+import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
 import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
@@ -40,7 +41,9 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 object Phase3TestService extends Phase3TestService {
+
   import config.MicroserviceAppConfig._
+
   val appRepository = applicationRepository
   val phase3TestRepo = phase3TestRepository
   val cdRepository = faststreamContactDetailsRepository
@@ -72,10 +75,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern with Re
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = phase3TestRepo.getTestGroup(applicationId)
 
   override def registerAndInviteForTestGroup(application: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = Future.failed(new NotImplementedError())
+                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = Future.failed(new NotImplementedError())
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
   }
 
@@ -90,7 +93,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern with Re
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = Future.successful(())
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int)
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+                                   (implicit hc: HeaderCarrier): Future[Unit] = {
     val (invitationDate, expirationDate) =
       dateTimeFactory.nowLocalTimeZone -> dateTimeFactory.nowLocalTimeZone.plusDays(gatewayConfig.phase3Tests.timeToExpireInDays)
 
@@ -106,12 +109,12 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern with Re
   override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
-    emailAddress: String,
-    reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+                                                     emailAddress: String,
+                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
-    expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[LaunchpadTest] = {
+                                         expirationDate: DateTime
+                                        )(implicit hc: HeaderCarrier): Future[LaunchpadTest] = {
     val customCandidateId = "FSCND-" + tokenFactory.generateUUID()
 
     for {
@@ -132,7 +135,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern with Re
   }
 
   private def registerApplicant(application: OnlineTestApplication,
-                        emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier): Future[String] = {
+                                emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
     launchpadGatewayClient.registerApplicant(registerApplicant).map { registration =>
       audit("Phase3UserRegistered", application.userId)
@@ -141,7 +144,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern with Re
   }
 
   private def inviteApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String)
-    (implicit hc: HeaderCarrier): Future[InviteApplicantResponse] = {
+                             (implicit hc: HeaderCarrier): Future[InviteApplicantResponse] = {
 
     val customInviteId = "FSINV-" + tokenFactory.generateUUID()
 
@@ -154,8 +157,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern with Re
   }
 
   override def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-    invitationDate: DateTime, expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[Unit] = {
+                                      invitationDate: DateTime, expirationDate: DateTime
+                                     )(implicit hc: HeaderCarrier): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
       audit("Phase3TestInvitationEmailSent", application.userId, Some(emailAddress))
@@ -195,11 +198,12 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern with Re
 
   // TODO: This needs to cater for 10% extra, 33% extra etc. See FSET-656
   private def getInterviewIdForApplication(application: OnlineTestApplication): Int = {
-      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0pc")
+    gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0pc")
   }
 }
 
 trait ResetPhase3Test {
+
   import ProgressStatuses._
 
   // TODO: Implement for resets/extends
