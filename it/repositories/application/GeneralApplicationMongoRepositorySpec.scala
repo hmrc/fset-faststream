@@ -22,12 +22,13 @@ import model.SchemeType.SchemeType
 import model._
 import model.report.CandidateProgressReportItem
 import org.joda.time.LocalDate
-import reactivemongo.bson.{BSONArray, BSONDocument}
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
-import model.persisted.{ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport}
 import testkit.MongoRepositorySpec
+import model.command.ProgressResponse
+import model.persisted.{ ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport }
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -239,7 +240,23 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       noMatchResponse.size mustBe 0
     }
+  }
 
+  "non-submitted status" should {
+    val emptyProgressResponse = ProgressResponse("1")
+
+    "be true for non submitted progress" in {
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = false)) must be(true)
+    }
+
+    "be false for withdrawn progress" in {
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = true)) must be(false)
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = true)) must be(false)
+    }
+
+    "be false for submitted but not withdrawn progress" in {
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = false)) must be(false)
+    }
   }
 
   val testCandidate = Map(

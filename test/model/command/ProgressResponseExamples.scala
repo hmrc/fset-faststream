@@ -44,6 +44,12 @@ object ProgressResponseExamples {
       phase2TestsExpired = false,
       phase2TestsResultsReceived = false
     ),
+    phase3ProgressResponse = Phase3ProgressResponse(phase3TestsInvited = false,
+      phase3TestsStarted = false,
+      phase3TestsCompleted = false,
+      phase3TestsExpired = false,
+      phase3TestsResultsReceived = false
+    ),
     failedToAttend = false
   )
   val InProgress = Initial.copy(personalDetails = true)

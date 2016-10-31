@@ -35,6 +35,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository()
   def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
 
+
   "Find by user id" should {
     "return an empty list if there is nobody with this userId" in {
       val result = diagnosticReportRepo.findByUserId("123").failed.futureValue
@@ -51,9 +52,34 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
       (result(0) \ "applicationId").as[String] mustBe "app1"
       (result(0) \ "progress-status" \ "registered").as[Boolean] mustBe true
       (result(0) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      (result(0) \\ "personal-details") mustBe Nil
       (result(1) \ "applicationId").as[String] mustBe "app2"
       (result(1) \ "progress-status" \ "registered").as[Boolean] mustBe true
       (result(1) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      (result(1) \\ "personal-details") mustBe Nil
+    }
+  }
+
+  "Find all users" should {
+    "return user's application with the specific Id" in {
+      helperRepo.collection.insert(userWithAllDetails("user1", "app1", "FastStream-2016")).futureValue
+      helperRepo.collection.insert(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
+      helperRepo.collection.insert(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
+
+      val result = diagnosticReportRepo.findAll().futureValue
+      result.length mustBe 3
+      (result(0) \ "applicationId").as[String] mustBe "app1"
+      (result(0) \ "progress-status" \ "registered").as[Boolean] mustBe true
+      (result(0) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      (result(0) \\ "personal-details") mustBe Nil
+      (result(1) \ "applicationId").as[String] mustBe "app2"
+      (result(1) \ "progress-status" \ "registered").as[Boolean] mustBe true
+      (result(1) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      (result(1) \\ "personal-details") mustBe Nil
+      (result(2) \ "applicationId").as[String] mustBe "app3"
+      (result(2) \ "progress-status" \ "registered").as[Boolean] mustBe true
+      (result(2) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      (result(2) \\ "personal-details") mustBe Nil
     }
   }
 
@@ -62,6 +88,12 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
     "userId" -> userId,
     "frameworkId" -> frameworkId,
     "applicationStatus" -> "AWAITING_ALLOCATION",
+    "personal-details" -> BSONDocument(
+      "firstName" -> "Testy",
+      "lastName" -> "McTestface",
+      "preferredName" -> "Reginald",
+      "dateOfBirth" -> "1987-12-22"
+    ),
     "progress-status" -> BSONDocument(
       "registered" -> BSONBoolean(true),
       "personal_details_completed" -> BSONBoolean(true),

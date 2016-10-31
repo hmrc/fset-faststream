@@ -61,7 +61,7 @@ class LockMongoRepository(implicit mongo: () => DB)
   )(implicit ec: ExecutionContext): Future[Boolean] = withCurrentTime { now =>
     collection.remove(Json.obj(id -> reqLockId, expiryTime -> Json.obj("$lte" -> now))).flatMap { writeResult =>
       if (writeResult.n != 0) {
-        Logger.warn(s"Removed ${writeResult.n} expired locks for $reqLockId")
+        Logger.info(s"Removed ${writeResult.n} expired locks for $reqLockId")
       }
 
       collection.insert(Json.obj(id -> reqLockId, owner -> reqOwner, timeCreated -> now, expiryTime -> now.plus(forceReleaseAfter)))

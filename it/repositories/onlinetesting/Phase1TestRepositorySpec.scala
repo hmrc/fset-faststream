@@ -20,24 +20,13 @@ import java.util.UUID
 
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.OnlineTestApplication
-import model.persisted.{ CubiksTest, Phase1TestProfile }
-import model.persisted.ExpiringOnlineTest
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
-import model.persisted.Phase1TestWithUserIds
-import model._
-import org.joda.time.{ DateTime, DateTimeZone }
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument }
-import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
-import services.GBTimeZoneService
-import config.MicroserviceAppConfig._
-import factories.DateTimeFactory
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
+import model.exchange.CubiksTestResultReady
+import model.persisted.{ CubiksTest, ExpiringOnlineTest, Phase1TestProfile, Phase1TestWithUserIds }
+import model.{ ApplicationStatus, ProgressStatuses, persisted, _ }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
-import play.api.Logger
 
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
 
@@ -138,8 +127,8 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
 
       results.length mustBe 1
-      results(0).applicationId mustBe "appId"
-      results(0).userId mustBe "userId"
+      results.head.applicationId mustBe "appId"
+      results.head.userId mustBe "userId"
     }
   }
 
@@ -219,7 +208,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       onlineTestApplications.length mustBe 1
 
-      inside (onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId,
+      inside (onlineTestApplications.head) { case OnlineTestApplication(applicationId, applicationStatus, userId,
         guaranteedInterview, needsAdjustments, preferredName, lastName, timeAdjustments) =>
 
         applicationId mustBe "appId"
@@ -416,6 +405,76 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe false
       app.progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe false
+    }
+
+    "update cubiks test" should {
+      "add the start time for a cubiks test" in {
+        insertApplication("appId", "userId")
+        phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+
+        val startedDateTime = DateTime.now()
+        phase1TestRepo.updateTestStartTime(TestProfile.tests.head.cubiksUserId, startedDateTime).futureValue
+
+        val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
+        val cubiksTest = phase1TestProfile.tests.head
+
+        cubiksTest.startedDateTime mustBe Some(new DateTime(startedDateTime.getMillis, DateTimeZone.UTC))
+      }
+      "add the completion time for a cubiks test" in {
+        insertApplication("appId", "userId")
+        phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+
+        val completionTime = DateTime.now()
+        phase1TestRepo.updateTestCompletionTime(TestProfile.tests.head.cubiksUserId, completionTime).futureValue
+        val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
+
+        val cubiksTest = phase1TestProfile.tests.head
+        cubiksTest.completedDateTime mustBe Some(new DateTime(completionTime.getMillis, DateTimeZone.UTC))
+      }
+      "mark the cubiks test as inactive" in {
+        insertApplication("appId", "userId")
+        phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+
+        phase1TestRepo.markTestAsInactive(TestProfile.tests.head.cubiksUserId).futureValue
+        val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
+
+        val cubiksTest = phase1TestProfile.tests.head
+        cubiksTest.usedForResults mustBe false
+      }
+      "mark the cubiks test as inactive and insert new tests" in {
+        insertApplication("appId", "userId")
+        phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+
+        phase1TestRepo.markTestAsInactive(TestProfile.tests.head.cubiksUserId).futureValue
+
+        val newTestProfile = TestProfile.copy(tests = List(phase1Test.copy(cubiksUserId = 234)))
+
+        phase1TestRepo.insertCubiksTests("appId", newTestProfile).futureValue
+        val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
+
+        phase1TestProfile.tests.size mustBe 2
+        phase1TestProfile.activeTests.size mustBe 1
+      }
+      "update test results ready" in {
+        insertApplication("appId", "userId")
+        phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+
+        val resultsReady = CubiksTestResultReady(
+          reportId = Some(1),
+          reportStatus = "Ready",
+          reportLinkURL = Some("link")
+        )
+
+        phase1TestRepo.updateTestReportReady(TestProfile.tests.head.cubiksUserId, resultsReady).futureValue
+
+        val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
+        val cubiksTest = phase1TestProfile.tests.head
+
+        cubiksTest.resultsReadyToDownload mustBe true
+        cubiksTest.reportId mustBe resultsReady.reportId
+        cubiksTest.reportStatus mustBe Some(resultsReady.reportStatus)
+        cubiksTest.reportLinkURL mustBe resultsReady.reportLinkURL
+      }
     }
   }
 

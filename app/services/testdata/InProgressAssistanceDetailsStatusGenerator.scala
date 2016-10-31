@@ -23,6 +23,7 @@ import repositories.assistancedetails.AssistanceDetailsRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import services.testdata.faker.DataFaker._
 
 object InProgressAssistanceDetailsStatusGenerator extends InProgressAssistanceDetailsStatusGenerator {
   override val previousStatusGenerator = InProgressPartnerGraduateProgrammesStatusGenerator
@@ -33,18 +34,44 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
   val adRepository: AssistanceDetailsRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
-    def getAssistanceDetails(gis: Boolean) = {
-      if (gis) {
-        AssistanceDetails("Yes", Some("disability"), Some(true), true, Some("adjustment online"), true, Some("adjustment at venue"))
-      } else {
-        AssistanceDetails("Yes", Some("disability"), Some(false), true, Some("adjustment online"), true, Some("adjustment at venue"))
-      }
+
+    def getAssistanceDetails(config: GeneratorConfig) = {
+      val hasDisabilityFinalValue = config.hasDisability.getOrElse(Random.yesNoPreferNotToSay)
+      val hasDisabilityDescriptionFinalValue =
+        if (hasDisabilityFinalValue == "Yes") {
+          Some(config.hasDisabilityDescription.getOrElse(Random.hasDisabilityDescription))
+        } else {
+          None
+        }
+      val gisFinalValue = if (hasDisabilityFinalValue == "Yes" && config.setGis) Some(true) else Some(false)
+      val onlineAdjustmentsFinalValue = config.onlineAdjustments.getOrElse(Random.bool)
+      val onlineAdjustmentsDescriptionFinalValue =
+        if (onlineAdjustmentsFinalValue) {
+          Some(config.onlineAdjustmentsDescription.getOrElse(Random.onlineAdjustmentsDescription))
+        } else {
+          None
+        }
+      val assessmentCentreAdjustmentsFinalValue = config.assessmentCentreAdjustments.getOrElse(Random.bool)
+      val assessmentCentreAdjustmentsDescriptionFinalValue =
+        if (assessmentCentreAdjustmentsFinalValue) {
+          Some(config.assessmentCentreAdjustmentsDescription.getOrElse(Random.assessmentCentreAdjustmentDescription))
+        } else {
+          None
+        }
+      AssistanceDetails(
+        hasDisabilityFinalValue,
+        hasDisabilityDescriptionFinalValue,
+        gisFinalValue,
+        onlineAdjustmentsFinalValue,
+        onlineAdjustmentsDescriptionFinalValue,
+        Some(assessmentCentreAdjustmentsFinalValue),
+        assessmentCentreAdjustmentsDescriptionFinalValue)
     }
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- adRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
-        getAssistanceDetails(generatorConfig.setGis))
+        getAssistanceDetails(generatorConfig))
     } yield {
       candidateInPreviousStatus
     }

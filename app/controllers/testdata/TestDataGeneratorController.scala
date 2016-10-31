@@ -22,15 +22,20 @@ import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
-import model.ProgressStatuses
-import model.EvaluationResults.Result
-import org.joda.time.{ DateTime, LocalDate }
-import org.joda.time.format.DateTimeFormat
-import play.api.Play
 import model.ApplicationStatus._
-import play.api.libs.json.Json
-import play.api.mvc.Action
+import model.EvaluationResults.Result
+import model.Exceptions.EmailTakenException
+import model.{ ApplicationRoute, ProgressStatuses }
+import model.command.testdata.CreateCandidateInStatusRequest
+import model.command.testdata.CreateCandidateInStatusRequest._
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.Play
+import play.api.libs.json.{ JsObject, JsString, Json }
+import play.api.mvc.{ Action, RequestHeader }
 import services.testdata._
+import services.testdata.faker.DataFaker.Random
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -54,9 +59,14 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  def createAdminUsers(numberToGenerate: Int, emailPrefix: String, role: String) = Action.async { implicit request =>
-    TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
-      Ok(Json.toJson(candidates))
+  def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String) = Action.async { implicit request =>
+    try {
+      TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
+        Ok(Json.toJson(candidates))
+      }
+    } catch {
+      case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
+          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
   }
 
@@ -76,28 +86,28 @@ trait TestDataGeneratorController extends BaseController {
 
   // scalastyle:off parameter.number
   // scalastyle:off method.length
-  def createCandidatesInStatus(applicationStatus: String,
-    progressStatus: Option[String],
-    numberToGenerate: Int,
-    emailPrefix: String,
-    setGis: Boolean,
-    firstName: Option[String],
-    lastName: Option[String],
-    preferredName: Option[String],
-    isCivilServant: Option[Boolean],
-    hasDegree: Option[Boolean],
-    region: Option[String],
-    loc1scheme1EvaluationResult: Option[String],
-    loc1scheme2EvaluationResult: Option[String],
-    previousStatus: Option[String],
-    confirmedAllocation: Boolean,
-    dateOfBirth: Option[String],
-    postCode: Option[String],
-    country: Option[String],
-    phase1StartTime: Option[String],
-    phase1ExpiryTime: Option[String],
-    tscore: Option[Double]
-  ) = Action.async { implicit request =>
+  def createEdipCandidatesInStatusGET(applicationStatus: String,
+                                  progressStatus: Option[String],
+                                  numberToGenerate: Int,
+                                  setGis: Boolean,
+                                  emailPrefix: Option[String],
+                                  firstName: Option[String],
+                                  lastName: Option[String],
+                                  preferredName: Option[String],
+                                  isCivilServant: Option[Boolean],
+                                  hasDegree: Option[Boolean],
+                                  region: Option[String],
+                                  loc1scheme1EvaluationResult: Option[String],
+                                  loc1scheme2EvaluationResult: Option[String],
+                                  previousStatus: Option[String],
+                                  confirmedAllocation: Boolean,
+                                  dateOfBirth: Option[String],
+                                  postCode: Option[String],
+                                  country: Option[String],
+                                  phase1StartTime: Option[String],
+                                  phase1ExpiryTime: Option[String],
+                                  tscore: Option[Double]
+                                 ) = Action.async { implicit request =>
     val initialConfig = GeneratorConfig(
       emailPrefix = emailPrefix,
       setGis = setGis,
@@ -121,20 +131,98 @@ trait TestDataGeneratorController extends BaseController {
       country = country,
       phase1StartTime = phase1StartTime.map(x => DateTime.parse(x)),
       phase1ExpiryTime = phase1ExpiryTime.map(x => DateTime.parse(x)),
-      tscore = tscore
+      tscore = tscore,
+      applicationRoute = ApplicationRoute.Edip
     )
+    createCandidateInStatus(initialConfig, applicationStatus, progressStatus, numberToGenerate)
+  }
 
-    TestDataGeneratorService.createCandidatesInSpecificStatus(
-      numberToGenerate,
-      StatusGeneratorFactory.getGenerator(withName(applicationStatus),
-        progressStatus.flatMap(ps => ProgressStatuses.nameToProgressStatus.get(ps)),
-        initialConfig),
-      initialConfig
-    ).map { candidates =>
-      Ok(Json.toJson(candidates))
+  // scalastyle:off parameter.number
+  // scalastyle:off method.length
+  def createFaststreamCandidatesInStatusGET(applicationStatus: String,
+                                  progressStatus: Option[String],
+                                  numberToGenerate: Int,
+                                  setGis: Boolean,
+                                  emailPrefix: Option[String],
+                                  firstName: Option[String],
+                                  lastName: Option[String],
+                                  preferredName: Option[String],
+                                  isCivilServant: Option[Boolean],
+                                  hasDegree: Option[Boolean],
+                                  region: Option[String],
+                                  loc1scheme1EvaluationResult: Option[String],
+                                  loc1scheme2EvaluationResult: Option[String],
+                                  previousStatus: Option[String],
+                                  confirmedAllocation: Boolean,
+                                  dateOfBirth: Option[String],
+                                  postCode: Option[String],
+                                  country: Option[String],
+                                  phase1StartTime: Option[String],
+                                  phase1ExpiryTime: Option[String],
+                                  tscore: Option[Double]
+                                 ) = Action.async { implicit request =>
+    val initialConfig = GeneratorConfig(
+      emailPrefix = emailPrefix,
+      setGis = setGis,
+      cubiksUrl = cubiksUrlFromConfig,
+      firstName = firstName,
+      lastName = lastName,
+      preferredName = preferredName,
+      isCivilServant = isCivilServant,
+      hasDegree = hasDegree,
+      region = region,
+      loc1scheme1Passmark = loc1scheme1EvaluationResult.map(Result(_)),
+      loc1scheme2Passmark = loc1scheme2EvaluationResult.map(Result(_)),
+      previousStatus = previousStatus,
+      confirmedAllocation = withName(applicationStatus) match {
+        case ALLOCATION_UNCONFIRMED => false
+        case ALLOCATION_CONFIRMED => true
+        case _ => confirmedAllocation
+      },
+      dob = dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),
+      postCode = postCode.map(pc => validatePostcode(pc)),
+      country = country,
+      phase1StartTime = phase1StartTime.map(x => DateTime.parse(x)),
+      phase1ExpiryTime = phase1ExpiryTime.map(x => DateTime.parse(x)),
+      tscore = tscore,
+      applicationRoute = ApplicationRoute.Faststream
+    )
+    createCandidateInStatus(initialConfig, applicationStatus, progressStatus, numberToGenerate)
+  }
+
+  // scalastyle:on
+
+  def createCandidatesInStatusPOST() = Action.async(parse.json) { implicit request =>
+    withJsonBody[CreateCandidateInStatusRequest] { body =>
+      createCandidateInStatus(
+        requestToGeneratorConfig(body),
+        body.applicationStatus,
+        body.progressStatus,
+        body.numberToGenerate)
     }
   }
-  // scalastyle:on
+
+  private def createCandidateInStatus(config: GeneratorConfig,
+                                      applicationStatus: String,
+                                      progressStatus: Option[String],
+                                      numberToGenerate: Int)
+                                     (implicit hc: HeaderCarrier, rh: RequestHeader)
+  = {
+    try {
+      TestDataGeneratorService.createCandidatesInSpecificStatus(
+        numberToGenerate,
+        StatusGeneratorFactory.getGenerator(withName(applicationStatus),
+          progressStatus.map(ps => ProgressStatuses.nameToProgressStatus(ps)),
+          config),
+        config
+      ).map { candidates =>
+        Ok(Json.toJson(candidates))
+      }
+    } catch {
+      case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
+          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+    }
+  }
 
   private def validatePostcode(postcode: String) = {
     // putting this on multiple lines won't make this regex any clearer
@@ -148,5 +236,34 @@ trait TestDataGeneratorController extends BaseController {
       case false if postcode.isEmpty => throw InvalidPostCodeFormatException(s"Postcode $postcode is empty")
       case false => throw InvalidPostCodeFormatException(s"Postcode $postcode is in an invalid format")
     }
+  }
+
+  private def requestToGeneratorConfig(request: CreateCandidateInStatusRequest) = {
+    GeneratorConfig(
+      emailPrefix = request.emailPrefix,
+      hasDisability = request.assistanceDetails.flatMap { ad => ad.hasDisability },
+      hasDisabilityDescription = request.assistanceDetails.flatMap { ad => ad.hasDisabilityDescription },
+      setGis = request.assistanceDetails.flatMap { ad => ad.setGis }.getOrElse(false),
+      onlineAdjustments = request.assistanceDetails.flatMap { ad => ad.onlineAdjustments },
+      onlineAdjustmentsDescription = request.assistanceDetails.flatMap { ad => ad.onlineAdjustmentsDescription },
+      assessmentCentreAdjustments = request.assistanceDetails.flatMap { ad => ad.assessmentCentreAdjustments },
+      assessmentCentreAdjustmentsDescription = request.assistanceDetails.flatMap { ad => ad.assessmentCentreAdjustmentsDescription },
+      firstName = request.firstName,
+      lastName = request.lastName,
+      preferredName = request.preferredName,
+      isCivilServant = request.isCivilServant,
+      hasDegree = request.hasDegree,
+      region = request.region,
+      loc1scheme1Passmark = request.loc1scheme1EvaluationResult.map(Result(_)),
+      loc1scheme2Passmark = request.loc1scheme2EvaluationResult.map(Result(_)),
+      previousStatus = request.previousApplicationStatus,
+      confirmedAllocation = request.confirmedAllocation.getOrElse(false),
+      dob = request.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))), postCode = request.postCode,
+      phase1StartTime = request.phase1StartTime.map(x => DateTime.parse(x)),
+      phase1ExpiryTime = request.phase1ExpiryTime.map(x => DateTime.parse(x)),
+      tscore = request.tscore,
+      cubiksUrl = cubiksUrlFromConfig,
+      country = request.country
+    )
   }
 }

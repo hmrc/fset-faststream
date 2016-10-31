@@ -18,22 +18,23 @@ package model
 
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+import services.testdata.ApplicationStatusOnlyForTest
+
 import scala.language.implicitConversions
 
-object ApplicationStatus extends Enumeration {
+object ApplicationStatus extends Enumeration with ApplicationStatusOnlyForTest {
   type ApplicationStatus = Value
   val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED = Value
   val PHASE1_TESTS, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED = Value
   val PHASE2_TESTS, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED = Value
   val PHASE3_TESTS = Value
 
-  val REGISTERED = Value
-  val IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES, IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES, IN_PROGRESS_ASSISTANCE_DETAILS,
-  IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
-  val ONLINE_TEST_FAILED_NOTIFIED, AWAITING_ONLINE_TEST_RE_EVALUATION,
-  AWAITING_ALLOCATION, FAILED_TO_ATTEND, ALLOCATION_UNCONFIRMED, ALLOCATION_CONFIRMED, ASSESSMENT_SCORES_ENTERED,
-  ASSESSMENT_SCORES_ACCEPTED, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ASSESSMENT_CENTRE_PASSED,
+  // Do not use or add statuses in this section. They are legacy statuses from fasttrack
+  // TODO: Remove legacy statuses
+  val ONLINE_TEST_FAILED_NOTIFIED, FAILED_TO_ATTEND, ALLOCATION_UNCONFIRMED, ALLOCATION_CONFIRMED,
+  ASSESSMENT_SCORES_ENTERED, ASSESSMENT_SCORES_ACCEPTED, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ASSESSMENT_CENTRE_PASSED,
   ASSESSMENT_CENTRE_PASSED_NOTIFIED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED = Value
+  // end of legacy statuses
 
   implicit def toString(applicationStatus: ApplicationStatus): String = applicationStatus.toString
 

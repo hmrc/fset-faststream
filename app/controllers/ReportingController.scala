@@ -17,15 +17,16 @@
 package controllers
 
 import connectors.AuthProviderClient
-import model.ApplicationStatusOrder
 import model.Commands._
 import model.PersistedObjects.ContactDetailsWithId
 import model.PersistedObjects.Implicits._
 import model.report._
+import model.command.ProgressResponse
+import model.report.{ DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels }
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.GeneralApplicationRepository
-import repositories.{QuestionnaireRepository, _}
+import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -122,91 +123,6 @@ trait ReportingController extends BaseController {
     }
   }
 
-  /*
-  def createAssessmentCentreAllocationReport(frameworkId: String) = Action.async { implicit request =>
-    val reports =
-      for {
-        applications <- appRepository.candidatesAwaitingAllocation(frameworkId)
-        allCandidates <- cdRepository.findAll
-        candidates = allCandidates.groupBy(_.userId).mapValues(_.head)
-      } yield {
-        for {
-          a <- applications
-          c <- candidates.get(a.userId)
-        } yield AssessmentCentreAllocationReport(
-          a.firstName,
-          a.lastName,
-          a.preferredName,
-          c.email,
-          c.phone.getOrElse(""),
-          a.preferredLocation1,
-          a.adjustments,
-          a.dateOfBirth
-        )
-      }
-
-    reports.map { list =>
-      Ok(Json.toJson(list))
-    }
-  }
-  */
-
-  /*
-  def createAssessmentResultsReport(frameworkId: String) = Action.async { implicit request =>
-
-    val applications = appRepository.applicationsWithAssessmentScoresAccepted(frameworkId)
-    val allQuestions = questionnaireRepository.onlineTestPassMarkReport
-    val allScores = assessmentScoresRepository.allScores
-
-    val reports = for {
-      apps <- applications
-      quests <- allQuestions
-      scores <- allScores
-    } yield {
-      for {
-        app <- apps
-        quest <- quests.get(app.applicationId)
-        appscore <- scores.get(app.applicationId)
-      } yield {
-        AssessmentResultsReport(app, quest, appscore)
-      }
-    }
-
-    reports.map { list =>
-      Ok(Json.toJson(list))
-    }
-  }
-  */
-
-  /*
-  def createSuccessfulCandidatesReport(frameworkId: String) = Action.async { implicit request =>
-
-    val applications = appRepository.applicationsPassedInAssessmentCentre(frameworkId)
-    val allCandidates = cdRepository.findAll
-
-    val reports = for {
-      apps <- applications
-      acs <- allCandidates
-      candidates = acs.map(c => c.userId -> c).toMap
-    } yield {
-      for {
-        a <- apps
-        c <- candidates.get(a.userId)
-      } yield {
-        AssessmentCentreCandidatesReport(
-          a,
-          PhoneAndEmail(c.phone, Some(c.email))
-        )
-      }
-    }
-
-    reports.map { list =>
-      Ok(Json.toJson(list))
-    }
-  }
-  */
-
-
   private def preferencesAndContactReports(nonSubmittedOnly: Boolean)(frameworkId: String) = Action.async { implicit request =>
     for {
       applications <- appRepository.applicationsReport(frameworkId)
@@ -217,6 +133,11 @@ trait ReportingController extends BaseController {
     } yield {
       Ok(Json.toJson(reports.values))
     }
+  }
+
+  private def getStatus(progress: Option[ProgressResponse]): String = progress match {
+    case Some(p) => ProgressStatusesReportLabels.progressStatusNameInReports(p)
+    case None => ProgressStatusesReportLabels.RegisteredProgress
   }
 
   private def mergeApplications(
@@ -234,7 +155,7 @@ trait ReportingController extends BaseController {
       case (userId, user) =>
         val cd = contactDetailsMap.getOrElse(userId, None)
         val app = applicationsMap.getOrElse(userId, None)
-        val noAppProgress: Option[String] = Some(ApplicationStatusOrder.getStatus(None))
+        val noAppProgress: Option[String] = Some(getStatus(None))
 
         (userId, PreferencesWithContactDetails(
           user.firstName,

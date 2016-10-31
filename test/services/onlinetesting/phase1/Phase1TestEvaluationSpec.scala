@@ -49,9 +49,11 @@ class Phase1TestEvaluationSpec extends BaseServiceSpec with TableDrivenPropertyC
     (List(Commercial),    20.0,                     None,                      List(Red)),
     (List(Commercial),    25.0,                     None,                      List(Amber)),
     (List(Commercial),    80.0,                     None,                      List(Green)),
-    (List(Commercial),    85.0,                     None,                      List(Green))
+    (List(Commercial),    85.0,                     None,                      List(Green)),
+    // Edip passmark does not exist, hence the evaluation must be skipped
+    (List(Edip),          85.0,                     None,                      List()),
+    (List(Edip),          85.0,                     Some(75.0),                List())
   )
-
 
   val Phase1EvaluationDataWithoutAmbers = Table(
     ("schemes",           "sjq result",            "bq result",               "result"),
