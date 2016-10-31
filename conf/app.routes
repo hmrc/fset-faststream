@@ -64,6 +64,12 @@ POST        /phase1-test-group/extend/:applicationId                     control
 POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
 GET         /phase3-test-group/:applicationId                            controllers.Phase3TestGroupController.getTestGroup(applicationId: String)
 
+PUT         /launchpad/:inviteId/setupProcessCallback                    controllers.LaunchpadTestsController.setupProcessCallback(inviteId: String)
+PUT         /launchpad/:inviteId/viewPracticeQuestionCallback            controllers.LaunchpadTestsController.viewPracticeQuestionCallback(inviteId: String)
+PUT         /launchpad/:inviteId/questionCallback                        controllers.LaunchpadTestsController.questionCallback(inviteId: String)
+PUT         /launchpad/:inviteId/finalCallback                           controllers.LaunchpadTestsController.finalCallback(inviteId: String)
+PUT         /launchpad/:inviteId/finishedCallback                        controllers.LaunchpadTestsController.finishedCallback(inviteId: String)
+
 GET         /test-scores/application/:applicationId                      controllers.CandidateScoresController.getCandidateScores(applicationId: String)
 PUT         /test-scores/application/:applicationId                      controllers.CandidateScoresController.createCandidateScoresAndFeedback(applicationId: String)
 PUT         /test-scores/accept/application/:applicationId               controllers.CandidateScoresController.acceptCandidateScoresAndFeedback(applicationId: String)
