@@ -18,25 +18,30 @@ package services.onlinetesting.phase1
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.SchemeType._
-import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings }
+import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings, Phase1PassMarkThresholds }
 import model.persisted.{ SchemeEvaluationResult, TestResult }
 
 trait Phase1TestEvaluation {
 
-  def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult, passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
-    schemes map { scheme =>
-      val schemePassmark = passmark.findPassmarkForScheme(scheme)
-      val sjqResult = evaluateResultsForExercise(sjqTestResult, schemePassmark.schemeThresholds.situational)
-      SchemeEvaluationResult(scheme, sjqResult.toString)
-    }
+  def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult,
+                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+    evaluate(isGis = true, schemes, passmark, sjqTestResult)
   }
 
   def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult,
                         passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
-    schemes map { scheme =>
-      val schemePassmark = passmark.findPassmarkForScheme(scheme)
-      val sjqResult = evaluateResultsForExercise(sjqTestResult, schemePassmark.schemeThresholds.situational)
-      val bqResult = evaluateResultsForExercise(bqTestResult, schemePassmark.schemeThresholds.behavioural)
+    evaluate(isGis = false, schemes, passmark, sjqTestResult, Some(bqTestResult))
+  }
+
+  private def evaluate(isGis: Boolean, schemes: List[SchemeType], passmark: Phase1PassMarkSettings,
+               sjqTestResult: TestResult, bqTestResultOpt: Option[TestResult] = None) = {
+    for {
+      schemeToEvaluate <- schemes
+      schemePassmarkOpt = passmark.schemes find (_.schemeName == schemeToEvaluate)
+      schemePassmark <- schemePassmarkOpt
+    } yield {
+      val sjqResult = evaluateResultsForExercise(schemePassmark.schemeThresholds.situational)(sjqTestResult)
+      val bqResult = bqTestResultOpt.map(evaluateResultsForExercise(schemePassmark.schemeThresholds.behavioural)).getOrElse(Green)
 
       val result = (sjqResult, bqResult) match {
         case (Red, _) => Red
@@ -46,11 +51,11 @@ trait Phase1TestEvaluation {
         case (Green, Green) => Green
       }
 
-      SchemeEvaluationResult(scheme, result.toString)
+      SchemeEvaluationResult(schemeToEvaluate, result.toString)
     }
   }
 
-  private def evaluateResultsForExercise(testResult: TestResult, threshold: PassMarkThreshold): Result = {
+  private def evaluateResultsForExercise(threshold: PassMarkThreshold)(testResult: TestResult): Result = {
     val tScore = testResult.tScore.get
     val failmark = threshold.failThreshold
     val passmark = threshold.passThreshold

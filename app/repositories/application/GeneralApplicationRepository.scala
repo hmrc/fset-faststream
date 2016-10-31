@@ -20,8 +20,8 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 import config.CubiksGatewayConfig
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
@@ -54,7 +54,7 @@ import scala.concurrent.Future
 // scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
 
-  def create(userId: String, frameworkId: String): Future[ApplicationResponse]
+  def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse]
 
   def find(applicationId: String): Future[Option[Candidate]]
 
@@ -170,46 +170,58 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
       ProgressResponse(
         applicationId,
-        personalDetails = getProgress("personal-details"),
-        partnerGraduateProgrammes = getProgress("partner-graduate-programmes"),
-        schemePreferences = getProgress("scheme-preferences"),
-        assistanceDetails = getProgress("assistance-details"),
-        preview = getProgress("preview"),
+        personalDetails = getProgress(ProgressStatuses.PERSONAL_DETAILS.key),
+        partnerGraduateProgrammes = getProgress(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES.key),
+        schemePreferences = getProgress(ProgressStatuses.SCHEME_PREFERENCES.key),
+        assistanceDetails = getProgress(ProgressStatuses.ASSISTANCE_DETAILS.key),
+        preview = getProgress(ProgressStatuses.PREVIEW.key),
         questionnaire = questionnaire,
-        submitted = getProgress(SUBMITTED.toString),
-        withdrawn = getProgress(WITHDRAWN.toString),
+        submitted = getProgress(ProgressStatuses.SUBMITTED.key),
+        withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
         phase1ProgressResponse = Phase1ProgressResponse(
-          phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.toString),
-          phase1TestsFirstRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.toString),
-          phase1TestsSecondRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.toString),
-          phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString),
-          phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
-          phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.toString),
-          phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.toString),
-          phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
-          phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.toString),
-          phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.toString)
+          phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
+          phase1TestsFirstRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
+          phase1TestsSecondRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.key),
+          phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.key),
+          phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.key),
+          phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.key),
+          phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.key),
+          phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.key),
+          phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.key),
+          phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key),
+          phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key)
         ),
         phase2ProgressResponse = Phase2ProgressResponse(
-          phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.toString),
-          phase2TestsFirstRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.toString),
-          phase2TestsSecondRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.toString),
-          phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.toString),
-          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString),
-          phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.toString),
-          phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.toString),
-          phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.toString),
-          phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.toString),
-          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.toString)
+          phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
+          phase2TestsFirstRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.key),
+          phase2TestsSecondRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.key),
+          phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.key),
+          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.key),
+          phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.key),
+          phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.key),
+          phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.key),
+          phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
+          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key)
+        ),
+        phase3ProgressResponse = Phase3ProgressResponse(
+          phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
+          phase3TestsFirstReminder = getProgress(ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER.toString),
+          phase3TestsSecondReminder = getProgress(ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER.toString),
+          phase3TestsStarted = getProgress(ProgressStatuses.PHASE3_TESTS_STARTED.toString),
+          phase3TestsCompleted = getProgress(ProgressStatuses.PHASE3_TESTS_COMPLETED.toString),
+          phase3TestsExpired = getProgress(ProgressStatuses.PHASE3_TESTS_EXPIRED.toString),
+          phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
+          phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
+          phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString)
         ),
         failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
         assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
         assessmentCentre = AssessmentCentre(
-          getProgress(AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.toString),
-          getProgress(ASSESSMENT_CENTRE_PASSED.toString),
-          getProgress(ASSESSMENT_CENTRE_FAILED.toString),
-          getProgress(ASSESSMENT_CENTRE_PASSED_NOTIFIED.toString),
-          getProgress(ASSESSMENT_CENTRE_FAILED_NOTIFIED.toString)
+          getProgress(ProgressStatuses.AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.key),
+          getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
+          getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key),
+          getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED_NOTIFIED.key),
+          getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key)
         )
       )
     }).getOrElse(ProgressResponse(applicationId))
@@ -222,17 +234,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReport(findProgress))
   implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
-  override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
+  override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
     val applicationBSON = BSONDocument(
       "applicationId" -> applicationId,
       "userId" -> userId,
       "frameworkId" -> frameworkId,
-      "applicationStatus" -> CREATED
+      "applicationStatus" -> CREATED,
+      "applicationRoute" -> route
     )
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, CREATED, userId, p, None)
+        ApplicationResponse(applicationId, CREATED, route, userId, p, None)
       }
     }
   }
@@ -283,9 +296,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
         findProgress(applicationId).map { progress =>
-          ApplicationResponse(applicationId, applicationStatus, userId, progress, fastPassReceived)
+          ApplicationResponse(applicationId, applicationStatus, applicationRoute, userId, progress, fastPassReceived)
         }
       case None => throw ApplicationNotFound(userId)
     }
@@ -830,12 +844,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           val preferences = PreferencesWithContactDetails(None, None, preferredName, None, None,
             location1, location1Scheme1, location1Scheme2,
             location2, location2Scheme1, location2Scheme2,
-            Some(ApplicationStatusOrder.getStatus(p)), Some(timeCreated))
+            Some(ProgressStatusesReportLabels.progressStatusNameInReports(p)), Some(timeCreated))
 
           (userId, isNonSubmittedStatus(p), preferences) +: applications
         }
       }
     }
+  }
+
+  private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
+    val isNotSubmitted = !progress.submitted
+    val isNotWithdrawn = !progress.withdrawn
+    isNotWithdrawn && isNotSubmitted
   }
 
   private def getDocumentId(document: BSONDocument): BSONObjectID =

@@ -69,6 +69,8 @@ object DataFaker {
 
     def bool: Boolean = randOne(List(true, false))
 
+    def number(limit: Option[Int] = None): Int = util.Random.nextInt(limit.getOrElse(2000000000))
+
     def mediaReferrer = randOne(List(
       None,
       Some("GOV.UK or Civil Service Jobs"),

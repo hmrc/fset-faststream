@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package connectors.launchpadgateway.exchangeobjects
+package connectors.launchpadgateway.exchangeobjects.out
 
 import play.api.libs.json.Json
 

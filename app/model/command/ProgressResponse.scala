@@ -40,7 +40,8 @@ case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   phase1TestsResultsReady: Boolean = false,
   phase1TestsResultsReceived: Boolean = false,
   phase1TestsPassed: Boolean = false,
-  phase1TestsFailed: Boolean = false
+  phase1TestsFailed: Boolean = false,
+  phase1TestsFailedNotified: Boolean = false
 )
 
 case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
@@ -55,6 +56,17 @@ case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
   phase2TestsFailed: Boolean = false
 )
 
+case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
+                                  phase3TestsFirstReminder: Boolean = false,
+                                  phase3TestsSecondReminder: Boolean = false,
+                                  phase3TestsStarted: Boolean = false,
+                                  phase3TestsCompleted: Boolean = false,
+                                  phase3TestsExpired: Boolean = false,
+                                  phase3TestsResultsReceived: Boolean = false,
+                                  phase3TestsPassed: Boolean = false,
+                                  phase3TestsFailed: Boolean = false
+                                 )
+
 case class ProgressResponse(
                              applicationId: String,
                              personalDetails: Boolean = false,
@@ -67,6 +79,7 @@ case class ProgressResponse(
                              withdrawn: Boolean = false,
                              phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
                              phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
+                             phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
                              failedToAttend: Boolean = false,
                              assessmentScores: AssessmentScores = AssessmentScores(),
                              assessmentCentre: AssessmentCentre = AssessmentCentre()
@@ -78,5 +91,6 @@ object ProgressResponse {
   implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
   implicit val phase1ProgressResponseFormat = Json.format[Phase1ProgressResponse]
   implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
+  implicit val phase3ProgressResponseFormat = Json.format[Phase3ProgressResponse]
   implicit val progressResponseFormat = Json.format[ProgressResponse]
 }
