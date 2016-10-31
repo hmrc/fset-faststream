@@ -21,7 +21,7 @@ import config.CSRCache
 import connectors.ApplicationClient
 import connectors.exchange.Questionnaire
 import helpers.NotificationType._
-import models.CachedDataWithApp
+import models.{ ApplicationRoute, CachedDataWithApp }
 import play.api.mvc.{ Request, RequestHeader, Result }
 import security.QuestionnaireRoles._
 import security.Roles.{ CsrAuthorization, PreviewApplicationRole, SubmitApplicationRole }
@@ -57,7 +57,7 @@ class QuestionnaireController(applicationClient: ApplicationClient, cacheClient:
   def presentSecondPage = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
       presentPageIfNotFilledInPreviously(EducationQuestionnaireCompletedRole,
-        Ok(views.html.questionnaire.secondpage(EducationQuestionnaireForm.form,
+        Ok(views.html.questionnaire.secondpage(EducationQuestionnaireForm.form(universityMessageKey),
           if (user.application.civilServiceExperienceDetails.exists(_.isCivilServant)) "Yes" else "No")))
   }
 
@@ -119,7 +119,7 @@ class QuestionnaireController(applicationClient: ApplicationClient, cacheClient:
       val isCivilServantString = if (user.application.civilServiceExperienceDetails.exists(_.isCivilServant)) "Yes" else "No"
       EducationQuestionnaireCompletedRole.isAuthorized(user) match {
         case true => Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(QuestionnaireCompletedBanner))
-        case false => EducationQuestionnaireForm.form.bindFromRequest.fold(
+        case false => EducationQuestionnaireForm.form(universityMessageKey).bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.secondpage(errorForm, isCivilServantString)))
 
@@ -165,5 +165,10 @@ class QuestionnaireController(applicationClient: ApplicationClient, cacheClient:
     applicationClient.updateQuestionnaire(user.application.applicationId, sectionId, data).flatMap { _ =>
       updateProgress()(_ => onSuccess)
     }
+  }
+
+  private def universityMessageKey(implicit app: CachedDataWithApp) = app.application.applicationRoute match {
+    case ApplicationRoute.Edip => "currentUniversity"
+    case ApplicationRoute.Faststream => "university"
   }
 }

@@ -67,7 +67,8 @@ package object forms {
         requiredKey: String,
         key: String,
         keyPreferNotToSay: String,
-        maxLength: Option[Int]
+        maxLength: Option[Int],
+        msgRequiredError: Option[String] = None
       )(
         implicit invalidFn: (String => Boolean) = inputValue => maxLength.exists(_ < inputValue.trim.length),
         validationErrorKey:String = s"error.$key.maxLength"
@@ -76,10 +77,11 @@ package object forms {
             val requiredField: Option[String] = if (data.isEmpty) None else data.get(requiredKey)
             val keyField: Option[String] = if (data.isEmpty) None else data.get(key).map(_.trim)
             val keyPreferNotToSayField: Option[String] = if (data.isEmpty) None else data.get(keyPreferNotToSay)
+            def requiredErrorMsg = msgRequiredError.getOrElse(Messages(s"error.$key.required"))
 
             (requiredField, keyField, keyPreferNotToSayField) match {
-              case (Some("Yes"), None, None) => Left(List(FormError(key, Messages(s"error.$key.required"))))
-              case (Some("Yes"), Some(keyValue), None) if keyValue.trim.isEmpty => Left(List(FormError(key, Messages(s"error.$key.required"))))
+              case (Some("Yes"), None, None) => Left(List(FormError(key, requiredErrorMsg)))
+              case (Some("Yes"), Some(keyValue), None) if keyValue.trim.isEmpty => Left(List(FormError(key, requiredErrorMsg)))
               case (Some("Yes"), Some(keyValue), None) if invalidFn(keyValue) => Left(List(FormError(key, Messages(validationErrorKey))))
               case (Some("Yes"), _, Some("Yes")) => Right(Some("I don't know/prefer not to say"))
               case _ => Right(keyField)

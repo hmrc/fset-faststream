@@ -19,6 +19,8 @@ package controllers.forms
 import controllers.BaseSpec
 import controllers.forms.EducationQuestionnaireFormExamples._
 import forms.EducationQuestionnaireForm
+import play.api.data.{ Form, FormError }
+import play.api.i18n.Messages
 
 class EducationQuestionnaireFormSpec extends BaseSpec {
 
@@ -76,8 +78,20 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
       assertFieldRequired(FullValidFormMap, "universityDegreeCategory", "universityDegreeCategory")
     }
 
-    "fail when all values are correct and not lived in UK and have degree but no university" in new Fixture {
-      assertFieldRequired(NotUkLivedAndHaveDegreeValidFormMap, "university", "university")
+    "fail when all values are correct and not lived in UK and have degree but no university, with Fast Stream message" in new Fixture {
+      val invalidForm = fastStreamForm.bind(NotUkLivedAndHaveDegreeValidFormMap - "university")
+      invalidForm.hasErrors mustBe true
+      invalidForm.error("university") mustBe Some(
+        FormError("university", List(Messages("error.university.required")))
+      )
+    }
+
+    "fail when all values are correct and not lived in UK and have degree but no university, with EDIP message" in new Fixture {
+      val invalidForm = edipForm.bind(NotUkLivedAndHaveDegreeValidFormMap - "university")
+      invalidForm.hasErrors mustBe true
+      invalidForm.error("university") mustBe Some(
+        FormError("university", List(Messages("error.currentUniversity.required")))
+      )
     }
 
     "fail when all values are correct and live in UK and no degree but no school" in new Fixture {
@@ -177,26 +191,32 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
 
   trait Fixture {
 
-    val FullValid = (EducationQuestionnaireFormExamples.FullValidForm, EducationQuestionnaireForm.form.fill(
+    val fastStreamForm = EducationQuestionnaireForm.form("university")
+    val edipForm = EducationQuestionnaireForm.form("currentUniversity")
+
+    val FullValid = (EducationQuestionnaireFormExamples.FullValidForm, fastStreamForm.fill(
       EducationQuestionnaireFormExamples.FullValidForm))
 
-    val AllPreferNotToSayValid = (EducationQuestionnaireFormExamples.AllPreferNotToSayValidForm, EducationQuestionnaireForm.form.fill(
+    val AllPreferNotToSayValid = (EducationQuestionnaireFormExamples.AllPreferNotToSayValidForm, fastStreamForm.fill(
       EducationQuestionnaireFormExamples.AllPreferNotToSayValidForm))
 
-    val NoUkAndHaveDegreeValid = (EducationQuestionnaireFormExamples.NotUkLivedAndHaveDegreeValidForm, EducationQuestionnaireForm.form.fill(
+    val NoUkAndHaveDegreeValid = (EducationQuestionnaireFormExamples.NotUkLivedAndHaveDegreeValidForm, fastStreamForm.fill(
       EducationQuestionnaireFormExamples.NotUkLivedAndHaveDegreeValidForm))
 
-    val LiveInUKAndNoDegreeValid = (EducationQuestionnaireFormExamples.LivedInUKAndNoDegreeValidForm, EducationQuestionnaireForm.form.fill(
+    val LiveInUKAndNoDegreeValid = (EducationQuestionnaireFormExamples.LivedInUKAndNoDegreeValidForm, fastStreamForm.fill(
       EducationQuestionnaireFormExamples.LivedInUKAndNoDegreeValidForm))
 
     val NoUkLivedAndNoDegreeValid = (EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm,
-      EducationQuestionnaireForm.form.fill(EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm))
+      fastStreamForm.fill(EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm))
+
+    val EdipNoUkLivedAndNoDegreeValid = (EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm,
+      edipForm.fill(EducationQuestionnaireFormExamples.NotUkLivedAndNoDegreeValidForm))
 
     def assertFieldRequired(formMap: Map[String, String], expectedKeyInError: String, fieldKey: String*) =
-      assertFormError(expectedKeyInError, formMap ++ fieldKey.map(k => k -> ""))
+      assertFormError(expectedKeyInError, formMap ++ fieldKey.map(k => k -> ""), fastStreamForm)
 
-    def assertFormError(expectedKey: String, invalidFormValues: Map[String, String]) = {
-      val invalidForm = EducationQuestionnaireForm.form.bind(invalidFormValues)
+    def assertFormError(expectedKey: String, invalidFormValues: Map[String, String], form: Form[EducationQuestionnaireForm.Data]) = {
+      val invalidForm = form.bind(invalidFormValues)
       invalidForm.hasErrors mustBe true
       invalidForm.errors.map(_.key) mustBe Seq(expectedKey)
     }
