@@ -241,8 +241,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     val progress = phase2Progress(
       Phase2ProgressResponse(
         phase2TestsExpired = true,
-        phase2TestsFirstRemainder = true,
-        phase2TestsSecondRemainder = true
+        phase2TestsFirstReminder = true,
+        phase2TestsSecondReminder = true
       ))
 
     "extend the test to 7 days from now and remove: expired and two reminder progresses" in new Phase2TestServiceFixture {
@@ -287,8 +287,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "extend the test to 7 days from expiration date which is in 1 day, remove two reminder progresses" in new Phase2TestServiceFixture {
       val progress = phase2Progress(
         Phase2ProgressResponse(
-          phase2TestsFirstRemainder = true,
-          phase2TestsSecondRemainder = true
+          phase2TestsFirstReminder = true,
+          phase2TestsSecondReminder = true
         ))
 
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
@@ -306,8 +306,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "extend the test to 2 days from expiration date which is in 1 day, remove one reminder progress" in new Phase2TestServiceFixture {
       val progress = phase2Progress(
         Phase2ProgressResponse(
-          phase2TestsFirstRemainder = true,
-          phase2TestsSecondRemainder = true
+          phase2TestsFirstReminder = true,
+          phase2TestsSecondReminder = true
         ))
 
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
@@ -324,8 +324,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "extend the test to 1 day from expiration date which is set to today, does not remove any progresses" in new Phase2TestServiceFixture {
       val progress = phase2Progress(
         Phase2ProgressResponse(
-          phase2TestsFirstRemainder = true,
-          phase2TestsSecondRemainder = true
+          phase2TestsFirstReminder = true,
+          phase2TestsSecondReminder = true
         ))
 
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
