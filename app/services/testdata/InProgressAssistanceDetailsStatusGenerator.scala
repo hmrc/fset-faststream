@@ -64,7 +64,7 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
         gisFinalValue,
         onlineAdjustmentsFinalValue,
         onlineAdjustmentsDescriptionFinalValue,
-        assessmentCentreAdjustmentsFinalValue,
+        Some(assessmentCentreAdjustmentsFinalValue),
         assessmentCentreAdjustmentsDescriptionFinalValue)
     }
     val assistanceDetails = getAssistanceDetails(generatorConfig)

@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package mocks.application
+package connectors.launchpadgateway.exchangeobjects.out
 
-import mocks.InMemoryStorage
-import model.Exceptions.AssistanceDetailsNotFound
-import model.persisted.AssistanceDetails
-import repositories.assistancedetails.AssistanceDetailsRepository
+import play.api.libs.json.Json
 
-import scala.concurrent.Future
+case class InviteApplicantRequest(interviewId: Int, candidateId: String, customInviteId: String, redirectUrl: String)
 
-object AssistanceDetailsInMemoryRepository extends AssistanceDetailsRepository with InMemoryStorage[AssistanceDetails] {
-  // Seed with test data.
-  inMemoryRepo +=
-    "111-111" ->
-    AssistanceDetails("No", None, None, false, None, Some(false), None)
-
-  override def notFound(applicationId: String) = throw new AssistanceDetailsNotFound(applicationId)
+object InviteApplicantRequest {
+  implicit val inviteApplicantRequestFormat = Json.format[InviteApplicantRequest]
 }

@@ -50,7 +50,7 @@ trait CommonRepository {
       "applicationStatus" -> applicationStatus
     )).futureValue
 
-    val ad = AssistanceDetails("No", None, gis, needsSupportForOnlineAssessment = false, None, needsSupportAtVenue = false, None)
+    val ad = AssistanceDetails("No", None, gis, needsSupportForOnlineAssessment = false, None, needsSupportAtVenue = Some(false), None)
     assistanceDetailsRepository.update(appId, appId, ad).futureValue
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue

@@ -24,7 +24,7 @@ case class AssistanceDetailsExchange(hasDisability: String,
                                      guaranteedInterview: Option[Boolean],
                                      needsSupportForOnlineAssessment: Boolean,
                                      needsSupportForOnlineAssessmentDescription: Option[String],
-                                     needsSupportAtVenue: Boolean,
+                                     needsSupportAtVenue: Option[Boolean],
                                      needsSupportAtVenueDescription: Option[String])
 
 object AssistanceDetailsExchange {

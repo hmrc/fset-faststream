@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase3TestsInvitedStatusGenerator extends Phase3TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
+  override val previousStatusGenerator = Phase2TestsStartedStatusGenerator
   override val p3Repository = phase3TestRepository
   override val p3TestService = Phase3TestService
   override val gatewayConfig = launchpadGatewayConfig
@@ -45,7 +45,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
     // TODO: This is "real" integration with launchpad, ultimately we should mock the invite
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      p3TestApplication = OnlineTestApplication(
+      phase3TestApplication = OnlineTestApplication(
         candidateInPreviousStatus.applicationId.get,
         PHASE3_TESTS,
         candidateInPreviousStatus.userId,
@@ -56,8 +56,8 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         None,
         None
       )
-      _ <- p3TestService.registerAndInviteForTestGroup(p3TestApplication)
-      testGroup <- p3Repository.getTestGroup(p3TestApplication.applicationId)
+      _ <- p3TestService.registerAndInviteForTestGroup(phase3TestApplication)
+      testGroup <- p3Repository.getTestGroup(phase3TestApplication.applicationId)
     } yield {
       candidateInPreviousStatus.copy(
         phase3TestUrl = Some(testGroup.get.tests.find(_.usedForResults).get.testUrl)

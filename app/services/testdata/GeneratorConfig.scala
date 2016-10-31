@@ -16,11 +16,12 @@
 
 package services.testdata
 
+import model.ApplicationRoute
 import model.EvaluationResults.Result
 import model.command.testdata.CreateCandidateInStatusRequest$
 import org.joda.time.{DateTime, LocalDate}
 
-case class GeneratorConfig(emailPrefix: String,
+case class GeneratorConfig(emailPrefix: Option[String],
                            hasDisability: Option[String] = None,
                            hasDisabilityDescription: Option[String] = None,
                            setGis: Boolean = false,
@@ -44,5 +45,6 @@ case class GeneratorConfig(emailPrefix: String,
                            country: Option[String] = None,
                            phase1StartTime: Option[DateTime] = None,
                            phase1ExpiryTime: Option[DateTime] = None,
-                           tscore: Option[Double] = None
+                           tscore: Option[Double] = None,
+                           applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream
                           )
