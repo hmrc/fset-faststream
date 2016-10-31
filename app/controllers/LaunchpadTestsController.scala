@@ -18,12 +18,11 @@ package controllers
 
 import connectors.launchpadgateway.exchangeobjects.in._
 import controllers.LaunchpadTestsController.CannotFindTestByLaunchpadInviteId
-import model.Exceptions.{CannotFindTestByCubiksId, NotFoundException}
-import model.exchange.CubiksTestResultReady
+import model.Exceptions.NotFoundException
 import play.api.Logger
-import play.api.mvc.{Action, Result}
+import play.api.mvc.{ Action, Result }
 import services.events.EventService
-import services.onlinetesting.{Phase1TestService, Phase2TestService, Phase3TestService}
+import services.onlinetesting.Phase3TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,6 +33,7 @@ object LaunchpadTestsController extends LaunchpadTestsController {
   val eventService = EventService
 
   case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
+
 }
 
 trait LaunchpadTestsController extends BaseController {
@@ -67,6 +67,7 @@ trait LaunchpadTestsController extends BaseController {
       Future.successful(Ok)
     }
   }
+
   def finishedCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FinishedCallbackRequest] { jsonBody =>
       Logger.warn("Received finished callback request -> " + jsonBody)
@@ -75,7 +76,7 @@ trait LaunchpadTestsController extends BaseController {
   }
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
-    case e @ CannotFindTestByLaunchpadInviteId(msg) =>
+    case e@CannotFindTestByLaunchpadInviteId(msg) =>
       Logger.warn(msg, e)
       NotFound
   }

@@ -20,14 +20,14 @@ import config._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects._
 import connectors.CSREmailClient
-import connectors.launchpadgateway.exchangeobjects.out.{InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest, RegisterApplicantResponse}
-import factories.{DateTimeFactory, UUIDFactory}
+import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest, RegisterApplicantResponse }
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.ContactDetails
-import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
-import model.{Address, ApplicationStatus}
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.{ Address, ApplicationStatus }
 import org.joda.time.DateTime
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
@@ -37,7 +37,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
-import services.events.{EventService, EventServiceFixture}
+import services.events.{ EventService, EventServiceFixture }
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -136,7 +136,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     val testCandidateRedirectUrl = "http://www.foo.com/test/interview"
     val testEmail = "foo@bar.com"
 
-    val gatewayConfigMock =  LaunchpadGatewayConfig(
+    val gatewayConfigMock = LaunchpadGatewayConfig(
       "localhost",
       Phase3TestsConfig(timeToExpireInDays = 7,
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
@@ -209,4 +209,5 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val gatewayConfig = gatewayConfigMock
     }
   }
+
 }
