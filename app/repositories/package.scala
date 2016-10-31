@@ -192,6 +192,8 @@ package object repositories {
   implicit val competencyAverageResultHandler: BSONHandler[BSONDocument, CompetencyAverageResult] =
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
+  implicit val adjustmentDetailHandler: BSONHandler[BSONDocument, AdjustmentDetail] = Macros.handler[AdjustmentDetail]
+
 
   def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
@@ -206,24 +208,11 @@ package object repositories {
     val guaranteedInterview = assistanceDetailsRoot.getAs[Boolean]("guaranteedInterview").getOrElse(false)
     val needsAdjustmentForOnlineTests = assistanceDetailsRoot.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)
 
-    if (needsAdjustmentForOnlineTests) {
-      val typeOfAdjustmentsRoot = assistanceDetailsRoot.getAs[BSONArray]("typeOfAdjustments")
-      val timeExtension = typeOfAdjustmentsRoot.exists(_.values.contains(BSONString("time extension")))
-      if (timeExtension) {
-        val verbalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("verbalTimeAdjustmentPercentage").get
-        val numericalTimeAdjustmentPercentage = assistanceDetailsRoot.getAs[Int]("numericalTimeAdjustmentPercentage").get
-        val timeAdjustments = TimeAdjustmentsOnlineTestApplication(verbalTimeAdjustmentPercentage, numericalTimeAdjustmentPercentage)
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
-          lastName, Some(timeAdjustments))
-      } else {
-        OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
-          lastName, None)
-      }
-    } else {
-      OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
-        lastName, None)
-    }
+    val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
+    val videoInterviewAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("video")
 
+    OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
+      lastName, etrayAdjustments, videoInterviewAdjustments)
   }
 
 }

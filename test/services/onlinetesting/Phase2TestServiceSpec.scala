@@ -394,7 +394,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       needsAdjustments = false,
       preferredName = "Optimus",
       lastName = "Prime",
-      timeAdjustments = None
+      None,
+      None
     )
 
     val preferredNameSanitized = "Preferred Name"

@@ -208,8 +208,8 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       onlineTestApplications.length mustBe 1
 
-      inside (onlineTestApplications.head) { case OnlineTestApplication(applicationId, applicationStatus, userId,
-        guaranteedInterview, needsAdjustments, preferredName, lastName, timeAdjustments) =>
+      inside (onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId,
+        guaranteedInterview, needsAdjustments, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments) =>
 
         applicationId mustBe "appId"
         applicationStatus mustBe "SUBMITTED"
@@ -218,7 +218,8 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         needsAdjustments mustBe false
         preferredName mustBe testCandidate("preferredName")
         lastName mustBe testCandidate("lastName")
-        timeAdjustments mustBe None
+        etrayAdjustments mustBe None
+        videoInterviewAdjustments mustBe None
       }
     }
     "be correctly read from mongo with lower case submitted status" in {
@@ -231,7 +232,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       onlineTestApplications.length mustBe 1
 
       inside (onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId,
-      guaranteedInterview, needsAdjustments, preferredName, lastName, timeAdjustments) =>
+      guaranteedInterview, needsAdjustments, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments) =>
 
         applicationId mustBe "appId"
         applicationStatus mustBe "submitted"
@@ -240,7 +241,8 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         needsAdjustments mustBe false
         preferredName mustBe testCandidate("preferredName")
         lastName mustBe testCandidate("lastName")
-        timeAdjustments mustBe None
+        etrayAdjustments mustBe None
+        videoInterviewAdjustments mustBe None
       }
     }
   }
