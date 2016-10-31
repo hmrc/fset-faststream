@@ -227,7 +227,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   implicit val readerPD = bsonReader(bsonToModelHelper.toReportWithPersonalDetails(findProgress))
   implicit val readerTPM = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem)
-  implicit val readerCandidate = bsonReader(bsonToModelHelper.toCandidate)
+  implicit val readerCandidate = bsonReader(toCandidate)
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReport(findProgress))
   implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
