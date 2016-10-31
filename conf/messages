@@ -24,8 +24,10 @@ error.password = Your password requires upper and lowercase letters, a number an
 error.campaignOther.maxLength = Maximum length is 256
 error.password.empty = Enter your password
 error.password.dontmatch = Your passwords don''t match
+error.appRoute = You must select an application route
 agree.accept = Accept the terms and conditions
-agree.eligible = Confirm that you''re eligible to apply
+agree.faststreamEligible = Confirm that you''re eligible to apply for the Civil Service Fast Stream
+agree.edipEligible = Confirm that you''re eligible to apply for the Early Diversity Internship Programme
 error.emailconfirm.notmatch = You must enter the same email address
 
 # Reset password form
@@ -182,15 +184,16 @@ error.required.ethnicity = You must tell us your ethnic group or choose ''prefer
 
 # Education Questionnaire error messages:
 error.liveInUKBetween14and18.required = You must tell us if you lived in the UK between the ages of 14 and 18
-error.postcodeQ.required = You must tell us what was your postcode when you were between the ages of 14 and 18, or choose ''prefer not to say''
+error.postcodeQ.required = You must tell us what your postcode was between the ages of 14 and 18, or choose ''prefer not to say''
 error.postcodeQ.invalid = You''ve entered an invalid postcode
-error.schoolName14to16.required = You must tell us what was the name of your school when you were aged 14 to 16, or choose ''prefer not to say''
+error.schoolName14to16.required = You must tell us what the name of your school was aged 14 to 16, or choose ''prefer not to say''
 error.schoolName14to16.maxLength = Maximum length is 256
-error.schoolName16to18.required = You must tell us what was the name of your school when you were aged 16 to 18, or choose ''prefer not to say''
+error.schoolName16to18.required = You must tell us what the name of your school was aged 16 to 18, or choose ''prefer not to say''
 error.schoolName16to18.maxLength = Maximum length is 256
-error.freeSchoolMeals.required = You must tell us if you were at any time eligible for free school meals, or choose ''prefer not to say''
+error.freeSchoolMeals.required = You must tell us if you were eligible for free school meals, or choose ''prefer not to say''
 error.haveDegree.required = You must tell us if you have a degree
-error.university.required = You must tell us what is the name of the university you received your degree from, or choose ''prefer not to say''
+error.university.required = You must tell us what the name of your university was/is, or choose ''prefer not to say''
+error.currentUniversity.required = You must tell us the name of your current university, or choose ''prefer not to say''
 error.universityDegreeCategory.required = You must tell us which category best describes your degree, or choose ''prefer not to say''
 
 # Parental Questionnaire error messages

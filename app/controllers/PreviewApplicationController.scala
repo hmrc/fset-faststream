@@ -21,6 +21,8 @@ import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduate
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
+import models.CachedDataWithApp
+import security.RoleUtils._
 import security.Roles.PreviewApplicationRole
 
 import scala.concurrent.Future
@@ -32,12 +34,11 @@ class PreviewApplicationController(applicationClient: ApplicationClient, cacheCl
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
-      val isCivilServant = user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
       val personalDetailsFut = applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
       val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
-      val partnerGraduateProgrammesFut = isCivilServant match {
-        case true => Future.successful(None)
-        case false => applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
+      val partnerGraduateProgrammesFut = isFastStreamAndNotCivilServant(user) match {
+        case true => applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
+        case false => Future.successful(None)
       }
       val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
 
@@ -63,4 +64,7 @@ class PreviewApplicationController(applicationClient: ApplicationClient, cacheCl
         }
       }
   }
+
+  def isFastStreamAndNotCivilServant(implicit user: CachedDataWithApp) =
+    isFaststream(user) && !user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
 }

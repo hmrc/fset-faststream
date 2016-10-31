@@ -21,6 +21,7 @@ import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping._
 import mappings.{ Address, DayMonthYear, PhoneNumberMapping, PostCodeMapping }
+import models.ApplicationRoute
 import org.joda.time.LocalDate
 import play.api.data.Forms._
 import play.api.data.format.Formatter
@@ -45,7 +46,6 @@ object GeneralDetailsForm {
   def maxDob(implicit now: LocalDate) = Some(ageReference.minusYears(MinAge))
 
   def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false) = {
-    val fastPassFormMapping = if(ignoreFastPassValidations) FastPassForm.ignoreForm.mapping else FastPassForm.form.mapping
 
     Form(
       mapping(
@@ -58,9 +58,23 @@ object GeneralDetailsForm {
         postCode -> of(postCodeFormatter),
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
-        FastPassForm.formQualifier -> fastPassFormMapping
+        FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations))
       )(Data.apply)(Data.unapply)
     )
+  }
+
+  val isFastStream = (requestParams: Map[String, String]) => {
+    requestParams.getOrElse("applicationRoute", ApplicationRoute.Faststream.toString) == ApplicationRoute.Faststream.toString}
+
+  def fastPassFormFormatter(ignoreValidations:Boolean) = new Formatter[Option[FastPassForm.Data]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[FastPassForm.Data]] = {
+      (ignoreValidations, isFastStream(data)) match {
+        case (false, true) => FastPassForm.form.mapping.bind(data).right.map(Some(_))
+        case _ => Right(None)
+      }
+    }
+    override def unbind(key: String, fastPassData: Option[FastPassForm.Data]) =
+      fastPassData.map(fpd => FastPassForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 
   val phoneNumberFormatter = new Formatter[Option[String]] {
@@ -114,7 +128,7 @@ object GeneralDetailsForm {
                   postCode: Option[PostCode],
                   country: Option[String],
                   phone: Option[PhoneNumber],
-                  civilServiceExperienceDetails: FastPassForm.Data
+                  civilServiceExperienceDetails: Option[FastPassForm.Data]
                  ) {
 
     def insideUk = outsideUk match {
@@ -134,7 +148,7 @@ object GeneralDetailsForm {
       postCode.map(p => PostCodeMapping.formatPostcode(p)),
       country,
       phone,
-      overrideCivilServiceExperienceDetails.getOrElse(civilServiceExperienceDetails),
+      overrideCivilServiceExperienceDetails.orElse(civilServiceExperienceDetails),
       updateApplicationStatus
     )
   }

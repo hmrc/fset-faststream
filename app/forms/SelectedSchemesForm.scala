@@ -24,6 +24,7 @@ import play.api.i18n.Messages
 
 object SelectedSchemesForm {
 
+  val NoDegree = "None"
   val Degree_21 = "Degree_21"
   val Degree_22 = "Degree_22"
   val Degree_21_PostGrad = "Degree_21_PostGrad"
@@ -34,7 +35,7 @@ object SelectedSchemesForm {
   val Degree_SocialScience = "Degree_SocialScience"
   val Degree_CharteredEngineer = "Degree_CharteredEngineer"
 
-  val AllSchemes = Seq(
+  val VisibleSchemes = Seq(
     Scheme("Commercial", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("DigitalAndTechnology", Degree_21_PostGrad, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("DiplomaticService", Degree_22, specificRequirement = true, eligibilityForCivilServant = true),
@@ -53,6 +54,12 @@ object SelectedSchemesForm {
     Scheme("ProjectDelivery", Degree_22, specificRequirement = false, eligibilityForCivilServant = true),
     Scheme("ScienceAndEngineering", Degree_CharteredEngineer, specificRequirement = true, eligibilityForCivilServant = true)
   )
+
+  val HiddenSchemes = Seq(
+    Scheme("Edip", NoDegree, specificRequirement = false, eligibilityForCivilServant = false)
+  )
+
+  val AllSchemes = VisibleSchemes ++ HiddenSchemes
 
   val AllSchemesMap = AllSchemes groupBy(_.id) mapValues (_.head)
 

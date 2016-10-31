@@ -29,9 +29,8 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   thirdStepVisibility: ProgressStepVisibility,
   fourthStepVisibility: ProgressStepVisibility,
   isApplicationSubmittedAndNotWithdrawn: Boolean,
-  isApplicationInProgressAndNotWithdrawn: Boolean,
   isApplicationWithdrawn: Boolean,
-  isApplicationCreatedOrInProgress: Boolean,
+  isApplicationInProgress: Boolean,
   isUserWithNoApplication: Boolean,
   isPhase1TestsPassed: Boolean,
   isTestGroupExpired: Boolean,
@@ -66,9 +65,8 @@ object DashboardPage {
       thirdStepVisibility,
       fourthStepVisibility,
       isApplicationSubmittedAndNotWithdrawn(user),
-      isApplicationInProgressAndNotWithdrawn(user),
       isApplicationWithdrawn(user),
-      isApplicationCreatedOrInProgress(user),
+      isApplicationInProgress(user),
       isUserWithNoApplication(user),
       isPhase1TestsPassed(user),
       isTestGroupExpired(user),
@@ -173,14 +171,11 @@ object DashboardPage {
   private def isApplicationSubmittedAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     WithdrawApplicationRole.isAuthorized(user)
 
-  private def isApplicationInProgressAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    CreatedOrInProgressRole.isAuthorized(user)
-
   private def isApplicationWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     WithdrawnApplicationRole.isAuthorized(user)
 
-  private def isApplicationCreatedOrInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    EditPersonalDetailsAndContinueRole.isAuthorized(user)
+  private def isApplicationInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    InProgressRole.isAuthorized(user)
 
   private def isUserWithNoApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     ApplicationStartRole.isAuthorized(user)

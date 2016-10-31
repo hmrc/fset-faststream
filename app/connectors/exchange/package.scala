@@ -46,7 +46,7 @@ package object exchange {
                             postCode: Option[PostCode],
                             country: Option[String],
                             phone: Option[PhoneNumber],
-                            civilServiceExperienceDetails: CivilServiceExperienceDetails,
+                            civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
                             updateApplicationStatus: Option[Boolean]
                                    )
 

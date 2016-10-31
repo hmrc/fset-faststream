@@ -17,17 +17,21 @@
 package models
 
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
-import scala.language.implicitConversions
 
-object ApplicationRoute extends Enumeration {
-  type ApplicationRoute = Value
+object SchemeType extends Enumeration {
+  type SchemeType = Value
 
-  val Faststream, Edip = Value
+  val Commercial, DigitalAndTechnology, DiplomaticService, DiplomaticServiceEconomics,
+  DiplomaticServiceEuropean, European, Finance, Generalist,
+  GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService,
+  GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
+  ProjectDelivery, ScienceAndEngineering = Value
 
-  implicit val applicationRouteFormat = new Format[ApplicationRoute] {
-    def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String]))
-    def writes(routeEnum: ApplicationRoute) = JsString(routeEnum.toString)
+  val Edip, Sdip = Value
+
+  implicit val schemeFormat = new Format[SchemeType] {
+    def reads(json: JsValue) = JsSuccess(SchemeType.withName(json.as[String]))
+
+    def writes(myEnum: SchemeType) = JsString(myEnum.toString)
   }
-
-  implicit def applicationRouteToStr(appRoute: ApplicationRoute): String = appRoute.toString
 }
