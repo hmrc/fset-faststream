@@ -1,4 +1,14 @@
-@(assistanceDetails: connectors.exchange.AssistanceDetails)(edit: Html)
+@(assistanceDetails: connectors.exchange.AssistanceDetails)(edit: Html)(implicit user: Option[CachedData])
+
+@import security.RoleUtils._
+
+@displaySupportForOnlineTestsLabel = @{
+    if(isEdip(user)) {
+        "Will you need extra support?"
+    } else {
+        "Will you need extra support for your online tests?"
+    }
+}
 
 <section class="section-border">
     <h2 class="heading-large">
@@ -25,7 +35,7 @@
         }
     </section>
     <section>
-        <h3 class="heading-small">Will you need extra support for your online tests?</h3>
+        <h3 class="heading-small">@displaySupportForOnlineTestsLabel</h3>
         @assistanceDetails.needsSupportForOnlineAssessment match {
             case true => {
                 <p id="needsSupportForOnlineAssessment">Yes</p>
@@ -36,16 +46,18 @@
             }
         }
     </section>
-    <section>
-        <h3 class="heading-small">When you visit any of our venues will you need any extra support?</h3>
-        @assistanceDetails.needsSupportAtVenue match {
-            case true => {
-                <p id="needsSupportAtVenue">Yes</p>
-                <p id="needsSupportAtVenueDescription">@assistanceDetails.needsSupportAtVenueDescription</p>
+    @assistanceDetails.needsSupportAtVenue.map { needsSupportAtVenue =>
+        <section>
+            <h3 class="heading-small">When you visit any of our venues will you need any extra support?</h3>
+            @needsSupportAtVenue match {
+                case true => {
+                    <p id="needsSupportAtVenue">Yes</p>
+                    <p id="needsSupportAtVenueDescription">@assistanceDetails.needsSupportAtVenueDescription</p>
+                }
+                case false => {
+                    <p>No</p>
+                }
             }
-            case false => {
-                <p>No</p>
-            }
-        }
-    </section>
+        </section>
+    }
 </section>

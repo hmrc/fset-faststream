@@ -17,42 +17,45 @@
 package controllers
 
 import _root_.forms.WithdrawApplicationForm
+import config.CSRCache
 import connectors.ApplicationClient
-import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.{ FrameworkId, Phase2TestGroupWithNames, WithdrawApplication }
+import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
+import connectors.exchange.{ FrameworkId, Phase2TestGroupWithActiveTest, Phase3TestGroup, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
-import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage }
-import models.{ CachedData, CachedDataWithApp }
+import models.CachedData
+import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
 import security.Roles
 import security.Roles._
 
 import scala.concurrent.Future
 
-object HomeController extends HomeController(ApplicationClient)
+object HomeController extends HomeController(ApplicationClient, CSRCache)
 
-class HomeController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache) extends BaseController(applicationClient, cacheClient) {
   val Withdrawer = "Candidate"
-
 
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     cachedData.application.map { application =>
 
-
-      def getPhase2Test: Future[Option[Phase2TestGroupWithNames]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
+      def getPhase2Test: Future[Option[Phase2TestGroupWithActiveTest]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
         applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
+      } else { Future.successful(None) }
+
+      def getPhase3Test: Future[Option[Phase3TestGroup]] = if (application.applicationStatus == ApplicationStatus.PHASE3_TESTS) {
+        applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))
       } else { Future.successful(None) }
 
       val dashboard = for {
         phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
         phase2TestsWithNames <- getPhase2Test
+        phase3Tests <- getPhase3Test
         allocationDetails <- applicationClient.getAllocationDetails(application.applicationId)
-        // TODO Work out a better way to invalidate the cache across the site
-        app = CachedDataWithApp(cachedData.user, application)
-        updatedData <- refreshCachedUser()(app, hc, request)
+        updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
       } yield {
         val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)),
-          phase2TestsWithNames.map(Phase2TestsPage.apply)
+          phase2TestsWithNames.map(Phase2TestsPage.apply),
+          phase3Tests.map(Phase3TestsPage.apply)
         )
         Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))
       }
@@ -65,7 +68,7 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
           val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled || applicationSubmitted
 
           if (isDashboardEnabled) {
-            val dashboardPage = DashboardPage(cachedData, None, None, None)
+            val dashboardPage = DashboardPage(cachedData, None, None, None, None)
             Ok(views.html.home.dashboard(cachedData, dashboardPage, None))
           } else {
             Ok(views.html.home.submit_disabled(cachedData))
@@ -75,7 +78,7 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
       val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled
 
       if (isDashboardEnabled) {
-        val dashboardPage = DashboardPage(cachedData, None, None, None)
+        val dashboardPage = DashboardPage(cachedData, None, None, None, None)
         Future.successful(Ok(views.html.home.dashboard(cachedData, dashboardPage, None)))
       } else {
         Future.successful(Ok(views.html.home.submit_disabled(cachedData)))
@@ -91,7 +94,9 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
   def create = CSRSecureAction(ApplicationStartRole) { implicit request =>
     implicit user =>
       for {
-        response <- applicationClient.createApplication(user.user.userID, FrameworkId)
+        response <- applicationClient.findApplication(user.user.userID, FrameworkId).recoverWith {
+          case _: ApplicationNotFound => applicationClient.createApplication(user.user.userID, FrameworkId)
+        }
         _ <- env.userService.save(user.copy(application = Some(response)))
         if faststreamConfig.applicationsSubmitEnabled
       } yield {
@@ -135,7 +140,7 @@ class HomeController(applicationClient: ApplicationClient) extends BaseControlle
     implicit user =>
 
       applicationClient.confirmAllocation(user.application.get.applicationId).map { _ =>
-        Redirect(controllers.routes.HomeController.present).flashing(success("success.allocation.confirmed"))
+        Redirect(controllers.routes.HomeController.present()).flashing(success("success.allocation.confirmed"))
       }
   }
 }

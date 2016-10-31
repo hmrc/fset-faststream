@@ -20,7 +20,7 @@ import config.CSRHttp
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
-import models.UniqueIdentifier
+import models.{ ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http._
@@ -36,8 +36,11 @@ trait ApplicationClient {
   import config.FrontendAppConfig.faststreamConfig._
   import exchange.Implicits._
 
-  def createApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier) = {
-    http.PUT(s"${url.host}${url.base}/application/create", CreateApplicationRequest(userId, frameworkId)).map { response =>
+  def createApplication(userId: UniqueIdentifier, frameworkId: String,
+    applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream)
+    (implicit hc: HeaderCarrier) = {
+    http.PUT(s"${url.host}${url.base}/application/create", CreateApplicationRequest(userId,
+      frameworkId, applicationRoute)).map { response =>
       response.json.as[ApplicationResponse]
     }
   }
@@ -72,7 +75,7 @@ trait ApplicationClient {
     }
   }
 
-  def findApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier) = {
+  def findApplication(userId: UniqueIdentifier, frameworkId: String)(implicit hc: HeaderCarrier): Future[ApplicationResponse] = {
     http.GET(s"${url.host}${url.base}/application/find/user/$userId/framework/$frameworkId").map { response =>
       response.json.as[ApplicationResponse]
     } recover {
@@ -164,21 +167,35 @@ trait ApplicationClient {
   }
 
   def getPhase1TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
-    http.GET(s"${url.host}${url.base}/online-test/candidate/$appId").map { response =>
+    http.GET(s"${url.host}${url.base}/online-test/phase1/candidate/$appId").map { response =>
       response.json.as[Phase1TestGroupWithNames]
     } recover {
       case _: NotFoundException => throw new OnlineTestNotFound()
     }
   }
 
-  def getPhase2TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase2TestGroupWithNames] = {
-    http.GET(s"${url.host}${url.base}/online-test-phase2/candidate/$appId").map { response =>
-      response.json.as[Phase2TestGroupWithNames]
+  def getPhase2TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest] = {
+    http.GET(s"${url.host}${url.base}/online-test/phase2/candidate/$appId").map { response =>
+      response.json.as[Phase2TestGroupWithActiveTest]
     } recover {
       case _: NotFoundException => throw new OnlineTestNotFound()
     }
   }
 
+  def getPhase3TestGroup(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase3TestGroup] = {
+    http.GET(s"${url.host}${url.base}/phase3-test-group/$appId").map { response =>
+      response.json.as[Phase3TestGroup]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
+  def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/cubiks/$cubiksUserId/start", "").map(_ => ())
+  }
+
+  def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/cubiks/complete-by-token/$token", "").map(_ => ())
+  }
 
   def getAllocationDetails(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[AllocationDetails]] = {
     http.GET(s"${url.host}${url.base}/allocation-status/$appId").map { response =>
@@ -190,14 +207,6 @@ trait ApplicationClient {
 
   def confirmAllocation(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(s"${url.host}${url.base}/allocation-status/confirm/$appId", "").map(_ => ())
-  }
-
-  def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(s"${url.host}${url.base}/cubiks/$cubiksUserId/start", "").map(_ => ())
-  }
-
-  def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(s"${url.host}${url.base}/cubiks/complete-by-token/$token", "").map(_ => ())
   }
 }
 

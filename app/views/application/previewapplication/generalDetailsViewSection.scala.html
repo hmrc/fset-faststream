@@ -59,22 +59,23 @@
             <p id="phone-input3">No number provided</p>
         }
     </section>
-
-    @displayFastPassSection("fastPassApplicable", true, "Are you a civil servant or been on a diversity internship or the Fast Track?",
-        getYesOrNo(generalDetails.civilServiceExperienceDetails.applicable))
-    @displayFastPassSection("civilServiceExperienceType" +
-            "", generalDetails.civilServiceExperienceDetails.civilServiceExperienceType.isDefined, "Which of these applies?",
-        getCivilServiceExperienceTypeDescription(generalDetails.civilServiceExperienceDetails.civilServiceExperienceType.get))
-    @if(generalDetails.civilServiceExperienceDetails.internshipTypes.isDefined){
-        <section id="internshipTypes">
-            <h3 class="heading-small">Which internship programme did you do?</h3>
-            @for(internshipType <- generalDetails.civilServiceExperienceDetails.internshipTypes.get){
-                <p>@getInternshipTypeDescription(internshipType)</p>
-            }
-        </section>
+    @generalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
+        @displayFastPassSection("fastPassApplicable", true, "Are you a civil servant or been on a diversity internship or the Fast Track?",
+            getYesOrNo(civilServiceExperienceDetails.applicable))
+        @displayFastPassSection("civilServiceExperienceType" +
+                "", civilServiceExperienceDetails.civilServiceExperienceType.isDefined, "Which of these applies?",
+            getCivilServiceExperienceTypeDescription(civilServiceExperienceDetails.civilServiceExperienceType.get))
+        @if(civilServiceExperienceDetails.internshipTypes.isDefined){
+            <section id="internshipTypes">
+                <h3 class="heading-small">Which internship programme did you do?</h3>
+                @for(internshipType <- civilServiceExperienceDetails.internshipTypes.get){
+                    <p>@getInternshipTypeDescription(internshipType)</p>
+                }
+            </section>
+        }
+        @displayFastPassSection("fastPassReceived", civilServiceExperienceDetails.fastPassReceived.isDefined, "Did you receive a Fast Pass?",
+            getYesOrNo(civilServiceExperienceDetails.fastPassReceived.get))
+        @displayFastPassSection("certificateNumber", civilServiceExperienceDetails.certificateNumber.isDefined, "Fast Pass certificate number",
+            civilServiceExperienceDetails.certificateNumber.get)
     }
-    @displayFastPassSection("fastPassReceived", generalDetails.civilServiceExperienceDetails.fastPassReceived.isDefined, "Did you receive a Fast Pass?",
-        getYesOrNo(generalDetails.civilServiceExperienceDetails.fastPassReceived.get))
-    @displayFastPassSection("certificateNumber", generalDetails.civilServiceExperienceDetails.certificateNumber.isDefined, "Fast Pass certificate number",
-        generalDetails.civilServiceExperienceDetails.certificateNumber.get)
 </section>

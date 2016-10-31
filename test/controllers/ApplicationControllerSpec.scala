@@ -16,13 +16,14 @@
 
 package controllers
 
-import config.CSRHttp
+import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 
 class ApplicationControllerSpec extends BaseControllerSpec {
-  val applicationClient = mock[ApplicationClient]
+  val mockApplicationClient = mock[ApplicationClient]
+  val mockCacheClient = mock[CSRCache]
 
-  class TestableApplicationController extends ApplicationController(applicationClient) with TestableSecureActions {
+  class TestableApplicationController extends ApplicationController(mockApplicationClient, mockCacheClient) with TestableSecureActions {
     val http: CSRHttp = CSRHttp
     override protected def env = securityEnvironment
   }

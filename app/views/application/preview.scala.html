@@ -8,6 +8,7 @@
 @import views.html.application.previewapplication.{assistanceDetailsViewSection, generalDetailsViewSection, schemePreferencesViewSection, partnerGraduateProgrammesViewSection, diversityQuestionnaireViewSection}
 @import models.ApplicationData.ApplicationStatus._
 @import security.Roles._
+@import security.RoleUtils._
 
 @appNotReadOnly(body: Html)= {
     @if(!WithdrawApplicationRole.isAuthorized(user.get) && !WithdrawnApplicationRole.isAuthorized(user.get)) {@body}
@@ -47,7 +48,9 @@
 
     @generalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", routes.PersonalDetailsController.presentAndContinue()))
 
-    @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", routes.SchemePreferencesController.present()))
+    @if(!isEdip(user)) {
+        @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", routes.SchemePreferencesController.present()))
+    }
 
     @if(partnerGraduateProgrammes.isDefined) {
         @partnerGraduateProgrammesViewSection(partnerGraduateProgrammes.get)(edit_link("editPartnerGraduateProgrammes", routes.PartnerGraduateProgrammesController.present()))

@@ -16,16 +16,16 @@
 
 package security
 
-import controllers.{ PartnerGraduateProgrammesController, routes }
+import controllers.routes
 import models.ApplicationData.ApplicationStatus._
-import models.{ CachedData, CachedDataWithApp, Progress }
+import models.{ ApplicationRoute, CachedData, CachedDataWithApp, Progress }
 import play.api.i18n.Lang
 import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+// scalastyle:off
 object Roles {
-
   import RoleUtils._
 
   trait CsrAuthorization {
@@ -42,7 +42,7 @@ object Roles {
       activeUserWithApp(user) && isEnabled(user)
   }
 
-  //all the roles
+  // All the roles
 
   object NoRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) = true
@@ -60,7 +60,7 @@ object Roles {
 
   object ApplicationStartRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      user.user.isActive && user.application.isEmpty
+      user.user.isActive && (user.application.isEmpty || statusIn(user)(CREATED))
   }
 
   object EditPersonalDetailsAndContinueRole extends CsrAuthorization {
@@ -90,8 +90,10 @@ object Roles {
 
   object AssistanceDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && (hasPartnerGraduateProgrammes(user) ||
-        (hasSchemes(user) && isCivilServant(user)))
+      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
+        (hasPartnerGraduateProgrammes(user) ||
+          (hasSchemes(user) && isCivilServant(user)) ||
+          hasPersonalDetails(user) && isEdip(user))
   }
 
   object PreviewApplicationRole extends CsrAuthorization {
@@ -130,6 +132,11 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS) && isTestExpired(user)
   }
 
+  object Phase1TestFailedRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS_FAILED)
+  }
+
   object Phase2TestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS)
@@ -137,7 +144,17 @@ object Roles {
 
   object Phase2TestExpiredRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS) && isTestExpired(user)
+      activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS) && isPhase2TestExpired(user)
+  }
+
+  object Phase3TestInvitedRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE3_TESTS)
+  }
+
+  object Phase3TestExpiredRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && statusIn(user)(PHASE3_TESTS) && isPhase3TestExpired(user)
   }
 
   object DisplayOnlineTestSectionRole extends CsrAuthorization {
@@ -241,6 +258,30 @@ object RoleUtils {
       .getOrElse(false)
 
   def isTestExpired(implicit user: CachedData) = progress.phase1TestProgress.phase1TestsExpired
+  def isPhase1TestsPassed(implicit user: CachedData) = {
+    user.application.isDefined && progress.phase1TestProgress.phase1TestsPassed
+  }
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
+  def isPhase3TestExpired(implicit user: CachedData) = progress.phase3TestProgress.phase3TestsExpired
 
+  def isFaststream(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Faststream
+
+  def isEdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Edip
+
+  def isFaststream(implicit user: CachedData) = {
+    user.application exists (_.applicationRoute == ApplicationRoute.Faststream)
+  }
+
+  def isFaststream(implicit user: Option[CachedData]): Boolean = {
+    user.forall(u => isFaststream(u))
+  }
+
+  def isEdip(implicit user: CachedData): Boolean = {
+    user.application exists (_.applicationRoute == ApplicationRoute.Edip)
+  }
+
+  def isEdip(implicit user: Option[CachedData]): Boolean = {
+    user.exists(isEdip(_))
+  }
 }
+// scalastyle:on

@@ -17,14 +17,17 @@
 package controllers
 
 import _root_.forms.SelectedSchemesForm._
+import config.CSRCache
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
 import security.Roles.SchemesRole
 
 import scala.concurrent.Future
 
-class SchemePreferencesController(applicationClient: ApplicationClient, schemeClient: SchemeClient) extends
-  BaseController(applicationClient){
+object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, CSRCache, SchemeClient)
+
+class SchemePreferencesController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient) extends
+  BaseController(applicationClient, cacheClient){
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>
@@ -38,16 +41,16 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
   }
 
   def submit = CSRSecureAppAction(SchemesRole) { implicit request =>
-    implicit user =>
-      val isCivilServant = user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
+    implicit cachedData =>
+      val isCivilServant = cachedData.application.civilServiceExperienceDetails.exists(_.isCivilServant)
       form.bindFromRequest.fold(
         invalidForm => {
           Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(isCivilServant, invalidForm)))
         },
         selectedSchemes => {
           for {
-            _ <- schemeClient.updateSchemePreferences(selectedSchemes)(user.application.applicationId)
-            redirect <- refreshCachedUser().map { _ =>
+            _ <- schemeClient.updateSchemePreferences(selectedSchemes)(cachedData.application.applicationId)
+            redirect <- env.userService.refreshCachedUser(cachedData.user.userID).map { _ =>
                 Redirect {
                   if(isCivilServant) {
                     routes.AssistanceDetailsController.present()
@@ -62,8 +65,4 @@ class SchemePreferencesController(applicationClient: ApplicationClient, schemeCl
         }
     )
   }
-
-
 }
-
-object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, SchemeClient)

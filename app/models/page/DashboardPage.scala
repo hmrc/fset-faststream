@@ -29,15 +29,18 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   thirdStepVisibility: ProgressStepVisibility,
   fourthStepVisibility: ProgressStepVisibility,
   isApplicationSubmittedAndNotWithdrawn: Boolean,
-  isApplicationInProgressAndNotWithdrawn: Boolean,
   isApplicationWithdrawn: Boolean,
-  isApplicationCreatedOrInProgress: Boolean,
+  isApplicationInProgress: Boolean,
   isUserWithNoApplication: Boolean,
+  isPhase1TestsPassed: Boolean,
   isTestGroupExpired: Boolean,
   isPhase2TestGroupExpired: Boolean,
+  isPhase3TestGroupExpired: Boolean,
+  isPhase1TestFailed: Boolean,
   fullName: String,
   phase1TestsPage: Option[Phase1TestsPage],
   phase2TestsPage: Option[Phase2TestsPage],
+  phase3TestsPage: Option[Phase3TestsPage],
   assessmentStageStatus: AssessmentStageStatus,
   postAssessmentStageStatus: PostAssessmentStageStatus
 )
@@ -49,7 +52,7 @@ object DashboardPage {
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
   def apply(user: CachedData, allocationDetails: Option[AllocationDetails], phase1TestGroup: Option[Phase1TestsPage],
-    phase2TestGroup: Option[Phase2TestsPage]
+    phase2TestGroup: Option[Phase2TestsPage], phase3TestGroup: Option[Phase3TestsPage]
   )(implicit request: RequestHeader, lang: Lang): DashboardPage = {
 
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility,
@@ -62,15 +65,18 @@ object DashboardPage {
       thirdStepVisibility,
       fourthStepVisibility,
       isApplicationSubmittedAndNotWithdrawn(user),
-      isApplicationInProgressAndNotWithdrawn(user),
       isApplicationWithdrawn(user),
-      isApplicationCreatedOrInProgress(user),
+      isApplicationInProgress(user),
       isUserWithNoApplication(user),
+      isPhase1TestsPassed(user),
       isTestGroupExpired(user),
       isPhase2TestGroupExpired(user),
+      isPhase3TestGroupExpired(user),
+      isPhase1TestFailed(user),
       user.user.firstName + " " + user.user.lastName,
       phase1TestGroup,
       phase2TestGroup,
+      phase3TestGroup,
       getAssessmentInProgressStatus(user, allocationDetails),
       getPostAssessmentStatus(user, allocationDetails)
     )
@@ -165,14 +171,11 @@ object DashboardPage {
   private def isApplicationSubmittedAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     WithdrawApplicationRole.isAuthorized(user)
 
-  private def isApplicationInProgressAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    CreatedOrInProgressRole.isAuthorized(user)
-
   private def isApplicationWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     WithdrawnApplicationRole.isAuthorized(user)
 
-  private def isApplicationCreatedOrInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    EditPersonalDetailsAndContinueRole.isAuthorized(user)
+  private def isApplicationInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    InProgressRole.isAuthorized(user)
 
   private def isUserWithNoApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     ApplicationStartRole.isAuthorized(user)
@@ -180,8 +183,14 @@ object DashboardPage {
   private def isTestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     OnlineTestExpiredRole.isAuthorized(user)
 
+  private def isPhase1TestFailed(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    Phase1TestFailedRole.isAuthorized(user)
+
   private def isPhase2TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     Phase2TestExpiredRole.isAuthorized(user)
+
+  private def isPhase3TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    Phase3TestExpiredRole.isAuthorized(user)
 
   private def getAssessmentInProgressStatus(user: CachedData,
     allocationDetails: Option[AllocationDetails])
@@ -247,8 +256,18 @@ object DashboardPage {
       } else {
         ProgressInactive
       }
-      val thirdStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user)) { ProgressInactiveDisabled } else { ProgressInactive }
-      val fourthStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user)) { ProgressInactiveDisabled } else { ProgressInactive }
+      val thirdStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) || isPhase1TestFailed(user)) {
+        ProgressInactiveDisabled
+      }
+      else {
+        ProgressInactive
+      }
+      val fourthStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) || isPhase1TestFailed(user)) {
+        ProgressInactiveDisabled
+      }
+      else {
+        ProgressInactive
+      }
 
       (firstStep, secondStep, thirdStep, fourthStep)
     }

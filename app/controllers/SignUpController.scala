@@ -19,25 +19,28 @@ package controllers
 import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
-import config.CSRHttp
-import connectors.ApplicationClient
+import config.{ CSRCache, CSRHttp }
+import connectors.exchange.SelectedSchemes
+import connectors.{ ApplicationClient, SchemeClient }
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange.Implicits._
 import helpers.NotificationType._
-import models.SecurityUser
+import models.{ ApplicationRoute, SecurityUser, UniqueIdentifier }
 import security.SignInService
+import connectors.exchange._
 
 import scala.concurrent.Future
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-object SignUpController extends SignUpController(ApplicationClient) {
+object SignUpController extends SignUpController(ApplicationClient, SchemeClient, CSRCache) {
   val http = CSRHttp
 }
 
-abstract class SignUpController(val applicationClient: ApplicationClient) extends BaseController(applicationClient) with SignInService {
+abstract class SignUpController(val applicationClient: ApplicationClient, schemeClient: SchemeClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) with SignInService {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
-
       Future.successful(request.identity match {
         case Some(_) => Redirect(routes.HomeController.present()).flashing(warning("activation.already"))
         case None => Ok(views.html.registration.signup(SignUpForm.form))
@@ -50,15 +53,18 @@ abstract class SignUpController(val applicationClient: ApplicationClient) extend
       SignUpForm.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize)))),
         data => {
+          val appRoute = ApplicationRoute.withName(data.applicationRoute)
           env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
             applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
-              signInUser(
-                u.toCached,
-                redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
-                env = env
-              ).map { r =>
-                env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
-                r
+              applicationClient.createApplication(u.userId, FrameworkId, appRoute).flatMap { appResponse =>
+                  signInUser(
+                    u.toCached,
+                    redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
+                    env = env
+                  ).map { r =>
+                    env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
+                    r
+                  }
               }
             }
           }.recover {

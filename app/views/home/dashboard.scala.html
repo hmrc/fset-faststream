@@ -27,8 +27,10 @@
 @renderProgressElements = {
     <li><i class="fa fa-check the-icon"></i>Create your account</li>
     @renderProgressElement(showLink = EditPersonalDetailsAndContinueRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.presentAndContinue()) {Add personal details }
-    @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = hasSchemes(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose your schemes }
-    @if(!isCivilServant(usr)) {
+    @if(!isEdip(usr)) {
+        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = hasSchemes(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose your schemes }
+    }
+    @if(!isEdip(usr) && !isCivilServant(usr)) {
         @renderProgressElement(showLink = PartnerGraduateProgrammesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "partnerGraduateProgrammesStep")(routes.PartnerGraduateProgrammesController.present()) { Defer your place }
     }
     @renderProgressElement(showLink = (AssistanceDetailsRole.isAuthorized(usr) || hasAssistanceDetails(usr)), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Disability and health conditions }
@@ -56,14 +58,14 @@
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
-                            <h2 class='@if(dashboardPage.isApplicationCreatedOrInProgress) {heading-large} else {heading-medium} '>
+                            <h2 class='@if(dashboardPage.isApplicationInProgress) {heading-large} else {heading-medium} '>
                                 1. Fill in your application form</h2>
                             @if(!dashboardPage.isApplicationWithdrawn) {
                                 <ul class="list-text list-withicons">
                                     @if(dashboardPage.isApplicationSubmittedAndNotWithdrawn) {
                                         <li><i class='fa fa-check the-icon'></i>Your application has been submitted</li>
                                     }
-                                    @if(dashboardPage.isApplicationInProgressAndNotWithdrawn) {
+                                    @if(dashboardPage.isApplicationInProgress) {
                                         @renderProgressElements
                                     }
                                 </ul>
@@ -78,7 +80,7 @@
                                  View your withdrawn application</a>
                             }
 
-                            @if(dashboardPage.isApplicationCreatedOrInProgress) {
+                            @if(dashboardPage.isApplicationInProgress) {
                                 <a class="" id="continue-application" href="@routes.HomeController.resume()">
                                     Continue with your application</a>
                                 <p>(Should take 5 to 10 minutes to fill in)</p>
@@ -122,16 +124,20 @@
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
-                            <h2 class="heading-medium ">3. Attend an assessment centre</h2>
-                            @if(dashboardPage.assessmentStageStatus == ASSESSMENT_FAST_PASS_CERTIFICATE) {
-                                <p id="fast-pass-msg" data-sdip>Once we've verified your certificate number, you'll be invited
-                                    to attend an assessment centre.</p>
-                            } else {
-                                <p data-hidesdip>If you pass the online tests, you'll be invited to attend an
-                                assessment centre.</p>
-                            }
-                            <p><a href="http://www.faststream.gov.uk/faqs/"
-                                  rel="external" target="_blank">Find out more about the assessment day</a></p>
+                            @if(isFaststream(usr)) {
+                                <h2 class="heading-medium ">3. Attend an assessment centre</h2>
+                                @if(dashboardPage.assessmentStageStatus == ASSESSMENT_FAST_PASS_CERTIFICATE) {
+                                    <p id="fast-pass-msg" data-sdip>Once we've verified your certificate number, you'll be invited
+                                        to attend an assessment centre.</p>
+                                } else {
+                                    <p data-hidesdip>If you pass the online tests, you'll be invited to attend an
+                                        assessment centre.</p>
+                                }
+                                <p><a href="http://www.faststream.gov.uk/faqs/"
+                                rel="external" target="_blank">Find out more about the assessment day</a></p>
+                            } else { @if(isEdip(usr)) {
+                                @home.edipExtraInfo(usr)
+                            }}
                         </div>
                     </div>
                     <div class="grid grid-1-3">
@@ -142,10 +148,15 @@
                 <div class="grid-wrapper">
                     <div class="grid grid-2-3">
                         <div class="inner-block-padr">
-                            <h2 class="heading-medium ">4. Final stages</h2>
-                            <p>We aim to let you know the outcome of your assessment by January 2017.</p>
-                            <p><a href="http://www.faststream.gov.uk/faqs/"
-                                  rel="external" target="_blank">Find out more about what happens after you've been accepted for the Fast Stream</a></p>
+                            @if(isFaststream(usr)) {
+                                <h2 class="heading-medium ">4. Final stages</h2>
+                                <p>We aim to let you know the outcome of your assessment by January 2017.</p>
+                                <p><a href="http://www.faststream.gov.uk/faqs/"
+                                rel="external" target="_blank">
+                                    Find out more about what happens after you've been accepted for the Fast Stream</a></p>
+                            } else { @if(isEdip(usr)) {
+                                @home.edipFinalStages(usr)
+                            }}
                         </div>
                     </div>
                     <div class="grid grid-1-3">

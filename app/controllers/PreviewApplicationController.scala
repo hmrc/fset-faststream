@@ -16,27 +16,29 @@
 
 package controllers
 
+import config.CSRCache
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
+import models.CachedDataWithApp
+import security.RoleUtils._
 import security.Roles.PreviewApplicationRole
 
 import scala.concurrent.Future
 
-object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, SchemeClient)
+object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, CSRCache, SchemeClient)
 
-class PreviewApplicationController(applicationClient: ApplicationClient, schemeClient: SchemeClient) extends
-  BaseController(applicationClient) {
+class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient) extends
+  BaseController(applicationClient, cacheClient) {
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
-      val isCivilServant = user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
       val personalDetailsFut = applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
       val schemePreferencesFut = schemeClient.getSchemePreferences(user.application.applicationId)
-      val partnerGraduateProgrammesFut = isCivilServant match {
-        case true => Future.successful(None)
-        case false => applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
+      val partnerGraduateProgrammesFut = isFastStreamAndNotCivilServant(user) match {
+        case true => applicationClient.getPartnerGraduateProgrammes(user.application.applicationId).map(pgp => Some(pgp))
+        case false => Future.successful(None)
       }
       val assistanceDetailsFut = applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId)
 
@@ -62,4 +64,7 @@ class PreviewApplicationController(applicationClient: ApplicationClient, schemeC
         }
       }
   }
+
+  def isFastStreamAndNotCivilServant(implicit user: CachedDataWithApp) =
+    isFaststream(user) && !user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
 }

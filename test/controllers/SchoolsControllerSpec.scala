@@ -16,7 +16,8 @@
 
 package controllers
 
-import connectors.SchoolsClient
+import config.CSRCache
+import connectors.{ ApplicationClient, SchoolsClient }
 import connectors.SchoolsClient.SchoolsNotFound
 import connectors.exchange.School
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -30,8 +31,10 @@ import scala.concurrent.Future
 class SchoolsControllerSpec extends BaseControllerSpec {
 
   val schoolClient = mock[SchoolsClient]
+  val mockCacheClient = mock[CSRCache]
+  val mockApplicationClient = mock[ApplicationClient]
 
-  def schoolsController = new SchoolsController(schoolClient) with TestableSecureActions
+  def schoolsController = new SchoolsController(schoolClient, mockCacheClient, mockApplicationClient) with TestableSecureActions
 
   "get schools" should {
     val schoolList = List(

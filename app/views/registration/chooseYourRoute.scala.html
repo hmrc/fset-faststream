@@ -1,0 +1,46 @@
+@(form: Form[_root_.forms.SignUpForm.Data])(implicit lang: play.api.i18n.Lang)
+
+@import helpers.CSRFieldConstructor._
+@import models.ApplicationRoute
+@import views.html.widgets.{radioBox, radioBoxVerticalMultiToggle, yesNoQuestion}
+
+<section class="section-border clearfix" id="routeElig">
+    <div class="text">
+        <h2 class="heading-large">Choose your route</h2>
+    </div>
+    <fieldset class="form-group">
+        <legend class="form-label">Which route do you want to choose?</legend>
+        @radioBoxVerticalMultiToggle(form("applicationRoute"),
+                                 options = List((ApplicationRoute.Faststream.toString, "Civil Service Fast Stream", "faststream-elig-describe"),
+                                                (ApplicationRoute.Edip.toString, "Early Diversity Internship Programme (EDIP)", "edip-elig-describe"))
+        )
+        <div class="toggle-content form-group form-group-compound" id="faststream-elig-describe">
+            <div id="fs-panel" class="clearfix">
+                <div class="text">
+                    <h3 class="heading-medium">Confirm the following statements are true</h3>
+                </div>
+                <ul class="para-btm-margin text">
+                    <li>I'm <a href="" target="_blank" rel="external">eligible to work in the UK</a></li>
+                    <li>I have a relevant degree or qualify as a current civil servant</li>
+                    <li>I meet my schemes eligibility requirements</li>
+                </ul>
+                @yesNoQuestion(form("faststreamEligible"), question = "Are you eligible to apply for the Civil Service Fast Stream?",
+                               noMessage = "You must be eligible to apply for the Civil Service Fast Stream")
+            </div>
+        </div>
+        <div class="toggle-content form-group form-group-compound" id="edip-elig-describe">
+            <div class="text">
+                <h2 class="heading-medium">Confirm the following statements are true</h2>
+            </div>
+            <ul id="eligibility-list" class="para-btm-margin text">
+                <li>I'm either from a BAME or socially/economically disadvantaged
+                    background, or disabled</li>
+                <li>I'm in the first year at university</li>
+                <li>I qualify to apply according to the <a href="http://www.faststream.gov.uk/early-diversity-internship-programme/"
+                                                            rel="external" target="_blank">eligibility requirements</a></li>
+            </ul>
+                @yesNoQuestion(form("edipEligible"), question = "Are you eligible to apply for the Early Diversity Internship Programme (EDIP)?",
+                               noMessage = "You must be eligible to apply for the Early Diversity Internship Programme.")
+        </div>
+    </fieldset>
+</section>

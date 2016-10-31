@@ -17,7 +17,7 @@
 package models.view.questionnaire
 
 object Universities {
-  val seq = Seq(
+  val map = Map(
     ("Abingdon and Witney College", "A14-AWC"),
     ("University of Aberdeen", "A20-ABRDN"),
     ("University of Abertay Dundee", "A30-ABTAY"),
@@ -412,4 +412,14 @@ object Universities {
     ("York St John University", "Y75-YSJ"),
     ("Other", "Others")
   )
+
+  val reverseMap = for((k, v) <- map) yield (v, k)
+
+  def getCode(name: String) = {
+    map(name)
+  }
+
+  def getName(code: String) = {
+    reverseMap(code)
+  }
 }

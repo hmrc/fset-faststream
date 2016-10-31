@@ -17,7 +17,7 @@
 package connectors.exchange
 
 object AssistanceDetailsExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, false, None)
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), false, None, Some(false), None)
   val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("Epilepsy"), Some(true), true,
-    Some("Some adjustment"), true, Some("Some other adjustements"))
+    Some("Some adjustment"), Some(true), Some("Some other adjustements"))
 }

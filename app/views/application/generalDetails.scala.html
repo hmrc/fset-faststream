@@ -1,9 +1,10 @@
 @(details: Form[_root_.forms.GeneralDetailsForm.Data], updateStatus: Boolean)(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
 
-@import views.html.application.personalDetails.{contactDetails, nameAndDateOfBirth}
+@import views.html.application.personalDetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
-@import views.html.widgets.{pageProgress, saveAndContinueButton}
+@import views.html.widgets.{ applicationRoute, pageProgress, saveAndContinueButton }
 @import security.Roles.EditPersonalDetailsAndContinueRole
+@import security.RoleUtils
 
 @redirectUrl = @{
     if (updateStatus) routes.PersonalDetailsController.submitGeneralDetailsAndContinue()
@@ -12,17 +13,18 @@
 
 @main_template(title = "Personal details", pageForms = Seq(details)) {
     @pageProgress(1, 7)
+
     <h1 class="heading-xlarge" id="personalDetailsHeading">Personal details</h1>
 
     @helper.form(action = redirectUrl, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
-
+        @applicationRoute(optCachedData)
         @nameAndDateOfBirth(details)
         @contactDetails(details)
-        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData))){
+        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
+            !RoleUtils.isEdip(optCachedData)){
             @civilServiceExperienceDetailsPanel(details)
         }
         @saveAndContinueButton()
     }
 }
-

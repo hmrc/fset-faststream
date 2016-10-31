@@ -19,6 +19,7 @@ package config
 import com.mohiva.play.silhouette.api.{ Environment, SecuredSettings, Silhouette }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import com.typesafe.config.Config
+import controllers.SignInController
 import controllers.routes
 import filters.CookiePolicyFilter
 import forms.{ SignInForm, SignUpForm }
@@ -64,24 +65,8 @@ abstract class DevelopmentFrontendGlobal
   override def onNotAuthenticated(request: RequestHeader, lang: Lang): Option[Future[Result]] =
     Some(Future.successful(Redirect(routes.SignInController.present())))
 
-  override def onNotAuthorized(request: RequestHeader, lang: Lang): Option[Future[Result]] = {
-    import models.SecurityUser._
-    object Internal extends Silhouette[SecurityUser, SessionAuthenticator] with FrontendController {
-      override protected def env: Environment[SecurityUser, SessionAuthenticator] = SecurityEnvironmentImpl
-
-      def whereTo: Some[Future[Result]] = {
-        val sec = request.asInstanceOf[SecuredRequest[AnyContent]]
-        Some(
-          sec.identity.toUserFuture(hc(sec)).map {
-            case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
-            case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
-          }
-        )
-      }
-    }
-    Internal.whereTo
-  }
-
+  override def onNotAuthorized(request: RequestHeader, lang: Lang): Option[Future[Result]] =
+    SignInController.notAuthorised(request, lang)
 }
 
 object ControllerConfiguration extends ControllerConfig {

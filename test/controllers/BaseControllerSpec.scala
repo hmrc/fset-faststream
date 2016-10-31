@@ -20,6 +20,7 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
+import config.CSRCache
 import models.SecurityUserExamples._
 import models._
 import org.joda.time.DateTime
@@ -29,7 +30,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.filters.csrf.CSRF
 import security.Roles.CsrAuthorization
-import security.{SecureActions, SecurityEnvironment, SignInService}
+import security.{ SecureActions, SecurityEnvironment, SignInService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -52,6 +53,9 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
 
   def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
     CreatedApplication.copy(userId = ActiveCandidate.user.userID))
+
+  def currentCandidateWithEdipApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
+    CreatedApplication.copy(userId = ActiveCandidate.user.userID, applicationRoute = ApplicationRoute.Edip))
 
   def currentApplicationId = currentCandidateWithApp.application.applicationId
 

@@ -17,13 +17,12 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.CSRHttp
-import connectors.{ ApplicationClient, SchemeClient }
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotUpdateRecord, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
+import config.{ CSRCache, CSRHttp }
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.{ AssistanceDetailsExamples, GeneralDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
+import connectors.{ ApplicationClient, SchemeClient }
 import controllers.forms.AssistanceDetailsFormExamples
-import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -48,6 +47,18 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       content must include("<title>Check your application")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content must include(s"""<p id="fastPassApplicable">No</p>""")
+      content must include("""<ul id="schemePreferenceList" class="list-text">""")
+      content must include("Will you need extra support for your online tests?")
+    }
+
+    "load preview page for existing edip application" in new TestFixture {
+      val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+      content must include("<title>Check your application")
+      content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
+      content mustNot include("""<ul id="schemePreferenceList" class="list-text">""")
+      content must include("Will you need extra support?")
     }
 
     "redirect to home page with error when personal details cannot be found" in new TestFixture {
@@ -104,6 +115,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
+    val mockCacheClient = mock[CSRCache]
     val mockSchemeClient = mock[SchemeClient]
     val mockSecurityEnvironment = mock[security.SecurityEnvironment]
     val mockUserService = mock[UserService]
@@ -117,7 +129,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     when(mockApplicationClient.getPartnerGraduateProgrammes(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(PartnerGraduateProgrammesExamples.InterestedNotAll))
 
-    class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient,
+    class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient, mockCacheClient,
       mockSchemeClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
@@ -125,7 +137,9 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller = new TestablePreviewApplicationController
+    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePreviewApplicationController{
+      override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+    }
 
   }
 }

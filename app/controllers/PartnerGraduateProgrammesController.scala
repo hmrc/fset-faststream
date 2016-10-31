@@ -17,6 +17,7 @@
 package controllers
 
 import _root_.forms.PartnerGraduateProgrammesForm
+import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
 import connectors.exchange.PartnerGraduateProgrammes
@@ -24,9 +25,10 @@ import security.Roles.PartnerGraduateProgrammesRole
 
 import scala.concurrent.Future
 
-object PartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(ApplicationClient)
+object PartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(ApplicationClient, CSRCache)
 
-class PartnerGraduateProgrammesController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class PartnerGraduateProgrammesController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRSecureAppAction(PartnerGraduateProgrammesRole) { implicit request =>
     implicit user =>

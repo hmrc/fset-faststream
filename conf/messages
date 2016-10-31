@@ -24,8 +24,10 @@ error.password = Your password requires upper and lowercase letters, a number an
 error.campaignOther.maxLength = Maximum length is 256
 error.password.empty = Enter your password
 error.password.dontmatch = Your passwords don''t match
+error.appRoute = You must select an application route
 agree.accept = Accept the terms and conditions
-agree.eligible = Confirm that you''re eligible to apply
+agree.faststreamEligible = Confirm that you''re eligible to apply for the Civil Service Fast Stream
+agree.edipEligible = Confirm that you''re eligible to apply for the Civil Service Early Diversity Internship Programme
 error.emailconfirm.notmatch = You must enter the same email address
 
 # Reset password form
@@ -210,6 +212,7 @@ schoolName16to18.question = Aged 16 to 18 what was the name of your school or co
 freeSchoolMeals.question = Were you at any time eligible for free school meals?
 haveDegree.question = Do you have a degree?
 university.question = What is the name of the university you received your degree from?
+edip.university.question = What is the name of your current university?
 universityDegreeCategory.question = Which category best describes your degree?
 
 employedParent.question = When you were 14, was your highest-earning parent or guardian employed?

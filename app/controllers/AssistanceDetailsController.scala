@@ -17,6 +17,7 @@
 package controllers
 
 import _root_.forms.AssistanceDetailsForm
+import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import models.CachedData
@@ -25,9 +26,10 @@ import security.Roles.AssistanceDetailsRole
 
 import scala.concurrent.Future
 
-object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient)
+object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient, CSRCache)
 
-class AssistanceDetailsController(applicationClient: ApplicationClient) extends BaseController(applicationClient) {
+class AssistanceDetailsController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>

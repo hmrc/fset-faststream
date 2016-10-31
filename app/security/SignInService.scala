@@ -16,18 +16,21 @@
 
 package security
 
-import com.mohiva.play.silhouette.api.{LoginEvent, LoginInfo}
+import com.mohiva.play.silhouette.api.{ LoginEvent, LoginInfo, LogoutEvent }
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
+import config.CSRCache
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.ApplicationClient
 import connectors.exchange.FrameworkId
-import controllers.{BaseController, routes}
+import controllers.{ BaseController, routes }
 import forms.SignInForm
 import forms.SignInForm.Data
 import helpers.NotificationType._
-import models.{ApplicationData, CachedData, CachedUser, SecurityUser}
-import play.api.mvc.{Request, Result}
+import models.{ ApplicationData, CachedData, CachedUser, SecurityUser }
+import play.api.i18n.Lang
+import play.api.mvc.{ AnyContent, Request, RequestHeader, Result }
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait SignInService {
@@ -66,5 +69,25 @@ trait SignInService {
     Ok(views.html.index.signin(
       SignInForm.form.fill(SignInForm.Data(signIn = data.signIn, signInPassword = "")), Some(danger(errorMsg))
     ))
+
+  def logOutAndRedirectUserAware(successAction: Future[Result], failAction: Future[Result])(implicit request: UserAwareRequest[_]) = {
+    request.identity.foreach(identity => env.eventBus.publish(LogoutEvent(identity, request, request2lang)))
+    env.authenticatorService.retrieve.flatMap {
+      case Some(authenticator) =>
+        CSRCache.remove()
+        authenticator.discard(successAction)
+      case None => failAction
+    }
+  }
+
+  def notAuthorised(request: RequestHeader, lang: Lang): Option[Future[Result]] = {
+    val sec = request.asInstanceOf[SecuredRequest[AnyContent]]
+    Some(
+      getCachedData(sec.identity)(hc(sec), sec).map {
+        case Some(user: CachedData) if user.user.isActive => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
+        case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
+      }
+    )
+  }
 
 }

@@ -71,6 +71,7 @@ GET         /schools                                                controllers.
 # Online Test
 POST        /online-tests/phase1/start                              controllers.CubiksTestController.startPhase1Tests
 POST        /online-tests/phase2/start                              controllers.CubiksTestController.startPhase2Tests
+POST        /online-tests/phase3/start                              controllers.LaunchpadTestController.startPhase3Tests
 GET         /online-tests/phase1/continue/:token                    controllers.CubiksTestController.completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier)
 GET         /online-tests/phase1/complete/:token                    controllers.CubiksTestController.completePhase1TestsByToken(token: UniqueIdentifier)
 GET         /online-tests/phase2/complete/:token                    controllers.CubiksTestController.completePhase2TestsByToken(token: UniqueIdentifier)

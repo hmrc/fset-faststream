@@ -19,6 +19,7 @@ package models
 import connectors.exchange.ApplicationResponse
 import connectors.exchange.CivilServiceExperienceDetails
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
+import models.ApplicationRoute.ApplicationRoute
 import play.api.libs.json._
 
 import scala.language.implicitConversions
@@ -26,6 +27,7 @@ import scala.language.implicitConversions
 case class ApplicationData(applicationId: UniqueIdentifier,
                            userId: UniqueIdentifier,
                            applicationStatus: ApplicationStatus,
+                           applicationRoute: ApplicationRoute,
                            progress: Progress,
                            civilServiceExperienceDetails: Option[CivilServiceExperienceDetails]
                           )
@@ -39,6 +41,7 @@ object ApplicationData {
     val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED = Value
     val PHASE1_TESTS, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED = Value
     val PHASE2_TESTS = Value
+    val PHASE3_TESTS = Value
 
     val REGISTERED = Value
     val IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES, IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES, IN_PROGRESS_ASSISTANCE_DETAILS,
@@ -64,7 +67,7 @@ object ApplicationData {
 
   implicit def fromAppRespToAppData(resp: ApplicationResponse): ApplicationData =
     new ApplicationData(resp.applicationId, resp.userId, ApplicationStatus.withName(resp.applicationStatus),
-      resp.progressResponse, resp.civilServiceExperienceDetails)
+      resp.applicationRoute, resp.progressResponse, resp.civilServiceExperienceDetails)
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
 

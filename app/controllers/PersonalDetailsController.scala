@@ -16,15 +16,17 @@
 
 package controllers
 
-import _root_.forms.GeneralDetailsForm
-import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.{ ApplicationClient, UserManagementClient }
 import _root_.forms.FastPassForm._
-import connectors.exchange.CivilServiceExperienceDetails
+import _root_.forms.GeneralDetailsForm
+import config.CSRCache
+import connectors.ApplicationClient.PersonalDetailsNotFound
+import connectors.exchange.CivilServiceExperienceDetails._
+import connectors.exchange.{ CivilServiceExperienceDetails, SelectedSchemes }
+import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.ApplicationData.ApplicationStatus._
-import models.CachedDataWithApp
+import models.{ ApplicationRoute, CachedDataWithApp }
 import org.joda.time.LocalDate
 import play.api.data.Form
 import play.api.mvc.{ Request, Result }
@@ -33,10 +35,13 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, UserManagementClient)
+object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, CSRCache, UserManagementClient)
 
-class PersonalDetailsController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
-  extends BaseController(applicationClient) with GeneralDetailsToExchangeConverter {
+class PersonalDetailsController(applicationClient: ApplicationClient,
+                                schemeClient: SchemeClient,
+                                cacheClient: CSRCache,
+                                userManagementClient: UserManagementClient)
+  extends BaseController(applicationClient, cacheClient) with GeneralDetailsToExchangeConverter {
 
   private sealed trait OnSuccess
   private case object ContinueToNextStepInJourney extends OnSuccess
@@ -92,7 +97,12 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
 
   def submitGeneralDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
     implicit user =>
-      submit(GeneralDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, Redirect(routes.SchemePreferencesController.present()))
+      val redirect = if(user.application.applicationRoute == ApplicationRoute.Edip) {
+        Redirect(routes.AssistanceDetailsController.present())
+      } else {
+        Redirect(routes.SchemePreferencesController.present())
+      }
+      submit(GeneralDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, redirect)
   }
 
   def submitGeneralDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
@@ -115,15 +125,17 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
         generalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess)))
       )
     }
+
     val handleValidForm = (form: GeneralDetailsForm.Data) => {
-      val civilServiceExperienceDetails: CivilServiceExperienceDetails =
-        overrideCivilServiceExperienceDetails.getOrElse(form.civilServiceExperienceDetails)
+      val civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] =
+        overrideCivilServiceExperienceDetails.orElse(form.civilServiceExperienceDetails)
       for {
         _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
           toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideCivilServiceExperienceDetails))
+        _ <- createDefaultSchemes
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
         redirect <- updateProgress(data => {
-          val applicationCopy = data.application.map(_.copy(civilServiceExperienceDetails = Some(civilServiceExperienceDetails)))
+          val applicationCopy = data.application.map(_.copy(civilServiceExperienceDetails = civilServiceExperienceDetails))
           data.copy(user = cachedData.user.copy(firstName = form.firstName, lastName = form.lastName,
             preferredName = Some(form.preferredName)), application =
             if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)
@@ -133,6 +145,17 @@ class PersonalDetailsController(applicationClient: ApplicationClient, userManage
       }
     }
     generalDetailsForm.bindFromRequest.fold(handleFormWithErrors, handleValidForm)
+  }
+
+  private def createDefaultSchemes(implicit cacheData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Unit] =
+    cacheData.application.applicationRoute match {
+    case appRoute if appRoute == ApplicationRoute.Edip =>
+      for {
+        _ <- schemeClient.updateSchemePreferences(SelectedSchemes(List(appRoute), orderAgreed = true,
+          eligible = true))(cacheData.application.applicationId)
+        _ <- env.userService.refreshCachedUser(cacheData.user.userID)
+      } yield ()
+    case _ => Future.successful(())
   }
 
 }

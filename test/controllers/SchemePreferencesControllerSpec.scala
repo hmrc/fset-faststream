@@ -18,14 +18,16 @@ package controllers
 
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
-import models.{ CachedData, ProgressResponseExamples }
+import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import _root_.forms.SelectedSchemesForm._
+import config.CSRCache
 import connectors.exchange.{ ApplicationResponse, CivilServiceExperienceDetails, SchemePreferencesExamples }
 import connectors.exchange.CivilServiceExperienceDetailsExamples._
 import models.ApplicationData.ApplicationStatus
 import play.api.test.Helpers._
+import play.mvc.Http.Request
 import security.UserService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -35,11 +37,16 @@ import scala.concurrent.Future
 class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   val applicationClient = mock[ApplicationClient]
+  val mockCacheClient = mock[CSRCache]
   val schemeClient  = mock[SchemeClient]
   val userService = mock[UserService]
 
-  def controllerUnderTest = new SchemePreferencesController(applicationClient, schemeClient) with TestableSecureActions {
+  def controllerUnderTest = new SchemePreferencesController(applicationClient, mockCacheClient, schemeClient) with TestableSecureActions {
     override protected def env = securityEnvironment
+    when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any())).thenReturn(Future.successful(CachedData(
+      mock[CachedUser],
+      application = Some(mock[ApplicationData])
+    )))
     when(securityEnvironment.userService).thenReturn(userService)
   }
 
@@ -78,7 +85,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "European", "orderAgreed" -> "true",
         "eligible" -> "true")
       val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
-        currentUserId, ProgressResponseExamples.InProgress, Some(CivilServantExperience))
+        ApplicationRoute.Faststream, currentUserId, ProgressResponseExamples.InProgress, Some(CivilServantExperience))
       val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true)
 
       when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))
