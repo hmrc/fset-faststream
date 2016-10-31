@@ -39,7 +39,7 @@ trait CreatedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      applicationId <- createApplication(candidateInPreviousStatus.userId)
+      applicationId <- createApplication(candidateInPreviousStatus.userId, generatorConfig.applicationRoute)
     } yield {
       candidateInPreviousStatus.copy(
         applicationId = Some(applicationId)
@@ -47,8 +47,8 @@ trait CreatedStatusGenerator extends ConstructiveGenerator {
     }
   }
 
-  private def createApplication(userId: String): Future[String] = {
-    appRepository.create(userId, ExchangeObjects.frameworkId, ApplicationRoute.Faststream).map { application =>
+  private def createApplication(userId: String, route: ApplicationRoute.ApplicationRoute): Future[String] = {
+    appRepository.create(userId, ExchangeObjects.frameworkId, route).map { application =>
       application.applicationId
     }
   }
