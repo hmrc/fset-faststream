@@ -22,7 +22,7 @@ import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted._
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
+import model.{ApplicationStatus, ProgressStatuses, ReminderNotice}
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
@@ -87,20 +87,27 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
         BSONDocument("$or" -> BSONArray(
-          // No need to confirm adjustments
-          BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
-          // Invigilated etray with adjustments confirmed
-          /*BSONDocument("$and" -> BSONArray(
-            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-            BSONDocument("assistance-details.adjustments-confirmed" -> true),
-            BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
-          )),*/
+          // No need to confirm adjustments and no gis
+          BSONDocument("$and" -> BSONArray(
+            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
+            BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true)))),
+          // Gis and adjustments-confirmed
+          BSONDocument("$and" -> BSONArray(
+            BSONDocument("assistance-details.guaranteedInterview" -> true),
+            BSONDocument("assistance-details.adjustments-confirmed" -> true))),
           // Non Invigilated etray with adjustments confirmed
           BSONDocument("$and" -> BSONArray(
             BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
             BSONDocument("assistance-details.adjustments-confirmed" -> true),
             BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated"))
           ))
+          // Invigilated etray with adjustments confirmed
+          /*BSONDocument("$and" -> BSONArray(
+            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+            BSONDocument("assistance-details.adjustments-confirmed" -> true),
+            BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
+          )),*/
+
           // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver
           // functionality even if invigilated test functionality is not ready. In that case we will remove some code
         ))

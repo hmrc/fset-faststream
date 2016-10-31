@@ -291,11 +291,13 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
     }
   }
 
-  def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication) = if (application.needsAdjustments) {
-    val time = application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(100)
-    List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = time))
-  } else {
-    Nil
+  def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication) = {
+    if (application.needsAdjustments || application.guaranteedInterview) {
+      val time = application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(0) + 80
+      List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = time))
+    } else {
+      Nil
+    }
   }
 
   def emailInviteToApplicants(candidates: List[OnlineTestApplication])
