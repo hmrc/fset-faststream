@@ -54,6 +54,9 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
   def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
     CreatedApplication.copy(userId = ActiveCandidate.user.userID))
 
+  def currentCandidateWithEdipApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
+    CreatedApplication.copy(userId = ActiveCandidate.user.userID, applicationRoute = ApplicationRoute.Edip))
+
   def currentApplicationId = currentCandidateWithApp.application.applicationId
 
   def randomUUID = UniqueIdentifier(UUID.randomUUID().toString)

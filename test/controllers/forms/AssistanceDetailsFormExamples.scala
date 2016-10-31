@@ -20,15 +20,16 @@ import forms.AssistanceDetailsForm
 import models.ApplicationRoute
 
 object AssistanceDetailsFormExamples {
-  val DisabilityGisAndAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Epilepsy"), Some("Yes"), "Yes", Some("Some adjustment"),
-    Some("Yes"), Some("Some other adjustements"))
+  val DisabilityGisAndAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Epilepsy"), Some("Yes"), Some("Yes"), Some("Some adjustment"),
+    Some("Yes"), Some("Some other adjustements"), None, None)
 
-  val NoDisabilitiesForm = AssistanceDetailsForm.Data("No", None, None, "No", None, Some("No"), None)
+  val NoDisabilitiesForm = AssistanceDetailsForm.Data("No", None, None, Some("No"), None, Some("No"), None, None, None)
 
-  val NoAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("No"), "No", None, Some("No"), None)
+  val NoAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("No"), Some("No"), None, Some("No"),
+    None, None, None)
 
-  val FullForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("Yes"), "Yes", Some("Some adjustments online"), Some("Yes"),
-    Some("Some adjustments at venue"))
+  val FullForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("Yes"), Some("Yes"), Some("Some adjustments online"),
+    Some("Yes"), Some("Some adjustments at venue"), None, None)
 
   val DisabilityGisAndAdjustmentsMap = Map[String, String](
     "applicationRoute" -> ApplicationRoute.Faststream.toString,
@@ -39,6 +40,14 @@ object AssistanceDetailsFormExamples {
     "needsSupportForOnlineAssessmentDescription" -> "Some adjustment",
     "needsSupportAtVenue" -> "Yes",
     "needsSupportAtVenueDescription" -> "Some other adjustements")
+
+  val DisabilityGisAndAdjustmentsEdipMap = Map[String, String](
+    "applicationRoute" -> ApplicationRoute.Edip.toString,
+    "hasDisability" -> "Yes",
+    "hasDisabilityDescription" -> "Epilepsy",
+    "guaranteedInterview" -> "Yes",
+    "needsSupportForPhoneInterview" -> "Yes",
+    "needsSupportForPhoneInterviewDescription" -> "Some adjustment")
 
   val DisabilityGisAndAdjustmentsFormUrlEncodedBody = Seq(
     "applicationRoute" -> ApplicationRoute.Faststream.toString,

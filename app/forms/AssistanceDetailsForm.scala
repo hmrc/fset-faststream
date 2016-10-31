@@ -26,28 +26,37 @@ object AssistanceDetailsForm {
   val isFastStream = (requestParams: Map[String, String]) =>
     requestParams.getOrElse("applicationRoute", Faststream.toString) == Faststream.toString
 
+  val isEdip = (requestParams: Map[String, String]) =>
+    requestParams.getOrElse("applicationRoute", Edip.toString) == Edip.toString
+
   val form = Form(
     mapping(
       "hasDisability" -> Mappings.nonEmptyTrimmedText("error.hasDisability.required", 31),
       "hasDisabilityDescription" -> optional(Mappings.nonEmptyTrimmedText("error.hasDisabilityDescription.required", 2048)),
       "guaranteedInterview" -> of(requiredFormatterWithMaxLengthCheck("hasDisability", "guaranteedInterview", None)),
-      "needsSupportForOnlineAssessment" -> Mappings.nonEmptyTrimmedText("error.needsSupportForOnlineAssessment.required", 31),
+      "needsSupportForOnlineAssessment" -> of(Mappings.mayBeOptionalString("error.needsSupportForOnlineAssessment.required", 31, isFastStream)),
       "needsSupportForOnlineAssessmentDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportForOnlineAssessment",
         "needsSupportForOnlineAssessmentDescription", Some(2048))),
       "needsSupportAtVenue" -> of(Mappings.mayBeOptionalString("error.needsSupportAtVenue.required", 31, isFastStream)),
       "needsSupportAtVenueDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportAtVenue", "needsSupportAtVenueDescription",
-        Some(2048)))
+        Some(2048))),
+      "needsSupportForPhoneInterview" -> of(Mappings.mayBeOptionalString("error.needsSupportForPhoneInterview.required", 31, isEdip)),
+      "needsSupportForPhoneInterviewDescription" ->
+        of(requiredFormatterWithMaxLengthCheck("needsSupportForPhoneInterview", "needsSupportForPhoneInterviewDescription", Some(2048)))
     )(Data.apply)(Data.unapply)
   )
 
+  import Data._
   case class Data(
                    hasDisability: String,
                    hasDisabilityDescription: Option[String],
                    guaranteedInterview: Option[String],
-                   needsSupportForOnlineAssessment: String,
+                   needsSupportForOnlineAssessment: Option[String],
                    needsSupportForOnlineAssessmentDescription: Option[String],
                    needsSupportAtVenue: Option[String],
-                   needsSupportAtVenueDescription: Option[String]) {
+                   needsSupportAtVenueDescription: Option[String],
+                   needsSupportForPhoneInterview: Option[String],
+                   needsSupportForPhoneInterviewDescription: Option[String]) {
 
     def exchange: AssistanceDetails = {
       AssistanceDetails(
@@ -58,18 +67,12 @@ object AssistanceDetailsForm {
           case "No" => false
           case _ => false
         },
-        needsSupportForOnlineAssessment match {
-          case "Yes" => true
-          case "No" => false
-          case _ => false
-        },
+        toOptBoolean(needsSupportForOnlineAssessment),
         needsSupportForOnlineAssessmentDescription,
-        needsSupportAtVenue match {
-          case Some("Yes") => Some(true)
-          case Some("No") => Some(false)
-          case _ => None
-        },
-        needsSupportAtVenueDescription
+        toOptBoolean(needsSupportAtVenue),
+        needsSupportAtVenueDescription,
+        toOptBoolean(needsSupportForPhoneInterview),
+        needsSupportForPhoneInterviewDescription
       )
     }
 
@@ -79,9 +82,12 @@ object AssistanceDetailsForm {
         if (hasDisability == "Yes") hasDisabilityDescription else None,
         if (hasDisability == "Yes") guaranteedInterview else None,
         needsSupportForOnlineAssessment,
-        if (needsSupportForOnlineAssessment == "Yes") needsSupportForOnlineAssessmentDescription else None,
+        if (needsSupportForOnlineAssessment.contains("Yes")) needsSupportForOnlineAssessmentDescription else None,
         needsSupportAtVenue,
-        if (needsSupportAtVenue.contains("Yes")) needsSupportAtVenueDescription else None)
+        if (needsSupportAtVenue.contains("Yes")) needsSupportAtVenueDescription else None,
+        needsSupportForPhoneInterview,
+        if (needsSupportForPhoneInterview.contains("Yes")) needsSupportForPhoneInterviewDescription else None
+      )
     }
   }
 
@@ -94,20 +100,26 @@ object AssistanceDetailsForm {
           case true => "Yes"
           case false => "No"
         },
-        ad.needsSupportForOnlineAssessment match {
-          case true => "Yes"
-          case false => "No"
-        },
+        toOptString(ad.needsSupportForOnlineAssessment),
         ad.needsSupportForOnlineAssessmentDescription,
-        ad.needsSupportAtVenue match {
-          case Some(true) => Some("Yes")
-          case Some(false) => Some("No")
-          case _ => None
-        },
-        ad.needsSupportAtVenueDescription
+        toOptString(ad.needsSupportAtVenue),
+        ad.needsSupportAtVenueDescription,
+        toOptString(ad.needsSupportForPhoneInterview),
+        ad.needsSupportForPhoneInterviewDescription
       )
     }
 
+    def toOptBoolean(optString: Option[String]) = optString match {
+      case Some("Yes") => Some(true)
+      case Some("No") => Some(false)
+      case _ => None
+    }
+
+    def toOptString(optBoolean: Option[Boolean]) = optBoolean match {
+      case Some(true) => Some("Yes")
+      case Some(false) => Some("No")
+      case _ => None
+    }
 
   }
 }

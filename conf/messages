@@ -99,6 +99,9 @@ error.needsSupportForOnlineAssessmentDescription.maxLength = You have exceeded t
 error.needsSupportAtVenue.required = Tell us if you need extra support when you visit any of our venues
 error.needsSupportAtVenueDescription.required = Tell us what adjustments you need at any of our venues
 error.needsSupportAtVenueDescription.maxLength = You have exceeded the maximum number of characters allowed (2048) for extra support at venue description
+error.needsSupportForPhoneInterview.required = Tell us if you need extra support for your phone interview
+error.needsSupportForPhoneInterviewDescription.required = Tell us what adjustments you need for your phone interview
+error.needsSupportForPhoneInterviewDescription.maxLength = You have exceeded the maximum number of characters allowed (2048) for extra phone interview support description
 
 
 #locations & schemes

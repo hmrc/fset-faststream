@@ -1,4 +1,14 @@
-@(assistanceDetails: connectors.exchange.AssistanceDetails)(edit: Html)
+@(assistanceDetails: connectors.exchange.AssistanceDetails)(edit: Html)(implicit user: Option[CachedData])
+
+@import security.RoleUtils._
+
+@displaySupportForOnlineTestsLabel = @{
+    if(isEdip(user)) {
+        "Will you need extra support?"
+    } else {
+        "Will you need extra support for your online tests?"
+    }
+}
 
 <section class="section-border">
     <h2 class="heading-large">
@@ -9,33 +19,35 @@
         <h3 class="heading-small">Do you consider yourself to have a disability?</h3>
         <p id="hasDisability">@assistanceDetails.hasDisability</p>
         @if(assistanceDetails.hasDisability)  {
-            <p id="hasDisabilityDescription">@assistanceDetails.hasDisabilityDescription</p>
-            @assistanceDetails.guaranteedInterview.map { gis =>
-                <h3 class="heading-small">Would you like to apply under the guaranteed interview scheme?</h3>
-                <p id="guaranteedInterview">
-                @{
+        <p id="hasDisabilityDescription">@assistanceDetails.hasDisabilityDescription</p>
+        @assistanceDetails.guaranteedInterview.map { gis =>
+        <h3 class="heading-small">Would you like to apply under the guaranteed interview scheme?</h3>
+        <p id="guaranteedInterview">
+            @{
                 if(gis) {
                     "Yes"
                 } else {
                     "No"
                 }
+            }
+        </p>
+        }
+        }
+    </section>
+    @assistanceDetails.needsSupportForOnlineAssessment.map { needsSupportForOnlineAssessment =>
+        <section>
+            <h3 class="heading-small">Will you need extra support for your online tests?</h3>
+            @needsSupportForOnlineAssessment match {
+                case true => {
+                    <p id="needsSupportForOnlineAssessment">Yes</p>
+                    <p id="needsSupportForOnlineAssessmentDescription">@assistanceDetails.needsSupportForOnlineAssessmentDescription</p>
                 }
-                </p>
+                case false => {
+                    <p>No</p>
+                }
             }
-        }
-    </section>
-    <section>
-        <h3 class="heading-small">Will you need extra support for your online tests?</h3>
-        @assistanceDetails.needsSupportForOnlineAssessment match {
-            case true => {
-                <p id="needsSupportForOnlineAssessment">Yes</p>
-                <p id="needsSupportForOnlineAssessmentDescription">@assistanceDetails.needsSupportForOnlineAssessmentDescription</p>
-            }
-            case false => {
-                <p>No</p>
-            }
-        }
-    </section>
+        </section>
+    }
     @assistanceDetails.needsSupportAtVenue.map { needsSupportAtVenue =>
         <section>
             <h3 class="heading-small">When you visit any of our venues will you need any extra support?</h3>
@@ -43,6 +55,20 @@
                 case true => {
                     <p id="needsSupportAtVenue">Yes</p>
                     <p id="needsSupportAtVenueDescription">@assistanceDetails.needsSupportAtVenueDescription</p>
+                }
+                case false => {
+                    <p>No</p>
+                }
+            }
+        </section>
+    }
+    @assistanceDetails.needsSupportForPhoneInterview.map { needsSupportForPhoneInterview =>
+        <section>
+            <h3 class="heading-small">Will you need any extra support for your phone interview?</h3>
+            @needsSupportForPhoneInterview match {
+                case true => {
+                    <p id="needsSupportForPhoneInterview">Yes</p>
+                    <p id="needsSupportForPhoneInterviewDescription">@assistanceDetails.needsSupportForPhoneInterviewDescription</p>
                 }
                 case false => {
                     <p>No</p>

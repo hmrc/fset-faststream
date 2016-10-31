@@ -52,11 +52,13 @@ class AssistanceDetailsFormSpec extends BaseSpec {
       ), AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "needsSupportAtVenue")
     }
 
-    "be valid when venue adjustments are not selected for an edip application" in new Fixture {
-      val requestParams = (AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "needsSupportAtVenue") +
-        ("applicationRoute" -> ApplicationRoute.Edip.toString)
+    "be valid for an edip application" in new Fixture {
+      AssistanceDetailsForm.form.bind(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsEdipMap).hasErrors mustBe false
+    }
 
-      AssistanceDetailsForm.form.bind(requestParams).hasErrors mustBe false
+    "be invalid edip application when adjustments are not selected for phone interview" in new Fixture {
+      val invalidRequest = AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsEdipMap - "needsSupportForPhoneInterview"
+      AssistanceDetailsForm.form.bind(invalidRequest).hasErrors mustBe true
     }
   }
 
