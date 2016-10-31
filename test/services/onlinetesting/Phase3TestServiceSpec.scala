@@ -20,6 +20,7 @@ import config._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects._
 import connectors.CSREmailClient
+import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest, RegisterApplicantResponse }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.ContactDetails
@@ -135,7 +136,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     val testCandidateRedirectUrl = "http://www.foo.com/test/interview"
     val testEmail = "foo@bar.com"
 
-    val gatewayConfigMock =  LaunchpadGatewayConfig(
+    val gatewayConfigMock = LaunchpadGatewayConfig(
       "localhost",
       Phase3TestsConfig(timeToExpireInDays = 7,
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
@@ -208,4 +209,5 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val gatewayConfig = gatewayConfigMock
     }
   }
+
 }

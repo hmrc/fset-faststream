@@ -34,18 +34,23 @@ case class AssessmentCentre(
 case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   phase1TestsFirstRemainder: Boolean = false,
   phase1TestsSecondRemainder: Boolean = false,
+  phase1TestsFirstReminder: Boolean = false,
+  phase1TestsSecondReminder: Boolean = false,
   phase1TestsStarted: Boolean = false,
   phase1TestsCompleted: Boolean = false,
   phase1TestsExpired: Boolean = false,
   phase1TestsResultsReady: Boolean = false,
   phase1TestsResultsReceived: Boolean = false,
   phase1TestsPassed: Boolean = false,
-  phase1TestsFailed: Boolean = false
+  phase1TestsFailed: Boolean = false,
+  phase1TestsFailedNotified: Boolean = false
 )
 
 case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
   phase2TestsFirstRemainder: Boolean = false,
   phase2TestsSecondRemainder: Boolean = false,
+  phase2TestsFirstReminder: Boolean = false,
+  phase2TestsSecondReminder: Boolean = false,
   phase2TestsStarted: Boolean = false,
   phase2TestsCompleted: Boolean = false,
   phase2TestsExpired: Boolean = false,

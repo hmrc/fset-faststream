@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package model.exchange.passmarksettings
+package connectors.launchpadgateway.exchangeobjects.out
 
-import org.joda.time.DateTime
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
-case class Phase1PassMarkSettings(schemes: List[Phase1PassMark],
-                                  version: String,
-                                  createDate: DateTime,
-                                  createdBy: String)
+case class InviteApplicantRequest(interviewId: Int, candidateId: String, customInviteId: String, redirectUrl: String)
 
-object Phase1PassMarkSettings {
-  import repositories.BSONDateTimeHandler
-  implicit val phase1PassMarkSettings = Json.format[Phase1PassMarkSettings]
-  implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase1PassMarkSettings]
+object InviteApplicantRequest {
+  implicit val inviteApplicantRequestFormat = Json.format[InviteApplicantRequest]
 }
