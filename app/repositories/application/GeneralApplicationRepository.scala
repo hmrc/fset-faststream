@@ -179,8 +179,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
         phase1ProgressResponse = Phase1ProgressResponse(
           phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
-          phase1TestsFirstRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
-          phase1TestsSecondRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.key),
+          phase1TestsFirstReminder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
+          phase1TestsSecondReminder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.key),
           phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.key),
           phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.key),
           phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.key),
@@ -192,8 +192,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         ),
         phase2ProgressResponse = Phase2ProgressResponse(
           phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
-          phase2TestsFirstRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.key),
-          phase2TestsSecondRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.key),
+          phase2TestsFirstReminder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.key),
+          phase2TestsSecondReminder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.key),
           phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.key),
           phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.key),
           phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.key),
@@ -228,10 +228,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   // scalastyle:on method.length
 
   implicit val readerPD = bsonReader(bsonToModelHelper.toReportWithPersonalDetails(findProgress))
-  implicit val readerOnlineTestPassMarkReader = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReport(findProgress))
-  implicit val readerCandidate = bsonReader(bsonToModelHelper.toCandidate)
+  implicit val readerTPM = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReport(findProgress))
+  implicit val readerCandidate = bsonReader(toCandidate)
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReportItem(findProgress))
-  implicit val readerDiversityReport = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
+  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -271,18 +271,25 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument("applicationStatus" -> 1, "progress-status-timestamp" -> 1, "progress-status-dates" -> 1, "_id" -> 0)
+    val projection = BSONDocument(
+      "applicationStatus" -> 1,
+      "progress-status-timestamp" -> 1,
+      "progress-status-dates" -> 1,
+      "applicationRoute" -> 1,
+      "_id" -> 0
+    )
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) =>
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val progressStatusTimeStamp = document.getAs[BSONDocument]("progress-status-timestamp")
           .flatMap(_.getAs[DateTime](applicationStatus))
           .orElse(
             document.getAs[BSONDocument]("progress-status-dates")
               .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))
           )
-        ApplicationStatusDetails(applicationStatus, progressStatusTimeStamp)
+        ApplicationStatusDetails(applicationStatus, applicationRoute, progressStatusTimeStamp)
 
       case None => throw ApplicationNotFound(applicationId)
     }
