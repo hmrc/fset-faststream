@@ -145,7 +145,7 @@ trait Phase1TestService extends OnlineTestService with ResetPhase1Test {
   }
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String])
-                                   (implicit hc: HeaderCarrier): Future[Unit] = {
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase1Tests.expiryTimeInDays)
 
     def mapValue[T](f: Future[T]): Future[Try[T]] = {

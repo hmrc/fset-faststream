@@ -186,7 +186,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
         registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
         invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
         _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
-        _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
+        _ <- emailInviteToApplicants(candidatesToProcess)(hc, rh, invitationDate, expirationDate)
       } yield {
         candidatesToProcess
       }
@@ -299,7 +299,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
   }
 
   def emailInviteToApplicants(candidates: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier, invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
+    (implicit hc: HeaderCarrier, rh: RequestHeader, invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
   Future.sequence(candidates.map { candidate =>
     candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
   }).map( _ => () )

@@ -22,6 +22,8 @@ import connectors.launchpadgateway.exchangeobjects._
 import connectors.CSREmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
+import model.events.{ AuditEvents, DataStoreEvents }
+import model.events.AuditEvents.VideoInterviewRegistrationAndInviteComplete
 import model.persisted.ContactDetails
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.{ Address, ApplicationStatus }
@@ -55,9 +57,17 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "send audit events" in new Phase3TestServiceFixture {
       phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
-      verify(auditServiceMock).logEventNoRequest(eqTo("Phase3UserRegistered"), any[Map[String, String]])
-      verify(auditServiceMock).logEventNoRequest(eqTo("Phase3TestInvited"), any[Map[String, String]])
-      verify(auditServiceMock).logEventNoRequest(eqTo("Phase3TestInvitationProcessComplete"), any[Map[String, String]])
+      verifyDataStoreEvents(3,
+        List("VideoInterviewCandidateRegistered",
+          "VideoInterviewInvited",
+          "VideoInterviewRegistrationAndInviteComplete")
+      )
+
+      verifyAuditEvents(3,
+        List("VideoInterviewCandidateRegistered",
+          "VideoInterviewInvited",
+          "VideoInterviewRegistrationAndInviteComplete")
+      )
     }
 
     "insert a valid test group" in new Phase3TestServiceFixture {
@@ -96,7 +106,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     }
   }
 
-  trait Phase3TestServiceFixture {
+  trait Phase3TestServiceFixture extends EventServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
     implicit val rh = mock[RequestHeader]
@@ -108,7 +118,6 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     val emailClientMock = mock[CSREmailClient]
     var auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
-    val eventServiceMock = mock[EventService]
     val dateTimeFactoryMock = mock[DateTimeFactory]
     val tokens = UUIDFactory.generateUUID() :: Nil
 
@@ -196,7 +205,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
     when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
 
-    val phase3TestService = new Phase3TestService with EventServiceFixture {
+    val phase3TestService = new Phase3TestService {
       val appRepository = appRepositoryMock
       val phase3TestRepo = p3TestRepositoryMock
       val cdRepository = cdRepositoryMock
@@ -206,6 +215,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val emailClient = emailClientMock
       val auditService = auditServiceMock
       val gatewayConfig = gatewayConfigMock
+      val eventService = eventServiceMock
     }
   }
 }
