@@ -47,7 +47,8 @@ class CandidateDetailsServiceSpec extends BaseServiceSpec {
       when(mockPersonalDetailsRepository.update(eqTo(AppId), eqTo(UserId), eqTo(JohnDoe), any[Seq[ApplicationStatus.Value]],
         any[ApplicationStatus.Value])).thenReturn(Future.successful(()))
       when(mockContactDetailsRepository.update(UserId, ContactDetailsUK)).thenReturn(emptyFuture)
-      when(mockCivilServiceExperienceDetailsRepository.update(AppId, CandidateContactDetailsUK.civilServiceExperienceDetails)).thenReturn(emptyFuture)
+      when(mockCivilServiceExperienceDetailsRepository.update(AppId, CandidateContactDetailsUK.civilServiceExperienceDetails.get)
+      ).thenReturn(emptyFuture)
 
       val response = service.update(AppId, UserId, CandidateContactDetailsUK)
 
@@ -65,7 +66,8 @@ class CandidateDetailsServiceSpec extends BaseServiceSpec {
     "return personal and contact details" in {
       when(mockPersonalDetailsRepository.find(AppId)).thenReturn(Future.successful(JohnDoe))
       when(mockContactDetailsRepository.find(UserId)).thenReturn(Future.successful(ContactDetailsUK))
-      when(mockCivilServiceExperienceDetailsRepository.find(AppId)).thenReturn(Future.successful(CivilServiceExperienceDetails(applicable = false)))
+      when(mockCivilServiceExperienceDetailsRepository.find(AppId)
+      ).thenReturn(Future.successful(Some(CivilServiceExperienceDetails(applicable = false))))
 
       val response = service.find(AppId, UserId).futureValue
 

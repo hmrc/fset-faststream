@@ -35,7 +35,7 @@ trait CivilServiceExperienceDetailsRepository {
 
   def update(applicationId: String, civilServiceExperienceDetails: CivilServiceExperienceDetails): Future[Unit]
 
-  def find(applicationId: String): Future[CivilServiceExperienceDetails]
+  def find(applicationId: String): Future[Option[CivilServiceExperienceDetails]]
 
 }
 
@@ -61,14 +61,14 @@ class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) ext
     }
   }
 
-  override def find(applicationId: String): Future[CivilServiceExperienceDetails] = {
+  override def find(applicationId: String): Future[Option[CivilServiceExperienceDetails]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(CivilServiceExperienceDetailsDocumentKey -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) if document.getAs[BSONDocument](CivilServiceExperienceDetailsDocumentKey).isDefined =>
-        document.getAs[CivilServiceExperienceDetails](CivilServiceExperienceDetailsDocumentKey).get
-      case _ => throw CivilServiceExperienceDetailsNotFound(applicationId)
+        document.getAs[CivilServiceExperienceDetails](CivilServiceExperienceDetailsDocumentKey)
+      case _ => None
     }
   }
 }

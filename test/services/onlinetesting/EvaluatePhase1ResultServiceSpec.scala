@@ -127,7 +127,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsRepository]
 
     when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ApplicationStatus]]))
-      .thenReturn(Future.successful())
+      .thenReturn(Future.successful(()))
 
     val service = new EvaluatePhase1ResultService with StubbedPhase1TestEvaluation {
       val phase1EvaluationRepository = mockPhase1EvaluationRepository

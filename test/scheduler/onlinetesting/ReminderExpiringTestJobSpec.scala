@@ -22,6 +22,7 @@ import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import play.api.mvc.RequestHeader
 import play.api.test.WithApplication
 import services.onlinetesting.OnlineTestService
 import testkit.ShortTimeout
@@ -52,14 +53,14 @@ class ReminderExpiringTestJobSpec  extends PlaySpec with MockitoSugar with Scala
 
   "send first reminder job" should {
     "complete successfully when service completes successfully" in new WithApplication {
-      when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(()))
+      when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))
+      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
       TestableFirstReminderExpiringTestJob.tryExecute().futureValue mustBe (())
     }
 
     "fail when the service fails" in new WithApplication {
-      when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))(any[HeaderCarrier]))
-        .thenReturn(Future.failed(new Exception))
+      when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))
+      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(new Exception))
       TestableFirstReminderExpiringTestJob.tryExecute().failed.futureValue mustBe an[Exception]
     }
   }

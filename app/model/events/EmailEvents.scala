@@ -21,6 +21,7 @@ import model.events.EventTypes.EventType
 sealed trait EmailEvent extends EventType {
   val to: String
   val name: String
+  val template: Option[String] = None
 
   require(to.contains("@"))
 }

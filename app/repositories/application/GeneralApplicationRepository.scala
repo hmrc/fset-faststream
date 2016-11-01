@@ -20,23 +20,23 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 import config.CubiksGatewayConfig
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.ApplicationStatusOrder._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command._
-import model.persisted.ApplicationForNotification
-import model.report.{AdjustmentReport, ApplicationForOnlineTestPassMarkReportItem, CandidateProgressReport, _}
-import model.{ApplicationStatus, _}
+import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest }
+import model.report.{ AdjustmentReport, CandidateProgressReport, _ }
+import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, LocalDate}
-import play.api.libs.json.{Format, JsNumber, JsObject}
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{DB, QueryOpts, ReadPreference}
-import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -53,7 +53,7 @@ import scala.concurrent.Future
 // scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
 
-  def create(userId: String, frameworkId: String): Future[ApplicationResponse]
+  def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse]
 
   def find(applicationId: String): Future[Option[Candidate]]
 
@@ -85,7 +85,7 @@ trait GeneralApplicationRepository {
   // Reports
   def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReport]]
 
-  def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]]
+  def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
 
   def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReportItem]]
 
@@ -130,6 +130,9 @@ trait GeneralApplicationRepository {
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
 
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
+
+  def findFailedTestForNotification(appStatus: ApplicationStatus,
+                                    progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]]
 }
 
 // scalastyle:off number.of.methods
@@ -166,46 +169,58 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
       ProgressResponse(
         applicationId,
-        personalDetails = getProgress("personal-details"),
-        partnerGraduateProgrammes = getProgress("partner-graduate-programmes"),
-        schemePreferences = getProgress("scheme-preferences"),
-        assistanceDetails = getProgress("assistance-details"),
-        preview = getProgress("preview"),
+        personalDetails = getProgress(ProgressStatuses.PERSONAL_DETAILS.key),
+        partnerGraduateProgrammes = getProgress(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES.key),
+        schemePreferences = getProgress(ProgressStatuses.SCHEME_PREFERENCES.key),
+        assistanceDetails = getProgress(ProgressStatuses.ASSISTANCE_DETAILS.key),
+        preview = getProgress(ProgressStatuses.PREVIEW.key),
         questionnaire = questionnaire,
-        submitted = getProgress(SUBMITTED.toString),
-        withdrawn = getProgress(WITHDRAWN.toString),
+        submitted = getProgress(ProgressStatuses.SUBMITTED.key),
+        withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
         phase1ProgressResponse = Phase1ProgressResponse(
-          phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.toString),
-          phase1TestsFirstRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.toString),
-          phase1TestsSecondRemainder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.toString),
-          phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.toString),
-          phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.toString),
-          phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.toString),
-          phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.toString),
-          phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.toString),
-          phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.toString),
-          phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.toString)
+          phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
+          phase1TestsFirstReminder = getProgress(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER.key),
+          phase1TestsSecondReminder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.key),
+          phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.key),
+          phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.key),
+          phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.key),
+          phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.key),
+          phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.key),
+          phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.key),
+          phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key),
+          phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key)
         ),
         phase2ProgressResponse = Phase2ProgressResponse(
-          phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.toString),
-          phase2TestsFirstRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.toString),
-          phase2TestsSecondRemainder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.toString),
-          phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.toString),
-          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.toString),
-          phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.toString),
-          phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.toString),
-          phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.toString),
-          phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.toString),
-          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.toString)
+          phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),
+          phase2TestsFirstReminder = getProgress(ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER.key),
+          phase2TestsSecondReminder = getProgress(ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER.key),
+          phase2TestsResultsReady = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_READY.key),
+          phase2TestsResultsReceived = getProgress(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED.key),
+          phase2TestsStarted = getProgress(ProgressStatuses.PHASE2_TESTS_STARTED.key),
+          phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.key),
+          phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.key),
+          phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
+          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key)
+        ),
+        phase3ProgressResponse = Phase3ProgressResponse(
+          phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
+          phase3TestsFirstReminder = getProgress(ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER.toString),
+          phase3TestsSecondReminder = getProgress(ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER.toString),
+          phase3TestsStarted = getProgress(ProgressStatuses.PHASE3_TESTS_STARTED.toString),
+          phase3TestsCompleted = getProgress(ProgressStatuses.PHASE3_TESTS_COMPLETED.toString),
+          phase3TestsExpired = getProgress(ProgressStatuses.PHASE3_TESTS_EXPIRED.toString),
+          phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
+          phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
+          phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString)
         ),
         failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
         assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
         assessmentCentre = AssessmentCentre(
-          getProgress(AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.toString),
-          getProgress(ASSESSMENT_CENTRE_PASSED.toString),
-          getProgress(ASSESSMENT_CENTRE_FAILED.toString),
-          getProgress(ASSESSMENT_CENTRE_PASSED_NOTIFIED.toString),
-          getProgress(ASSESSMENT_CENTRE_FAILED_NOTIFIED.toString)
+          getProgress(ProgressStatuses.AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION.key),
+          getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED.key),
+          getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED.key),
+          getProgress(ProgressStatuses.ASSESSMENT_CENTRE_PASSED_NOTIFIED.key),
+          getProgress(ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED.key)
         )
       )
     }).getOrElse(ProgressResponse(applicationId))
@@ -216,19 +231,20 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   implicit val readerTPM = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem)
   implicit val readerCandidate = bsonReader(bsonToModelHelper.toCandidate)
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReport(findProgress))
-  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReportItem(findProgress))
+  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
-  override def create(userId: String, frameworkId: String): Future[ApplicationResponse] = {
+  override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
     val applicationBSON = BSONDocument(
       "applicationId" -> applicationId,
       "userId" -> userId,
       "frameworkId" -> frameworkId,
-      "applicationStatus" -> CREATED
+      "applicationStatus" -> CREATED,
+      "applicationRoute" -> route
     )
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, CREATED, userId, p, None)
+        ApplicationResponse(applicationId, CREATED, route, userId, p, None)
       }
     }
   }
@@ -279,9 +295,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
         findProgress(applicationId).map { progress =>
-          ApplicationResponse(applicationId, applicationStatus, userId, progress, fastPassReceived)
+          ApplicationResponse(applicationId, applicationStatus, applicationRoute, userId, progress, fastPassReceived)
         }
       case None => throw ApplicationNotFound(userId)
     }
@@ -465,7 +482,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     reportQueryWithProjectionsBSON[CandidateProgressReport](query, projection)
   }
 
-  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReportItem]] = {
+  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = {
     val query = BSONDocument("frameworkId" -> frameworkId)
     val projection = BSONDocument(
       "userId" -> "1",
@@ -475,7 +492,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "applicationId" -> "1",
       "progress-status" -> "2"
     )
-    reportQueryWithProjectionsBSON[ApplicationForDiversityReportItem](query, projection)
+    reportQueryWithProjectionsBSON[ApplicationForDiversityReport](query, projection)
   }
 
   override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] =
@@ -484,6 +501,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument(s"progress-status.${ASSESSMENT_SCORES_ACCEPTED.toLowerCase}" -> true),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
     )))
+
+  override def findFailedTestForNotification(appStatus: ApplicationStatus,
+                                             progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> appStatus),
+      BSONDocument(s"progress-status.$progressStatus" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
+    ))
+
+    implicit val reader = bsonReader(NotificationFailedTest.fromBson)
+    selectOneRandom[NotificationFailedTest](query)
+  }
 
   // scalastyle:off method.length
   private def applicationPreferences(query: BSONDocument): Future[List[ApplicationPreferences]] = {
@@ -814,12 +843,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           val preferences = PreferencesWithContactDetails(None, None, preferredName, None, None,
             location1, location1Scheme1, location1Scheme2,
             location2, location2Scheme1, location2Scheme2,
-            Some(ApplicationStatusOrder.getStatus(p)), Some(timeCreated))
+            Some(ProgressStatusesReportLabels.progressStatusNameInReports(p)), Some(timeCreated))
 
           (userId, isNonSubmittedStatus(p), preferences) +: applications
         }
       }
     }
+  }
+
+  private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
+    val isNotSubmitted = !progress.submitted
+    val isNotWithdrawn = !progress.withdrawn
+    isNotWithdrawn && isNotSubmitted
   }
 
   private def getDocumentId(document: BSONDocument): BSONObjectID =

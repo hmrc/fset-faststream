@@ -20,32 +20,35 @@ import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
 import connectors.CSREmailClient
+import model._
 import repositories._
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.AuditService
-import services.onlinetesting.{ OnlineTestFailureService, OnlineTestFailureServiceImpl }
+import services.onlinetesting.{ OnlineTestService, Phase1TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object FailedOnlineTestJob extends FailedOnlineTestJob {
-  val service = new OnlineTestFailureServiceImpl(
-    applicationRepository, phase1TestRepository, contactDetailsRepository, CSREmailClient, AuditService, HeaderCarrier()
-  )
-}
-
-trait FailedOnlineTestJob extends SingleInstanceScheduledJob with FailedOnlineTestJobConfig {
-  val service: OnlineTestFailureService
-
+object FailedPhase1TestJob extends FailedTestJob with FailedPhase1TestJobConfig {
+  override val service = Phase1TestService
+  override val failedType: FailedTestType = Phase1FailedTestType
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
-
-  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] =
-    service.processNextFailedTest()
 }
 
-trait FailedOnlineTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+trait FailedTestJob extends SingleInstanceScheduledJob {
+  val service: OnlineTestService
+  val failedType: FailedTestType
+
+  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    implicit val rh = EmptyRequestHeader
+    implicit val hc = new HeaderCarrier()
+    service.processNextFailedTestForNotification(failedType)
+  }
+}
+
+trait FailedPhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.failedOnlineTestJobConfig
-  val configPrefix = "scheduling.online-testing.failed-test-job."
-  val name = "FailedOnlineTestJob"
+  override val conf = config.MicroserviceAppConfig.failedPhase1TestJobConfig
+  val configPrefix = "scheduling.online-testing.failed-phase1-test-job."
+  val name = "FailedPhase1TestJob"
 }

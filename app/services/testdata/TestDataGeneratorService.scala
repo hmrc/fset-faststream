@@ -29,6 +29,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
+import services.testdata.faker.DataFaker._
 
 object TestDataGeneratorService extends TestDataGeneratorService {
 }
@@ -48,7 +49,7 @@ trait TestDataGeneratorService {
     }
   }
 
-  def createAdminUsers(numberToGenerate: Int, emailPrefix: String,
+  def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String],
                        role: UserRole)(implicit hc: HeaderCarrier): Future[List[DataGenerationResponse]] = {
     Future.successful {
       val parNumbers = (1 to numberToGenerate).par
@@ -58,8 +59,11 @@ trait TestDataGeneratorService {
       parNumbers.map { candidateGenerationId =>
         val fut = RegisteredStatusGenerator.createUser(
           candidateGenerationId,
-          s"test_service_manager_$emailPrefix$candidateGenerationId@mailinator.com", "CSR Test", "Service Manager",
-          "TestServiceManager", role
+          s"test_service_manager_${emailPrefix.getOrElse(Random.number(Some(10000)))}a$candidateGenerationId@mailinator.com",
+          "CSR Test",
+          "Service Manager",
+          "TestServiceManager",
+          role
         )
         Await.result(fut, 10 seconds)
       }.toList
@@ -78,7 +82,7 @@ trait TestDataGeneratorService {
       parNumbers.map {
         candidateGenerationId =>
           val fut = generatorForStatus.generate(candidateGenerationId, generatorConfig)
-          Await.result(fut, 5 seconds)
+          Await.result(fut, 10 seconds)
       }.toList
     }
   }

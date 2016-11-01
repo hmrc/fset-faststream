@@ -20,13 +20,15 @@ import factories.UUIDFactory
 import model._
 import model.ApplicationStatus._
 import model.SchemeType.SchemeType
-import model.report.{ApplicationForDiversityReportItem, CandidateProgressReport, CivilServiceExperienceDetailsReportItem, DiversityReportItem}
+import model.report.CandidateProgressReport
 import org.joda.time.LocalDate
-import reactivemongo.bson.{BSONArray, BSONDocument}
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 import config.MicroserviceAppConfig._
+import model.command.ProgressResponse
+import model.persisted.{ ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport }
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -72,7 +74,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.diversityReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(ApplicationForDiversityReportItem(appId, userId, Some("registered"), List.empty, None, None, None, None, None))
+      result.head must be(ApplicationForDiversityReport(appId, userId, Some("registered"), List.empty, None, None, None, None, None))
     }
 
     "Get diversity report for an application with all fields" in {
@@ -90,21 +92,21 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       result must have size (3)
       result must contain
-      ApplicationForDiversityReportItem(appId1, userId1, Some("registered"),
+      ApplicationForDiversityReport(appId1, userId1, Some("registered"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-        Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsReportItem(Some("Yes"),
+        Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
           Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
       result must contain
-        ApplicationForDiversityReportItem(
+      ApplicationForDiversityReport(
           appId2, userId2, Some("registered"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-          Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsReportItem(Some("Yes"),
+          Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))) //,
       result must contain
-        ApplicationForDiversityReportItem(
+      ApplicationForDiversityReport(
           appId3, userId3, Some("registered"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-          Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsReportItem(Some("Yes"),
+          Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
     }
 
@@ -238,7 +240,23 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       noMatchResponse.size mustBe 0
     }
+  }
 
+  "non-submitted status" should {
+    val emptyProgressResponse = ProgressResponse("1")
+
+    "be true for non submitted progress" in {
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = false)) must be(true)
+    }
+
+    "be false for withdrawn progress" in {
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = true)) must be(false)
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = true)) must be(false)
+    }
+
+    "be false for submitted but not withdrawn progress" in {
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = false)) must be(false)
+    }
   }
 
   val testCandidate = Map(

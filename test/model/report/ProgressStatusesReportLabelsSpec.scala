@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-package services
+package model.report
 
-import model.ApplicationStatusOrder
 import model.command.{ ProgressResponse, ProgressResponseExamples }
 import org.scalatestplus.play.PlaySpec
 
-class ApplicationStatusOrderSpec extends PlaySpec {
+class ProgressStatusesReportLabelsSpec extends PlaySpec {
 
-  import ApplicationStatusOrderSpec._
-
-  "no progress status" should {
-    "return registered" in {
-      ApplicationStatusOrder.getStatus(None) must be("registered")
-    }
-  }
+  import ProgressStatusesReportLabelsSpec._
 
   "a registered application" should {
     "return registered" in {
-      val status = ApplicationStatusOrder.getStatus(new ProgressResponse("id", false, false, false, false, false, Nil,
+      val status = ProgressStatusesReportLabels.progressStatusNameInReports(new ProgressResponse("id", false, false, false, false, false, Nil,
         false, false))
         status must be("registered")
     }
@@ -40,77 +33,58 @@ class ApplicationStatusOrderSpec extends PlaySpec {
 
   "a withdrawn application" should {
     "return withdrawn" in {
-      ApplicationStatusOrder.getStatus(progressResponse) must be("withdrawn")
+      ProgressStatusesReportLabels.progressStatusNameInReports(progressResponse) must be("withdrawn")
     }
     "return withdrawn when all other progresses are set" in {
-      ApplicationStatusOrder.getStatus(completeProgressResponse) must be("withdrawn")
+      ProgressStatusesReportLabels.progressStatusNameInReports(completeProgressResponse) must be("withdrawn")
     }
   }
 
   "a submitted application" should {
     "return submitted" in {
       val customProgress = progressResponse.copy(withdrawn = false)
-      ApplicationStatusOrder.getStatus(customProgress) must be("submitted")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("submitted")
     }
   }
 
   "a previewed application" should {
     "return previewed" in {
       val customProgress = ProgressResponseExamples.InPreview
-      ApplicationStatusOrder.getStatus(customProgress) must be("preview_completed")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("preview_completed")
     }
   }
 
   "an application in partner graduate programmes" should {
     "Return partner_graduate_programmes_completed" in {
       val customProgress = ProgressResponseExamples.InPartnerGraduateProgrammes
-      ApplicationStatusOrder.getStatus(customProgress) must be("partner_graduate_programmes_completed")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("partner_graduate_programmes_completed")
     }
   }
 
   "an application in scheme preferences" should {
     "return scheme_preferences_completed" in {
       val customProgress = ProgressResponseExamples.InSchemePreferences
-      ApplicationStatusOrder.getStatus(customProgress) must be("scheme_preferences_completed")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("scheme_preferences_completed")
     }
   }
 
   "an application in personal details" should {
     "return personal_details_completed" in {
       val customProgress = ProgressResponseExamples.InPersonalDetails
-      ApplicationStatusOrder.getStatus(customProgress) must be("personal_details_completed")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("personal_details_completed")
     }
 
     "return personal_details_completed when sections are not completed" in {
       val customProgress = ProgressResponseExamples.InPersonalDetails
-      ApplicationStatusOrder.getStatus(customProgress) must be("personal_details_completed")
-    }
-  }
-
-  "non-submitted status" should {
-    import ApplicationStatusOrder._
-
-    "be true for non submitted progress" in {
-      isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = false)) must be(true)
-    }
-
-    "be false for withdrawn progress" in {
-      isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = true)) must be(false)
-      isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = true)) must be(false)
-    }
-
-    "be false for submitted but not withdrawn progress" in {
-      isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = false)) must be(false)
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("personal_details_completed")
     }
   }
 }
 
-object ApplicationStatusOrderSpec {
+object ProgressStatusesReportLabelsSpec {
 
   val progressResponse = ProgressResponse("1", true, true, true, true, true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"), true, true)
-
-  val emptyProgressResponse = ProgressResponse("1")
 
   val completeProgressResponse = ProgressResponse("1", true, true, true, true, true,
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire",

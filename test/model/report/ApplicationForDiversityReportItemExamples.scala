@@ -20,12 +20,12 @@ import model.SchemeType
 
 object ApplicationForDiversityReportItemExamples {
 
-  val Example1 = ApplicationForDiversityReportItem("appId5", "userId10", Some("phase1_tests_completed"),
+  val Example1 = ApplicationForDiversityReportItem(Some("phase1_tests_completed"),
       List(SchemeType.DiplomaticService, SchemeType.Commercial), Some("No"), Some(false), Some("No"), Some("No"),
       Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some(""))))
 
   val Example2 =
-    ApplicationForDiversityReportItem("appId6", "userId11", Some("submitted"),
+    ApplicationForDiversityReportItem(Some("submitted"),
       List(SchemeType.DiplomaticServiceEconomics, SchemeType.Commercial, SchemeType.GovernmentCommunicationService,
         SchemeType.European), Some("Yes"), Some(true), Some("Yes"), Some("No"),
       Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("fastPass-101"))))

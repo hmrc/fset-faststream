@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package connectors.launchpadgateway.exchangeobjects
+package report
 
-import play.api.libs.json.Json
+import model.report.MediaReportItem
 
-case class RegisterApplicantResponse(candidateId: String,
-                                     customCandidateId: String)
-object RegisterApplicantResponse {
-  implicit val registerApplicantResponseFormat = Json.format[RegisterApplicantResponse]
+object MediaReportItemExamples {
+  val Example1 = MediaReportItem("GOV.UK or Civil Service Jobs")
+  val Example2 = MediaReportItem("Friend in the Fast Stream")
 }

@@ -34,7 +34,11 @@ trait CubiksGatewayClient {
   val http: WSHttp
   val url: String
 
-  def registerApplicants(batchSize: Int)(implicit hc: HeaderCarrier): Future[List[Registration]] = {
+  // Blank out header carriers for calls to LPG. Passing on someone's true-client-ip header will cause them to be reassessed
+  // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesireable behaviour.
+  implicit def blankedHeaderCarrier = new HeaderCarrier()
+
+  def registerApplicants(batchSize: Int): Future[List[Registration]] = {
     http.GET(s"$url/csr-cubiks-gateway/faststream/register/$batchSize").map { response =>
       if (response.status == OK) {
         response.json.as[List[Registration]]
@@ -44,7 +48,7 @@ trait CubiksGatewayClient {
     }
   }
 
-  def registerApplicant(registerApplicant: RegisterApplicant)(implicit hc: HeaderCarrier): Future[Registration] = {
+  def registerApplicant(registerApplicant: RegisterApplicant): Future[Registration] = {
     http.POST(s"$url/csr-cubiks-gateway/faststream/register", registerApplicant).map { response =>
       if (response.status == OK) {
         response.json.as[Registration]
@@ -54,7 +58,7 @@ trait CubiksGatewayClient {
     }
   }
 
-  def inviteApplicant(inviteApplicant: InviteApplicant)(implicit hc: HeaderCarrier): Future[Invitation] = {
+  def inviteApplicant(inviteApplicant: InviteApplicant): Future[Invitation] = {
     http.POST(s"$url/csr-cubiks-gateway/faststream/invite", inviteApplicant).map { response =>
       if (response.status == OK) {
         response.json.as[Invitation]
@@ -64,7 +68,7 @@ trait CubiksGatewayClient {
     }
   }
 
-  def inviteApplicants(invitations: List[InviteApplicant])(implicit hc: HeaderCarrier): Future[List[Invitation]] =
+  def inviteApplicants(invitations: List[InviteApplicant]): Future[List[Invitation]] =
   http.POST(s"$url/csr-cubiks-gateway/faststream/batchInvite", invitations).map { response =>
     if (response.status == OK) {
       response.json.as[List[Invitation]]
@@ -73,7 +77,7 @@ trait CubiksGatewayClient {
     }
   }
 
-  def getReport(application: OnlineTestApplicationForReportRetrieving)(implicit hc: HeaderCarrier): Future[OnlineTestReportAvailability] = {
+  def getReport(application: OnlineTestApplicationForReportRetrieving): Future[OnlineTestReportAvailability] = {
     http.POST(s"$url/csr-cubiks-gateway/report", application).map { response =>
       if (response.status == OK) {
         response.json.as[OnlineTestReportAvailability]
@@ -83,7 +87,7 @@ trait CubiksGatewayClient {
     }
   }
 
-  def downloadXmlReport(reportId: Int)(implicit hc: HeaderCarrier): Future[TestResult] = {
+  def downloadXmlReport(reportId: Int): Future[TestResult] = {
     http.GET(s"$url/csr-cubiks-gateway/faststream/report-xml/$reportId").map { response =>
       if (response.status == OK) {
         response.json.as[TestResult]
@@ -93,7 +97,7 @@ trait CubiksGatewayClient {
     }
   }
 
-  def downloadPdfReport(reportId: Int)(implicit hc: HeaderCarrier): Future[Array[Byte]] = {
+  def downloadPdfReport(reportId: Int): Future[Array[Byte]] = {
     http.playWS.url(s"$url/csr-cubiks-gateway/report-pdf/$reportId").get(respHeaders =>
       if (respHeaders.status == OK) {
         Iteratee.consume[Array[Byte]]()
