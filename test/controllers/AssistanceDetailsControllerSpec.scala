@@ -45,9 +45,9 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "return BAD_REQUEST when there is a CannotUpdateAssistanceDetails exception" in new TestFixture {
-      val details = AssistanceDetailsExchange("Yes", Some(""), Some(false), false, None, Some(false), None)
+      val details = AssistanceDetailsExchange("Yes", Some(""), Some(false), Some(false), None, Some(false), None, None, None)
       val Request = fakeRequest(details)
-      when(mockAssistanceDetailsService.update(AppId, UserId, details)).thenReturn(Future.failed(new CannotUpdateAssistanceDetails(UserId)))
+      when(mockAssistanceDetailsService.update(AppId, UserId, details)).thenReturn(Future.failed(CannotUpdateAssistanceDetails(UserId)))
       val result = controller.update(UserId, AppId)(Request)
       status(result) must be(BAD_REQUEST)
       verify(mockAuditService, times(0)).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])

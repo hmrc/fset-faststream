@@ -26,7 +26,7 @@ import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import model.report.AdjustmentReport
+import model.report.AdjustmentReportItem
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -71,7 +71,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val userId = "userId9876"
       val applicationId = applicationRepo.create(userId, "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId
 
-      val details = AssistanceDetails("Yes", Some("disability"), Some(true), true, Some("adjustment online"), Some(true), Some("adjustment venue"))
+      val details = AssistanceDetails("Yes", Some("disability"), Some(true), Some(true), Some("adjustment online"),
+        Some(true), Some("adjustment venue"), None, None)
       assistanceRepo.update(applicationId, userId, details).futureValue
 
       applicationRepo.gisByApplication(applicationId).futureValue must be(true)
@@ -233,7 +234,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
       result mustBe a[List[_]]
       result must not be empty
-      result.head mustBe a[AdjustmentReport]
+      result.head mustBe a[AdjustmentReportItem]
       result.head.userId must not be empty
       result.head.applicationId must not be empty
     }

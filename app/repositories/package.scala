@@ -15,16 +15,16 @@
  */
 
 import factories.DateTimeFactory
-import model.CandidateScoresCommands.{CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback}
+import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
-import model.OnlineTestCommands.{OnlineTestApplication, TimeAdjustmentsOnlineTestApplication}
+import model.OnlineTestCommands.{ OnlineTestApplication, TimeAdjustmentsOnlineTestApplication }
 import model.PassmarkPersistedObjects._
-import model.PersistedObjects.{ContactDetails, PersistedAnswer, PersonalDetails, _}
+import model.PersistedObjects.{ ContactDetails, PersistedAnswer, PersonalDetails, _ }
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import org.joda.time.{DateTime, DateTimeZone, LocalDate}
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -35,10 +35,12 @@ import repositories.event.EventMongoRepository
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
+import model.ApplicationRoute
+import model.ApplicationRoute.ApplicationRoute
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
 package object repositories {
@@ -119,7 +121,7 @@ package object repositories {
   }
 
   /** Implicit transformation for the PersistedPersonalDetails **/
-  @deprecated("fasttrack version")
+  @deprecated("fasttrack version", "ages ago")
   implicit object BSONPersistedPersonalDetailsHandler extends BSONHandler[BSONDocument, PersonalDetails] {
     def read(doc: BSONDocument): PersonalDetails = {
       val root = doc.getAs[BSONDocument]("personal-details").get
@@ -139,21 +141,25 @@ package object repositories {
     )
   }
 
+  def toCandidate(doc: BSONDocument): Candidate = {
+    val userId = doc.getAs[String]("userId").getOrElse("")
+    val applicationId = doc.getAs[String]("applicationId")
+    // If the application does not have applicationRoute, it is legacy data
+    // as it needs to be interpretted as Faststream
+    val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
+
+    val psRoot = doc.getAs[BSONDocument]("personal-details")
+    val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
+    val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
+    val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
+    val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
+
+    Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None, Some(applicationRoute))
+  }
+
   /** Implicit transformation for the Candidate **/
   implicit object BSONCandidateHandler extends BSONHandler[BSONDocument, Candidate] {
-    def read(doc: BSONDocument): Candidate = {
-      val userId = doc.getAs[String]("userId").getOrElse("")
-      val applicationId = doc.getAs[String]("applicationId")
-
-      val psRoot = doc.getAs[BSONDocument]("personal-details")
-      val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
-      val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
-      val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
-      val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
-
-      Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
-    }
-
+    def read(doc: BSONDocument): Candidate = toCandidate(doc)
     def write(psDoc: Candidate) = BSONDocument() // this should not be used ever
   }
 

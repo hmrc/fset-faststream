@@ -131,7 +131,8 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
   val candidate = Commands.Candidate(userId = "user123", firstName = Some("Cid"),
     lastName = Some("Highwind"), preferredName = None, applicationId = Some("appId123"),
-    email = Some("test@test.com"), dateOfBirth = None, address = None, postCode = None, country = None
+    email = Some("test@test.com"), dateOfBirth = None, address = None, postCode = None, country = None,
+    applicationRoute = None
   )
 
   val postcode : Option[PostCode]= Some("WC2B 4")
@@ -413,7 +414,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     "change progress to started" in new OnlineTest {
       when(otRepositoryMock.updateTestStartTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase1TestWithUserIds("appId123", "userId", phase1TestProfile)))
+        .thenReturn(Future.successful(Phase1TestGroupWithUserIds("appId123", "userId", phase1TestProfile)))
       when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)).thenReturn(Future.successful(()))
       phase1TestService.markAsStarted(cubiksUserId).futureValue
 
@@ -422,12 +423,16 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   }
 
   "mark as completed" should {
-    "change progress to completed if there are all tests completed" in new OnlineTest {
+    "change progress to completed if there are all tests completed and the test profile hasn't expired" in new OnlineTest {
       when(otRepositoryMock.updateTestCompletionTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
-      val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))))
+      val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().plusDays(2)
+      )
+
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase1TestWithUserIds("appId123", "userId", phase1Tests)))
+        .thenReturn(Future.successful(Phase1TestGroupWithUserIds("appId123", "userId", phase1Tests)))
       when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful(()))
+
       phase1TestService.markAsCompleted(cubiksUserId).futureValue
 
       verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
@@ -439,7 +444,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
 
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
-        Future.successful(Phase1TestWithUserIds("appId", "userId", phase1TestProfile.copy(
+        Future.successful(Phase1TestGroupWithUserIds("appId", "userId", phase1TestProfile.copy(
           tests = List(phase1Test.copy(usedForResults = false, cubiksUserId = 123),
             phase1Test,
             phase1TestBq.copy(cubiksUserId = 789, resultsReadyToDownload = false)
@@ -460,7 +465,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
 
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
-        Future.successful(Phase1TestWithUserIds("appId", "userId", phase1TestProfile.copy(
+        Future.successful(Phase1TestGroupWithUserIds("appId", "userId", phase1TestProfile.copy(
           tests = List(phase1Test.copy(usedForResults = false, cubiksUserId = 123),
             phase1Test.copy(resultsReadyToDownload = true),
             phase1TestBq.copy(cubiksUserId = 789, resultsReadyToDownload = true)
@@ -528,7 +533,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(cubiksGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get)))
         .thenReturn(Future.failed(new Exception))
 
-      val result = phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
+      val result = phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds(
         "appId", "userId", phase1TestProfile.copy(tests = List(successfulTest, failedTest))
       ))
     }
@@ -541,7 +546,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertPhase1TestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
+      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))
@@ -549,7 +554,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult))))))
       )
 
-      phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
+      phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds(
         "appId", "userId", testProfile
       )).futureValue
 
@@ -566,7 +571,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertPhase1TestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
+      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
         .thenReturn(Future.successful(()))
@@ -574,7 +579,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
         Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady))))
       )
 
-      phase1TestService.retrieveTestResult(Phase1TestWithUserIds(
+      phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds(
         "appId", "userId", testProfile
       )).futureValue
 
@@ -586,7 +591,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   "processNextExpiredTest" should {
     "do nothing if there are no expired application to process" in new OnlineTest {
       when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(None))
-      phase1TestService.processNextExpiredTest(Phase1ExpirationEvent).futureValue mustBe ()
+      phase1TestService.processNextExpiredTest(Phase1ExpirationEvent).futureValue mustBe (())
     }
     "update progress status and send an email to the user when an application is expired" in new OnlineTest {
       when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
@@ -607,7 +612,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
   "processNextTestForReminder" should {
     "do nothing if there are no application to process for reminders" in new OnlineTest {
       when(otRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(None))
-      phase1TestService.processNextTestForReminder(Phase1FirstReminder).futureValue mustBe ()
+      phase1TestService.processNextTestForReminder(Phase1FirstReminder).futureValue mustBe (())
     }
     "update progress status and send an email to the user when an application is about to expire" in new OnlineTest {
       when(otRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(Some(expiryReminder)))

@@ -21,11 +21,19 @@ import java.util.UUID
 import model.Exceptions.CannotFindTestByCubiksId
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
-import model.exchange.CubiksTestResultReady
-import model.persisted.{ CubiksTest, ExpiringOnlineTest, Phase1TestProfile, Phase1TestWithUserIds }
-import model.{ ApplicationStatus, ProgressStatuses, persisted, _ }
+import model._
 import org.joda.time.{ DateTime, DateTimeZone }
-import reactivemongo.bson.BSONDocument
+import reactivemongo.api.commands.WriteResult
+import reactivemongo.bson.{ BSONArray, BSONDocument }
+import reactivemongo.json.ImplicitBSONHandlers
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
+import services.GBTimeZoneService
+import config.MicroserviceAppConfig._
+import factories.DateTimeFactory
+import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
+import model.exchange.CubiksTestResultReady
+import model.persisted.{ CubiksTest, ExpiringOnlineTest, Phase1TestProfile, Phase1TestGroupWithUserIds }
+import model.{ ApplicationStatus, ProgressStatuses, persisted, _ }
 import testkit.MongoRepositorySpec
 
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
@@ -48,7 +56,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   )
 
   val TestProfile = Phase1TestProfile(expirationDate = DatePlus7Days, tests = List(phase1Test))
-  val testProfileWithAppId = Phase1TestWithUserIds(
+  val testProfileWithAppId = Phase1TestGroupWithUserIds(
     "appId",
     "userId",
     TestProfile.copy(tests = List(
@@ -101,14 +109,14 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase1TestRepo.getTestProfileByCubiksId(CubiksUserId).futureValue
-      result mustBe Phase1TestWithUserIds("appId", "userId", TestProfile)
+      result mustBe Phase1TestGroupWithUserIds("appId", "userId", TestProfile)
     }
 
   }
 
   "Next application ready for online testing" should {
     "return no application if there is only one and it is a fast pass candidate" in{
-      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+      createApplicationWithAllFields("appId", "userId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true,
         fastPassReceived = true
       ).futureValue
@@ -119,7 +127,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "return one application if there is only one and it is not a fast pass candidate" in{
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false
       ).futureValue
@@ -144,10 +152,10 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "return a test group if the progress status is set to PHASE1_TEST_RESULTS_READY" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true),(PHASE1_TESTS_RESULTS_READY, true)),
-        phase1TestProfile = Some(testProfileWithAppId.phase1TestProfile)
+        phase1TestProfile = Some(testProfileWithAppId.testGroup)
       ).futureValue
 
       val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
@@ -157,9 +165,9 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
     "return a test group if only one report is ready to download" in {
 
-      val profile = testProfileWithAppId.phase1TestProfile.copy(tests = List(phase1Test, phase1Test.copy(resultsReadyToDownload = true)))
+      val profile = testProfileWithAppId.testGroup.copy(tests = List(phase1Test, phase1Test.copy(resultsReadyToDownload = true)))
 
-      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
+      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true),(PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(profile)
@@ -167,21 +175,23 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
       phase1TestResultsReady.isDefined mustBe true
-      phase1TestResultsReady.get mustBe Phase1TestWithUserIds("appId2", "userId2", profile)
+      phase1TestResultsReady.get mustBe Phase1TestGroupWithUserIds("appId2", "userId2", profile)
     }
+  }
 
+  "Insert test result" should {
     "correctly update a test group with results" in {
-       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsAdjustment = false,
+       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
-        phase1TestProfile = Some(testProfileWithAppId.phase1TestProfile)
+        phase1TestProfile = Some(testProfileWithAppId.testGroup)
       ).futureValue
 
 
       val testResult = persisted.TestResult(status = "completed", norm = "some norm",
           tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
 
-      phase1TestRepo.insertPhase1TestResult("appId", testProfileWithAppId.phase1TestProfile.tests.head,
+      phase1TestRepo.insertTestResult("appId", testProfileWithAppId.testGroup.tests.head,
         testResult
       ).futureValue
 
@@ -200,7 +210,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
   "The OnlineTestApplication case model" should {
     "be correctly read from mongo" in {
-       createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsAdjustment = false,
+       createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false, isGis = true
       ).futureValue
 
@@ -223,7 +233,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       }
     }
     "be correctly read from mongo with lower case submitted status" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "submitted", needsAdjustment = false,
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "submitted", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false, isGis = true
       ).futureValue
 
@@ -422,17 +432,55 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
         cubiksTest.startedDateTime mustBe Some(new DateTime(startedDateTime.getMillis, DateTimeZone.UTC))
       }
-      "add the completion time for a cubiks test" in {
-        insertApplication("appId", "userId")
-        phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
 
-        val completionTime = DateTime.now()
-        phase1TestRepo.updateTestCompletionTime(TestProfile.tests.head.cubiksUserId, completionTime).futureValue
-        val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
+      "add the completion time for a cubiks test if the test group has not expired" in {
 
-        val cubiksTest = phase1TestProfile.tests.head
-        cubiksTest.completedDateTime mustBe Some(new DateTime(completionTime.getMillis, DateTimeZone.UTC))
+        val now =  DateTime.now(DateTimeZone.UTC)
+        val input = Phase1TestProfile(expirationDate = now.plusDays(5),
+          tests = List(CubiksTest(scheduleId = 1,
+            usedForResults = true,
+            token = "token",
+            cubiksUserId = 111,
+            testUrl = "testUrl",
+            invitationDate = now,
+            participantScheduleId = 222
+          ))
+        )
+
+        createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
+          adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+          fastPassReceived = false, phase1TestProfile = Some(input)
+        ).futureValue
+
+        phase1TestRepo.updateTestCompletionTime(111, now).futureValue
+        val result = phase1TestRepo.getTestProfileByCubiksId(111).futureValue
+        result.testGroup.tests.head.completedDateTime mustBe Some(now)
       }
+
+      "not complete tests if the profile has expired" in {
+
+        val now =  DateTime.now(DateTimeZone.UTC)
+        val input = Phase1TestProfile(expirationDate = now,
+          tests = List(CubiksTest(scheduleId = 1,
+            usedForResults = true,
+            token = "token",
+            cubiksUserId = 111,
+            testUrl = "testUrl",
+            invitationDate = now,
+            participantScheduleId = 222
+          ))
+        )
+
+        createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
+          adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+          fastPassReceived = false, phase1TestProfile = Some(input)
+        ).futureValue
+
+        phase1TestRepo.updateTestCompletionTime(111, now).futureValue
+        val result = phase1TestRepo.getTestProfileByCubiksId(111).futureValue
+        result.testGroup.tests.head.completedDateTime mustBe None
+      }
+
       "mark the cubiks test as inactive" in {
         insertApplication("appId", "userId")
         phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
@@ -481,4 +529,3 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   }
 
 }
-

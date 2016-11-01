@@ -42,7 +42,7 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
     getLatestPhase1PassMarkSettings flatMap {
       case Some(passmark) =>
         phase1EvaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
-          Some(candidates, passmark)
+          Some(candidates -> passmark)
         }
       case _ =>
         Future.successful(None)

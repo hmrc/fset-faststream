@@ -2,10 +2,10 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ProgressStatuses.ProgressStatus
-import model.persisted.Phase1TestProfile
+import model.persisted.{ Phase1TestProfile, Phase2TestGroup }
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{BSONArray, BSONDocument}
-import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
+import reactivemongo.bson.{ BSONArray, BSONDocument }
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 import reactivemongo.json.ImplicitBSONHandlers
@@ -15,8 +15,11 @@ import config.MicroserviceAppConfig.cubiksGatewayConfig
 
 trait ApplicationDataFixture extends MongoRepositorySpec {
   def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
+
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
+
   def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
+
   def phase3TestRepo = new Phase3TestMongoRepository(DateTimeFactory)
 
   import ImplicitBSONHandlers._
@@ -27,8 +30,8 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
     phase1TestRepo.collection.update(BSONDocument("applicationId" -> appId), doc)
 
   def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String,
-    needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean,
-    fastPassApplicable: Boolean = false) = {
+                        needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean,
+                        fastPassApplicable: Boolean = false) = {
 
     helperRepo.collection.insert(BSONDocument(
       "userId" -> userId,
@@ -36,18 +39,18 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
       "personal-details" -> BSONDocument("preferredName" -> "Test Preferred Name",
-                                          "lastName" -> "Test Last Name"),
+        "lastName" -> "Test Last Name"),
       "civil-service-experience-details.applicable" -> fastPassApplicable,
-      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments)
+      "assistance-details" -> createAssistanceDetails(needsSupportForOnlineAssessment, adjustmentsConfirmed, timeExtensionAdjustments)
     )).futureValue
   }
 
-  def createAssistanceDetails(needsAdjustment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments:Boolean) = {
-    if (needsAdjustment) {
+  def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean) = {
+    if (needsSupportForOnlineAssessment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
           BSONDocument(
-            "needsAdjustment" -> "Yes",
+            "needsSupportForOnlineAssessment" -> "Yes",
             "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
             "adjustments-confirmed" -> true,
             "verbalTimeAdjustmentPercentage" -> 9,
@@ -55,29 +58,29 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
           )
         } else {
           BSONDocument(
-            "needsAdjustment" -> "Yes",
+            "needsSupportForOnlineAssessment" -> "Yes",
             "typeOfAdjustments" -> BSONArray("room alone"),
             "adjustments-confirmed" -> true
           )
         }
       } else {
         BSONDocument(
-          "needsAdjustment" -> "Yes",
+          "needsSupportForOnlineAssessment" -> "Yes",
           "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
           "adjustments-confirmed" -> false
         )
       }
     } else {
       BSONDocument(
-        "needsAdjustment" -> "No"
+        "needsSupportForOnlineAssessment" -> "No"
       )
     }
   }
 
   def createOnlineTestApplication(appId: String, applicationStatus: String, xmlReportSavedOpt: Option[Boolean] = None,
-    alreadyEvaluatedAgainstPassmarkVersionOpt: Option[String] = None): String = {
+                                  alreadyEvaluatedAgainstPassmarkVersionOpt: Option[String] = None): String = {
     val result = (xmlReportSavedOpt, alreadyEvaluatedAgainstPassmarkVersionOpt) match {
-      case (None, None ) =>
+      case (None, None) =>
         helperRepo.collection.insert(BSONDocument(
           "applicationId" -> appId,
           "applicationStatus" -> applicationStatus
@@ -109,13 +112,22 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
   }
 
   // scalastyle:off parameter.number
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String = "frameworkId",
-    appStatus: String, needsAdjustment: Boolean = false, adjustmentsConfirmed: Boolean = false,
-    timeExtensionAdjustments: Boolean = false, fastPassApplicable: Boolean = false,
-    fastPassReceived: Boolean = false, isGis: Boolean = false,
-    additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
-    phase1TestProfile: Option[Phase1TestProfile] = None
-  ): Future[WriteResult] = {
+  // scalastyle:off method.length
+  def createApplicationWithAllFields(userId: String,
+                                     appId: String,
+                                     frameworkId: String = "frameworkId",
+                                     appStatus: String,
+                                     needsSupportForOnlineAssessment: Boolean = false,
+                                     needsSupportAtVenue: Boolean = false,
+                                     adjustmentsConfirmed: Boolean = false,
+                                     timeExtensionAdjustments: Boolean = false,
+                                     fastPassApplicable: Boolean = false,
+                                     fastPassReceived: Boolean = false,
+                                     isGis: Boolean = false,
+                                     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
+                                     phase1TestProfile: Option[Phase1TestProfile] = None,
+                                     phase2TestGroup: Option[Phase2TestGroup] = None
+                                    ): Future[WriteResult] = {
     val doc = BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -150,18 +162,21 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
         "applicable" -> fastPassApplicable,
         "fastPassReceived" -> fastPassReceived
       ),
-      "assistance-details" -> createAssistanceDetails(needsAdjustment, adjustmentsConfirmed, timeExtensionAdjustments, isGis),
+      "assistance-details" -> createAssistanceDetails(needsSupportForOnlineAssessment, adjustmentsConfirmed, timeExtensionAdjustments,
+        needsSupportAtVenue, isGis),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
-      "testGroups" -> phase1TestGroup(phase1TestProfile)
+      "testGroups" -> testGroups(phase1TestProfile, phase2TestGroup)
     )
 
     helperRepo.collection.insert(doc)
   }
+  // scalastyle:on method.length
   // scalastyle:on parameter.number
 
-  private def phase1TestGroup(o: Option[Phase1TestProfile]): BSONDocument = {
-    BSONDocument("PHASE1" -> o.map(Phase1TestProfile.bsonHandler.write))
+  private def testGroups(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup]): BSONDocument = {
+    BSONDocument("PHASE1" -> p1.map(Phase1TestProfile.bsonHandler.write),
+      "PHASE2" -> p2.map(Phase2TestGroup.bsonHandler.write))
   }
 
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
@@ -189,22 +204,27 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
   }
 
   private def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean,
-    timeExtensionAdjustments:Boolean, isGis: Boolean = false) = {
+                                      timeExtensionAdjustments: Boolean, needsSupportAtVenue: Boolean = false, isGis: Boolean = false) = {
     if (needsSupportForOnlineAssessment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
           BSONDocument(
+            "hasDisability" -> "No",
             "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
-            "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
+            "needsSupportAtVenue" -> needsSupportAtVenue,
+            "typeOfAdjustments" -> BSONArray("etrayTimeExtension", "etrayOther"),
             "adjustments-confirmed" -> true,
-            "verbalTimeAdjustmentPercentage" -> 9,
-            "numericalTimeAdjustmentPercentage" -> 11,
+            "etray" -> BSONDocument(
+              "timeNeeded" -> 20,
+              "otherInfo" -> "other online adjustments"
+            ),
             "guaranteedInterview" -> isGis
           )
         } else {
           BSONDocument(
             "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
-            "typeOfAdjustments" -> BSONArray("room alone"),
+            "needsSupportAtVenue" -> needsSupportAtVenue,
+            "typeOfAdjustments" -> BSONArray("etrayTimeExtension"),
             "adjustments-confirmed" -> true,
             "guaranteedInterview" -> isGis
           )
@@ -212,7 +232,8 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
       } else {
         BSONDocument(
           "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
-          "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
+          "needsSupportAtVenue" -> needsSupportAtVenue,
+          "typeOfAdjustments" -> BSONArray("etrayTimeExtension"),
           "adjustments-confirmed" -> false,
           "guaranteedInterview" -> isGis
         )
@@ -220,6 +241,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
     } else {
       BSONDocument(
         "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
+        "needsSupportAtVenue" -> needsSupportAtVenue,
         "guaranteedInterview" -> isGis
       )
     }

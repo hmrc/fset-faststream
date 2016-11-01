@@ -142,7 +142,7 @@ trait TestDataGeneratorController extends BaseController {
   def createFaststreamCandidatesInStatusGET(applicationStatus: String,
                                   progressStatus: Option[String],
                                   numberToGenerate: Int,
-                                  setGis: Boolean,
+                                            setGis: Boolean,
                                   emailPrefix: Option[String],
                                   firstName: Option[String],
                                   lastName: Option[String],
@@ -163,6 +163,7 @@ trait TestDataGeneratorController extends BaseController {
                                  ) = Action.async { implicit request =>
     val initialConfig = GeneratorConfig(
       emailPrefix = emailPrefix,
+      hasDisability = if (setGis) Some("Yes") else Some("No"),
       setGis = setGis,
       cubiksUrl = cubiksUrlFromConfig,
       firstName = firstName,

@@ -21,7 +21,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.events.DataStoreEvents
 import model.exchange.CubiksTestResultReady
-import model.persisted.{ CubiksTest, ExpiringOnlineTest, NotificationExpiringOnlineTest, NotificationFailedTest }
+import model.persisted._
 import model.{ FailedTestType, ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
 import model.events.AuditEvents
@@ -45,6 +45,10 @@ trait OnlineTestService extends TimeExtension with EventSink {
   val cdRepository: ContactDetailsRepository
   val appRepository: GeneralApplicationRepository
 
+  type U <: Test
+  type T <: TestProfile[U]
+  type RichTestGroup <: TestGroupWithIds[U, T]
+
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]]
@@ -54,6 +58,8 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]
+  def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit]
 
   def processNextFailedTestForNotification(failedType: FailedTestType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
@@ -92,7 +98,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
     (invitationDate, expirationDate)
   }
 
-  @deprecated("use event sink instead")
+  @deprecated("use event sink instead", "October 2016")
   protected def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
     Logger.info(s"$event for user $userId")
 
@@ -183,4 +189,3 @@ trait TimeExtension {
     }
   }
 }
-

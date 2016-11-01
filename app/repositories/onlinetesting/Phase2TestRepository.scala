@@ -16,6 +16,7 @@
 
 package repositories.onlinetesting
 
+import common.Phase2TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
@@ -33,7 +34,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait Phase2TestRepository extends OnlineTestRepository[CubiksTest, Phase2TestGroup] {
+trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   this: ReactiveRepository[_, _] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup]]
@@ -86,6 +87,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query =
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
+        BSONDocument(s"progress-status.${PHASE1_TESTS_PASSED}" -> true),
         BSONDocument("$or" -> BSONArray(
           // No need to confirm adjustments and no gis
           BSONDocument("$and" -> BSONArray(
@@ -182,25 +184,6 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     nextTestForReminder(reminder, progressStatusQuery)
   }
 
-  override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> thisApplicationStatus),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_READY}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" ->
-        BSONDocument("$ne" -> true)
-      )
-    ))
-
-    implicit val reader = bsonReader { doc =>
-      val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
-      Phase2TestGroupWithAppId(
-        applicationId = doc.getAs[String]("applicationId").get,
-        Phase2TestGroup.bsonHandler.read(group)
-      )
-    }
-
-    selectOneRandom[Phase2TestGroupWithAppId](query)
-  }
 
   override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
@@ -217,4 +200,16 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     collection.update(query, updateQuery, upsert = false) map (_ => ())
   }
 
+  override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
+
+    implicit val reader = bsonReader { doc =>
+      val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
+      Phase2TestGroupWithAppId(
+        applicationId = doc.getAs[String]("applicationId").get,
+        Phase2TestGroup.bsonHandler.read(group)
+      )
+    }
+
+    nextTestGroupWithReportReady[Phase2TestGroupWithAppId]
+  }
 }

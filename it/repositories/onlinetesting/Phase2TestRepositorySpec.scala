@@ -1,8 +1,8 @@
 package repositories.onlinetesting
 
 import java.util.UUID
-
-import model.persisted.{ CubiksTest, Phase2TestGroup }
+import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
+import model.ProgressStatuses._
 import org.joda.time.{ DateTime, DateTimeZone }
 import testkit.MongoRepositorySpec
 
@@ -24,6 +24,13 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   )
 
   val TestProfile = Phase2TestGroup(expirationDate = DatePlus7Days, tests = List(phase2Test))
+  val testProfileWithAppId = Phase2TestGroupWithAppId(
+    "appId",
+    TestProfile.copy(tests = List(
+                       phase2Test.copy(usedForResults = true, resultsReadyToDownload = true),
+                       phase2Test.copy(usedForResults = true, resultsReadyToDownload = true))
+    )
+  )
 
   "Get online test" must {
     "return None if there is no test for the specific user id" in {
@@ -41,9 +48,9 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
   "Next application ready for online testing" must {
     "return one application if there is only one" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
@@ -54,14 +61,14 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "exclude adjustment applications" in {
-      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = true,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false
+      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = true,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
       ).futureValue
 
-      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false
+      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
@@ -74,12 +81,22 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     "return more than one candidate for batch processing" in {
       pending
     }
+
+    "Not return candidates whose phase 1 tests have expired" in {
+      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = true,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_EXPIRED -> true))
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      results.isEmpty mustBe true
+    }
   }
 
   "Insert a phase 2 test" must {
     "correctly insert a test" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = false,
-        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false
       ).futureValue
 
@@ -104,4 +121,85 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       result.get.tests mustBe input.tests
     }
   }
+
+
+  "Updating completion time" must {
+    "update test completion time" in {
+
+      val now =  DateTime.now(DateTimeZone.UTC)
+      val input = Phase2TestGroup(expirationDate = now.plusDays(5),
+        tests = List(CubiksTest(scheduleId = 1,
+          usedForResults = true,
+          token = "token",
+          cubiksUserId = 111,
+          testUrl = "testUrl",
+          invitationDate = now,
+          participantScheduleId = 222
+        ))
+      )
+
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, phase2TestGroup = Some(input)
+      ).futureValue
+
+      phase2TestRepo.updateTestCompletionTime(111, now).futureValue
+      val result = phase2TestRepo.getTestProfileByCubiksId(111).futureValue
+      result.testGroup.tests.head.completedDateTime mustBe Some(now)
+    }
+
+    "not update profiles that have expired" in {
+
+      val now =  DateTime.now(DateTimeZone.UTC)
+      val input = Phase2TestGroup(expirationDate = now,
+        tests = List(CubiksTest(scheduleId = 1,
+          usedForResults = true,
+          token = "token",
+          cubiksUserId = 111,
+          testUrl = "testUrl",
+          invitationDate = now,
+          participantScheduleId = 222
+        ))
+      )
+
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, phase2TestGroup = Some(input)
+      ).futureValue
+
+      phase2TestRepo.updateTestCompletionTime(111, now).futureValue
+      val result = phase2TestRepo.getTestProfileByCubiksId(111).futureValue
+      result.testGroup.tests.head.completedDateTime mustBe None
+    }
+  }
+
+  "Insert test result" should {
+    "correctly update a test group with results" in {
+       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS", needsSupportForOnlineAssessment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE2_TESTS_RESULTS_READY, true)),
+        phase2TestGroup = Some(testProfileWithAppId.testGroup)
+      ).futureValue
+
+
+      val testResult = model.persisted.TestResult(status = "completed", norm = "some norm",
+          tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
+
+      phase2TestRepo.insertTestResult("appId", testProfileWithAppId.testGroup.tests.head,
+        testResult
+      ).futureValue
+
+      val phase2TestGroup = phase2TestRepo.getTestGroup("appId").futureValue
+      phase2TestGroup.isDefined mustBe true
+      phase2TestGroup.foreach { profile =>
+        profile.tests.head.testResult.isDefined mustBe true
+        profile.tests.head.testResult.get mustBe testResult
+      }
+
+      val status = helperRepo.findProgress("appId").futureValue
+      status.phase2ProgressResponse.phase2TestsResultsReceived mustBe false
+
+    }
+  }
+
 }
