@@ -16,13 +16,13 @@
 
 package repositories
 
-import model.report.{TestResultsForOnlineTestPassMarkReportItem}
+import model.report.{ TestResultsForOnlineTestPassMarkReportItem }
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.CandidateTestReport
 import model.PersistedObjects.Implicits._
 import play.api.libs.json.Format
-import reactivemongo.api.{DB, ReadPreference}
-import reactivemongo.bson.{BSONDocument, BSONDouble, BSONObjectID}
+import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, BSONDouble, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -140,11 +140,11 @@ class TestReportMongoRepository(implicit mongo: () => DB)
   }
 
   private def reportQueryWithProjections[A](
-    query: BSONDocument,
-    prj: BSONDocument,
-    upTo: Int = Int.MaxValue,
-    stopOnError: Boolean = true
-  )(implicit reader: Format[A]): Future[List[A]] =
+                                             query: BSONDocument,
+                                             prj: BSONDocument,
+                                             upTo: Int = Int.MaxValue,
+                                             stopOnError: Boolean = true
+                                           )(implicit reader: Format[A]): Future[List[A]] =
     collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
 
   def remove(applicationId: String) = {

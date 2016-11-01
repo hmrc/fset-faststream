@@ -496,7 +496,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "scheme-preferences.schemes" -> "1",
       "assistance-details" -> "1",
       "testGroups" -> "1",
-      "progress-status" -> "2"
+      "progress-status" -> "1"
     )
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)

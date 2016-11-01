@@ -28,6 +28,7 @@ import model.persisted._
 import model.report._
 import model.{ CivilServiceExperienceType, InternshipType }
 import org.joda.time.DateTime
+import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
 
@@ -108,7 +109,7 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val progress: ProgressResponse = findProgress(doc, applicationId)
 
     CandidateProgressReportItem(applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
-      schemes.getOrElse(List.empty[SchemeType]), disability, onlineAdjustments, assessmentCentreAdjustments, gis, civilServant,
+      schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, gis, civilServant,
       fastTrack, edip, sdipPrevious, sdip, fastPassCertificate)
   }
 
@@ -171,15 +172,15 @@ trait GeneralApplicationRepoBSONToModelHelper {
     ApplicationForOnlineTestPassMarkReport(
       applicationId,
       ProgressStatusesReportLabels.progressStatusNameInReports(progress),
-      schemes.getOrElse(List.empty[SchemeType]),
+      schemes.getOrElse(Nil),
       disability,
       gis,
       onlineAdjustments,
       assessmentCentreAdjustments,
-      toTestResultsForOnlineTestPassMarkReportItem(doc))
+      toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId))
   }
 
-  private def toTestResultsForOnlineTestPassMarkReportItem(doc: BSONDocument) = {
+  private def toTestResultsForOnlineTestPassMarkReportItem(doc: BSONDocument, applicationId: String) = {
     import config.MicroserviceAppConfig._
 
     val testGroupsDoc = doc.getAs[BSONDocument]("testGroups")
@@ -201,9 +202,13 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val phase2DocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE2"))
     val etrayTestResult = phase2DocOpt.flatMap { phase2Doc =>
       val phase2TestProfile = Phase2TestGroup.bsonHandler.read(phase2Doc)
-      // TODO: review headOption
-      phase2TestProfile.activeTests.headOption.flatMap { phase2Test =>
-        phase2Test.testResult.map { tr => toTestResult(tr) }
+      phase2TestProfile.activeTests.size match {
+        case 1 => phase2TestProfile.activeTests.head.testResult.map { tr => toTestResult(tr) }
+        case 0 => None
+        case s if (s > 1) => {
+          Logger.error(s"There are $s active tests which is invalid for application id [$applicationId]")
+          None
+        }
       }
     }
     TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult)
