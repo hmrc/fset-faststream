@@ -30,6 +30,7 @@ object InProgressAssistanceDetailsStatusGenerator extends InProgressAssistanceDe
   override val adRepository = faststreamAssistanceDetailsRepository
 }
 
+// scalastyle:off method.length
 trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
   val adRepository: AssistanceDetailsRepository
 
@@ -58,14 +59,26 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
         } else {
           None
         }
+
+      val phoneInterviewAdjustmentsFinalValue = Random.bool
+      val phoneInterviewAdjustmentsDescriptionFinalValue =
+        if (phoneInterviewAdjustmentsFinalValue) {
+          Some("")
+        } else {
+          None
+        }
+
       AssistanceDetails(
         hasDisabilityFinalValue,
         hasDisabilityDescriptionFinalValue,
         gisFinalValue,
-        onlineAdjustmentsFinalValue,
+        Some(onlineAdjustmentsFinalValue),
         onlineAdjustmentsDescriptionFinalValue,
         Some(assessmentCentreAdjustmentsFinalValue),
-        assessmentCentreAdjustmentsDescriptionFinalValue)
+        assessmentCentreAdjustmentsDescriptionFinalValue,
+        Some(phoneInterviewAdjustmentsFinalValue),
+        phoneInterviewAdjustmentsDescriptionFinalValue
+      )
     }
 
     for {

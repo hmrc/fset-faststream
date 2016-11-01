@@ -22,10 +22,12 @@ import play.api.libs.json.Json
 case class AssistanceDetailsExchange(hasDisability: String,
                                      hasDisabilityDescription: Option[String],
                                      guaranteedInterview: Option[Boolean],
-                                     needsSupportForOnlineAssessment: Boolean,
+                                     needsSupportForOnlineAssessment: Option[Boolean],
                                      needsSupportForOnlineAssessmentDescription: Option[String],
                                      needsSupportAtVenue: Option[Boolean],
-                                     needsSupportAtVenueDescription: Option[String])
+                                     needsSupportAtVenueDescription: Option[String],
+                                     needsSupportForPhoneInterview: Option[Boolean],
+                                     needsSupportForPhoneInterviewDescription: Option[String])
 
 object AssistanceDetailsExchange {
   implicit val assistanceDetailsExchangeFormat = Json.format[AssistanceDetailsExchange]
