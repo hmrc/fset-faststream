@@ -71,11 +71,12 @@
     @if(WithdrawComponent.isAuthorized(user.get) && ApplicationData.isReadOnly(user.get.application.get.applicationStatus)) {
         <section>
             <h2 class="heading-large">
-                <span class="sectionTitle">Withdraw from the Fast Stream</span>
+                <span class="sectionTitle">Withdraw your application</span>
             </h2>
             <section>
-                <p>If you don't want to be considered for the Fast Stream, you can withdraw your application.</p>
-                <a id="withdraw-app" href="@routes.HomeController.presentWithdrawApplication()">Withdraw from the Fast Stream</a>
+                <p>If you no longer want to be considered, you can withdraw
+                    your application.</p>
+                <a id="withdraw-app" href="@routes.HomeController.presentWithdrawApplication()">Withdraw your application</a>
             </section>
         </section>
     }
