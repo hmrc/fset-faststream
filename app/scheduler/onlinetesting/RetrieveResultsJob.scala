@@ -24,7 +24,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object RetrieveResultsJob extends RetrieveResultsJob  with RetrieveResultsJobConfig {
+object RetrievePhase1ResultsJob extends RetrieveResultsJob  with RetrievePhase1ResultsJobConfig {
   val onlineTestingService = Phase1TestService
 }
 
@@ -45,16 +45,16 @@ trait RetrieveResultsJob extends SingleInstanceScheduledJob {
   }
 }
 
-trait RetrieveResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig] {
+trait RetrievePhase1ResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.retrieveResultsJobConfig
+  override val conf = config.MicroserviceAppConfig.retrievePhase1ResultsJobConfig
   override val configPrefix = "scheduling.online-testing.retrieve-phase1-results-job."
   override val name = "RetrieveResultsJob"
 }
 
 trait RetrievePhase2ResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.retrieveResultsJobConfig
+  override val conf = config.MicroserviceAppConfig.retrievePhase2ResultsJobConfig
   override val configPrefix = "scheduling.online-testing.retrieve-phase2-results-job."
   override val name = "RetrievePhase2ResultsJob"
 }
