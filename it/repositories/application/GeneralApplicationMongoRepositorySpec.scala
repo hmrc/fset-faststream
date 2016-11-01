@@ -48,7 +48,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(CandidateProgressReportItem(appId, Some("registered"),
+      result.head must be(CandidateProgressReportItem(appId, Some("submitted"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
         Some("No"), Some("No"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))
       )

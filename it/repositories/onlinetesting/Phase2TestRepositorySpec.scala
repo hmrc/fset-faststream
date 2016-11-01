@@ -57,12 +57,12 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     "exclude adjustment applications" in {
       createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = true,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((ProgressStatuses.PHASE1_TESTS_COMPLETED, true))
+        fastPassReceived = false, additionalProgressStatuses = List((ProgressStatuses.PHASE1_TESTS_PASSED, true))
       ).futureValue
 
       createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS_PASSED", needsAdjustment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((ProgressStatuses.PHASE1_TESTS_COMPLETED, true))
+        fastPassReceived = false, additionalProgressStatuses = List((ProgressStatuses.PHASE1_TESTS_PASSED, true))
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
