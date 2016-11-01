@@ -19,31 +19,42 @@ package scheduler.onlinetesting
 
 import config.WaitingScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.Phase1TestService
+import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object RetrieveResultsJob extends RetrieveResultsJob {
+object RetrievePhase1ResultsJob extends RetrieveResultsJob  with RetrievePhase1ResultsJobConfig {
   val onlineTestingService = Phase1TestService
 }
 
-trait RetrieveResultsJob extends SingleInstanceScheduledJob with RetrieveResultsJobConfig {
-  val onlineTestingService: Phase1TestService
+object RetrievePhase2ResultsJob extends RetrieveResultsJob  with RetrievePhase2ResultsJobConfig {
+  val onlineTestingService = Phase2TestService
+}
+
+trait RetrieveResultsJob extends SingleInstanceScheduledJob {
+  val onlineTestingService: OnlineTestService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextTestGroupWithReportReady.flatMap {
-      case Some(phase1TestProfile) =>
+      case Some(richTestGroup) =>
         implicit val hc = new HeaderCarrier()
-        onlineTestingService.retrieveTestResult(phase1TestProfile)
+        onlineTestingService.retrieveTestResult(richTestGroup)
       case None => Future.successful(())
     }
   }
 }
 
-trait RetrieveResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig] {
+trait RetrievePhase1ResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.retrieveResultsJobConfig
-  override val configPrefix = "scheduling.online-testing.retrieve-results-job."
+  override val conf = config.MicroserviceAppConfig.retrievePhase1ResultsJobConfig
+  override val configPrefix = "scheduling.online-testing.retrieve-phase1-results-job."
   override val name = "RetrieveResultsJob"
+}
+
+trait RetrievePhase2ResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  override val conf = config.MicroserviceAppConfig.retrievePhase2ResultsJobConfig
+  override val configPrefix = "scheduling.online-testing.retrieve-phase2-results-job."
+  override val name = "RetrievePhase2ResultsJob"
 }

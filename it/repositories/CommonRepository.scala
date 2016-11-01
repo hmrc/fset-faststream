@@ -50,7 +50,8 @@ trait CommonRepository {
       "applicationStatus" -> applicationStatus
     )).futureValue
 
-    val ad = AssistanceDetails("No", None, gis, needsSupportForOnlineAssessment = false, None, needsSupportAtVenue = Some(false), None)
+    val ad = AssistanceDetails("No", None, gis, needsSupportForOnlineAssessment = Some(false), None,
+      needsSupportAtVenue = Some(false), None, needsSupportForPhoneInterview = None, needsSupportForPhoneInterviewDescription = None)
     assistanceDetailsRepository.update(appId, appId, ad).futureValue
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
@@ -59,7 +60,7 @@ trait CommonRepository {
       phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t)).futureValue
       t.foreach { oneTest =>
         oneTest.testResult.foreach { result =>
-          phase1TestRepository.insertPhase1TestResult(appId, oneTest, result).futureValue
+          phase1TestRepository.insertTestResult(appId, oneTest, result).futureValue
         }
       }
       if (t.exists(_.testResult.isDefined)) {

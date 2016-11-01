@@ -44,7 +44,7 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
 
     def insertTests(applicationId: String, testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
       Future.sequence(testResults.map {
-        case (result, phase1Test) => otRepository.insertPhase1TestResult(applicationId,
+        case (result, phase1Test) => otRepository.insertTestResult(applicationId,
           phase1Test, model.persisted.TestResult.fromCommandObject(result)
         )
       }).map(_ => ())
