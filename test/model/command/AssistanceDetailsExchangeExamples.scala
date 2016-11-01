@@ -19,7 +19,8 @@ package model.command
 import model.exchange.AssistanceDetailsExchange
 
 object AssistanceDetailsExchangeExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetailsExchange("Yes", Some(""), Some(false), false, None, false, None)
-  val DisabilityGisAndAdjustments = AssistanceDetailsExchange("Yes", Some("disability description"), Some(true), true,
-    Some("online adjustment description"), true, Some("venue adjustment description"))
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetailsExchange("Yes", Some(""), Some(false), Some(false), None, Some(false),
+    None, None, None)
+  val DisabilityGisAndAdjustments = AssistanceDetailsExchange("Yes", Some("disability description"), Some(true), Some(true),
+    Some("online adjustment description"), Some(true), Some("venue adjustment description"), None, None)
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package report
+package model.report
 
 import model.report.MediaReportItem
 
