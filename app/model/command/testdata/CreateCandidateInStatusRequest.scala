@@ -56,4 +56,3 @@ object AssistanceDetailsRequest {
 object CreateCandidateInStatusRequest {
   implicit val createCandidateInStatusRequestFormat = Json.format[CreateCandidateInStatusRequest]
 }
-

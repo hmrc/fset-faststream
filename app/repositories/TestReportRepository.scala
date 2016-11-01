@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.report.PassMarkReportTestResults
+import model.report.{ TestResultsForOnlineTestPassMarkReportItem }
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.CandidateTestReport
 import model.PersistedObjects.Implicits._
@@ -32,7 +32,7 @@ import scala.concurrent.Future
 trait TestReportRepository {
   def saveOnlineTestReport(report: CandidateTestReport): Future[Unit]
 
-  def getOnlineTestReports: Future[Map[String, PassMarkReportTestResults]]
+  def getOnlineTestReports: Future[Map[String, TestResultsForOnlineTestPassMarkReportItem]]
 
   def getReportByApplicationId(applicationId: String): Future[Option[CandidateTestReport]]
 
@@ -84,7 +84,7 @@ class TestReportMongoRepository(implicit mongo: () => DB)
     }
   }
 
-  def getOnlineTestReports: Future[Map[String, PassMarkReportTestResults]] = {
+  def getOnlineTestReports: Future[Map[String, TestResultsForOnlineTestPassMarkReportItem]] = {
     val query = BSONDocument()
 
     val projection = BSONDocument(
@@ -115,7 +115,7 @@ class TestReportMongoRepository(implicit mongo: () => DB)
     }
   }
 
-  private def docToReport(document: BSONDocument): (String, PassMarkReportTestResults) = {
+  private def docToReport(document: BSONDocument): (String, TestResultsForOnlineTestPassMarkReportItem) = {
     def getTest(testName: String): Option[TestResult] = {
       val test = document.getAs[BSONDocument](testName)
       test.map { t =>
@@ -132,18 +132,19 @@ class TestReportMongoRepository(implicit mongo: () => DB)
 
     val applicationId = document.getAs[String]("applicationId").get
 
-    (applicationId, PassMarkReportTestResults(
+    (applicationId, TestResultsForOnlineTestPassMarkReportItem(
       getTest("behavioural"),
-      getTest("situational")
+      getTest("situational"),
+      None
     ))
   }
 
   private def reportQueryWithProjections[A](
-    query: BSONDocument,
-    prj: BSONDocument,
-    upTo: Int = Int.MaxValue,
-    stopOnError: Boolean = true
-  )(implicit reader: Format[A]): Future[List[A]] =
+                                             query: BSONDocument,
+                                             prj: BSONDocument,
+                                             upTo: Int = Int.MaxValue,
+                                             stopOnError: Boolean = true
+                                           )(implicit reader: Format[A]): Future[List[A]] =
     collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
 
   def remove(applicationId: String) = {

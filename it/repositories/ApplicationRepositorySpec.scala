@@ -26,7 +26,7 @@ import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import model.report.AdjustmentReport
+import model.report.AdjustmentReportItem
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -233,7 +233,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
       result mustBe a[List[_]]
       result must not be empty
-      result.head mustBe a[AdjustmentReport]
+      result.head mustBe a[AdjustmentReportItem]
       result.head.userId must not be empty
       result.head.applicationId must not be empty
     }
