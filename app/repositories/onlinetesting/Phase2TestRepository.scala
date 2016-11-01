@@ -22,11 +22,11 @@ import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted._
-import model.{ApplicationStatus, ProgressStatuses, ReminderNotice}
+import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.bson.{ BSONArray, BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -90,6 +90,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
           // No need to confirm adjustments and no gis
           BSONDocument("$and" -> BSONArray(
             BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
+            BSONDocument("assistance-details.needsSupportAtVenue" -> false),
             BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true)))),
           // Gis and adjustments-confirmed
           BSONDocument("$and" -> BSONArray(
@@ -97,9 +98,12 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
             BSONDocument("assistance-details.adjustments-confirmed" -> true))),
           // Non Invigilated etray with adjustments confirmed
           BSONDocument("$and" -> BSONArray(
-            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+            BSONDocument("$or" -> BSONArray(
+              BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+              BSONDocument("assistance-details.needsSupportAtVenue" -> true)
+            )),
             BSONDocument("assistance-details.adjustments-confirmed" -> true),
-            BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated"))
+            BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated")))
           ))
           // Invigilated etray with adjustments confirmed
           /*BSONDocument("$and" -> BSONArray(
@@ -111,7 +115,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
           // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver
           // functionality even if invigilated test functionality is not ready. In that case we will remove some code
         ))
-      ))
+      )
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, 50)
