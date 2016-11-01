@@ -261,12 +261,11 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
       require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
       val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
       activeTestsCompleted match {
-        case true =>
-          phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
-            DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
-          }
-        case false =>
-          Future.successful(List.empty[EventType])
+        case true => phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
+          DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
+        }
+
+        case false => Future.successful(List.empty[EventType])
       }
     }
   }

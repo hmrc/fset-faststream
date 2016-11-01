@@ -139,7 +139,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   def resetTests(application: OnlineTestApplication, testNamesToRemove: List[String], actionTriggeredBy: String)
                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
-      - <- registerAndInviteForTestGroup(application, testNamesToRemove)
+      _ <- registerAndInviteForTestGroup(application, testNamesToRemove)
     } yield {
       AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "tests" -> testNamesToRemove.mkString(","))) ::
         DataStoreEvents.OnlineExerciseReset(application.applicationId, actionTriggeredBy) ::

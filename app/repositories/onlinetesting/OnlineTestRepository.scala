@@ -24,7 +24,7 @@ import model.ProgressStatuses.ProgressStatus
 import model._
 import model.exchange.CubiksTestResultReady
 import model.persisted._
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
@@ -32,6 +32,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import reactivemongo.api.commands.UpdateWriteResult
 
 trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
@@ -98,10 +99,19 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
   }
 
   def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime) = {
+    import repositories.BSONDateTimeHandler
+    val query = BSONDocument(s"testGroups.$phaseName.expirationDate" -> BSONDocument("$gt" -> DateTime.now(DateTimeZone.UTC)))
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
     ))
-    findAndUpdateCubiksTest(cubiksUserId, update)
+
+    val errorActionHandler: Int => Unit = cubiksUserId => {
+      logger.warn(s"""Failed to update cubiks test: $cubiksUserId - test has expired or does not exist""")
+      ()
+    }
+
+
+    findAndUpdateCubiksTest(cubiksUserId, update, query, errorActionHandler)
   }
 
   def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady) = {
@@ -199,18 +209,24 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     selectOneRandom[TestGroup](query)
   }
 
-  private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument) = {
-    val find = BSONDocument(
+  private def defaultUpdateErrorHandler(cubiksUserId: Int) = {
+    logger.error(s"""Failed to update cubiks test: $cubiksUserId""")
+    throw cannotFindTestByCubiksId(cubiksUserId)
+  }
+
+  private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument, query: BSONDocument = BSONDocument(),
+    errorHandler: Int => Unit = defaultUpdateErrorHandler): Future[Unit] = {
+        val find = query ++ BSONDocument(
       s"testGroups.$phaseName.tests" -> BSONDocument(
         "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
       )
     )
+
     collection.update(find, update, upsert = false) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        logger.error(s"""Failed to update cubiks test: $cubiksUserId""")
-        throw cannotFindTestByCubiksId(cubiksUserId)
+      case lastError if lastError.nModified == 0 && lastError.n == 0 => errorHandler(cubiksUserId)
       case _ => ()
     }
+
   }
 
   def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {

@@ -163,7 +163,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
 
   private def testGroups(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup]): BSONDocument = {
     BSONDocument("PHASE1" -> p1.map(Phase1TestProfile.bsonHandler.write),
-    "PHASE2" -> p2.map(Phase2TestGroup.bsonHandler.write))
+      "PHASE2" -> p2.map(Phase2TestGroup.bsonHandler.write))
   }
 
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
