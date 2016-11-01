@@ -1,8 +1,8 @@
 package repositories.onlinetesting
 
 import java.util.UUID
-
-import model.persisted.{ CubiksTest, Phase2TestGroup }
+import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
+import model.ProgressStatuses._
 import org.joda.time.{ DateTime, DateTimeZone }
 import testkit.MongoRepositorySpec
 
@@ -24,6 +24,13 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   )
 
   val TestProfile = Phase2TestGroup(expirationDate = DatePlus7Days, tests = List(phase2Test))
+  val testProfileWithAppId = Phase2TestGroupWithAppId(
+    "appId",
+    TestProfile.copy(tests = List(
+                       phase2Test.copy(usedForResults = true, resultsReadyToDownload = true),
+                       phase2Test.copy(usedForResults = true, resultsReadyToDownload = true))
+    )
+  )
 
   "Get online test" must {
     "return None if there is no test for the specific user id" in {
@@ -104,4 +111,34 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       result.get.tests mustBe input.tests
     }
   }
+
+  "Insert test result" should {
+    "correctly update a test group with results" in {
+       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS", needsAdjustment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE2_TESTS_RESULTS_READY, true)),
+        phase2TestGroup = Some(testProfileWithAppId.testGroup)
+      ).futureValue
+
+
+      val testResult = model.persisted.TestResult(status = "completed", norm = "some norm",
+          tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
+
+      phase2TestRepo.insertTestResult("appId", testProfileWithAppId.testGroup.tests.head,
+        testResult
+      ).futureValue
+
+      val phase2TestGroup = phase2TestRepo.getTestGroup("appId").futureValue
+      phase2TestGroup.isDefined mustBe true
+      phase2TestGroup.foreach { profile =>
+        profile.tests.head.testResult.isDefined mustBe true
+        profile.tests.head.testResult.get mustBe testResult
+      }
+
+      val status = helperRepo.findProgress("appId").futureValue
+      status.phase2ProgressResponse.phase2TestsResultsReceived mustBe false
+
+    }
+  }
+
 }

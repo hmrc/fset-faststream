@@ -17,12 +17,10 @@
 package model.persisted
 
 import model.Commands.{PhoneAndEmail, ReportWithPersonalDetails}
-import model.OnlineTestCommands.TestResult
 import play.api.libs.json.Json
 import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
-import model.persisted.{CivilServiceExperienceDetailsForDiversityReport, Media}
 
 case class ApplicationForDiversityReport(applicationId: String,
                                              userId: String,
