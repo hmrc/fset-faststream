@@ -920,22 +920,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   def confirmAdjustmentNew(applicationId: String, data: AdjustmentManagementNew): Future[Unit] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
-    /*val etrayAdjustment = data.etray.map(i => )
 
-    val etrayTimeAdjustment = data.etrayTimeNeeded.map(i => BSONDocument("assistance-details.etrayTimeAdjustmentPercentage" -> i))
-      .getOrElse(BSONDocument.empty)
-    val eTrayInvigilatedAdjustment = data.etrayInvigilatedInfo.map(i => BSONDocument("assistance-details.etrayInvigilatedInfo" -> i))
-      .getOrElse(BSONDocument.empty)
-    val eTrayOtherAdjustment = data.etrayOtherInfo.map(i => BSONDocument("assistance-details.etrayOtherInfo" -> i))
-      .getOrElse(BSONDocument.empty)
+    val resetExerciseAdjustmentsBSON = BSONDocument("$unset" -> BSONDocument(
+      "assistance-details.etray" -> "",
+      "assistance-details.video" -> ""
+    ))
 
-    val videoTimeAdjustment = data.videoTimeNeeded.map(i => BSONDocument("assistance-details.videoTimeAdjustmentPercentage" -> i))
-      .getOrElse(BSONDocument.empty)
-    val videoInvigilatedAdjustment = data.videoInvigilatedInfo.map(i => BSONDocument("assistance-details.videoInvigilatedInfo" -> i))
-      .getOrElse(BSONDocument.empty)
-    val videoOtherAdjustment = data.videoOtherInfo.map(i => BSONDocument("assistance-details.videoOtherInfo" -> i))
-      .getOrElse(BSONDocument.empty)
-*/
     val adjustmentsConfirmationBSON = BSONDocument("$set" -> BSONDocument(
       "assistance-details.typeOfAdjustments" -> data.adjustments.getOrElse(List.empty[String]),
       "assistance-details.adjustments-confirmed" -> true,
@@ -943,9 +933,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "assistance-details.video" -> data.video
     ))
 
-    collection.update(query, adjustmentsConfirmationBSON, upsert = false) map { _ => }
+    collection.update(query, resetExerciseAdjustmentsBSON).flatMap{ result =>
+      collection.update(query, adjustmentsConfirmationBSON, upsert = false)
+    } map(_ => ())
   }
-
 
   def rejectAdjustment(applicationId: String): Future[Unit] = {
 

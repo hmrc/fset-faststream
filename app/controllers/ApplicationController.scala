@@ -98,7 +98,7 @@ trait ApplicationController extends BaseController {
   def confirmAdjustment(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[AdjustmentManagementNew] { data =>
       data.adjustments match {
-        case Some(list) if list.nonEmpty =>
+        case Some(list) /*if list.nonEmpty*/ =>
           appRepository.confirmAdjustmentNew(applicationId, data).map { _ =>
             auditService.logEvent("AdjustmentsConfirmed")
             Ok
