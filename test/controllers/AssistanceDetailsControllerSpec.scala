@@ -75,20 +75,20 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
-      content must include("Will you need extra support?")
+      content must include("Will you need any extra support for your phone interview?")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
     }
 
     "load edip assistance details page for the already created assistance details" in new TestFixture {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.EdipAdjustments))
 
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
 
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
-      content must include("Will you need extra support?")
+      content must include("Will you need any extra support for your phone interview?")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content must include("Some adjustment")
     }

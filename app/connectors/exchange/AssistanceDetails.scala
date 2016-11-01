@@ -19,13 +19,17 @@ package connectors.exchange
 import play.api.libs.json.Json
 
 
-case class AssistanceDetails(hasDisability: String,
-                             hasDisabilityDescription: Option[String],
-                             guaranteedInterview: Option[Boolean],
-                             needsSupportForOnlineAssessment: Boolean,
-                             needsSupportForOnlineAssessmentDescription: Option[String],
-                             needsSupportAtVenue: Option[Boolean],
-                             needsSupportAtVenueDescription: Option[String])
+final case class AssistanceDetails(
+  hasDisability: String,
+  hasDisabilityDescription: Option[String],
+  guaranteedInterview: Option[Boolean],
+  needsSupportForOnlineAssessment: Option[Boolean],
+  needsSupportForOnlineAssessmentDescription: Option[String],
+  needsSupportAtVenue: Option[Boolean],
+  needsSupportAtVenueDescription: Option[String],
+  needsSupportForPhoneInterview: Option[Boolean],
+  needsSupportForPhoneInterviewDescription: Option[String]
+)
 
 object AssistanceDetails {
   implicit val assistanceDetailsFormat = Json.format[AssistanceDetails]

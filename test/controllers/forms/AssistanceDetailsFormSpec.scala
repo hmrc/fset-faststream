@@ -19,7 +19,6 @@ package controllers.forms
 import controllers.BaseSpec
 import forms.AssistanceDetailsForm
 import forms.AssistanceDetailsForm.Data
-import models.ApplicationRoute
 import play.api.data.Form
 
 class AssistanceDetailsFormSpec extends BaseSpec {
@@ -52,11 +51,27 @@ class AssistanceDetailsFormSpec extends BaseSpec {
       ), AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "needsSupportAtVenue")
     }
 
-    "be valid when venue adjustments are not selected for an edip application" in new Fixture {
-      val requestParams = (AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "needsSupportAtVenue") +
-        ("applicationRoute" -> ApplicationRoute.Edip.toString)
+    "be valid for an edip application" in new Fixture {
+      AssistanceDetailsForm.form.bind(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsEdipMap).hasErrors mustBe false
+    }
 
-      AssistanceDetailsForm.form.bind(requestParams).hasErrors mustBe false
+    "be invalid edip application when adjustments are not selected for phone interview" in new Fixture {
+      val invalidRequest = AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsEdipMap - "needsSupportForPhoneInterview"
+      assertFormError(Seq(
+        "Tell us if you need extra support for your phone interview"
+      ), invalidRequest)
+    }
+
+    "be valid when application route is not selected" in new Fixture {
+      val request = AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "applicationRoute"
+      AssistanceDetailsForm.form.bind(request).hasErrors mustBe false
+    }
+
+    "be valid when application route and adjustments are not selected" in new Fixture {
+      val invalidRequest = AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "applicationRoute" - "needsSupportForOnlineAssessment"
+      assertFormError(Seq(
+        "Tell us if you will need extra support for your online tests"
+      ), invalidRequest)
     }
   }
 

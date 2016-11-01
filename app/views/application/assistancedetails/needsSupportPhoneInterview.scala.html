@@ -1,0 +1,32 @@
+@(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit lang: play.api.i18n.Lang, user: Option[CachedData])
+
+@import security.RoleUtils._
+@import models.CachedData
+@import helpers.CSRFieldConstructor._
+@import views.html.widgets.radioBoxHorizontal
+
+
+<section>
+    <fieldset class="form-group">
+        <legend class="form-label">Will you need any extra support for your phone interview?</legend>
+        @radioBoxHorizontal(form("needsSupportForPhoneInterview"), options = List(("yes", "Yes", true), ("no", "No", false)),
+            optionTrigger = "needsSupportForOnlineAssessment-describe")
+        <div id="needsSupportForOnlineAssessment-describe" class="toggle-content" aria-hidden="true">
+            <div class="form-group">
+                @helper.textarea(form("needsSupportForPhoneInterviewDescription"),
+                    '_label -> "What adjustments will you need?",
+                    'class -> "form-control",
+                    'rows -> 4,
+                    'dataValLengthMax -> "2048",
+                    '_showConstraints -> false)
+                <span class="visuallyhidden aria-limit" aria-live="polite"></span>
+            </div>
+            <div class="panel-indent text">
+                <p>If you want to talk about your adjustment needs in more detail,
+                    <a id="contactUsForPhoneInterview" href="@routes.ApplicationController.helpdesk()" class="">please contact us</a>.</p>
+                <p>It's important you let us know this information now, as there won't
+                    be another opportunity to do this unless your situation changes.</p>
+            </div>
+        </div>
+    </fieldset>
+</section>

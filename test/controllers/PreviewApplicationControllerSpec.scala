@@ -52,13 +52,15 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     }
 
     "load preview page for existing edip application" in new TestFixture {
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.EdipAdjustments))
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Check your application")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content mustNot include("""<ul id="schemePreferenceList" class="list-text">""")
-      content must include("Will you need extra support?")
+      content must include("Will you need any extra support for your phone interview?")
     }
 
     "redirect to home page with error when personal details cannot be found" in new TestFixture {

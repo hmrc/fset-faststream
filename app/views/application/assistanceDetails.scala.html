@@ -1,6 +1,6 @@
 @(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@import views.html.application.assistancedetails.{hasDisability, needsSupportOnlineAssessments, needsSupportAtVenue}
+@import views.html.application.assistancedetails.{hasDisability, needsSupportOnlineAssessments, needsSupportAtVenue, needsSupportPhoneInterview}
 @import views.html.widgets.{pageProgress, saveAndContinueButton}
 @import security.RoleUtils._
 @import models.ApplicationRoute._
@@ -16,9 +16,11 @@
         <input type="hidden" id="applicationRoute" name="applicationRoute" value="@applicationRoute" />
         @helper.CSRF.formField
         @hasDisability(form)
-        @needsSupportOnlineAssessments(form)
         @if(!isEdip(user)) {
+            @needsSupportOnlineAssessments(form)
             @needsSupportAtVenue(form)
+        } else {
+            @needsSupportPhoneInterview(form)
         }
         @saveAndContinueButton()
     }

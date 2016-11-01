@@ -1,32 +1,22 @@
-@(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit lang: play.api.i18n.Lang, user: Option[CachedData])
+@(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit lang: play.api.i18n.Lang)
 
-@import security.RoleUtils._
-@import models.CachedData
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.radioBoxHorizontal
 
-@displayExtraSupportLabel = @{
-    if(isEdip(user)) {
-        <legend class="form-label">Will you need extra support?</legend>
-    } else {
-        <legend class="form-label">Will you need extra support for your online tests?</legend>
-        <p class="form-hint">This includes the e-tray and the video interview</p>
-    }
-}
-
 <section>
     <fieldset class="form-group">
-        @displayExtraSupportLabel
+        <legend class="form-label">Will you need extra support for your online tests?</legend>
+        <p class="form-hint">This includes the e-tray and the video interview</p>
         @radioBoxHorizontal(form("needsSupportForOnlineAssessment"), options = List(("yes", "Yes", true), ("no", "No", false)),
-            optionTrigger = "needsSupportForOnlineAssessment-describe")
+        optionTrigger = "needsSupportForOnlineAssessment-describe")
         <div id="needsSupportForOnlineAssessment-describe" class="toggle-content" aria-hidden="true">
             <div class="form-group">
                 @helper.textarea(form("needsSupportForOnlineAssessmentDescription"),
-                    '_label -> "What adjustments will you need?",
-                    'class -> "form-control",
-                    'rows -> 4,
-                    'dataValLengthMax -> "2048",
-                    '_showConstraints -> false)
+                '_label -> "What adjustments will you need?",
+                'class -> "form-control",
+                'rows -> 4,
+                'dataValLengthMax -> "2048",
+                '_showConstraints -> false)
                 <span class="visuallyhidden aria-limit" aria-live="polite"></span>
             </div>
             <div class="panel-indent text">
