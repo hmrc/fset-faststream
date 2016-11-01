@@ -23,12 +23,15 @@ import connectors.CSREmailClient
 import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest, RegisterApplicantResponse }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.events.{ AuditEvents, DataStoreEvents }
+import model.command.{ Phase3ProgressResponse, ProgressResponse }
+import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.events.AuditEvents.VideoInterviewRegistrationAndInviteComplete
-import model.persisted.ContactDetails
+import model.events.EventTypes.{ EventType, Events }
+import model.persisted.{ ContactDetails, Event }
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.{ Address, ApplicationStatus }
 import org.joda.time.DateTime
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -49,14 +52,14 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
   "Register and invite for multiple applicants (batch invite)" should {
     "throw a not implemented error" in new Phase3TestServiceFixture {
-      val ex = phase3TestService.registerAndInviteForTestGroup(List()).failed.futureValue
+      val ex = phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(List()).failed.futureValue
       ex.getCause mustBe a[NotImplementedError]
     }
   }
 
   "Register and Invite an applicant" should {
     "send audit events" in new Phase3TestServiceFixture {
-      phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
       verifyDataStoreEvents(3,
         List("VideoInterviewCandidateRegistered",
@@ -72,10 +75,10 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     }
 
     "insert a valid test group" in new Phase3TestServiceFixture {
-      phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
       verify(p3TestRepositoryMock).insertOrUpdateTestGroup(eqTo(onlineTestApplication.applicationId), eqTo(Phase3TestGroup(
-        testExpiryTime,
+        expectedFromNowExpiryTime,
         List(
           testPhase3Test
         ),
@@ -84,7 +87,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     }
 
     "call the register and invite methods of the launchpad gateway only once and with the correct arguments" in new Phase3TestServiceFixture {
-      phase3TestService.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
       verify(launchpadGatewayClientMock).registerApplicant(eqTo(
         RegisterApplicantRequest(
@@ -104,6 +107,49 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
           s"http://www.foo.com/test/interview/fset-fast-stream/phase3-tests/complete/$expectedCustomInviteId"
         )
       ))
+    }
+  }
+
+  "extend a test group's expiry" should {
+    "throw IllegalStateException when there is no test group" in new Phase3TestServiceFixture {
+      phase3TestServiceNoTestGroup.extendTestGroupExpiryTime("a", 1, "1").failed.futureValue mustBe an[IllegalStateException]
+
+      verify(launchpadGatewayClientMock, times(0)).extendDeadline(any())
+      verify(p3TestRepositoryMock, times(0)).updateGroupExpiryTime(any(), any(), any())
+      verifyAuditEvents(0)
+      verifyDataStoreEvents(0)
+    }
+
+    "extend a test group from the current time if it's expired" in new Phase3TestServiceFixture {
+      val daysToExtend = 7
+      phase3TestServiceWithExpiredTestGroup.extendTestGroupExpiryTime("a", daysToExtend, "A N User").futureValue
+
+      val launchpadRequestCaptor = ArgumentCaptor.forClass(classOf[ExtendDeadlineRequest])
+      val repositoryDateCaptor = ArgumentCaptor.forClass(classOf[DateTime])
+
+      verify(launchpadGatewayClientMock, times(1)).extendDeadline(launchpadRequestCaptor.capture)
+      verify(p3TestRepositoryMock, times(1)).updateGroupExpiryTime(any(), repositoryDateCaptor.capture, any())
+      verifyAuditEvents(1, "VideoInterviewExtended")
+      verifyDataStoreEvents(1, "VideoInterviewExtended")
+
+      launchpadRequestCaptor.getValue.newDeadline mustBe expectedFromNowExpiryTime.toLocalDate
+      repositoryDateCaptor.getValue mustBe expectedFromNowExpiryTime
+    }
+
+    "extend a test group from its expiry time if it's not expired" in new Phase3TestServiceFixture {
+      val daysToExtend = 7
+      phase3TestServiceWithUnexpiredTestGroup.extendTestGroupExpiryTime("a", daysToExtend, "A N User").futureValue
+
+      val launchpadRequestCaptor = ArgumentCaptor.forClass(classOf[ExtendDeadlineRequest])
+      val repositoryDateCaptor = ArgumentCaptor.forClass(classOf[DateTime])
+
+      verify(launchpadGatewayClientMock, times(1)).extendDeadline(launchpadRequestCaptor.capture)
+      verify(p3TestRepositoryMock, times(1)).updateGroupExpiryTime(any(), repositoryDateCaptor.capture, any())
+      verifyAuditEvents(1, "VideoInterviewExtended")
+      verifyDataStoreEvents(1, "VideoInterviewExtended")
+
+      launchpadRequestCaptor.getValue.newDeadline mustBe expectedFromExistingExpiryExpiryTime.toLocalDate
+      repositoryDateCaptor.getValue mustBe expectedFromExistingExpiryExpiryTime
     }
   }
 
@@ -138,7 +184,10 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
     val testInterviewId = 123
     val testTimeNow = DateTime.parse("2016-10-01T00:00:01Z")
-    val testExpiryTime = testTimeNow.plusDays(7)
+    val unexpiredTestExpiryTime = DateTime.parse("2016-11-01T00:00:01Z")
+    val expectedFromNowExpiryTime = testTimeNow.plusDays(7)
+    val expectedFromExistingExpiryExpiryTime = unexpiredTestExpiryTime.plusDays(7)
+    val testExpiredTime = testTimeNow.minusDays(3)
     val testLaunchpadCandidateId = "CND_123"
     val testFaststreamCustomCandidateId = "FSCND_456"
     val testInviteId = "INV_123"
@@ -200,24 +249,71 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       ))
     }
 
-    when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
-
-    when(p3TestRepositoryMock.insertOrUpdateTestGroup(any(), any())).thenReturn(Future.successful(()))
-
-    when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
-
-    val phase3TestService = new Phase3TestService {
-      val appRepository = appRepositoryMock
-      val phase3TestRepo = p3TestRepositoryMock
-      val cdRepository = cdRepositoryMock
-      val launchpadGatewayClient = launchpadGatewayClientMock
-      val tokenFactory = tokenFactoryMock
-      val dateTimeFactory = dateTimeFactoryMock
-      val emailClient = emailClientMock
-      val auditService = auditServiceMock
-      val gatewayConfig = gatewayConfigMock
-      val eventService = eventServiceMock
+    lazy val phase3TestServiceNoTestGroup = mockService {
+      when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
+      when(p3TestRepositoryMock.insertOrUpdateTestGroup(any(), any())).thenReturn(Future.successful(()))
+      when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
+        ProgressResponse("appId")
+        ))
     }
+
+    lazy val phase3TestServiceWithUnexpiredTestGroup = mockService {
+      when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(Some(
+        Phase3TestGroup(
+          unexpiredTestExpiryTime,
+          List(
+            testPhase3Test
+          ),
+          None
+        )
+      )))
+      when(p3TestRepositoryMock.updateGroupExpiryTime(any(), any(), any())).thenReturn(Future.successful(()))
+      when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
+      when(launchpadGatewayClientMock.extendDeadline(any())).thenReturn(Future.successful(()))
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
+        ProgressResponse("appId")
+      ))
+    }
+
+    lazy val phase3TestServiceWithExpiredTestGroup = mockService {
+      when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(Some(
+        Phase3TestGroup(
+          testExpiredTime,
+          List(
+            testPhase3Test
+          ),
+          None
+        )
+      )))
+      when(p3TestRepositoryMock.updateGroupExpiryTime(any(), any(), any())).thenReturn(Future.successful(()))
+      when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
+      when(launchpadGatewayClientMock.extendDeadline(any())).thenReturn(Future.successful(()))
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
+        ProgressResponse(
+          "appId",
+          phase3ProgressResponse = Phase3ProgressResponse(
+            phase3TestsExpired = true
+          )
+        )
+      ))
+    }
+
+      def mockService(mockSetup: => Unit): Phase3TestService = {
+        mockSetup
+        new Phase3TestService {
+          val appRepository = appRepositoryMock
+          val phase3TestRepo = p3TestRepositoryMock
+          val cdRepository = cdRepositoryMock
+          val launchpadGatewayClient = launchpadGatewayClientMock
+          val tokenFactory = tokenFactoryMock
+          val dateTimeFactory = dateTimeFactoryMock
+          val emailClient = emailClientMock
+          val auditService = auditServiceMock
+          val gatewayConfig = gatewayConfigMock
+          val eventService = eventServiceMock
+        }
+      }
   }
 
 }
