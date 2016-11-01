@@ -27,7 +27,7 @@ object AssistanceDetailsForm {
     requestParams.getOrElse("applicationRoute", Faststream.toString) == Faststream.toString
 
   val isEdip = (requestParams: Map[String, String]) =>
-    requestParams.getOrElse("applicationRoute", Edip.toString) == Edip.toString
+    requestParams.getOrElse("applicationRoute", Faststream.toString) == Edip.toString
 
   val form = Form(
     mapping(
