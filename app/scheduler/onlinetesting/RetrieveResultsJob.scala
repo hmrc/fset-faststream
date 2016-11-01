@@ -48,7 +48,7 @@ trait RetrieveResultsJob extends SingleInstanceScheduledJob {
 trait RetrieveResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
   override val conf = config.MicroserviceAppConfig.retrieveResultsJobConfig
-  override val configPrefix = "scheduling.online-testing.retrieve-results-job."
+  override val configPrefix = "scheduling.online-testing.retrieve-phase1-results-job."
   override val name = "RetrieveResultsJob"
 }
 
