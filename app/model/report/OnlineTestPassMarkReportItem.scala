@@ -23,50 +23,20 @@ import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
 import model.report.QuestionnaireReportItem
+import model.report.TestResultsForOnlineTestPassMarkReportItem._
 
 case class OnlineTestPassMarkReportItem(
                            application: ApplicationForOnlineTestPassMarkReportItem,
                            questionnaire: QuestionnaireReportItem)
 
-case class ApplicationForOnlineTestPassMarkReportItem(applicationId: String,
-                                                      schemes: List[SchemeType],
-                                                      disability: Option[String],
-                                                      gis: Option[Boolean],
-                                                      onlineAdjustments: Option[String],
-                                                      assessmentCentreAdjustments: Option[String],
-                                                      testResults: PassMarkReportTestResults)
-
-case class PassMarkReportTestResults(
-                                      behavioural: Option[TestResult],
-                                      situational: Option[TestResult]
-                                    )
-
 case class PassMarkReportWithPersonalData(application: ReportWithPersonalDetails,
-                                          testResults: PassMarkReportTestResults,
+                                          testResults: TestResultsForOnlineTestPassMarkReportItem,
                                           contactDetails: PhoneAndEmail)
-
-
-
-
-
-
-object PassMarkReportTestResults {
-  implicit val passMarkReportTestDataFormat = Json.format[PassMarkReportTestResults]
-}
 
 object PassMarkReportWithPersonalData {
   implicit val passMarkReportWithPersonalDetailsFormat = Json.format[PassMarkReportWithPersonalData]
 }
 
-
-object ApplicationForOnlineTestPassMarkReportItem {
-  implicit val applicationForOnlineTestReportItemFormat = Json.format[ApplicationForOnlineTestPassMarkReportItem]
-}
-
 object OnlineTestPassMarkReportItem {
   implicit val onlineTestPassMarkReportFormat = Json.format[OnlineTestPassMarkReportItem]
 }
-
-
-
-
