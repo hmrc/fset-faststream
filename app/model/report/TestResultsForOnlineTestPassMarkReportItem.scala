@@ -16,14 +16,16 @@
 
 package model.report
 
-import model.SchemeType.SchemeType
+import model.OnlineTestCommands.TestResult
 import play.api.libs.json.Json
+import model.OnlineTestCommands.Implicits._
 
-case class CandidateProgressReport(applicationId: String, progress: Option[String], schemes: List[SchemeType],
-  disability: Option[String], onlineAdjustments: Option[String], assessmentCentreAdjustments: Option[String], gis: Option[String],
-  civilServant: Option[String], fastTrack: Option[String], edip: Option[String], sdipPrevious: Option[String], sdip: Option[String],
-  fastPassCertificate: Option[String])
+case class TestResultsForOnlineTestPassMarkReportItem(
+                                                      behavioural: Option[TestResult],
+                                                      situational: Option[TestResult],
+                                                      etray: Option[TestResult]
+                                                    )
 
-object CandidateProgressReport {
-  implicit val candidateProgressReportFormat = Json.format[CandidateProgressReport]
+object TestResultsForOnlineTestPassMarkReportItem {
+  implicit val testResultsForOnlineTestPassMarkReportItemFormat = Json.format[TestResultsForOnlineTestPassMarkReportItem]
 }

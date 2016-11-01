@@ -16,9 +16,23 @@
 
 package model.report
 
+import model.OnlineTestCommands.TestResult
 import model.report.MediaReportItem
 
-object MediaReportItemExamples {
-  val Example1 = MediaReportItem("GOV.UK or Civil Service Jobs")
-  val Example2 = MediaReportItem("Friend in the Fast Stream")
+import scala.util.Random
+
+object TestResultsForOnlineTestPassMarkReportItemExamples {
+
+  lazy val testResults1 = newTestResults
+  lazy val testResults2 = newTestResults
+
+
+  private def someDouble = Some(Random.nextDouble())
+
+  def newTestResult = TestResult("Completed", "Example Norm", someDouble, someDouble, someDouble, someDouble)
+
+  def maybe[A](value: => A) = if (Random.nextBoolean()) Some(value) else None
+
+  def newTestResults =
+    TestResultsForOnlineTestPassMarkReportItem(maybe(newTestResult), maybe(newTestResult), maybe(newTestResult))
 }

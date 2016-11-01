@@ -16,11 +16,12 @@
 
 package model.command
 
+import model.ApplicationRoute.ApplicationRoute
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
 
-case class ApplicationStatusDetails(status: String, statusDate: Option[DateTime] = None)
+case class ApplicationStatusDetails(status: String, applicationRoute: ApplicationRoute, statusDate: Option[DateTime] = None)
 
 object ApplicationStatusDetails {
   implicit val applicationStatusDetailsFormat = Json.format[ApplicationStatusDetails]
