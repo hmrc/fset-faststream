@@ -115,6 +115,10 @@ trait SearchForApplicantService {
           None,
           None,
           None,
+          None,
+          // In this level we cannot say if the candidate's application exist, so it set to None
+          // If the application does not exist, the candidate is Faststream
+          // otherwise applicationRoute is saved in application
           None
         )
       )

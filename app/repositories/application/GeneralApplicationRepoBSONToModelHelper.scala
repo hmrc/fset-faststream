@@ -16,19 +16,19 @@
 
 package repositories.application
 
-import model.ApplicationStatus.{apply => _, _}
+import model.ApplicationStatus.{ apply => _, _ }
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocation
-import model.CivilServiceExperienceType.{CivilServiceExperienceType, apply => _, _}
-import model.Commands.{Candidate, _}
-import model.InternshipType.{InternshipType, apply => _}
+import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _, _ }
+import model.Commands._
+import model.InternshipType.{ InternshipType, apply => _ }
 import model.OnlineTestCommands.TestResult
 import model.SchemeType._
 import model.command.ProgressResponse
-import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, CivilServiceExperienceDetailsForDiversityReport, Phase1TestProfile}
+import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, CivilServiceExperienceDetailsForDiversityReport, Phase1TestProfile }
 import model.report._
-import model.{CivilServiceExperienceType, InternshipType}
-import org.joda.time.{DateTime, LocalDate}
-import reactivemongo.bson.{BSONDocument, _}
+import model.{ CivilServiceExperienceType, InternshipType }
+import org.joda.time.DateTime
+import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
 
 
@@ -107,21 +107,9 @@ trait GeneralApplicationRepoBSONToModelHelper {
     val applicationId = doc.getAs[String]("applicationId").getOrElse("")
     val progress: ProgressResponse = findProgress(doc, applicationId)
 
-    CandidateProgressReport(applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)), schemes.getOrElse(List.empty[SchemeType]), disability, onlineAdjustments,
+    CandidateProgressReport(applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
+      schemes.getOrElse(List.empty[SchemeType]), disability, onlineAdjustments,
       assessmentCentreAdjustments, gis, civilServant, fastTrack, edip, sdipPrevious, sdip, fastPassCertificate)
-  }
-
-  def toCandidate(doc: BSONDocument): Candidate = {
-    val userId = doc.getAs[String]("userId").getOrElse("")
-    val applicationId = doc.getAs[String]("applicationId")
-
-    val psRoot = doc.getAs[BSONDocument]("personal-details")
-    val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
-    val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
-    val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
-    val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
-
-    Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None)
   }
 
   def toCivilServiceExperienceDetailsReportItem(optDoc: Option[BSONDocument]): Option[CivilServiceExperienceDetailsForDiversityReport] = {

@@ -227,7 +227,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   implicit val readerPD = bsonReader(bsonToModelHelper.toReportWithPersonalDetails(findProgress))
   implicit val readerTPM = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReportItem)
-  implicit val readerCandidate = bsonReader(bsonToModelHelper.toCandidate)
+  implicit val readerCandidate = bsonReader(toCandidate)
   implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReport(findProgress))
   implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport(findProgress))
 
@@ -269,18 +269,25 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument("applicationStatus" -> 1, "progress-status-timestamp" -> 1, "progress-status-dates" -> 1, "_id" -> 0)
+    val projection = BSONDocument(
+      "applicationStatus" -> 1,
+      "progress-status-timestamp" -> 1,
+      "progress-status-dates" -> 1,
+      "applicationRoute" -> 1,
+      "_id" -> 0
+    )
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) =>
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val progressStatusTimeStamp = document.getAs[BSONDocument]("progress-status-timestamp")
           .flatMap(_.getAs[DateTime](applicationStatus))
           .orElse(
             document.getAs[BSONDocument]("progress-status-dates")
               .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))
           )
-        ApplicationStatusDetails(applicationStatus, progressStatusTimeStamp)
+        ApplicationStatusDetails(applicationStatus, applicationRoute, progressStatusTimeStamp)
 
       case None => throw ApplicationNotFound(applicationId)
     }
