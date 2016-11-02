@@ -119,11 +119,12 @@ case class PersonalData(
 object PersonalData {
   def apply(o: model.exchange.testdata.PersonalDataRequest, generatorId: Int): PersonalData = {
     val default = PersonalData()
+    val fname = o.firstName.getOrElse(Random.getFirstname(generatorId))
     PersonalData(
-      emailPrefix = o.emailPrefix.getOrElse(s"tesf${Random.number()}-${generatorId}@mailinator.com"),
-      firstName = o.firstName.getOrElse(Random.getFirstname(generatorId)),
+      emailPrefix = o.emailPrefix.getOrElse(s"tesf${Random.number()}-${generatorId}"),
+      firstName = fname,
       lastName = o.lastName.getOrElse(Random.getLastname(generatorId)),
-      preferredName = o.preferedName.getOrElse(s"Pref${Random.getFirstname(generatorId)}"),
+      preferredName = o.preferedName.getOrElse(s"Pref${fname}"),
       dob = o.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))).getOrElse(default.dob),
       postCode = o.postCode.getOrElse(default.postCode),
       country = o.country.getOrElse(default.country)
@@ -140,7 +141,7 @@ case class StatusData(
 
 object StatusData {
   def apply(o: model.exchange.testdata.StatusDataRequest): StatusData = {
-    StatusData(applicationStatus = o.applicationRoute.map(ApplicationStatus.withName).getOrElse(ApplicationStatus.REGISTERED),
+    StatusData(applicationStatus = ApplicationStatus.withName(o.applicationStatus),
       previousApplicationStatus = o.previousApplicationStatus.map(ApplicationStatus.withName),
       progressStatus = o.progressStatus.map(ProgressStatuses.nameToProgressStatus),
       applicationRoute = o.applicationRoute.map(ApplicationRoute.withName).getOrElse(ApplicationRoute.Faststream)

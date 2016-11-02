@@ -30,7 +30,7 @@ import model.exchange.testdata._
 import model.command.testdata.{ GeneratorConfig, PersonalData, StatusData }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.Play
+import play.api.{ Logger, Play }
 import play.api.libs.json.{ JsObject, JsString, Json }
 import play.api.mvc.{ Action, RequestHeader }
 import services.testdata._

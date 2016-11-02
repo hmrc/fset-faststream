@@ -91,8 +91,8 @@ object StatusDataRequest{
 }
 
 
-case class CreateCandidateInStatusRequest(statusData: StatusDataRequest = new StatusDataRequest,
-  numberToGenerate: Int = 1,
+case class CreateCandidateInStatusRequest(
+  statusData: StatusDataRequest = new StatusDataRequest,
   personalData: Option[PersonalDataRequest],
   assistanceDetails: Option[AssistanceDetailsRequest],
   isCivilServant: Option[Boolean],
