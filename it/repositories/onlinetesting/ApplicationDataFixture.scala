@@ -52,7 +52,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
           BSONDocument(
             "needsSupportForOnlineAssessment" -> "Yes",
             "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-            "adjustments-confirmed" -> true,
+            "adjustmentsConfirmed" -> true,
             "verbalTimeAdjustmentPercentage" -> 9,
             "numericalTimeAdjustmentPercentage" -> 11
           )
@@ -60,14 +60,14 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
           BSONDocument(
             "needsSupportForOnlineAssessment" -> "Yes",
             "typeOfAdjustments" -> BSONArray("room alone"),
-            "adjustments-confirmed" -> true
+            "adjustmentsConfirmed" -> true
           )
         }
       } else {
         BSONDocument(
           "needsSupportForOnlineAssessment" -> "Yes",
           "typeOfAdjustments" -> BSONArray("time extension", "room alone"),
-          "adjustments-confirmed" -> false
+          "adjustmentsConfirmed" -> false
         )
       }
     } else {
@@ -215,7 +215,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
             "needsSupportForOnlineAssessment" -> true,
             "needsSupportAtVenue" -> needsSupportAtVenue,
             "typeOfAdjustments" -> BSONArray(typeOfAdjustments),
-            "adjustments-confirmed" -> true,
+            "adjustmentsConfirmed" -> true,
             "etray" -> BSONDocument(
               "timeNeeded" -> 20,
               "otherInfo" -> "other online adjustments"
@@ -227,7 +227,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
             "needsSupportForOnlineAssessment" -> true,
             "needsSupportAtVenue" -> needsSupportAtVenue,
             "typeOfAdjustments" -> BSONArray(typeOfAdjustments),
-            "adjustments-confirmed" -> true,
+            "adjustmentsConfirmed" -> true,
             "guaranteedInterview" -> isGis
           )
         }
@@ -236,7 +236,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
           "needsSupportForOnlineAssessment" -> true,
           "needsSupportAtVenue" -> needsSupportAtVenue,
           "typeOfAdjustments" -> BSONArray(typeOfAdjustments),
-          "adjustments-confirmed" -> false,
+          "adjustmentsConfirmed" -> false,
           "guaranteedInterview" -> isGis
         )
       }
@@ -245,7 +245,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
         "needsSupportForOnlineAssessment" -> false,
         "needsSupportAtVenue" -> needsSupportAtVenue,
         "guaranteedInterview" -> isGis,
-        "adjustments-confirmed" -> adjustmentsConfirmed
+        "adjustmentsConfirmed" -> adjustmentsConfirmed
       )
     }
   }

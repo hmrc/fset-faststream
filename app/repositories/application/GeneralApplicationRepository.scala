@@ -102,10 +102,7 @@ trait GeneralApplicationRepository {
 
   def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]]
 
-
   def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit]
-
-  def confirmAdjustmentNew(applicationId: String, data: AdjustmentManagementNew): Future[Unit]
 
   def rejectAdjustment(applicationId: String): Future[Unit]
 
@@ -892,7 +889,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
 
   /*private def getAdjustmentsConfirmed(assistance: Option[BSONDocument]): Option[String] = {
-    assistance.flatMap(_.getAs[Boolean]("adjustments-confirmed")).getOrElse(false) match {
+    assistance.flatMap(_.getAs[Boolean]("adjustmentsConfirmed")).getOrElse(false) match {
       case false => Some("Unconfirmed")
       case true => Some("Confirmed")
     }
@@ -908,26 +905,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       .cursor[A](ReadPreference.nearest)
       .collect[List](Int.MaxValue, true)
 
-
   def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit] = {
-
-    val query = BSONDocument("applicationId" -> applicationId)
-    val verbalAdjustment = data.timeNeeded.map(i => BSONDocument("assistance-details.verbalTimeAdjustmentPercentage" -> i))
-      .getOrElse(BSONDocument.empty)
-    val numericalAdjustment = data.timeNeededNum.map(i => BSONDocument("assistance-details.numericalTimeAdjustmentPercentage" -> i))
-      .getOrElse(BSONDocument.empty)
-    val otherAdjustments = data.otherAdjustments.map(s => BSONDocument("assistance-details.otherAdjustments" -> s))
-      .getOrElse(BSONDocument.empty)
-
-    val adjustmentsConfirmationBSON = BSONDocument("$set" -> BSONDocument(
-      "assistance-details.typeOfAdjustments" -> data.adjustments.getOrElse(List.empty[String]),
-      "assistance-details.adjustments-confirmed" -> true
-    ).add(verbalAdjustment).add(numericalAdjustment).add(otherAdjustments))
-
-    collection.update(query, adjustmentsConfirmationBSON, upsert = false) map { _ => }
-  }
-
-  def confirmAdjustmentNew(applicationId: String, data: AdjustmentManagementNew): Future[Unit] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
 
@@ -938,7 +916,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     val adjustmentsConfirmationBSON = BSONDocument("$set" -> BSONDocument(
       "assistance-details.typeOfAdjustments" -> data.adjustments.getOrElse(List.empty[String]),
-      "assistance-details.adjustments-confirmed" -> true,
+      "assistance-details.adjustmentsConfirmed" -> true,
       "assistance-details.etray" -> data.etray,
       "assistance-details.video" -> data.video
     ))

@@ -25,6 +25,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import contactdetails.ContactDetailsRepository
+import model.Commands.{ AdjustmentDetail, AdjustmentManagement }
 import model.Exceptions.ApplicationNotFound
 import model.persisted.{ ContactDetails, PersonalDetails }
 import services.AuditService
@@ -71,4 +72,47 @@ trait ApplicationService extends EventSink {
       case None => throw ApplicationNotFound(applicationId)
     }.map(_ => ())
   }
+
+  def confirmAdjustment(applicationId: String, adjustmentInformation: AdjustmentManagement)
+                       (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    val standardEventList = DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
+      AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
+      Nil
+
+    def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String ={
+      def mkString(ad: Option[AdjustmentDetail]): Option[String] = {
+        ad.map { e =>
+          val et = e.timeNeeded.map( tn => s"$tn% extra time")
+          val iv_info = e.invigilatedInfo
+          val other_info = e.otherInfo
+          List(et,iv_info,other_info).flatten.mkString(", ")
+        }
+      }
+
+      mkString(adjustmentDetail) match {
+        case Some(txt) if !txt.isEmpty => s"$header $txt"
+        case _ => ""
+      }
+    }
+
+    appRepository.find(applicationId).flatMap {
+      case Some(candidate) =>
+        cdRepository.find(candidate.userId).flatMap { cd =>
+          eventSink {
+            appRepository.confirmAdjustment(applicationId, adjustmentInformation).map{ _ =>
+              adjustmentInformation.adjustments match {
+                case Some(list) if list.nonEmpty => EmailEvents.AdjustmentsConfirmed(cd.email,
+                  candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),
+                  toEmailString("E-tray:", adjustmentInformation.etray),
+                  toEmailString("Video interview:", adjustmentInformation.video)) :: standardEventList
+                case _ => standardEventList
+              }
+            }
+          }
+        }
+      case None => throw ApplicationNotFound(applicationId)
+    }.map(_ => ())
+  }
+
 }

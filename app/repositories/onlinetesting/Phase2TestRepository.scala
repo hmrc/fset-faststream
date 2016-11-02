@@ -99,20 +99,20 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
               BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
               BSONDocument("assistance-details.needsSupportAtVenue" -> true)
             )),
-            BSONDocument("assistance-details.adjustments-confirmed" -> true),
-            BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated")
-            ))
-            // Invigilated etray with adjustments confirmed
-            /*BSONDocument("$and" -> BSONArray(
-              BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-              BSONDocument("assistance-details.adjustments-confirmed" -> true),
-              BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
-            )),*/
+            BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
+            BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated")))
+          ))
+          // Invigilated etray with adjustments confirmed
+          /*BSONDocument("$and" -> BSONArray(
+            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+            BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
+            BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
+          )),*/
 
             // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver
             // functionality even if invigilated test functionality is not ready. In that case we will remove some code
           ))
-        )))
+      )
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, 50)
