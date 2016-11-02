@@ -25,21 +25,22 @@ import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model.command._
-import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport}
-import model.report.{AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels}
-import model.{ApplicationStatus, _}
-import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest}
-import model.{ApplicationStatus, _}
+import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport }
+import model.report.{ AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels }
+import model.{ ApplicationStatus, _ }
+import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest }
+import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, LocalDate}
-import play.api.libs.json.{Format, JsNumber, JsObject}
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.Logger
+import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{DB, QueryOpts, ReadPreference}
-import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService

@@ -27,7 +27,7 @@ import play.api.mvc._
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
-import services.onlinetesting.{ Phase1TestService, Phase2TestService }
+import services.onlinetesting.{ Phase1TestService, Phase2TestService, Phase3TestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -57,12 +57,14 @@ object OnlineTestController extends OnlineTestController {
   override val appRepository: GeneralApplicationRepository = applicationRepository
   override val phase1TestService = Phase1TestService
   override val phase2TestService = Phase2TestService
+  override val phase3TestService = Phase3TestService
 }
 
 trait OnlineTestController extends BaseController {
   val appRepository: GeneralApplicationRepository
   val phase1TestService: Phase1TestService
   val phase2TestService: Phase2TestService
+  val phase3TestService: Phase3TestService
 
   import Commands.Implicits._
 
@@ -78,6 +80,14 @@ trait OnlineTestController extends BaseController {
     phase2TestService.getTestProfile(applicationId) map {
       case Some(phase2TestGroupWithNames) => Ok(Json.toJson(phase2TestGroupWithNames))
       case None => Logger.warn(s"No phase 2 tests found for applicationId '$applicationId'")
+        NotFound
+    }
+  }
+
+  def getPhase3OnlineTest(applicationId: String) = Action.async { implicit request =>
+    phase3TestService.getTestGroupWithActiveTest(applicationId) map {
+      case Some(phase3TestGroup) => Ok(Json.toJson(phase3TestGroup))
+      case None => Logger.warn(s"No phase 3 tests found for applicationId '$applicationId'")
         NotFound
     }
   }

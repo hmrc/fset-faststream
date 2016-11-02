@@ -32,12 +32,14 @@ import model.events.{ AuditEventNoRequest, AuditEvents, DataStoreEventWithAppId,
 import model.persisted.{ NotificationExpiringOnlineTest, Phase2TestGroup }
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model._
+import model.exchange.{ Phase2TestGroupWithActiveTest, Phase3TestGroupWithActiveTest }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.EventService
+import services.onlinetesting.Phase2TestService.NoActiveTestException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -77,6 +79,20 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   }
 
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = phase3TestRepo.getTestGroup(applicationId)
+
+  def getTestGroupWithActiveTest(applicationId: String): Future[Option[Phase3TestGroupWithActiveTest]] = {
+    for {
+      phase3Opt <- phase3TestRepo.getTestGroup(applicationId)
+    } yield phase3Opt.map { phase3 =>
+      val test = phase3.activeTests
+        .find(_.usedForResults)
+        .getOrElse(throw NoActiveTestException(s"No active phase 3 test found for $applicationId"))
+      Phase3TestGroupWithActiveTest(
+        phase3.expirationDate,
+        test
+      )
+    }
+  }
 
   override def registerAndInviteForTestGroup(application: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier,
