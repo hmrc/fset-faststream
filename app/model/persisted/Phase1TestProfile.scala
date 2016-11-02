@@ -18,9 +18,10 @@ package model.persisted
 
 import org.joda.time.DateTime
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
-case class CubiksTest(scheduleId: Int,
+case class CubiksTest(
+  scheduleId: Int,
   usedForResults: Boolean,
   cubiksUserId: Int,
   testProvider: String = "cubiks",
@@ -43,12 +44,11 @@ object CubiksTest {
   implicit val phase1TestFormat = Json.format[CubiksTest]
 }
 
-
-case class Phase1TestProfile(expirationDate: DateTime,
+case class Phase1TestProfile(
+  expirationDate: DateTime,
   tests: List[CubiksTest],
   evaluation: Option[PassmarkEvaluation] = None
 ) extends CubiksTestProfile
-
 
 object Phase1TestProfile {
   import repositories.BSONDateTimeHandler

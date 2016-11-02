@@ -27,6 +27,7 @@ import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.OnlineTestCommands.OnlineTestApplication
+import model.ProgressStatuses.ProgressStatus
 import model.command._
 import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport, NotificationFailedTest }
 import model.report.{ AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels }

@@ -36,7 +36,8 @@ trait AssistanceDetailsService {
     val assistanceDetails = AssistanceDetails(updateAssistanceDetails.hasDisability, updateAssistanceDetails.hasDisabilityDescription,
       updateAssistanceDetails.guaranteedInterview, updateAssistanceDetails.needsSupportForOnlineAssessment,
       updateAssistanceDetails.needsSupportForOnlineAssessmentDescription, updateAssistanceDetails.needsSupportAtVenue,
-      updateAssistanceDetails.needsSupportAtVenueDescription)
+      updateAssistanceDetails.needsSupportAtVenueDescription, updateAssistanceDetails.needsSupportForPhoneInterview,
+      updateAssistanceDetails.needsSupportForPhoneInterviewDescription)
 
     adRepository.update(applicationId, userId, assistanceDetails)
   }
@@ -48,6 +49,7 @@ trait AssistanceDetailsService {
       ad <- assistanceDetailsFut
     } yield AssistanceDetailsExchange(ad.hasDisability, ad.hasDisabilityDescription, ad.guaranteedInterview,
       ad.needsSupportForOnlineAssessment, ad.needsSupportForOnlineAssessmentDescription,
-      ad.needsSupportAtVenue, ad.needsSupportAtVenueDescription)
+      ad.needsSupportAtVenue, ad.needsSupportAtVenueDescription, ad.needsSupportForPhoneInterview,
+      ad.needsSupportForPhoneInterviewDescription)
   }
 }

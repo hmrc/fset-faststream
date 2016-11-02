@@ -121,7 +121,7 @@ package object repositories {
   }
 
   /** Implicit transformation for the PersistedPersonalDetails **/
-  @deprecated("fasttrack version")
+  @deprecated("fasttrack version", "ages ago")
   implicit object BSONPersistedPersonalDetailsHandler extends BSONHandler[BSONDocument, PersonalDetails] {
     def read(doc: BSONDocument): PersonalDetails = {
       val root = doc.getAs[BSONDocument]("personal-details").get

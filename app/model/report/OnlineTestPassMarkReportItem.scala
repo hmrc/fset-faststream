@@ -22,8 +22,6 @@ import play.api.libs.json.Json
 import model.Commands.Implicits._
 import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
-import model.report.QuestionnaireReportItem
-import model.report.TestResultsForOnlineTestPassMarkReportItem._
 
 case class OnlineTestPassMarkReportItem(
                            application: ApplicationForOnlineTestPassMarkReportItem,

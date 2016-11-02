@@ -106,9 +106,15 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
-  private lazy val retrieveResultsJob: Option[ScheduledJob] =
-    if (retrieveResultsJobConfigValues.enabled) Some(RetrieveResultsJob) else {
-      Logger.warn("Retrieve results job is disabled")
+  private lazy val retrievePhase1ResultsJob: Option[ScheduledJob] =
+    if (retrievePhase1ResultsJobConfigValues.enabled) Some(RetrievePhase1ResultsJob) else {
+      Logger.warn("Retrieve phase1 results job is disabled")
+      None
+    }
+
+  private lazy val retrievePhase2ResultsJob: Option[ScheduledJob] =
+    if (retrievePhase2ResultsJobConfigValues.enabled) Some(RetrievePhase2ResultsJob) else {
+      Logger.warn("Retrieve phase2 results job is disabled")
       None
     }
 
@@ -152,7 +158,8 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def firstPhase2ReminderJobConfigValues = firstPhase2ReminderJobConfig
   private[config] def secondPhase2ReminderJobConfigValues = secondPhase2ReminderJobConfig
   private[config] def failedPhase1TestJobConfigValues = failedPhase1TestJobConfig
-  private[config] def retrieveResultsJobConfigValues = retrieveResultsJobConfig
+  private[config] def retrievePhase1ResultsJobConfigValues = retrievePhase1ResultsJobConfig
+  private[config] def retrievePhase2ResultsJobConfigValues = retrievePhase2ResultsJobConfig
   private[config] def evaluatePhase1ResultJobConfigValues = evaluatePhase1ResultJobConfig
   private[config] def confirmAttendanceReminderJobConfigValues = confirmAttendanceReminderJobConfig
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
@@ -161,7 +168,7 @@ trait Scheduler extends RunningOfScheduledJobs {
 
   lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob, firstPhase1ReminderExpiringTestJob,
     secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob, secondPhase2ReminderExpiringTestJob, expirePhase1TestJob,
-    expirePhase2TestJob, failedPhase1TestJob, retrieveResultsJob, evaluatePhase1ResultJob, fixerJob,
+    expirePhase2TestJob, failedPhase1TestJob, retrievePhase1ResultsJob, retrievePhase2ResultsJob, evaluatePhase1ResultJob, fixerJob,
     confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 

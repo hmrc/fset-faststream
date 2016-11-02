@@ -42,13 +42,14 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
     getLatestPhase1PassMarkSettings flatMap {
       case Some(passmark) =>
         phase1EvaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
-          Some(candidates, passmark)
+          Some(candidates -> passmark)
         }
       case _ =>
         Future.successful(None)
     }
   }
 
+  // scalastyle:off cyclomatic.complexity
   def evaluate(application: ApplicationPhase1ReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase1 appId=${application.applicationId}")
 
@@ -66,10 +67,15 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
         throw new IllegalStateException(s"Illegal number of active tests with results for this application: ${application.applicationId}")
     }
 
-    phase1EvaluationRepository.savePassmarkEvaluation(
-      application.applicationId,
-      PassmarkEvaluation(passmark.version, schemeResults),
-      determineApplicationStatus(application.applicationStatus, schemeResults)
-    )
+    schemeResults.nonEmpty match {
+      case true =>
+        phase1EvaluationRepository.savePassmarkEvaluation(
+          application.applicationId,
+          PassmarkEvaluation(passmark.version, schemeResults),
+          determineApplicationStatus(application.applicationStatus, schemeResults)
+        )
+      case false => Future.successful(())
+    }
+
   }
 }
