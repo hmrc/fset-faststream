@@ -126,7 +126,8 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
                                      isGis: Boolean = false,
                                      additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
                                      phase1TestProfile: Option[Phase1TestProfile] = None,
-                                     phase2TestGroup: Option[Phase2TestGroup] = None
+                                     phase2TestGroup: Option[Phase2TestGroup] = None,
+                                     typeOfEtrayOnlineAdjustments: List[String] = List("etrayTimeExtension", "etrayOther")
                                     ): Future[WriteResult] = {
     val doc = BSONDocument(
       "applicationId" -> appId,
@@ -163,7 +164,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
         "fastPassReceived" -> fastPassReceived
       ),
       "assistance-details" -> createAssistanceDetails(needsSupportForOnlineAssessment, adjustmentsConfirmed, timeExtensionAdjustments,
-        needsSupportAtVenue, isGis),
+        needsSupportAtVenue, isGis, typeOfEtrayOnlineAdjustments),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
       "testGroups" -> testGroups(phase1TestProfile, phase2TestGroup)
@@ -204,15 +205,16 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
   }
 
   private def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean,
-                                      timeExtensionAdjustments: Boolean, needsSupportAtVenue: Boolean = false, isGis: Boolean = false) = {
+                                      timeExtensionAdjustments: Boolean, needsSupportAtVenue: Boolean = false, isGis: Boolean = false,
+                                      typeOfAdjustments: List[String] = List("etrayTimeExtension", "etrayOther")) = {
     if (needsSupportForOnlineAssessment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
           BSONDocument(
             "hasDisability" -> "No",
-            "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
+            "needsSupportForOnlineAssessment" -> true,
             "needsSupportAtVenue" -> needsSupportAtVenue,
-            "typeOfAdjustments" -> BSONArray("etrayTimeExtension", "etrayOther"),
+            "typeOfAdjustments" -> BSONArray(typeOfAdjustments),
             "adjustments-confirmed" -> true,
             "etray" -> BSONDocument(
               "timeNeeded" -> 20,
@@ -222,27 +224,28 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
           )
         } else {
           BSONDocument(
-            "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
+            "needsSupportForOnlineAssessment" -> true,
             "needsSupportAtVenue" -> needsSupportAtVenue,
-            "typeOfAdjustments" -> BSONArray("etrayTimeExtension"),
+            "typeOfAdjustments" -> BSONArray(typeOfAdjustments),
             "adjustments-confirmed" -> true,
             "guaranteedInterview" -> isGis
           )
         }
       } else {
         BSONDocument(
-          "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
+          "needsSupportForOnlineAssessment" -> true,
           "needsSupportAtVenue" -> needsSupportAtVenue,
-          "typeOfAdjustments" -> BSONArray("etrayTimeExtension"),
+          "typeOfAdjustments" -> BSONArray(typeOfAdjustments),
           "adjustments-confirmed" -> false,
           "guaranteedInterview" -> isGis
         )
       }
     } else {
       BSONDocument(
-        "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
+        "needsSupportForOnlineAssessment" -> false,
         "needsSupportAtVenue" -> needsSupportAtVenue,
-        "guaranteedInterview" -> isGis
+        "guaranteedInterview" -> isGis,
+        "adjustments-confirmed" -> adjustmentsConfirmed
       )
     }
   }

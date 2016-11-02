@@ -35,7 +35,6 @@ object OnlineTestCommands {
                                    needsAdjustments: Boolean,
                                    preferredName: String,
                                    lastName: String,
-                                   //timeAdjustments: Option[TimeAdjustmentsOnlineTestApplication],
                                    eTrayAdjustments: Option[AdjustmentDetail],
                                    videoInterviewAdjustments: Option[AdjustmentDetail])
 

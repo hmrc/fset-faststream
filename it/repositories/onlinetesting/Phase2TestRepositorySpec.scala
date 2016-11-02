@@ -1,6 +1,8 @@
 package repositories.onlinetesting
 
 import java.util.UUID
+
+import model.ProgressStatuses
 import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import model.ProgressStatuses._
 import org.joda.time.{ DateTime, DateTimeZone }
@@ -47,23 +49,133 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   }
 
   "Next application ready for online testing" must {
-    "return one application if there is only one" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
+
+    "return application when does not need adjustments and is no gis and its status is PHASE1_TESTS_PASSED" in {
+      createApplicationWithAllFields("userId0", "appId0", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
         needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
+        fastPassReceived = false, isGis = false, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
+        typeOfEtrayOnlineAdjustments = Nil
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
 
       results.length mustBe 1
-      results.head.applicationId mustBe "appId"
-      results.head.userId mustBe "userId"
+      results.head.applicationId mustBe "appId0"
+      results.head.userId mustBe "userId0"
     }
 
-    "exclude adjustment applications" in {
-      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = true,
+    "return application when it is gis and adjustments have been confirmed (etray time extension) and its status is PHASE1_TESTS_PASSED" in {
+      createApplicationWithAllFields("userId3", "appId3", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = false, adjustmentsConfirmed = true, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, isGis = true, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
+        typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 1
+      results.head.applicationId mustBe "appId3"
+      results.head.userId mustBe "userId3"
+    }
+
+    "return application when needs online adjustments, adjustments have been confirmed and its status is PHASE1_TESTS_PASSED" +
+      " and adjustment is etray time extension" in {
+      createApplicationWithAllFields("userId4", "appId4", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = true,
+        needsSupportAtVenue = false, adjustmentsConfirmed = true, timeExtensionAdjustments = true, fastPassApplicable = false,
+        fastPassReceived = false, isGis = true, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
+        typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 1
+      results.head.applicationId mustBe "appId4"
+      results.head.userId mustBe "userId4"
+    }
+
+    "return application when needs adjustments at venue, adjustments have been confirmed and its status is PHASE1_TESTS_PASSED" +
+      " and adjustment is etray time extension" in {
+      createApplicationWithAllFields("userId5", "appId5", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = true, adjustmentsConfirmed = true, timeExtensionAdjustments = true, fastPassApplicable = false,
+        fastPassReceived = false, isGis = true, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
+        typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 1
+      results.head.applicationId mustBe "appId5"
+      results.head.userId mustBe "userId5"
+    }
+
+    "do not return application when application status is not PHASE1_TESTS_PASSED and no adjustments and no gis" in {
+      createApplicationWithAllFields("userId6", "appId6", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
         needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
+        fastPassReceived = false, isGis = false, additionalProgressStatuses = List((SUBMITTED, true)),
+        typeOfEtrayOnlineAdjustments = Nil
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 0
+    }
+
+    "do not return application when application status is PHASE1_TESTS_PASSED and is gis but there is no need for adjustments" +
+      "and adjustments have not been confirmed" in {
+      createApplicationWithAllFields("userId6", "appId6", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        fastPassReceived = false, isGis = true, additionalProgressStatuses = List((SUBMITTED, true)),
+        typeOfEtrayOnlineAdjustments = Nil
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 0
+    }
+
+    "do not return application when application status is PHASE1_TESTS_PASSED and is no gis but there is need for online adjustments" +
+      "(e-tray time extension) and adjustments have not been confirmed" in {
+      createApplicationWithAllFields("userId7", "appId7", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = true,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = true, fastPassApplicable = false,
+        fastPassReceived = false, isGis = false, additionalProgressStatuses = List((SUBMITTED, true)),
+        typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 0
+    }
+
+    "do not return application when application status is PHASE1_TESTS_PASSED and is no gis but there is need for adjustments at venue" +
+      "and adjustments have not been confirmed" in {
+      createApplicationWithAllFields("userId7", "appId7", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = true, adjustmentsConfirmed = false, timeExtensionAdjustments = true, fastPassApplicable = false,
+        fastPassReceived = false, isGis = false, additionalProgressStatuses = List((SUBMITTED, true))
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 0
+    }
+
+    "do not return application when application status is PHASE1_TESTS_PASSED and is no gis but there is need for adjustments at venue" +
+      "and adjustments have been confirmed but adjustments is etray invigilated" in {
+      createApplicationWithAllFields("userId8", "appId8", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
+        needsSupportAtVenue = true, adjustmentsConfirmed = false, timeExtensionAdjustments = true, fastPassApplicable = false,
+        fastPassReceived = false, isGis = false, additionalProgressStatuses = List((ProgressStatuses.SUBMITTED, true)),
+        typeOfEtrayOnlineAdjustments = List("etrayInvigilated")
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 0
+    }
+
+    "exclude applications that need adjustments and have not been confirmed" in {
+      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = true,
+        needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = true, fastPassApplicable = false,
+        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
+        typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
 
       createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
