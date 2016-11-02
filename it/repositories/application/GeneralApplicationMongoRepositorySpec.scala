@@ -17,7 +17,7 @@
 package repositories.application
 
 import factories.UUIDFactory
-import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
 import model._
 import model.ApplicationStatus._
 import model.SchemeType.SchemeType
@@ -267,49 +267,37 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Get Application to Fix for PassToPhase2 fix" should {
     "return 1 result if the application is in PHASE2_TESTS_INVITED and PHASE1_TESTS_PASSED" in {
-      val statuses = BSONDocument(
-        "registered" -> true,
-        "preview" -> true,
-        "SUBMITTED" -> true,
-        "PHASE1_TESTS_INVITED" -> true,
-        "PHASE1_TESTS_STARTED" -> true,
-        "PHASE1_TESTS_COMPLETED" -> true,
-        "PHASE1_TESTS_RESULTS_READY" -> true,
-        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
-        "PHASE1_TESTS_PASSED" -> true,
-        "PHASE2_TESTS_INVITED" -> true
-      )
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_INVITED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_STARTED, true) :: (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
+
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList)
 
       val matchResponse = repository.getApplicationsToFix(PassToPhase2).futureValue
       matchResponse.size mustBe 1
     }
 
     "return 0 result if the application is in PHASE1_TESTS_PASSED but not yet invited to PHASE 2" in {
-      val statuses = BSONDocument(
-        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
-        "PHASE1_TESTS_PASSED" -> true
-      )
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
+
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList)
 
       val matchResponse = repository.getApplicationsToFix(PassToPhase2).futureValue
       matchResponse.size mustBe 0
     }
 
     "return 0 result if the application is in PHASE2_TESTS_INVITED and PHASE1_TESTS_PASSED but already in PHASE 2" in {
-      val statuses = BSONDocument(
-        "registered" -> true,
-        "preview" -> true,
-        "SUBMITTED" -> true,
-        "PHASE1_TESTS_INVITED" -> true,
-        "PHASE1_TESTS_STARTED" -> true,
-        "PHASE1_TESTS_COMPLETED" -> true,
-        "PHASE1_TESTS_RESULTS_READY" -> true,
-        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
-        "PHASE1_TESTS_PASSED" -> true,
-        "PHASE2_TESTS_INVITED" -> true
-      )
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS, progressStatuses = statuses)
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_INVITED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_STARTED, true) :: (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
+
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
+        additionalProgressStatuses = statuses.toList)
 
       val matchResponse = repository.getApplicationsToFix(PassToPhase2).futureValue
       matchResponse.size mustBe 0
@@ -317,11 +305,11 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "return no result if the application is in PHASE2_TESTS_INVITED but not PHASE1_TESTS_PASSED" in {
       // This would be an inconsistent state and we don't want to make things worse.
-      val statuses = BSONDocument(
-        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
-        "PHASE2_TESTS_INVITED" -> true
-      )
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
+        (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
+
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList)
       val matchResponse = repository.getApplicationsToFix(PassToPhase2).futureValue
       matchResponse.size mustBe 0
     }
@@ -329,31 +317,24 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Get Application to Fix for ExpiredPhase1InvitedToPhase2 fix" should {
     "return 1 result if the application is in PHASE1_TESTS_EXPIRED and PHASE2_TESTS_INVITED" in {
-      val statuses = BSONDocument(
-        "registered" -> true,
-        "preview" -> true,
-        "SUBMITTED" -> true,
-        "PHASE1_TESTS_INVITED" -> true,
-        "PHASE1_TESTS_STARTED" -> true,
-        "PHASE1_TESTS_EXPIRED" -> true,
-        "PHASE2_TESTS_INVITED" -> true
-      )
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS, progressStatuses = statuses)
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.SUBMITTED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: (ProgressStatuses.PHASE1_TESTS_STARTED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_EXPIRED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
+
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
+        additionalProgressStatuses = statuses.toList)
 
       val matchResponse = repository.getApplicationsToFix(ExpiredPhase1InvitedToPhase2).futureValue
       matchResponse.size mustBe 1
     }
 
     "return 0 result if the application is in PHASE1_TESTS_EXPIRED but not PHASE2_TESTS_INVITED" in {
-      val statuses = BSONDocument(
-        "registered" -> true,
-        "preview" -> true,
-        "SUBMITTED" -> true,
-        "PHASE1_TESTS_INVITED" -> true,
-        "PHASE1_TESTS_STARTED" -> true,
-        "PHASE1_TESTS_EXPIRED" -> true
-      )
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS, progressStatuses = statuses)
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.SUBMITTED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: (ProgressStatuses.PHASE1_TESTS_STARTED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_EXPIRED, true) :: Nil
+
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList)
 
       val matchResponse = repository.getApplicationsToFix(ExpiredPhase1InvitedToPhase2).futureValue
       matchResponse.size mustBe 0
@@ -362,19 +343,15 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "fix a PassToPhase2 issue" should {
     "update the application status from PHASE1_TESTS to PHASE2_TESTS" in {
-      val statuses = BSONDocument(
-        "registered" -> true,
-        "preview" -> true,
-        "SUBMITTED" -> true,
-        "PHASE1_TESTS_INVITED" -> true,
-        "PHASE1_TESTS_STARTED" -> true,
-        "PHASE1_TESTS_COMPLETED" -> true,
-        "PHASE1_TESTS_RESULTS_READY" -> true,
-        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
-        "PHASE1_TESTS_PASSED" -> true,
-        "PHASE2_TESTS_INVITED" -> true
-      )
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.SUBMITTED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: (ProgressStatuses.PHASE1_TESTS_STARTED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) ::
+        (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) :: (ProgressStatuses.PHASE1_TESTS_PASSED, true) ::
+        (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
+
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList)
 
       val matchResponse = repository.fix(candidate, PassToPhase2).futureValue
       matchResponse.isDefined mustBe true
@@ -387,18 +364,13 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "NO update performed if, in the meanwhile, the pre-conditions of the update have changed" in {
       // no "PHASE2_TESTS_INVITED" -> true (which is a pre-condition)
-      val statuses = BSONDocument(
-        "registered" -> true,
-        "preview" -> true,
-        "SUBMITTED" -> true,
-        "PHASE1_TESTS_INVITED" -> true,
-        "PHASE1_TESTS_STARTED" -> true,
-        "PHASE1_TESTS_COMPLETED" -> true,
-        "PHASE1_TESTS_RESULTS_READY" -> true,
-        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
-        "PHASE1_TESTS_PASSED" -> true
-      )
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.SUBMITTED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: (ProgressStatuses.PHASE1_TESTS_STARTED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) ::
+        (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) :: (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
+
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList)
 
       val matchResponse = repository.fix(candidate, PassToPhase2).futureValue
       matchResponse.isDefined mustBe false
