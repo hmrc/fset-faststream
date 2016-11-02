@@ -21,6 +21,7 @@ import java.util.UUID
 import config.CubiksGatewayConfig
 import connectors.testdata.ExchangeObjects.{ CubiksTestResponse, TestGroupResponse }
 import model.persisted.{ CubiksTest, Phase2TestGroup }
+import model.command.testdata.GeneratorConfig
 import org.joda.time.DateTime
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository

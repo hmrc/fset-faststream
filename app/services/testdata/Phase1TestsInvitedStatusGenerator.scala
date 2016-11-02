@@ -21,12 +21,14 @@ import java.util.UUID
 import config.CubiksGatewayConfig
 import connectors.testdata.ExchangeObjects.{ TestGroupResponse, CubiksTestResponse }
 import model.persisted.{ CubiksTest, Phase1TestProfile }
+import model.command.testdata.GeneratorConfig
 import org.joda.time.DateTime
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import play.api.mvc.RequestHeader
+import mode.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

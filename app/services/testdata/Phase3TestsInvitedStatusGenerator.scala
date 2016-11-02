@@ -20,6 +20,7 @@ import repositories._
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig._
 import model.ApplicationStatus._
+import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting.{ Phase1TestRepository, Phase3TestRepository }
 import _root_.services.onlinetesting.Phase3TestService

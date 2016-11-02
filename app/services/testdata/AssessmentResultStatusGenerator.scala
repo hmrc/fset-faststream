@@ -23,6 +23,7 @@ import repositories._
 import model.ApplicationStatus._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

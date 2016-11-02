@@ -20,10 +20,14 @@ import model.ApplicationStatus._
 import model.Exceptions.InvalidStatusException
 import model.ProgressStatuses
 import model.ProgressStatuses.ProgressStatus
+import model.command.testdata.GeneratorConfig
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
   def getGenerator(applicationStatus: ApplicationStatus, progressStatus: Option[ProgressStatus], generatorConfig: GeneratorConfig) = {
+
+    val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
+    val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)
 
     (applicationStatus, progressStatus) match {
       case (appStatus, None) => appStatus match {
@@ -52,7 +56,7 @@ object StatusGeneratorFactory {
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_EXPIRED)) =>
-        if (generatorConfig.phase1StartTime.isDefined) {
+        if (phase1StartTime.isDefined) {
           Phase1TestsExpiredFromStartedStatusGenerator
         } else {
           Phase1TestsExpiredFromInvitedStatusGenerator
@@ -62,7 +66,7 @@ object StatusGeneratorFactory {
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_INVITED)) => Phase2TestsInvitedStatusGenerator
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_STARTED)) => Phase2TestsStartedStatusGenerator
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_EXPIRED)) =>
-        if (generatorConfig.phase1StartTime.isDefined) {
+        if (phase2StartTime.isDefined) {
           Phase2TestsExpiredFromStartedStatusGenerator
         } else {
           Phase2TestsExpiredFromInvitedStatusGenerator

@@ -24,6 +24,7 @@ import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.onlinetesting.Phase1TestService
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

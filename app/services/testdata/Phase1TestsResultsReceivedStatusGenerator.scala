@@ -21,6 +21,7 @@ import model.OnlineTestCommands.TestResult
 import model.ProgressStatuses
 import model.exchange.CubiksTestResultReady
 import model.persisted.CubiksTest
+import model.command.testdata.GeneratorConfig
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import repositories._

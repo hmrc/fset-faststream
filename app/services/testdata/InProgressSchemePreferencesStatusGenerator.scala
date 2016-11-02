@@ -19,6 +19,7 @@ package services.testdata
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import model._
+import model.command.testdata.GeneratorConfig
 import model.persisted.{ AssistanceDetails, ContactDetails, PersonalDetails }
 import org.joda.time.LocalDate
 import play.api.mvc.RequestHeader

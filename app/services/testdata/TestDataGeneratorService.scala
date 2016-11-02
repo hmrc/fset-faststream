@@ -23,6 +23,7 @@ import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.ExecutionContext.Implicits.global

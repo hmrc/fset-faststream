@@ -14,12 +14,62 @@
  * limitations under the License.
  */
 
-package services.testdata
+package model.command.testdata
 
 import model.ApplicationRoute
 import model.EvaluationResults.Result
-import model.command.testdata.CreateCandidateInStatusRequest$
-import org.joda.time.{DateTime, LocalDate}
+import model.exchange.testdata._
+import org.joda.time.{ DateTime, LocalDate }
+
+
+case class AssistanceDetails(hasDisability: Option[String] = None,
+  hasDisabilityDescription: Option[String] = None,
+  setGis: Option[Boolean] = None,
+  onlineAdjustments: Option[Boolean] = None,
+  onlineAdjustmentsDescription: Option[String] = None,
+  assessmentCentreAdjustments: Option[Boolean] = None,
+  assessmentCentreAdjustmentsDescription: Option[String] = None
+)
+
+trait TestDates {
+  def start: Option[DateTime]
+  def expiry: Option[DateTime]
+  def completion: Option[DateTime]
+}
+
+trait TestResult {
+  def tscore: Option[Double]
+}
+
+case class Phase1TestData(
+  start: Option[DateTime] = None,
+  expiry: Option[DateTime] = None,
+  completion: Option[DateTime] = None
+) extends TestDates with TestResult
+
+case class Phase2TestData(
+  start: Option[DateTime] = None,
+  expiry: Option[DateTime] = None,
+  completion: Option[DateTime] = None
+) extends TestDates with TestResult
+
+case class PersonalData(
+  emailPrefix: Option[String] = None,
+  firstName: Option[String] = None,
+  lastName: Option[String] = None,
+  preferedName: Option[String] = None,
+  dateOfBirth: Option[String] = None,
+  postCode: Option[String] = None,
+  country: Option[String] = None
+)
+
+case class StatusData(
+  applicationStatus: String = "registered",
+  previousApplicationStatus: Option[String] = None,
+  progressStatus: Option[String] = Some("registered"),
+  applicationRoute: Option[String] = Some("faststream")
+)
+
 
 case class GeneratorConfig(emailPrefix: Option[String],
                            hasDisability: Option[String] = None,
