@@ -129,9 +129,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findApplicationIdsByLocation(location: String): Future[List[String]] = Future.successful(List())
 
-  override def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit] = Future.successful(Unit)
-
-  override def confirmAdjustmentNew(applicationId: String, data: AdjustmentManagementNew): Future[Unit] = Future.successful(Unit)
+  override def confirmAdjustmentNew(applicationId: String, data: AdjustmentManagement): Future[Unit] = Future.successful(Unit)
 
   override def rejectAdjustment(applicationId: String): Future[Unit] = Future.successful(Unit)
 
