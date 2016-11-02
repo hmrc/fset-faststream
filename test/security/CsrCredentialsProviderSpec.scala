@@ -33,7 +33,6 @@ import scala.concurrent.Future
 
 class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures{
 
-
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(2, Seconds), interval = Span(1, Seconds))
 
@@ -42,7 +41,7 @@ class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures{
       val csrCredentialsProvider = new TestCsrCredentialsProvider(
         signInResponse = Future.successful(userResponse))
       val result = csrCredentialsProvider.authenticate(credentials)
-      result.futureValue mustBe Right(CachedUser(UserId, FirstName, LastName, Some(PreferredName), Email, true, ""))
+      result.futureValue mustBe Right(CachedUser(UserId, FirstName, LastName, Some(PreferredName), Email, isActive = true, ""))
     }
 
     "return InvalidRole if the role is invalid" in new TestFixture {
@@ -107,7 +106,7 @@ class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures{
     val Password = "password"
 
     val credentials = Credentials(Id, Password)
-    val userResponse = UserResponse(FirstName, LastName, Some(PreferredName), true, UserId,
+    val userResponse = UserResponse(FirstName, LastName, Some(PreferredName), isActive = true, UserId,
       Email, "", Role, ServiceName)
 
     class TestCsrCredentialsProvider(signInResponse: Future[UserResponse] = Future.successful(userResponse),
@@ -124,6 +123,5 @@ class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures{
         failedLoginResponse
       }
     }
-
   }
 }

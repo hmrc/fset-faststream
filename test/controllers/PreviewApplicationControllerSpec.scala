@@ -114,7 +114,6 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     }
   }
 
-
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
@@ -142,6 +141,5 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePreviewApplicationController{
       override val CandidateWithApp: CachedDataWithApp = candidateWithApp
     }
-
   }
 }

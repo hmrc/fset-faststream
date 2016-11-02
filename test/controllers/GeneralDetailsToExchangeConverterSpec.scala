@@ -62,5 +62,4 @@ class GeneralDetailsToExchangeConverterSpec extends PlaySpec {
       )
     }
   }
-
 }

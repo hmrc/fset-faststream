@@ -67,5 +67,4 @@ class UserManagementClientSpec extends ConnectorSpec with OneServerPerSuite {
 
     an[EmailTakenException] should be thrownBy await(connector.register("test@email.com", "pw", "fn", "ln"))
   }
-
 }

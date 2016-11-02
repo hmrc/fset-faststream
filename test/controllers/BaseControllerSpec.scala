@@ -20,7 +20,6 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
-import config.CSRCache
 import models.SecurityUserExamples._
 import models._
 import org.joda.time.DateTime
@@ -128,7 +127,5 @@ abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
           None, None
         ), request
       )
-
   }
 }
-

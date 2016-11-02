@@ -44,11 +44,10 @@ class DiversityQuestionnaireFormSpec extends BaseSpec {
     "transform properly to a question list" in new Fixture {
       val questionList = validFormData.exchange.questions
       questionList.size must be(3)
-      questionList(0).answer.answer must be(Some("Male"))
+      questionList.head.answer.answer must be(Some("Male"))
       questionList(1).answer.otherDetails must be(Some("details"))
       questionList(2).answer.unknown must be(Some(true))
     }
-
   }
 
   trait Fixture {
@@ -80,5 +79,4 @@ class DiversityQuestionnaireFormSpec extends BaseSpec {
       invalidForm.errors.map(_.key) mustBe Seq(expectedKey)
     }
   }
-
 }

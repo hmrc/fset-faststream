@@ -23,7 +23,6 @@ import play.api.test.Helpers._
 class LandingPageControllerSpec extends PlaySpec {
 
   "Landing page controller" should {
-
     "redirect to sign-in" in {
       val request = FakeRequest(GET, controllers.routes.ApplicationController.index().url)
 
@@ -32,6 +31,5 @@ class LandingPageControllerSpec extends PlaySpec {
       status(result) must be(303)
       redirectLocation(result).get must be(controllers.routes.SignInController.signIn().url)
     }
-
   }
 }

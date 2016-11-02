@@ -48,5 +48,4 @@ class FaststreamConfigSpec extends PlaySpec {
       config.newAccountsEnabled must be(false)
     }
   }
-
 }

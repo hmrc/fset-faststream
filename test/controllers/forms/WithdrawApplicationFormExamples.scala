@@ -27,7 +27,6 @@ object WithdrawApplicationFormExamples {
 
   val OtherReasonInvalidNoOtherReasonMoreInfoForm = WithdrawApplicationForm.Data("Yes", Some("Other (provide details)"), None)
 
-
   val ValidMap = Map[String, String](
     "wantToWithdraw" -> "Yes",
     "reason" -> "found another job")
@@ -44,7 +43,6 @@ object WithdrawApplicationFormExamples {
   val OtherReasonInvalidNoOtherReasonMoreInfoMap = Map[String, String](
     "wantToWithdraw" -> "Yes",
     "reason" -> "Other (provide details)")
-
 
   val ValidFormUrlEncodedBody = Seq(
     "wantToWithdraw" -> "Yes",

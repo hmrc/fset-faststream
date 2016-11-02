@@ -19,7 +19,6 @@ package controllers.forms
 import org.scalatestplus.play.PlaySpec
 import forms.SelectedSchemesForm.{form => selectedSchemesForm}
 
-
 class SelectedSchemesFormSpec extends PlaySpec {
 
   "Selected Schemes form" should {
@@ -74,5 +73,4 @@ class SelectedSchemesFormSpec extends PlaySpec {
       form.hasGlobalErrors mustBe false
     }
   }
-
 }

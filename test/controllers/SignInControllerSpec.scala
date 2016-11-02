@@ -184,8 +184,6 @@ class SignInControllerSpec extends BaseControllerSpec {
     }
   }
 
-
-
   trait TestFixture {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -207,7 +205,6 @@ class SignInControllerSpec extends BaseControllerSpec {
     when(mockEnvironment.eventBus).thenReturn(mockEventBus)
 
     val mockAuthenticator = mock[SessionAuthenticator]
-
 
     class TestableSignInController extends SignInController(mockApplicationClient, mockCacheClient) with TestableSignInService {
       override val signInService = mockSignInService

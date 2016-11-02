@@ -56,7 +56,7 @@ class ParentalOccupationQuestionnaireFormSpec extends BaseSpec {
     "transform properly to a question list" in new Fixture {
       val questionList = validFormData.exchange.questions
       questionList.size must be(5)
-      questionList(0).answer.answer must be(Some("Yes"))
+      questionList.head.answer.answer must be(Some("Yes"))
       questionList(1).answer.answer must be(Some("Some occupation"))
       questionList(2).answer.answer must be(Some("Some employee"))
       questionList(3).answer.answer must be(Some("Org size"))
@@ -112,5 +112,4 @@ class ParentalOccupationQuestionnaireFormSpec extends BaseSpec {
       invalidForm.errors.map(_.key) mustBe Seq(expectedKey)
     }
   }
-
 }

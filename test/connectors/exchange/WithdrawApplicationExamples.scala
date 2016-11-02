@@ -16,8 +16,6 @@
 
 package connectors.exchange
 
-import forms.WithdrawApplicationForm
-
 object WithdrawApplicationExamples {
   val Valid = WithdrawApplication("found another job", None, "Candidate")
   val OtherReasonValid = WithdrawApplication("found another job", Some("Other (provide details)"), "Candidate")

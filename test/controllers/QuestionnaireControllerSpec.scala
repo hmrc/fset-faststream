@@ -143,5 +143,4 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
     redirectLocation(result) must be(Some(routes.QuestionnaireController.presentStartOrContinue().url))
     flash(result).data mustBe Map("danger" -> errorContent)
   }
-
 }

@@ -39,5 +39,4 @@ object DateFormatterSpec{
   private val date_02_01_1985 = new LocalDate(473472000000L)
 
   private val date_01_01_1985 = new DateTime(473422000000L)
-
 }

@@ -16,12 +16,12 @@
 
 package config
 
-import org.scalatestplus.play.{ OneAppPerTest, PlaySpec }
 import java.util.Base64
 
-import play.api.test._
 import org.scalatest.TestData
+import org.scalatestplus.play.{ OneAppPerTest, PlaySpec }
 import play.api.test.Helpers._
+import play.api.test._
 
 class WhitelistFilterConfigSpec extends PlaySpec with OneAppPerTest {
 
@@ -49,14 +49,14 @@ class WhitelistFilterConfigSpec extends PlaySpec with OneAppPerTest {
         val request = FakeRequest(GET, "/fset-fast-stream/signup").withHeaders("True-Client-IP" -> "11.22.33.44")
         val Some(result) = route(app, request)
 
-        status(result) mustBe (OK)
+        status(result) mustBe OK
       }
 
       "coming from a IP NOT in the white-list and not with a white-listed path must be redirected" in {
         val request = FakeRequest(GET, "/fset-fast-stream/signup").withHeaders("True-Client-IP" -> "93.00.33.33")
         val Some(result) = route(app, request)
 
-        status(result) mustBe (SEE_OTHER)
+        status(result) mustBe SEE_OTHER
         redirectLocation(result) mustBe Some("https://www.apply-civil-service-fast-stream.service.gov.uk/outage-fset-faststream/index.html")
       }
 
@@ -64,14 +64,14 @@ class WhitelistFilterConfigSpec extends PlaySpec with OneAppPerTest {
         val request = FakeRequest(GET, "/ping/ping").withHeaders("True-Client-IP" -> "93.00.33.33")
         val Some(result) = route(app, request)
 
-        status(result) mustBe (OK)
+        status(result) mustBe OK
       }
 
       "coming without an IP header must fail" in {
         val request = FakeRequest(GET, "/fset-fast-stream/signup")
         val Some(result) = route(app, request)
 
-        status(result) mustBe (NOT_IMPLEMENTED)
+        status(result) mustBe NOT_IMPLEMENTED
       }
     }
   }
