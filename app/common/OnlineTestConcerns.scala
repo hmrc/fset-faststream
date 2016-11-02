@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package model.persisted
+package common
 
-import reactivemongo.bson.Macros
+import model.persisted._
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 
-case class Phase1TestWithUserIds(applicationId: String,
-  userId: String,
-  phase1TestProfile: Phase1TestProfile
-)
-
-object Phase1TestWithUserIds {
-  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase1TestWithUserIds]
+trait Phase1TestConcern {
+  type U = CubiksTest
+  type T = Phase1TestProfile
+  type RichTestGroup = Phase1TestGroupWithUserIds
 }
 
-case class Phase2TestGroupWithAppId(applicationId: String, phase2TestGroup: Phase2TestGroup)
+trait Phase2TestConcern {
+  type U = CubiksTest
+  type T = Phase2TestGroup
+  type RichTestGroup = Phase2TestGroupWithAppId
+}
 
-object Phase2TestGroupWithAppId {
-  implicit val phase1TestProfileWithAppIdHandler = Macros.handler[Phase2TestGroupWithAppId]
+trait Phase3TestConcern {
+  type U = LaunchpadTest
+  type T = Phase3TestGroup
+  type RichTestGroup = Phase3TestGroupWithAppId
 }

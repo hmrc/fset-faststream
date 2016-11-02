@@ -16,6 +16,7 @@
 
 package controllers
 
+import model.ApplicationRoute
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
 import org.joda.time.LocalDate
@@ -53,17 +54,21 @@ trait SearchForApplicantsController extends BaseController {
       psRepository.find(application.applicationId).flatMap { pd =>
         cdRepository.find(userId).map { cd =>
           Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), Some(cd.postCode), None)))
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), Some(cd.postCode), None,
+            Some(application.applicationRoute))))
         }.recover {
           case e: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), None, None, None)))
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), None, None, None, Some(application.applicationRoute))))
         }
       }.recover {
         case e: PersonalDetailsNotFound =>
-          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, None, None, None, None, None, None, None)))
+          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, None, None, None, None, None, None, None,
+            Some(application.applicationRoute))))
       }
     }.recover {
-      case e: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None, None)))
+      // when application is not found, the application route is set to Faststream for backward compatibility
+      case e: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None, None,
+        Some(ApplicationRoute.Faststream))))
     }
   }
 

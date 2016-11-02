@@ -16,6 +16,7 @@
 
 package repositories.onlinetesting
 
+import common.Phase3TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.ApplicationStatus.ApplicationStatus
@@ -33,7 +34,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait Phase3TestRepository extends OnlineTestRepository[LaunchpadTest, Phase3TestGroup] {
+trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   this: ReactiveRepository[_, _] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]]
@@ -57,7 +58,9 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    val query = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS_PASSED)
+    val query = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS_PASSED,
+      s"progress-status.${PHASE2_TESTS_PASSED}" -> true
+    )
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, 5)
