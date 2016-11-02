@@ -182,7 +182,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
               AuditEvents.Phase2TestInvitationProcessComplete(Map(
                 "userId" -> candidate.userId,
                 "absoluteTime" -> s"${calculateAbsoluteTimeWithAdjustments(candidate)}",
-                "scheduleId" -> scheduleName)) ::
+                "scheduleName" -> scheduleName)) ::
               Nil
           }).flatten
         }
@@ -372,7 +372,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
     }
   }
 
-  private def calculateAbsoluteTimeWithAdjustments(application: OnlineTestApplication): Int = {
+  protected[onlinetesting] def calculateAbsoluteTimeWithAdjustments(application: OnlineTestApplication): Int = {
     (application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(0) * 80 / 100) + 80
   }
 
