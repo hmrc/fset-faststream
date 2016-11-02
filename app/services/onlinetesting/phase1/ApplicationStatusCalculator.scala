@@ -25,6 +25,7 @@ trait ApplicationStatusCalculator {
 
   def determineApplicationStatus(originalApplicationStatus: ApplicationStatus,
                                  evaluatedSchemes: List[SchemeEvaluationResult]): Option[ApplicationStatus] = {
+    require(evaluatedSchemes.nonEmpty)
     originalApplicationStatus match {
       case ApplicationStatus.PHASE1_TESTS =>
         val results = evaluatedSchemes.map(s => Result(s.result))
