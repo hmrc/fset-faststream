@@ -173,5 +173,4 @@ object SignUpForm {
     faststreamEligible: Boolean,
     edipEligible: Boolean
   )
-
 }

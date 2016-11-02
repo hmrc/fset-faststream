@@ -20,7 +20,7 @@ import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
-import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, Phase3TestInvitedRole }
+import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -80,5 +80,4 @@ abstract class CubiksTestController(applicationClient: ApplicationClient, cacheC
       Future.successful(Redirect(testToStart.testUrl))
     }.getOrElse(Future.successful(NotFound))
   }
-
 }

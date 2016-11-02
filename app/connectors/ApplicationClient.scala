@@ -103,10 +103,8 @@ trait ApplicationClient {
     }
   }
 
-  def updatePartnerGraduateProgrammes(applicationId: UniqueIdentifier, pgp: PartnerGraduateProgrammes)(
-    implicit
-    hc: HeaderCarrier
-  ) = {
+  def updatePartnerGraduateProgrammes(applicationId: UniqueIdentifier, pgp: PartnerGraduateProgrammes)
+                                     (implicit hc: HeaderCarrier) = {
     http.PUT(
       s"${url.host}${url.base}/partner-graduate-programmes/$applicationId",
       pgp
@@ -125,10 +123,8 @@ trait ApplicationClient {
     }
   }
 
-  def updateAssistanceDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, assistanceDetails: AssistanceDetails)(
-    implicit
-    hc: HeaderCarrier
-  ) = {
+  def updateAssistanceDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, assistanceDetails: AssistanceDetails)
+                             (implicit hc: HeaderCarrier) = {
     http.PUT(s"${url.host}${url.base}/assistance-details/$userId/$applicationId", assistanceDetails).map {
       case x: HttpResponse if x.status == CREATED => ()
     } recover {
@@ -144,10 +140,8 @@ trait ApplicationClient {
     }
   }
 
-  def updateQuestionnaire(applicationId: UniqueIdentifier, sectionId: String, questionnaire: Questionnaire)(
-    implicit
-    hc: HeaderCarrier
-  ) = {
+  def updateQuestionnaire(applicationId: UniqueIdentifier, sectionId: String, questionnaire: Questionnaire)
+                         (implicit hc: HeaderCarrier) = {
     http.PUT(s"${url.host}${url.base}/questionnaire/$applicationId/$sectionId", questionnaire).map {
       case x: HttpResponse if x.status == ACCEPTED => ()
     } recover {
@@ -227,7 +221,6 @@ trait TestDataClient {
   }
 
   sealed class TestDataGeneratorException(message: String) extends Exception(message)
-
 }
 
 object ApplicationClient extends ApplicationClient with TestDataClient {
@@ -253,5 +246,4 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class OnlineTestNotFound extends Exception
 
   sealed class PdfReportNotFoundException extends Exception
-
 }

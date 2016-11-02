@@ -34,5 +34,4 @@ object Region {
   private def jsonArr(l: List[String]) = s"[${l.map(q).mkString(",")}]"
 
   private def q(s: String) = "\"" + s + "\""
-
 }

@@ -43,7 +43,6 @@ object Roles {
   }
 
   // All the roles
-
   object NoRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) = true
   }
@@ -212,7 +211,6 @@ object Roles {
     UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
     WithdrawApplicationRole -> routes.HomeController.present()
   ).reverse
-
 }
 
 object RoleUtils {

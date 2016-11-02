@@ -20,17 +20,15 @@ import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
 import config.{ CSRCache, CSRHttp }
-import connectors.exchange.SelectedSchemes
 import connectors.{ ApplicationClient, SchemeClient }
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange.Implicits._
 import helpers.NotificationType._
-import models.{ ApplicationRoute, SecurityUser, UniqueIdentifier }
+import models.{ ApplicationRoute, SecurityUser }
 import security.SignInService
 import connectors.exchange._
 
 import scala.concurrent.Future
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 object SignUpController extends SignUpController(ApplicationClient, SchemeClient, CSRCache) {
   val http = CSRHttp

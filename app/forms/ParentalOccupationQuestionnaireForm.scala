@@ -70,5 +70,4 @@ object ParentalOccupationQuestionnaireForm {
       ))
     }
   }
-
 }

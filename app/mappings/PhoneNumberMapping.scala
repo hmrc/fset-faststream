@@ -28,9 +28,7 @@ object PhoneNumberMapping {
     } else {
       Invalid(ValidationError("error.phoneNumber.format"))
     }
-
   }
 
   def validatePhoneNumber(phoneNumber: String): Boolean = phoneNumberPattern.pattern.matcher(phoneNumber).matches
-
 }

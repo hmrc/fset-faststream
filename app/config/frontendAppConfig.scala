@@ -85,7 +85,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
   // Whitelist Configuration
   private def whitelistConfig(key: String): Seq[String] = Some(
-    new String(Base64.getDecoder().decode(Play.configuration.getString(key).getOrElse("")), "UTF-8")
+    new String(Base64.getDecoder.decode(Play.configuration.getString(key).getOrElse("")), "UTF-8")
   ).map(_.split(",")).getOrElse(Array.empty).toSeq
 
   lazy val whitelist = whitelistConfig("whitelist")

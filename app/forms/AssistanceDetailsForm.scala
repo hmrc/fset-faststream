@@ -91,7 +91,7 @@ object AssistanceDetailsForm {
     }
   }
 
-  object Data{
+  object Data {
     def apply(ad: AssistanceDetails): Data = {
       AssistanceDetailsForm.Data(
         ad.hasDisability,
@@ -120,6 +120,5 @@ object AssistanceDetailsForm {
       case Some(false) => Some("No")
       case _ => None
     }
-
   }
 }

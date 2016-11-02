@@ -73,5 +73,4 @@ abstract class ActivationController(val applicationClient: ApplicationClient,
         Redirect(routes.ActivationController.present()).flashing(success("activation.code-resent"))
       }
   }
-
 }

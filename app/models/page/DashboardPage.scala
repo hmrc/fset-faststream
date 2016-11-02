@@ -287,6 +287,4 @@ object DashboardPage {
       case Some(AllocationDetails(_, _, _, Some(expirationDate))) if LocalDate.now().isAfter(expirationDate) => true
       case _ => false
     }
-
 }
-

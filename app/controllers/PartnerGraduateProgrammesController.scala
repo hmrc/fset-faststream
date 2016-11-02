@@ -20,7 +20,6 @@ import _root_.forms.PartnerGraduateProgrammesForm
 import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
-import connectors.exchange.PartnerGraduateProgrammes
 import security.Roles.PartnerGraduateProgrammesRole
 
 import scala.concurrent.Future
@@ -47,11 +46,11 @@ class PartnerGraduateProgrammesController(applicationClient: ApplicationClient, 
         invalidForm =>
           Future.successful(Ok(views.html.application.partnerGraduateProgrammes(invalidForm))),
         data => {
-          applicationClient.updatePartnerGraduateProgrammes(user.application.applicationId, data.sanitizeData.exchange).flatMap { _ =>
-            updateProgress()(_ => Redirect(routes.AssistanceDetailsController.present()))
-          }
+          applicationClient.updatePartnerGraduateProgrammes(user.application.applicationId, data.sanitizeData.exchange)
+            .flatMap { _ =>
+              updateProgress()(_ => Redirect(routes.AssistanceDetailsController.present()))
+            }
         }
       )
   }
-
 }

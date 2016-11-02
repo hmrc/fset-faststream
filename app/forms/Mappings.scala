@@ -172,5 +172,4 @@ object Mappings {
     }
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
-
 }

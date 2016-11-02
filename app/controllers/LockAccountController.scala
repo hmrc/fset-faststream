@@ -45,5 +45,4 @@ abstract class LockAccountController(applicationClient: ApplicationClient, cache
           addingToSession("email" -> data.email))
       )
   }
-
 }
