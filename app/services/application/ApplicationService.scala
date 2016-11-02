@@ -81,14 +81,9 @@ trait ApplicationService extends EventSink {
       Nil
 
     def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String ={
-      def mkString(ad: Option[AdjustmentDetail]): Option[String] = {
-        ad.map { e =>
-          val et = e.timeNeeded.map( tn => s"$tn% extra time")
-          val iv_info = e.invigilatedInfo
-          val other_info = e.otherInfo
-          List(et,iv_info,other_info).flatten.mkString(", ")
-        }
-      }
+
+      def mkString(ad: Option[AdjustmentDetail]): Option[String] =
+        ad.map(e => List(e.timeNeeded.map( tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
 
       mkString(adjustmentDetail) match {
         case Some(txt) if !txt.isEmpty => s"$header $txt"

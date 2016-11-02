@@ -239,7 +239,7 @@ object Commands {
     implicit val reportFormat = Json.format[Report]
     implicit val preferencesWithContactDetailsFormat = Json.format[PreferencesWithContactDetails]
     implicit val adjustmentDetailFormat = Json.format[AdjustmentDetail]
-    implicit val adjustmentManagementFormatNew = Json.format[AdjustmentManagement]
+    implicit val adjustmentManagementFormat = Json.format[AdjustmentManagement]
 
     implicit def fromCommandToPersistedQuestion(q: Question): PersistedQuestion =
       PersistedQuestion(q.question, PersistedAnswer(q.answer.answer, q.answer.otherDetails, q.answer.unknown))
