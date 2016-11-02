@@ -104,8 +104,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     for {
       emailAddress <- candidateEmailAddress(application)
       phase3Test <- registerAndInviteApplicant(application, emailAddress, interviewId, invitationDate, expirationDate)
-      // TODO: Trigger email when template is available
-      // _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+      _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
       _ <- eventService.handle(
         AuditEvents.VideoInterviewRegistrationAndInviteComplete("userId" -> application.userId) ::
