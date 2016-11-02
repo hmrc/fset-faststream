@@ -373,7 +373,9 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   }
 
   protected[onlinetesting] def calculateAbsoluteTimeWithAdjustments(application: OnlineTestApplication): Int = {
-    (application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(0) * 80 / 100) + 80
+    val baseEtrayTestDurationInMinutes = 80
+    (application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(0)
+      * baseEtrayTestDurationInMinutes / 100) + baseEtrayTestDurationInMinutes
   }
 
   // TODO this method is exactly the same as the Phase1 version (with the exception of the progress status)
