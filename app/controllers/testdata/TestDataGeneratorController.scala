@@ -85,20 +85,16 @@ trait TestDataGeneratorController extends BaseController {
   }
 
 
-  def createCandidatesInStatusPOST() = Action.async(parse.json) { implicit request =>
+  def createCandidatesInStatusPOST(numberToGenerate: Int) = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateInStatusRequest] { body =>
-      createCandidateInStatus(GeneratorConfig(body, cubiksUrlFromConfig))
+      createCandidateInStatus(GeneratorConfig.apply(cubiksUrlFromConfig, body), numberToGenerate)
     }
   }
 
-  private def createCandidateInStatus(config: GeneratorConfig)
+  private def createCandidateInStatus(config: (Int) => GeneratorConfig, numberToGenerate: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader) = try {
     TestDataGeneratorService.createCandidatesInSpecificStatus(
-      config.numberToGenerate,
-      StatusGeneratorFactory.getGenerator(config.statusData.applicationStatus,
-        config.statusData.progressStatus,
-        config),
-      config
+      numberToGenerate, StatusGeneratorFactory.getGenerator, config
     ).map { candidates =>
       Ok(Json.toJson(candidates))
     }

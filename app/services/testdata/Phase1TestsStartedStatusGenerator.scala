@@ -44,7 +44,7 @@ trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))(id =>
-        otService.markAsStarted(id, generatorConfig.phase1StartTime.getOrElse(DateTime.now))
+        otService.markAsStarted(id, generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now))
       )
     } yield candidate
   }

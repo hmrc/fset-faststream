@@ -24,12 +24,12 @@ import model.command.testdata.GeneratorConfig
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
-  def getGenerator(applicationStatus: ApplicationStatus, progressStatus: Option[ProgressStatus], generatorConfig: GeneratorConfig) = {
+  def getGenerator(generatorConfig: GeneratorConfig) = {
 
     val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
     val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)
 
-    (applicationStatus, progressStatus) match {
+    (generatorConfig.statusData.applicationStatus, generatorConfig.statusData.progressStatus) match {
       case (appStatus, None) => appStatus match {
         case REGISTERED => RegisteredStatusGenerator
         case CREATED => CreatedStatusGenerator
@@ -72,7 +72,7 @@ object StatusGeneratorFactory {
           Phase2TestsExpiredFromInvitedStatusGenerator
         }
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_INVITED)) => Phase3TestsInvitedStatusGenerator
-      case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
+      case _ => throw InvalidStatusException(s"${generatorConfig.statusData.applicationStatus} is not valid or not supported")
     }
   }
   // scalastyle:on cyclomatic.complexity

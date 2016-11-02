@@ -48,7 +48,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         candidateInformation.firstName,
         candidateInformation.lastName,
         candidateInformation.preferredName,
-        generatorConfig.dob.getOrElse(new LocalDate(1981, 5, 21))
+        generatorConfig.personalData.dob
       )
     }
 
@@ -56,15 +56,15 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       ContactDetails(
         outsideUk = false,
         Address("123, Fake street"),
-        if (generatorConfig.country.isEmpty) { generatorConfig.postCode.orElse(Some(Random.postCode)) } else { None },
-        generatorConfig.country,
+        Some(generatorConfig.personalData.postCode),
+        Some(generatorConfig.personalData.country),
         candidateInformation.email,
         "07770 774 914"
       )
     }
 
     def getCivilServiceExperienceDetails(candidateInformation: DataGenerationResponse) = {
-      if (generatorConfig.isCivilServant.contains(true)) {
+      if (generatorConfig.isCivilServant) {
         CivilServiceExperienceDetails(true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
       } else {
         CivilServiceExperienceDetails(applicable = false)

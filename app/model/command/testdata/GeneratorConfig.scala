@@ -71,10 +71,10 @@ trait TestResult {
 }
 
 case class Phase1TestData(
-  start: DateTime = DateTime.now ,
-  expiry: DateTime = DateTime.now,
-  completion: DateTime = DateTime.now,
-  tscore: Double = scala.util.Random.nextDouble
+  start: Option[DateTime] = None,
+  expiry: Option[DateTime] = None,
+  completion: Option[DateTime] = None,
+  tscore: Option[Double] = None
 ) extends TestDates with TestResult
 
 object Phase1TestData {
@@ -87,6 +87,7 @@ object Phase1TestData {
     )
   }
 }
+
 case class Phase2TestData(
   start: Option[DateTime] = None,
   expiry: Option[DateTime] = None,
@@ -106,25 +107,26 @@ object Phase2TestData {
 }
 
 case class PersonalData(
-  emailPrefix: Option[String] = None,
-  firstName: Option[String] = None,
-  lastName: Option[String] = None,
-  preferredName: Option[String] = None,
-  dob: Option[LocalDate] = None,
-  postCode: Option[String] = None,
-  country: Option[String] = None
+  emailPrefix: String = s"tesf${Random.number()}-1@mailinator.com",
+  firstName: String = Random.getFirstname(1),
+  lastName: String = Random.getLastname(1),
+  preferredName: String = s"Pref${Random.getFirstname(1)}",
+  dob: LocalDate = new LocalDate(1981, 5, 21),
+  postCode: String = Random.postCode,
+  country: String = "UK"
 )
 
 object PersonalData {
-  def apply(o: model.exchange.testdata.PersonalDataRequest): PersonalData = {
+  def apply(o: model.exchange.testdata.PersonalDataRequest, generatorId: Int): PersonalData = {
+    val default = PersonalData()
     PersonalData(
-      emailPrefix = o.emailPrefix,
-      firstName = o.firstName,
-      lastName = o.lastName,
-      preferredName = o.preferedName,
-      dob = o.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),
-      postCode = o.postCode,
-      country = o.country
+      emailPrefix = o.emailPrefix.getOrElse(s"tesf${Random.number()}-${generatorId}@mailinator.com"),
+      firstName = o.firstName.getOrElse(Random.getFirstname(generatorId)),
+      lastName = o.lastName.getOrElse(Random.getLastname(generatorId)),
+      preferredName = o.preferedName.getOrElse(s"Pref${Random.getFirstname(generatorId)}"),
+      dob = o.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))).getOrElse(default.dob),
+      postCode = o.postCode.getOrElse(default.postCode),
+      country = o.country.getOrElse(default.country)
     )
   }
 }
@@ -148,12 +150,11 @@ object StatusData {
 
 
 case class GeneratorConfig(statusData: StatusData,
-  numberToGenerate: Int = 1,
-  personalData: Option[PersonalData] = None,
-  assistanceDetails: Option[AssistanceDetails] = None,
+  personalData: PersonalData = PersonalData(),
+  assistanceDetails: AssistanceDetails = AssistanceDetails(),
   cubiksUrl: String,
-  isCivilServant: Option[Boolean] = None,
-  hasDegree: Option[Boolean] = None,
+  isCivilServant: Boolean = Random.bool,
+  hasDegree: Boolean = Random.bool,
   region: Option[String] = None,
   loc1scheme1Passmark: Option[Result] = None,
   loc1scheme2Passmark: Option[Result] = None,
@@ -163,18 +164,17 @@ case class GeneratorConfig(statusData: StatusData,
 )
 
 object GeneratorConfig {
-  def apply(o: model.exchange.testdata.CreateCandidateInStatusRequest, cubiksUrlFromConfig: String): GeneratorConfig = {
+  def apply(cubiksUrlFromConfig: String, o: model.exchange.testdata.CreateCandidateInStatusRequest)(generatorId: Int): GeneratorConfig = {
 
     val statusData = StatusData(o.statusData)
 
     GeneratorConfig(
       statusData = statusData,
-      numberToGenerate = o.numberToGenerate,
-      personalData = o.personalData.map(PersonalData.apply),
-      assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply),
+      personalData = o.personalData.map( p => PersonalData(p, generatorId)).getOrElse(PersonalData()),
+      assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
       cubiksUrl = cubiksUrlFromConfig,
-      isCivilServant = o.isCivilServant,
-      hasDegree = o.hasDegree,
+      isCivilServant = o.isCivilServant.getOrElse(Random.bool),
+      hasDegree = o.hasDegree.getOrElse(Random.bool),
       region = o.region,
       loc1scheme1Passmark = o.loc1scheme1EvaluationResult.map(Result.apply),
       loc1scheme2Passmark = o.loc1scheme2EvaluationResult.map(Result.apply),

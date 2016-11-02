@@ -40,10 +40,10 @@ trait RegisteredStatusGenerator extends BaseGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    val firstName = generatorConfig.personalData.flatMap(_.firstName).getOrElse(Random.getFirstname(generationId))
-    val lastName = generatorConfig.personalData.flatMap(_.lastName).getOrElse(Random.getLastname(generationId))
-    val preferredName = generatorConfig.personalData.flatMap(_.preferredName).getOrElse(s"Pref$firstName")
-    val email = s"${generatorConfig.personalData.flatMap(_.emailPrefix).getOrElse("tesf" + Random.number())}-${generationId}@mailinator.com"
+    val firstName = generatorConfig.personalData.firstName
+    val lastName = generatorConfig.personalData.lastName
+    val preferredName = generatorConfig.personalData.preferredName
+    val email = s"${generatorConfig.personalData.emailPrefix}@mailinator.com"
     val mediaReferrer = Random.mediaReferrer
 
     for {

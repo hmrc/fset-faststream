@@ -46,7 +46,8 @@ trait TestResultRequest {
 case class Phase1TestDataRequest(
   start: Option[String] = None,
   expiry: Option[String] = None,
-  completion: Option[String] = None
+  completion: Option[String] = None,
+  tscore: Option[String] = None
 ) extends TestDatesRequest with TestResultRequest
 
 object Phase1TestDataRequest {
@@ -56,7 +57,8 @@ object Phase1TestDataRequest {
 case class Phase2TestDataRequest(
   start: Option[String] = None,
   expiry: Option[String] = None,
-  completion: Option[String] = None
+  completion: Option[String] = None,
+  tscore: Option[String] = None
 ) extends TestDatesRequest with TestResultRequest
 
 object Phase2TestDataRequest {

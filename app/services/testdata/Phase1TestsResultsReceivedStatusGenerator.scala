@@ -65,7 +65,9 @@ trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
           otService.markAsReportReadyToDownload(id, result)
         }
         cubiksUserIds <- Future.successful(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))
-        testResults <- Future.successful(cubiksUserIds.map { id => { (getTestResult(generatorConfig.tscore), getPhase1Test(id))}})
+        testResults <- Future.successful(cubiksUserIds.map { id => {
+          (getTestResult(generatorConfig.phase1TestData.flatMap(_.tscore)), getPhase1Test(id))}
+        })
         _ <- insertTests(candidate.applicationId.get, testResults)
         _ <- otRepository.updateProgressStatus(candidate.applicationId.get, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
       } yield candidate

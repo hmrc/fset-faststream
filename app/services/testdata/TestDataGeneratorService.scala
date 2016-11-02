@@ -32,6 +32,8 @@ import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 import services.testdata.faker.DataFaker._
 
+import scala.collection.parallel.immutable.ParRange
+
 object TestDataGeneratorService extends TestDataGeneratorService {
 }
 
@@ -72,19 +74,28 @@ trait TestDataGeneratorService {
   }
 
   def createCandidatesInSpecificStatus(numberToGenerate: Int,
-    generatorForStatus: BaseGenerator,
-    generatorConfig: GeneratorConfig
+    generatorForStatus: (GeneratorConfig) => BaseGenerator,
+    generatorConfig: (Int) => GeneratorConfig
   )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
     Future.successful {
+
+
       val parNumbers = (1 to numberToGenerate).par
       parNumbers.tasksupport = new ForkJoinTaskSupport(
         new scala.concurrent.forkjoin.ForkJoinPool(2)
       )
-      parNumbers.map {
-        candidateGenerationId =>
-          val fut = generatorForStatus.generate(candidateGenerationId, generatorConfig)
-          Await.result(fut, 10 seconds)
+
+      // one wasted generation of config
+      val config = generatorConfig(parNumbers.head)
+      val generator = generatorForStatus(config)
+
+      parNumbers.map { candidateGenerationId =>
+        Await.result(
+          generator.generate(candidateGenerationId, config),
+          10 seconds
+        )
       }.toList
+
     }
   }
 }
