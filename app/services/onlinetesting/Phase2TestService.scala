@@ -18,6 +18,7 @@ package services.onlinetesting
 
 import _root_.services.AuditService
 import akka.actor.ActorSystem
+import common.Phase2TestConcern
 import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
@@ -56,10 +57,10 @@ object Phase2TestService extends Phase2TestService {
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
   val eventService = EventService
-
 }
 
-trait Phase2TestService extends OnlineTestService with ScheduleSelector {
+trait Phase2TestService extends OnlineTestService with Phase2TestConcern with ScheduleSelector {
+  val actor: ActorSystem
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
@@ -99,6 +100,11 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
       case None => Future.successful(())
     }
   }
+
+  override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
+    phase2TestRepo.nextTestGroupWithReportReady
+  }
+
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
                                                      emailAddress: String,
@@ -252,15 +258,14 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestCompletionTime(_:Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
-      require(u.phase2TestGroup.activeTests.nonEmpty, "Active tests cannot be found")
-      val activeTestsCompleted = u.phase2TestGroup.activeTests forall (_.completedDateTime.isDefined)
+      require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
+      val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
       activeTestsCompleted match {
-        case true =>
-          phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
-            DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
-          }
-        case false =>
-          Future.successful(List.empty[EventType])
+        case true => phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
+          DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
+        }
+
+        case false => Future.successful(List.empty[EventType])
       }
     }
   }
@@ -274,7 +279,7 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
 
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
     updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestReportReady(_: Int, reportReady)).flatMap { updated =>
-      if (updated.phase2TestGroup.activeTests forall (_.resultsReadyToDownload)) {
+      if (updated.testGroup.activeTests forall (_.resultsReadyToDownload)) {
         phase2TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
       } else {
         Future.successful(())
@@ -350,6 +355,50 @@ trait Phase2TestService extends OnlineTestService with ScheduleSelector {
       AuditEvents.NonExpiredTestsExtended(details)
     }
   }
+
+
+  // TODO this method is exactly the same as the Phase1 version (with the exception of the progress status)
+  // It's a bit fiddly to extract up to the OnlineTestService/Repository traits without defining another common
+  // CubiksTestService/Repository layer as it will be different for Launchapd.
+  // Still feels wrong to leave it here when it's 99% the same as phase1.
+  def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit] = {
+
+    def insertTests(testResults: List[(OnlineTestCommands.TestResult, U)]): Future[Unit] = {
+      Future.sequence(testResults.map {
+        case (result, phase1Test) => phase2TestRepo.insertTestResult(
+          testProfile.applicationId,
+          phase1Test, model.persisted.TestResult.fromCommandObject(result)
+        )
+      }).map(_ => ())
+    }
+
+    def maybeUpdateProgressStatus(appId: String) = {
+      phase2TestRepo.getTestGroup(appId).flatMap { eventualProfile =>
+
+        val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No profile returned for $appId"))
+        if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
+          phase2TestRepo.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_ =>
+            audit(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}", appId))
+        } else {
+          Future.successful(())
+        }
+      }
+    }
+
+    val testResults = Future.sequence(testProfile.testGroup.activeTests.map { test =>
+      test.reportId.map { reportId =>
+        cubiksGatewayClient.downloadXmlReport(reportId)
+      }.map(_.map(_ -> test))
+    }.flatten)
+
+    for {
+      eventualTestResults <- testResults
+      _ <- insertTests(eventualTestResults)
+      _ <- maybeUpdateProgressStatus(testProfile.applicationId)
+    } yield {
+      audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
+    }
+  }
 }
 
 object ResetPhase2Test {
@@ -366,4 +415,3 @@ object ResetPhase2Test {
       (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY) else List())
   }
 }
-

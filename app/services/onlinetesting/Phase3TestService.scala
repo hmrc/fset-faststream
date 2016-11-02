@@ -17,6 +17,7 @@
 package services.onlinetesting
 
 import _root_.services.AuditService
+import common.Phase3TestConcern
 import config.LaunchpadGatewayConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
@@ -24,6 +25,7 @@ import connectors.launchpadgateway.exchangeobjects._
 import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
+import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
 import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.events.{ AuditEventNoRequest, AuditEvents, DataStoreEventWithAppId, DataStoreEvents }
@@ -56,9 +58,10 @@ object Phase3TestService extends Phase3TestService {
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
   val eventService = EventService
+
 }
 
-trait Phase3TestService extends OnlineTestService {
+trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   val appRepository: GeneralApplicationRepository
   val phase3TestRepo: Phase3TestRepository
   val cdRepository: contactdetails.ContactDetailsRepository
@@ -84,7 +87,14 @@ trait Phase3TestService extends OnlineTestService {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application))
   }
 
-  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+  override def nextTestGroupWithReportReady: Future[Option[Phase3TestGroupWithAppId]] =
+    Future.successful(None)
+
+  override def retrieveTestResult(testProfile: Phase3TestGroupWithAppId)
+    (implicit hc: HeaderCarrier): Future[Unit] = Future.successful(())
+
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = Future.successful(())
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {

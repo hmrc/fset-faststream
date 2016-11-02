@@ -60,7 +60,7 @@ trait CommonRepository {
       phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t)).futureValue
       t.foreach { oneTest =>
         oneTest.testResult.foreach { result =>
-          phase1TestRepository.insertPhase1TestResult(appId, oneTest, result).futureValue
+          phase1TestRepository.insertTestResult(appId, oneTest, result).futureValue
         }
       }
       if (t.exists(_.testResult.isDefined)) {

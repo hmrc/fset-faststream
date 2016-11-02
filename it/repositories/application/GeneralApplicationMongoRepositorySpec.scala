@@ -17,9 +17,10 @@
 package repositories.application
 
 import factories.UUIDFactory
+import model.ProgressStatuses.ProgressStatus
+import model._
 import model.ApplicationStatus._
 import model.SchemeType.SchemeType
-import model._
 import model.report.CandidateProgressReportItem
 import org.joda.time.LocalDate
 import reactivemongo.bson.{ BSONArray, BSONDocument }
@@ -47,7 +48,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(CandidateProgressReportItem(appId, Some("registered"),
+      result.head must be(CandidateProgressReportItem(appId, Some("submitted"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
         Some("No"), Some("No"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))
       )
@@ -268,9 +269,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   // scalastyle:off parameter.number
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-     appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
-     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
-     firstName: Option[String] = None, preferredName: Option[String] = None) = {
+    appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
+    needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
+    firstName: Option[String] = None, preferredName: Option[String] = None, additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil
+  ) = {
     import repositories.BSONLocalDateHandler
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
@@ -300,15 +302,32 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         "guaranteedInterview" -> guaranteedInterview
       ),
       "issue" -> "this candidate has changed the email",
-      "progress-status" -> BSONDocument(
-        "registered" -> "true"
-      ),
+      "progress-status" -> progressStatus(additionalProgressStatuses),
       "progress-status-dates" -> BSONDocument(
         "submitted" -> LocalDate.now()
       )
     )).futureValue
   }
   // scalastyle:on
+  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
+    val baseDoc = BSONDocument(
+      "personal-details" -> true,
+      "in_progress" -> true,
+      "scheme-preferences" -> true,
+      "partner-graduate-programmes" -> true,
+      "assistance-details" -> true,
+      "questionnaire" -> BSONDocument(
+        "start_questionnaire" -> true,
+        "diversity_questionnaire" -> true,
+        "education_questionnaire" -> true,
+        "occupation_questionnaire" -> true
+      ),
+      "preview" -> true,
+      "submitted" -> true
+    )
+
+    args.foldLeft(baseDoc)((acc, v) => acc.++(v._1.toString -> v._2))
+  }
 
   def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
     repository.collection.insert(BSONDocument(
@@ -318,4 +337,3 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     )).futureValue
   }
 }
-

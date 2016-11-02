@@ -16,6 +16,7 @@
 
 package services.onlinetesting
 
+import common.Phase1TestConcern
 import connectors.OnlineTestEmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
@@ -126,7 +127,7 @@ class OnlineTestServiceSpec extends PlaySpec with MockitoSugar {
     def updateFn(cTest: CubiksTest): CubiksTest = cTest.copy(testUrl = "www.bogustest.test")
     val underTest = new TestableOnlineTestService
 
-    class TestableOnlineTestService extends OnlineTestService with EventServiceFixture {
+    class TestableOnlineTestService extends OnlineTestService with Phase1TestConcern with EventServiceFixture {
 
       override val emailClient = emailClientMock
       override val auditService = auditServiceMock
@@ -149,6 +150,10 @@ class OnlineTestServiceSpec extends PlaySpec with MockitoSugar {
       def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = success
 
+      override def nextTestGroupWithReportReady: Future[Option[RichTestGroup]] = Future.successful(None)
+
+      override def retrieveTestResult(testProfile: RichTestGroup)
+        (implicit hc: HeaderCarrier): Future[Unit] = Future.successful(())
     }
 
   }

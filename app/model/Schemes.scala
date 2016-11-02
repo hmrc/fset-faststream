@@ -16,7 +16,7 @@
 
 package model
 
-@deprecated("Fasttrack version. Use the new 'model.SchemeType' enum instead")
+@deprecated("Fasttrack version. Use the new 'model.SchemeType' enum instead", "July 2016")
 object Schemes {
   val Business = "Business"
   val Commercial = "Commercial"
