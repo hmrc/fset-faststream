@@ -19,18 +19,22 @@ package repositories.application
 import factories.UUIDFactory
 import model.ApplicationStatus._
 import model.SchemeType.SchemeType
-import model._
+import model.{ ApplicationStatus, _ }
 import model.report.CandidateProgressReportItem
 import org.joda.time.LocalDate
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
+import model.ApplicationRoute.{ apply => _, _ }
+import model.Commands.Candidate
 import testkit.MongoRepositorySpec
 import model.command.ProgressResponse
 import model.persisted.{ ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport }
+import repositories.CommonBSONDocuments
+import scheduler.fixer.{ ExpiredPhase1InvitedToPhase2, PassToPhase2 }
 
-class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
+class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
 
   import ImplicitBSONHandlers._
 
@@ -259,6 +263,153 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "Get Application to Fix for PassToPhase2 fix" should {
+    "return 1 result if the application is in PHASE2_TESTS_INVITED and PHASE1_TESTS_PASSED" in {
+      val statuses = BSONDocument(
+        "registered" -> true,
+        "preview" -> true,
+        "SUBMITTED" -> true,
+        "PHASE1_TESTS_INVITED" -> true,
+        "PHASE1_TESTS_STARTED" -> true,
+        "PHASE1_TESTS_COMPLETED" -> true,
+        "PHASE1_TESTS_RESULTS_READY" -> true,
+        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
+        "PHASE1_TESTS_PASSED" -> true,
+        "PHASE2_TESTS_INVITED" -> true
+      )
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+
+      val matchResponse = repository.getApplicationsToFix(PassToPhase2).futureValue
+      matchResponse.size mustBe 1
+    }
+
+    "return 0 result if the application is in PHASE1_TESTS_PASSED but not yet invited to PHASE 2" in {
+      val statuses = BSONDocument(
+        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
+        "PHASE1_TESTS_PASSED" -> true
+      )
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+
+      val matchResponse = repository.getApplicationsToFix(PassToPhase2).futureValue
+      matchResponse.size mustBe 0
+    }
+
+    "return 0 result if the application is in PHASE2_TESTS_INVITED and PHASE1_TESTS_PASSED but already in PHASE 2" in {
+      val statuses = BSONDocument(
+        "registered" -> true,
+        "preview" -> true,
+        "SUBMITTED" -> true,
+        "PHASE1_TESTS_INVITED" -> true,
+        "PHASE1_TESTS_STARTED" -> true,
+        "PHASE1_TESTS_COMPLETED" -> true,
+        "PHASE1_TESTS_RESULTS_READY" -> true,
+        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
+        "PHASE1_TESTS_PASSED" -> true,
+        "PHASE2_TESTS_INVITED" -> true
+      )
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS, progressStatuses = statuses)
+
+      val matchResponse = repository.getApplicationsToFix(PassToPhase2).futureValue
+      matchResponse.size mustBe 0
+    }
+
+    "return no result if the application is in PHASE2_TESTS_INVITED but not PHASE1_TESTS_PASSED" in {
+      // This would be an inconsistent state and we don't want to make things worse.
+      val statuses = BSONDocument(
+        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
+        "PHASE2_TESTS_INVITED" -> true
+      )
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+      val matchResponse = repository.getApplicationsToFix(PassToPhase2).futureValue
+      matchResponse.size mustBe 0
+    }
+  }
+
+  "Get Application to Fix for ExpiredPhase1InvitedToPhase2 fix" should {
+    "return 1 result if the application is in PHASE1_TESTS_EXPIRED and PHASE2_TESTS_INVITED" in {
+      val statuses = BSONDocument(
+        "registered" -> true,
+        "preview" -> true,
+        "SUBMITTED" -> true,
+        "PHASE1_TESTS_INVITED" -> true,
+        "PHASE1_TESTS_STARTED" -> true,
+        "PHASE1_TESTS_EXPIRED" -> true,
+        "PHASE2_TESTS_INVITED" -> true
+      )
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS, progressStatuses = statuses)
+
+      val matchResponse = repository.getApplicationsToFix(ExpiredPhase1InvitedToPhase2).futureValue
+      matchResponse.size mustBe 1
+    }
+
+    "return 0 result if the application is in PHASE1_TESTS_EXPIRED but not PHASE2_TESTS_INVITED" in {
+      val statuses = BSONDocument(
+        "registered" -> true,
+        "preview" -> true,
+        "SUBMITTED" -> true,
+        "PHASE1_TESTS_INVITED" -> true,
+        "PHASE1_TESTS_STARTED" -> true,
+        "PHASE1_TESTS_EXPIRED" -> true
+      )
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS, progressStatuses = statuses)
+
+      val matchResponse = repository.getApplicationsToFix(ExpiredPhase1InvitedToPhase2).futureValue
+      matchResponse.size mustBe 0
+    }
+  }
+
+  "fix a PassToPhase2 issue" should {
+    "update the application status from PHASE1_TESTS to PHASE2_TESTS" in {
+      val statuses = BSONDocument(
+        "registered" -> true,
+        "preview" -> true,
+        "SUBMITTED" -> true,
+        "PHASE1_TESTS_INVITED" -> true,
+        "PHASE1_TESTS_STARTED" -> true,
+        "PHASE1_TESTS_COMPLETED" -> true,
+        "PHASE1_TESTS_RESULTS_READY" -> true,
+        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
+        "PHASE1_TESTS_PASSED" -> true,
+        "PHASE2_TESTS_INVITED" -> true
+      )
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+
+      val matchResponse = repository.fix(candidate, PassToPhase2).futureValue
+      matchResponse.isDefined mustBe true
+
+      val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
+      applicationResponse.userId mustBe "userId"
+      applicationResponse.applicationId mustBe "appId123"
+      applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS.toString
+    }
+
+    "NO update performed if, in the meanwhile, the pre-conditions of the update have changed" in {
+      // no "PHASE2_TESTS_INVITED" -> true (which is a pre-condition)
+      val statuses = BSONDocument(
+        "registered" -> true,
+        "preview" -> true,
+        "SUBMITTED" -> true,
+        "PHASE1_TESTS_INVITED" -> true,
+        "PHASE1_TESTS_STARTED" -> true,
+        "PHASE1_TESTS_COMPLETED" -> true,
+        "PHASE1_TESTS_RESULTS_READY" -> true,
+        "PHASE1_TESTS_RESULTS_RECEIVED" -> true,
+        "PHASE1_TESTS_PASSED" -> true
+      )
+      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS, progressStatuses = statuses)
+
+      val matchResponse = repository.fix(candidate, PassToPhase2).futureValue
+      matchResponse.isDefined mustBe false
+
+      val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
+      applicationResponse.userId mustBe "userId"
+      applicationResponse.applicationId mustBe "appId123"
+      applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE1_TESTS.toString
+    }
+  }
+
+  val candidate = Candidate("userId", Some("appId123"), Some("test@test123.com"), None, None, None, None, None, None, None, None)
+
   val testCandidate = Map(
     "firstName" -> "George",
     "lastName" -> "Jetson",
@@ -270,7 +421,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
      appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
      needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
-     firstName: Option[String] = None, preferredName: Option[String] = None) = {
+     firstName: Option[String] = None, preferredName: Option[String] = None,
+     progressStatuses: BSONDocument = BSONDocument("registered" -> "true")) = {
+
     import repositories.BSONLocalDateHandler
     repository.collection.insert(BSONDocument(
       "applicationId" -> appId,
@@ -300,9 +453,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         "guaranteedInterview" -> guaranteedInterview
       ),
       "issue" -> "this candidate has changed the email",
-      "progress-status" -> BSONDocument(
-        "registered" -> "true"
-      ),
+      "progress-status" -> progressStatuses,
       "progress-status-dates" -> BSONDocument(
         "submitted" -> LocalDate.now()
       )

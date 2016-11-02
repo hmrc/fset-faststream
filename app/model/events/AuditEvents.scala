@@ -46,4 +46,7 @@ object AuditEvents {
   case class ExpiredTestEmailSent(details: Map[String, String]) extends AuditEventNoRequest
   case class FailedTestEmailSent(details: Map[String, String]) extends AuditEventNoRequest
   case class Phase2TestsReset(details: Map[String, String]) extends AuditEventNoRequest
+  case class FixedProdData(details: Map[String, String]) extends AuditEventNoRequest
+  case class FailedFixedProdData(details: Map[String, String]) extends AuditEventNoRequest
+
 }

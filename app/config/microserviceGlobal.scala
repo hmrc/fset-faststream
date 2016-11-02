@@ -21,6 +21,7 @@ import net.ceedubs.ficus.Ficus._
 import play.api.{ Application, Logger, Play }
 import scheduler.allocation.ConfirmAttendanceReminderJob
 import scheduler.assessment._
+import scheduler.fixer.FixerJob
 import scheduler.onlinetesting._
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.config.{ AppName, ControllerConfig }
@@ -135,6 +136,12 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
+  private lazy val fixerJob: Option[ScheduledJob] =
+    if (fixerJobConfigValues.enabled) Some(FixerJob) else {
+      Logger.warn("fixer job is disabled")
+      None
+    }
+
   private[config] def sendPhase1InvitationJobConfigValues = sendPhase1InvitationJobConfig
   private[config] def sendPhase2InvitationJobConfigValues = sendPhase2InvitationJobConfig
   private[config] def sendPhase3InvitationJobConfigValues = sendPhase3InvitationJobConfig
@@ -150,10 +157,11 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def confirmAttendanceReminderJobConfigValues = confirmAttendanceReminderJobConfig
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
+  private[config] def fixerJobConfigValues = fixerJobConfig
 
   lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob, firstPhase1ReminderExpiringTestJob,
     secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob, secondPhase2ReminderExpiringTestJob, expirePhase1TestJob,
-    expirePhase2TestJob, failedPhase1TestJob, retrieveResultsJob, evaluatePhase1ResultJob,
+    expirePhase2TestJob, failedPhase1TestJob, retrieveResultsJob, evaluatePhase1ResultJob, fixerJob,
     confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 

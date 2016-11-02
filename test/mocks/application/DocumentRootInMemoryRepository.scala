@@ -26,10 +26,11 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest, Phase1TestProfile }
 import model._
 import model.command._
-import model.persisted.{ ApplicationForOnlineTestPassMarkReport}
+import model.persisted.ApplicationForOnlineTestPassMarkReport
 import model.report._
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
+import scheduler.fixer.FixRequiredType
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -165,6 +166,10 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def applicationsPassedInAssessmentCentre(frameworkId: String): Future[List[ApplicationPreferencesWithTestResults]] = ???
 
+  override def fix(application: Candidate, issue: FixRequiredType): Future[Option[Candidate]] = ???
+
+  override def getApplicationsToFix(issue: FixRequiredType): Future[List[Candidate]] = ???
+
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]] = ???
 
   def saveAssessmentScoreEvaluation(applicationId: String, passmarkVersion: String, evaluationResult: AssessmentRuleCategoryResult,
@@ -175,4 +180,5 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def removeProgressStatuses(appId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = ???
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
+
 }
