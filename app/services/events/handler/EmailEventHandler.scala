@@ -36,6 +36,8 @@ trait EmailEventHandler extends EventHandler[EmailEvent] {
     event match {
       case _: EmailEvents.ApplicationWithdrawn => emailClient.sendWithdrawnConfirmation(event.to, event.name)
       case _: EmailEvents.ApplicationSubmitted => emailClient.sendApplicationSubmittedConfirmation(event.to, event.name)
+      case adjEvent: EmailEvents.AdjustmentsConfirmed =>
+        emailClient.sendAdjustmentsConfirmation(adjEvent.to, adjEvent.name, adjEvent.etrayAdjustments, adjEvent.videoAdjustments)
     }
   }
 }
