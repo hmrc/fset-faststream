@@ -191,22 +191,22 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   }
 
   private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule)
-                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]]
-  = applications match {
-    case Nil => Future.successful(Nil)
-    case candidatesToProcess =>
-      val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
-      implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
+                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] =
+    applications match {
+      case Nil => Future.successful(Nil)
+      case candidatesToProcess =>
+        val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
+        implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
 
-      for {
-        registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
-        invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
-        _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
-        _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
-      } yield {
-        candidatesToProcess
-      }
-  }
+        for {
+          registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
+          invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
+          _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
+          _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
+        } yield {
+          candidatesToProcess
+        }
+    }
 
   def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, schedule: Phase2Schedule) = {
     val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase2"
@@ -220,20 +220,20 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   }
 
   private def insertPhase2TestGroups(o: List[Phase2TestInviteData])
-                                    (implicit invitationDate: DateTime, expirationDate: DateTime): Future[Unit]
-  = Future.sequence(o.map { completedInvite =>
-    val newTestGroup = Phase2TestGroup(expirationDate = expirationDate,
-      List(CubiksTest(scheduleId = completedInvite.scheduleId,
-        usedForResults = true,
-        cubiksUserId = completedInvite.registration.userId,
-        token = completedInvite.token,
-        testUrl = completedInvite.invitation.authenticateUrl,
-        invitationDate = invitationDate,
-        participantScheduleId = completedInvite.invitation.participantScheduleId
-      ))
-    )
-    insertOrUpdateTestGroup(completedInvite.application)(newTestGroup)
-  }).map(_ => ())
+                                    (implicit invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
+    Future.sequence(o.map { completedInvite =>
+      val newTestGroup = Phase2TestGroup(expirationDate = expirationDate,
+        List(CubiksTest(scheduleId = completedInvite.scheduleId,
+          usedForResults = true,
+          cubiksUserId = completedInvite.registration.userId,
+          token = completedInvite.token,
+          testUrl = completedInvite.invitation.authenticateUrl,
+          invitationDate = invitationDate,
+          participantScheduleId = completedInvite.invitation.participantScheduleId
+        ))
+      )
+      insertOrUpdateTestGroup(completedInvite.application)(newTestGroup)
+    }).map(_ => ())
 
   private def insertOrUpdateTestGroup(application: OnlineTestApplication)
                                      (newOnlineTestProfile: Phase2TestGroup): Future[Unit] = for {
