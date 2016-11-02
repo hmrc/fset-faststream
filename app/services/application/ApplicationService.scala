@@ -100,7 +100,7 @@ trait ApplicationService extends EventSink {
       case Some(candidate) =>
         cdRepository.find(candidate.userId).flatMap { cd =>
           eventSink {
-            appRepository.confirmAdjustmentNew(applicationId, adjustmentInformation).map{_ =>
+            appRepository.confirmAdjustment(applicationId, adjustmentInformation).map{ _ =>
               adjustmentInformation.adjustments match {
                 case Some(list) if list.nonEmpty => EmailEvents.AdjustmentsConfirmed(cd.email,
                   candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),

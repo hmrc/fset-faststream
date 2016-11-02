@@ -97,20 +97,20 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
           // Gis and adjustments-confirmed
           BSONDocument("$and" -> BSONArray(
             BSONDocument("assistance-details.guaranteedInterview" -> true),
-            BSONDocument("assistance-details.adjustments-confirmed" -> true))),
+            BSONDocument("assistance-details.adjustmentsConfirmed" -> true))),
           // Non Invigilated etray with adjustments confirmed
           BSONDocument("$and" -> BSONArray(
             BSONDocument("$or" -> BSONArray(
               BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
               BSONDocument("assistance-details.needsSupportAtVenue" -> true)
             )),
-            BSONDocument("assistance-details.adjustments-confirmed" -> true),
+            BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
             BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated")))
           ))
           // Invigilated etray with adjustments confirmed
           /*BSONDocument("$and" -> BSONArray(
             BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-            BSONDocument("assistance-details.adjustments-confirmed" -> true),
+            BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
             BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
           )),*/
 
