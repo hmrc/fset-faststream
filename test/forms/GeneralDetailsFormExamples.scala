@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
 import connectors.exchange.CivilServiceExperienceDetails
 import connectors.exchange.CivilServiceExperienceDetails.toData
-import forms.GeneralDetailsForm
 import mappings.{ AddressExamples, DayMonthYear }
 import org.joda.time.{ DateTime, LocalDate }
 

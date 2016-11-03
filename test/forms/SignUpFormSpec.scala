@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
 import controllers.BaseSpec
-import forms.SignUpForm
-import _root_.forms.SignUpForm._
-import forms.SignUpForm.Data
+import forms.SignUpForm.{ Data, _ }
 import models.ApplicationRoute
 import play.api.data.Form
 import play.api.i18n.Messages

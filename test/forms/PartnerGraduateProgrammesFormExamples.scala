@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.forms
-
-import forms.PartnerGraduateProgrammesForm
+package forms
 
 object PartnerGraduateProgrammesFormExamples {
   val InterestedNotAllForm = PartnerGraduateProgrammesForm.Data("Yes",

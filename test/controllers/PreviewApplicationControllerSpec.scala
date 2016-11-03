@@ -22,7 +22,7 @@ import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduate
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.{ AssistanceDetailsExamples, GeneralDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
 import connectors.{ ApplicationClient, SchemeClient }
-import controllers.forms.AssistanceDetailsFormExamples
+import forms.AssistanceDetailsFormExamples
 import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }

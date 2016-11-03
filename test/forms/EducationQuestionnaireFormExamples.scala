@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.forms
-
-import forms.EducationQuestionnaireForm
+package forms
 
 object EducationQuestionnaireFormExamples {
 

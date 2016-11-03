@@ -21,7 +21,7 @@ import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.{ CivilServiceExperienceDetailsExamples, GeneralDetailsExamples, SelectedSchemes }
 import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
-import controllers.forms.GeneralDetailsFormExamples._
+import forms.GeneralDetailsFormExamples._
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationRoute._
 import models._

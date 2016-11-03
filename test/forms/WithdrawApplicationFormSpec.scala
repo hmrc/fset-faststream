@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
 import controllers.BaseSpec
-import forms.WithdrawApplicationForm
 import forms.WithdrawApplicationForm.Data
 import play.api.data.Form
 

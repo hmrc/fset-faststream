@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
 import controllers.BaseSpec
-import forms.ResetPasswordForm
 
 class resetPasswordFormSpec extends BaseSpec {
 

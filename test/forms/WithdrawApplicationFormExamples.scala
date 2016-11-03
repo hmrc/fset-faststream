@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.forms
-
-import forms.WithdrawApplicationForm
+package forms
 
 object WithdrawApplicationFormExamples {
   val ValidForm = WithdrawApplicationForm.Data("Yes", Some("found another job"), None)

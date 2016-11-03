@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
-import forms.GeneralDetailsForm
-import controllers.forms.GeneralDetailsFormExamples._
+import forms.GeneralDetailsFormExamples._
 import org.joda.time.LocalDate
 import org.scalatestplus.play.PlaySpec
 

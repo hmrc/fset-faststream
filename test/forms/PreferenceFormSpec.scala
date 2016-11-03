@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
 import controllers.BaseSpec
 import forms.SchemeLocationPreferenceForm.{ Data, form, resetPreference, validateSchemeLocation }
