@@ -30,8 +30,19 @@ trait ScheduleSelector {
     schedules.toSeq(Random.nextInt(schedules.size))
   }
 
+  def getRandomScheduleWithName(currentScheduleIds: List[Int] = Nil): (String, Phase2Schedule) = {
+    val schedules = getAvailableSchedulesWithName(currentScheduleIds)
+
+    require(schedules.nonEmpty, "Phase2 schedule list cannot be empty")
+    schedules.toSeq(Random.nextInt(schedules.size))
+  }
+
   def getAvailableSchedules(currentScheduleIds: List[Int]) = {
     testConfig.schedules.values.filter(schedule => !currentScheduleIds.contains(schedule.scheduleId))
+  }
+
+  def getAvailableSchedulesWithName(currentScheduleIds: List[Int]) = {
+    testConfig.schedules.filter(scheduleWithName => !currentScheduleIds.contains(scheduleWithName._2.scheduleId))
   }
 
   def schedulesAvailable(currentScheduleIds: List[Int]) = {
