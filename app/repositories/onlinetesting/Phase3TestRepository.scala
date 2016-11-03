@@ -17,12 +17,13 @@
 package repositories.onlinetesting
 
 import common.Phase3TestConcern
+import config.MicroserviceAppConfig.sendPhase3InvitationJobConfig
 import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses._
+import model.ProgressStatuses.{ PHASE2_TESTS_PASSED, _ }
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import play.api.Logger
 import reactivemongo.api.DB
@@ -58,49 +59,10 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    val query = BSONDocument(
-      "applicationStatus" -> ApplicationStatus.PHASE2_TESTS_PASSED,
-      s"progress-status.$PHASE2_TESTS_PASSED" -> true,
-      "assistance-details.needsSupportForOnlineAssessment" -> false
-    )
+    val query = inviteToTestBSON(PHASE2_TESTS_PASSED, invigilatedKeyToExclude = "videoInvigilated")
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
-    selectRandom[OnlineTestApplication](query, 5)
-
-    override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-      val query =
-        BSONDocument("$and" -> BSONArray(
-          BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
-          BSONDocument(s"progress-status.${PHASE1_TESTS_PASSED}" -> true),
-          BSONDocument("$or" -> BSONArray(
-            BSONDocument("$and" -> BSONArray(
-              BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
-              BSONDocument("assistance-details.needsSupportAtVenue" -> false),
-              BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true)))),
-            BSONDocument("$and" -> BSONArray(
-              BSONDocument("$or" -> BSONArray(
-                BSONDocument("assistance-details.guaranteedInterview" -> true),
-                BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-                BSONDocument("assistance-details.needsSupportAtVenue" -> true)
-              )),
-              BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
-              BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated")))
-            ))
-            // Invigilated etray with adjustments confirmed
-            /*BSONDocument("$and" -> BSONArray(
-              BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-              BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
-              BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
-            )),*/
-
-            // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver
-            // functionality even if invigilated test functionality is not ready. In that case we will remove some code
-          ))
-        )
-
-      implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
-      selectRandom[OnlineTestApplication](query, 50)
-    }
+    selectRandom[OnlineTestApplication](query, sendPhase3InvitationJobConfig.batchSize.getOrElse(1))
   }
 
   override def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit] = {
