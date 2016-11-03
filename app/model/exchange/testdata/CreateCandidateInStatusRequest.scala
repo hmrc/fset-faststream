@@ -16,7 +16,6 @@
 
 package model.exchange.testdata
 
-import model.ApplicationRoute
 import play.api.libs.json.Json
 
 
@@ -69,7 +68,7 @@ case class PersonalDataRequest(
   emailPrefix: Option[String] = None,
   firstName: Option[String] = None,
   lastName: Option[String] = None,
-  preferedName: Option[String] = None,
+  preferredName: Option[String] = None,
   dateOfBirth: Option[String] = None,
   postCode: Option[String] = None,
   country: Option[String] = None
@@ -87,7 +86,7 @@ case class StatusDataRequest(
 )
 
 object StatusDataRequest{
-  implicit def statusDataformat = Json.format[StatusDataRequest]
+  implicit def statusDataFormat = Json.format[StatusDataRequest]
 }
 
 

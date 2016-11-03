@@ -75,10 +75,9 @@ trait TestDataGeneratorService {
 
   def createCandidatesInSpecificStatus(numberToGenerate: Int,
     generatorForStatus: (GeneratorConfig) => BaseGenerator,
-    generatorConfig: (Int) => GeneratorConfig
+    configGenerator: (Int) => GeneratorConfig
   )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
     Future.successful {
-
 
       val parNumbers = (1 to numberToGenerate).par
       parNumbers.tasksupport = new ForkJoinTaskSupport(
@@ -86,12 +85,12 @@ trait TestDataGeneratorService {
       )
 
       // one wasted generation of config
-      val config = generatorConfig(parNumbers.head)
+      val config = configGenerator(parNumbers.head)
       val generator = generatorForStatus(config)
 
       parNumbers.map { candidateGenerationId =>
         Await.result(
-          generator.generate(candidateGenerationId, config),
+          generator.generate(candidateGenerationId, configGenerator(candidateGenerationId)),
           10 seconds
         )
       }.toList

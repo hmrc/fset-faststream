@@ -81,8 +81,8 @@ object Phase1TestData {
   def apply(o: model.exchange.testdata.Phase1TestDataRequest): Phase1TestData = {
     Phase1TestData(
       start = o.start.map(DateTime.parse),
-      expiry = o.start.map(DateTime.parse),
-      completion = o.start.map(DateTime.parse),
+      expiry = o.expiry.map(DateTime.parse),
+      completion = o.completion.map(DateTime.parse),
       tscore = o.tscore.map(_.toDouble)
     )
   }
@@ -107,27 +107,30 @@ object Phase2TestData {
 }
 
 case class PersonalData(
-  emailPrefix: String = s"tesf${Random.number()}-1@mailinator.com",
+  emailPrefix: String = s"tesf${Random.number()-1}",
   firstName: String = Random.getFirstname(1),
   lastName: String = Random.getLastname(1),
   preferredName: String = s"Pref${Random.getFirstname(1)}",
   dob: LocalDate = new LocalDate(1981, 5, 21),
-  postCode: String = Random.postCode,
-  country: String = "UK"
+  postCode: Option[String] = None,
+  country: Option[String] = None
 )
 
 object PersonalData {
+
   def apply(o: model.exchange.testdata.PersonalDataRequest, generatorId: Int): PersonalData = {
     val default = PersonalData()
     val fname = o.firstName.getOrElse(Random.getFirstname(generatorId))
+    val emailPrefix = o.emailPrefix.map( e => s"$e-${generatorId}")
+
     PersonalData(
-      emailPrefix = o.emailPrefix.getOrElse(s"tesf${Random.number()}-${generatorId}"),
+      emailPrefix = emailPrefix.getOrElse(s"tesf${Random.number()}-${generatorId}"),
       firstName = fname,
       lastName = o.lastName.getOrElse(Random.getLastname(generatorId)),
-      preferredName = o.preferedName.getOrElse(s"Pref${fname}"),
+      preferredName = o.preferredName.getOrElse(s"Pref${fname}"),
       dob = o.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))).getOrElse(default.dob),
-      postCode = o.postCode.getOrElse(default.postCode),
-      country = o.country.getOrElse(default.country)
+      postCode = o.postCode,
+      country = o.country
     )
   }
 }
