@@ -202,7 +202,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
           registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
           invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
           _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
-          _ <- emailInviteToApplicants(candidatesToProcess)(hc, invitationDate, expirationDate)
+          _ <- emailInviteToApplicants(candidatesToProcess)(hc, rh, invitationDate, expirationDate)
         } yield {
           candidatesToProcess
         }
