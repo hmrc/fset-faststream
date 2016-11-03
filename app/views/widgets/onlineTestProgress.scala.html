@@ -195,12 +195,6 @@
                         </div>
                     </li>
                 }
-                <li id="videoSection">
-                    <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
-                        <span class="font-xsmall" data-locked>- locked</span>
-                    </p>
-                    <p data-locked>Unlocked if you're successful in the E-tray</p>
-                </li>
             }
 
             case (true, Some(phase2Test), _) => {
@@ -208,7 +202,7 @@
                     <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                         E-tray</p>
                     <div id="groupTestExpired">
-                        <p>Unfortunately the time you had to finish the E-tray has expired.</p>
+                        <p>Unfortunately the time you had to finish the e-tray has expired.</p>
                         <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>
                             .</p>
                         <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
@@ -222,10 +216,10 @@
         @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage) match {
             case (_, None, Some(tests)) => {
                 <li id="videoSection">
-                    <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>E-tray
+                    <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
                         <span class="font-xsmall" data-locked>- locked</span>
                     </p>
-                    <p data-locked>Unlocked if you're successful in Etray</p>
+                    <p data-locked>Unlocked if you're successful in e-tray</p>
                 </li>
             }
             case (false, Some(phase3Test), _) => {
