@@ -81,7 +81,6 @@ object FastPassForm {
     }
 
     def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
-
   }
 
   def internshipTypesFormatter = new Formatter[Option[Seq[String]]] {
@@ -106,7 +105,6 @@ object FastPassForm {
     }
 
     def unbind(key: String, value: Option[Boolean]): Map[String, String] = optionalParamToMap(key, value)
-
   }
 
   def fastPassCertificateFormatter = new Formatter[Option[String]] {
@@ -172,5 +170,4 @@ object FastPassForm {
       case _ => true
     }
   }
-
 }

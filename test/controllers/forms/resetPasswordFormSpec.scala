@@ -30,5 +30,4 @@ class resetPasswordFormSpec extends BaseSpec {
       ResetPasswordForm.validateEmail("not_an_email") must be(false)
     }
   }
-
 }

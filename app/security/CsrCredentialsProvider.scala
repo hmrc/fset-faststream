@@ -41,7 +41,6 @@ trait CsrCredentialsProvider extends Provider with UserManagementClient {
     }.recoverWith {
       case e: InvalidCredentialsException => recordFailedAttempt(credentials.identifier)
       case e: InvalidRoleException => Future.successful(Left(InvalidRole))
-
     }
   }
 
@@ -59,5 +58,4 @@ trait CsrCredentialsProvider extends Provider with UserManagementClient {
       case e: AccountLockedOutException => Left(AccountLocked)
     }
   }
-
 }

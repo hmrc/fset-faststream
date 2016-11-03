@@ -35,5 +35,4 @@ object Address {
     "line3" -> optional(nonEmptyTrimmedText("error.address.required", MaxLineLength)),
     "line4" -> optional(nonEmptyTrimmedText("error.address.required", MaxLineLength))
   )(Address.apply)(Address.unapply)
-
 }

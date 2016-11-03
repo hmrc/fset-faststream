@@ -48,11 +48,11 @@ trait SignInService {
     } else {
       def signIn(app: Option[ApplicationData]) = for {
         u <- env.userService.save(CachedData(user, app))
-        authenticator <- env.authenticatorService.create(LoginInfo(CredentialsProvider.ID, user.userID.toString))
+        authenticator <- env.authenticatorService.create(LoginInfo(CredentialsProvider.ID, user.userID.toString()))
         value <- env.authenticatorService.init(authenticator)
         result <- env.authenticatorService.embed(value, Future.successful(redirect))
       } yield {
-        env.eventBus.publish(LoginEvent(SecurityUser(user.userID.toString), request, request2lang))
+        env.eventBus.publish(LoginEvent(SecurityUser(user.userID.toString()), request, request2lang))
         result
       }
 
@@ -61,7 +61,6 @@ trait SignInService {
       } recover {
         case e: ApplicationNotFound => signIn(None)
       } flatMap identity
-
     }
   }
 
@@ -89,5 +88,4 @@ trait SignInService {
       }
     )
   }
-
 }

@@ -92,5 +92,4 @@ class AssistanceDetailsFormSpec extends BaseSpec {
       invalidForm.errors.map(_.message) mustBe expectedError
     }
   }
-
 }

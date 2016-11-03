@@ -27,7 +27,6 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-
 class SchoolsControllerSpec extends BaseControllerSpec {
 
   val schoolClient = mock[SchoolsClient]

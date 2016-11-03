@@ -118,7 +118,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
       val allStatuses = ApplicationStatus.values.toList
 
       val statusesNotTested = allStatuses.diff(statusesTested)
-      statusesNotTested mustBe(empty)
+      statusesNotTested mustBe empty
     }
   }
 
@@ -188,7 +188,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
       }
       // For any new status DashboardPage.Step1/2/3 or 4 needs to have this status
       // Add this new status to isReached method and increase this value
-      statusesTested.length mustBe(7)
+      statusesTested.length mustBe 7
     }
   }
 
@@ -203,7 +203,6 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
       activateByStep(ProgressInactive) mustBe ""
     }
   }
-
 }
 
 object DashboardPageSpec {
@@ -246,5 +245,4 @@ object DashboardPageSpec {
   val SubmittedProgress = PersonalDetailsProgress.copy(submitted = true)
   private val AllocationDetails_Expired = AllocationDetails("", "", new DateTime(), Some(new LocalDate().minusDays(1)))
   private val AllocationDetails_Not_Expired = AllocationDetails("", "", new DateTime(), Some(new LocalDate().plusDays(1)))
-
 }

@@ -42,45 +42,45 @@ case class Phase1TestsPage(
 
     val period = new Period(now, date).normalizedStandard(PeriodType.dayTime())
 
-    val periodFormat = new PeriodFormatterBuilder().
-      printZeroAlways().
-      appendDays().
-      appendSuffix(" day ", " days ").
-      appendSeparator(" and ").
-      appendHours().
-      appendSuffix(" hour ", " hours ").
-      toFormatter
+    val periodFormat = new PeriodFormatterBuilder()
+      .printZeroAlways()
+      .appendDays()
+      .appendSuffix(" day ", " days ")
+      .appendSeparator(" and ")
+      .appendHours()
+      .appendSuffix(" hour ", " hours ")
+      .toFormatter
 
     periodFormat print period
   }
 
   def getExpireDateTime: String = {
 
-    val dateTimeFormat = new DateTimeFormatterBuilder().
-      appendClockhourOfHalfday(1).
-      appendLiteral(":").
-      appendMinuteOfHour(2).
-      appendHalfdayOfDayText().
-      appendLiteral(" on ").
-      appendDayOfMonth(1).
-      appendLiteral(" ").
-      appendMonthOfYearText().
-      appendLiteral(" ").
-      appendYear(4, 4).
-      toFormatter
+    val dateTimeFormat = new DateTimeFormatterBuilder()
+      .appendClockhourOfHalfday(1)
+      .appendLiteral(":")
+      .appendMinuteOfHour(2)
+      .appendHalfdayOfDayText()
+      .appendLiteral(" on ")
+      .appendDayOfMonth(1)
+      .appendLiteral(" ")
+      .appendMonthOfYearText()
+      .appendLiteral(" ")
+      .appendYear(4, 4)
+      .toFormatter
 
     dateTimeFormat.print(expirationDate)
   }
 
   def getExpireDate: String = {
 
-    val dateTimeFormat = new DateTimeFormatterBuilder().
-      appendDayOfMonth(1).
-      appendLiteral(" ").
-      appendMonthOfYearText().
-      appendLiteral(" ").
-      appendYear(4, 4).
-      toFormatter
+    val dateTimeFormat = new DateTimeFormatterBuilder()
+      .appendDayOfMonth(1)
+      .appendLiteral(" ")
+      .appendMonthOfYearText()
+      .appendLiteral(" ")
+      .appendYear(4, 4)
+      .toFormatter
 
     dateTimeFormat.print(expirationDate)
   }

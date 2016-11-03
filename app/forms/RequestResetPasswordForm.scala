@@ -27,5 +27,4 @@ object RequestResetPasswordForm {
   )
 
   case class Data(email: String)
-
 }

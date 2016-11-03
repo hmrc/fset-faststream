@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package util;
+package util
 
-import mappings.PostCodeMapping
 import mappings.PostCodeMapping._
 import org.scalatestplus.play.PlaySpec
 import play.api.data.validation.Valid

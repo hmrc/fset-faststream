@@ -18,7 +18,6 @@ package connectors.exchange
 
 import play.api.libs.json.Json
 
-
 final case class AssistanceDetails(
   hasDisability: String,
   hasDisabilityDescription: Option[String],

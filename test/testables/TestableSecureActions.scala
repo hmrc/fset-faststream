@@ -31,7 +31,6 @@ import uk.gov.hmrc.play.http.SessionKeys
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 // scalastyle:off method.name
 trait TestableCSRSecureAction extends SecureActions {
   /**
@@ -71,7 +70,7 @@ trait TestableCSRUserAwareAction extends SecureActions {
         )), request)
       implicit val carrier = PersonalDetailsController.hc(request)
 
-      val session = (SessionKeys.sessionId -> s"session-${UUID.randomUUID}")
+      val session = SessionKeys.sessionId -> s"session-${UUID.randomUUID}"
 
       block(userAwareReq)(Some(CachedDataExample.ActiveCandidate)).
         map(_.addingToSession(session)(request))

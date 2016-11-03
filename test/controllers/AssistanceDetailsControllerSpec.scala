@@ -158,7 +158,5 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp)  = new TestableAssistanceDetailsController {
       override val CandidateWithApp: CachedDataWithApp = candidateWithApp
     }
-
   }
-
 }

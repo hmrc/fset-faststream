@@ -24,7 +24,6 @@ import play.api.test.Helpers._
 class ApplicationSpec extends PlaySpec with MockitoSugar with OneServerPerSuite {
 
   "Application" should {
-
     "send 404 on a bad request" in {
       val result = route(FakeRequest(GET, "/boo"))
       result.isDefined must be(false)

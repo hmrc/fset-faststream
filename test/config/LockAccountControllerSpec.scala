@@ -72,7 +72,6 @@ class LockAccountControllerSpec extends BaseControllerSpec {
     }
   }
 
-
   trait TestFixture {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 

@@ -93,7 +93,6 @@ class PreferenceFormSpec extends BaseSpec {
       val errors = validateSchemeLocation(validFormData.copy(firstScheme = "Security", secondScheme = Some("Security")), validRegions)
       assertEquals("secondScheme.duplicate", errors.head)
     }
-
   }
 
   trait Fixture {
@@ -123,5 +122,4 @@ class PreferenceFormSpec extends BaseSpec {
       invalidForm.errors.map(_.message) mustBe Seq(expectedError)
     }
   }
-
 }

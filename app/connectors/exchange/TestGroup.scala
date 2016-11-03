@@ -35,14 +35,14 @@ trait TestGroup[T <: Test] {
     val now = DateTime.now
     val date = expirationDate
 
-    val periodFormat = new PeriodFormatterBuilder().
-      printZeroAlways().
-      appendDays().
-      appendSuffix(" day ", " days ").
-      appendSeparator(" and ").
-      appendHours().
-      appendSuffix(" hour ", " hours ").
-      toFormatter
+    val periodFormat = new PeriodFormatterBuilder()
+      .printZeroAlways()
+      .appendDays()
+      .appendSuffix(" day ", " days ")
+      .appendSeparator(" and ")
+      .appendHours()
+      .appendSuffix(" hour ", " hours ")
+      .toFormatter
 
     val period = new Period(now, date)
     periodFormat print period
@@ -50,31 +50,31 @@ trait TestGroup[T <: Test] {
 
   def getExpireDateTime: String = {
 
-    val dateTimeFormat = new DateTimeFormatterBuilder().
-      appendClockhourOfHalfday(1).
-      appendLiteral(":").
-      appendMinuteOfHour(2).
-      appendHalfdayOfDayText().
-      appendLiteral(" on ").
-      appendDayOfMonth(1).
-      appendLiteral(" ").
-      appendMonthOfYearText().
-      appendLiteral(" ").
-      appendYear(4, 4).
-      toFormatter
+    val dateTimeFormat = new DateTimeFormatterBuilder()
+      .appendClockhourOfHalfday(1)
+      .appendLiteral(":")
+      .appendMinuteOfHour(2)
+      .appendHalfdayOfDayText()
+      .appendLiteral(" on ")
+      .appendDayOfMonth(1)
+      .appendLiteral(" ")
+      .appendMonthOfYearText()
+      .appendLiteral(" ")
+      .appendYear(4, 4)
+      .toFormatter
 
     dateTimeFormat.print(expirationDate)
   }
 
   def getExpireDate: String = {
 
-    val dateTimeFormat = new DateTimeFormatterBuilder().
-      appendDayOfMonth(1).
-      appendLiteral(" ").
-      appendMonthOfYearText().
-      appendLiteral(" ").
-      appendYear(4, 4).
-      toFormatter
+    val dateTimeFormat = new DateTimeFormatterBuilder()
+      .appendDayOfMonth(1)
+      .appendLiteral(" ")
+      .appendMonthOfYearText()
+      .appendLiteral(" ")
+      .appendYear(4, 4)
+      .toFormatter
 
     dateTimeFormat.print(expirationDate)
   }

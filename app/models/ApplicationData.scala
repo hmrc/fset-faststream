@@ -125,6 +125,5 @@ object ApplicationData {
     ).map { value =>
       value.toString -> value
     }.toMap
-
   }
 }

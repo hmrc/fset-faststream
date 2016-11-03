@@ -21,7 +21,7 @@ import java.util.UUID
 import config.{ CSRCache, SecurityEnvironmentImpl }
 import controllers.BaseSpec
 import models.{ CachedData, CachedUser, SecurityUser, UniqueIdentifier }
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.MustMatchers
 import org.scalatest.concurrent.ScalaFutures

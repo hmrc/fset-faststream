@@ -30,6 +30,6 @@ object CustomBinders {
         case Failure(e: IllegalArgumentException) => Left("Badly formatted UniqueIdentifier '" + value + "'")
         case Failure(e) => throw e
       }
-    def unbind(key: String, value: UniqueIdentifier) = value.toString
+    def unbind(key: String, value: UniqueIdentifier) = value.toString()
   }
 }

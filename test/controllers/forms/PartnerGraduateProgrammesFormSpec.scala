@@ -57,5 +57,4 @@ class PartnerGraduateProgrammesFormSpec extends PlaySpec {
       invalidForm.errors.map(_.message) mustBe expectedError
     }
   }
-
 }

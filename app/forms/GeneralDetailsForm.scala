@@ -152,5 +152,4 @@ object GeneralDetailsForm {
       updateApplicationStatus
     )
   }
-
 }

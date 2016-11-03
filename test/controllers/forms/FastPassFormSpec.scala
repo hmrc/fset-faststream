@@ -19,7 +19,6 @@ package controllers.forms
 import forms.FastPassForm.{ form => fastPassForm, _ }
 import org.scalatestplus.play.PlaySpec
 
-
 class FastPassFormSpec extends PlaySpec {
 
   "FastPass form" should {
@@ -161,5 +160,4 @@ class FastPassFormSpec extends PlaySpec {
           "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear", "fastPassReceived" -> "false")
     }
   }
-
 }

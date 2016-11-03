@@ -32,7 +32,6 @@ object PartnerGraduateProgrammesForm {
         data.toSeq.collect { case (KeyPattern(index), _) => index.toInt }.sorted.distinct
       }
 
-      val i = indexes(key, data)
       val requiredField: Option[String] = data.get(requiredKey)
       val keyField: List[String] = indexes(key, data).flatMap(i => data.get(s"$key[$i]")).toList
 
@@ -80,5 +79,4 @@ object PartnerGraduateProgrammesForm {
     def apply(pgp: PartnerGraduateProgrammes): PartnerGraduateProgrammesForm.Data =
       PartnerGraduateProgrammesForm.Data(if (pgp.interested) "Yes" else "No", pgp.partnerGraduateProgrammes)
   }
-
 }

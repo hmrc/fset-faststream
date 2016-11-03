@@ -47,5 +47,4 @@ class UserCacheService(applicationClient: ApplicationClient, userManagementClien
       }
     }
   }
-
 }

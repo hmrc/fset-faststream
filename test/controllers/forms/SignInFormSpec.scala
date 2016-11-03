@@ -54,7 +54,5 @@ class SignInFormSpec extends PlaySpec {
       form.hasErrors must be(true)
       form.hasGlobalErrors must be(false)
     }
-
   }
-
 }

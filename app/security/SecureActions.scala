@@ -21,7 +21,7 @@ import java.util.UUID
 import com.mohiva.play.silhouette.api.{ Authorization, LogoutEvent, Silhouette }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import config.{ CSRCache, SecurityEnvironmentImpl }
-import controllers.{ SignInController, routes }
+import controllers.routes
 import helpers.NotificationType._
 import models.{ CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier }
 import play.api.Logger
@@ -32,10 +32,8 @@ import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
 import uk.gov.hmrc.play.http.{ HeaderCarrier, SessionKeys }
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration._
+import scala.concurrent.Future
 import language.postfixOps
-import scala.util.{ Failure, Success, Try }
 
 /**
   *

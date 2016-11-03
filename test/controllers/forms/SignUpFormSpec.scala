@@ -112,7 +112,6 @@ class SignUpFormSpec extends BaseSpec {
       signUpForm.data.sanitize mustNot contain key "campaignOther"
     }
   }
-
 }
 
 /**

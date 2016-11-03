@@ -18,14 +18,12 @@ package controllers
 
 import java.time.LocalDateTime
 
-import config.{ CSRCache, FaststreamFrontendConfig, SecurityEnvironmentImpl }
+import config.{ CSRCache, FaststreamFrontendConfig }
 import connectors.ApplicationClient
-import connectors.ApplicationClient.ApplicationNotFound
-import connectors.exchange.FrameworkId
 import helpers.NotificationType._
 import models.{ CachedData, CachedDataWithApp }
 import play.api.mvc.Request
-import security.{ SecureActions, SecurityEnvironment }
+import security.SecureActions
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -45,9 +43,8 @@ object FaststreamConfig {
 /**
  * should be extended by all controllers
  */
-abstract class BaseController(applicationClient: ApplicationClient, val cacheClient: CSRCache) extends SecureActions
-with FrontendController
-   {
+abstract class BaseController(applicationClient: ApplicationClient, val cacheClient: CSRCache)
+  extends SecureActions with FrontendController {
 
   implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
   implicit def faststreamConfig = FaststreamConfig(config.FrontendAppConfig.faststreamFrontendConfig)
@@ -60,10 +57,8 @@ with FrontendController
     Redirect(routes.PreviewApplicationController.present()).flashing(warning("info.application.readonly"))
   }
 
-  def updateProgress[A](additionalChanges: CachedData => CachedData = { d => d })(onUpdate: CachedData => A)(
-    implicit
-    user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]
-  ): Future[A] =
+  def updateProgress[A](additionalChanges: CachedData => CachedData = { d => d })(onUpdate: CachedData => A)
+                       (implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[A] =
     applicationClient.getApplicationProgress(user.application.applicationId).flatMap { prog =>
       val cd = CachedData(user.user, Some(user.application)).copy(application = Some(user.application.copy(progress = prog)))
       env.userService.save(

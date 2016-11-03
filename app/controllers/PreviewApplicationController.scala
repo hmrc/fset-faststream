@@ -29,8 +29,8 @@ import scala.concurrent.Future
 
 object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, CSRCache, SchemeClient)
 
-class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient) extends
-  BaseController(applicationClient, cacheClient) {
+class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
+  extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>

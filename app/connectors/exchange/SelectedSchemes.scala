@@ -18,7 +18,6 @@ package connectors.exchange
 
 import play.api.libs.json.Json
 
-
 case class SelectedSchemes(schemes: List[String], orderAgreed: Boolean, eligible: Boolean)
 
 object SelectedSchemes {

@@ -85,5 +85,4 @@ object SchemeLocationPreferenceForm {
       }
     }.getOrElse(Seq(locationErr))
   }
-
 }

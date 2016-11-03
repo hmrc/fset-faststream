@@ -126,8 +126,6 @@ class ActivationControllerSpec extends BaseControllerSpec {
         "Check your email.<p>If you can't see it in your inbox within a few minutes, " +
         "check your spam folder.</p>"))
       )
-
     }
   }
-
 }

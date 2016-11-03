@@ -16,29 +16,23 @@
 
 package config
 
-import com.mohiva.play.silhouette.api.{ Environment, SecuredSettings, Silhouette }
-import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
+import com.mohiva.play.silhouette.api.SecuredSettings
 import com.typesafe.config.Config
-import controllers.SignInController
-import controllers.routes
+import controllers.{ SignInController, routes }
 import filters.CookiePolicyFilter
 import forms.{ SignInForm, SignUpForm }
-import helpers.NotificationType._
-import models.{ CachedData, SecurityUser }
 import net.ceedubs.ficus.Ficus._
+import play.api._
 import play.api.i18n.Lang
 import play.api.mvc.Results._
 import play.api.mvc.{ RequestHeader, Result, _ }
-import play.api._
 import play.twirl.api.Html
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.play.audit.filters.FrontendAuditFilter
 import uk.gov.hmrc.play.config.{ AppName, ControllerConfig, RunMode }
 import uk.gov.hmrc.play.frontend.bootstrap.DefaultFrontendGlobal
-import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.logging.filters.FrontendLoggingFilter
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 abstract class DevelopmentFrontendGlobal

@@ -16,8 +16,6 @@
 
 package models
 
-import java.util.UUID
-
 object SecurityUserExamples {
   val ValidToken = "ABCDEFG"
   val CreatedApplication = CachedDataExample.CreatedApplication

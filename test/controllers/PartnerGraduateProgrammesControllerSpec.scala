@@ -97,6 +97,5 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
     }
 
     def controller = new TestablePartnerGraduateProgrammesController
-
   }
 }

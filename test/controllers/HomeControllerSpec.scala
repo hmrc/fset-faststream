@@ -19,9 +19,9 @@ package controllers
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, CannotWithdraw }
-import connectors.exchange.{ AssistanceDetailsExamples, WithdrawApplicationExamples }
-import controllers.forms.{ AssistanceDetailsFormExamples, WithdrawApplicationFormExamples }
+import connectors.ApplicationClient.CannotWithdraw
+import connectors.exchange.WithdrawApplicationExamples
+import controllers.forms.WithdrawApplicationFormExamples
 import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
 import models._
@@ -113,7 +113,5 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     def controller = new TestableHomeController
-
   }
-
 }

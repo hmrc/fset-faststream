@@ -44,5 +44,4 @@ class ActivateAccountFormSpec extends PlaySpec {
       form.errors.map(_.message) must be(List("error.maxLength", "activation.wrong-format"))
     }
   }
-
 }

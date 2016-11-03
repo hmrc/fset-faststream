@@ -31,5 +31,4 @@ object SignInForm {
   )
 
   case class Data(signIn: String, signInPassword: String)
-
 }

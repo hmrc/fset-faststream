@@ -21,7 +21,6 @@ import models.CachedData
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 
-
 object QuestionnaireRoles {
 
   import Roles._

@@ -16,7 +16,6 @@
 
 package connectors.exchange
 
-import forms.PartnerGraduateProgrammesForm
 import play.api.libs.json.Json
 
 case class PartnerGraduateProgrammes(interested: Boolean,

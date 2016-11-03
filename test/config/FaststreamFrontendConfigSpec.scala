@@ -54,6 +54,5 @@ class FaststreamFrontendConfigSpec extends PlaySpec {
         Some("2016-03-30T12:01:02"), Some("2016-03-30T9:01:02")
       )
     }
-
   }
 }

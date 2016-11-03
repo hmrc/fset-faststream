@@ -61,5 +61,4 @@ object PostCodeMapping {
       case _ => postcode.replaceAll("\\*", " ") // partial postcodes include asterisks so replace with spaces
     }
   }
-
 }

@@ -31,7 +31,7 @@ object WithdrawApplicationForm {
       case (Some(`mandatoryReason`), None | Some("")) => Left(Seq(FormError(key, Messages("error.required.reason.more_info"))))
       case _ =>
         val fieldValue = data.get(key)
-        if (maxLength.isDefined && fieldValue.isDefined && fieldValue.get.size > maxLength.get) {
+        if (maxLength.isDefined && fieldValue.isDefined && fieldValue.get.length > maxLength.get) {
           Left(List(FormError(key, Messages(s"error.$key.maxLength"))))
         } else {
           Right(fieldValue)
@@ -54,5 +54,4 @@ object WithdrawApplicationForm {
                    reason: Option[String],
                    otherReason: Option[String]
                  )
-
 }

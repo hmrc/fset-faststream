@@ -59,5 +59,4 @@ class SubmitApplicationController(applicationClient: ApplicationClient, cacheCli
         Future.successful(Ok(views.html.home.submit_disabled(CachedData(user.user, Some(user.application)))))
       }
   }
-
 }

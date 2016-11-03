@@ -121,7 +121,5 @@ package object exchange {
     implicit val resetPasswordRequestFormat = Json.format[ResetPasswordRequest]
 
     implicit val previewFormat = Json.format[PreviewRequest]
-
   }
-
 }

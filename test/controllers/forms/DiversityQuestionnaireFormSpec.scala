@@ -48,7 +48,6 @@ class DiversityQuestionnaireFormSpec extends BaseSpec {
       questionList(1).answer.otherDetails must be(Some("details"))
       questionList(2).answer.unknown must be(Some(true))
     }
-
   }
 
   trait Fixture {
@@ -80,5 +79,4 @@ class DiversityQuestionnaireFormSpec extends BaseSpec {
       invalidForm.errors.map(_.key) mustBe Seq(expectedKey)
     }
   }
-
 }

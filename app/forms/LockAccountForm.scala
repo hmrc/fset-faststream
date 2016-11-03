@@ -28,5 +28,4 @@ object LockAccountForm {
   )
 
   case class Data(email: String)
-
 }

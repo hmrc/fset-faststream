@@ -21,7 +21,7 @@ import java.util.UUID
 import play.api.libs.json._
 
 case class UniqueIdentifier(val uuid: UUID) {
-  override def toString() = uuid.toString
+  override def toString = uuid.toString
 }
 
 object UniqueIdentifier {
@@ -30,7 +30,7 @@ object UniqueIdentifier {
   }
 
   implicit val uniqueIdentifierFormats: Writes[UniqueIdentifier] = Writes {
-    (identifier: UniqueIdentifier) => JsString(identifier.toString)
+    (identifier: UniqueIdentifier) => JsString(identifier.toString())
   }
   implicit val uniqueIdentifierReads: Reads[UniqueIdentifier] = Reads {
     (jsValue: JsValue) => JsSuccess(UniqueIdentifier(jsValue.as[String]))

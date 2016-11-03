@@ -29,5 +29,4 @@ object DateFormatter {
 
   private val ddMMMMyyyy = DateTimeFormat.forPattern("dd MMMM yyyy")
   private val dMMMMyyyyhmma = DateTimeFormat.forPattern("d MMMM yyyy, h:mma")
-
 }

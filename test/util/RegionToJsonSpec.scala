@@ -45,6 +45,5 @@ class RegionToJsonSpec extends PlaySpec {
         """{"London":{"London":["B","C"],"Hackney":["B","C","S"]},"East":{"Bedford":["B","F"],"Southend":["B","C","S"]}}""", json
       )
     }
-
   }
 }

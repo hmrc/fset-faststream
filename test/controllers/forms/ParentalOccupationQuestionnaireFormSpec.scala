@@ -112,5 +112,4 @@ class ParentalOccupationQuestionnaireFormSpec extends BaseSpec {
       invalidForm.errors.map(_.key) mustBe Seq(expectedKey)
     }
   }
-
 }

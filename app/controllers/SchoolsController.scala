@@ -24,8 +24,6 @@ import models.view.SchoolView._
 import models.view.SchoolView.SchoolImplicits
 import play.api.libs.json.Json
 import security.QuestionnaireRoles.EducationQuestionnaireRole
-import security.SecureActions
-import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls

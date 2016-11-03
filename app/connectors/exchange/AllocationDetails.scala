@@ -19,8 +19,11 @@ package connectors.exchange
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, Json }
 
-case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: DateTime, expirationDate: Option[LocalDate])
+case class AllocationDetails(location: String,
+                             venueDescription: String,
+                             attendanceDateTime: DateTime,
+                             expirationDate: Option[LocalDate])
 
 object AllocationDetails {
-    implicit val allocationDetailsFormats: Format[AllocationDetails] = Json.format[AllocationDetails]
+  implicit val allocationDetailsFormats: Format[AllocationDetails] = Json.format[AllocationDetails]
 }

@@ -18,7 +18,7 @@ package security
 
 import java.util.UUID
 
-import connectors.exchange.{ AssessmentCentre, AssessmentScores, ProgressExamples }
+import connectors.exchange.ProgressExamples
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus.{ CREATED, _ }
 import models._
@@ -83,5 +83,4 @@ object RolesSpec {
     id,
     "John", "Biggs", None, "aaa@bbb.com", isActive = true, "locked"
   ), None)
-
 }

@@ -26,8 +26,8 @@ import scala.concurrent.Future
 
 object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, CSRCache, SchemeClient)
 
-class SchemePreferencesController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient) extends
-  BaseController(applicationClient, cacheClient){
+class SchemePreferencesController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
+  extends BaseController(applicationClient, cacheClient){
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
     implicit user =>

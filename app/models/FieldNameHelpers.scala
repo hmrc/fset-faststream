@@ -16,12 +16,10 @@
 
 package models
 
-
 object FieldNameHelpers {
 
   def createId(id: String, v: (String, String)) = id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_")
 
   def formatId(id:String, v:(String,String)) =
     createId(id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_"), v)
-
 }

@@ -16,7 +16,6 @@
 
 package connectors.exchange
 
-import models.UniqueIdentifier
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
@@ -33,7 +32,6 @@ case class Phase3Test(usedForResults: Boolean,
 object Phase3Test {
   implicit def phase3TestFormat = Json.format[Phase3Test]
 }
-
 
 case class Phase3TestGroup(expirationDate: DateTime, tests: List[Phase3Test]) {
   def activeTests = tests.filter(_.usedForResults)

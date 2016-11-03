@@ -23,16 +23,14 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import _root_.forms.SelectedSchemesForm._
 import config.CSRCache
-import connectors.exchange.{ ApplicationResponse, CivilServiceExperienceDetails, SchemePreferencesExamples }
+import connectors.exchange.{ ApplicationResponse, SchemePreferencesExamples }
 import connectors.exchange.CivilServiceExperienceDetailsExamples._
 import models.ApplicationData.ApplicationStatus
 import play.api.test.Helpers._
-import play.mvc.Http.Request
 import security.UserService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
-
 
 class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
@@ -100,5 +98,4 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       redirectLocation(result) must be(Some(routes.PartnerGraduateProgrammesController.present().url))
     }
   }
-
 }
