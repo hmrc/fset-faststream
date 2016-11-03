@@ -117,7 +117,7 @@ trait ApplicationService extends EventSink {
 
   private def fixData(fixType: FixRequiredType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
 
-    appRepository.getApplicationsToFix(fixType).flatMap { appToFix /* List[Candidate] */ =>
+    appRepository.getApplicationsToFix(fixType).flatMap { appToFix =>
       FutureEx.traverseToTry(appToFix)(candidate => appRepository.fix(candidate, fixType))
     } flatMap (app => toEvents(app, fixType))
 
