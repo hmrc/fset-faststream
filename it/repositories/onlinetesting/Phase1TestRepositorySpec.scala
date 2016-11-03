@@ -105,7 +105,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       result mustBe a[CannotFindTestByCubiksId]
     }
 
-    "return an online tet for the specific cubiks id" in {
+    "return an online test for the specific cubiks id" in {
       insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase1TestRepo.getTestProfileByCubiksId(CubiksUserId).futureValue
@@ -417,6 +417,21 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe false
       app.progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe false
+    }
+
+    "reset progress statuses when phase1 tests are failed" in {
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
+        additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
+          ProgressStatuses.PHASE1_TESTS_COMPLETED -> true)).futureValue
+      phase1TestRepo.removeTestProfileProgresses("appId", List(
+        ProgressStatuses.PHASE1_TESTS_INVITED,
+        ProgressStatuses.PHASE1_TESTS_COMPLETED)
+      ).futureValue
+
+      val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
+      app.progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe false
+      app.progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe false
+      ApplicationStatus.withName(app.applicationStatus) mustBe ApplicationStatus.PHASE1_TESTS
     }
 
     "update cubiks test" should {

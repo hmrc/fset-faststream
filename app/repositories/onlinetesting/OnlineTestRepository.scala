@@ -32,12 +32,12 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import reactivemongo.api.commands.UpdateWriteResult
 
 trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
+  val resetStatuses = List(thisApplicationStatus)
   val phaseName: String
   val dateTimeFactory: DateTimeFactory
   val expiredTestQuery: BSONDocument
@@ -240,5 +240,24 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
     ))
     collection.update(query, update, upsert = false) map( _ => () )
+  }
+
+  def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
+    require(progressStatuses.nonEmpty)
+    require(progressStatuses forall (_.applicationStatus == thisApplicationStatus), s"Cannot remove non $phaseName progress status")
+
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> appId),
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> resetStatuses))
+    ))
+
+    val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
+
+    val updateQuery = BSONDocument(
+      "$set" -> BSONDocument("applicationStatus" -> thisApplicationStatus),
+      "$unset" -> BSONDocument(progressesToRemoveQueryPartial)
+    )
+
+    collection.update(query, updateQuery, upsert = false) map ( _ => () )
   }
 }
