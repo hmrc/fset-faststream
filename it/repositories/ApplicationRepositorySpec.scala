@@ -21,7 +21,7 @@ import config.MicroserviceAppConfig.cubiksGatewayConfig
 import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
-import model.{ ApplicationRoute, EvaluationResults }
+import model.{ ApplicationRoute, EvaluationResults, ProgressStatuses }
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
@@ -118,12 +118,26 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "capture the submission date and change the application status to submitted" in {
       val applicationStatus = (for {
         app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+        _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.PREVIEW)
         _ <- applicationRepo.submit(app.applicationId)
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
       applicationStatus.status mustBe SUBMITTED.toString
       timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
+    }
+    "not allow multiple submissions" in {
+      val app = applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.PREVIEW).futureValue
+
+      applicationRepo.submit(app.applicationId).futureValue mustBe ()
+      applicationRepo.submit(app.applicationId).failed.futureValue mustBe an[IllegalStateException]
+    }
+    "not allow submissions unless in PREVIEW" in {
+      val app = applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.CREATED).futureValue
+
+      applicationRepo.submit(app.applicationId).failed.futureValue mustBe an[IllegalStateException]
     }
   }
 

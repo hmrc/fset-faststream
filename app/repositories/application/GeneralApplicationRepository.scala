@@ -28,6 +28,7 @@ import model.EvaluationResults._
 import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses.PREVIEW
 import model.command._
 import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport}
 import model.report.{AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels}
@@ -401,9 +402,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def submit(applicationId: String): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
+    val guard = progressStatusGuardBSON(PREVIEW)
+    val query = BSONDocument("applicationId" -> applicationId) ++ guard
+
     val updateBSON = BSONDocument("$set" -> applicationStatusBSON(SUBMITTED))
-    collection.update(query, updateBSON, upsert = false) map { _ => }
+    collection.update(query, updateBSON, upsert = false)
+      .map(validateSingleWriteOrThrow(new IllegalStateException(s"Already submitted $applicationId")))
   }
 
   override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {

@@ -17,17 +17,17 @@
 package repositories
 
 import model.ApplicationStatus.ApplicationStatus
-import model.{ ApplicationStatus, ProgressStatuses }
 import model.ProgressStatuses.ProgressStatus
+import model.{ ApplicationStatus, ProgressStatuses }
 import org.joda.time.DateTime
+import reactivemongo.api.commands.UpdateWriteResult
 import reactivemongo.bson.BSONDocument
-
 
 trait CommonBSONDocuments {
 
   def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
-    // require widespread changes, and using a default in here is better than the previous implementation
+    // require widespread changesStatusBSON, and using a default in here is better than the previous implementation
     // that just set the progress status to applicationStatus.toString, which produced invalid progress statuses
     val defaultProgressStatus = ProgressStatuses.tryToGetDefaultProgressStatus(applicationStatus)
     defaultProgressStatus match {
@@ -58,5 +58,17 @@ trait CommonBSONDocuments {
       s"progress-status.${progressStatus.key}" -> true,
       s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
     )
+  }
+
+  def progressStatusGuardBSON(progressStatus: ProgressStatus) = {
+    BSONDocument(
+      "applicationStatus" -> progressStatus.applicationStatus,
+      s"progress-status.${progressStatus.key}" -> true
+    )
+  }
+
+  def validateSingleWriteOrThrow(failureException: => Exception)(writeResult: UpdateWriteResult) = writeResult.n match {
+    case 1 => ()
+    case _ => throw failureException
   }
 }
