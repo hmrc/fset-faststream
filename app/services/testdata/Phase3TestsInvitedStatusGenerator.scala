@@ -53,6 +53,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         needsAdjustments = false,
         candidateInPreviousStatus.preferredName,
         candidateInPreviousStatus.lastName,
+        None,
         None
       )
       _ <- p3TestService.registerAndInviteForTestGroup(phase3TestApplication)

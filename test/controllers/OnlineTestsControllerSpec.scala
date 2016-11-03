@@ -41,7 +41,8 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
     needsAdjustments = false,
     preferredName = "Optimus",
     lastName = "Prime",
-    timeAdjustments = None
+    eTrayAdjustments = None,
+    videoInterviewAdjustments = None
   )
 
   def controller = new OnlineTestController {
