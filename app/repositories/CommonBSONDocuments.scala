@@ -27,7 +27,7 @@ trait CommonBSONDocuments {
 
   def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
-    // require widespread changesStatusBSON, and using a default in here is better than the previous implementation
+    // require widespread changes, and using a default in here is better than the previous implementation
     // that just set the progress status to applicationStatus.toString, which produced invalid progress statuses
     val defaultProgressStatus = ProgressStatuses.tryToGetDefaultProgressStatus(applicationStatus)
     defaultProgressStatus match {
