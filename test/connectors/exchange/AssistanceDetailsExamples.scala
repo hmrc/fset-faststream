@@ -20,7 +20,7 @@ object AssistanceDetailsExamples {
   val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), Some(false), None, Some(false),
     None, None, None)
   val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("Epilepsy"), Some(true), Some(true),
-    Some("Some adjustment"), Some(true), Some("Some other adjustements"), None, None)
+    Some("Some adjustment"), Some(true), Some("Some other adjustments"), None, None)
   val EdipAdjustments = AssistanceDetails("Yes", Some("Epilepsy"), Some(true), None, None, None, None,
     Some(true), Some("Some adjustment"))
 }

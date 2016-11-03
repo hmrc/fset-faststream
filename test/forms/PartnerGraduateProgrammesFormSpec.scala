@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
 import forms.PartnerGraduateProgrammesForm.Data
-import forms.PartnerGraduateProgrammesForm
-import controllers.forms.PartnerGraduateProgrammesFormExamples._
+import forms.PartnerGraduateProgrammesFormExamples._
 import org.scalatestplus.play.PlaySpec
 import play.api.data.Form
 

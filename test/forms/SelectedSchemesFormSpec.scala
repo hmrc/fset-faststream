@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
+import forms.SelectedSchemesForm.{ form => selectedSchemesForm }
 import org.scalatestplus.play.PlaySpec
-import forms.SelectedSchemesForm.{form => selectedSchemesForm}
 
 class SelectedSchemesFormSpec extends PlaySpec {
 

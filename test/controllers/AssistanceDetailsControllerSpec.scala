@@ -21,7 +21,7 @@ import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import connectors.exchange.AssistanceDetailsExamples
-import controllers.forms.AssistanceDetailsFormExamples
+import forms.AssistanceDetailsFormExamples
 import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -155,7 +155,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       when(securityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp)  = new TestableAssistanceDetailsController {
+    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestableAssistanceDetailsController {
       override val CandidateWithApp: CachedDataWithApp = candidateWithApp
     }
   }

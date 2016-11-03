@@ -16,16 +16,16 @@
 
 package controllers
 
+import config.CSRCache
 import connectors.SchemeClient.SchemePreferencesNotFound
+import connectors.exchange.CivilServiceExperienceDetailsExamples._
+import connectors.exchange.{ ApplicationResponse, SchemePreferencesExamples }
 import connectors.{ ApplicationClient, SchemeClient }
+import forms.SelectedSchemesForm._
+import models.ApplicationData.ApplicationStatus
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import _root_.forms.SelectedSchemesForm._
-import config.CSRCache
-import connectors.exchange.{ ApplicationResponse, SchemePreferencesExamples }
-import connectors.exchange.CivilServiceExperienceDetailsExamples._
-import models.ApplicationData.ApplicationStatus
 import play.api.test.Helpers._
 import security.UserService
 import uk.gov.hmrc.play.http.HeaderCarrier

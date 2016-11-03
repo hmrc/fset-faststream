@@ -60,6 +60,4 @@ class AssistanceDetailsController(applicationClient: ApplicationClient, cacheCli
         }
       )
   }
-
-
 }

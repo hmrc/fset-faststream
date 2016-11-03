@@ -21,7 +21,7 @@ import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
 import connectors.exchange.PartnerGraduateProgrammesExamples
-import controllers.forms.PartnerGraduateProgrammesFormExamples
+import forms.PartnerGraduateProgrammesFormExamples
 import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }

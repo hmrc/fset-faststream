@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
 import controllers.BaseSpec
-import controllers.forms.EducationQuestionnaireFormExamples._
-import forms.EducationQuestionnaireForm
+import forms.EducationQuestionnaireFormExamples._
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 

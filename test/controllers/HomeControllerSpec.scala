@@ -21,7 +21,7 @@ import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotWithdraw
 import connectors.exchange.WithdrawApplicationExamples
-import controllers.forms.WithdrawApplicationFormExamples
+import forms.WithdrawApplicationFormExamples
 import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
 import models._

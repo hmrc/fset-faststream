@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
-import forms.AssistanceDetailsForm
 import models.ApplicationRoute
 
 object AssistanceDetailsFormExamples {
-  val DisabilityGisAndAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Epilepsy"), Some("Yes"), Some("Yes"), Some("Some adjustment"),
-    Some("Yes"), Some("Some other adjustements"), None, None)
+  val DisabilityGisAndAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Epilepsy"), Some("Yes"), Some("Yes"),
+    Some("Some adjustment"), Some("Yes"), Some("Some other adjustments"), None, None)
 
   val NoDisabilitiesForm = AssistanceDetailsForm.Data("No", None, None, Some("No"), None, Some("No"), None, None, None)
 
-  val NoAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("No"), Some("No"), None, Some("No"),
-    None, None, None)
+  val NoAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("No"), Some("No"), None,
+    Some("No"), None, None, None)
 
-  val FullForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("Yes"), Some("Yes"), Some("Some adjustments online"),
-    Some("Yes"), Some("Some adjustments at venue"), None, None)
+  val FullForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("Yes"), Some("Yes"),
+    Some("Some adjustments online"), Some("Yes"), Some("Some adjustments at venue"), None, None)
 
   val DisabilityGisAndAdjustmentsMap = Map[String, String](
     "applicationRoute" -> ApplicationRoute.Faststream.toString,
@@ -39,7 +38,7 @@ object AssistanceDetailsFormExamples {
     "needsSupportForOnlineAssessment" -> "Yes",
     "needsSupportForOnlineAssessmentDescription" -> "Some adjustment",
     "needsSupportAtVenue" -> "Yes",
-    "needsSupportAtVenueDescription" -> "Some other adjustements")
+    "needsSupportAtVenueDescription" -> "Some other adjustments")
 
   val DisabilityGisAndAdjustmentsEdipMap = Map[String, String](
     "applicationRoute" -> ApplicationRoute.Edip.toString,
@@ -57,5 +56,6 @@ object AssistanceDetailsFormExamples {
     "needsSupportForOnlineAssessment" -> "Yes",
     "needsSupportForOnlineAssessmentDescription" -> "Some adjustment",
     "needsSupportAtVenue" -> "Yes",
-    "needsSupportAtVenueDescription" -> "Some other adjustements")
+//    "needsSupportAtVenueDescription" -> "Some other adjustements")
+    "needsSupportAtVenueDescription" -> "Some other adjustments")
 }

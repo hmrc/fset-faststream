@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
-import forms.ActivateAccountForm
 import org.scalatestplus.play.PlaySpec
 
 class ActivateAccountFormSpec extends PlaySpec {

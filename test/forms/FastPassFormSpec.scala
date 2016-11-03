@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.forms
+package forms
 
 import forms.FastPassForm.{ form => fastPassForm, _ }
 import org.scalatestplus.play.PlaySpec

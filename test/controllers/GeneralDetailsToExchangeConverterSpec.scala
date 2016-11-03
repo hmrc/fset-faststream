@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.exchange.GeneralDetails
-import controllers.forms.GeneralDetailsFormExamples._
+import forms.GeneralDetailsFormExamples._
 import org.scalatestplus.play.PlaySpec
 
 class GeneralDetailsToExchangeConverterSpec extends PlaySpec {
