@@ -34,7 +34,7 @@ import testkit.MongoRepositorySpec
 import model.command.ProgressResponse
 import model.persisted.{ ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport }
 import repositories.CommonBSONDocuments
-import scheduler.fixer.{ ExpiredPhase1InvitedToPhase2, PassToPhase2 }
+import scheduler.fixer.PassToPhase2
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
 
@@ -311,32 +311,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses.toList)
       val matchResponse = repository.getApplicationsToFix(PassToPhase2).futureValue
-      matchResponse.size mustBe 0
-    }
-  }
-
-  "Get Application to Fix for ExpiredPhase1InvitedToPhase2 fix" should {
-    "return 1 result if the application is in PHASE1_TESTS_EXPIRED and PHASE2_TESTS_INVITED" in {
-      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.SUBMITTED, true) ::
-        (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: (ProgressStatuses.PHASE1_TESTS_STARTED, true) ::
-        (ProgressStatuses.PHASE1_TESTS_EXPIRED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
-
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
-        additionalProgressStatuses = statuses.toList)
-
-      val matchResponse = repository.getApplicationsToFix(ExpiredPhase1InvitedToPhase2).futureValue
-      matchResponse.size mustBe 1
-    }
-
-    "return 0 result if the application is in PHASE1_TESTS_EXPIRED but not PHASE2_TESTS_INVITED" in {
-      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.SUBMITTED, true) ::
-        (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: (ProgressStatuses.PHASE1_TESTS_STARTED, true) ::
-        (ProgressStatuses.PHASE1_TESTS_EXPIRED, true) :: Nil
-
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses.toList)
-
-      val matchResponse = repository.getApplicationsToFix(ExpiredPhase1InvitedToPhase2).futureValue
       matchResponse.size mustBe 0
     }
   }

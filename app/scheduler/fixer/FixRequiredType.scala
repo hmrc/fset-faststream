@@ -27,15 +27,8 @@ sealed case class FixesRequired(fixes: Seq[FixRequiredType])
   */
 object PassToPhase2 extends FixRequiredType("Candidates who passed successfuly to phase 2 but with PHASE1_TEST Application Status", 1)
 
-/**
-  * Fix for those candidates that didn't pass phase 1 test (because they didn't meet the deadline and the tests expired)
-  * but have been invited to phase 2 regardless of that.
-  */
-object ExpiredPhase1InvitedToPhase2 extends FixRequiredType("Expired Phase 1 candidates invited to Phase 2 test", 1)
-
-
 /*
 If a further fix is needed, add it to the list. If not needed remove it from the list and possibly
 remove it's implementation.
  */
-object RequiredFixes extends FixesRequired(PassToPhase2 :: ExpiredPhase1InvitedToPhase2 :: Nil)
+object RequiredFixes extends FixesRequired(PassToPhase2 :: Nil)

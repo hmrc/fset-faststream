@@ -27,9 +27,8 @@ import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.ProgressStatus
 import model.command._
-import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport, NotificationFailedTest }
+import model.persisted._
 import model.report.{ AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels }
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
@@ -41,7 +40,7 @@ import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
-import scheduler.fixer.{ ExpiredPhase1InvitedToPhase2, FixRequiredType, PassToPhase2 }
+import scheduler.fixer.{ FixRequiredType, PassToPhase2 }
 import services.TimeZoneService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -614,14 +613,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
         selectRandom[Candidate](query, issue.batchSize)
       }
-      case ExpiredPhase1InvitedToPhase2 => {
-        val query = BSONDocument("$and" -> BSONArray(
-          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_EXPIRED}" -> true),
-          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
-        ))
-
-        selectRandom[Candidate](query, issue.batchSize)
-      }
       case e => throw new UnsupportedOperationException(s"Operation not implemented for $e")
     }
   }
@@ -638,16 +629,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         val updateOp = collection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)))
         collection.findAndModify[BSONDocument](query, updateOp).map(_.result[Document].map(toCandidate(_)))
       }
-      case ExpiredPhase1InvitedToPhase2 => {
-        // TO DO: Need to agree about how to fix this (See FSET-933)
-        Future.successful(Some(application))
-      }
       case e => throw new UnsupportedOperationException(s"Operation not implemented for $e")
     }
   }
-
-
-
 
   private def applicationPreferencesWithTestResults(query: BSONDocument): Future[List[ApplicationPreferencesWithTestResults]] = {
     val projection = BSONDocument(
