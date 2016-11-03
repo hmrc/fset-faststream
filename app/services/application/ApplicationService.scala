@@ -117,19 +117,19 @@ trait ApplicationService extends EventSink {
 
   private def fixData(fixType: FixRequiredType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
 
-    def toEvents(seq: Seq[Try[Option[Candidate]]]): Future[List[EventType]] = {
-      Future {
-        seq.map {
-          case Success(app) => toFixedProdData(app, fixType)
-          case Failure(e) => toFailedFixedProdData(e, fixType)
-        }.toList
-      }
-    }
-
-    appRepository.getApplicationsToFix(fixType).flatMap { appToFix =>
+    appRepository.getApplicationsToFix(fixType).flatMap { appToFix /* List[Candidate] */ =>
       FutureEx.traverseToTry(appToFix)(candidate => appRepository.fix(candidate, fixType))
-    } flatMap (toEvents(_))
+    } flatMap (app => toEvents(app, fixType))
 
+  }
+
+  private def toEvents(seq: Seq[Try[Option[Candidate]]], fixType: FixRequiredType): Future[List[EventType]] = {
+    Future {
+      seq.map {
+        case Success(app) => toFixedProdData(app, fixType)
+        case Failure(e) => toFailedFixedProdData(e, fixType)
+      }.toList
+    }
   }
 
   private def toFixedProdData(candidate: Option[Candidate], fixType: FixRequiredType): AuditEvents.FixedProdData = {
