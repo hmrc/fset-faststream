@@ -101,8 +101,8 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     "transform form when form is full valid (has degree and lived in uk) to a question list" in new Fixture {
       val questionList = FullValidForm.exchange().questions
       questionList.size mustBe 8
-      questionList.head.answer.answer mustBe Some("Yes")
-      questionList.head.answer.unknown mustBe None
+      questionList(0).answer.answer mustBe Some("Yes")
+      questionList(0).answer.unknown mustBe None
       questionList(1).answer.answer mustBe Some("AAA 111")
       questionList(1).answer.unknown mustBe None
       questionList(2).answer.answer mustBe Some("my school at 15")
@@ -122,8 +122,8 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     "transform form when has degree with all possible fields with prefer not to say" in new Fixture {
       val questionList = AllPreferNotToSayValidForm.exchange().questions
       questionList.size mustBe 8
-      questionList.head.answer.answer mustBe Some("Yes")
-      questionList.head.answer.unknown mustBe None
+      questionList(0).answer.answer mustBe Some("Yes")
+      questionList(0).answer.unknown mustBe None
       questionList(1).answer.answer mustBe None
       questionList(1).answer.unknown mustBe Some(true)
       questionList(2).answer.answer mustBe None
@@ -143,8 +143,8 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     "transform form with no lived in uk and has not degree with valid fields to a question list" in new Fixture {
       val questionList = NotUkLivedAndNoDegreeValidForm.exchange().questions
       questionList.size mustBe 2
-      questionList.head.answer.answer mustBe Some("No")
-      questionList.head.answer.unknown mustBe None
+      questionList(0).answer.answer mustBe Some("No")
+      questionList(0).answer.unknown mustBe None
       questionList(1).answer.answer mustBe Some("No")
       questionList(1).answer.unknown mustBe None
     }
@@ -152,8 +152,8 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     "transform form when has degree and no uk lived with all valid fields to a question list" in new Fixture {
       val questionList = NotUkLivedAndHaveDegreeValidForm.exchange().questions
       questionList.size mustBe 4
-      questionList.head.answer.answer mustBe Some("No")
-      questionList.head.answer.unknown mustBe None
+      questionList(0).answer.answer mustBe Some("No")
+      questionList(0).answer.unknown mustBe None
       questionList(1).answer.answer mustBe Some("Yes")
       questionList(1).answer.unknown mustBe None
       questionList(2).answer.answer mustBe Some("1")
@@ -165,8 +165,8 @@ class EducationQuestionnaireFormSpec extends BaseSpec {
     "transform form when no degree but lived in UK with all valid fields to a question list" in new Fixture {
       val questionList = LivedInUKAndNoDegreeValidForm.exchange().questions
       questionList.size mustBe 6
-      questionList.head.answer.answer mustBe Some("Yes")
-      questionList.head.answer.unknown mustBe None
+      questionList(0).answer.answer mustBe Some("Yes")
+      questionList(0).answer.unknown mustBe None
       questionList(1).answer.answer mustBe Some("AAA 111")
       questionList(1).answer.unknown mustBe None
       questionList(2).answer.answer mustBe Some("my school at 15")

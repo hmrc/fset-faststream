@@ -44,7 +44,7 @@ class DiversityQuestionnaireFormSpec extends BaseSpec {
     "transform properly to a question list" in new Fixture {
       val questionList = validFormData.exchange.questions
       questionList.size must be(3)
-      questionList.head.answer.answer must be(Some("Male"))
+      questionList(0).answer.answer must be(Some("Male"))
       questionList(1).answer.otherDetails must be(Some("details"))
       questionList(2).answer.unknown must be(Some(true))
     }
