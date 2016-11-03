@@ -182,8 +182,10 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       Await.ready({
         for {
           app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app.applicationId)
           app2 <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app2.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app2.applicationId)
         } yield {
           Unit
@@ -216,11 +218,14 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       Await.ready({
         for {
           app1 <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app1.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app1.applicationId)
           _ <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
           app3 <- applicationRepo.create("userId3", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app3.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app3.applicationId)
           app4 <- applicationRepo.create("userId4", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app4.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app4.applicationId)
           _ <- applicationRepo.create("userId5", frameworkId, ApplicationRoute.Faststream)
         } yield {
