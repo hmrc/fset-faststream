@@ -59,6 +59,55 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
+  def showCreateSchema(numberToGenerate: Int, emailPrefix: Option[String], role: String) = Action.async { implicit request =>
+    Future {
+      val example = CreateCandidateInStatusRequest(
+       statusData = StatusDataRequest(
+         applicationStatus = ApplicationStatus.SUBMITTED.toString,
+         previousApplicationStatus = Some(ApplicationStatus.REGISTERED.toString),
+         progressStatus = Some(ProgressStatuses.SUBMITTED.toString),
+         applicationRoute = Some(ApplicationRoute.Faststream.toString)
+       ),
+        personalData = Some(PersonalDataRequest(
+          emailPrefix = Some("emailPrefix"),
+          firstName = Some("Kathryn"),
+          lastName = Some("Janeway"),
+          preferredName = Some("Captain"),
+          dateOfBirth = Some("2328-05-20"),
+          postCode = Some("QQ1 1QQ"),
+          country = Some("America")
+        )),
+        assistanceDetails = Some(AssistanceDetailsRequest(
+          hasDisability = Some("false"),
+          hasDisabilityDescription = Some("description"),
+          setGis = Some(false),
+          onlineAdjustments = Some(false),
+          onlineAdjustmentsDescription = Some("some description"),
+          assessmentCentreAdjustments = Some(false),
+          assessmentCentreAdjustmentsDescription = Some("some sort of asjustment description")
+        )),
+        isCivilServant = Some(true),
+        hasDegree = Some(true),
+        region = Some("region"),
+        loc1scheme1EvaluationResult = Some("loc1 scheme1 result"),
+        loc1scheme2EvaluationResult = Some("loc1 scheme2 resul2"),
+        confirmedAllocation = Some(true),
+        phase1TestData = Some(Phase1TestDataRequest(
+          start = Some("2340-01-01"),
+          expiry = Some("2340-01-29"),
+          completion = Some("2340-01-16")
+        )),
+        phase2TestData = Some(Phase2TestDataRequest(
+          start = Some("2340-01-01"),
+          expiry = Some("2340-01-29"),
+          completion = Some("2340-01-16")
+        ))
+      )
+
+      Ok(Json.toJson(example))
+    }
+  }
+
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String) = Action.async { implicit request =>
     try {
       TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
