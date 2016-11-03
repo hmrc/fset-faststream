@@ -42,7 +42,7 @@ class Phase3TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
   "Next application ready for online testing" should {
     "return one application if there is only one" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED", needsAdjustment = false,
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false, additionalProgressStatuses = List((model.ProgressStatuses.PHASE2_TESTS_PASSED, true))
       ).futureValue
@@ -57,7 +57,7 @@ class Phase3TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
   "Insert a phase 3 test" must {
     "correctly insert a test" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED", needsAdjustment = false,
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
         fastPassReceived = false
       ).futureValue
