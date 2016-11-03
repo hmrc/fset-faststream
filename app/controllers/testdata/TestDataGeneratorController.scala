@@ -59,7 +59,7 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  def showCreateSchema(numberToGenerate: Int, emailPrefix: Option[String], role: String) = Action.async { implicit request =>
+  def requestExample = Action.async { implicit request =>
     Future {
       val example = CreateCandidateInStatusRequest(
        statusData = StatusDataRequest(
@@ -69,7 +69,7 @@ trait TestDataGeneratorController extends BaseController {
          applicationRoute = Some(ApplicationRoute.Faststream.toString)
        ),
         personalData = Some(PersonalDataRequest(
-          emailPrefix = Some("emailPrefix"),
+          emailPrefix = Some(s"testf${Random.number()}"),
           firstName = Some("Kathryn"),
           lastName = Some("Janeway"),
           preferredName = Some("Captain"),
@@ -79,19 +79,19 @@ trait TestDataGeneratorController extends BaseController {
         )),
         assistanceDetails = Some(AssistanceDetailsRequest(
           hasDisability = Some("false"),
-          hasDisabilityDescription = Some("description"),
+          hasDisabilityDescription = Some(Random.hasDisabilityDescription),
           setGis = Some(false),
           onlineAdjustments = Some(false),
-          onlineAdjustmentsDescription = Some("some description"),
+          onlineAdjustmentsDescription = Some(Random.onlineAdjustmentsDescription),
           assessmentCentreAdjustments = Some(false),
-          assessmentCentreAdjustmentsDescription = Some("some sort of asjustment description")
+          assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
         )),
-        isCivilServant = Some(true),
-        hasDegree = Some(true),
+        isCivilServant = Some(Random.bool),
+        hasDegree = Some(Random.bool),
         region = Some("region"),
         loc1scheme1EvaluationResult = Some("loc1 scheme1 result"),
         loc1scheme2EvaluationResult = Some("loc1 scheme2 resul2"),
-        confirmedAllocation = Some(true),
+        confirmedAllocation = Some(Random.bool),
         phase1TestData = Some(Phase1TestDataRequest(
           start = Some("2340-01-01"),
           expiry = Some("2340-01-29"),
