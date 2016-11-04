@@ -21,28 +21,37 @@ import config.MicroserviceAppConfig.sendPhase3InvitationJobConfig
 import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.UnexpectedException
+import model.Exceptions.{ NotFoundException, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE2_TESTS_PASSED, _ }
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.{ Phase2TestGroup, Phase2TestGroupWithAppId, Phase3TestGroupWithAppId }
+import model.persisted.phase3tests.Phase3TestGroup
+import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.CommonBSONDocuments
+import repositories._
+import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+object Phase3TestRepository {
+  case class CannotFindTestByLaunchpadId(message: String) extends NotFoundException(message)
+}
+
 trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   this: ReactiveRepository[_, _] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]]
 
-  def getTestGroupByToken(token: String): Future[Phase3TestGroup]
+  def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId]
 
   def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit]
+
+  def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -86,7 +95,47 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     getTestGroup(applicationId, phaseName)
   }
 
-  override def getTestGroupByToken(token: String): Future[Phase3TestGroup] = {
-    getTestProfileByToken(token, phaseName)
+  override def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId] = {
+    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+    val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val bsonPhase3 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
+        val phase3TestGroup = bsonPhase3.map(Phase3TestGroup.bsonHandler.read).getOrElse(defaultUpdateErrorHandler(token))
+        Phase3TestGroupWithAppId(applicationId, phase3TestGroup)
+      case _ => defaultUpdateErrorHandler(token)
+    }
   }
+
+  override def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
+    ))
+    findAndUpdateLaunchpadTest(launchpadInviteId, update)
+  }
+
+  private def findAndUpdateLaunchpadTest(launchpadInviteId: String, update: BSONDocument, query: BSONDocument = BSONDocument(),
+                                      errorHandler: String => Unit = defaultUpdateErrorHandler): Future[Unit] = {
+    val find = query ++ BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("token" -> launchpadInviteId)
+      )
+    )
+
+    collection.update(find, update, upsert = false) map {
+      case lastError if lastError.nModified == 0 && lastError.n == 0 => errorHandler(launchpadInviteId)
+      case _ => ()
+    }
+
+  }
+
+  private def defaultUpdateErrorHandler(launchpadInviteId: String) = {
+    logger.error(s"""Failed to update launchpad test: $launchpadInviteId""")
+    throw CannotFindTestByLaunchpadId(s"Cannot find test group by launchpad Id: $launchpadInviteId")
+  }
+
 }
