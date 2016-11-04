@@ -16,17 +16,21 @@
 
 package model.exchange.passmarksettings
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
+import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
-// format: OFF
-case class Phase1PassMarkThresholds(
-  situational: PassMarkThreshold,
-  behavioural: PassMarkThreshold
-)
+object PassMarkTestTypes extends Enumeration {
 
-// format: ON
-object Phase1PassMarkThresholds {
-  implicit val phase1PassMarkThresholds = Json.format[Phase1PassMarkThresholds]
-  implicit val phase1PassMarkThresholdsHandler = Macros.handler[Phase1PassMarkThresholds]
+  val situational, behavioural, etray = Value
+
+  implicit val applicationRouteFormat = new Format[Value] {
+    def reads(json: JsValue) = JsSuccess(PassMarkTestTypes.withName(json.as[String]))
+    def writes(myEnum: Value) = JsString(myEnum.toString)
+  }
+
+  implicit object BSONEnumHandler extends BSONHandler[BSONString, Value] {
+    def read(doc: BSONString) = PassMarkTestTypes.withName(doc.value)
+    def write(myEnum: Value) = BSON.write(myEnum.toString)
+  }
+
 }

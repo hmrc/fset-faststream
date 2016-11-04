@@ -20,13 +20,36 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class Phase1PassMarkSettings(schemes: List[Phase1PassMark],
-                                  version: String,
-                                  createDate: DateTime,
-                                  createdBy: String)
+trait PassMarkSettings {
+  def schemes: List[PassMark]
+  def version: String
+  def createDate: DateTime
+  def createdBy: String
+
+}
+
+case class Phase1PassMarkSettings(
+  schemes: List[Phase1PassMark],
+  version: String,
+  createDate: DateTime,
+  createdBy: String
+) extends PassMarkSettings
 
 object Phase1PassMarkSettings {
   import repositories.BSONDateTimeHandler
   implicit val phase1PassMarkSettings = Json.format[Phase1PassMarkSettings]
   implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase1PassMarkSettings]
+}
+
+case class Phase2PassMarkSettings(
+  schemes: List[Phase2PassMark],
+  version: String,
+  createDate: DateTime,
+  createdBy: String
+) extends PassMarkSettings
+
+object Phase2PassMarkSettings {
+  import repositories.BSONDateTimeHandler
+  implicit val phase1PassMarkSettings = Json.format[Phase2PassMarkSettings]
+  implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase2PassMarkSettings]
 }
