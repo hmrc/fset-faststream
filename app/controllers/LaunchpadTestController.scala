@@ -47,7 +47,7 @@ abstract class LaunchpadTestController(applicationClient: ApplicationClient, cac
   def completePhase3TestsByToken(token: String) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completePhase3TestByToken(token).map { _ =>
-        Ok(views.html.application.onlineTests.phase1TestsComplete())
+        Ok(views.html.application.onlineTests.phase3TestsComplete())
       }
   }
 
