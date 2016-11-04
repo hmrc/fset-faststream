@@ -32,7 +32,6 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import reactivemongo.api.commands.UpdateWriteResult
 
 trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
@@ -41,6 +40,7 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
   val phaseName: String
   val dateTimeFactory: DateTimeFactory
   val expiredTestQuery: BSONDocument
+  val resetStatuses: List[String]
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
 
   type U <: Test
@@ -240,5 +240,32 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
     ))
     collection.update(query, update, upsert = false) map( _ => () )
+  }
+
+  def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
+    require(progressStatuses.nonEmpty)
+    require(progressStatuses forall (ps =>
+      resetStatuses.contains(ps.applicationStatus.toString)), s"Cannot remove non $phaseName progress status")
+
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> appId),
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> resetStatuses))
+    ))
+
+    val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
+
+    val updateQuery = BSONDocument(
+      "$set" -> BSONDocument("applicationStatus" -> thisApplicationStatus),
+      "$unset" -> BSONDocument(progressesToRemoveQueryPartial),
+      "$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> "")
+    )
+
+    collection.update(query, updateQuery, upsert = false) map {
+      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
+        logger.error(s"Failed to reset progress statuses for " +
+          s"application Id: $appId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}")
+        throw ApplicationNotFound(appId)
+      case _ => ()
+    }
   }
 }

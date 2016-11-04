@@ -21,13 +21,11 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
-import org.joda.time.DateTime
-import model.persisted.{ CubiksTest, Phase1TestProfile }
-import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, TestResult }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, TestExpirationEvent }
+import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
+import model.{ ApplicationStatus, ReminderNotice }
+import org.joda.time.DateTime
 import play.api.Logger
-import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -51,8 +49,6 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
 
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
 
-  def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
-
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 
 }
@@ -64,6 +60,8 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override val phaseName = "PHASE1"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE1_TESTS
+  override val resetStatuses = List[String](ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_FAILED,
+    ApplicationStatus.PHASE1_TESTS_PASSED)
   override val dateTimeFactory = dateTime
   override val expiredTestQuery: BSONDocument = {
     BSONDocument("$and" -> BSONArray(
@@ -156,20 +154,4 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     nextTestGroupWithReportReady[Phase1TestGroupWithUserIds]
 
   }
-
-  override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
-    require(progressStatuses.nonEmpty)
-    require(progressStatuses forall (_.applicationStatus == ApplicationStatus.PHASE1_TESTS), "Cannot remove non Phase 1 progress status")
-
-    val query = BSONDocument(
-      "applicationId" -> appId,
-      "applicationStatus" -> ApplicationStatus.PHASE1_TESTS
-    )
-    val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
-
-    val updateQuery = BSONDocument("$unset" -> BSONDocument(progressesToRemoveQueryPartial))
-
-    collection.update(query, updateQuery, upsert = false) map ( _ => () )
-  }
-
 }

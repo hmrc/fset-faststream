@@ -243,7 +243,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
                                      (newOnlineTestProfile: Phase2TestGroup): Future[Unit] = for {
     currentOnlineTestProfile <- phase2TestRepo.getTestGroup(application.applicationId)
     updatedTestProfile <- insertOrAppendNewTests(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- phase2TestRepo.removeTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
+    _ <- phase2TestRepo.resetTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
   } yield ()
 
   private def insertOrAppendNewTests(applicationId: String, currentProfile: Option[Phase2TestGroup],
@@ -435,7 +435,8 @@ object ResetPhase2Test {
   def determineStatusesToRemove(testGroup: Phase2TestGroup): List[ProgressStatus] = {
     (if (testGroup.hasNotStartedYet) List(PHASE2_TESTS_STARTED) else List()) ++
       (if (testGroup.hasNotCompletedYet) List(PHASE2_TESTS_COMPLETED) else List()) ++
-      (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY) else List())
+      (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY) else List()) ++
+      List(PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED)
   }
 }
 
