@@ -213,12 +213,13 @@ package object repositories {
     val assistanceDetailsRoot = doc.getAs[BSONDocument]("assistance-details").get
     val guaranteedInterview = assistanceDetailsRoot.getAs[Boolean]("guaranteedInterview").getOrElse(false)
     val needsAdjustmentForOnlineTests = assistanceDetailsRoot.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)
+    val needsAdjustmentsAtVenue = assistanceDetailsRoot.getAs[Boolean]("needsSupportAtVenue").getOrElse(false)
 
     val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
     val videoInterviewAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("video")
 
-    OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
-      lastName, etrayAdjustments, videoInterviewAdjustments)
+    OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests,
+      needsAdjustmentsAtVenue, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments)
   }
 
 }
