@@ -16,11 +16,8 @@
 
 package model.persisted
 
-import model.Commands.{PhoneAndEmail, ReportWithPersonalDetails}
-import play.api.libs.json.Json
-import model.Commands.Implicits._
-import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
+import play.api.libs.json.Json
 
 case class ApplicationForDiversityReport(applicationId: String,
                                              userId: String,

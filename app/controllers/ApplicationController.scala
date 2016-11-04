@@ -113,8 +113,6 @@ trait ApplicationController extends BaseController {
             case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
           }
       }
-
     }
   }
-
 }

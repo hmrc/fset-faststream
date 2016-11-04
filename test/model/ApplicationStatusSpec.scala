@@ -16,9 +16,9 @@
 
 package model
 
+import model.ApplicationStatus._
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{ JsSuccess, JsValue, Json }
-import ApplicationStatus._
+import play.api.libs.json.{ JsSuccess, Json }
 import reactivemongo.bson.BSONString
 
 class ApplicationStatusSpec extends PlaySpec {

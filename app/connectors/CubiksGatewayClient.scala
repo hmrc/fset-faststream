@@ -16,8 +16,8 @@
 
 package connectors
 
-import _root_.config.WSHttp
 import config.MicroserviceAppConfig._
+import config.WSHttp
 import connectors.ExchangeObjects.Implicits._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration }
 import model.Exceptions.ConnectorException
@@ -35,7 +35,7 @@ trait CubiksGatewayClient {
   val url: String
 
   // Blank out header carriers for calls to LPG. Passing on someone's true-client-ip header will cause them to be reassessed
-  // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesireable behaviour.
+  // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesirable behaviour.
   implicit def blankedHeaderCarrier = new HeaderCarrier()
 
   def registerApplicants(batchSize: Int): Future[List[Registration]] = {

@@ -25,21 +25,18 @@ import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.ProgressStatus
 import model.command._
-import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport}
-import model.report.{AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels}
-import model.{ApplicationStatus, _}
-import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest}
-import model.{ApplicationStatus, _}
+import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport, NotificationFailedTest }
+import model.report.{ AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels }
+import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, LocalDate}
-import play.api.libs.json.{Format, JsNumber, JsObject}
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{DB, QueryOpts, ReadPreference}
-import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import services.TimeZoneService
@@ -102,7 +99,6 @@ trait GeneralApplicationRepository {
 
   def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]]
 
-
   def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit]
 
   def rejectAdjustment(applicationId: String): Future[Unit]
@@ -148,7 +144,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
   lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
-
 
   // scalastyle:off method.length
   private def findProgress(document: BSONDocument, applicationId: String): ProgressResponse = {
@@ -411,9 +406,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationBSON = BSONDocument("$set" -> BSONDocument(
       "withdraw" -> reason
-    ).add(
-      applicationStatusBSON(WITHDRAWN)
-    )
+      ).add(
+        applicationStatusBSON(WITHDRAWN)
+      )
     )
     collection.update(query, applicationBSON, upsert = false) map { _ => }
   }
@@ -441,7 +436,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         throw CannotUpdatePreview(applicationId)
       case _ => ()
     }
-
   }
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
@@ -906,7 +900,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       .cursor[A](ReadPreference.nearest)
       .collect[List](Int.MaxValue, true)
 
-
   def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
@@ -926,7 +919,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   def rejectAdjustment(applicationId: String): Future[Unit] = {
-
     val query = BSONDocument("applicationId" -> applicationId)
 
     val adjustmentRejection = BSONDocument("$set" -> BSONDocument(

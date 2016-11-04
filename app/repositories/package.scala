@@ -130,7 +130,7 @@ package object repositories {
       val preferredName = root.getAs[String]("preferredName").get
       val dateOfBirth = doc.getAs[LocalDate]("dateOfBirth").get
 
-      PersonalDetails(firstName, lastName, preferredName, dateOfBirth, false, false)
+      PersonalDetails(firstName, lastName, preferredName, dateOfBirth, aLevel = false, stemLevel = false)
     }
 
     def write(psDoc: PersonalDetails) = BSONDocument(
@@ -145,7 +145,7 @@ package object repositories {
     val userId = doc.getAs[String]("userId").getOrElse("")
     val applicationId = doc.getAs[String]("applicationId")
     // If the application does not have applicationRoute, it is legacy data
-    // as it needs to be interpretted as Faststream
+    // as it needs to be interpreted as Faststream
     val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
 
     val psRoot = doc.getAs[BSONDocument]("personal-details")
@@ -229,7 +229,5 @@ package object repositories {
       OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests, preferredName,
         lastName, None)
     }
-
   }
-
 }

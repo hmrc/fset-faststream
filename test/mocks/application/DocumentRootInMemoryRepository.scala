@@ -23,17 +23,16 @@ import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.OnlineTestApplication
-import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest, Phase1TestProfile }
-import model.ProgressStatuses._
 import model._
 import model.command._
-import model.persisted.{ ApplicationForOnlineTestPassMarkReport}
+import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport, NotificationFailedTest }
 import model.report._
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
 
 import scala.collection.mutable
 import scala.concurrent.Future
+
 object DocumentRootInMemoryRepository extends DocumentRootInMemoryRepository
 
 /**

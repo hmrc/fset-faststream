@@ -22,7 +22,6 @@ import model.ProgressStatuses.ProgressStatus
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 
-
 trait CommonBSONDocuments {
 
   def applicationStatusBSON(applicationStatus: ApplicationStatus) = {

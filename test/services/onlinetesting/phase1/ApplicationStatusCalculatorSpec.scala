@@ -50,7 +50,6 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
       val newStatus = calc.determineApplicationStatus(PHASE1_TESTS_PASSED, List(green, green, green))
       newStatus mustBe None
     }
-
   }
 
   def red = SchemeEvaluationResult(Commercial, Red.toString)

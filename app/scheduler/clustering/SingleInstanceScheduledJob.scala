@@ -16,7 +16,7 @@
 
 package scheduler.clustering
 
-import scheduled.LockKeeper
+import scheduler.LockKeeper
 import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob
 
 import scala.concurrent.duration.Duration
@@ -44,5 +44,4 @@ trait SingleInstanceScheduledJob extends ExclusiveScheduledJob {
     case Some(x) => Result("Done")
     case None => Result("Nothing")
   }
-
 }

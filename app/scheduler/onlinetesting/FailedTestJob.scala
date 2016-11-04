@@ -19,11 +19,8 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import connectors.CSREmailClient
 import model._
-import repositories._
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.AuditService
 import services.onlinetesting.{ OnlineTestService, Phase1TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package scheduled
+package scheduler
 
 import java.util.UUID
 
@@ -50,7 +50,6 @@ trait LockKeeper {
         }
       }
   }
-
 }
 
 object LockKeeper extends RunMode {

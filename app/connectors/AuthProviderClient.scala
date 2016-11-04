@@ -21,7 +21,6 @@ import connectors.AuthProviderClient._
 import connectors.ExchangeObjects.Implicits._
 import connectors.ExchangeObjects._
 import model.Exceptions.{ ConnectorException, EmailTakenException }
-import play.api.Logger
 import play.api.http.Status._
 import uk.gov.hmrc.play.http._
 

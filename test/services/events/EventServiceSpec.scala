@@ -16,10 +16,8 @@
 
 package services.events
 
-import model.events.EventTypes.EventType
 import model.events.{ AuditEvent, DataStoreEvent, EmailEvent }
 import org.mockito.ArgumentCaptor
-import org.scalatest.Matchers
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -27,7 +25,6 @@ import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import services.events.handler.{ AuditEventHandler, DataStoreEventHandler, EmailEventHandler }
 import uk.gov.hmrc.play.http.HeaderCarrier
-import services.events.EventService.toEvents
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
@@ -44,7 +41,6 @@ class EventServiceSpec extends PlaySpec with MockitoSugar with EventServiceFixtu
     }
   }
 }
-
 
 trait EventServiceFixture extends MockitoSugar {
 
@@ -89,4 +85,3 @@ trait EventServiceFixture extends MockitoSugar {
     assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
   }
 }
-

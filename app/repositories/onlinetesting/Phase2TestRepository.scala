@@ -23,7 +23,7 @@ import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted._
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
+import model.{ ApplicationStatus, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
@@ -54,7 +54,6 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
-
 }
 
 class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -86,7 +85,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument(
       "applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED,
       "assistance-details.needsSupportForOnlineAssessment" -> false,
-      s"progress-status.${PHASE1_TESTS_PASSED}" -> true
+      s"progress-status.$PHASE1_TESTS_PASSED" -> true
     )
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
@@ -153,7 +152,6 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     nextTestForReminder(reminder, progressStatusQuery)
   }
-
 
   override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)

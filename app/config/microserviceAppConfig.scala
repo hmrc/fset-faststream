@@ -150,5 +150,4 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
     configuration.underlying
       .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")
-
 }

@@ -34,5 +34,4 @@ object MediaInMemoryRepository extends MediaRepository {
   }
 
   val inMemoryRepo = new mutable.HashMap[String, Media]
-
 }

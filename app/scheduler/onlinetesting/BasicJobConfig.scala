@@ -36,7 +36,7 @@ trait BasicJobConfig[T <: ScheduledJobConfigurable] {
 
   lazy val initialDelay = conf.initialDelaySecs.flatMap(toDuration).getOrElse(exception("initialDelaySecs"))
   lazy val configuredInterval = conf.intervalSecs.flatMap(toFiniteDuration).getOrElse(exception("intervalSecs"))
-  // Extra 1 second allows mongo lock to be relinquish
+  // Extra 1 second allows mongo lock to be relinquished
   lazy val interval = configuredInterval.plus(Duration(1, TimeUnit.SECONDS))
   lazy val forceLockReleaseAfter = configuredInterval
 

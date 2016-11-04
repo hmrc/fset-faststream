@@ -70,5 +70,4 @@ object SchoolsCSVRepository extends SchoolsRepository {
   }
 
   def schools: Future[List[School]] = schoolsCached
-
 }
