@@ -35,7 +35,7 @@ import repositories.event.EventMongoRepository
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
-import model.ApplicationRoute
+import model.{ AdjustmentDetail, ApplicationRoute }
 import model.ApplicationRoute.ApplicationRoute
 
 import scala.concurrent.ExecutionContext.Implicits.global

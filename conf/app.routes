@@ -20,7 +20,8 @@ GET         /application/find/user/:userId/framework/:frameworkId        control
 PUT         /application/preview/:applicationId                          controllers.ApplicationController.preview(applicationId: String)
 PUT         /application/submit/:userId/:applicationId                   controllers.SubmitApplicationController.submitApplication(userId: String, applicationId: String)
 PUT         /application/withdraw/:applicationId                         controllers.ApplicationController.withdrawApplication(applicationId: String)
-PUT         /application/confirm/adjustment/:applicationId               controllers.ApplicationController.confirmAdjustment(applicationId:String)
+PUT         /application/confirm/adjustment/:applicationId               controllers.AdjustmentsManagementController.confirmAdjustment(applicationId:String)
+GET         /application/adjustment/:applicationId                       controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
 
 PUT         /media/create                                                controllers.MediaController.addMedia()
 
