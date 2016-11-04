@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package repositories
+package repositories.passmarksettings
 
 import model.Commands._
-import model.exchange.passmarksettings.Phase1PassMarkSettings
-import play.api.libs.json.{ JsNumber, JsObject }
+import model.exchange.passmarksettings._
+import play.api.libs.json.{ Format, JsNumber, JsObject, OFormat }
 import reactivemongo.api.DB
 import reactivemongo.bson._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -26,19 +26,26 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
-trait Phase1PassMarkSettingsRepository {
-  def create(phase1PassMarkSettings: Phase1PassMarkSettings): Future[PassMarkSettingsCreateResponse]
-
-  def getLatestVersion: Future[Option[Phase1PassMarkSettings]]
-}
+import repositories.OFormatHelper
 
 class Phase1PassMarkSettingsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Phase1PassMarkSettings, BSONObjectID]("phase1-pass-mark-settings", mongo,
-    Phase1PassMarkSettings.phase1PassMarkSettings, ReactiveMongoFormats.objectIdFormats) with Phase1PassMarkSettingsRepository {
+    Phase1PassMarkSettings.phase1PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
+  ) with PassMarkSettingsRepository[Phase1PassMarkSettings]
 
-  override def create(phase1PassMarkSettings: Phase1PassMarkSettings): Future[PassMarkSettingsCreateResponse] = {
-    collection.insert(phase1PassMarkSettings) flatMap { _ =>
+
+class Phase2PassMarkSettingsMongoRepository(implicit mongo: () => DB)
+  extends ReactiveRepository[Phase2PassMarkSettings, BSONObjectID]("phase2-pass-mark-settings", mongo,
+    Phase2PassMarkSettings.phase2PassMarkSettings, ReactiveMongoFormats.objectIdFormats
+  ) with PassMarkSettingsRepository[Phase2PassMarkSettings]
+
+trait PassMarkSettingsRepository[T <: PassMarkSettings] {
+  this: ReactiveRepository[T, _] =>
+
+  implicit val oFormats = OFormatHelper.oFormat(domainFormatImplicit)
+
+  def create(passMarkSettings: T)(implicit jsonFormat: Format[T]): Future[PassMarkSettingsCreateResponse] = {
+    collection.insert(passMarkSettings) flatMap { _ =>
       getLatestVersion.map(createResponse =>
         PassMarkSettingsCreateResponse(
           createResponse.map(_.version).get,
@@ -48,9 +55,10 @@ class Phase1PassMarkSettingsMongoRepository(implicit mongo: () => DB)
     }
   }
 
-  override def getLatestVersion: Future[Option[Phase1PassMarkSettings]] = {
+  def getLatestVersion(implicit jsonFormat: Format[T]): Future[Option[T]] = {
     val query = BSONDocument()
     val sort = JsObject(Seq("createDate" -> JsNumber(-1)))
-    collection.find(query).sort(sort).one[Phase1PassMarkSettings]
+    collection.find(query).sort(sort).one[T]
   }
 }
+

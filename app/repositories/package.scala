@@ -37,6 +37,8 @@ import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute
 import model.ApplicationRoute.ApplicationRoute
+import play.api.libs.json._
+import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -74,6 +76,7 @@ package object repositories {
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
   lazy val testReportRepository = new TestReportMongoRepository()
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
+  lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val candidateAllocationMongoRepository = new CandidateAllocationMongoRepository(DateTimeFactory)
@@ -173,6 +176,16 @@ package object repositories {
       elements.toMap
     }
   }
+
+implicit object OFormatHelper {
+  def oFormat[T](implicit format:Format[T]) : OFormat[T] = {
+    val oFormat: OFormat[T] = new OFormat[T](){
+      override def writes(o: T): JsObject = format.writes(o).as[JsObject]
+      override def reads(json: JsValue): JsResult[T] = format.reads(json)
+    }
+    oFormat
+  }
+}
 
   implicit val withdrawHandler: BSONHandler[BSONDocument, WithdrawApplication] = Macros.handler[WithdrawApplication]
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]

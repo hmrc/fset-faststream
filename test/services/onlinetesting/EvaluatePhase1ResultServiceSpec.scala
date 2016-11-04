@@ -30,6 +30,7 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories._
 import repositories.onlinetesting.Phase1EvaluationRepository
+import repositories.passmarksettings.Phase1PassMarkSettingsRepository
 import services.onlinetesting.phase1.Phase1TestEvaluation
 
 import scala.concurrent.Future

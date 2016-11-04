@@ -20,6 +20,7 @@ import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phas
 import testkit.MongoRepositorySpec
 import model.SchemeType._
 import org.joda.time.DateTime
+import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 
 class Phase1PassMarkSettingsRepositorySpec extends MongoRepositorySpec {
 

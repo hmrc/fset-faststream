@@ -25,7 +25,6 @@ trait PassMarkSettings {
   def version: String
   def createDate: DateTime
   def createdBy: String
-
 }
 
 case class Phase1PassMarkSettings(
@@ -37,7 +36,7 @@ case class Phase1PassMarkSettings(
 
 object Phase1PassMarkSettings {
   import repositories.BSONDateTimeHandler
-  implicit val phase1PassMarkSettings = Json.format[Phase1PassMarkSettings]
+  implicit val phase1PassMarkSettingsFormat = Json.format[Phase1PassMarkSettings]
   implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase1PassMarkSettings]
 }
 
@@ -50,6 +49,6 @@ case class Phase2PassMarkSettings(
 
 object Phase2PassMarkSettings {
   import repositories.BSONDateTimeHandler
-  implicit val phase1PassMarkSettings = Json.format[Phase2PassMarkSettings]
-  implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase2PassMarkSettings]
+  implicit val phase2PassMarkSettings = Json.format[Phase2PassMarkSettings]
+  implicit val phase2PassMarkSettingsHandler = Macros.handler[Phase2PassMarkSettings]
 }

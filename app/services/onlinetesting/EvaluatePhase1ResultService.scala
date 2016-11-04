@@ -29,12 +29,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EvaluatePhase1ResultService extends EvaluatePhase1ResultService {
+  val passMarkSettingsRepo = phase1PassMarkSettingsRepository
   val phase1EvaluationRepository: Phase1EvaluationRepository = repositories.faststreamPhase1EvaluationRepository
   val gatewayConfig = cubiksGatewayConfig
   val phase1PMSRepository = phase1PassMarkSettingsRepository
 }
 
-trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEvaluation with PassMarkSettingsService
+trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings]
   with ApplicationStatusCalculator {
   val phase1EvaluationRepository: Phase1EvaluationRepository
 

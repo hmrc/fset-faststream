@@ -17,20 +17,26 @@
 package services.passmarksettings
 
 import model.Commands.PassMarkSettingsCreateResponse
-import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings }
+import play.api.libs.json.Format
 import repositories._
+import repositories.passmarksettings.PassMarkSettingsRepository
 
 import scala.concurrent.Future
 
-object PassMarkSettingsService extends PassMarkSettingsService {
-  val phase1PMSRepository = phase1PassMarkSettingsRepository
+object Phase1PassMarkSettingsService extends PassMarkSettingsService[Phase1PassMarkSettings] {
+  val passMarkSettingsRepo = phase1PassMarkSettingsRepository
 }
 
-trait PassMarkSettingsService {
-  val phase1PMSRepository: Phase1PassMarkSettingsRepository
+object Phase2PassMarkSettingsService extends PassMarkSettingsService[Phase2PassMarkSettings] {
+  val passMarkSettingsRepo = phase2PassMarkSettingsRepository
+}
 
-  def getLatestPhase1PassMarkSettings: Future[Option[Phase1PassMarkSettings]] = phase1PMSRepository.getLatestVersion
+trait PassMarkSettingsService[T <: PassMarkSettings] {
+  val passMarkSettingsRepo: PassMarkSettingsRepository[T]
 
-  def createPhase1PassMarkSettings(phase1PassMarkSettings: Phase1PassMarkSettings):Future[PassMarkSettingsCreateResponse]
-      = phase1PMSRepository.create(phase1PassMarkSettings)
+  def getLatestPhase1PassMarkSettings(implicit jsonFormat: Format[T]): Future[Option[T]] = passMarkSettingsRepo.getLatestVersion
+
+  def createPhase1PassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T]):Future[PassMarkSettingsCreateResponse]
+      = passMarkSettingsRepo.create(passMarkSettings)
 }

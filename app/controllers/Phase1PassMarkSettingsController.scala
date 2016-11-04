@@ -23,20 +23,20 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
-import services.passmarksettings.PassMarkSettingsService
+import services.passmarksettings.{ PassMarkSettingsService, Phase1PassMarkSettingsService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase1PassMarkSettingsController extends Phase1PassMarkSettingsController {
-  val passMarkService = PassMarkSettingsService
+  val passMarkService = Phase1PassMarkSettingsService
   val auditService = AuditService
   val uuidFactory = UUIDFactory
 }
 
 trait Phase1PassMarkSettingsController extends BaseController {
 
-  val passMarkService: PassMarkSettingsService
+  val passMarkService: PassMarkSettingsService[Phase1PassMarkSettings]
   val auditService: AuditService
   val uuidFactory: UUIDFactory
 
