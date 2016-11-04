@@ -99,13 +99,13 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
               BSONDocument("assistance-details.needsSupportAtVenue" -> true)
             )),
             BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
-            BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated")))
+            BSONDocument("assistance-details.adjustments" -> BSONDocument("$ne" -> "etrayInvigilated")))
           ))
           // Invigilated etray with adjustments confirmed
           /*BSONDocument("$and" -> BSONArray(
             BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
             BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
-            BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
+            BSONDocument("assistance-details.adjustments" -> "etrayInvigilated")
           )),*/
 
             // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver

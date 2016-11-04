@@ -17,16 +17,16 @@
 package services.application
 
 import common.FutureEx
+import model.Commands.Candidate
+import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
 import model.events.EventTypes.EventType
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import contactdetails.ContactDetailsRepository
-import model.Commands.{ AdjustmentDetail, AdjustmentManagement, Candidate }
-import model.Exceptions.ApplicationNotFound
 import scheduler.fixer.FixRequiredType
 import services.events.{ EventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -65,43 +65,6 @@ trait ApplicationService extends EventSink {
                 case Candidate_Role => commonEventList
                 case _ => EmailEvents.ApplicationWithdrawn(cd.email,
                   candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
-              }
-            }
-          }
-        }
-      case None => throw ApplicationNotFound(applicationId)
-    }.map(_ => ())
-  }
-
-  def confirmAdjustment(applicationId: String, adjustmentInformation: AdjustmentManagement)
-                       (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-
-    val standardEventList = DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
-      AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
-      Nil
-
-    def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String ={
-
-      def mkString(ad: Option[AdjustmentDetail]): Option[String] =
-        ad.map(e => List(e.timeNeeded.map( tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
-
-      mkString(adjustmentDetail) match {
-        case Some(txt) if !txt.isEmpty => s"$header $txt"
-        case _ => ""
-      }
-    }
-
-    appRepository.find(applicationId).flatMap {
-      case Some(candidate) =>
-        cdRepository.find(candidate.userId).flatMap { cd =>
-          eventSink {
-            appRepository.confirmAdjustment(applicationId, adjustmentInformation).map{ _ =>
-              adjustmentInformation.adjustments match {
-                case Some(list) if list.nonEmpty => EmailEvents.AdjustmentsConfirmed(cd.email,
-                  candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),
-                  toEmailString("E-tray:", adjustmentInformation.etray),
-                  toEmailString("Video interview:", adjustmentInformation.video)) :: standardEventList
-                case _ => standardEventList
               }
             }
           }

@@ -26,7 +26,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
+import services.onlinetesting.ResetPhase2Test.{ AdjustmentsConfirmedCannotResetPhase2Tests, CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.{ Phase1TestService, Phase2TestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -109,6 +109,8 @@ trait OnlineTestController extends BaseController {
               Locked
             case _: CannotResetPhase2Tests =>
               NotFound
+            case _: AdjustmentsConfirmedCannotResetPhase2Tests =>
+              Conflict
           }
 
       appRepository.getOnlineTestApplication(appId).flatMap {

@@ -35,7 +35,7 @@ import repositories.event.EventMongoRepository
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
-import model.ApplicationRoute
+import model.{ AdjustmentDetail, ApplicationRoute }
 import model.ApplicationRoute.ApplicationRoute
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -209,11 +209,13 @@ package object repositories {
     val needsAdjustmentForOnlineTests = assistanceDetailsRoot.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)
     val needsAdjustmentsAtVenue = assistanceDetailsRoot.getAs[Boolean]("needsSupportAtVenue").getOrElse(false)
 
+    val adjustmentsConfirmed = assistanceDetailsRoot.getAs[Boolean]("adjustmentsConfirmed")
+
     val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
     val videoInterviewAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("video")
 
     OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests,
-      needsAdjustmentsAtVenue, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments)
+      needsAdjustmentsAtVenue, preferredName, lastName, adjustmentsConfirmed, etrayAdjustments, videoInterviewAdjustments)
   }
 
 }
