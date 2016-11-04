@@ -245,7 +245,7 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
   def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
     require(progressStatuses forall (ps =>
-      resetStatuses.contains(ps.applicationStatus.toString)), s"Cannot remove non $phaseName progress status")
+      resetStatuses.contains(ps.applicationStatus.toString)), s"Cannot reset some of the $phaseName progress statuses $progressStatuses")
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> appId),

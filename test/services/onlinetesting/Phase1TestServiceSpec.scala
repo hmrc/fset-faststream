@@ -509,7 +509,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       verify(otRepositoryMock).resetTestProfileProgresses("appId",
         List(PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_RESULTS_READY,
-          PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED))
+          PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED))
       val expectedTestsAfterReset = List(phase1TestProfileWithStartedTests.tests.head.copy(usedForResults = false),
         phase1Test.copy(participantScheduleId = invitation.participantScheduleId))
 
