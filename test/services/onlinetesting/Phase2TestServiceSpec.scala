@@ -222,7 +222,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
       phase2TestService.resetTests(onlineTestApplication, "createdBy").futureValue
 
-      verify(otRepositoryMock).removeTestProfileProgresses("appId",
+      verify(otRepositoryMock).resetTestProfileProgresses("appId",
         List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY))
       verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
       verify(otRepositoryMock).insertCubiksTests(any[String], any[Phase2TestGroup])
@@ -597,7 +597,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     when(otRepositoryMock.getTestGroup(any[String]))
       .thenReturn(Future.successful(Some(phase2TestProfile)))
 
-    when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]]))
+    when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
       .thenReturn(Future.successful(()))
 
     when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(

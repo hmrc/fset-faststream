@@ -37,10 +37,10 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
-  val resetStatuses = List(thisApplicationStatus)
   val phaseName: String
   val dateTimeFactory: DateTimeFactory
   val expiredTestQuery: BSONDocument
+  val resetStatuses: List[String]
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
 
   type U <: Test
@@ -242,7 +242,7 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     collection.update(query, update, upsert = false) map( _ => () )
   }
 
-  def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
+  def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
     require(progressStatuses forall (_.applicationStatus == thisApplicationStatus), s"Cannot remove non $phaseName progress status")
 
@@ -255,9 +255,16 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
 
     val updateQuery = BSONDocument(
       "$set" -> BSONDocument("applicationStatus" -> thisApplicationStatus),
-      "$unset" -> BSONDocument(progressesToRemoveQueryPartial)
+      "$unset" -> BSONDocument(progressesToRemoveQueryPartial),
+      "$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> "")
     )
 
-    collection.update(query, updateQuery, upsert = false) map ( _ => () )
+    collection.update(query, updateQuery, upsert = false) map {
+      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
+        logger.error(s"Failed to reset progress statuses for " +
+          s"application Id: $appId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}")
+        throw ApplicationNotFound(appId)
+      case _ => ()
+    }
   }
 }

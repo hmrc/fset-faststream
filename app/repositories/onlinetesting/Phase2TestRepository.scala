@@ -62,7 +62,8 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override val phaseName = "PHASE2"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE2_TESTS
-  override val resetStatuses = List(ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED, ApplicationStatus.PHASE2_TESTS_PASSED)
+  override val resetStatuses = List[String](ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED,
+    ApplicationStatus.PHASE2_TESTS_PASSED)
   override val dateTimeFactory = dateTime
   override val expiredTestQuery: BSONDocument = {
     BSONDocument("$and" -> BSONArray(
@@ -178,7 +179,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
 
-  override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
+  override def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty)
     require(progressStatuses forall (_.applicationStatus == thisApplicationStatus), "Cannot remove non Phase 2 progress status")
 

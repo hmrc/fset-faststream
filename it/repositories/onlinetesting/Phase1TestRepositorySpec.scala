@@ -405,11 +405,11 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
 
-    "remove progress statuses" in {
+    "reset progress statuses" in {
       createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
           ProgressStatuses.PHASE1_TESTS_COMPLETED -> true)).futureValue
-      phase1TestRepo.removeTestProfileProgresses("appId", List(
+      phase1TestRepo.resetTestProfileProgresses("appId", List(
         ProgressStatuses.PHASE1_TESTS_INVITED,
         ProgressStatuses.PHASE1_TESTS_COMPLETED)
       ).futureValue
@@ -423,7 +423,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
         additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
           ProgressStatuses.PHASE1_TESTS_COMPLETED -> true)).futureValue
-      phase1TestRepo.removeTestProfileProgresses("appId", List(
+      phase1TestRepo.resetTestProfileProgresses("appId", List(
         ProgressStatuses.PHASE1_TESTS_INVITED,
         ProgressStatuses.PHASE1_TESTS_COMPLETED)
       ).futureValue
