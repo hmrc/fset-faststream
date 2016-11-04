@@ -209,11 +209,13 @@ package object repositories {
     val needsAdjustmentForOnlineTests = assistanceDetailsRoot.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)
     val needsAdjustmentsAtVenue = assistanceDetailsRoot.getAs[Boolean]("needsSupportAtVenue").getOrElse(false)
 
+    val adjustmentsConfirmed = assistanceDetailsRoot.getAs[Boolean]("adjustmentsConfirmed")
+
     val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
     val videoInterviewAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("video")
 
     OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests,
-      needsAdjustmentsAtVenue, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments)
+      needsAdjustmentsAtVenue, preferredName, lastName, adjustmentsConfirmed, etrayAdjustments, videoInterviewAdjustments)
   }
 
 }

@@ -121,18 +121,22 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
 
   def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    phase2TestRepo.getTestGroup(application.applicationId).flatMap {
-      case Some(phase2TestGroup) if schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
-        val schedule = getRandomSchedule(phase2TestGroup.tests.map(_.scheduleId))
-        registerAndInviteForTestGroup(List(application), schedule).map { _ =>
-          audit("Phase2TestInvitationProcessComplete", application.userId)
-          AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
-            DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
-        }
-      case Some(phase2TestGroup) if !schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
-        throw ResetLimitExceededException()
-      case _ =>
-        throw CannotResetPhase2Tests()
+    if (application.adjustmentsConfirmed.getOrElse(false)) {
+      throw AdjustmentsConfirmedCannotResetPhase2Tests()
+    } else {
+      phase2TestRepo.getTestGroup(application.applicationId).flatMap {
+        case Some(phase2TestGroup) if schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
+          val schedule = getRandomSchedule(phase2TestGroup.tests.map(_.scheduleId))
+          registerAndInviteForTestGroup(List(application), schedule).map { _ =>
+            audit("Phase2TestInvitationProcessComplete", application.userId)
+            AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
+              DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
+          }
+        case Some(phase2TestGroup) if !schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
+          throw ResetLimitExceededException()
+        case _ =>
+          throw CannotResetPhase2Tests()
+      }
     }
   }
 
@@ -431,6 +435,8 @@ object ResetPhase2Test {
   case class CannotResetPhase2Tests() extends NotFoundException
 
   case class ResetLimitExceededException() extends Exception
+
+  case class AdjustmentsConfirmedCannotResetPhase2Tests() extends Exception
 
   def determineStatusesToRemove(testGroup: Phase2TestGroup): List[ProgressStatus] = {
     (if (testGroup.hasNotStartedYet) List(PHASE2_TESTS_STARTED) else List()) ++

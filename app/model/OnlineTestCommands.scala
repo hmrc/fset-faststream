@@ -35,6 +35,7 @@ object OnlineTestCommands {
                                    needsAtVenueAdjustments: Boolean,
                                    preferredName: String,
                                    lastName: String,
+                                   adjustmentsConfirmed: Option[Boolean],
                                    eTrayAdjustments: Option[AdjustmentDetail],
                                    videoInterviewAdjustments: Option[AdjustmentDetail])
 

@@ -42,6 +42,7 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
     needsAtVenueAdjustments = false,
     preferredName = "Optimus",
     lastName = "Prime",
+    adjustmentsConfirmed = None,
     eTrayAdjustments = None,
     videoInterviewAdjustments = None
   )

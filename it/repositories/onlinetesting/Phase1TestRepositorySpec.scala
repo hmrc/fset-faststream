@@ -220,7 +220,8 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       onlineTestApplications.length mustBe 1
 
       inside(onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview,
-      needsOnlineAdjustments, needsAtVenueAdjustments, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments) =>
+      needsOnlineAdjustments, needsAtVenueAdjustments, preferredName, lastName, adjustmentsConfirmed, etrayAdjustments,
+      videoInterviewAdjustments) =>
 
         applicationId mustBe "appId"
         applicationStatus mustBe "SUBMITTED"
@@ -230,6 +231,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         needsAtVenueAdjustments mustBe false
         preferredName mustBe testCandidate("preferredName")
         lastName mustBe testCandidate("lastName")
+        adjustmentsConfirmed mustBe Some(false)
         etrayAdjustments mustBe None
         videoInterviewAdjustments mustBe None
       }
@@ -245,7 +247,8 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       onlineTestApplications.length mustBe 1
 
       inside(onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview,
-      needsOnlineAdjustments, needsAtVenueAdjustments, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments) =>
+      needsOnlineAdjustments, needsAtVenueAdjustments, preferredName, lastName, adjustmentsConfirmed, etrayAdjustments,
+      videoInterviewAdjustments) =>
 
         applicationId mustBe "appId"
         applicationStatus mustBe "submitted"
@@ -255,6 +258,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         needsAtVenueAdjustments mustBe false
         preferredName mustBe testCandidate("preferredName")
         lastName mustBe testCandidate("lastName")
+        adjustmentsConfirmed mustBe Some(false)
         etrayAdjustments mustBe None
         videoInterviewAdjustments mustBe None
       }

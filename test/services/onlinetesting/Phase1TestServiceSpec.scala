@@ -86,6 +86,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     preferredName,
     lastName,
     None,
+    None,
     None
   )
 
