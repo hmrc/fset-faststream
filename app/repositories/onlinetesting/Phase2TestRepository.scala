@@ -83,7 +83,6 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    // new
     val query =
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
