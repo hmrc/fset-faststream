@@ -42,7 +42,7 @@ import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
-import scheduler.fixer.{ FixRequiredType, PassToPhase2 }
+import scheduler.fixer.{ FixRequiredType, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.TimeZoneService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -616,6 +616,14 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
         selectRandom[Candidate](query, issue.batchSize)
       }
+      case ResetPhase1TestInvitedSubmitted => {
+        val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
+        ))
+
+        selectRandom[Candidate](query, issue.batchSize)
+      }
       case e => throw new UnsupportedOperationException(s"Operation not implemented for $e")
     }
   }
@@ -631,6 +639,18 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         ))
         val updateOp = collection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)))
         collection.findAndModify[BSONDocument](query, updateOp).map(_.result[Document].map(toCandidate(_)))
+      }
+      case ResetPhase1TestInvitedSubmitted => {
+        val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
+        ))
+        val updateOp = collection.updateModifier(BSONDocument("$unset" ->
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
+          s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
+          "testGroups" -> "")))
+        collection.findAndModify[BSONDocument](query, updateOp).map(_.result[Document].map(toCandidate(_)))
+
       }
       case e => throw new UnsupportedOperationException(s"Operation not implemented for $e")
     }

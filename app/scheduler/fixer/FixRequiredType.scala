@@ -27,8 +27,12 @@ sealed case class FixesRequired(fixes: Seq[FixRequiredType])
   */
 object PassToPhase2 extends FixRequiredType("Candidates who passed successfuly to phase 2 but with PHASE1_TEST Application Status", 1)
 
+
+
+object ResetPhase1TestInvitedSubmitted extends FixRequiredType("Candidates who are SUBMITTED but PHASE1_TEST INVITED", 1)
+
 /*
 If a further fix is needed, add it to the list. If not needed remove it from the list and possibly
 remove it's implementation.
  */
-object RequiredFixes extends FixesRequired(PassToPhase2 :: Nil)
+object RequiredFixes extends FixesRequired(PassToPhase2 :: ResetPhase1TestInvitedSubmitted :: Nil)

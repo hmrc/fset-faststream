@@ -24,7 +24,7 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import scheduler.fixer.{ FixRequiredType, PassToPhase2, RequiredFixes }
+import scheduler.fixer.{ FixRequiredType, PassToPhase2, RequiredFixes, ResetPhase1TestInvitedSubmitted }
 import services.application.ApplicationService
 import services.events.EventServiceFixture
 import testkit.ExtendedTimeout
@@ -41,16 +41,16 @@ class ApplicationServiceSpec extends PlaySpec with MockitoSugar with ScalaFuture
   "fix" should {
     "process all issues we have examples of" in new ApplicationServiceTest {
       when(appRepositoryMock.getApplicationsToFix(PassToPhase2)).thenReturn(getApplicationsToFixSuccess2)
-
+      when(appRepositoryMock.getApplicationsToFix(ResetPhase1TestInvitedSubmitted)).thenReturn(getApplicationsToFixSuccess1)
       when(appRepositoryMock.fix(candidate1, PassToPhase2)).thenReturn(Future.successful(Some(candidate1)))
       when(appRepositoryMock.fix(candidate2, PassToPhase2)).thenReturn(Future.successful(Some(candidate2)))
+      when(appRepositoryMock.fix(candidate3, ResetPhase1TestInvitedSubmitted)).thenReturn(Future.successful(Some(candidate3)))
 
-      val result = underTest.fix(PassToPhase2 :: Nil)(hc, rh).futureValue
-
+      val result = underTest.fix(PassToPhase2 :: ResetPhase1TestInvitedSubmitted :: Nil)(hc, rh).futureValue
       result mustBe ()
 
-      verify(appRepositoryMock, times(2)).fix(any[Candidate], any[FixRequiredType])
-      verify(underTest.auditEventHandlerMock, times(2)).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
+      verify(appRepositoryMock, times(3)).fix(any[Candidate], any[FixRequiredType])
+      verify(underTest.auditEventHandlerMock, times(3)).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
       verifyZeroInteractions(pdRepositoryMock, cdRepositoryMock, underTest.dataStoreEventHandlerMock, underTest.emailEventHandlerMock)
       verifyNoMoreInteractions(underTest.auditEventHandlerMock)
     }
@@ -59,10 +59,22 @@ class ApplicationServiceSpec extends PlaySpec with MockitoSugar with ScalaFuture
       when(appRepositoryMock.getApplicationsToFix(PassToPhase2)).thenReturn(getApplicationsToFixEmpty)
 
       val result = underTest.fix(PassToPhase2 :: Nil)(hc, rh).futureValue
-
       result mustBe ()
 
       verify(appRepositoryMock, times(0)).fix(any[Candidate], any[FixRequiredType])
+      verifyZeroInteractions(underTest.auditEventHandlerMock)
+    }
+
+    "proceeds with the others searches if one of them fails" in new ApplicationServiceTest {
+      when(appRepositoryMock.getApplicationsToFix(PassToPhase2)).thenReturn(getApplicationsToFixSuccess1)
+      when(appRepositoryMock.getApplicationsToFix(ResetPhase1TestInvitedSubmitted)).thenReturn(failure)
+      when(appRepositoryMock.fix(candidate3, PassToPhase2)).thenReturn(Future.successful(Some(candidate3)))
+
+      val result = underTest.fix(PassToPhase2 :: ResetPhase1TestInvitedSubmitted :: Nil)(hc, rh)
+      result.failed.futureValue mustBe generalException
+
+      verify(appRepositoryMock, times(1)).fix(candidate3, PassToPhase2)
+      verify(underTest.auditEventHandlerMock).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
       verifyZeroInteractions(underTest.auditEventHandlerMock)
     }
 
