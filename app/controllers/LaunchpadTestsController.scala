@@ -41,8 +41,15 @@ trait LaunchpadTestsController extends BaseController {
   val eventService: EventService
 
   def markAsStarted(inviteId: String) = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Launchpad Assessment with invite ID $inviteId started")
+    Logger.info(s"Launchpad Assessment with invite ID $inviteId marked as started")
     phase3TestService.markAsStarted(inviteId)
+      .map(_ => Ok)
+      .recover(recoverNotFound)
+  }
+
+  def markAsComplete(inviteId: String) = Action.async(parse.json) { implicit request =>
+    Logger.info(s"Launchpad Assessment with invite ID $inviteId marked as completed")
+    phase3TestService.markAsCompleted(inviteId)
       .map(_ => Ok)
       .recover(recoverNotFound)
   }

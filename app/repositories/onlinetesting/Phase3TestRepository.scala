@@ -26,7 +26,7 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE2_TESTS_PASSED, _ }
 import model.persisted.{ Phase2TestGroup, Phase2TestGroupWithAppId, Phase3TestGroupWithAppId }
 import model.persisted.phase3tests.Phase3TestGroup
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -52,6 +52,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit]
 
   def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime): Future[Unit]
+
+  def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -116,6 +118,21 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
     ))
     findAndUpdateLaunchpadTest(launchpadInviteId, update)
+  }
+
+  def updateTestCompletionTime(launchpadInviteId: String, completedTime: DateTime) = {
+    import repositories.BSONDateTimeHandler
+    val query = BSONDocument(s"testGroups.$phaseName.expirationDate" -> BSONDocument("$gt" -> DateTime.now(DateTimeZone.UTC)))
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
+    ))
+
+    val errorActionHandler: String => Unit = launchpadInviteId => {
+      Logger.warn(s"""Failed to update launchpad test: $launchpadInviteId - test has expired or does not exist""")
+      ()
+    }
+
+    findAndUpdateLaunchpadTest(launchpadInviteId, update, query, errorActionHandler)
   }
 
   private def findAndUpdateLaunchpadTest(launchpadInviteId: String, update: BSONDocument, query: BSONDocument = BSONDocument(),
