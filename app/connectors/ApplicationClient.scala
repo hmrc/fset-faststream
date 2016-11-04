@@ -183,6 +183,11 @@ trait ApplicationClient {
       case _: NotFoundException => throw new OnlineTestNotFound()
     }
   }
+
+  def startPhase3Test(launchpadInviteId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/launchpad/$launchpadInviteId/markAsStarted", "").map(_ => ())
+  }
+
   def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"${url.host}${url.base}/cubiks/$cubiksUserId/start", "").map(_ => ())
   }

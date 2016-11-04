@@ -34,10 +34,11 @@ abstract class LaunchpadTestController(applicationClient: ApplicationClient, cac
   def startPhase3Tests = CSRSecureAppAction(Phase3TestInvitedRole) { implicit request =>
     implicit cachedUserData =>
       applicationClient.getPhase3TestGroup(cachedUserData.application.applicationId).flatMap { testProfile =>
-        // If we've started but not completed a test we still want to send them to that
-        // test link to continue with it
         testProfile.tests.find(!_.completed).map { testToStart =>
-          // applicationClient.startTest(testToStart.cubiksUserId)
+          // Mark the test as started, if this is the first time they've clicked the button
+          if (testToStart.startedDateTime.isEmpty) {
+            applicationClient.startPhase3Test(testToStart.token)
+          }
           Future.successful(Redirect(testToStart.testUrl))
         }.getOrElse(Future.successful(NotFound))
       }
