@@ -18,22 +18,15 @@ package repositories.onlinetesting
 
 import java.util.UUID
 
-import model.Exceptions.CannotFindTestByCubiksId
+import model.EvaluationResults.Red
+import model.Exceptions.{ CannotFindTestByCubiksId, PassMarkEvaluationNotFound }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
-import model._
-import org.joda.time.{ DateTime, DateTimeZone }
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument }
-import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
-import services.GBTimeZoneService
-import config.MicroserviceAppConfig._
-import factories.DateTimeFactory
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, persisted }
 import model.exchange.CubiksTestResultReady
-import model.persisted.{ CubiksTest, ExpiringOnlineTest, Phase1TestProfile, Phase1TestGroupWithUserIds }
+import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, persisted, _ }
+import org.joda.time.{ DateTime, DateTimeZone }
+import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
@@ -64,6 +57,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       phase1Test.copy(usedForResults = true, resultsReadyToDownload = true))
     )
   )
+  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository()
 
   "Get online test" should {
     "return None if there is no test for the specific user id" in {
@@ -219,7 +213,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       onlineTestApplications.length mustBe 1
 
-      inside(onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview,
+      inside(onlineTestApplications.head) { case OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview,
       needsOnlineAdjustments, needsAtVenueAdjustments, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments) =>
 
         applicationId mustBe "appId"
@@ -244,7 +238,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       onlineTestApplications.length mustBe 1
 
-      inside(onlineTestApplications(0)) { case OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview,
+      inside(onlineTestApplications.head) { case OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview,
       needsOnlineAdjustments, needsAtVenueAdjustments, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments) =>
 
         applicationId mustBe "appId"
@@ -424,18 +418,36 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "reset progress statuses when phase1 tests are failed" in {
+
+      import Phase1EvaluationMongoRepositorySpec._
+
       createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
         additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
-          ProgressStatuses.PHASE1_TESTS_COMPLETED -> true)).futureValue
+          ProgressStatuses.PHASE1_TESTS_COMPLETED -> true,
+          ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
+
+      phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, testsWithResult)).futureValue
+
+      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Red.toString))
+      val evaluation = PassmarkEvaluation("version1", resultToSave)
+
+      phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ApplicationStatus.PHASE1_TESTS_FAILED)).futureValue
+
       phase1TestRepo.resetTestProfileProgresses("appId", List(
         ProgressStatuses.PHASE1_TESTS_INVITED,
-        ProgressStatuses.PHASE1_TESTS_COMPLETED)
+        ProgressStatuses.PHASE1_TESTS_COMPLETED,
+        ProgressStatuses.PHASE1_TESTS_FAILED)
       ).futureValue
 
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe false
       app.progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe false
+      app.progressResponse.phase1ProgressResponse.phase1TestsFailed mustBe false
       ApplicationStatus.withName(app.applicationStatus) mustBe ApplicationStatus.PHASE1_TESTS
+
+      phase1EvaluationRepo.getPassMarkEvaluation("appId").futureValue
+
+      an[PassMarkEvaluationNotFound] must be thrownBy phase1EvaluationRepo.getPassMarkEvaluation("appId").futureValue
     }
 
     "update cubiks test" should {
