@@ -117,6 +117,9 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       phase3TestServiceWithUnexpiredTestGroup.markAsStarted(testInviteId).futureValue
 
       verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED)
+
+      verifyDataStoreEvents(1, "VideoInterviewStarted")
+      verifyAuditEvents(1, "VideoInterviewStarted")
     }
   }
 
@@ -125,6 +128,9 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       phase3TestServiceWithUnexpiredTestGroup.markAsCompleted(testInviteId).futureValue
 
       verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)
+
+      verifyDataStoreEvents(1, "VideoInterviewCompleted")
+      verifyAuditEvents(1, "VideoInterviewCompleted")
     }
   }
 
