@@ -16,22 +16,23 @@
 
 package services.application
 
-import connectors.{ CSREmailClient, EmailClient }
+import common.FutureEx
+import model.Commands.Candidate
+import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
-import model.events.EventTypes.Events
+import model.events.EventTypes.EventType
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import contactdetails.ContactDetailsRepository
-import model.Exceptions.ApplicationNotFound
-import model.persisted.{ ContactDetails, PersonalDetails }
-import services.AuditService
+import scheduler.fixer.FixRequiredType
 import services.events.{ EventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository
@@ -70,5 +71,40 @@ trait ApplicationService extends EventSink {
         }
       case None => throw ApplicationNotFound(applicationId)
     }.map(_ => ())
+  }
+
+  def fix(toBeFixed: Seq[FixRequiredType])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    FutureEx.traverseSerial(toBeFixed)(fixData).map(_ => ())
+  }
+
+  private def fixData(fixType: FixRequiredType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      toFix <- appRepository.getApplicationsToFix(fixType)
+      fixed <- FutureEx.traverseToTry(toFix)(candidate => appRepository.fix(candidate, fixType))
+      events <- toEvents(fixed, fixType)
+    } yield events
+  }
+
+  private def toEvents(seq: Seq[Try[Option[Candidate]]], fixType: FixRequiredType): Future[List[EventType]] = {
+    Future {
+      seq.map {
+        case Success(app) => toFixedProdData(app, fixType)
+        case Failure(e) => toFailedFixedProdData(e, fixType)
+      }.toList
+    }
+  }
+
+  private def toFixedProdData(candidate: Option[Candidate], fixType: FixRequiredType): AuditEvents.FixedProdData = {
+    candidate.fold(AuditEvents.FixedProdData(Map("issue" -> fixType.fixName)))(app =>
+      AuditEvents.FixedProdData(Map("issue" -> fixType.fixName,
+        "applicationId" -> app.applicationId.getOrElse(""),
+        "email" -> app.email.getOrElse(""),
+        "applicationRoute" -> app.applicationRoute.getOrElse("").toString))
+    )
+  }
+
+  private def toFailedFixedProdData(e: Throwable, fixType: FixRequiredType): AuditEvents.FailedFixedProdData = {
+    AuditEvents.FailedFixedProdData(Map("issue" -> fixType.fixName,
+      "cause" -> e.getMessage))
   }
 }
