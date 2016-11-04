@@ -188,6 +188,10 @@ trait ApplicationClient {
     http.PUT(s"${url.host}${url.base}/launchpad/$launchpadInviteId/markAsStarted", "").map(_ => ())
   }
 
+  def completePhase3TestByToken(token: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/launchpad/$token/markAsComplete", "").map(_ => ())
+  }
+
   def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"${url.host}${url.base}/cubiks/$cubiksUserId/start", "").map(_ => ())
   }

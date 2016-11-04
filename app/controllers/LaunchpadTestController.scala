@@ -44,21 +44,19 @@ abstract class LaunchpadTestController(applicationClient: ApplicationClient, cac
       }
   }
 
+  def completePhase3TestsByToken(token: String) = CSRUserAwareAction { implicit request =>
+    implicit user =>
+      applicationClient.completePhase3TestByToken(token).map { _ =>
+        Ok(views.html.application.onlineTests.phase1TestsComplete())
+      }
+  }
+
   /*
    * TODO
   def completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByToken(token).map { _ =>
         Ok(views.html.application.onlineTests.sjqComplete_continuePhase1Tests())
-      }
-  }*/
-
-  /*
-   * TODO
-  def completePhase3TestsByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
-    implicit user =>
-      applicationClient.completeTestByToken(token).map { _ =>
-        Ok(views.html.application.onlineTests.phase1TestsComplete())
       }
   }*/
 
