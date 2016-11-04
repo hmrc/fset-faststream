@@ -25,10 +25,11 @@ import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.OnlineTestApplication
 import model._
 import model.command._
-import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport, NotificationFailedTest }
+import model.persisted.ApplicationForOnlineTestPassMarkReport
 import model.report._
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
+import scheduler.fixer.FixRequiredType
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -164,6 +165,10 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   override def nextAssessmentCentrePassedOrFailedApplication(): Future[Option[ApplicationForNotification]] = ???
 
   override def applicationsPassedInAssessmentCentre(frameworkId: String): Future[List[ApplicationPreferencesWithTestResults]] = ???
+
+  override def fix(application: Candidate, issue: FixRequiredType): Future[Option[Candidate]] = ???
+
+  override def getApplicationsToFix(issue: FixRequiredType): Future[List[Candidate]] = ???
 
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]] = ???
 
