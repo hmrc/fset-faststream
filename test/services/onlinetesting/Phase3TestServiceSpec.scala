@@ -119,10 +119,12 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
       guaranteedInterview = false,
-      needsAdjustments = false,
+      needsOnlineAdjustments = false,
+      needsAtVenueAdjustments = false,
       preferredName = testFirstName,
       lastName = testLastName,
-      timeAdjustments = None
+      None,
+      None
     )
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
 

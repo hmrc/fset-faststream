@@ -196,6 +196,10 @@ trait EmailClient extends WSHttp {
 
   def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier) =
     sendEmail(to, "fset_faststream_app_withdrawn", Map("name" -> name))
+
+  def sendAdjustmentsConfirmation(to: String, name: String, etrayAdjustments: String, videoAdjustments: String)(implicit hc: HeaderCarrier) =
+    sendEmail(to, "fset_faststream_adjustments_confirmation",
+      Map("name" -> name, "etrayAdjustments" -> etrayAdjustments, "videoAdjustments" -> videoAdjustments))
 }
 
 object EmailDateFormatter {

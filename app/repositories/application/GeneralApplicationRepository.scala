@@ -27,6 +27,7 @@ import model.Commands._
 import model.EvaluationResults._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.OnlineTestCommands.OnlineTestApplication
+import model.ProgressStatuses.PREVIEW
 import model.command._
 import model.persisted.{ ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport, NotificationFailedTest }
 import model.report.{ AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels }
@@ -397,9 +398,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def submit(applicationId: String): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
+    val guard = progressStatusGuardBSON(PREVIEW)
+    val query = BSONDocument("applicationId" -> applicationId) ++ guard
+
     val updateBSON = BSONDocument("$set" -> applicationStatusBSON(SUBMITTED))
-    collection.update(query, updateBSON, upsert = false) map { _ => }
+    collection.update(query, updateBSON, upsert = false)
+      .map(validateSingleWriteOrThrow(new IllegalStateException(s"Already submitted $applicationId")))
   }
 
   override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
@@ -884,7 +888,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
 
   /*private def getAdjustmentsConfirmed(assistance: Option[BSONDocument]): Option[String] = {
-    assistance.flatMap(_.getAs[Boolean]("adjustments-confirmed")).getOrElse(false) match {
+    assistance.flatMap(_.getAs[Boolean]("adjustmentsConfirmed")).getOrElse(false) match {
       case false => Some("Unconfirmed")
       case true => Some("Confirmed")
     }
@@ -903,19 +907,22 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
-    val verbalAdjustment = data.timeNeeded.map(i => BSONDocument("assistance-details.verbalTimeAdjustmentPercentage" -> i))
-      .getOrElse(BSONDocument.empty)
-    val numericalAdjustment = data.timeNeededNum.map(i => BSONDocument("assistance-details.numericalTimeAdjustmentPercentage" -> i))
-      .getOrElse(BSONDocument.empty)
-    val otherAdjustments = data.otherAdjustments.map(s => BSONDocument("assistance-details.otherAdjustments" -> s))
-      .getOrElse(BSONDocument.empty)
+
+    val resetExerciseAdjustmentsBSON = BSONDocument("$unset" -> BSONDocument(
+      "assistance-details.etray" -> "",
+      "assistance-details.video" -> ""
+    ))
 
     val adjustmentsConfirmationBSON = BSONDocument("$set" -> BSONDocument(
       "assistance-details.typeOfAdjustments" -> data.adjustments.getOrElse(List.empty[String]),
-      "assistance-details.adjustments-confirmed" -> true
-    ).add(verbalAdjustment).add(numericalAdjustment).add(otherAdjustments))
+      "assistance-details.adjustmentsConfirmed" -> true,
+      "assistance-details.etray" -> data.etray,
+      "assistance-details.video" -> data.video
+    ))
 
-    collection.update(query, adjustmentsConfirmationBSON, upsert = false) map { _ => }
+    collection.update(query, resetExerciseAdjustmentsBSON).flatMap{ result =>
+      collection.update(query, adjustmentsConfirmationBSON, upsert = false)
+    } map(_ => ())
   }
 
   def rejectAdjustment(applicationId: String): Future[Unit] = {

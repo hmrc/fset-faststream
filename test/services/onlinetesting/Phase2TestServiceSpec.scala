@@ -19,14 +19,18 @@ package services.onlinetesting
 import akka.actor.ActorSystem
 import config.Phase2ScheduleExamples._
 import config._
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration }
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.Commands.AdjustmentDetail
 import model.OnlineTestCommands
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
 import model.command.{ Phase2ProgressResponse, ProgressResponse }
+import model.events.AuditEvents.Phase2TestInvitationProcessComplete
 import model.events.DataStoreEvents
+import model.events.DataStoreEvents.OnlineExerciseResultSent
+import model.events.EventTypes.Events
 import model.exchange.CubiksTestResultReady
 import model.persisted.{ ContactDetails, Phase2TestGroup, Phase2TestGroupWithAppId, _ }
 import model.{ Address, ApplicationStatus, ProgressStatuses }
@@ -92,7 +96,12 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
+      verify(phase2TestService.auditEventHandlerMock, times(2)).handle(any[Phase2TestInvitationProcessComplete])(any[HeaderCarrier],
+        any[RequestHeader])
+      verify(phase2TestService.dataStoreEventHandlerMock, times(2)).handle(any[OnlineExerciseResultSent])(any[HeaderCarrier],
+        any[RequestHeader])
+      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("OnlineTestInvitationEmailSent"), any[Map[String, String]])
+      
       verify(otRepositoryMock, times(2)).insertCubiksTests(any[String], any[Phase2TestGroup])
       verify(otRepositoryMock, times(2)).markTestAsInactive(any[Int])
     }
@@ -416,6 +425,50 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     }
   }
 
+  "build time adjustments" should {
+    "return Nil when there is no need for adjustments and no gis" in new Phase2TestServiceFixture {
+      val onlineTestApplicationWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = false,
+        needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
+        eTrayAdjustments = None, videoInterviewAdjustments = None)
+      val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationWithNoAdjustments)
+      result mustBe List()
+    }
+
+    "return time adjustments when gis" in new Phase2TestServiceFixture {
+      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = true,
+        needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
+        eTrayAdjustments = Some(AdjustmentDetail(Some(25), None, None)), videoInterviewAdjustments = None)
+      val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationGisWithAdjustments)
+      result mustBe List(TimeAdjustments(5, 1, 100))
+    }
+
+    "return time adjustments when adjustments needed" in new Phase2TestServiceFixture {
+      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = false,
+        needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
+        eTrayAdjustments = Some(AdjustmentDetail(Some(50), None, None)), videoInterviewAdjustments = None)
+      val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationGisWithAdjustments)
+      result mustBe List(TimeAdjustments(5, 1, 120))
+    }
+  }
+
+  "calculate absolute time with adjustments" should {
+    "return 140 when adjustment is 75%" in new Phase2TestServiceFixture {
+      val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = true,
+        needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
+        eTrayAdjustments = Some(AdjustmentDetail(Some(75), None, None)), videoInterviewAdjustments = None)
+      val result = phase2TestService.calculateAbsoluteTimeWithAdjustments(onlineTestApplicationGisWithAdjustments)
+      result mustBe 140
+    }
+
+    "return 80 when no adjustments needed" in new Phase2TestServiceFixture {
+      val onlineTestApplicationGisWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", guaranteedInterview = true,
+        needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1", lastName = "LastName1",
+        eTrayAdjustments = None, videoInterviewAdjustments = None)
+      val result = phase2TestService.calculateAbsoluteTimeWithAdjustments(onlineTestApplicationGisWithNoAdjustments)
+      result mustBe 80
+    }
+  }
+
   private def phase2Progress(phase2ProgressResponse: Phase2ProgressResponse) =
     ProgressResponse("appId", phase2ProgressResponse = phase2ProgressResponse)
 
@@ -467,10 +520,12 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
       guaranteedInterview = false,
-      needsAdjustments = false,
+      needsOnlineAdjustments = false,
+      needsAtVenueAdjustments = false,
       preferredName = "Optimus",
       lastName = "Prime",
-      timeAdjustments = None
+      None,
+      None
     )
 
     val preferredNameSanitized = "Preferred Name"
@@ -486,8 +541,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     )
 
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
-    val adjustmentApplication = onlineTestApplication.copy(applicationId = "appId3", userId = "userId3", needsAdjustments = true)
-    val adjustmentApplication2 = onlineTestApplication.copy(applicationId = "appId4", userId = "userId4", needsAdjustments = true)
+    val adjustmentApplication = onlineTestApplication.copy(applicationId = "appId3", userId = "userId3", needsOnlineAdjustments = true)
+    val adjustmentApplication2 = onlineTestApplication.copy(applicationId = "appId4", userId = "userId4", needsOnlineAdjustments = true)
     val candidates = List(onlineTestApplication, onlineTestApplication2)
 
     val registeredMap = Map(

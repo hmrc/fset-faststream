@@ -27,7 +27,7 @@ import model.{ ApplicationStatus, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson._
+import reactivemongo.bson.{ BSONArray, BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -82,11 +82,35 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    val query = BSONDocument(
-      "applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED,
-      "assistance-details.needsSupportForOnlineAssessment" -> false,
-      s"progress-status.$PHASE1_TESTS_PASSED" -> true
-    )
+    val query =
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
+        BSONDocument(s"progress-status.$PHASE1_TESTS_PASSED" -> true),
+        BSONDocument("$or" -> BSONArray(
+          BSONDocument("$and" -> BSONArray(
+            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
+            BSONDocument("assistance-details.needsSupportAtVenue" -> false),
+            BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true)))),
+          BSONDocument("$and" -> BSONArray(
+            BSONDocument("$or" -> BSONArray(
+              BSONDocument("assistance-details.guaranteedInterview" -> true),
+              BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+              BSONDocument("assistance-details.needsSupportAtVenue" -> true)
+            )),
+            BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
+            BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated")))
+          ))
+          // Invigilated etray with adjustments confirmed
+          /*BSONDocument("$and" -> BSONArray(
+            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+            BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
+            BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
+          )),*/
+
+            // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver
+            // functionality even if invigilated test functionality is not ready. In that case we will remove some code
+          ))
+      )
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, 50)
@@ -140,15 +164,15 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
     ))
 
-    collection.update(query, update, upsert = false) map( _ => () )
+    collection.update(query, update, upsert = false) map (_ => ())
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
-      val progressStatusQuery = BSONDocument("$and" -> BSONArray(
-        BSONDocument(s"progress-status.$PHASE2_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
-        BSONDocument(s"progress-status.$PHASE2_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
-        BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
-      ))
+    val progressStatusQuery = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"progress-status.$PHASE2_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.$PHASE2_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
+    ))
 
     nextTestForReminder(reminder, progressStatusQuery)
   }
@@ -165,7 +189,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val updateQuery = BSONDocument("$unset" -> BSONDocument(progressesToRemoveQueryPartial))
 
-    collection.update(query, updateQuery, upsert = false) map ( _ => () )
+    collection.update(query, updateQuery, upsert = false) map (_ => ())
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {

@@ -80,13 +80,13 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
         phoneInterviewAdjustmentsDescriptionFinalValue
       )
     }
+    val assistanceDetails = getAssistanceDetails(generatorConfig)
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- adRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
-        getAssistanceDetails(generatorConfig))
+      _ <- adRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId, assistanceDetails)
     } yield {
-      candidateInPreviousStatus
+      candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails))
     }
   }
 }

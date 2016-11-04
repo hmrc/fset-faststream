@@ -50,9 +50,11 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         PHASE3_TESTS,
         candidateInPreviousStatus.userId,
         guaranteedInterview = false,
-        needsAdjustments = false,
+        needsOnlineAdjustments = false,
+        needsAtVenueAdjustments = false,
         candidateInPreviousStatus.preferredName,
         candidateInPreviousStatus.lastName,
+        None,
         None
       )
       _ <- p3TestService.registerAndInviteForTestGroup(phase3TestApplication)

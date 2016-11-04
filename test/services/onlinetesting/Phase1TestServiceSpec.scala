@@ -81,10 +81,12 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     applicationStatus = ApplicationStatus.SUBMITTED,
     userId = userId,
     guaranteedInterview = false,
-    needsAdjustments = false,
+    needsOnlineAdjustments = false,
+    needsAtVenueAdjustments = false,
     preferredName,
     lastName,
-    timeAdjustments = None
+    None,
+    None
   )
 
   val cubiksUserId = 98765

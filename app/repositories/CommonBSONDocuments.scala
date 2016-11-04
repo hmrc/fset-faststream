@@ -17,9 +17,10 @@
 package repositories
 
 import model.ApplicationStatus.ApplicationStatus
-import model.{ ApplicationStatus, ProgressStatuses }
 import model.ProgressStatuses.ProgressStatus
+import model.{ ApplicationStatus, ProgressStatuses }
 import org.joda.time.DateTime
+import reactivemongo.api.commands.UpdateWriteResult
 import reactivemongo.bson.BSONDocument
 
 trait CommonBSONDocuments {
@@ -57,5 +58,17 @@ trait CommonBSONDocuments {
       s"progress-status.${progressStatus.key}" -> true,
       s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
     )
+  }
+
+  def progressStatusGuardBSON(progressStatus: ProgressStatus) = {
+    BSONDocument(
+      "applicationStatus" -> progressStatus.applicationStatus,
+      s"progress-status.${progressStatus.key}" -> true
+    )
+  }
+
+  def validateSingleWriteOrThrow(failureException: => Exception)(writeResult: UpdateWriteResult) = writeResult.n match {
+    case 1 => ()
+    case _ => throw failureException
   }
 }

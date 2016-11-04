@@ -69,13 +69,13 @@ trait CubiksGatewayClient {
   }
 
   def inviteApplicants(invitations: List[InviteApplicant]): Future[List[Invitation]] =
-  http.POST(s"$url/csr-cubiks-gateway/faststream/batchInvite", invitations).map { response =>
-    if (response.status == OK) {
-      response.json.as[List[Invitation]]
-    } else {
-      throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
+    http.POST(s"$url/csr-cubiks-gateway/faststream/batchInvite", invitations).map { response =>
+      if (response.status == OK) {
+        response.json.as[List[Invitation]]
+      } else {
+        throw new ConnectorException(s"There was a general problem connecting to Cubiks Gateway. HTTP response was $response")
+      }
     }
-  }
 
   def getReport(application: OnlineTestApplicationForReportRetrieving): Future[OnlineTestReportAvailability] = {
     http.POST(s"$url/csr-cubiks-gateway/report", application).map { response =>

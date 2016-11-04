@@ -149,7 +149,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
     Future.successful(Some(NotificationFailedTest("31009ccc-1ac3-4d55-9c53-1908a13dc5e1", "fbb466a3-13a3-4dd0-93d6-9dfa764a5555", "George")))
   }
 
-  override def gisByApplication(userId: String): Future[Boolean] = ???
+  override def gisByApplication(applicationId: String): Future[Boolean] = ???
 
   override def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]] = ???
 
