@@ -491,7 +491,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       "progress-status-dates" -> BSONDocument(
         "submitted" -> LocalDate.now()
       )
-    ).++(BSONDocument())).futureValue
+    ).++(additionalDoc)).futureValue
   }
   // scalastyle:on
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
