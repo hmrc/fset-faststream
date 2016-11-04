@@ -32,7 +32,7 @@ object AdjustmentsManagementController extends AdjustmentsManagementController {
 trait AdjustmentsManagementController extends BaseController {
   val adjustmentsManagementService : AdjustmentsManagementService
 
-  def confirmAdjustment(applicationId: String) = Action.async(parse.json) { implicit request =>
+  def confirmAdjustments(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[Adjustments] { data =>
       adjustmentsManagementService.confirmAdjustment(applicationId, data).map { _ =>
         Ok
