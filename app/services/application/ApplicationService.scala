@@ -132,8 +132,8 @@ trait ApplicationService extends EventSink {
   }
 
   private def toFixedProdData(candidate: Option[Candidate], fixType: FixRequiredType): AuditEvents.FixedProdData = {
-    candidate.fold(AuditEvents.FixedProdData(Map("issue" -> fixType.fixName)))(app =>
-      AuditEvents.FixedProdData(Map("issue" -> fixType.fixName,
+    candidate.fold(AuditEvents.FixedProdData(Map("issue" -> fixType.fix.fixType)))(app =>
+      AuditEvents.FixedProdData(Map("issue" -> fixType.fix.fixType,
         "applicationId" -> app.applicationId.getOrElse(""),
         "email" -> app.email.getOrElse(""),
         "applicationRoute" -> app.applicationRoute.getOrElse("").toString))
@@ -141,7 +141,7 @@ trait ApplicationService extends EventSink {
   }
 
   private def toFailedFixedProdData(e: Throwable, fixType: FixRequiredType): AuditEvents.FailedFixedProdData = {
-    AuditEvents.FailedFixedProdData(Map("issue" -> fixType.fixName,
+    AuditEvents.FailedFixedProdData(Map("issue" -> fixType.fix.fixType,
       "cause" -> e.getMessage))
   }
 }

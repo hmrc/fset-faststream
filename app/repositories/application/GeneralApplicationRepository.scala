@@ -608,7 +608,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   // scalastyle:off method.length
 
   override def getApplicationsToFix(issue: FixRequiredType): Future[List[Candidate]] = {
-    issue match {
+    issue.fix match {
       case PassToPhase2 => {
         val query = BSONDocument("$and" -> BSONArray(
             BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
@@ -631,7 +631,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   override def fix(application: Candidate, issue: FixRequiredType): Future[Option[Candidate]] = {
-    issue match {
+    issue.fix match {
       case PassToPhase2 => {
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),

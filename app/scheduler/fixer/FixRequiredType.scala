@@ -16,23 +16,20 @@
 
 package scheduler.fixer
 
-
-sealed case class FixRequiredType(fixName: String, batchSize: Int)
 sealed case class FixesRequired(fixes: Seq[FixRequiredType])
-
+sealed trait Fix { def fixType: String}
 /**
   * This fix will take care of all those candidates who's progress status is PHASE2_TESTS_INVITED but the application
   * status is still PHASE1_TESTS (instead of PHASE2_TESTS). Basically the passed the phase 1 test, they've been invited
   * to phase 2 but they can't proceed as there is no button for phase 2 test on the dashboard.
   */
-object PassToPhase2 extends FixRequiredType("Candidates who passed successfuly to phase 2 but with PHASE1_TEST Application Status", 1)
+object PassToPhase2 extends Fix { val fixType = "PassToPhase2" }
+object ResetPhase1TestInvitedSubmitted extends Fix { val fixType = "ResetPhase1TestInvitedSubmitted" }
 
-
-
-object ResetPhase1TestInvitedSubmitted extends FixRequiredType("Candidates who are SUBMITTED but PHASE1_TEST INVITED", 1)
+final case class FixRequiredType(fix: Fix, batchSize: Int)
 
 /*
 If a further fix is needed, add it to the list. If not needed remove it from the list and possibly
 remove it's implementation.
  */
-object RequiredFixes extends FixesRequired(PassToPhase2 :: ResetPhase1TestInvitedSubmitted :: Nil)
+object RequiredFixes extends FixesRequired(FixRequiredType(PassToPhase2, 1) :: FixRequiredType(ResetPhase1TestInvitedSubmitted, 1) :: Nil)
