@@ -110,12 +110,9 @@ trait ApplicationService extends EventSink {
     }.map(_ => ())
   }
 
-
   def fix(toBeFixed: Seq[FixRequiredType])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    Future { toBeFixed.foreach(fixData(_)) }
+    FutureEx.traverseSerial(toBeFixed)(fixData).map(_ => ())
   }
-    //Future.sequence(toBeFixed.map(fixData(_)))
-  //toBeFixed.
 
   private def fixData(fixType: FixRequiredType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
