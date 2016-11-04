@@ -22,7 +22,7 @@ PUT         /application/submit/:userId/:applicationId                   control
 PUT         /application/withdraw/:applicationId                         controllers.ApplicationController.withdrawApplication(applicationId: String)
 
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
-GET         /adjustment/:applicationId                                   controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
+GET         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
 
 PUT         /media/create                                                controllers.MediaController.addMedia()
 
