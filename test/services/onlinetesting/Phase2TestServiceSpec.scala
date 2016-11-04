@@ -223,7 +223,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       phase2TestService.resetTests(onlineTestApplication, "createdBy").futureValue
 
       verify(otRepositoryMock).resetTestProfileProgresses("appId",
-        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY))
+        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
+          PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED))
       verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
       verify(otRepositoryMock).insertCubiksTests(any[String], any[Phase2TestGroup])
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
