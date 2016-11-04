@@ -27,8 +27,7 @@ case class AssistanceDetailsExchange(hasDisability: String,
                                      needsSupportAtVenue: Option[Boolean],
                                      needsSupportAtVenueDescription: Option[String],
                                      needsSupportForPhoneInterview: Option[Boolean],
-                                     needsSupportForPhoneInterviewDescription: Option[String],
-                                     adjustmentsConfirmed: Option[Boolean] = None)
+                                     needsSupportForPhoneInterviewDescription: Option[String])
 
 object AssistanceDetailsExchange {
   implicit val assistanceDetailsExchangeFormat = Json.format[AssistanceDetailsExchange]

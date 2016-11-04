@@ -28,8 +28,7 @@ case class AssistanceDetails(
   needsSupportAtVenue: Option[Boolean],
   needsSupportAtVenueDescription: Option[String],
   needsSupportForPhoneInterview: Option[Boolean],
-  needsSupportForPhoneInterviewDescription: Option[String],
-  adjustmentsConfirmed: Option[Boolean] = None
+  needsSupportForPhoneInterviewDescription: Option[String]
 )
 
 object AssistanceDetails {
