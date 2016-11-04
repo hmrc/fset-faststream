@@ -29,6 +29,8 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
+import scala.concurrent.Await
+
 class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
 
   override val collectionName = "application"
@@ -445,9 +447,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       app.progressResponse.phase1ProgressResponse.phase1TestsFailed mustBe false
       ApplicationStatus.withName(app.applicationStatus) mustBe ApplicationStatus.PHASE1_TESTS
 
-      phase1EvaluationRepo.getPassMarkEvaluation("appId").futureValue
-
-      an[PassMarkEvaluationNotFound] must be thrownBy phase1EvaluationRepo.getPassMarkEvaluation("appId").futureValue
+      an[PassMarkEvaluationNotFound] must be thrownBy Await.result(phase1EvaluationRepo.getPassMarkEvaluation("appId"), timeout)
     }
 
     "update cubiks test" should {
