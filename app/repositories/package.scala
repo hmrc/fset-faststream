@@ -157,12 +157,6 @@ package object repositories {
     Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None, Some(applicationRoute))
   }
 
-  /** Implicit transformation for the Candidate **/
-  implicit object BSONCandidateHandler extends BSONHandler[BSONDocument, Candidate] {
-    def read(doc: BSONDocument): Candidate = toCandidate(doc)
-    def write(psDoc: Candidate) = BSONDocument() // this should not be used ever
-  }
-
   implicit object BSONMapHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
     override def write(map: Map[String, Int]): BSONDocument = {
       val elements = map.toStream.map { tuple =>
