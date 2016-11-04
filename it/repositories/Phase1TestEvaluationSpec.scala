@@ -59,7 +59,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   def phase1TestEvaluationService = new EvaluatePhase1ResultService {
     val phase1EvaluationRepository = phase1EvaluationRepo
     val gatewayConfig = mockGatewayConfig
-    val phase1PMSRepository = phase1PassMarkSettingRepo
+    val passMarkSettingsRepo = phase1PassMarkSettingRepo
     val phase1TestsConfigMock = mock[Phase1TestsConfig]
 
     when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)

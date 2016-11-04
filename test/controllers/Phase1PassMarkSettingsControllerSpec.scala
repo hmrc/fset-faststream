@@ -39,7 +39,7 @@ import scala.language.postfixOps
 class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with MockitoSugar {
   "Try and get latest settings" should {
     "Return a settings objects with schemes but no thresholds if there are no settings saved" in new TestFixture {
-      val passMarkSettingsServiceMockWithNoSettings = mock[PassMarkSettingsService]
+      val passMarkSettingsServiceMockWithNoSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
       when(passMarkSettingsServiceMockWithNoSettings.getLatestPhase1PassMarkSettings).thenReturn(Future.successful(None))
 
@@ -52,7 +52,7 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
 
     "Return a complete settings object if there are saved settings" in new TestFixture {
 
-      val passMarkSettingsServiceMockWithSettings = mock[PassMarkSettingsService]
+      val passMarkSettingsServiceMockWithSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
       when(passMarkSettingsServiceMockWithSettings.getLatestPhase1PassMarkSettings).thenReturn(Future.successful(
         Some(
@@ -74,9 +74,9 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
 
     "Send a complete settings object to the repository with a version UUID appended" in new TestFixture {
 
-      val passMarkSettingsServiceWithExpectations = mock[PassMarkSettingsService]
+      val passMarkSettingsServiceWithExpectations = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceWithExpectations.createPhase1PassMarkSettings(any())).thenReturn(Future.successful(
+      when(passMarkSettingsServiceWithExpectations.createPhase1PassMarkSettings(any())(any())).thenReturn(Future.successful(
         PassMarkSettingsCreateResponse(
           "uuid-1",
           new DateTime()
@@ -91,7 +91,7 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
 
       val passMarkSettingCaptor = ArgumentCaptor.forClass(classOf[Phase1PassMarkSettings])
 
-      verify(passMarkSettingsServiceWithExpectations).createPhase1PassMarkSettings(passMarkSettingCaptor.capture)
+      verify(passMarkSettingsServiceWithExpectations).createPhase1PassMarkSettings(passMarkSettingCaptor.capture)(any())
 
       val settingsParam = passMarkSettingCaptor.getValue
 
@@ -127,7 +127,7 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
 
     when(mockUUIDFactory.generateUUID()).thenReturn("uuid-1")
 
-    def buildPMS(mockService: PassMarkSettingsService) = new Phase1PassMarkSettingsController {
+    def buildPMS(mockService: PassMarkSettingsService[Phase1PassMarkSettings]) = new Phase1PassMarkSettingsController {
       val passMarkService = mockService
       val auditService = mockAuditService
       val uuidFactory = mockUUIDFactory
