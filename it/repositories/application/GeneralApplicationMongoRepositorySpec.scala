@@ -98,25 +98,22 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val result = repository.diversityReport("FastStream-2016").futureValue
 
-      result must have size (3)
-      result must contain
-      ApplicationForDiversityReport("zzz", userId1, None,
-        List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-        Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-        Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
-      result must contain
-      ApplicationForDiversityReport(
-        appId2, userId2, None,
-        List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-        Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-        Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))) //,
-      result must contain
-      ApplicationForDiversityReport(
-      appId3, userId3, None,
+      result must contain theSameElementsAs Seq(
+        ApplicationForDiversityReport(appId1, userId1, Some("submitted"),
+          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+          Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
+            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
+        ApplicationForDiversityReport(
+            appId2, userId2, Some("submitted"),
             List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-                     Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-                        Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
-
+            Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
+              Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
+        ApplicationForDiversityReport(
+            appId3, userId3, Some("submitted"),
+            List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+            Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
+              Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
+        )
     }
 
     "Find user by id" in {
