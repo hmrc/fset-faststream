@@ -17,27 +17,25 @@
 package repositories.application
 
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
-import model._
 import model.ApplicationStatus._
+import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
 import model.SchemeType.SchemeType
-import model.{ ApplicationStatus, _ }
 import model.report.CandidateProgressReportItem
+import model.{ ApplicationStatus, _ }
 import org.joda.time.LocalDate
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
-import model.ApplicationRoute.{ apply => _, _ }
+import model.ApplicationRoute.{ apply => _ }
 import model.Commands.Candidate
-import testkit.MongoRepositorySpec
 import model.command.ProgressResponse
 import model.persisted.{ ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport, Phase1TestProfile }
 import repositories.CommonBSONDocuments
 import repositories.onlinetesting.Phase1TestMongoRepository
-import scheduler.fixer.{ FixRequiredType, PassToPhase2, ResetPhase1TestInvitedSubmitted }
-
-import scala.concurrent.Future
+import scheduler.fixer.FixBatch
+import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
+import testkit.MongoRepositorySpec
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
 
@@ -102,22 +100,23 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       result must have size (3)
       result must contain
-      ApplicationForDiversityReport(appId1, userId1, Some("registered"),
+      ApplicationForDiversityReport("zzz", userId1, None,
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
         Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-          Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
+        Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
       result must contain
       ApplicationForDiversityReport(
-          appId2, userId2, Some("registered"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-          Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))) //,
+        appId2, userId2, None,
+        List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+        Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
+        Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))) //,
       result must contain
       ApplicationForDiversityReport(
-          appId3, userId3, Some("registered"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-          Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
+      appId3, userId3, None,
+            List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
+                     Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
+                        Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
+
     }
 
     "Find user by id" in {
@@ -279,7 +278,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses.toList)
 
-      val matchResponse = repository.getApplicationsToFix(FixRequiredType(PassToPhase2, 1)).futureValue
+      val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.size mustBe 1
     }
 
@@ -290,7 +289,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses.toList)
 
-      val matchResponse = repository.getApplicationsToFix(FixRequiredType(PassToPhase2, 1)).futureValue
+      val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.size mustBe 0
     }
 
@@ -303,7 +302,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
         additionalProgressStatuses = statuses.toList)
 
-      val matchResponse = repository.getApplicationsToFix(FixRequiredType(PassToPhase2, 1)).futureValue
+      val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.size mustBe 0
     }
 
@@ -314,7 +313,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses.toList)
-      val matchResponse = repository.getApplicationsToFix(FixRequiredType(PassToPhase2, 1)).futureValue
+      val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.size mustBe 0
     }
   }
@@ -325,9 +324,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.SUBMITTED,
-        additionalProgressStatuses = statuses.toList)
+        additionalProgressStatuses = statuses)
 
-      val matchResponse = repository.getApplicationsToFix(FixRequiredType(ResetPhase1TestInvitedSubmitted, 1)).futureValue
+      val matchResponse = repository.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
       matchResponse.size mustBe 1
 
     }
@@ -337,9 +336,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses.toList)
+        additionalProgressStatuses = statuses)
 
-      val matchResponse = repository.getApplicationsToFix(FixRequiredType(ResetPhase1TestInvitedSubmitted, 1)).futureValue
+      val matchResponse = repository.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
       matchResponse.size mustBe 0
 
     }
@@ -347,17 +346,15 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "fix a PassToPhase2 issue" should {
     "update the application status from PHASE1_TESTS to PHASE2_TESTS" in {
-
-      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.SUBMITTED, true) ::
-        (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: (ProgressStatuses.PHASE1_TESTS_STARTED, true) ::
-        (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) ::
-        (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) :: (ProgressStatuses.PHASE1_TESTS_PASSED, true) ::
-        (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
+      import ProgressStatuses._
+      val statuses = List(SUBMITTED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED,
+        PHASE1_TESTS_RESULTS_READY, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_PASSED, PHASE2_TESTS_INVITED)
+        .map(_ -> true)
 
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses.toList)
+        additionalProgressStatuses = statuses)
 
-      val matchResponse = repository.fix(candidate, FixRequiredType(PassToPhase2, 1)).futureValue
+      val matchResponse = repository.fix(candidate, FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.isDefined mustBe true
 
       val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
@@ -368,15 +365,15 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "NO update performed if, in the meanwhile, the pre-conditions of the update have changed" in {
       // no "PHASE2_TESTS_INVITED" -> true (which is a pre-condition)
-      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.SUBMITTED, true) ::
-        (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: (ProgressStatuses.PHASE1_TESTS_STARTED, true) ::
-        (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) ::
-        (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) :: (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
+      import ProgressStatuses._
+      val statuses = List(SUBMITTED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED,
+        PHASE1_TESTS_RESULTS_READY, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_PASSED)
+        .map(_ -> true)
 
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses.toList)
+        additionalProgressStatuses = statuses)
 
-      val matchResponse = repository.fix(candidate, FixRequiredType(PassToPhase2, 1)).futureValue
+      val matchResponse = repository.fix(candidate, FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.isDefined mustBe false
 
       val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
@@ -393,9 +390,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val statuses = (ProgressStatuses.SUBMITTED, true) :: (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
       createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.SUBMITTED,
-        additionalProgressStatuses = statuses.toList, additionalDoc = phase1TestGroup)
+        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup)
 
-      val matchResponse = repository.fix(candidate, FixRequiredType(ResetPhase1TestInvitedSubmitted, 1)).futureValue
+      val matchResponse = repository.fix(candidate, FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
       matchResponse.isDefined mustBe true
 
       val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
@@ -491,9 +488,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       "progress-status-dates" -> BSONDocument(
         "submitted" -> LocalDate.now()
       )
-    ).++(additionalDoc)).futureValue
+    ) ++ additionalDoc).futureValue
   }
-  // scalastyle:on
+  // scalastyle:on parameter.number
+
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(
       "personal-details" -> true,
@@ -511,7 +509,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       "submitted" -> true
     )
 
-    args.foldLeft(baseDoc)((acc, v) => acc.++(v._1.toString -> v._2))
+    args.foldLeft(baseDoc)((acc, v) => acc ++ (v._1.toString -> v._2))
   }
 
   def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {

@@ -31,7 +31,7 @@ import model.persisted.ApplicationForOnlineTestPassMarkReport
 import model.report._
 import org.joda.time.{ DateTime, LocalDate }
 import repositories.application.GeneralApplicationRepository
-import scheduler.fixer.FixRequiredType
+import scheduler.fixer.FixBatch
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -167,9 +167,9 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def applicationsPassedInAssessmentCentre(frameworkId: String): Future[List[ApplicationPreferencesWithTestResults]] = ???
 
-  override def fix(application: Candidate, issue: FixRequiredType): Future[Option[Candidate]] = ???
+  override def fix(application: Candidate, issue: FixBatch): Future[Option[Candidate]] = ???
 
-  override def getApplicationsToFix(issue: FixRequiredType): Future[List[Candidate]] = ???
+  override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = ???
 
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]] = ???
 

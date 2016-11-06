@@ -38,7 +38,8 @@ trait FixerJob extends SingleInstanceScheduledJob with FixerJobConfig {
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
   implicit val rh = EmptyRequestHeader
   implicit val hc = new HeaderCarrier()
-  val typesBeFixed: Seq[FixRequiredType] = RequiredFixes.fixes.map(_.copy(batchSize = jobBatchSize))
+  val typesBeFixed = RequiredFixes.allFixes.map(f => FixBatch(f, jobBatchSize))
+
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     service.fix(typesBeFixed)
   }
