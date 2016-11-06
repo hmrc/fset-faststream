@@ -44,6 +44,7 @@ trait MicroService {
     .enablePlugins(Seq(play.PlayScala) ++ plugins : _*)
     .settings(playSettings : _*)
     .settings(scalaSettings: _*)
+    .settings(publishingSettings)
     .settings(defaultSettings(): _*)
     .settings(
       targetJvm := "jvm-1.8",
@@ -53,10 +54,7 @@ trait MicroService {
       fork in Test := false,
       retrieveManaged := true,
       scalacOptions += "-feature")
-    // Suppress the compilation of documentation to reduce the size of the distributables
-    // For reasons as yet unknown, suppressing the documentation compilation totally causes the distTgz method to fail
-    // so include a single file to let it succeed
-    .settings(sources in (Compile, doc) := Seq(file("app/common/FutureEx.scala")))
+    .settings(sources in (Compile, doc) := Seq.empty
     .settings(HeaderPlugin.settingsFor(IntegrationTest))
     .configs(IntegrationTest)
     .settings(inConfig(IntegrationTest)((Defaults.testSettings ++ AutomateHeaderPlugin.automateFor(IntegrationTest))) : _*)
