@@ -41,7 +41,8 @@ import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
-import scheduler.fixer.{ FixRequiredType, PassToPhase2, ResetPhase1TestInvitedSubmitted }
+import scheduler.fixer.FixBatch
+import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.TimeZoneService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -134,9 +135,9 @@ trait GeneralApplicationRepository {
   def findFailedTestForNotification(appStatus: ApplicationStatus,
                                     progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]]
 
-  def getApplicationsToFix(issue: FixRequiredType): Future[List[Candidate]]
+  def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
 
-  def fix(candidate: Candidate, issue: FixRequiredType): Future[Option[Candidate]]
+  def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
 }
 
 // scalastyle:off number.of.methods
@@ -607,8 +608,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   // scalastyle:off method.length
 
-  override def getApplicationsToFix(issue: FixRequiredType): Future[List[Candidate]] = {
-    issue match {
+  override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = {
+    issue.fix match {
       case PassToPhase2 => {
         val query = BSONDocument("$and" -> BSONArray(
             BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
@@ -626,12 +627,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
         selectRandom[Candidate](query, issue.batchSize)
       }
-      case e => throw new UnsupportedOperationException(s"Operation not implemented for $e")
     }
   }
 
-  override def fix(application: Candidate, issue: FixRequiredType): Future[Option[Candidate]] = {
-    issue match {
+  override def fix(application: Candidate, issue: FixBatch): Future[Option[Candidate]] = {
+    issue.fix match {
       case PassToPhase2 => {
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),
@@ -639,22 +639,21 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
         ))
-        val updateOp = collection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)))
-        collection.findAndModify[BSONDocument](query, updateOp).map(_.result[Document].map(toCandidate(_)))
+        val updateOp = bsonCollection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)))
+        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
       }
       case ResetPhase1TestInvitedSubmitted => {
         val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationId" -> application.applicationId),
           BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
         ))
-        val updateOp = collection.updateModifier(BSONDocument("$unset" ->
+        val updateOp = bsonCollection.updateModifier(BSONDocument("$unset" ->
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
           s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
           "testGroups" -> "")))
-        collection.findAndModify[BSONDocument](query, updateOp).map(_.result[Document].map(toCandidate(_)))
-
+        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
       }
-      case e => throw new UnsupportedOperationException(s"Operation not implemented for $e")
     }
   }
 
