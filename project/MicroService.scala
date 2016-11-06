@@ -44,6 +44,7 @@ trait MicroService {
     .enablePlugins(Seq(play.PlayScala) ++ plugins : _*)
     .settings(playSettings : _*)
     .settings(scalaSettings: _*)
+    .settings(defaultSettings(): _*)
     .settings(
       targetJvm := "jvm-1.8",
       scalaVersion := "2.11.8",
