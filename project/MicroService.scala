@@ -54,7 +54,7 @@ trait MicroService {
       fork in Test := false,
       retrieveManaged := true,
       scalacOptions += "-feature")
-    .settings(sources in (Compile, doc) := Seq.empty
+    .settings(sources in (Compile, doc) := Seq.empty)
     .settings(HeaderPlugin.settingsFor(IntegrationTest))
     .configs(IntegrationTest)
     .settings(inConfig(IntegrationTest)((Defaults.testSettings ++ AutomateHeaderPlugin.automateFor(IntegrationTest))) : _*)
