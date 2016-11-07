@@ -36,9 +36,7 @@ object ApplicationStatus extends Enumeration with ApplicationStatusOnlyForTest {
   ASSESSMENT_CENTRE_PASSED_NOTIFIED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED = Value
   // end of legacy statuses
 
-  implicit def toString(applicationStatus: ApplicationStatus): String = {
-    applicationStatus.toString
-  }
+  implicit def toString(applicationStatus: ApplicationStatus): String = applicationStatus.toString
 
   implicit val applicationStatusFormat = new Format[ApplicationStatus] {
     def reads(json: JsValue) = JsSuccess(ApplicationStatus.withName(json.as[String].toUpperCase()))
