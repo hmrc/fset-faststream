@@ -23,7 +23,13 @@ import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class Phase3TestGroup(expirationDate: DateTime,
                            tests: List[LaunchpadTest],
-                           evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[LaunchpadTest]
+                           evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[LaunchpadTest] {
+  def activeTest = {
+    val activeTests = tests.filter(_.usedForResults)
+    require(activeTests.size == 1, "There is more than one active launchpad test. First token: " + activeTests.head.token)
+    activeTests.head
+  }
+}
 
 object Phase3TestGroup {
   implicit val phase3TestGroupFormat = Json.format[Phase3TestGroup]

@@ -50,13 +50,6 @@ import scala.concurrent.Future
 
 class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
 
-  "Register and invite for multiple applicants (batch invite)" should {
-    "throw a not implemented error" in new Phase3TestServiceFixture {
-      val ex = phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(List()).failed.futureValue
-      ex.getCause mustBe a[NotImplementedError]
-    }
-  }
-
   "Register and Invite an applicant" should {
     "send audit events" in new Phase3TestServiceFixture {
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue

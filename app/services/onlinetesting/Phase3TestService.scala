@@ -154,7 +154,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       isAlreadyExpired = progress.phase3ProgressResponse.phase3TestsExpired
       extendDays = extendTime(isAlreadyExpired, phase3.expirationDate)
       newExpiryDate = extendDays(extraDays)
-      activeTest = phase3.activeTests.head
+      activeTest = phase3.activeTest
       launchpadExtendRequest = ExtendDeadlineRequest(activeTest.interviewId, activeTest.candidateId, newExpiryDate.toLocalDate)
       _ <- launchpadGatewayClient.extendDeadline(launchpadExtendRequest)
       _ <- phase3TestRepo.updateGroupExpiryTime(applicationId, newExpiryDate, phase3TestRepo.phaseName)
