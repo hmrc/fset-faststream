@@ -17,7 +17,7 @@
 package config
 
 import org.scalatest.mock.MockitoSugar
-import play.api.mvc.{ Request, RequestHeader }
+import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier

@@ -17,7 +17,6 @@
 package model.exchange.passmarksettings
 
 import org.joda.time.DateTime
-import org.scalatest.FunSuite
 
 object Phase1PassMarkSettingsExamples {
   def passmark(implicit now: DateTime) = Phase1PassMarkSettings(List(), "version", now, "userId")

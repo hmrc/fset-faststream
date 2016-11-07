@@ -155,6 +155,5 @@ class CubiksGatewayClientSpec extends PlaySpec with MockitoSugar with ScalaFutur
         mockWSHttp.POST(anyString(), any[T], anyObject())(any[Writes[T]], any[HttpReads[HttpResponse]], any[HeaderCarrier])
       )
     }
-
   }
 }

@@ -23,8 +23,8 @@ import model.ApplicationStatus
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.{ PHASE2_TESTS_PASSED, _ }
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.ProgressStatuses._
+import model.persisted.phase3tests.Phase3TestGroup
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }

@@ -124,5 +124,4 @@ object AssessmentCentreYamlRepository extends AssessmentCentreRepositoryImpl {
 
   override val assessmentCentresConfigPath = assessmentCentresConfig.yamlFilePath
   override val assessmentCentresLocationsPath = assessmentCentresLocationsConfig.yamlFilePath
-
 }

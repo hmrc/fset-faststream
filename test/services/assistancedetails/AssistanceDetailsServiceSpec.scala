@@ -34,7 +34,7 @@ class AssistanceDetailsServiceSpec extends BaseServiceSpec {
 
       val response = service.update(AppId, UserId, AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments).futureValue
 
-      response mustBe (())
+      response mustBe ()
     }
   }
 

@@ -21,15 +21,14 @@ import model.Address
 import model.Commands.{ Candidate, SearchCandidate }
 import model.PersistedObjects.ContactDetailsWithId
 import org.joda.time.LocalDate
+import org.mockito.Matchers._
+import org.mockito.Mockito._
 import repositories.ContactDetailsRepository
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
 import services.BaseServiceSpec
-import org.mockito.Mockito._
-import org.mockito.Matchers._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class SearchForApplicantServiceSpec extends BaseServiceSpec {
 
@@ -83,6 +82,5 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec {
 
       actual mustBe List(expected)
     }
-
   }
 }

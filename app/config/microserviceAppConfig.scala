@@ -151,4 +151,6 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
     configuration.underlying
       .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")
 
+  lazy val fixerJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.fixer-job")
 }

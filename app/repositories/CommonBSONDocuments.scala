@@ -17,11 +17,11 @@
 package repositories
 
 import model.ApplicationStatus.ApplicationStatus
-import model.{ ApplicationStatus, ProgressStatuses }
 import model.ProgressStatuses.ProgressStatus
+import model.{ ApplicationStatus, ProgressStatuses }
 import org.joda.time.DateTime
+import reactivemongo.api.commands.UpdateWriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-
 
 trait CommonBSONDocuments {
 
@@ -89,5 +89,17 @@ trait CommonBSONDocuments {
 
     // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver
     // functionality even if invigilated test functionality is not ready. In that case we will remove some code
+  }
+
+  def progressStatusGuardBSON(progressStatus: ProgressStatus) = {
+    BSONDocument(
+      "applicationStatus" -> progressStatus.applicationStatus,
+      s"progress-status.${progressStatus.key}" -> true
+    )
+  }
+
+  def validateSingleWriteOrThrow(failureException: => Exception)(writeResult: UpdateWriteResult) = writeResult.n match {
+    case 1 => ()
+    case _ => throw failureException
   }
 }

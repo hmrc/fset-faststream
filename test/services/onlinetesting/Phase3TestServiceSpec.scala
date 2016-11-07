@@ -17,17 +17,13 @@
 package services.onlinetesting
 
 import config._
-import connectors.launchpadgateway.LaunchpadGatewayClient
-import connectors.launchpadgateway.exchangeobjects._
 import connectors.CSREmailClient
-import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest, RegisterApplicantResponse }
+import connectors.launchpadgateway.LaunchpadGatewayClient
+import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
-import model.events.AuditEvents.VideoInterviewRegistrationAndInviteComplete
-import model.events.EventTypes.{ EventType, Events }
-import model.persisted.{ ContactDetails, Event }
+import model.persisted.ContactDetails
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.{ Address, ApplicationStatus }
 import org.joda.time.DateTime
@@ -42,7 +38,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
-import services.events.{ EventService, EventServiceFixture }
+import services.events.EventServiceFixture
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -50,27 +46,22 @@ import scala.concurrent.Future
 
 class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
 
-  "Register and invite for multiple applicants (batch invite)" should {
-    "throw a not implemented error" in new Phase3TestServiceFixture {
-      val ex = phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(List()).failed.futureValue
-      ex.getCause mustBe a[NotImplementedError]
-    }
-  }
-
   "Register and Invite an applicant" should {
     "send audit events" in new Phase3TestServiceFixture {
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
-      verifyDataStoreEvents(3,
+      verifyDataStoreEvents(4,
         List("VideoInterviewCandidateRegistered",
           "VideoInterviewInvited",
-          "VideoInterviewRegistrationAndInviteComplete")
+          "VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvitationEmailSent")
       )
 
-      verifyAuditEvents(3,
+      verifyAuditEvents(4,
         List("VideoInterviewCandidateRegistered",
           "VideoInterviewInvited",
-          "VideoInterviewRegistrationAndInviteComplete")
+          "VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvitationEmailSent")
       )
     }
 
@@ -175,7 +166,8 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
       guaranteedInterview = false,
-      needsAdjustments = false,
+      needsOnlineAdjustments = false,
+      needsAtVenueAdjustments = false,
       preferredName = testFirstName,
       lastName = testLastName,
       None,
@@ -250,6 +242,10 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       ))
     }
 
+    when(emailClientMock.sendOnlineTestInvitation(any(), any(), any())(any[HeaderCarrier]())).thenReturn(
+      Future.successful(())
+    )
+
     lazy val phase3TestServiceNoTestGroup = mockService {
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
       when(p3TestRepositoryMock.insertOrUpdateTestGroup(any(), any())).thenReturn(Future.successful(()))
@@ -316,5 +312,4 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
         }
       }
   }
-
 }
