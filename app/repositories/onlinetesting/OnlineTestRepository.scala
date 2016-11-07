@@ -110,7 +110,6 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       ()
     }
 
-
     findAndUpdateCubiksTest(cubiksUserId, update, query, errorActionHandler)
   }
 
@@ -183,7 +182,6 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     selectOneRandom[NotificationExpiringOnlineTest](query)
   }
 
-
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = {
     require(progressStatus.applicationStatus == thisApplicationStatus, "Forbidden progress status update")
 
@@ -226,7 +224,6 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       case lastError if lastError.nModified == 0 && lastError.n == 0 => errorHandler(cubiksUserId)
       case _ => ()
     }
-
   }
 
   def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {

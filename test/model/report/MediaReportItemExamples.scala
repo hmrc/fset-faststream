@@ -16,8 +16,6 @@
 
 package model.report
 
-import model.report.MediaReportItem
-
 object MediaReportItemExamples {
   val Example1 = MediaReportItem("GOV.UK or Civil Service Jobs")
   val Example2 = MediaReportItem("Friend in the Fast Stream")

@@ -41,5 +41,4 @@ trait InMemoryStorage[A] {
   }
 
   val inMemoryRepo = new mutable.HashMap[String, A]
-
 }

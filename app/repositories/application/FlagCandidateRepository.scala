@@ -73,5 +73,4 @@ class FlagCandidateMongoRepository(implicit mongo: () => DB)
     case 0 => throw new NotFoundException(s"No application found with applicationId=$appId")
     case _ => ()
   }
-
 }

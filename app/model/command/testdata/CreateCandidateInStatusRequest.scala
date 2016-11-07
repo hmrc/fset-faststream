@@ -18,7 +18,6 @@ package model.command.testdata
 
 import play.api.libs.json.Json
 
-
 case class AssistanceDetailsRequest(hasDisability: Option[String] = None,
                                     hasDisabilityDescription: Option[String] = None,
                                     setGis: Option[Boolean] = None,

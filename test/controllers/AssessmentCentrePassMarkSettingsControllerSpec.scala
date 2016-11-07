@@ -67,8 +67,6 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PlaySpec with Mocki
     FakeRequest(
       Helpers.POST,
       controllers.routes.AssessmentCentrePassMarkSettingsController.create.url, FakeHeaders(), json
-    )
-      .withHeaders("Content-Type" -> "application/json")
+    ).withHeaders("Content-Type" -> "application/json")
   }
-
 }

@@ -52,7 +52,6 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
-
 }
 
 class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)

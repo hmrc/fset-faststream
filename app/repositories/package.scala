@@ -19,9 +19,9 @@ import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, 
 import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
-import model.OnlineTestCommands.{ OnlineTestApplication, TimeAdjustmentsOnlineTestApplication }
+import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
-import model.PersistedObjects.{ ContactDetails, PersistedAnswer, PersonalDetails, _ }
+import model.PersistedObjects.{ ContactDetails, PersistedAnswer, PersonalDetails }
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
@@ -30,8 +30,8 @@ import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
 import repositories.application._
-import repositories.onlinetesting._
 import repositories.event.EventMongoRepository
+import repositories.onlinetesting._
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
@@ -130,7 +130,7 @@ package object repositories {
       val preferredName = root.getAs[String]("preferredName").get
       val dateOfBirth = doc.getAs[LocalDate]("dateOfBirth").get
 
-      PersonalDetails(firstName, lastName, preferredName, dateOfBirth, false, false)
+      PersonalDetails(firstName, lastName, preferredName, dateOfBirth, aLevel = false, stemLevel = false)
     }
 
     def write(psDoc: PersonalDetails) = BSONDocument(
@@ -145,7 +145,7 @@ package object repositories {
     val userId = doc.getAs[String]("userId").getOrElse("")
     val applicationId = doc.getAs[String]("applicationId")
     // If the application does not have applicationRoute, it is legacy data
-    // as it needs to be interpretted as Faststream
+    // as it needs to be interpreted as Faststream
     val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
 
     val psRoot = doc.getAs[BSONDocument]("personal-details")
@@ -194,7 +194,6 @@ package object repositories {
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
   implicit val adjustmentDetailHandler: BSONHandler[BSONDocument, AdjustmentDetail] = Macros.handler[AdjustmentDetail]
 
-
   def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[String]("applicationStatus").get
@@ -215,5 +214,4 @@ package object repositories {
     OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests,
       needsAdjustmentsAtVenue, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments)
   }
-
 }

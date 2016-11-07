@@ -44,7 +44,6 @@ class ConfirmAttendanceReminderJobSpec extends PlaySpec with MockitoSugar with S
     }
 
     "do not send any email when there is no unconfirmed attendance" in new TestFixture {
-
       when(candidateAllocationServiceMock.nextUnconfirmedCandidateForSendingReminder)
         .thenReturn(Future.successful(None))
 
