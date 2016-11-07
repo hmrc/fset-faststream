@@ -33,7 +33,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments {
+trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
