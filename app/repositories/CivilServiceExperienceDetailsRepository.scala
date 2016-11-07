@@ -16,10 +16,8 @@
 
 package repositories
 
-import model.Exceptions.{ CannotUpdateCivilServiceExperienceDetails, CivilServiceExperienceDetailsNotFound }
 import model.CivilServiceExperienceDetails
-import play.api.Logger
-import play.api.libs.json.Json
+import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -28,7 +26,6 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 trait CivilServiceExperienceDetailsRepository {
 
   val CivilServiceExperienceDetailsDocumentKey = "civil-service-experience-details"
@@ -36,7 +33,6 @@ trait CivilServiceExperienceDetailsRepository {
   def update(applicationId: String, civilServiceExperienceDetails: CivilServiceExperienceDetails): Future[Unit]
 
   def find(applicationId: String): Future[Option[CivilServiceExperienceDetails]]
-
 }
 
 class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) extends

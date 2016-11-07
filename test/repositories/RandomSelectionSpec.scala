@@ -16,8 +16,8 @@
 
 package repositories
 
-import org.scalatest._
 import org.scalatestplus.play.PlaySpec
+
 import scala.language.postfixOps
 
 class RandomSelectionSpec extends PlaySpec {
@@ -26,7 +26,7 @@ class RandomSelectionSpec extends PlaySpec {
 
       RandomSelection.calculateBatchSize(1, 1) mustBe ((0,1))
       val (offset, size) = RandomSelection.calculateBatchSize(1, 9)
-      offset must (be >= (0) and be <= (8))
+      offset must (be >= 0 and be <= 8)
       size mustBe 1
 
       1 to 200 foreach { _ =>
@@ -34,7 +34,7 @@ class RandomSelectionSpec extends PlaySpec {
         1 to calculateRepeats(numberOfDocs) foreach { _ =>
           val (offset, size) = RandomSelection.calculateBatchSize(50, numberOfDocs)
           if (numberOfDocs > 50) {
-            offset must (be >= (0) and be <= (numberOfDocs - 50))
+            offset must (be >= 0 and be <= (numberOfDocs - 50))
             size mustBe 50
           } else {
             offset mustBe 0

@@ -18,7 +18,6 @@ package model.report
 
 import scala.util.Random
 
-
 object QuestionnaireReportItemExamples {
   val NoParentOccupation1 = QuestionnaireReportItem(Some("Male"), Some("Heterosexual/straight"), Some("Irish"),
       None, None, None, None, "SE-1", Some("W76-WIN"))
@@ -35,5 +34,4 @@ object QuestionnaireReportItemExamples {
 
   def someRnd(prefix: String) = Some(rnd(prefix))
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
-
 }

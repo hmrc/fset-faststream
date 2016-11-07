@@ -43,6 +43,7 @@ class AssessmentCentrePassMarkSettingsServiceSpec extends PlaySpec with ScalaFut
     val fwRepository = mockFrameworkRepository
     val acpsRepository = mockAssessmentCentrePassMarkSettingsRepository
   }
+
   "get latest version" should {
     when(mockFrameworkRepository.getFrameworkNames).thenReturn(Future.successful(List(
       "Business", "Commercial", "Digital and technology", "Finance", "Project delivery"
@@ -84,8 +85,6 @@ class AssessmentCentrePassMarkSettingsServiceSpec extends PlaySpec with ScalaFut
         savedPassmarkSettings.schemes :+ AssessmentCentrePassMarkScheme("New scheme"),
         Some(savedPassmarkSettings.info)
       ))
-
     }
   }
-
 }

@@ -59,7 +59,6 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
   "Register applicants" should {
     "correctly register a batch of candidates" in new Phase2TestServiceFixture {
-
       val result = phase2TestService.registerApplicants(candidates, tokens).futureValue
       result.size mustBe 2
       val head = result.values.head
@@ -228,6 +227,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(otRepositoryMock).insertCubiksTests(any[String], any[Phase2TestGroup])
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
     }
+
     "return reset limit exceeded exception" in new Phase2TestServiceFixture {
       val expectedRegistration = registrations.head
       val expectedInvite = invites.head
@@ -243,6 +243,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       an[ResetLimitExceededException] must be thrownBy
         Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
     }
+
     "return cannot reset phase2 tests exception" in new Phase2TestServiceFixture {
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(None))
 
@@ -320,7 +321,6 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     }
 
     "save a phase2 report for a candidate and update progress status" in new Phase2TestServiceFixture {
-
       val test = phase2Test.copy(reportId = Some(123), resultsReadyToDownload = true)
       val testProfile = phase2TestProfile.copy(tests = List(test))
 
@@ -344,7 +344,6 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     }
 
     "save a phase2 report for a candidate and not update progress status" in new Phase2TestServiceFixture {
-
       val testReady = phase2Test.copy(reportId = Some(123), resultsReadyToDownload = true)
       val testNotReady = phase2Test.copy(reportId = None, resultsReadyToDownload = false)
       val testProfile = phase2TestProfile.copy(tests = List(testReady, testNotReady))
@@ -602,7 +601,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       .thenReturn(Future.successful(()))
 
     when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(
-      ContactDetails(false, Address("Aldwych road"), Some("QQ1 1QQ"), Some("UK"), "email@test.com", "111111")))
+      ContactDetails(outsideUk = false, Address("Aldwych road"), Some("QQ1 1QQ"), Some("UK"), "email@test.com", "111111")))
 
     when(emailClientMock.sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
@@ -624,6 +623,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = clock
       val gatewayConfig = gatewayConfigMock
+      val eventService = eventServiceMock
       val actor = ActorSystem()
     }
   }

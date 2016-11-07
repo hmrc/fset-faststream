@@ -1,6 +1,5 @@
 package scheduler.clustering
 
-import scheduled.LockKeeper
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.{ ExecutionContext, Future, Promise }

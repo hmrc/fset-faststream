@@ -19,18 +19,11 @@ package controllers
 import java.util.UUID
 
 import connectors.launchpadgateway.exchangeobjects.in._
-import model.Exceptions.CannotFindTestByCubiksId
-import model.exchange.CubiksTestResultReady
-import org.joda.time.{ DateTime, LocalDate }
-import org.mockito.Matchers.{ eq => eqTo, _ }
-import org.mockito.Mockito._
-import play.api.mvc.RequestHeader
+import org.joda.time.LocalDate
+import org.mockito.Matchers.{ eq => eqTo }
 import play.api.test.Helpers._
 import services.events.EventService
-import services.onlinetesting.{ Phase1TestService, Phase2TestService, Phase3TestService }
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.Future
+import services.onlinetesting.Phase3TestService
 
 class LaunchpadTestsControllerSpec extends BaseControllerSpec {
 

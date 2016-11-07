@@ -26,7 +26,6 @@ class ApplicationAssessmentSpec extends PlaySpec with MockitoSugar {
   val Today = LocalDate.now(DateTimeZone.UTC)
 
   "Application Assessment" should {
-
     "map AM to 8:30 for all venues except Manchester and London (Berkeley House)" in {
       val assessment = ApplicationAssessment("appId", "London", Today, "AM", 1, confirmed = true)
       assessment.assessmentDateTime must be(toDateTime(8, 30))

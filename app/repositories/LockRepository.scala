@@ -85,5 +85,4 @@ class LockMongoRepository(implicit mongo: () => DB)
     Logger.debug(s"Releasing lock '$reqLockId' for '$reqOwner'")
     collection.remove(Json.obj(id -> reqLockId, owner -> reqOwner)).map(_ => ())
   }
-
 }

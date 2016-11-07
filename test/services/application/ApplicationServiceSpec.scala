@@ -89,6 +89,7 @@ class ApplicationServiceSpec extends PlaySpec with MockitoSugar with ScalaFuture
       val appRepository = appRepositoryMock
       val pdRepository = pdRepositoryMock
       val cdRepository = cdRepositoryMock
+      val eventService = eventServiceMock
     }
 
     implicit val hc = HeaderCarrier()

@@ -155,5 +155,4 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
 
   lazy val fixerJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.fixer-job")
-
 }

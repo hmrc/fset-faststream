@@ -18,8 +18,6 @@ package controllers
 
 import config.TestFixtureBase
 import model.Exceptions.ApplicationNotFound
-import model.PersistedObjects.Implicits._
-import model.PersistedObjects.{ ApplicationProgressStatuses, ApplicationUser }
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -98,7 +96,7 @@ class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoS
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    def createGetAllUsersRequest() = {
+    def createGetAllUsersRequest = {
       FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getAllApplications().url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }

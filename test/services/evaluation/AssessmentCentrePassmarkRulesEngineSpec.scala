@@ -55,7 +55,7 @@ class AssessmentCentrePassmarkRulesEngineSpec extends PlaySpec with MustMatchers
     )
 
     "evalute to passedMinimumCompetencyLevel=false when minimum competency level is enabled and not met" in {
-      val config = AssessmentEvaluationMinimumCompetencyLevel(true, Some(2.0), Some(4.0))
+      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = true, Some(2.0), Some(4.0))
       val scores = CandidateScoresWithFeedback.copy(collaboratingAndPartnering = CandidateScores(None, Some(1.0), Some(2.0)))
       val candidateScore = AssessmentPassmarkPreferencesAndScores(PassmarkSettings, preferences, scores)
 
@@ -65,7 +65,7 @@ class AssessmentCentrePassmarkRulesEngineSpec extends PlaySpec with MustMatchers
     }
 
     "evalute to passedMinimumCompetencyLevel=true and evaluate preferred locations" in {
-      val config = AssessmentEvaluationMinimumCompetencyLevel(true, Some(2.0), Some(4.0))
+      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = true, Some(2.0), Some(4.0))
       val scores = CandidateScoresWithFeedback
       val candidateScore = AssessmentPassmarkPreferencesAndScores(PassmarkSettings, preferences, scores)
 
@@ -91,6 +91,5 @@ class AssessmentCentrePassmarkRulesEngineSpec extends PlaySpec with MustMatchers
       result.competencyAverageResult must be(expectedResult.competencyAverageResult)
       result.schemesEvaluation must be(expectedResult.schemesEvaluation)
     }
-
   }
 }

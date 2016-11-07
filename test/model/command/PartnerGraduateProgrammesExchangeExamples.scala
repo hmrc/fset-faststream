@@ -19,6 +19,6 @@ package model.command
 import model.exchange.PartnerGraduateProgrammesExchange
 
 object PartnerGraduateProgrammesExchangeExamples {
-  val InterestedNotAll = PartnerGraduateProgrammesExchange(true, Some(List("Entrepreneur First", "Frontline")))
-  val NoInterested = PartnerGraduateProgrammesExchange(false, None)
+  val InterestedNotAll = PartnerGraduateProgrammesExchange(interested = true, Some(List("Entrepreneur First", "Frontline")))
+  val NoInterested = PartnerGraduateProgrammesExchange(interested = false, None)
 }

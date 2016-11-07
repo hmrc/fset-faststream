@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package model.persisted
+package connectors.launchpadgateway.exchangeobjects.out
 
-import model.{ ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples }
-import org.joda.time.DateTime
+import org.joda.time.LocalDate
+import play.api.libs.json.Json
 
-object ApplicationPhase1EvaluationExamples {
-  def application(implicit now: DateTime) = ApplicationPhase1ReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
-    isGis = false, Phase1TestProfileExamples.profile, SelectedSchemesExamples.TwoSchemes)
+case class ExtendDeadlineRequest(interviewId: Int, candidateId: String, newDeadline: LocalDate)
+
+object ExtendDeadlineRequest {
+  implicit val extendDeadlineRequestFormat = Json.format[ExtendDeadlineRequest]
 }
+

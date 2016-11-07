@@ -148,7 +148,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   }
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, scheduleNames: List[String])
-    (implicit hc: HeaderCarrier): Future[Unit] = {
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase1Tests.expiryTimeInDays)
 
     // TODO work out a better way to do this

@@ -17,7 +17,7 @@
 package mocks
 
 import model.PersistedObjects.CandidateTestReport
-import model.report.{TestResultsForOnlineTestPassMarkReportItem}
+import model.report.TestResultsForOnlineTestPassMarkReportItem
 import repositories.TestReportRepository
 
 import scala.concurrent.Future
