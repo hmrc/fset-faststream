@@ -54,7 +54,7 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
 
       val passMarkSettingsServiceMockWithSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceMockWithSettings.getLatestPhase1PassMarkSettings).thenReturn(
+      when(passMarkSettingsServiceMockWithSettings.getLatestPassMarkSettings).thenReturn(
         Future.successful(Some(mockSettings)))
 
       val passMarkSettingsControllerWithSettings = buildPMS(passMarkSettingsServiceMockWithSettings)

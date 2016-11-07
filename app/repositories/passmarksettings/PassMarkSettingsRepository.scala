@@ -18,7 +18,7 @@ package repositories.passmarksettings
 
 import model.Commands._
 import model.exchange.passmarksettings._
-import play.api.libs.json.{ Format, JsNumber, JsObject, OFormat }
+import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.DB
 import reactivemongo.bson._
 import uk.gov.hmrc.mongo.ReactiveRepository
