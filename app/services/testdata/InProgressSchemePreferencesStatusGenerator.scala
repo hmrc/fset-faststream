@@ -16,18 +16,10 @@
 
 package services.testdata
 
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import model._
 import model.command.testdata.GeneratorConfig
-import model.persisted.{ AssistanceDetails, ContactDetails, PersonalDetails }
-import org.joda.time.LocalDate
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
-import repositories.assistancedetails.AssistanceDetailsRepository
-import repositories.contactdetails.ContactDetailsRepository
-import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -47,7 +39,7 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getSchemePreferences: Future[SelectedSchemes] = {
        Future.successful(
-         if (generatorConfig.applicationRoute == ApplicationRoute.Edip) {
+         if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Edip) {
            SelectedSchemes(List(model.SchemeType.Edip), true, true)
          } else {
            SelectedSchemes(Random.schemeTypes, true, true)

@@ -34,6 +34,7 @@ import play.api.{ Logger, Play }
 import play.api.libs.json.{ JsObject, JsString, Json }
 import play.api.mvc.{ Action, RequestHeader }
 import services.testdata._
+import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -87,8 +88,8 @@ trait TestDataGeneratorController extends BaseController {
         isCivilServant = Some(Random.bool),
         hasDegree = Some(Random.bool),
         region = Some("region"),
-        loc1scheme1EvaluationResult = Some("loc1 scheme1 result"),
-        loc1scheme2EvaluationResult = Some("loc1 scheme2 resul2"),
+        loc1scheme1EvaluationResult = Some("loc1 scheme1 result1"),
+        loc1scheme2EvaluationResult = Some("loc1 scheme2 result2"),
         confirmedAllocation = Some(Random.bool),
         phase1TestData = Some(Phase1TestDataRequest(
           start = Some("2340-01-01"),
