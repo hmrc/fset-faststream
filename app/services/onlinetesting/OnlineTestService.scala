@@ -63,7 +63,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
   def processNextFailedTestForNotification(failedType: FailedTestType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    appRepository.findFailedTestForNotification(failedType.appStatus, failedType.updatedProgress).flatMap {
+    appRepository.findFailedTestForNotification(failedType).flatMap {
       case Some(failedTest) => processFailedTest(failedTest, failedType)
       case None => Future.successful(())
     }
@@ -78,7 +78,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
     for {
       emailAddress <- candidateEmailAddress(toNotify.userId)
-      _ <- commitProgressStatus(toNotify.applicationId, failedType.updatedProgress)
+      _ <- commitProgressStatus(toNotify.applicationId, failedType.notificationProgress)
       _ <- emailCandidate(toNotify.applicationId, toNotify.preferredName, emailAddress, failedType.template, event(emailAddress))
     } yield ()
   }
