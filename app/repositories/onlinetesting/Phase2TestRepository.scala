@@ -49,8 +49,6 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
 
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
 
-  def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
-
   def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
@@ -63,6 +61,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override val phaseName = "PHASE2"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE2_TESTS
+  override val resetStatuses = List[String](ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED)
   override val dateTimeFactory = dateTime
   override val expiredTestQuery: BSONDocument = {
     BSONDocument("$and" -> BSONArray(
@@ -147,21 +146,6 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
 
     nextTestForReminder(reminder, progressStatusQuery)
-  }
-
-  override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
-    require(progressStatuses.nonEmpty)
-    require(progressStatuses forall (_.applicationStatus == thisApplicationStatus), "Cannot remove non Phase 2 progress status")
-
-    val query = BSONDocument(
-      "applicationId" -> appId,
-      "applicationStatus" -> thisApplicationStatus
-    )
-    val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
-
-    val updateQuery = BSONDocument("$unset" -> BSONDocument(progressesToRemoveQueryPartial))
-
-    collection.update(query, updateQuery, upsert = false) map (_ => ())
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
