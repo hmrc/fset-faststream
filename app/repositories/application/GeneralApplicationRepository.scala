@@ -25,24 +25,27 @@ import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ApplicationNotFound, CannotUpdatePreview}
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.ProgressStatus
 import model.ProgressStatuses.PREVIEW
 import model.command._
-import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, ApplicationForOnlineTestPassMarkReport}
-import model.report.{AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels}
-import model.{ApplicationStatus, _}
-import model.persisted.{ApplicationForDiversityReport, ApplicationForNotification, NotificationFailedTest}
-import model.{ApplicationStatus, _}
+import model.persisted._
+import model.report.{ AdjustmentReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels }
+import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, LocalDate}
-import play.api.libs.json.{Format, JsNumber, JsObject}
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.Logger
+import play.api.libs.json.{ Format, JsNumber, JsObject }
+import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.{ Format, JsNumber, JsObject }
+import reactivemongo.api.BSONSerializationPack.Document
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{DB, QueryOpts, ReadPreference}
-import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
+import scheduler.fixer.FixBatch
+import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.TimeZoneService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -134,6 +137,10 @@ trait GeneralApplicationRepository {
 
   def findFailedTestForNotification(appStatus: ApplicationStatus,
                                     progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]]
+
+  def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
+
+  def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
 }
 
 // scalastyle:off number.of.methods
@@ -148,7 +155,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
   lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
-
 
   // scalastyle:off method.length
   private def findProgress(document: BSONDocument, applicationId: String): ProgressResponse = {
@@ -414,9 +420,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationBSON = BSONDocument("$set" -> BSONDocument(
       "withdraw" -> reason
-    ).add(
-      applicationStatusBSON(WITHDRAWN)
-    )
+      ).add(
+        applicationStatusBSON(WITHDRAWN)
+      )
     )
     collection.update(query, applicationBSON, upsert = false) map { _ => }
   }
@@ -444,7 +450,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         throw CannotUpdatePreview(applicationId)
       case _ => ()
     }
-
   }
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
@@ -603,6 +608,56 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     )))
 
   // scalastyle:off method.length
+
+  override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = {
+    issue.fix match {
+      case PassToPhase2 => {
+        val query = BSONDocument("$and" -> BSONArray(
+            BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+            BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
+            BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
+          ))
+
+        selectRandom[Candidate](query, issue.batchSize)
+      }
+      case ResetPhase1TestInvitedSubmitted => {
+        val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
+        ))
+
+        selectRandom[Candidate](query, issue.batchSize)
+      }
+    }
+  }
+
+  override def fix(application: Candidate, issue: FixBatch): Future[Option[Candidate]] = {
+    issue.fix match {
+      case PassToPhase2 => {
+        val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationId" -> application.applicationId),
+          BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
+        ))
+        val updateOp = bsonCollection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)))
+        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
+      }
+      case ResetPhase1TestInvitedSubmitted => {
+        val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationId" -> application.applicationId),
+          BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
+        ))
+        val updateOp = bsonCollection.updateModifier(BSONDocument("$unset" ->
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
+          s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
+          "testGroups" -> "")))
+        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
+      }
+    }
+  }
+
   private def applicationPreferencesWithTestResults(query: BSONDocument): Future[List[ApplicationPreferencesWithTestResults]] = {
     val projection = BSONDocument(
       "userId" -> "1",
@@ -931,7 +986,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   def rejectAdjustment(applicationId: String): Future[Unit] = {
-
     val query = BSONDocument("applicationId" -> applicationId)
 
     val adjustmentRejection = BSONDocument("$set" -> BSONDocument(

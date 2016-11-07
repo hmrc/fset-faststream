@@ -35,7 +35,7 @@ class EvaluateAssessmentScoreJobSpec extends PlaySpec with MockitoSugar with Sca
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val applicationAssessmentServiceMock = mock[ApplicationAssessmentService]
-  val config = AssessmentEvaluationMinimumCompetencyLevel(false, None, None)
+  val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, None, None)
 
   object TestableEvaluateAssessmentScoreJob extends EvaluateAssessmentScoreJob {
     val applicationAssessmentService = applicationAssessmentServiceMock
@@ -47,7 +47,7 @@ class EvaluateAssessmentScoreJobSpec extends PlaySpec with MockitoSugar with Sca
       val candidateScore = AssessmentPassmarkPreferencesAndScores(
         AssessmentCentrePassMarkSettingsResponse(List(), None),
         Preferences(LocationPreference("region", "location", "firstFramework", None)),
-        CandidateScoresAndFeedback("appId", None, false)
+        CandidateScoresAndFeedback("appId", None, assessmentIncomplete = false)
       )
       when(applicationAssessmentServiceMock.nextAssessmentCandidateScoreReadyForEvaluation).thenReturn(
         Future.successful(Some(candidateScore))

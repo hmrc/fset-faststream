@@ -50,5 +50,4 @@ trait QuestionnaireController extends BaseController {
       }
     }
   }
-
 }

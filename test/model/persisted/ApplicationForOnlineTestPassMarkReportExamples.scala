@@ -16,10 +16,8 @@
 
 package model.report
 
-import model.OnlineTestCommands.TestResult
 import model.SchemeType
 import model.persisted.ApplicationForOnlineTestPassMarkReport
-import model.report.MediaReportItem
 
 import scala.util.Random
 

@@ -17,13 +17,11 @@
 package repositories.application
 
 import connectors.ExchangeObjects
-import model.Commands._
-import model.Address
-import model.PersistedObjects
+import model.{ Address, PersistedObjects }
 import model.PersistedObjects.ContactDetails
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
+import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -59,7 +57,6 @@ class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
   }
 
   private def createSingleContactDetail(id: Int): Future[Unit] = {
-
     val contactDetails = ContactDetails(Address("1st High Street"), chooseOne(postcodes), s"test_$id@test.com", Some("123456789"))
     val contactDetailsBson = BSONDocument("$set" -> BSONDocument(
       "contact-details" -> contactDetails
@@ -146,7 +143,6 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     document = document ++ ("progress-status" -> progress)
 
     document
-
   }
 
   private def buildDocument(document: BSONDocument)(f: Option[(String, BSONDocument)]) = {
@@ -237,5 +233,4 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     case (Some(_), Some(_), Some(_)) if id % 3 == 0 => Some(true)
     case _ => None
   }
-
 }

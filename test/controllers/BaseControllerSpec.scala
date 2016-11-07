@@ -36,5 +36,4 @@ abstract class BaseControllerSpec extends PlaySpec with MockitoSugar with Result
     FakeRequest("", "", FakeHeaders(), Json.toJson(request)).withHeaders("Content-Type" -> "application/json")
 
   def fakeRequest = FakeRequest()
-
 }

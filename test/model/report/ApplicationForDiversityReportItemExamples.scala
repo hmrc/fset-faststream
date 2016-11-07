@@ -28,5 +28,6 @@ object ApplicationForDiversityReportItemExamples {
     ApplicationForDiversityReportItem(Some("submitted"),
       List(SchemeType.DiplomaticServiceEconomics, SchemeType.Commercial, SchemeType.GovernmentCommunicationService,
         SchemeType.European), Some("Yes"), Some(true), Some("Yes"), Some("No"),
-      Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("fastPass-101"))))
+      Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"),
+        Some("fastPass-101"))))
 }

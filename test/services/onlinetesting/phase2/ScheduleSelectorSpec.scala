@@ -43,5 +43,4 @@ class ScheduleSelectorSpec extends PlaySpec {
   private def createSelector(schedules: Map[String, Phase2Schedule]): ScheduleSelector = new ScheduleSelector {
     def testConfig = Phase2TestsConfig(1, 90, schedules)
   }
-
 }

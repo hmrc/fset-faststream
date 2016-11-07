@@ -16,9 +16,6 @@
 
 package model.report
 
-import model.persisted.{Media, MediaExamples}
-import model.report.MediaReportItemExamples
-
 object DiversityReportItemExamples {
   val AllFields1 = DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example1,

@@ -17,7 +17,6 @@
 package controllers
 
 import model.ApplicationValidator
-import model.events.EventTypes.Events
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
 import play.api.mvc.{ Action, RequestHeader }
 import repositories.FrameworkRepository.CandidateHighestQualification

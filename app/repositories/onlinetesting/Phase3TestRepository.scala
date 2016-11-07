@@ -17,13 +17,14 @@
 package repositories.onlinetesting
 
 import common.Phase3TestConcern
+import config.MicroserviceAppConfig.sendPhase3InvitationJobConfig
 import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.phase3tests.Phase3TestGroup
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -58,12 +59,10 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    val query = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS_PASSED,
-      s"progress-status.${PHASE2_TESTS_PASSED}" -> true
-    )
+    val query = inviteToTestBSON(PHASE2_TESTS_PASSED, invigilatedKeyToExclude = "videoInvigilated")
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
-    selectRandom[OnlineTestApplication](query, 5)
+    selectRandom[OnlineTestApplication](query, sendPhase3InvitationJobConfig.batchSize.getOrElse(1))
   }
 
   override def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit] = {

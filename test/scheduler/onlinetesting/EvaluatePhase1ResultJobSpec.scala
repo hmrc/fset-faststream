@@ -84,5 +84,4 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
       verify(mockEvaluateService).evaluate(app, passmark)
     }
   }
-
 }

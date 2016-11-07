@@ -53,5 +53,4 @@ class AuthProviderClientSpec extends PlaySpec with MockitoSugar with ScalaFuture
       }
     }
   }
-
 }

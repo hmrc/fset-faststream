@@ -25,7 +25,7 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
-import services.onlinetesting.{ Phase1TestService, Phase2TestService }
+import services.onlinetesting.{ Phase1TestService, Phase2TestService, Phase3TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -33,6 +33,7 @@ import scala.concurrent.Future
 class OnlineTestsControllerSpec extends BaseControllerSpec {
   val mockPhase1TestService = mock[Phase1TestService]
   val mockPhase2TestService = mock[Phase2TestService]
+  val mockPhase3TestService = mock[Phase3TestService]
   val mockApplicationRepository = mock[GeneralApplicationRepository]
   val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
     applicationStatus = ApplicationStatus.SUBMITTED,
@@ -49,6 +50,7 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
   def controller = new OnlineTestController {
     val phase1TestService = mockPhase1TestService
     val phase2TestService = mockPhase2TestService
+    val phase3TestService = mockPhase3TestService
     val appRepository = mockApplicationRepository
   }
 
