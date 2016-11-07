@@ -36,7 +36,7 @@ class ScheduleSelectorSpec extends PlaySpec {
       val selector = createSelector(schedules)
       val randomSchedules = 1 to 1000 map (_ => selector.getRandomScheduleWithName())
 
-      randomSchedules.distinct must contain theSameElementsAs schedules.values
+      randomSchedules.distinct must contain theSameElementsAs schedules
     }
   }
 

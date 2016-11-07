@@ -151,19 +151,6 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
         invigilatedTestProfile
       )
     }
-
-    "throw an exception when the batch contains mix: invigilated and non-invigilated applications" in new Phase2TestServiceFixture {
-      an[IllegalArgumentException] must be thrownBy {
-        phase2TestService.registerAndInviteForTestGroup(List(invigilatedETrayApp, nonInvigilatedETrayApp)).futureValue
-      }
-    }
-
-    "pass through an empty list of application" in new Phase2TestServiceFixture {
-      phase2TestService.registerAndInviteForTestGroup(List()).futureValue
-
-      verifyZeroInteractions(cubiksGatewayClientMock)
-      verifyZeroInteractions(otRepositoryMock)
-    }
   }
 
   "mark as started" should {

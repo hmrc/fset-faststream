@@ -183,32 +183,25 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
     val firstApplication = applications.head
     val applicationsWithTheSameType = applications filter (_.isInvigilatedETray == firstApplication.isInvigilatedETray)
 
-    require(applicationsWithTheSameType forall (_.isInvigilatedETray == firstApplication.isInvigilatedETray),
-      "The batch version of 'register and invite' method works only with applications in the same type")
-
-    if (applicationsWithTheSameType.isEmpty) {
-      Future.successful(())
+    val isInvigilatedETrayBatch = applicationsWithTheSameType.head.isInvigilatedETray
+    val (scheduleName, schedule) = if (isInvigilatedETrayBatch) {
+      val schedule = testConfig.scheduleForInvigilatedETray
+      (testConfig.scheduleNameByScheduleId(schedule.scheduleId), schedule)
     } else {
-      val isInvigilatedETrayBatch = applicationsWithTheSameType.head.isInvigilatedETray
-      val (scheduleName, schedule) = if (isInvigilatedETrayBatch) {
-        val schedule = testConfig.scheduleForInvigilatedETray
-        (testConfig.scheduleNameByScheduleId(schedule.scheduleId), schedule)
-      } else {
-        getRandomScheduleWithName()
-      }
-      registerAndInviteForTestGroup(applicationsWithTheSameType, schedule) flatMap { candidatesToProgress =>
-        eventSink {
-          Future.successful {
-            candidatesToProgress.map(candidate => {
-              // TODO LT: This events should be emit one level down to also be logged by reset path
-              DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId) ::
-                AuditEvents.Phase2TestInvitationProcessComplete(Map(
-                  "userId" -> candidate.userId,
-                  "absoluteTime" -> s"${calculateAbsoluteTimeWithAdjustments(candidate)}",
-                  "scheduleName" -> s"$scheduleName")) ::
-                Nil
-            }).flatten
-          }
+      getRandomScheduleWithName()
+    }
+    registerAndInviteForTestGroup(applicationsWithTheSameType, schedule) flatMap { candidatesToProgress =>
+      eventSink {
+        Future.successful {
+          candidatesToProgress.map(candidate => {
+            // TODO LT: This events should be emit one level down to also be logged by reset path
+            DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId) ::
+              AuditEvents.Phase2TestInvitationProcessComplete(Map(
+                "userId" -> candidate.userId,
+                "absoluteTime" -> s"${calculateAbsoluteTimeWithAdjustments(candidate)}",
+                "scheduleName" -> s"$scheduleName")) ::
+              Nil
+          }).flatten
         }
       }
     }
