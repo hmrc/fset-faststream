@@ -41,4 +41,11 @@ trait Phase3TestGroupController extends BaseController {
           NotFound
     }
   }
+
+  def extend(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[OnlineTestExtension] { extension =>
+      phase3TestService.extendTestGroupExpiryTime(applicationId, extension.extraDays,
+        extension.actionTriggeredBy) map ( _ => Ok )
+    }
+  }
 }

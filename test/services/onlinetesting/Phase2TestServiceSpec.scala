@@ -623,6 +623,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = clock
       val gatewayConfig = gatewayConfigMock
+      val eventService = eventServiceMock
       val actor = ActorSystem()
     }
   }

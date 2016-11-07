@@ -670,6 +670,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
+      val eventService = eventServiceMock
       val actor = ActorSystem()
     }
   }

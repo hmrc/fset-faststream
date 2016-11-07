@@ -203,6 +203,7 @@ class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with Moc
       val otRepository = mockOtRepository
       val auditService = mockAuditService
       val dateTimeFactory = mockDateFactory
+      val eventService = eventServiceMock
     }
 
     when(mockProgressResponse.phase1ProgressResponse).thenReturn(mockPhase1ProgressResponse)

@@ -62,6 +62,7 @@ PUT         /cubiks/:cubiksUserId/results-ready                          control
 
 POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
 POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
+POST        /phase3-test-group/extend/:applicationId                     controllers.Phase3TestGroupController.extend(applicationId: String)
 GET         /phase3-test-group/:applicationId                            controllers.Phase3TestGroupController.getTestGroup(applicationId: String)
 
 PUT         /launchpad/:inviteId/setupProcessCallback                    controllers.LaunchpadTestsController.setupProcessCallback(inviteId: String)
