@@ -18,8 +18,6 @@ package controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import repositories._
-import repositories.onlinetesting.Phase3TestRepository
 import services.events.EventService
 import services.onlinetesting.Phase3TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController

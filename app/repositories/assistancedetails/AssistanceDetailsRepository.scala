@@ -62,5 +62,4 @@ class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
       case _ => throw AssistanceDetailsNotFound(applicationId)
     }
   }
-
 }

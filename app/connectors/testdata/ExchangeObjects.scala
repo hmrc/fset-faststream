@@ -54,5 +54,4 @@ object ExchangeObjects {
     implicit val phase1TestGroupResponseFormat = Json.format[TestGroupResponse]
     implicit val dataGenerationResponseFormat = Json.format[DataGenerationResponse]
   }
-
 }

@@ -17,7 +17,6 @@
 package model.report
 
 import model.OnlineTestCommands.TestResult
-import model.report.MediaReportItem
 
 import scala.util.Random
 
@@ -25,7 +24,6 @@ object TestResultsForOnlineTestPassMarkReportItemExamples {
 
   lazy val testResults1 = newTestResults
   lazy val testResults2 = newTestResults
-
 
   private def someDouble = Some(Random.nextDouble())
 

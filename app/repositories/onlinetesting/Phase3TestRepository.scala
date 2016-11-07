@@ -23,7 +23,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.phase3tests.Phase3TestGroup
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -59,7 +59,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     val query = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS_PASSED,
-      s"progress-status.${PHASE2_TESTS_PASSED}" -> true
+      s"progress-status.$PHASE2_TESTS_PASSED" -> true
     )
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)

@@ -76,7 +76,7 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
         val preferredName = root.getAs[String]("preferredName").get
         val dateOfBirth = root.getAs[LocalDate]("dateOfBirth").get
 
-        PersonalDetails(firstName, lastName, preferredName, dateOfBirth, false, false)
+        PersonalDetails(firstName, lastName, preferredName, dateOfBirth, aLevel = false, stemLevel = false)
       }
       case _ => throw new PersonalDetailsNotFound(applicationId)
     }
@@ -97,5 +97,4 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
       case _ => throw new PersonalDetailsNotFound(applicationId)
     }
   }
-
 }
