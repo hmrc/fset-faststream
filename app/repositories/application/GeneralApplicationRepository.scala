@@ -34,6 +34,9 @@ import model.report.{ AdjustmentReportItem, CandidateProgressReportItem, Progres
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
+import play.api.Logger
+import play.api.libs.json.{ Format, JsNumber, JsObject }
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.BSONSerializationPack.Document
 import reactivemongo.api.collections.bson.BSONCollection

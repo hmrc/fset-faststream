@@ -50,16 +50,18 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     "send audit events" in new Phase3TestServiceFixture {
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
-      verifyDataStoreEvents(3,
+      verifyDataStoreEvents(4,
         List("VideoInterviewCandidateRegistered",
           "VideoInterviewInvited",
-          "VideoInterviewRegistrationAndInviteComplete")
+          "VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvitationEmailSent")
       )
 
-      verifyAuditEvents(3,
+      verifyAuditEvents(4,
         List("VideoInterviewCandidateRegistered",
           "VideoInterviewInvited",
-          "VideoInterviewRegistrationAndInviteComplete")
+          "VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvitationEmailSent")
       )
     }
 
@@ -239,6 +241,10 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
         "Tomorrow"
       ))
     }
+
+    when(emailClientMock.sendOnlineTestInvitation(any(), any(), any())(any[HeaderCarrier]())).thenReturn(
+      Future.successful(())
+    )
 
     lazy val phase3TestServiceNoTestGroup = mockService {
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))

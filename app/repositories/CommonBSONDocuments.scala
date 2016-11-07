@@ -21,7 +21,7 @@ import model.ProgressStatuses.ProgressStatus
 import model.{ ApplicationStatus, ProgressStatuses }
 import org.joda.time.DateTime
 import reactivemongo.api.commands.UpdateWriteResult
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 
 trait CommonBSONDocuments {
 
