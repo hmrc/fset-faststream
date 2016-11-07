@@ -17,8 +17,8 @@
 package connectors.launchpadgateway
 
 import config.MicroserviceAppConfig._
-import config.WSHttp
-import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest, RegisterApplicantResponse }
+import _root_.config.WSHttp
+import connectors.launchpadgateway.exchangeobjects.out._
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
 import play.api.libs.json.Reads
