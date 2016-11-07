@@ -31,9 +31,9 @@ trait OnlineTestCommonBSONDocuments {
           BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true)))),
         BSONDocument("$and" -> BSONArray(
           BSONDocument("$or" -> BSONArray(
-            BSONDocument("assistance-details.guaranteedInterview" -> true),
             BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-            BSONDocument("assistance-details.needsSupportAtVenue" -> true)
+            BSONDocument("assistance-details.needsSupportAtVenue" -> true),
+            BSONDocument("assistance-details.guaranteedInterview" -> true)
           )),
           BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
           BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> invigilatedKeyToExclude)))

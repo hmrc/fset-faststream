@@ -209,6 +209,8 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
 
   private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = {
+    require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
+
     applications match {
       case Nil => Future.successful(Nil)
       case candidatesToProcess =>

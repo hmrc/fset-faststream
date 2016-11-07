@@ -75,7 +75,6 @@ case class Phase2TestsConfig(expiryTimeInDays: Int,
                              schedules: Map[String, Phase2Schedule]) {
   require(schedules.contains("daro"), "Daro schedule must be present as it is used for the invigilated e-tray applications")
 
-  // TODO LT: Unit test this
   def scheduleNameByScheduleId(scheduleId: Int): String = {
     val scheduleNameOpt = schedules.find { case (n, s) =>
       s.scheduleId == scheduleId
