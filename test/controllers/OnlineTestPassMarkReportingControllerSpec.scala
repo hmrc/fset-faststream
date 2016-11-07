@@ -18,28 +18,19 @@ package controllers
 
 import config.TestFixtureBase
 import connectors.AuthProviderClient
-import connectors.ExchangeObjects.Candidate
-import mocks._
-import mocks.application.DocumentRootInMemoryRepository
-import model.OnlineTestCommands.TestResult
-import model.PersistedObjects.ContactDetailsWithId
-import model.report.{OnlineTestPassMarkReportItem, _}
-import model.{Address, SchemeType}
+import model.report.{ OnlineTestPassMarkReportItem, _ }
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.JsArray
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest, Helpers}
+import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
-import repositories.{ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository}
+import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.MockitoSugar
 
-import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.util.Random
 
 class OnlineTestPassMarkReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
 

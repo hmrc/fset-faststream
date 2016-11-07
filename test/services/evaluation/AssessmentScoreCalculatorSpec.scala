@@ -27,7 +27,7 @@ class AssessmentScoreCalculatorSpec extends PlaySpec with MustMatchers {
 
   "Assessment Score Calculator" should {
     "count scores" in {
-      val Scores = CandidateScoresAndFeedback("appId", None, false,
+      val Scores = CandidateScoresAndFeedback("appId", None, assessmentIncomplete = false,
         CandidateScores(Some(4), Some(4), Some(4)), //12     4.00
 
         CandidateScores(Some(3.25), None, Some(3.98)), //7.23   3.615

@@ -19,16 +19,16 @@ package controllers
 import config.TestFixtureBase
 import connectors.AuthProviderClient
 import model.persisted.MediaExamples
-import model.report.{ApplicationForDiversityReportItemExamples, DiversityReportItem, DiversityReportItemExamples, QuestionnaireReportItemExamples}
+import model.report.{ DiversityReportItem, DiversityReportItemExamples, QuestionnaireReportItemExamples }
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatestplus.play.PlaySpec
 import persisted.ApplicationForDiversityReportExamples
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest, Helpers}
+import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
-import repositories.{ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository}
+import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.MockitoSugar
 
@@ -165,8 +165,5 @@ class DiversityReportingControllerSpec extends PlaySpec with Results with Mockit
       FakeRequest(Helpers.GET, controllers.routes.ReportingController.diversityReport(frameworkId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
-
   }
-
-
 }

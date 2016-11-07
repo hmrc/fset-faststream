@@ -34,7 +34,6 @@ import play.api.Play
 import play.api.libs.json.{ JsObject, JsString, Json }
 import play.api.mvc.{ Action, RequestHeader }
 import services.testdata._
-import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -44,7 +43,6 @@ import scala.concurrent.Future
 object TestDataGeneratorController extends TestDataGeneratorController {
 
   case class InvalidPostCodeFormatException(message: String) extends Exception(message)
-
 }
 
 trait TestDataGeneratorController extends BaseController {
@@ -207,8 +205,7 @@ trait TestDataGeneratorController extends BaseController {
                                       applicationStatus: String,
                                       progressStatus: Option[String],
                                       numberToGenerate: Int)
-                                     (implicit hc: HeaderCarrier, rh: RequestHeader)
-  = {
+                                     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
       TestDataGeneratorService.createCandidatesInSpecificStatus(
         numberToGenerate,
@@ -259,7 +256,8 @@ trait TestDataGeneratorController extends BaseController {
       loc1scheme2Passmark = request.loc1scheme2EvaluationResult.map(Result(_)),
       previousStatus = request.previousApplicationStatus,
       confirmedAllocation = request.confirmedAllocation.getOrElse(false),
-      dob = request.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))), postCode = request.postCode,
+      dob = request.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))),
+      postCode = request.postCode,
       phase1StartTime = request.phase1StartTime.map(x => DateTime.parse(x)),
       phase1ExpiryTime = request.phase1ExpiryTime.map(x => DateTime.parse(x)),
       tscore = request.tscore,

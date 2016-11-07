@@ -17,9 +17,8 @@
 package services.onlinetesting
 
 import config._
-import connectors.launchpadgateway.LaunchpadGatewayClient
-import connectors.launchpadgateway.exchangeobjects._
 import connectors.CSREmailClient
+import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest, RegisterApplicantResponse }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
@@ -310,5 +309,4 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
         }
       }
   }
-
 }

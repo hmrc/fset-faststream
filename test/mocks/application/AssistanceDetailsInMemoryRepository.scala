@@ -21,8 +21,6 @@ import model.Exceptions.AssistanceDetailsNotFound
 import model.persisted.AssistanceDetails
 import repositories.assistancedetails.AssistanceDetailsRepository
 
-import scala.concurrent.Future
-
 object AssistanceDetailsInMemoryRepository extends AssistanceDetailsRepository with InMemoryStorage[AssistanceDetails] {
   // Seed with test data.
   inMemoryRepo +=

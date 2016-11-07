@@ -16,7 +16,6 @@
 
 package controllers
 
-import model.Commands._
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
 import play.api.mvc.Action
@@ -32,8 +31,6 @@ object MediaController extends MediaController {
 }
 
 trait MediaController extends BaseController {
-  import Implicits._
-
   val mRepository: MediaRepository
   val auditService: AuditService
 
@@ -47,9 +44,7 @@ trait MediaController extends BaseController {
         Created
       }).recover {
         case e: CannotAddMedia => BadRequest(s"cannot add media details for user: ${e.userId}")
-
       }
     }
   }
-
 }

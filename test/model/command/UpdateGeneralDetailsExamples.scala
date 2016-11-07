@@ -21,6 +21,7 @@ import model.AddressExamples._
 import model.CivilServiceExperienceDetails
 
 object UpdateGeneralDetailsExamples {
-  val CandidateContactDetailsUK = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
-    outsideUk = false, FullAddress, Some("A1 B23"), None, "1234567890", Some(CivilServiceExperienceDetails(applicable = false)), Some(true))
+  val CandidateContactDetailsUK = GeneralDetails("John", "Doe", "johnd",
+    "johndoe@test.com", LocalDate.now().minusYears(20), outsideUk = false, FullAddress, Some("A1 B23"), None,
+    "1234567890", Some(CivilServiceExperienceDetails(applicable = false)), Some(true))
 }

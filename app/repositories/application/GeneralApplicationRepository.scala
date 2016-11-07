@@ -153,7 +153,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
   lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
 
-
   // scalastyle:off method.length
   private def findProgress(document: BSONDocument, applicationId: String): ProgressResponse = {
 
@@ -418,9 +417,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationBSON = BSONDocument("$set" -> BSONDocument(
       "withdraw" -> reason
-    ).add(
-      applicationStatusBSON(WITHDRAWN)
-    )
+      ).add(
+        applicationStatusBSON(WITHDRAWN)
+      )
     )
     collection.update(query, applicationBSON, upsert = false) map { _ => }
   }
@@ -448,7 +447,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         throw CannotUpdatePreview(applicationId)
       case _ => ()
     }
-
   }
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
@@ -985,7 +983,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   }
 
   def rejectAdjustment(applicationId: String): Future[Unit] = {
-
     val query = BSONDocument("applicationId" -> applicationId)
 
     val adjustmentRejection = BSONDocument("$set" -> BSONDocument(

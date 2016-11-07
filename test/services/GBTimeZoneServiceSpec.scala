@@ -23,7 +23,6 @@ class GBTimeZoneServiceSpec extends PlaySpec {
   val service = GBTimeZoneService
 
   "Time Zone Service (GB)" should {
-
     "advertise 'Europe/London' as its timezone" in {
       service.timeZone.getID mustBe "Europe/London"
     }

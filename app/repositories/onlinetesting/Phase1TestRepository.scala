@@ -21,13 +21,11 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
-import org.joda.time.DateTime
-import model.persisted.{ CubiksTest, Phase1TestProfile }
-import model.persisted.{ ExpiringOnlineTest, NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, TestResult }
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice, TestExpirationEvent }
+import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
+import model.{ ApplicationStatus, ReminderNotice }
+import org.joda.time.DateTime
 import play.api.Logger
-import play.api.libs.json.Json
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -154,7 +152,6 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
 
     nextTestGroupWithReportReady[Phase1TestGroupWithUserIds]
-
   }
 
   override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
@@ -171,5 +168,4 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     collection.update(query, updateQuery, upsert = false) map ( _ => () )
   }
-
 }
