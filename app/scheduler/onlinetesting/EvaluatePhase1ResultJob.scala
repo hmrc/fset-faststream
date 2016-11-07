@@ -16,8 +16,6 @@
 
 package scheduler.onlinetesting
 
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
-
 import common.FutureEx
 import config.ScheduledJobConfig
 import model.exchange.passmarksettings.Phase1PassMarkSettings
@@ -84,5 +82,4 @@ trait EvaluatePhase1ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
 
   val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
   Logger.debug(s"Max number of applications in scheduler: $batchSize")
-
 }

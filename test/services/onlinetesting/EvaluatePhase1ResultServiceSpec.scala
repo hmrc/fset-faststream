@@ -16,21 +16,19 @@
 
 package services.onlinetesting
 
-import _root_.config.CubiksGatewayConfig
-import _root_.services.BaseServiceSpec
+import config.CubiksGatewayConfig
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
-import model.Phase1TestExamples._
-import model.persisted.CubiksTest
 import model.SchemeType.SchemeType
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
-import model.persisted.{ ApplicationPhase1EvaluationExamples, PassmarkEvaluation, SchemeEvaluationResult, TestResult }
+import model.persisted.{ ApplicationPhase1EvaluationExamples, CubiksTest, PassmarkEvaluation, SchemeEvaluationResult, TestResult }
 import model.{ ApplicationStatus, Phase1TestExamples, Phase1TestProfileExamples, SchemeType }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories._
 import repositories.onlinetesting.Phase1EvaluationRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
+import services.BaseServiceSpec
 import services.onlinetesting.phase1.Phase1TestEvaluation
 
 import scala.concurrent.Future
@@ -188,5 +186,4 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       }
     }
   }
-
 }

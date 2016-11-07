@@ -54,11 +54,8 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
 
       val passMarkSettingsServiceMockWithSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceMockWithSettings.getLatestPassMarkSettings).thenReturn(Future.successful(
-        Some(
-          mockSettings
-        )
-      ))
+      when(passMarkSettingsServiceMockWithSettings.getLatestPhase1PassMarkSettings).thenReturn(
+        Future.successful(Some(mockSettings)))
 
       val passMarkSettingsControllerWithSettings = buildPMS(passMarkSettingsServiceMockWithSettings)
 
@@ -71,7 +68,6 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
   }
 
   "Save new settings" should {
-
     "Send a complete settings object to the repository with a version UUID appended" in new TestFixture {
 
       val passMarkSettingsServiceWithExpectations = mock[PassMarkSettingsService[Phase1PassMarkSettings]]

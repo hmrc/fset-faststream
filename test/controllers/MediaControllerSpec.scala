@@ -60,7 +60,6 @@ class MediaControllerSpec extends PlaySpec with Results {
       ))
 
       status(result) must be(400)
-
     }
   }
 

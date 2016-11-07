@@ -76,11 +76,10 @@ class ApplicationValidatorSpec extends PlaySpec {
       validator.validateSchemes must be(false)
     }
   }
-
 }
 
 object ApplicationValidatorSpec {
-  def personalDetails = PersonalDetails("firstName", "lastName", "preferredName", new LocalDate(), true, true)
+  def personalDetails = PersonalDetails("firstName", "lastName", "preferredName", new LocalDate(), aLevel = true, stemLevel = true)
 
   def assistanceDetails = AssistanceDetailsExamples.DisabilityGisAndAdjustments
   def preferences: Option[Preferences] = Some(

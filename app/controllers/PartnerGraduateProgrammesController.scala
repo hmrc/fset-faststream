@@ -17,11 +17,10 @@
 package controllers
 
 import model.Exceptions._
-import model.exchange.{ AssistanceDetailsExchange, PartnerGraduateProgrammesExchange }
+import model.exchange.PartnerGraduateProgrammesExchange
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
-import services.assistancedetails.AssistanceDetailsService
 import services.partnergraduateprogrammes.PartnerGraduateProgrammesService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -55,7 +54,6 @@ trait PartnerGraduateProgrammesController extends BaseController {
       Ok(Json.toJson(partnerGraduateProgrammes))
     } recover {
       case e: PartnerGraduateProgrammesNotFound => NotFound(s"Cannot find partner graduate programmes for applicationId: ${e.applicationId}")
-
     }
   }
 }

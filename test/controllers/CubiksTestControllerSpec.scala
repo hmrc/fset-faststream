@@ -29,7 +29,6 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-
 class CubiksTestControllerSpec extends BaseControllerSpec {
 
   val mockPhase1TestService = mock[Phase1TestService]
@@ -176,5 +175,4 @@ class CubiksTestControllerSpec extends BaseControllerSpec {
       status(response) mustBe NOT_FOUND
     }
   }
-
 }

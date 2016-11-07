@@ -49,5 +49,4 @@ trait DiagnosticReportController extends BaseController {
       Ok(Json.toJson(apps))
     }
   }
-
 }

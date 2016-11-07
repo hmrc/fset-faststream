@@ -16,9 +16,7 @@
 
 package model.report
 
-import model.OnlineTestCommands.TestResult
 import model.SchemeType
-import model.report.MediaReportItem
 
 import scala.util.Random
 
@@ -42,5 +40,4 @@ object ApplicationForOnlineTestPassMarkReportItemExamples {
       testsResult)
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
-
 }

@@ -121,7 +121,6 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
       result.foreach(s => withClue(s"school name: ${s.name}") {
         s.name.contains("Abbey Community") mustBe true
       })
-
     }
   }
 

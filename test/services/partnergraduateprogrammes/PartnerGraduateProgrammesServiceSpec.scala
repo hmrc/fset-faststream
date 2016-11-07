@@ -34,7 +34,7 @@ class PartnerGraduateProgrammesServiceSpec extends BaseServiceSpec {
 
       val response = service.update(AppId, PartnerGraduateProgrammesExchangeExamples.InterestedNotAll).futureValue
 
-      response mustBe (())
+      response mustBe ()
     }
   }
 

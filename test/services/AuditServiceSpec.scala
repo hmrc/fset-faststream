@@ -17,7 +17,6 @@
 package services
 
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -80,5 +79,4 @@ class AuditServiceSpec extends PlaySpec with MockitoSugar {
 
     when(auditMock.sendDataEvent).thenReturn(auditMockResponse)
   }
-
 }
