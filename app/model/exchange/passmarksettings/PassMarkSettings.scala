@@ -49,6 +49,6 @@ case class Phase2PassMarkSettings(
 
 object Phase2PassMarkSettings {
   import repositories.BSONDateTimeHandler
-  implicit val phase2PassMarkSettings = Json.format[Phase2PassMarkSettings]
+  implicit val phase2PassMarkSettingsFormat = Json.format[Phase2PassMarkSettings]
   implicit val phase2PassMarkSettingsHandler = Macros.handler[Phase2PassMarkSettings]
 }

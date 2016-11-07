@@ -35,8 +35,8 @@ object Phase2PassMarkSettingsService extends PassMarkSettingsService[Phase2PassM
 trait PassMarkSettingsService[T <: PassMarkSettings] {
   val passMarkSettingsRepo: PassMarkSettingsRepository[T]
 
-  def getLatestPhase1PassMarkSettings(implicit jsonFormat: Format[T]): Future[Option[T]] = passMarkSettingsRepo.getLatestVersion
+  def getLatestPassMarkSettings(implicit jsonFormat: Format[T]): Future[Option[T]] = passMarkSettingsRepo.getLatestVersion
 
-  def createPhase1PassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T]):Future[PassMarkSettingsCreateResponse]
+  def createPassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T]):Future[PassMarkSettingsCreateResponse]
       = passMarkSettingsRepo.create(passMarkSettings)
 }

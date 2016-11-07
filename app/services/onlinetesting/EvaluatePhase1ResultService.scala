@@ -40,7 +40,7 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
   val phase1EvaluationRepository: Phase1EvaluationRepository
 
   def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationPhase1ReadyForEvaluation], Phase1PassMarkSettings)]] = {
-    getLatestPhase1PassMarkSettings flatMap {
+    getLatestPassMarkSettings flatMap {
       case Some(passmark) =>
         phase1EvaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
           Some(candidates -> passmark)

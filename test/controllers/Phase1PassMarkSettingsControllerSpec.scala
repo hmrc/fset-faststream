@@ -41,7 +41,7 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
     "Return a settings objects with schemes but no thresholds if there are no settings saved" in new TestFixture {
       val passMarkSettingsServiceMockWithNoSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceMockWithNoSettings.getLatestPhase1PassMarkSettings).thenReturn(Future.successful(None))
+      when(passMarkSettingsServiceMockWithNoSettings.getLatestPassMarkSettings).thenReturn(Future.successful(None))
 
       val passMarkSettingsControllerWithNoSettings = buildPMS(passMarkSettingsServiceMockWithNoSettings)
 
@@ -54,7 +54,7 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
 
       val passMarkSettingsServiceMockWithSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceMockWithSettings.getLatestPhase1PassMarkSettings).thenReturn(Future.successful(
+      when(passMarkSettingsServiceMockWithSettings.getLatestPassMarkSettings).thenReturn(Future.successful(
         Some(
           mockSettings
         )
@@ -76,7 +76,7 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
 
       val passMarkSettingsServiceWithExpectations = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceWithExpectations.createPhase1PassMarkSettings(any())(any())).thenReturn(Future.successful(
+      when(passMarkSettingsServiceWithExpectations.createPassMarkSettings(any())(any())).thenReturn(Future.successful(
         PassMarkSettingsCreateResponse(
           "uuid-1",
           new DateTime()
@@ -91,7 +91,7 @@ class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with Mo
 
       val passMarkSettingCaptor = ArgumentCaptor.forClass(classOf[Phase1PassMarkSettings])
 
-      verify(passMarkSettingsServiceWithExpectations).createPhase1PassMarkSettings(passMarkSettingCaptor.capture)(any())
+      verify(passMarkSettingsServiceWithExpectations).createPassMarkSettings(passMarkSettingCaptor.capture)(any())
 
       val settingsParam = passMarkSettingCaptor.getValue
 
