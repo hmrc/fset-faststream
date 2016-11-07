@@ -23,10 +23,10 @@ import model.ApplicationStatus
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ NotFoundException, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.{ PHASE2_TESTS_PASSED, _ }
-import model.persisted.{ Phase2TestGroup, Phase2TestGroupWithAppId, Phase3TestGroupWithAppId }
-import model.persisted.phase3tests.Phase3TestGroup
+import model.ProgressStatuses._
+import model.persisted.Phase3TestGroupWithAppId
 import org.joda.time.{ DateTime, DateTimeZone }
+import model.persisted.phase3tests.Phase3TestGroup
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }

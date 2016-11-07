@@ -17,11 +17,11 @@
 package repositories
 
 import model.ApplicationStatus.ApplicationStatus
-import model.{ ApplicationStatus, ProgressStatuses }
 import model.ProgressStatuses.ProgressStatus
+import model.{ ApplicationStatus, ProgressStatuses }
 import org.joda.time.DateTime
+import reactivemongo.api.commands.UpdateWriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-
 
 trait CommonBSONDocuments {
 
@@ -60,34 +60,15 @@ trait CommonBSONDocuments {
     )
   }
 
-  def inviteToTestBSON[P <: ProgressStatus](targetProgressStatus: P, invigilatedKeyToExclude: String) = {
-    BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> targetProgressStatus.applicationStatus.toString),
-      BSONDocument(s"progress-status.${targetProgressStatus.key}" -> true),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument("$and" -> BSONArray(
-          BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
-          BSONDocument("assistance-details.needsSupportAtVenue" -> false),
-          BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true)))),
-        BSONDocument("$and" -> BSONArray(
-          BSONDocument("$or" -> BSONArray(
-            BSONDocument("assistance-details.guaranteedInterview" -> true),
-            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-            BSONDocument("assistance-details.needsSupportAtVenue" -> true)
-          )),
-          BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
-          BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> invigilatedKeyToExclude)))
-        ))
-      ))
+  def progressStatusGuardBSON(progressStatus: ProgressStatus) = {
+    BSONDocument(
+      "applicationStatus" -> progressStatus.applicationStatus,
+      s"progress-status.${progressStatus.key}" -> true
     )
-    // Invigilated etray with adjustments confirmed
-    /*BSONDocument("$and" -> BSONArray(
-      BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-      BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
-      BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
-    )),*/
+  }
 
-    // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver
-    // functionality even if invigilated test functionality is not ready. In that case we will remove some code
+  def validateSingleWriteOrThrow(failureException: => Exception)(writeResult: UpdateWriteResult) = writeResult.n match {
+    case 1 => ()
+    case _ => throw failureException
   }
 }

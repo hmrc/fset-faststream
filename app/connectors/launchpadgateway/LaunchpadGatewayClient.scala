@@ -16,10 +16,9 @@
 
 package connectors.launchpadgateway
 
-import _root_.config.WSHttp
 import config.MicroserviceAppConfig._
-import connectors.launchpadgateway.exchangeobjects._
-import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest, RegisterApplicantResponse }
+import _root_.config.WSHttp
+import connectors.launchpadgateway.exchangeobjects.out._
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
 import play.api.libs.json.Reads
@@ -38,7 +37,7 @@ trait LaunchpadGatewayClient {
   val url: String
 
   // Blank out header carriers for calls to LPG. Passing on someone's true-client-ip header will cause them to be reassessed
-  // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesireable behaviour.
+  // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesirable behaviour.
   implicit def blankedHeaderCarrier = new HeaderCarrier()
 
   lazy val urlWithPathPrefix = s"$url/fset-launchpad-gateway/faststream"
@@ -66,5 +65,3 @@ trait LaunchpadGatewayClient {
     }
   }
 }
-
-

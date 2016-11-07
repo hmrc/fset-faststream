@@ -23,10 +23,9 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import repositories.LockRepository
-import scheduled.LockKeeper
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
 class LockKeeperSpec extends PlaySpec with MockitoSugar with ScalaFutures {

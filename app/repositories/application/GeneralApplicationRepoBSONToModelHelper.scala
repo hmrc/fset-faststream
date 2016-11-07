@@ -32,7 +32,6 @@ import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
 
-
 object GeneralApplicationRepoBSONToModelHelper extends GeneralApplicationRepoBSONToModelHelper
 
 trait GeneralApplicationRepoBSONToModelHelper {
@@ -205,10 +204,9 @@ trait GeneralApplicationRepoBSONToModelHelper {
       phase2TestProfile.activeTests.size match {
         case 1 => phase2TestProfile.activeTests.head.testResult.map { tr => toTestResult(tr) }
         case 0 => None
-        case s if (s > 1) => {
+        case s if s > 1 =>
           Logger.error(s"There are $s active tests which is invalid for application id [$applicationId]")
           None
-        }
       }
     }
     TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult)
@@ -246,5 +244,4 @@ trait GeneralApplicationRepoBSONToModelHelper {
   }
 
   private def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
-
 }

@@ -47,7 +47,6 @@ trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob {
     implicit val hc = new HeaderCarrier()
     service.processNextTestForReminder(reminderNotice)
   }
-
 }
 
 trait FirstPhase1ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {

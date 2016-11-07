@@ -63,5 +63,4 @@ trait FlagCandidateController extends BaseController {
       case _: NotFoundException => NotFound
     }
   }
-
 }

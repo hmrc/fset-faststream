@@ -32,9 +32,8 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import reactivemongo.api.commands.UpdateWriteResult
 
-trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments {
+trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
@@ -182,7 +181,6 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     selectOneRandom[NotificationExpiringOnlineTest](query)
   }
 
-
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = {
     require(progressStatus.applicationStatus == thisApplicationStatus, "Forbidden progress status update")
 
@@ -225,7 +223,6 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       case lastError if lastError.nModified == 0 && lastError.n == 0 => errorHandler(cubiksUserId)
       case _ => ()
     }
-
   }
 
   def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {

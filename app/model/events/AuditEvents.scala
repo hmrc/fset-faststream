@@ -54,4 +54,7 @@ object AuditEvents {
   case class VideoInterviewReset(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
   case class VideoInterviewStarted(applicationId: String) extends AuditEventWithAppId(applicationId)
   case class VideoInterviewCompleted(applicationId: String) extends AuditEventWithAppId(applicationId)
+
+  case class FixedProdData(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class FailedFixedProdData(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
 }

@@ -16,12 +16,12 @@
 
 package repositories
 
-import model.report.{QuestionnaireReportItem}
 import model.PersistedObjects
-import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
+import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import model.report.QuestionnaireReportItem
 import play.api.libs.json._
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{DB, ReadPreference}
+import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
 import services.reporting.SocioEconomicScoreCalculator

@@ -21,7 +21,7 @@ import config.MicroserviceAppConfig.cubiksGatewayConfig
 import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
-import model.{ ApplicationRoute, EvaluationResults }
+import model.{ ApplicationRoute, EvaluationResults, ProgressStatuses }
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
@@ -118,12 +118,26 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "capture the submission date and change the application status to submitted" in {
       val applicationStatus = (for {
         app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+        _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.PREVIEW)
         _ <- applicationRepo.submit(app.applicationId)
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
       applicationStatus.status mustBe SUBMITTED.toString
       timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
+    }
+    "not allow multiple submissions" in {
+      val app = applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.PREVIEW).futureValue
+
+      applicationRepo.submit(app.applicationId).futureValue mustBe ()
+      applicationRepo.submit(app.applicationId).failed.futureValue mustBe an[IllegalStateException]
+    }
+    "not allow submissions unless in PREVIEW" in {
+      val app = applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.CREATED).futureValue
+
+      applicationRepo.submit(app.applicationId).failed.futureValue mustBe an[IllegalStateException]
     }
   }
 
@@ -168,8 +182,10 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       Await.ready({
         for {
           app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app.applicationId)
           app2 <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app2.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app2.applicationId)
         } yield {
           Unit
@@ -202,11 +218,14 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       Await.ready({
         for {
           app1 <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app1.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app1.applicationId)
           _ <- applicationRepo.create("userId2", frameworkId, ApplicationRoute.Faststream)
           app3 <- applicationRepo.create("userId3", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app3.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app3.applicationId)
           app4 <- applicationRepo.create("userId4", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(app4.applicationId, ProgressStatuses.PREVIEW)
           _ <- applicationRepo.submit(app4.applicationId)
           _ <- applicationRepo.create("userId5", frameworkId, ApplicationRoute.Faststream)
         } yield {
