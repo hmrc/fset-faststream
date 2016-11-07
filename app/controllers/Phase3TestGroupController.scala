@@ -18,8 +18,6 @@ package controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import repositories._
-import repositories.onlinetesting.Phase3TestRepository
 import services.events.EventService
 import services.onlinetesting.Phase3TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -41,6 +39,13 @@ trait Phase3TestGroupController extends BaseController {
           Ok(Json.toJson(testGroup))
         case None =>
           NotFound
+    }
+  }
+
+  def extend(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[OnlineTestExtension] { extension =>
+      phase3TestService.extendTestGroupExpiryTime(applicationId, extension.extraDays,
+        extension.actionTriggeredBy) map ( _ => Ok )
     }
   }
 }

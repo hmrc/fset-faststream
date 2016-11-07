@@ -25,7 +25,6 @@ import services.events.EventService
 import services.onlinetesting.Phase3TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object LaunchpadTestsController extends LaunchpadTestsController {
@@ -33,7 +32,6 @@ object LaunchpadTestsController extends LaunchpadTestsController {
   val eventService = EventService
 
   case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
-
 }
 
 trait LaunchpadTestsController extends BaseController {

@@ -19,7 +19,6 @@ package controllers
 import model.ApplicationRoute
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
-import org.joda.time.LocalDate
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories._

@@ -19,10 +19,8 @@ package controllers
 import connectors.AuthProviderClient
 import model.Commands._
 import model.PersistedObjects.ContactDetailsWithId
-import model.PersistedObjects.Implicits._
-import model.report._
 import model.command.ProgressResponse
-import model.report.{ DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels }
+import model.report.{ DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels, _ }
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.GeneralApplicationRepository

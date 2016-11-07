@@ -25,9 +25,9 @@ class ProgressStatusesReportLabelsSpec extends PlaySpec {
 
   "a registered application" should {
     "return registered" in {
-      val status = ProgressStatusesReportLabels.progressStatusNameInReports(new ProgressResponse("id", false, false, false, false, false, Nil,
-        false, false))
-        status must be("registered")
+      val status = ProgressStatusesReportLabels.progressStatusNameInReports(new ProgressResponse("id", false, false,
+        false, false, false, Nil, false, false))
+      status must be("registered")
     }
   }
 
@@ -35,6 +35,7 @@ class ProgressStatusesReportLabelsSpec extends PlaySpec {
     "return withdrawn" in {
       ProgressStatusesReportLabels.progressStatusNameInReports(progressResponse) must be("withdrawn")
     }
+
     "return withdrawn when all other progresses are set" in {
       ProgressStatusesReportLabels.progressStatusNameInReports(completeProgressResponse) must be("withdrawn")
     }
@@ -83,10 +84,15 @@ class ProgressStatusesReportLabelsSpec extends PlaySpec {
 
 object ProgressStatusesReportLabelsSpec {
 
-  val progressResponse = ProgressResponse("1", true, true, true, true, true,
-    List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"), true, true)
+  val progressResponse = ProgressResponse("1", personalDetails = true, schemePreferences = true,
+    partnerGraduateProgrammes = true, assistanceDetails = true, preview = true,
+    List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"),
+    submitted = true, withdrawn = true
+  )
 
-  val completeProgressResponse = ProgressResponse("1", true, true, true, true, true,
-    List("start_questionnaire", "diversity_questionnaire", "education_questionnaire",
-      "occupation_questionnaire"), true, true)
+  val completeProgressResponse = ProgressResponse("1", personalDetails = true, schemePreferences = true,
+    partnerGraduateProgrammes = true, assistanceDetails = true, preview = true,
+    List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"),
+    submitted = true, withdrawn = true
+  )
 }

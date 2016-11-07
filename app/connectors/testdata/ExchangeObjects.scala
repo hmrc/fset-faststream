@@ -17,7 +17,7 @@
 package connectors.testdata
 
 import model.Commands.ApplicationAssessment
-import model.persisted.{ContactDetails, PersonalDetails}
+import model.persisted.{AssistanceDetails, ContactDetails, PersonalDetails}
 import model.SelectedSchemes
 import play.api.libs.json.Json
 
@@ -34,6 +34,7 @@ object ExchangeObjects {
                                     personalDetails: Option[PersonalDetails] = None,
                                     isCivilServant: Option[Boolean] = None,
                                     contactDetails: Option[ContactDetails] = None,
+                                    assistanceDetails: Option[AssistanceDetails] = None,
                                     phase1TestGroup: Option[TestGroupResponse] = None,
                                     phase2TestGroup: Option[TestGroupResponse] = None,
                                     applicationAssessment: Option[ApplicationAssessment] = None,
@@ -53,5 +54,4 @@ object ExchangeObjects {
     implicit val phase1TestGroupResponseFormat = Json.format[TestGroupResponse]
     implicit val dataGenerationResponseFormat = Json.format[DataGenerationResponse]
   }
-
 }

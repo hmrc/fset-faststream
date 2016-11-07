@@ -32,7 +32,6 @@ import scala.language.postfixOps
 class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
 
   "Update" should {
-
     "return CREATED and update the partnet graduate programmes and audit PartnerGraduateProgrammesSaved event" in new TestFixture {
       when(mockPartnerGraduateProgrammesService.update(AppId, PartnerGraduateProgrammesExchangeExamples.InterestedNotAll)
       ).thenReturn(Future.successful(()))

@@ -19,31 +19,40 @@ package model.events
 import model.events.EventTypes.EventType
 
 // rename AuditEvent
-sealed trait AuditEvent extends EventType {
-  val details: Map[String, String]
+sealed abstract class AuditEvent(val details: Map[String, String]) extends EventType {
   override def toString: String = s"${super.toString}, details=$details"
 }
 
-sealed trait AuditEventWithAppId extends AuditEvent {
-  val applicationId: String
-  val details: Map[String, String] = Map("applicationId" -> applicationId)
-  override def toString: String = s"${super.toString}, details=$details"
-}
+sealed abstract class AuditEventWithAppId(applicationId: String) extends AuditEvent(Map("applicationId" -> applicationId))
 
-sealed trait AuditEventNoRequest extends AuditEvent
+sealed abstract class AuditEventNoRequest(details: Map[String, String]) extends AuditEvent(details)
 
 object AuditEvents {
   // NOTICE. The name for the case class is important and is used when the event is emitted.
   // In other words: Renaming the case class here, impacts in renaming the event name in Audit service.
 
-  case class ApplicationSubmitted(applicationId: String) extends AuditEventWithAppId
-  case class ApplicationWithdrawn(details: Map[String, String]) extends AuditEvent
-  case class ExpiredTestsExtended(details: Map[String, String]) extends AuditEventNoRequest
-  case class NonExpiredTestsExtended(details: Map[String, String]) extends AuditEventNoRequest
-  case class Phase1TestsReset(details: Map[String, String]) extends AuditEventNoRequest
-  case class ApplicationExpired(details: Map[String, String]) extends AuditEvent
-  case class ApplicationExpiryReminder(details: Map[String, String]) extends AuditEvent
-  case class ExpiredTestEmailSent(details: Map[String, String]) extends AuditEventNoRequest
-  case class FailedTestEmailSent(details: Map[String, String]) extends AuditEventNoRequest
-  case class Phase2TestsReset(details: Map[String, String]) extends AuditEventNoRequest
+  case class ApplicationSubmitted(applicationId: String) extends AuditEventWithAppId(applicationId)
+  case class ApplicationWithdrawn(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
+  case class ExpiredTestsExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class NonExpiredTestsExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class Phase1TestsReset(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class ApplicationExpired(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
+  case class ApplicationExpiryReminder(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
+  case class ExpiredTestEmailSent(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class FailedTestEmailSent(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+
+  case class Phase2TestInvitationProcessComplete(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class Phase2TestsReset(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+
+  case class AdjustmentsConfirmed(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
+  
+  case class VideoInterviewCandidateRegistered(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
+  case class VideoInterviewInvited(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
+  case class VideoInterviewInvitationEmailSent(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
+  case class VideoInterviewRegistrationAndInviteComplete(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
+  case class VideoInterviewExtended(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
+  case class VideoInterviewReset(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
+
+  case class FixedProdData(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class FailedFixedProdData(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
 }

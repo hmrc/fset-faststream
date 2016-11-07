@@ -20,6 +20,6 @@ import model.{ ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExam
 import org.joda.time.DateTime
 
 object ApplicationPhase1EvaluationExamples {
-  def application(implicit now: DateTime) = ApplicationPhase1ReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS, isGis = false,
-    Phase1TestProfileExamples.profile, SelectedSchemesExamples.TwoSchemes)
+  def application(implicit now: DateTime) = ApplicationPhase1ReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
+    isGis = false, Phase1TestProfileExamples.profile, SelectedSchemesExamples.TwoSchemes)
 }

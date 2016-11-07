@@ -16,19 +16,18 @@
 
 package services.onlinetesting
 
-import _root_.config.CubiksGatewayConfig
-import _root_.services.BaseServiceSpec
+import config.CubiksGatewayConfig
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
-import model.persisted.CubiksTest
 import model.SchemeType.SchemeType
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
-import model.persisted.{ ApplicationPhase1EvaluationExamples, PassmarkEvaluation, SchemeEvaluationResult, TestResult }
+import model.persisted.{ ApplicationPhase1EvaluationExamples, CubiksTest, PassmarkEvaluation, SchemeEvaluationResult, TestResult }
 import model.{ ApplicationStatus, Phase1TestExamples, Phase1TestProfileExamples, SchemeType }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories._
 import repositories.onlinetesting.Phase1EvaluationRepository
+import services.BaseServiceSpec
 import services.onlinetesting.phase1.Phase1TestEvaluation
 
 import scala.concurrent.Future
@@ -113,6 +112,22 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     }
   }
 
+  "evaluate edip candidate" should {
+    import Phase1TestExamples._
+
+    val oneTest = List(firstTest)
+    val twoTests = oneTest :+ secondTest
+
+    "not save the phase1 test results" in new TestFixture {
+      val application = createAppWithTestGroup(twoTests).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS)
+
+      edipSkipEvaluationService.evaluate(application, PassmarkSettings).futureValue
+
+      verify(mockPhase1EvaluationRepository, never()).savePassmarkEvaluation(AppId, ExpectedPassmarkEvaluation,
+        Some(ApplicationStatus.PHASE1_TESTS_PASSED))
+    }
+  }
+
   trait TestFixture {
     val PassmarkSettings = Phase1PassMarkSettingsExamples.passmark
     val AppId = ApplicationPhase1EvaluationExamples.application.applicationId
@@ -139,6 +154,21 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       override def bq = BqId
     }
 
+    val edipSkipEvaluationService = new EvaluatePhase1ResultService {
+      val phase1EvaluationRepository = mockPhase1EvaluationRepository
+      val gatewayConfig = mockCubiksGatewayConfig
+      val phase1PMSRepository = mockPhase1PMSRepository
+
+      override def sjq = SjqId
+
+      override def bq = BqId
+
+      override def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult,bqTestResult: TestResult,
+                                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+        Nil
+      }
+    }
+
     def createAppWithTestGroup(tests: List[CubiksTest]) = {
       val phase1 = Phase1TestProfileExamples.profile.copy(tests = tests)
       ApplicationPhase1EvaluationExamples.application.copy(phase1 = phase1)
@@ -155,5 +185,4 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       }
     }
   }
-
 }

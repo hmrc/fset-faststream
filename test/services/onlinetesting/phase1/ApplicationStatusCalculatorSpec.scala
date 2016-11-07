@@ -51,6 +51,9 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
       newStatus mustBe None
     }
 
+    "return exception when no results found" in {
+      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(PHASE1_TESTS, Nil)
+    }
   }
 
   def red = SchemeEvaluationResult(Commercial, Red.toString)

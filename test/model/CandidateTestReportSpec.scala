@@ -96,7 +96,6 @@ class CandidateTestReportSpec extends PlaySpec with MockitoSugar with TableDrive
     case true => VALID
     case false => INVALID
   }
-
 }
 
 // DSL

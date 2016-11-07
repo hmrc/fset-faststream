@@ -53,7 +53,6 @@ trait AssistanceDetailsController extends BaseController {
       Ok(Json.toJson(assistanceDetails))
     } recover {
       case e: AssistanceDetailsNotFound => NotFound(s"Cannot find assistance details for applicationId: ${e.id}")
-
     }
   }
 }

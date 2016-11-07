@@ -34,7 +34,6 @@ import play.api.{ Logger, Play }
 import play.api.libs.json.{ JsObject, JsString, Json }
 import play.api.mvc.{ Action, RequestHeader }
 import services.testdata._
-import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -44,7 +43,6 @@ import scala.concurrent.Future
 object TestDataGeneratorController extends TestDataGeneratorController {
 
   case class InvalidPostCodeFormatException(message: String) extends Exception(message)
-
 }
 
 trait TestDataGeneratorController extends BaseController {
@@ -141,15 +139,18 @@ trait TestDataGeneratorController extends BaseController {
   }
 
   private def createCandidateInStatus(config: (Int) => GeneratorConfig, numberToGenerate: Int)
-    (implicit hc: HeaderCarrier, rh: RequestHeader) = try {
-    TestDataGeneratorService.createCandidatesInSpecificStatus(
-      numberToGenerate, StatusGeneratorFactory.getGenerator, config
-    ).map { candidates =>
-      Ok(Json.toJson(candidates))
+    (implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    try {
+      TestDataGeneratorService.createCandidatesInSpecificStatus(
+        numberToGenerate, StatusGeneratorFactory.getGenerator,
+        config
+      ).map { candidates =>
+        Ok(Json.toJson(candidates))
+      }
+    } catch {
+      case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
+          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
-  } catch {
-    case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
-        JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
   }
 
   private def validatePostcode(postcode: String) = {
@@ -165,5 +166,4 @@ trait TestDataGeneratorController extends BaseController {
       case false => throw InvalidPostCodeFormatException(s"Postcode $postcode is in an invalid format")
     }
   }
-
 }

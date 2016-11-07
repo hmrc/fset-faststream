@@ -32,7 +32,6 @@ import scala.language.postfixOps
 
 class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
-
   "Update" should {
 
     "return CREATED and update the details and audit AssistanceDetailsSaved event" in new TestFixture {

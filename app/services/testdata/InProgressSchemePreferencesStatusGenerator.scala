@@ -46,7 +46,13 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
   // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getSchemePreferences: Future[SelectedSchemes] = {
-       Future.successful(SelectedSchemes(Random.schemeTypes, true, true))
+       Future.successful(
+         if (generatorConfig.applicationRoute == ApplicationRoute.Edip) {
+           SelectedSchemes(List(model.SchemeType.Edip), true, true)
+         } else {
+           SelectedSchemes(Random.schemeTypes, true, true)
+         }
+       )
     }
 
     for {

@@ -49,5 +49,4 @@ trait AssessmentCentrePassMarkSettingsController extends BaseController {
       }
     }
   }
-
 }

@@ -16,33 +16,40 @@
 
 package scheduler.clustering
 
-import scheduled.LockKeeper
+import scheduler.LockKeeper
 import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Try
 
 trait SingleInstanceScheduledJob extends ExclusiveScheduledJob {
   val lockId: String
   val forceLockReleaseAfter: Duration
+
+  @volatile
+  var running = false
 
   lazy val lockKeeper: LockKeeper = LockKeeper(lockIdToUse = lockId, forceLockReleaseAfterToUse = forceLockReleaseAfter)
   implicit val ec: ExecutionContext
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit]
 
-  override def isRunning: Future[Boolean] = for {
-    lockedOnMongo <- lockKeeper.isLocked
-    lockedOnJvm <- super.isRunning
-  } yield {
-    lockedOnMongo || lockedOnJvm
-  }
+  /**
+    * The lock keeper can take the lock for longer than it is being used to run the task when using
+    * greedy locking. This is to enforce tasks that can be should be done no more frequently than the
+    * lock duration. Sometimes, such as when shutting down, it is nice to know if the task is
+    * running or merely retaining a lock to maintain an interval
+    */
+  override def isRunning: Future[Boolean] = Future.successful(running)
 
   def executeInMutex(implicit ec: ExecutionContext): Future[this.Result] = lockKeeper.tryLock {
-    tryExecute
+    running = true
+    val v = Try(tryExecute)
+    running = false
+    v.get
   }.map {
     case Some(x) => Result("Done")
     case None => Result("Nothing")
   }
-
 }

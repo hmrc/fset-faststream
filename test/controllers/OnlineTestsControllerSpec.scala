@@ -38,10 +38,12 @@ class OnlineTestsControllerSpec extends BaseControllerSpec {
     applicationStatus = ApplicationStatus.SUBMITTED,
     userId = "userId",
     guaranteedInterview = false,
-    needsAdjustments = false,
+    needsOnlineAdjustments = false,
+    needsAtVenueAdjustments = false,
     preferredName = "Optimus",
     lastName = "Prime",
-    timeAdjustments = None
+    eTrayAdjustments = None,
+    videoInterviewAdjustments = None
   )
 
   def controller = new OnlineTestController {
