@@ -37,9 +37,12 @@ abstract class LaunchpadTestController(applicationClient: ApplicationClient, cac
         testProfile.tests.find(!_.completed).map { testToStart =>
           // Mark the test as started, if this is the first time they've clicked the button
           if (testToStart.startedDateTime.isEmpty) {
-            applicationClient.startPhase3TestByToken(testToStart.token).map(_ => ())
+            applicationClient.startPhase3TestByToken(testToStart.token).map { _ =>
+              Redirect(testToStart.testUrl)
+            }
+          } else {
+            Future.successful(Redirect(testToStart.testUrl))
           }
-          Future.successful(Redirect(testToStart.testUrl))
         }.getOrElse(Future.successful(NotFound))
       }
   }
