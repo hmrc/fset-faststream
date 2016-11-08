@@ -116,8 +116,8 @@ object Phase3TestData {
   def apply(o: model.exchange.testdata.Phase3TestDataRequest): Phase3TestData = {
     Phase3TestData(
       start = o.start.map(DateTime.parse),
-      expiry = o.start.map(DateTime.parse),
-      completion = o.start.map(DateTime.parse)
+      expiry = o.expiry.map(DateTime.parse),
+      completion = o.completion.map(DateTime.parse)
     )
   }
 }
