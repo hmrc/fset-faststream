@@ -30,8 +30,8 @@ import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
 import model.Commands.Candidate
 import model.command.ProgressResponse
-import model.persisted.{ ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport, Phase1TestProfile }
-import repositories.CommonBSONDocuments
+import model.persisted._
+import repositories.{ CommonBSONDocuments }
 import repositories.onlinetesting.Phase1TestMongoRepository
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
@@ -400,6 +400,13 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val testGroup: Option[Phase1TestProfile] = phase1TestRepo.getTestGroup("appId123").futureValue
       testGroup mustBe None
+    }
+  }
+
+  "findAdjustments" should {
+    "return None if assistance-details does not exist" in {
+      val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      repository.findAdjustments(result.applicationId).futureValue mustBe None
     }
   }
 

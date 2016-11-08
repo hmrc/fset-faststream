@@ -71,7 +71,20 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
 case class Phase2Schedule(scheduleId: Int, assessmentId: Int, normId: Int)
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
-                             schedules: Map[String, Phase2Schedule])
+                             expiryTimeInDaysForInvigilatedETray: Int,
+                             schedules: Map[String, Phase2Schedule]) {
+  require(schedules.contains("daro"), "Daro schedule must be present as it is used for the invigilated e-tray applications")
+
+  def scheduleNameByScheduleId(scheduleId: Int): String = {
+    val scheduleNameOpt = schedules.find { case (n, s) =>
+      s.scheduleId == scheduleId
+    }
+    val (scheduleName, _) = scheduleNameOpt.getOrElse(throw new IllegalArgumentException(s"Schedule id cannot be found: $scheduleId"))
+    scheduleName
+  }
+
+  def scheduleForInvigilatedETray = schedules("daro")
+}
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int

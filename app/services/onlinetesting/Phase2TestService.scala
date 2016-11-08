@@ -122,8 +122,8 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     phase2TestRepo.getTestGroup(application.applicationId).flatMap {
-      case Some(phase2TestGroup) if schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
-        val schedule = getRandomSchedule(phase2TestGroup.tests.map(_.scheduleId))
+      case Some(phase2TestGroup) if !application.isInvigilatedETray && schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
+        val (scheduleName, schedule) = getRandomScheduleWithName(phase2TestGroup.tests.map(_.scheduleId))
         registerAndInviteForTestGroup(List(application), schedule).map { _ =>
           audit("Phase2TestInvitationProcessComplete", application.userId)
           AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
@@ -158,13 +158,14 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   }
 
   def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)],
-                       schedule: Phase2Schedule = getRandomSchedule())
+                      schedule: Phase2Schedule)
                       (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
     val invites = candidateData.values.map { case (application, token, registration) =>
       buildInviteApplication(application, token, registration.userId, schedule)
     }.toList
 
     // Cubiks does not accept invite batch request with different time adjustments
+    // TODO LT: The filter based on the head should be done before registration, not after
     val firstInvite = invites.head
     val filteredInvites = invites.filter(_.timeAdjustments == firstInvite.timeAdjustments)
 
@@ -177,16 +178,28 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    val (scheduleName, schedule) = getRandomScheduleWithName()
-    registerAndInviteForTestGroup(applications, schedule).flatMap { candidatesToProgress =>
+    // Cubiks does not accept invite batch request with different scheduleId.
+    // Due to this limitation we cannot have multiple types of invitations, and the filtering is needed
+    val firstApplication = applications.head
+    val applicationsWithTheSameType = applications filter (_.isInvigilatedETray == firstApplication.isInvigilatedETray)
+
+    val isInvigilatedETrayBatch = applicationsWithTheSameType.head.isInvigilatedETray
+    val (scheduleName, schedule) = if (isInvigilatedETrayBatch) {
+      val schedule = testConfig.scheduleForInvigilatedETray
+      (testConfig.scheduleNameByScheduleId(schedule.scheduleId), schedule)
+    } else {
+      getRandomScheduleWithName()
+    }
+    registerAndInviteForTestGroup(applicationsWithTheSameType, schedule) flatMap { candidatesToProgress =>
       eventSink {
         Future.successful {
           candidatesToProgress.map(candidate => {
+            // TODO LT: This events should be emit one level down to also be logged by reset path
             DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId) ::
               AuditEvents.Phase2TestInvitationProcessComplete(Map(
                 "userId" -> candidate.userId,
                 "absoluteTime" -> s"${calculateAbsoluteTimeWithAdjustments(candidate)}",
-                "scheduleName" -> scheduleName)) ::
+                "scheduleName" -> s"$scheduleName")) ::
               Nil
           }).flatten
         }
@@ -195,20 +208,30 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   }
 
   private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = applications match {
-    case Nil => Future.successful(Nil)
-    case candidatesToProcess =>
-      val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
-      implicit val (invitationDate, expirationDate) = calcOnlineTestDates(gatewayConfig.phase2Tests.expiryTimeInDays)
+                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = {
+    require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
 
-      for {
-        registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
-        invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
-        _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
-        _ <- emailInviteToApplicants(candidatesToProcess)(hc, rh, invitationDate, expirationDate)
-      } yield {
-        candidatesToProcess
-      }
+    applications match {
+      case Nil => Future.successful(Nil)
+      case candidatesToProcess =>
+        val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
+        val isInvigilatedETrayBatch = applications.head.isInvigilatedETray
+        val expiryTimeInDays = if (isInvigilatedETrayBatch) {
+          gatewayConfig.phase2Tests.expiryTimeInDaysForInvigilatedETray
+        } else {
+          gatewayConfig.phase2Tests.expiryTimeInDays
+        }
+        implicit val (invitationDate, expirationDate) = calcOnlineTestDates(expiryTimeInDays)
+
+        for {
+          registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
+          invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
+          _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
+          _ <- emailInviteToApplicants(candidatesToProcess)(hc, rh, invitationDate, expirationDate)
+        } yield {
+          candidatesToProcess
+        }
+    }
   }
 
   def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, schedule: Phase2Schedule) = {

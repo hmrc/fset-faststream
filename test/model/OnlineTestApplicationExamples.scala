@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package config
+package model
 
-object Phase2ScheduleExamples {
-  val DaroSchedule = Phase2Schedule(1, 2, 3)
-  val IradSchedule = Phase2Schedule(4, 5, 6)
-  val WardSchedule = Phase2Schedule(7, 8, 9)
+import model.OnlineTestCommands.OnlineTestApplication
+
+object OnlineTestApplicationExamples {
+  val OnlineTest = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS, "userId",
+    guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, "name", "lastname",
+    None, None)
 }
