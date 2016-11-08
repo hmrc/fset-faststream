@@ -110,6 +110,10 @@ trait GeneralApplicationRepository {
 
   def findAdjustments(applicationId: String): Future[Option[Adjustments]]
 
+  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
+
+  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]]
+
   def rejectAdjustment(applicationId: String): Future[Unit]
 
   def gisByApplication(applicationId: String): Future[Boolean]
@@ -1001,6 +1005,32 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           val video = root.getAs[AdjustmentDetail]("video")
           Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
         }
+      }
+    }
+  }
+
+  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val projection = BSONDocument("$set" -> BSONDocument(
+      "assistance-details.adjustmentsComment" -> adjustmentsComment.comment.getOrElse("")
+    ))
+
+    collection.update(query, projection) map { _ => }
+  }
+
+  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      _.map { document =>
+        val root = document.getAs[BSONDocument]("assistance-details")
+        val comment = root.flatMap { r =>
+          r.getAs[String]("adjustmentsComment")
+        }
+
+        AdjustmentsComment(comment)
       }
     }
   }
