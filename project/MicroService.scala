@@ -60,6 +60,7 @@ trait MicroService {
       retrieveManaged := true,
       scalacOptions += "-feature"
     )
+    .settings(sources in (Compile, doc) := Seq.empty)
     .configs(IntegrationTest)
     .settings(pipelineStages := Seq(digest, gzip))
     .settings(inConfig(IntegrationTest)(Defaults.testSettings) : _*)
