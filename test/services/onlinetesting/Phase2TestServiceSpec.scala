@@ -22,8 +22,7 @@ import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Commands.AdjustmentDetail
-import model.OnlineTestCommands
+import model._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
 import model.command.{ Phase2ProgressResponse, ProgressResponse }
@@ -33,7 +32,6 @@ import model.events.DataStoreEvents.OnlineExerciseResultSent
 import model.events.EventTypes.Events
 import model.exchange.CubiksTestResultReady
 import model.persisted.{ ContactDetails, Phase2TestGroup, Phase2TestGroupWithAppId, _ }
-import model.{ Address, ApplicationStatus, ProgressStatuses }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._

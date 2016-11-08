@@ -17,11 +17,10 @@
 package model
 
 import connectors.ExchangeObjects.ReportNorm
-import model.Commands.AdjustmentDetail
 import model.PersistedObjects.CandidateTestReport
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import play.api.libs.json.Json
-import model.Commands.Implicits.adjustmentDetailFormat
+import model.Adjustments._
 import connectors.ExchangeObjects.Implicits.reportNormFormat
 import model.Commands.Implicits._
 import connectors.ExchangeObjects.Implicits._

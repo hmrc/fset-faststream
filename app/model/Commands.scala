@@ -167,18 +167,6 @@ object Commands {
 
   case class PreviewRequest(flag: Boolean)
 
-  case class AdjustmentManagement(
-    adjustments: Option[List[String]],
-    etray: Option[AdjustmentDetail],
-    video: Option[AdjustmentDetail]
-  )
-
-  case class AdjustmentDetail(
-    timeNeeded: Option[Int] = None,
-    invigilatedInfo: Option[String] = None,
-    otherInfo: Option[String] = None
-  )
-
   case class SearchCandidate(firstOrPreferredName: Option[String], lastName: Option[String], dateOfBirth: Option[LocalDate], postCode: Option[PostCode])
 
   case class Candidate(userId: String, applicationId: Option[String], email: Option[String], firstName: Option[String], lastName: Option[String],
@@ -238,8 +226,6 @@ object Commands {
     implicit val candidateFormat = Json.format[Candidate]
     implicit val reportFormat = Json.format[Report]
     implicit val preferencesWithContactDetailsFormat = Json.format[PreferencesWithContactDetails]
-    implicit val adjustmentDetailFormat = Json.format[AdjustmentDetail]
-    implicit val adjustmentManagementFormat = Json.format[AdjustmentManagement]
 
     implicit def fromCommandToPersistedQuestion(q: Question): PersistedQuestion =
       PersistedQuestion(q.question, PersistedAnswer(q.answer.answer, q.answer.otherDetails, q.answer.unknown))
