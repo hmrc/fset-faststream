@@ -179,8 +179,32 @@
     }
 
     @if(isFaststream(cachedUserData)) {
-        @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
-            case (_, None, Some(tests)) => {
+        @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.isPhase2TestFailed, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
+            case (true, _, Some(phase2Test), _) => {
+                <li id="etraySection">
+                    <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                        E-tray</p>
+                    <div id="groupTestExpired">
+                        <p>Unfortunately the time you had to finish the e-tray has expired.</p>
+                        <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>
+                            .</p>
+                        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
+                            site for more opportunities with us.</p>
+                    </div>
+                </li>
+            }
+             case (_, true, _, _) => {
+                <li id="etraySection">
+                    <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                        E-tray</p>
+                    <div id="phase2TestFailed">
+                        <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
+                        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
+                            site for more opportunities with us.</p>
+                    </div>
+                </li>
+            }
+            case (_, _, None, Some(tests)) => {
                 <li id="etraySection">
                     <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray
                         <span class="font-xsmall" data-locked>- locked</span>
@@ -188,7 +212,7 @@
                     <p data-locked>Unlocked if you're successful in the online exercises</p>
                 </li>
             }
-            case (false, Some(phase2Test), _) => {
+            case (false, false, Some(phase2Test), _) => {
                 @if(phase2Test.isCompleted) {
                     <li id="etraySection">
                         <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>E-tray</p>
@@ -203,20 +227,6 @@
                         @eTraySection(phase2Test)
                     </li>
                 }
-            }
-
-            case (true, Some(phase2Test), _) => {
-                <li id="etraySection">
-                    <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
-                        E-tray</p>
-                    <div id="groupTestExpired">
-                        <p>Unfortunately the time you had to finish the e-tray has expired.</p>
-                        <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>
-                            .</p>
-                        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
-                            site for more opportunities with us.</p>
-                    </div>
-                </li>
             }
             case _ => {}
         }
@@ -244,8 +254,8 @@
                         <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-minus"></i>
                             Video interview </p>
                         <div id="videoBlurb">
-                            <p id="videoDescription" class="">This section is timed, after starting the section you'll
-                                have 30 minutes to complete it.</p>
+                            <p id="videoDescription" class="">Each of your answers is timed, although you can take a
+                                break in-between questions if needed.</p>
                             <p id="videoTime" class="">You have <strong>@{
                                 phase3Test.getDuration
                             }</strong> to finish
@@ -261,7 +271,7 @@
                                             Continue section</button>
                                     }
                                 }
-                                <p>(You'll have 30 minutes to finish)</p>
+                                <p>(The answers that you give are timed)</p>
                             </div>
                         </div>
                     </li>
@@ -284,6 +294,7 @@
             case _ => {}
         }
     }
-
+    </ul>
+    <p id="testsFindOutMore"><a href="https://www.faststream.gov.uk/faqs/" rel="external" target="_blank">Find out more about the online tests</a></p>
 </div>
 
