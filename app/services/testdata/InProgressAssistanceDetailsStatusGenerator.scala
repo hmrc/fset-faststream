@@ -21,6 +21,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.assistancedetails.AssistanceDetailsRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import services.testdata.faker.DataFaker._
@@ -37,25 +38,29 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     def getAssistanceDetails(config: GeneratorConfig) = {
-      val hasDisabilityFinalValue = config.hasDisability.getOrElse(Random.yesNoPreferNotToSay)
+      val hasDisabilityFinalValue = config.assistanceDetails.hasDisability
+
       val hasDisabilityDescriptionFinalValue =
         if (hasDisabilityFinalValue == "Yes") {
-          Some(config.hasDisabilityDescription.getOrElse(Random.hasDisabilityDescription))
+          Some(config.assistanceDetails.hasDisabilityDescription)
         } else {
           None
         }
-      val gisFinalValue = if (hasDisabilityFinalValue == "Yes" && config.setGis) Some(true) else Some(false)
-      val onlineAdjustmentsFinalValue = config.onlineAdjustments.getOrElse(Random.bool)
+      val gisFinalValue = if (hasDisabilityFinalValue == "Yes" && config.assistanceDetails.setGis) {
+        Some(true)
+      } else { Some(false) }
+
+      val onlineAdjustmentsFinalValue = config.assistanceDetails.onlineAdjustments
       val onlineAdjustmentsDescriptionFinalValue =
         if (onlineAdjustmentsFinalValue) {
-          Some(config.onlineAdjustmentsDescription.getOrElse(Random.onlineAdjustmentsDescription))
+          Some(config.assistanceDetails.onlineAdjustmentsDescription)
         } else {
           None
         }
-      val assessmentCentreAdjustmentsFinalValue = config.assessmentCentreAdjustments.getOrElse(Random.bool)
+      val assessmentCentreAdjustmentsFinalValue = config.assistanceDetails.assessmentCentreAdjustments
       val assessmentCentreAdjustmentsDescriptionFinalValue =
         if (assessmentCentreAdjustmentsFinalValue) {
-          Some(config.assessmentCentreAdjustmentsDescription.getOrElse(Random.assessmentCentreAdjustmentDescription))
+          Some(config.assistanceDetails.assessmentCentreAdjustmentsDescription)
         } else {
           None
         }

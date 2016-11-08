@@ -20,12 +20,16 @@ import model.ApplicationStatus._
 import model.Exceptions.InvalidStatusException
 import model.ProgressStatuses
 import model.ProgressStatuses.ProgressStatus
+import model.command.testdata.GeneratorConfig
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity
-  def getGenerator(applicationStatus: ApplicationStatus, progressStatus: Option[ProgressStatus], generatorConfig: GeneratorConfig) = {
+  def getGenerator(generatorConfig: GeneratorConfig) = {
 
-    (applicationStatus, progressStatus) match {
+    val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
+    val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)
+
+    (generatorConfig.statusData.applicationStatus, generatorConfig.statusData.progressStatus) match {
       case (appStatus, None) => appStatus match {
         case REGISTERED => RegisteredStatusGenerator
         case CREATED => CreatedStatusGenerator
@@ -52,23 +56,27 @@ object StatusGeneratorFactory {
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_EXPIRED)) =>
-        if (generatorConfig.phase1StartTime.isDefined) {
+        if (phase1StartTime.isDefined) {
           Phase1TestsExpiredFromStartedStatusGenerator
         } else {
           Phase1TestsExpiredFromInvitedStatusGenerator
         }
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_COMPLETED)) => Phase1TestsCompletedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)) => Phase1TestsResultsReceivedStatusGenerator
+
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_INVITED)) => Phase2TestsInvitedStatusGenerator
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_STARTED)) => Phase2TestsStartedStatusGenerator
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_EXPIRED)) =>
-        if (generatorConfig.phase1StartTime.isDefined) {
+        if (phase2StartTime.isDefined) {
           Phase2TestsExpiredFromStartedStatusGenerator
         } else {
           Phase2TestsExpiredFromInvitedStatusGenerator
         }
+      case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_COMPLETED)) => Phase2TestsCompletedStatusGenerator
+      case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED)) => Phase2TestsResultsReceivedStatusGenerator
+
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_INVITED)) => Phase3TestsInvitedStatusGenerator
-      case _ => throw InvalidStatusException(s"$applicationStatus is not valid or not supported")
+      case _ => throw InvalidStatusException(s"${generatorConfig.statusData.applicationStatus} is not valid or not supported")
     }
   }
   // scalastyle:on cyclomatic.complexity

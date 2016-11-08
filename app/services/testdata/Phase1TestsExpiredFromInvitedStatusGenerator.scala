@@ -19,6 +19,7 @@ package services.testdata
 
 import model.ProgressStatuses.PHASE1_TESTS_EXPIRED
 import model.persisted.ExpiringOnlineTest
+import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository

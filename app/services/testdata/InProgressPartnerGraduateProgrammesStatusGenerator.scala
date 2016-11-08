@@ -21,6 +21,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.partnergraduateprogrammes.PartnerGraduateProgrammesRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
