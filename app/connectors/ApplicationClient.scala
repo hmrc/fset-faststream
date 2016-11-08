@@ -188,7 +188,7 @@ trait ApplicationClient {
 
   private def encodeUrlParam(str: String) = URLEncoder.encode(str, "UTF-8")
 
-  def startPhase3Test(launchpadInviteId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def startPhase3TestByToken(launchpadInviteId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"${url.host}${url.base}/launchpad/${encodeUrlParam(launchpadInviteId)}/markAsStarted", "").map(_ => ())
   }
 
