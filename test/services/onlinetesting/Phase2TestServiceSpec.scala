@@ -106,7 +106,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(phase2TestService.dataStoreEventHandlerMock, times(2)).handle(any[OnlineExerciseResultSent])(any[HeaderCarrier],
         any[RequestHeader])
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("OnlineTestInvitationEmailSent"), any[Map[String, String]])
-      
+
       verify(otRepositoryMock, times(2)).insertCubiksTests(any[String], any[Phase2TestGroup])
       verify(otRepositoryMock, times(2)).markTestAsInactive(any[Int])
     }
@@ -340,23 +340,40 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
   "retrieve phase 2 test report" should {
     "return an exception if there is an error retrieving one of the reports" in new Phase2TestServiceFixture {
       val failedTest = phase2Test.copy(scheduleId = 555, reportId = Some(2))
-      val successfulTest = phase2Test.copy(scheduleId = 444, reportId = Some(1))
-
-      when(cubiksGatewayClientMock.downloadXmlReport(eqTo(successfulTest.reportId.get)))
-        .thenReturn(Future.successful(OnlineTestCommands.TestResult(status = "Completed",
-          norm = "some norm",
-          tScore = Some(23.9999d),
-          percentile = Some(22.4d),
-          raw = Some(66.9999d),
-          sten = Some(1.333d)
-        )))
 
       when(cubiksGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get)))
         .thenReturn(Future.failed(new Exception))
 
       val result = phase2TestService.retrieveTestResult(Phase2TestGroupWithAppId(
-        "appId", phase2TestProfile.copy(tests = List(successfulTest, failedTest))
+        "appId", phase2TestProfile.copy(tests = List(failedTest))
       ))
+
+      result.failed.futureValue mustBe an[Exception]
+      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("ResultsRetrievedForSchedule"), any[Map[String, String]])
+      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}"),
+        any[Map[String, String]])
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(otRepositoryMock, times(0)).insertTestResult(any[String], eqTo(failedTest), any[TestResult])
+    }
+
+    "Not update anything if the active test has no report Id" in new Phase2TestServiceFixture {
+      val usedTest = phase2Test.copy(usedForResults = true, reportId = None, resultsReadyToDownload = false)
+      val unusedTest = phase2Test.copy(usedForResults = false, reportId = Some(123), resultsReadyToDownload = true)
+      val testProfile = phase2TestProfile.copy(tests = List(usedTest, unusedTest))
+
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
+        .thenReturn(Future.successful(()))
+
+      phase2TestService.retrieveTestResult(Phase2TestGroupWithAppId(
+        "appId", testProfile
+      )).futureValue
+
+      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("ResultsRetrievedForSchedule"), any[Map[String, String]])
+      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}"),
+        any[Map[String, String]])
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(otRepositoryMock, times(0)).insertTestResult(any[String], eqTo(usedTest), any[TestResult])
+      verify(otRepositoryMock, times(0)).insertTestResult(any[String], eqTo(unusedTest), any[TestResult])
     }
 
     "save a phase2 report for a candidate and update progress status" in new Phase2TestServiceFixture {

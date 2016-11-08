@@ -541,6 +541,8 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val result = phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds(
         "appId", "userId", phase1TestProfile.copy(tests = List(successfulTest, failedTest))
       ))
+
+      result.failed.futureValue mustBe an[Exception]
     }
 
     "save a phase1 report for a candidate and update progress status" in new OnlineTest {

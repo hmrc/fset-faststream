@@ -441,7 +441,9 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
       _ <- insertTests(eventualTestResults)
       _ <- maybeUpdateProgressStatus(testProfile.applicationId)
     } yield {
-      audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
+      eventualTestResults.foreach { _ =>
+        audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
+      }
     }
   }
 }
