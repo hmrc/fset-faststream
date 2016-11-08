@@ -992,7 +992,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
 
-    // TODO LT: Add Unit test
     collection.find(query, projection).one[BSONDocument].map {
       _.flatMap { document =>
         val rootOpt = document.getAs[BSONDocument]("assistance-details")
