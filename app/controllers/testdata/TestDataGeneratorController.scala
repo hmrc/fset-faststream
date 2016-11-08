@@ -58,6 +58,7 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
+  // scalastyle:off method.length
   def requestExample = Action.async { implicit request =>
     Future {
       val example = CreateCandidateInStatusRequest(
@@ -100,13 +101,19 @@ trait TestDataGeneratorController extends BaseController {
           start = Some("2340-01-01"),
           expiry = Some("2340-01-29"),
           completion = Some("2340-01-16")
+        )),
+        phase3TestData = Some(Phase3TestDataRequest(
+          start = Some("2340-01-01"),
+          expiry = Some("2340-01-29"),
+          completion = Some("2340-01-16")
         ))
       )
 
       Ok(Json.toJson(example))
     }
   }
-
+  // scalastyle:on method.length
+  
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String) = Action.async { implicit request =>
     try {
       TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>

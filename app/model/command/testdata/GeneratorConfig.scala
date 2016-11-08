@@ -106,6 +106,22 @@ object Phase2TestData {
   }
 }
 
+case class Phase3TestData(
+  start: Option[DateTime] = None,
+  expiry: Option[DateTime] = None,
+  completion: Option[DateTime] = None
+)
+
+object Phase3TestData {
+  def apply(o: model.exchange.testdata.Phase3TestDataRequest): Phase3TestData = {
+    Phase3TestData(
+      start = o.start.map(DateTime.parse),
+      expiry = o.start.map(DateTime.parse),
+      completion = o.start.map(DateTime.parse)
+    )
+  }
+}
+
 case class PersonalData(
   emailPrefix: String = s"tesf${Random.number()-1}",
   firstName: String = Random.getFirstname(1),
@@ -121,7 +137,7 @@ object PersonalData {
   def apply(o: model.exchange.testdata.PersonalDataRequest, generatorId: Int): PersonalData = {
     val default = PersonalData()
     val fname = o.firstName.getOrElse(Random.getFirstname(generatorId))
-    val emailPrefix = o.emailPrefix.map( e => s"$e-${generatorId}")
+    val emailPrefix = o.emailPrefix.map( e => s"$e-$generatorId")
 
     PersonalData(
       emailPrefix = emailPrefix.getOrElse(s"tesf${Random.number()}-${generatorId}"),
@@ -164,7 +180,8 @@ case class GeneratorConfig(statusData: StatusData,
   loc1scheme2Passmark: Option[Result] = None,
   confirmedAllocation: Boolean = true,
   phase1TestData: Option[Phase1TestData] = None,
-  phase2TestData: Option[Phase2TestData] = None
+  phase2TestData: Option[Phase2TestData] = None,
+  phase3TestData: Option[Phase3TestData] = None
 )
 
 object GeneratorConfig {
@@ -188,7 +205,8 @@ object GeneratorConfig {
         case _ => o.confirmedAllocation.getOrElse(false)
       },
       phase1TestData = o.phase1TestData.map(Phase1TestData.apply),
-      phase2TestData = o.phase2TestData.map(Phase2TestData.apply)
+      phase2TestData = o.phase2TestData.map(Phase2TestData.apply),
+      phase3TestData = o.phase3TestData.map(Phase3TestData.apply)
     )
   }
 }

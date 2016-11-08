@@ -370,7 +370,6 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
       updated
     }
   }
-
 }
 
 trait ResetPhase1Test {

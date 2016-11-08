@@ -64,6 +64,16 @@ object Phase2TestDataRequest {
   implicit val phase2TestDataFormat = Json.format[Phase2TestDataRequest]
 }
 
+case class Phase3TestDataRequest(
+  start: Option[String] = None,
+  expiry: Option[String] = None,
+  completion: Option[String] = None
+)
+
+object Phase3TestDataRequest {
+  implicit val phase3TestDataFormat = Json.format[Phase3TestDataRequest]
+}
+
 case class PersonalDataRequest(
   emailPrefix: Option[String] = None,
   firstName: Option[String] = None,
@@ -101,7 +111,8 @@ case class CreateCandidateInStatusRequest(
   loc1scheme2EvaluationResult: Option[String],
   confirmedAllocation: Option[Boolean],
   phase1TestData: Option[Phase1TestDataRequest],
-  phase2TestData: Option[Phase2TestDataRequest]
+  phase2TestData: Option[Phase2TestDataRequest],
+  phase3TestData: Option[Phase3TestDataRequest]
 )
 
 object CreateCandidateInStatusRequest {
