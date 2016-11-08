@@ -74,15 +74,15 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
   "Invite applicants" must {
     "correctly invite a batch of candidates" in new Phase2TestServiceFixture {
-      override def availableSchedules = Map("daro" -> DaroShedule)
-      override val phase2TestProfile = Phase2TestGroup(expirationDate, List(phase2Test.copy(scheduleId = DaroShedule.scheduleId)))
+      override def availableSchedules = Map("daro" -> DaroSchedule)
+      override val phase2TestProfile = Phase2TestGroup(expirationDate, List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId)))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfile)))
 
-      val result = phase2TestService.inviteApplicants(registeredMap, DaroShedule).futureValue
+      val result = phase2TestService.inviteApplicants(registeredMap, DaroSchedule).futureValue
 
-      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, DaroShedule.scheduleId, tokens.head,
+      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, DaroSchedule.scheduleId, tokens.head,
         registrations.head, invites.head),
-        phase2TestService.Phase2TestInviteData(onlineTestApplication2, scheduleId = DaroShedule.scheduleId, tokens.last,
+        phase2TestService.Phase2TestInviteData(onlineTestApplication2, scheduleId = DaroSchedule.scheduleId, tokens.last,
           registrations.last, invites.last)
       )
       verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
@@ -142,7 +142,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
       phase2TestService.registerAndInviteForTestGroup(List(application)).futureValue
 
-      val invitation = InviteApplicant(DaroShedule.scheduleId, cubiksUserId, inviteApplicant.scheduleCompletionURL, None)
+      val invitation = InviteApplicant(DaroSchedule.scheduleId, cubiksUserId, inviteApplicant.scheduleCompletionURL, None)
       verify(cubiksGatewayClientMock).inviteApplicants(List(invitation))
       verify(otRepositoryMock).insertCubiksTests(
         application.applicationId,
@@ -227,7 +227,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
   "reset phase2 tests" should {
     "remove progress and register for new tests" in new Phase2TestServiceFixture {
       override val phase2TestProfile = Phase2TestGroup(expirationDate,
-        List(phase2Test.copy(scheduleId = DaroShedule.scheduleId))
+        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
       )
 
       val expectedRegistration = registrations.head
@@ -521,7 +521,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     when(clock.nowLocalTimeZone).thenReturn(now)
 
     val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase2"
-    def availableSchedules = Map("irad" -> IradShedule, "daro" -> DaroShedule)
+    def availableSchedules = Map("irad" -> IradSchedule, "daro" -> DaroSchedule)
     val gatewayConfigMock =  CubiksGatewayConfig(
       "",
       Phase1TestsConfig(expiryTimeInDays = 7,
@@ -597,7 +597,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
         authenticateUrl = authenticateUrl, participantScheduleId = 888
     ))
 
-    val phase2Test = CubiksTest(scheduleId = IradShedule.scheduleId,
+    val phase2Test = CubiksTest(scheduleId = IradSchedule.scheduleId,
       usedForResults = true,
       cubiksUserId = cubiksUserId,
       token = token,
@@ -607,10 +607,10 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     )
 
     val phase2TestProfile = Phase2TestGroup(expirationDate,
-      List(phase2Test, phase2Test.copy(scheduleId = DaroShedule.scheduleId))
+      List(phase2Test, phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
     )
     val invigilatedTestProfile = Phase2TestGroup(
-      invigilatedExpirationDate, List(phase2Test.copy(scheduleId = DaroShedule.scheduleId))
+      invigilatedExpirationDate, List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
     )
 
     val testResult = OnlineTestCommands.TestResult(status = "Completed",

@@ -22,29 +22,29 @@ import Phase2ScheduleExamples._
 class Phase2TestsConfigSpec extends PlaySpec {
 
   "Schedule name by schedule id" should {
-    val config = Phase2TestsConfig(10, 20, Map("daro" -> DaroShedule))
+    val config = Phase2TestsConfig(10, 20, Map("daro" -> DaroSchedule))
 
     "return schedule name by schedule id" in {
-      val name = config.scheduleNameByScheduleId(DaroShedule.scheduleId)
+      val name = config.scheduleNameByScheduleId(DaroSchedule.scheduleId)
       name mustBe "daro"
     }
 
     "throw an exception when no schedule id" in {
       an[IllegalArgumentException] must be thrownBy {
-        config.scheduleNameByScheduleId(WardShedule.scheduleId)
+        config.scheduleNameByScheduleId(WardSchedule.scheduleId)
       }
     }
   }
 
   "schedule for invigilated e-tray" should {
     "return daro" in {
-      val config = Phase2TestsConfig(10, 20, Map("irad" -> IradShedule, "daro" -> DaroShedule))
-      config.scheduleForInvigilatedETray mustBe DaroShedule
+      val config = Phase2TestsConfig(10, 20, Map("irad" -> IradSchedule, "daro" -> DaroSchedule))
+      config.scheduleForInvigilatedETray mustBe DaroSchedule
     }
 
     "throw an exception when there is no daro schedule" in {
       an[IllegalArgumentException] must be thrownBy {
-        Phase2TestsConfig(10, 20, Map("irad" -> IradShedule))
+        Phase2TestsConfig(10, 20, Map("irad" -> IradSchedule))
       }
     }
   }
