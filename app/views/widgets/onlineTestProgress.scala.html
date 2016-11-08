@@ -16,18 +16,23 @@
             <p>We're arranging for you to come in and take an invigilated e-tray.</p>
             <p>You'll be contacted by a member of our team with further details.</p>
         } else {
-            <p id="etrayDescription" class="">This section is timed, after starting the section you'll have 80 minutes to complete it.</p>
-            <p id="etrayTime" class="">You have <strong>@{phase2Test.getDuration}</strong> to finish the e-tray</p>
+            <p id="etrayDescription" class="">This section is timed, after starting the section you'll have 80 minutes to complete it. If we've agreed you require extra time, this will be added to the 80 minutes.</p>
+            <p id="etrayTime" class="">You have <strong>@{
+                phase2Test.getDuration
+            }</strong> to finish
+                the e-tray</p>
             <div id="etrayTestButton">
                 @helper.form(action = routes.CubiksTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
                     @helper.CSRF.formField
                     @if(!phase2Test.isStarted) {
-                        <button id="etrayButton" type="submit" value="submit" class="button">Start section</button>
+                        <button id="etrayButton" type="submit" value="submit" class="button">
+                            Start section</button>
                     } else {
-                        <button id="etrayButton" type="submit" value="submit" class="button">Continue section</button>
+                        <button id="etrayButton" type="submit" value="submit" class="button">
+                            Continue section</button>
                     }
                 }
-                <p>(You'll have 80 minutes to finish)</p>
+                <p>(You'll have 80 minutes to finish) <br> If we've agreed you require extra time, this will be added to the 80 minutes.</p>
             </div>
         }
     </div>
