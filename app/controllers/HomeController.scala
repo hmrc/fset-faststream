@@ -23,7 +23,7 @@ import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, Onlin
 import connectors.exchange.{ FrameworkId, Phase2TestGroupWithActiveTest, Phase3TestGroup, WithdrawApplication }
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
-import models.CachedData
+import models.{ Adjustments, CachedData }
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
 import security.Roles
 import security.Roles._
@@ -46,7 +46,12 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
         applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))
       } else { Future.successful(None) }
 
+      def getAdjustments: Future[Option[Adjustments]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
+        applicationClient.findAdjustments(application.applicationId)
+      } else { Future.successful(None) }
+
       val dashboard = for {
+        adjustmentsOpt <- getAdjustments
         phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
         phase2TestsWithNames <- getPhase2Test
         phase3Tests <- getPhase3Test
@@ -54,7 +59,7 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
         updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
       } yield {
         val dashboardPage = DashboardPage(updatedData, allocationDetails, Some(Phase1TestsPage.apply(phase1TestsWithNames)),
-          phase2TestsWithNames.map(Phase2TestsPage.apply),
+          phase2TestsWithNames.map(p => Phase2TestsPage.apply(p, adjustmentsOpt)),
           phase3Tests.map(Phase3TestsPage.apply)
         )
         Ok(views.html.home.dashboard(updatedData, dashboardPage, allocationDetails))

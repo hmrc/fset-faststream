@@ -16,13 +16,13 @@
 
 package models.page
 
+import models.Adjustments
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 import org.joda.time.{ DateTime, Period, PeriodType }
 
-case class Phase2TestsPage(
-                            expirationDate: DateTime,
-                            etray: Option[CubiksTestPage]
-                          ) {
+case class Phase2TestsPage(expirationDate: DateTime,
+                           etray: Option[CubiksTestPage],
+                           adjustments: Option[Adjustments]) {
 
   def isStarted: Boolean = etray.exists(_.started)
 
@@ -76,13 +76,16 @@ case class Phase2TestsPage(
 
     dateTimeFormat.print(expirationDate)
   }
+
+  def isInvigilatedETrayApproved = adjustments exists (_.isInvigilatedETrayApproved)
 }
 
 object Phase2TestsPage {
 
-  def apply(profile: connectors.exchange.Phase2TestGroupWithActiveTest): Phase2TestsPage = {
+  def apply(profile: connectors.exchange.Phase2TestGroupWithActiveTest, adjustments: Option[Adjustments]): Phase2TestsPage = {
     Phase2TestsPage(expirationDate = profile.expirationDate,
-      etray = Some(CubiksTestPage.apply(profile.activeTest))
+      etray = Some(CubiksTestPage.apply(profile.activeTest)),
+      adjustments = adjustments
     )
   }
 }
