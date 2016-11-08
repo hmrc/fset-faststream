@@ -37,7 +37,7 @@ trait AdjustmentsManagementController extends BaseController {
       adjustmentsManagementService.confirmAdjustment(applicationId, data).map { _ =>
         Ok
       }.recover {
-        case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
+        case e: ApplicationNotFound => NotFound(s"cannot find application for application with id: ${e.id}")
       }
     }
   }

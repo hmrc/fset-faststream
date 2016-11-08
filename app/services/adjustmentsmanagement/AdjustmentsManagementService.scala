@@ -47,7 +47,7 @@ trait AdjustmentsManagementService extends EventSink {
       AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
       Nil
 
-    def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String ={
+    def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String = {
 
       def mkString(ad: Option[AdjustmentDetail]): Option[String] =
         ad.map(e => List(e.timeNeeded.map( tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
@@ -62,7 +62,7 @@ trait AdjustmentsManagementService extends EventSink {
       case Some(candidate) =>
         cdRepository.find(candidate.userId).flatMap { cd =>
           eventSink {
-            appRepository.confirmAdjustments(applicationId, adjustmentInformation).map{ _ =>
+            appRepository.confirmAdjustments(applicationId, adjustmentInformation).map { _ =>
               adjustmentInformation.adjustments match {
                 case Some(list) if list.nonEmpty => EmailEvents.AdjustmentsConfirmed(cd.email,
                   candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),
