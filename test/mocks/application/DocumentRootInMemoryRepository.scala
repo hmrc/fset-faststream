@@ -139,6 +139,13 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
       Some(Adjustments(Some(List("etrayTimeExtension")), Some(true), Some(AdjustmentDetail(Some(5))), None))
     )
 
+  override def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = Future.successful(Unit)
+
+  override def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]] =
+    Future.successful(
+      Some(AdjustmentsComment(Some("comment")))
+    )
+
   override def rejectAdjustment(applicationId: String): Future[Unit] = Future.successful(Unit)
 
   override def candidatesAwaitingAllocation(frameworkId: String): Future[List[CandidateAwaitingAllocation]] =

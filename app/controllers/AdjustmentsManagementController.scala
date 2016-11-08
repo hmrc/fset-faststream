@@ -16,7 +16,8 @@
 
 package controllers
 
-import model.Adjustments
+import model.{ Adjustments, AdjustmentsComment }
+import model.Adjustments._
 import model.Exceptions._
 import play.api.libs.json.Json
 import play.api.mvc.Action
@@ -47,4 +48,21 @@ trait AdjustmentsManagementController extends BaseController {
       Ok(Json.toJson(adjustments))
     }
   }
+
+  def saveAdjustmentsComment(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[AdjustmentsComment] { data =>
+      adjustmentsManagementService.saveAdjustmentsComment(applicationId, data).map { _ =>
+        Ok
+      }.recover {
+        case e: ApplicationNotFound => NotFound(s"cannot find application for application with id: ${e.id}")
+      }
+    }
+  }
+
+  def findAdjustmentsComment(applicationId: String) = Action.async { implicit request =>
+    adjustmentsManagementService.findAdjustmentsComment(applicationId).map { adjustmentsComment =>
+      Ok(Json.toJson(adjustmentsComment))
+    }
+  }
+
 }

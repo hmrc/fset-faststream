@@ -16,7 +16,7 @@
 
 package services.adjustmentsmanagement
 
-import model.{ AdjustmentDetail, Adjustments }
+import model.{ AdjustmentDetail, Adjustments, AdjustmentsComment }
 import model.Exceptions.ApplicationNotFound
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.exchange.AssistanceDetailsExchange
@@ -81,4 +81,18 @@ trait AdjustmentsManagementService extends EventSink {
     appRepository.findAdjustments(applicationId)
   }
 
+  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment)
+                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    eventSink {
+      appRepository.saveAdjustmentsComment(applicationId, adjustmentsComment).map { _ =>
+        DataStoreEvents.AdjustmentsCommentUpdated(applicationId) ::
+        AuditEvents.AdjustmentsCommentUpdated(Map("applicationId" -> applicationId, "adjustmentsComment" -> adjustmentsComment.toString)) ::
+          Nil
+      }
+    }
+  }
+
+  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]] = {
+    appRepository.findAdjustmentsComment(applicationId)
+  }
 }

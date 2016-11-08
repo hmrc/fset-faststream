@@ -31,7 +31,12 @@ case class AdjustmentDetail(
   otherInfo: Option[String] = None
 )
 
+case class AdjustmentsComment(
+  comment: Option[String]
+)
+
 object Adjustments{
   implicit val adjustmentDetailFormat = Json.format[AdjustmentDetail]
   implicit val adjustmentsFormat = Json.format[Adjustments]
+  implicit val adjustmentsCommentFormat = Json.format[AdjustmentsComment]
 }
