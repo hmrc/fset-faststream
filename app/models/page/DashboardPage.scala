@@ -37,6 +37,7 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isPhase2TestGroupExpired: Boolean,
   isPhase3TestGroupExpired: Boolean,
   isPhase1TestFailed: Boolean,
+  isPhase2TestFailed: Boolean,
   fullName: String,
   phase1TestsPage: Option[Phase1TestsPage],
   phase2TestsPage: Option[Phase2TestsPage],
@@ -73,6 +74,7 @@ object DashboardPage {
       isPhase2TestGroupExpired(user),
       isPhase3TestGroupExpired(user),
       isPhase1TestFailed(user),
+      isPhase2TestFailed(user),
       user.user.firstName + " " + user.user.lastName,
       phase1TestGroup,
       phase2TestGroup,
@@ -186,6 +188,9 @@ object DashboardPage {
   private def isPhase1TestFailed(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     Phase1TestFailedRole.isAuthorized(user)
 
+  private def isPhase2TestFailed(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    Phase2TestFailedRole.isAuthorized(user)
+
   private def isPhase2TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     Phase2TestExpiredRole.isAuthorized(user)
 
@@ -256,13 +261,15 @@ object DashboardPage {
       } else {
         ProgressInactive
       }
-      val thirdStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) || isPhase1TestFailed(user)) {
+      val thirdStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) ||
+        isPhase1TestFailed(user) || isPhase2TestFailed(user)) {
         ProgressInactiveDisabled
       }
       else {
         ProgressInactive
       }
-      val fourthStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) || isPhase1TestFailed(user)) {
+      val fourthStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) ||
+        isPhase1TestFailed(user) || isPhase2TestFailed(user)) {
         ProgressInactiveDisabled
       }
       else {

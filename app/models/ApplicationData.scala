@@ -40,7 +40,7 @@ object ApplicationData {
     // format: OFF
     val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED = Value
     val PHASE1_TESTS, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED = Value
-    val PHASE2_TESTS = Value
+    val PHASE2_TESTS, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED = Value
     val PHASE3_TESTS = Value
 
     val REGISTERED = Value
