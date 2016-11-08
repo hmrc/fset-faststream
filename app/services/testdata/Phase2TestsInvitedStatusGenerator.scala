@@ -21,6 +21,7 @@ import java.util.UUID
 import config.CubiksGatewayConfig
 import connectors.testdata.ExchangeObjects.{ CubiksTestResponse, TestGroupResponse }
 import model.persisted.{ CubiksTest, Phase2TestGroup }
+import model.command.testdata.GeneratorConfig
 import org.joda.time.DateTime
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
@@ -46,14 +47,14 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
       cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
-      invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
+      invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
       participantScheduleId = 243357,
       scheduleId = gatewayConfig.phase2Tests.schedules("daro").scheduleId,
       usedForResults = true
     )
 
     val phase2TestGroup = Phase2TestGroup(
-      expirationDate = generatorConfig.phase1ExpiryTime.getOrElse(DateTime.now().plusDays(7)),
+      expirationDate = generatorConfig.phase2TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
       tests = List(etray)
     )
 

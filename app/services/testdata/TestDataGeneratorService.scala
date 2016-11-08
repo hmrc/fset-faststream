@@ -23,6 +23,7 @@ import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,6 +31,8 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 import services.testdata.faker.DataFaker._
+
+import scala.collection.parallel.immutable.ParRange
 
 object TestDataGeneratorService extends TestDataGeneratorService {
 }
@@ -71,19 +74,27 @@ trait TestDataGeneratorService {
   }
 
   def createCandidatesInSpecificStatus(numberToGenerate: Int,
-    generatorForStatus: BaseGenerator,
-    generatorConfig: GeneratorConfig
+    generatorForStatus: (GeneratorConfig) => BaseGenerator,
+    configGenerator: (Int) => GeneratorConfig
   )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
     Future.successful {
+
       val parNumbers = (1 to numberToGenerate).par
       parNumbers.tasksupport = new ForkJoinTaskSupport(
         new scala.concurrent.forkjoin.ForkJoinPool(2)
       )
-      parNumbers.map {
-        candidateGenerationId =>
-          val fut = generatorForStatus.generate(candidateGenerationId, generatorConfig)
-          Await.result(fut, 10 seconds)
+
+      // one wasted generation of config
+      val config = configGenerator(parNumbers.head)
+      val generator = generatorForStatus(config)
+
+      parNumbers.map { candidateGenerationId =>
+        Await.result(
+          generator.generate(candidateGenerationId, configGenerator(candidateGenerationId)),
+          10 seconds
+        )
       }.toList
+
     }
   }
 }

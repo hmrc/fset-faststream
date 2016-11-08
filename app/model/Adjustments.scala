@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package services.testdata
+package model
 
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
+import play.api.libs.json.Json
 
-import scala.concurrent.Future
+case class Adjustments(
+  adjustments: Option[List[String]],
+  adjustmentsConfirmed: Option[Boolean],
+  etray: Option[AdjustmentDetail],
+  video: Option[AdjustmentDetail]
+)
 
-trait BaseGenerator {
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse]
+case class AdjustmentDetail(
+  timeNeeded: Option[Int] = None,
+  invigilatedInfo: Option[String] = None,
+  otherInfo: Option[String] = None
+)
+
+object Adjustments{
+  implicit val adjustmentDetailFormat = Json.format[AdjustmentDetail]
+  implicit val adjustmentsFormat = Json.format[Adjustments]
 }

@@ -22,8 +22,7 @@ import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Commands.AdjustmentDetail
-import model.OnlineTestCommands
+import model._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
 import model.command.{ Phase2ProgressResponse, ProgressResponse }
@@ -33,7 +32,6 @@ import model.events.DataStoreEvents.OnlineExerciseResultSent
 import model.events.EventTypes.Events
 import model.exchange.CubiksTestResultReady
 import model.persisted.{ ContactDetails, Phase2TestGroup, Phase2TestGroupWithAppId, _ }
-import model.{ Address, ApplicationStatus, ProgressStatuses }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -254,8 +252,8 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
       phase2TestService.resetTests(onlineTestApplication, "createdBy").futureValue
 
-      verify(otRepositoryMock).removeTestProfileProgresses("appId",
-        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY))
+      verify(otRepositoryMock).resetTestProfileProgresses("appId",
+        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY, PHASE2_TESTS_FAILED))
       verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
       verify(otRepositoryMock).insertCubiksTests(any[String], any[Phase2TestGroup])
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
@@ -649,7 +647,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     when(otRepositoryMock.getTestGroup(any[String]))
       .thenReturn(Future.successful(Some(phase2TestProfile)))
 
-    when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]]))
+    when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
       .thenReturn(Future.successful(()))
 
     when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(

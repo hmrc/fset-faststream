@@ -20,7 +20,9 @@ GET         /application/find/user/:userId/framework/:frameworkId        control
 PUT         /application/preview/:applicationId                          controllers.ApplicationController.preview(applicationId: String)
 PUT         /application/submit/:userId/:applicationId                   controllers.SubmitApplicationController.submitApplication(userId: String, applicationId: String)
 PUT         /application/withdraw/:applicationId                         controllers.ApplicationController.withdrawApplication(applicationId: String)
-PUT         /application/confirm/adjustment/:applicationId               controllers.ApplicationController.confirmAdjustment(applicationId:String)
+
+PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
+GET         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
 
 PUT         /media/create                                                controllers.MediaController.addMedia()
 
@@ -65,6 +67,9 @@ POST        /phase1-test-group/extend/:applicationId                     control
 POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
 POST        /phase3-test-group/extend/:applicationId                     controllers.Phase3TestGroupController.extend(applicationId: String)
 GET         /phase3-test-group/:applicationId                            controllers.Phase3TestGroupController.getTestGroup(applicationId: String)
+
+PUT         /launchpad/:inviteId/markAsStarted                           controllers.LaunchpadTestsController.markAsStarted(inviteId: String)
+PUT         /launchpad/:inviteId/markAsComplete                          controllers.LaunchpadTestsController.markAsComplete(inviteId: String)
 
 PUT         /launchpad/:inviteId/setupProcessCallback                    controllers.LaunchpadTestsController.setupProcessCallback(inviteId: String)
 PUT         /launchpad/:inviteId/viewPracticeQuestionCallback            controllers.LaunchpadTestsController.viewPracticeQuestionCallback(inviteId: String)

@@ -106,7 +106,9 @@ trait GeneralApplicationRepository {
 
   def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]]
 
-  def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit]
+  def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit]
+
+  def findAdjustments(applicationId: String): Future[Option[Adjustments]]
 
   def rejectAdjustment(applicationId: String): Future[Unit]
 
@@ -964,7 +966,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       .cursor[A](ReadPreference.nearest)
       .collect[List](Int.MaxValue, true)
 
-  def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit] = {
+  def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
 
@@ -983,6 +985,24 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     collection.update(query, resetExerciseAdjustmentsBSON).flatMap{ result =>
       collection.update(query, adjustmentsConfirmationBSON, upsert = false)
     } map(_ => ())
+  }
+
+  def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
+
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      _.map { document =>
+        val root = document.getAs[BSONDocument]("assistance-details").get
+        val adjustmentList = root.getAs[List[String]]("typeOfAdjustments")
+        val adjustmentsConfirmed = root.getAs[Boolean]("adjustmentsConfirmed")
+        val etray = root.getAs[AdjustmentDetail]("etray")
+        val video = root.getAs[AdjustmentDetail]("video")
+
+        Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
+      }
+    }
   }
 
   def rejectAdjustment(applicationId: String): Future[Unit] = {

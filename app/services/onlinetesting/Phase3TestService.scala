@@ -32,6 +32,7 @@ import model.events.{ AuditEventNoRequest, AuditEvents, DataStoreEventWithAppId,
 import model.persisted.{ NotificationExpiringOnlineTest, Phase2TestGroup }
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model._
+import model.events.EventTypes.EventType
 import model.exchange.{ Phase2TestGroupWithActiveTest, Phase3TestGroupWithActiveTest }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -157,6 +158,31 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
+  def markAsStarted(launchpadInviteId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+      for {
+        _ <- phase3TestRepo.updateTestStartTime(launchpadInviteId, startedTime)
+        updated <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+        _ <- phase3TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_STARTED)
+      } yield {
+        AuditEvents.VideoInterviewStarted(updated.applicationId) ::
+          DataStoreEvents.VideoInterviewStarted(updated.applicationId) ::
+          Nil
+      }
+    }
+
+  def markAsCompleted(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      _ <- phase3TestRepo.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
+      updated <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+      _ <- phase3TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
+    } yield {
+      AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
+        DataStoreEvents.VideoInterviewCompleted(updated.applicationId) ::
+        Nil
+    }
+  }
+
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val progressFut = appRepository.findProgress(applicationId)
@@ -199,8 +225,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
     val customInviteId = "FSINV-" + tokenFactory.generateUUID()
 
-    val completionRedirectUrl = s"${gatewayConfig.phase3Tests.candidateCompletionRedirectUrl}/fset-fast-stream/" +
-      s"phase3-tests/complete/$customInviteId"
+    val completionRedirectUrl = s"${gatewayConfig.phase3Tests.candidateCompletionRedirectUrl}/fset-fast-stream" +
+      s"/online-tests/phase3/complete/$customInviteId"
 
     val inviteApplicant = InviteApplicantRequest(interviewId, candidateId, customInviteId, completionRedirectUrl)
 

@@ -22,6 +22,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -76,15 +77,15 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
     }
 
     def getHaveDegreeAnswer = {
-      if (generatorConfig.isCivilServant.contains(true)) {
-        generatorConfig.hasDegree.map { hasDegree => PersistedQuestion("Do you have a degree?",
-          PersistedAnswer(Some((if (hasDegree) { "Yes" } else {"No"})), None, None))
-        }
+      if (generatorConfig.isCivilServant) {
+        Some(PersistedQuestion("Do you have a degree?",
+          PersistedAnswer(Some((if (generatorConfig.hasDegree) { "Yes" } else {"No"})), None, None))
+        )
       } else { None }
     }
 
     def getUniversityAnswer = {
-      if (generatorConfig.hasDegree.contains(true)) {
+      if (generatorConfig.hasDegree) {
         Some(PersistedQuestion("What is the name of the university you received your degree from?",
           PersistedAnswer(Some(Random.university._2), None, None)))
       } else {
@@ -93,7 +94,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
     }
 
     def getUniversityDegreeCategoryAnswer = {
-      if (generatorConfig.hasDegree.contains(true)) {
+      if (generatorConfig.hasDegree) {
         Some(PersistedQuestion("Which category best describes your degree?",
           PersistedAnswer(Some(Random.degreeCategory._1), None, None)))
       } else {
@@ -146,7 +147,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       Some(PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some(Random.sexualOrientation), None, None))),
       Some(PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some(Random.ethnicGroup), None, None))),
       Some(PersistedQuestion("Did you live in the UK between the ages of 14 and 18?", PersistedAnswer(
-        Some(didYouLiveInUkBetween14and18Answer), None, None))),
+        Some(didYouLiveInUkBetween14and18Answer), None, None))
+      ),
       getWhatWasYourHomePostCodeWhenYouWere14,
       getSchoolName14to16Answer,
       getSchoolName16to18Answer,
@@ -155,7 +157,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       getUniversityAnswer,
       getUniversityDegreeCategoryAnswer,
       Some(PersistedQuestion("Do you have a parent or guardian that has completed a university degree course or equivalent?",
-        PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None))),
+        PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None))
+      ),
       getParentsOccupationDetail(parentsOccupation),
       getEmployeedOrSelfEmployeed(parentsOccupation),
       getSizeParentsEmployeer(parentsOccupation),

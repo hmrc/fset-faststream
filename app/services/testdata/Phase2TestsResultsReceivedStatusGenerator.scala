@@ -25,52 +25,51 @@ import model.command.testdata.GeneratorConfig
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.onlinetesting.Phase1TestRepository
-import services.onlinetesting.Phase1TestService
+import repositories.onlinetesting.Phase2TestRepository
+import services.onlinetesting.Phase2TestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object Phase1TestsResultsReceivedStatusGenerator extends Phase1TestsResultsReceivedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsCompletedStatusGenerator
-  override val otRepository = phase1TestRepository
-  override val otService = Phase1TestService
+object Phase2TestsResultsReceivedStatusGenerator extends Phase2TestsResultsReceivedStatusGenerator {
+  val previousStatusGenerator = Phase2TestsCompletedStatusGenerator
+  val otRepository = phase2TestRepository
+  val otService = Phase2TestService
 }
 
-trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase1TestRepository
-  val otService: Phase1TestService
+trait Phase2TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
+  val otRepository: Phase2TestRepository
+  val otService: Phase2TestService
 
 
     def insertTests(applicationId: String, testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
       Future.sequence(testResults.map {
-        case (result, phase1Test) => otRepository.insertTestResult(applicationId,
-          phase1Test, model.persisted.TestResult.fromCommandObject(result)
+        case (result, phase2Test) => otRepository.insertTestResult(applicationId,
+          phase2Test, model.persisted.TestResult.fromCommandObject(result)
         )
       }).map(_ => ())
     }
 
     val now = DateTime.now().withZone(DateTimeZone.UTC)
-    def getPhase1Test(cubiksUserId: Int) = CubiksTest(0, true, cubiksUserId, "", "", "", now, 0)
-    def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(
-      Some(tscore.getOrElse(10.0))), Some(tscore.getOrElse(20.0)), Some(tscore.getOrElse(30.0)), Some(tscore.getOrElse(40.0)))
+    def getPhase2Test(cubiksUserId: Int) = CubiksTest(0, true, cubiksUserId, "", "", "", now, 0)
+    def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(Some(10.0)), Some(20.0), Some(30.0), Some(40.0))
 
 
     def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
       for {
         candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-        _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests) { test =>
+        _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests) { test =>
           val id = test.cubiksUserId
           val result = CubiksTestResultReady(Some(id * 123), "Ready", Some(s"http://fakeurl.com/report$id"))
           otService.markAsReportReadyToDownload(id, result)
         }
-        cubiksUserIds <- Future.successful(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))
+        cubiksUserIds <- Future.successful(candidate.phase2TestGroup.get.tests.map(_.cubiksUserId))
         testResults <- Future.successful(cubiksUserIds.map { id => {
-          (getTestResult(generatorConfig.phase1TestData.flatMap(_.tscore)), getPhase1Test(id))}
+          (getTestResult(generatorConfig.phase2TestData.flatMap(_.tscore)), getPhase2Test(id))}
         })
         _ <- insertTests(candidate.applicationId.get, testResults)
-        _ <- otRepository.updateProgressStatus(candidate.applicationId.get, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
+        _ <- otRepository.updateProgressStatus(candidate.applicationId.get, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED)
       } yield candidate
     }
   }

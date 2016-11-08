@@ -24,6 +24,7 @@ import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.onlinetesting.Phase1TestService
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -43,7 +44,7 @@ trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))(id =>
-        otService.markAsStarted(id, generatorConfig.phase1StartTime.getOrElse(DateTime.now))
+        otService.markAsStarted(id, generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now))
       )
     } yield candidate
   }
