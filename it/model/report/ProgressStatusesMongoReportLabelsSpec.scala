@@ -43,6 +43,11 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
 
         appRepo.addProgressStatusAndUpdateAppStatus(appId, progressStatus).futureValue
         val progress = appRepo.findProgress(appId).futureValue
+        /*
+        NOTE: In case of mismatch for a newly added progress status, remember that the
+        status should be added to GeneralApplicationRepository.findProgress in the progress
+        response mapping.
+         */
         reportLabels.progressStatusNameInReports(progress) mustBe ProgressStatusCustomNames
           .getOrElse(progressStatus, progressStatus.key.toLowerCase)
       }

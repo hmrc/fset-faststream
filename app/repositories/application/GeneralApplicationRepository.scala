@@ -137,8 +137,7 @@ trait GeneralApplicationRepository {
 
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
 
-  def findFailedTestForNotification(appStatus: ApplicationStatus,
-                                    progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]]
+  def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]]
 
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
 
@@ -209,7 +208,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.key),
           phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.key),
           phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
-          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key)
+          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key),
+          phase2TestsFailedNotified = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED.key)
         ),
         phase3ProgressResponse = Phase3ProgressResponse(
           phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
@@ -520,12 +520,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
     )))
 
-  override def findFailedTestForNotification(appStatus: ApplicationStatus,
-                                             progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]] = {
+  override def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> appStatus),
-      BSONDocument(s"progress-status.$progressStatus" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
+      BSONDocument("applicationStatus" -> failedTestType.appStatus),
+      BSONDocument(s"progress-status.${failedTestType.notificationProgress}" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${failedTestType.receiveStatus}" -> true)
     ))
 
     implicit val reader = bsonReader(NotificationFailedTest.fromBson)
