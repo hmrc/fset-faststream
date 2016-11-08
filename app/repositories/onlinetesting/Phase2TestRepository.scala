@@ -23,7 +23,7 @@ import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted._
-import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
+import model.{ ApplicationStatus, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.api.DB
@@ -49,12 +49,9 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
 
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
 
-  def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit]
-
   def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
-
 }
 
 class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -64,6 +61,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override val phaseName = "PHASE2"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE2_TESTS
+  override val resetStatuses = List[String](ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED)
   override val dateTimeFactory = dateTime
   override val expiredTestQuery: BSONDocument = {
     BSONDocument("$and" -> BSONArray(
@@ -83,35 +81,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    val query =
-      BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
-        BSONDocument(s"progress-status.${PHASE1_TESTS_PASSED}" -> true),
-        BSONDocument("$or" -> BSONArray(
-          BSONDocument("$and" -> BSONArray(
-            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
-            BSONDocument("assistance-details.needsSupportAtVenue" -> false),
-            BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true)))),
-          BSONDocument("$and" -> BSONArray(
-            BSONDocument("$or" -> BSONArray(
-              BSONDocument("assistance-details.guaranteedInterview" -> true),
-              BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-              BSONDocument("assistance-details.needsSupportAtVenue" -> true)
-            )),
-            BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
-            BSONDocument("assistance-details.typeOfAdjustments" -> BSONDocument("$ne" -> "etrayInvigilated")))
-          ))
-          // Invigilated etray with adjustments confirmed
-          /*BSONDocument("$and" -> BSONArray(
-            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-            BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
-            BSONDocument("assistance-details.typeOfAdjustments" -> "etrayInvigilated")
-          )),*/
-
-            // TODO: We want to distinguish between invigilated and non-invigilated at this point because we might want to deliver
-            // functionality even if invigilated test functionality is not ready. In that case we will remove some code
-          ))
-      )
+    val query = inviteToTestBSON(PHASE1_TESTS_PASSED, invigilatedKeyToExclude = "etrayInvigilated")
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, 50)
@@ -176,22 +146,6 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
 
     nextTestForReminder(reminder, progressStatusQuery)
-  }
-
-
-  override def removeTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
-    require(progressStatuses.nonEmpty)
-    require(progressStatuses forall (_.applicationStatus == thisApplicationStatus), "Cannot remove non Phase 2 progress status")
-
-    val query = BSONDocument(
-      "applicationId" -> appId,
-      "applicationStatus" -> thisApplicationStatus
-    )
-    val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
-
-    val updateQuery = BSONDocument("$unset" -> BSONDocument(progressesToRemoveQueryPartial))
-
-    collection.update(query, updateQuery, upsert = false) map (_ => ())
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {

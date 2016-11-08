@@ -36,7 +36,6 @@ import scala.language.postfixOps
 class QuestionnaireControllerSpec extends PlaySpec with Results {
 
   "The Questionnaire API" should {
-
     "append questions to the questionnaire for the current application" in new TestFixture {
       val appId = "1234"
 
@@ -83,9 +82,7 @@ class QuestionnaireControllerSpec extends PlaySpec with Results {
       ))
 
       status(result) must be(400)
-
     }
-
   }
 
   trait TestFixture extends TestFixtureBase {

@@ -32,7 +32,8 @@ trait AuditEventHandler extends EventHandler[AuditEvent] {
   val auditService: AuditService
 
   def handle(event: AuditEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    Logger.info(s"Audit event $event")
+    val sanitisedDetails = event.details - "email"
+    Logger.info(s"Audit event ${event.eventName}, details: $sanitisedDetails")
     Future.successful {
       event match {
         case e: AuditEventWithAppId => auditService.logEvent(e.eventName, e.details)

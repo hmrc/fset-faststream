@@ -21,6 +21,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,11 +35,14 @@ trait WithdrawnStatusGenerator extends BaseGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
+    val previousStatusGenerator = StatusGeneratorFactory.getGenerator(
+      generatorConfig.copy(
+        statusData = generatorConfig.statusData.copy(
+          applicationStatus = generatorConfig.statusData.previousApplicationStatus.getOrElse(SUBMITTED)
+      )))
+
     for {
-      candidateInPreviousStatus <- StatusGeneratorFactory.getGenerator(generatorConfig.previousStatus
-        .map(appStatus => withName(appStatus)).getOrElse(
-        SUBMITTED
-      ), None, generatorConfig).generate(generationId, generatorConfig)
+      candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.withdraw(candidateInPreviousStatus.applicationId.get, model.command.WithdrawApplication("test", Some("test"),
         "Candidate"))
     } yield {

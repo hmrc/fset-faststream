@@ -21,12 +21,14 @@ import java.util.UUID
 import config.CubiksGatewayConfig
 import connectors.testdata.ExchangeObjects.{ TestGroupResponse, CubiksTestResponse }
 import model.persisted.{ CubiksTest, Phase1TestProfile }
+import model.command.testdata.GeneratorConfig
 import org.joda.time.DateTime
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import play.api.mvc.RequestHeader
+import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -46,7 +48,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
-      invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
+      invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
       participantScheduleId = 149245,
       scheduleId = gatewayConfig.phase1Tests.scheduleIds("sjq"),
       usedForResults = true
@@ -56,15 +58,15 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
-      invitationDate = generatorConfig.phase1StartTime.getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
+      invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
       participantScheduleId = 149245,
       scheduleId = gatewayConfig.phase1Tests.scheduleIds("bq"),
       usedForResults = true
     )
 
     val phase1TestProfile = Phase1TestProfile(
-      expirationDate = generatorConfig.phase1ExpiryTime.getOrElse(DateTime.now().plusDays(7)),
-      tests = if (generatorConfig.setGis) List(sjqTest) else List(sjqTest, bqTest)
+      expirationDate = generatorConfig.phase1TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
+      tests = if (generatorConfig.assistanceDetails.setGis) List(sjqTest) else List(sjqTest, bqTest)
     )
 
     for {

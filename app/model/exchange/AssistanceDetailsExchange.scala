@@ -16,7 +16,6 @@
 
 package model.exchange
 
-import model.Commands.{PhoneNumber, PostCode}
 import play.api.libs.json.Json
 
 case class AssistanceDetailsExchange(hasDisability: String,

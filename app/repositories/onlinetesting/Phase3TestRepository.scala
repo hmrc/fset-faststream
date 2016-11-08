@@ -17,31 +17,43 @@
 package repositories.onlinetesting
 
 import common.Phase3TestConcern
+import config.MicroserviceAppConfig.sendPhase3InvitationJobConfig
 import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.UnexpectedException
+import model.Exceptions.{ NotFoundException, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.Phase3TestGroupWithAppId
+import org.joda.time.{ DateTime, DateTimeZone }
+import model.persisted.phase3tests.Phase3TestGroup
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.CommonBSONDocuments
+import repositories._
+import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+object Phase3TestRepository {
+  case class CannotFindTestByLaunchpadId(message: String) extends NotFoundException(message)
+}
+
 trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   this: ReactiveRepository[_, _] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]]
 
-  def getTestGroupByToken(token: String): Future[Phase3TestGroup]
+  def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId]
 
   def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit]
+
+  def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime): Future[Unit]
+
+  def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -51,6 +63,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override val phaseName = "PHASE3"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE3_TESTS
+  override val resetStatuses = List[String](thisApplicationStatus)
   override val dateTimeFactory = dateTime
   // TO DO: expiredTestQuery need to be changed once we tackle the expiry test in phase 3
   override val expiredTestQuery: BSONDocument = BSONDocument()
@@ -58,12 +71,10 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    val query = BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS_PASSED,
-      s"progress-status.${PHASE2_TESTS_PASSED}" -> true
-    )
+    val query = inviteToTestBSON(PHASE2_TESTS_PASSED, invigilatedKeyToExclude = "videoInvigilated")
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
-    selectRandom[OnlineTestApplication](query, 5)
+    selectRandom[OnlineTestApplication](query, sendPhase3InvitationJobConfig.batchSize.getOrElse(1))
   }
 
   override def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit] = {
@@ -87,7 +98,62 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     getTestGroup(applicationId, phaseName)
   }
 
-  override def getTestGroupByToken(token: String): Future[Phase3TestGroup] = {
-    getTestProfileByToken(token, phaseName)
+  override def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId] = {
+    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+    val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val bsonPhase3 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
+        val phase3TestGroup = bsonPhase3.map(Phase3TestGroup.bsonHandler.read).getOrElse(defaultUpdateErrorHandler(token))
+        Phase3TestGroupWithAppId(applicationId, phase3TestGroup)
+      case _ => defaultUpdateErrorHandler(token)
+    }
   }
+
+  override def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime) = {
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
+    ))
+    findAndUpdateLaunchpadTest(launchpadInviteId, update)
+  }
+
+  def updateTestCompletionTime(launchpadInviteId: String, completedTime: DateTime) = {
+    import repositories.BSONDateTimeHandler
+    val query = BSONDocument(s"testGroups.$phaseName.expirationDate" -> BSONDocument("$gt" -> DateTime.now(DateTimeZone.UTC)))
+    val update = BSONDocument("$set" -> BSONDocument(
+      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
+    ))
+
+    val errorActionHandler: String => Unit = launchpadInviteId => {
+      Logger.warn(s"""Failed to update launchpad test: $launchpadInviteId - test has expired or does not exist""")
+      ()
+    }
+
+    findAndUpdateLaunchpadTest(launchpadInviteId, update, query, errorActionHandler)
+  }
+
+  private def findAndUpdateLaunchpadTest(launchpadInviteId: String, update: BSONDocument, query: BSONDocument = BSONDocument(),
+                                      errorHandler: String => Unit = defaultUpdateErrorHandler): Future[Unit] = {
+    val find = query ++ BSONDocument(
+      s"testGroups.$phaseName.tests" -> BSONDocument(
+        "$elemMatch" -> BSONDocument("token" -> launchpadInviteId)
+      )
+    )
+
+    collection.update(find, update, upsert = false) map {
+      case lastError if lastError.nModified == 0 && lastError.n == 0 => errorHandler(launchpadInviteId)
+      case _ => ()
+    }
+
+  }
+
+  private def defaultUpdateErrorHandler(launchpadInviteId: String) = {
+    logger.error(s"""Failed to update launchpad test: $launchpadInviteId""")
+    throw CannotFindTestByLaunchpadId(s"Cannot find test group by launchpad Id: $launchpadInviteId")
+  }
+
 }

@@ -32,15 +32,15 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import reactivemongo.api.commands.UpdateWriteResult
 
-trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments {
+trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus
   val phaseName: String
   val dateTimeFactory: DateTimeFactory
   val expiredTestQuery: BSONDocument
+  val resetStatuses: List[String]
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
 
   type U <: Test
@@ -106,10 +106,9 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     ))
 
     val errorActionHandler: Int => Unit = cubiksUserId => {
-      logger.warn(s"""Failed to update cubiks test: $cubiksUserId - test has expired or does not exist""")
+      Logger.warn(s"""Failed to update cubiks test: $cubiksUserId - test has expired or does not exist""")
       ()
     }
-
 
     findAndUpdateCubiksTest(cubiksUserId, update, query, errorActionHandler)
   }
@@ -183,7 +182,6 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     selectOneRandom[NotificationExpiringOnlineTest](query)
   }
 
-
   def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = {
     require(progressStatus.applicationStatus == thisApplicationStatus, "Forbidden progress status update")
 
@@ -226,7 +224,6 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       case lastError if lastError.nModified == 0 && lastError.n == 0 => errorHandler(cubiksUserId)
       case _ => ()
     }
-
   }
 
   def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
@@ -240,5 +237,32 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
     ))
     collection.update(query, update, upsert = false) map( _ => () )
+  }
+
+  def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
+    require(progressStatuses.nonEmpty)
+    require(progressStatuses forall (ps =>
+      resetStatuses.contains(ps.applicationStatus.toString)), s"Cannot reset some of the $phaseName progress statuses $progressStatuses")
+
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> appId),
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> resetStatuses))
+    ))
+
+    val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
+
+    val updateQuery = BSONDocument(
+      "$set" -> BSONDocument("applicationStatus" -> thisApplicationStatus),
+      "$unset" -> BSONDocument(progressesToRemoveQueryPartial),
+      "$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> "")
+    )
+
+    collection.update(query, updateQuery, upsert = false) map {
+      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
+        logger.error(s"Failed to reset progress statuses for " +
+          s"application Id: $appId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}")
+        throw ApplicationNotFound(appId)
+      case _ => ()
+    }
   }
 }

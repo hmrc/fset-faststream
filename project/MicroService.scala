@@ -44,7 +44,7 @@ trait MicroService {
     .enablePlugins(Seq(play.PlayScala) ++ plugins : _*)
     .settings(playSettings : _*)
     .settings(scalaSettings: _*)
-    .settings(publishingSettings ++ (publishArtifact in(Compile, packageDoc) := false))
+    .settings(publishingSettings)
     .settings(defaultSettings(): _*)
     .settings(
       targetJvm := "jvm-1.8",
@@ -54,6 +54,7 @@ trait MicroService {
       fork in Test := false,
       retrieveManaged := true,
       scalacOptions += "-feature")
+    .settings(sources in (Compile, doc) := Seq.empty)
     .settings(HeaderPlugin.settingsFor(IntegrationTest))
     .configs(IntegrationTest)
     .settings(inConfig(IntegrationTest)((Defaults.testSettings ++ AutomateHeaderPlugin.automateFor(IntegrationTest))) : _*)

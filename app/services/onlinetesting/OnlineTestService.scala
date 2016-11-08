@@ -85,7 +85,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
     invitationDate: DateTime, expirationDate: DateTime
-  )(implicit hc: HeaderCarrier): Future[Unit] = {
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
       audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))
@@ -98,7 +98,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
     (invitationDate, expirationDate)
   }
 
-  @deprecated("use event sink instead", "October 2016")
+  @deprecated("use event sink instead", "2016-10-18")
   protected def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
     Logger.info(s"$event for user $userId")
 
@@ -181,7 +181,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 trait TimeExtension {
   val dateTimeFactory: DateTimeFactory
 
-  def extendTime(alreadyExpired: Boolean, previousExpirationDate: DateTime) = { extraDays: Int =>
+  def extendTime(alreadyExpired: Boolean, previousExpirationDate: DateTime): (Int) => DateTime = { extraDays: Int =>
     if (alreadyExpired) {
       dateTimeFactory.nowLocalTimeZone.plusDays(extraDays)
     } else {

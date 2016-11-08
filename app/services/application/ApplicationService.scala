@@ -16,22 +16,25 @@
 
 package services.application
 
-import connectors.{ CSREmailClient, EmailClient }
+import common.FutureEx
 import model.command.WithdrawApplication
-import model.events.EventTypes.Events
+import model.events.EventTypes._
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import contactdetails.ContactDetailsRepository
+import model.{ AdjustmentDetail, Adjustments }
+import model.Commands.Candidate
 import model.Exceptions.ApplicationNotFound
-import model.persisted.{ ContactDetails, PersonalDetails }
-import services.AuditService
+import play.api.Logger
+import scheduler.fixer.FixBatch
 import services.events.{ EventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 object ApplicationService extends ApplicationService {
   val appRepository = applicationRepository
@@ -55,7 +58,7 @@ trait ApplicationService extends EventSink {
       case Some(candidate) =>
         cdRepository.find(candidate.userId).flatMap{ cd =>
           eventSink {
-            appRepository.withdraw(applicationId, withdrawRequest).map{ _ =>
+            appRepository.withdraw(applicationId, withdrawRequest).map { _ =>
               val commonEventList =
                   DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
                   AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
@@ -70,5 +73,66 @@ trait ApplicationService extends EventSink {
         }
       case None => throw ApplicationNotFound(applicationId)
     }.map(_ => ())
+  }
+
+  def confirmAdjustment(applicationId: String, adjustmentInformation: Adjustments)
+                       (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    val standardEventList = DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
+      AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
+      Nil
+
+    def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String = {
+
+      def mkString(ad: Option[AdjustmentDetail]): Option[String] =
+        ad.map(e => List(e.timeNeeded.map( tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
+
+      mkString(adjustmentDetail) match {
+        case Some(txt) if !txt.isEmpty => s"$header $txt"
+        case _ => ""
+      }
+    }
+
+    appRepository.find(applicationId).flatMap {
+      case Some(candidate) =>
+        cdRepository.find(candidate.userId).flatMap { cd =>
+          eventSink {
+            appRepository.confirmAdjustments(applicationId, adjustmentInformation).map { _ =>
+              adjustmentInformation.adjustments match {
+                case Some(list) if list.nonEmpty => EmailEvents.AdjustmentsConfirmed(cd.email,
+                  candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),
+                  toEmailString("E-tray:", adjustmentInformation.etray),
+                  toEmailString("Video interview:", adjustmentInformation.video)) :: standardEventList
+                case _ => standardEventList
+              }
+            }
+          }
+        }
+      case None => throw ApplicationNotFound(applicationId)
+    }.map(_ => ())
+  }
+
+  def fix(toBeFixed: Seq[FixBatch])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    FutureEx.traverseSerial(toBeFixed)(fixData).map(_ => ())
+  }
+
+  private def fixData(fixType: FixBatch)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      toFix <- appRepository.getApplicationsToFix(fixType)
+      fixed <- FutureEx.traverseToTry(toFix)(candidate => appRepository.fix(candidate, fixType))
+    } yield toEvents(fixed, fixType)
+  }
+
+  private def toEvents(seq: Seq[Try[Option[Candidate]]], fixBatch: FixBatch): Events = {
+    seq.flatMap {
+      case Success(Some(app)) => Some(AuditEvents.FixedProdData(Map("issue" -> fixBatch.fix.name,
+        "applicationId" -> app.applicationId.getOrElse(""),
+        "email" -> app.email.getOrElse(""),
+        "applicationRoute" -> app.applicationRoute.getOrElse("").toString)))
+      case Success(None) => None
+      case Failure(e) =>
+        Logger.error(s"Failed to update ${fixBatch.fix.name}", e)
+        None
+    }.toList
   }
 }

@@ -33,7 +33,6 @@ object RandomSelection {
   }
 }
 
-
 trait RandomSelection {
   this: ReactiveRepository[_, _] =>
 

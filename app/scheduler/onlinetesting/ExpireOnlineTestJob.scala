@@ -19,12 +19,8 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import connectors.CSREmailClient
-import model.{ EmptyRequestHeader, TestExpirationEvent, Phase1ExpirationEvent, Phase2ExpirationEvent }
-import play.api.mvc.RequestHeader
-import repositories._
+import model.{ EmptyRequestHeader, Phase1ExpirationEvent, Phase2ExpirationEvent, TestExpirationEvent }
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.AuditService
 import services.onlinetesting._
 import uk.gov.hmrc.play.http.HeaderCarrier
 

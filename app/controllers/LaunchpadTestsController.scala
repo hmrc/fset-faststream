@@ -24,8 +24,8 @@ import play.api.mvc.{ Action, Result }
 import services.events.EventService
 import services.onlinetesting.Phase3TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
-
 import scala.concurrent.ExecutionContext.Implicits.global
+
 import scala.concurrent.Future
 
 object LaunchpadTestsController extends LaunchpadTestsController {
@@ -33,12 +33,25 @@ object LaunchpadTestsController extends LaunchpadTestsController {
   val eventService = EventService
 
   case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
-
 }
 
 trait LaunchpadTestsController extends BaseController {
   val phase3TestService: Phase3TestService
   val eventService: EventService
+
+  def markAsStarted(inviteId: String) = Action.async(parse.json) { implicit request =>
+    Logger.info(s"Launchpad Assessment with invite ID $inviteId marked as started")
+    phase3TestService.markAsStarted(inviteId)
+      .map(_ => Ok)
+      .recover(recoverNotFound)
+  }
+
+  def markAsComplete(inviteId: String) = Action.async(parse.json) { implicit request =>
+    Logger.info(s"Launchpad Assessment with invite ID $inviteId marked as completed")
+    phase3TestService.markAsCompleted(inviteId)
+      .map(_ => Ok)
+      .recover(recoverNotFound)
+  }
 
   def setupProcessCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[SetupProcessCallbackRequest] { jsonBody =>

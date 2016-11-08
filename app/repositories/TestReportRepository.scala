@@ -16,10 +16,10 @@
 
 package repositories
 
-import model.report.{ TestResultsForOnlineTestPassMarkReportItem }
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.CandidateTestReport
 import model.PersistedObjects.Implicits._
+import model.report.TestResultsForOnlineTestPassMarkReportItem
 import play.api.libs.json.Format
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDouble, BSONObjectID }
@@ -152,5 +152,4 @@ class TestReportMongoRepository(implicit mongo: () => DB)
 
     collection.remove(query, firstMatchOnly = false).map { writeResult => () }
   }
-
 }

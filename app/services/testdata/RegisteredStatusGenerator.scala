@@ -23,6 +23,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 object RegisteredStatusGenerator extends RegisteredStatusGenerator {
   override val authProviderClient = AuthProviderClient
@@ -38,10 +39,11 @@ trait RegisteredStatusGenerator extends BaseGenerator {
 
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
-    val firstName = generatorConfig.firstName.getOrElse(Random.getFirstname(generationId))
-    val lastName = generatorConfig.lastName.getOrElse(Random.getLastname(generationId))
-    val preferredName = generatorConfig.preferredName.getOrElse(s"Pref$firstName")
-    val email = s"${generatorConfig.emailPrefix.getOrElse("tesf" + Random.number())}-${generationId}@mailinator.com"
+
+    val firstName = generatorConfig.personalData.firstName
+    val lastName = generatorConfig.personalData.lastName
+    val preferredName = generatorConfig.personalData.preferredName
+    val email = s"${generatorConfig.personalData.emailPrefix}@mailinator.com"
     val mediaReferrer = Random.mediaReferrer
 
     for {

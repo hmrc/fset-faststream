@@ -23,5 +23,5 @@ import play.api.libs.json.Json
 case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest, resetAllowed: Boolean)
 
 object Phase2TestGroupWithActiveTest {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase2TestGroupWithActiveTest]
+  implicit val phase2TestGroupWithActiveTestFormat = Json.format[Phase2TestGroupWithActiveTest]
 }

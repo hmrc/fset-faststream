@@ -73,5 +73,4 @@ class CandidateAllocationMongoRepository(dateTime: DateTimeFactory)(implicit mon
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
     AllocatedCandidate(PersonalDetailsWithUserId(preferredName, userId), applicationId, expireDate)
   }
-
 }
