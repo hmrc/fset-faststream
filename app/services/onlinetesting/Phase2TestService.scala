@@ -165,7 +165,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
     }.toList
 
     // Cubiks does not accept invite batch request with different time adjustments
-    // TODO LT: This should be before registration, not after, therfore timeAdjustments cannot be used from Invitation
+    // TODO LT: The filter based on the head should be done before registration, not after
     val firstInvite = invites.head
     val filteredInvites = invites.filter(_.timeAdjustments == firstInvite.timeAdjustments)
 
