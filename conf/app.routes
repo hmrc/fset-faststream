@@ -75,6 +75,7 @@ POST        /online-tests/phase3/start                              controllers.
 GET         /online-tests/phase1/continue/:token                    controllers.CubiksTestController.completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier)
 GET         /online-tests/phase1/complete/:token                    controllers.CubiksTestController.completePhase1TestsByToken(token: UniqueIdentifier)
 GET         /online-tests/phase2/complete/:token                    controllers.CubiksTestController.completePhase2TestsByToken(token: UniqueIdentifier)
+GET         /online-tests/phase3/complete/:token                    controllers.LaunchpadTestController.completePhase3TestsByToken(token: String)
 GET         /online-tests/complete/:token                           controllers.CubiksTestController.completeTestByToken(token: UniqueIdentifier)
 
 # Assets controller

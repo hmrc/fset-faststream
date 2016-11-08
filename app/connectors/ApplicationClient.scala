@@ -16,6 +16,8 @@
 
 package connectors
 
+import java.net.URLEncoder
+
 import config.CSRHttp
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
@@ -183,6 +185,17 @@ trait ApplicationClient {
       case _: NotFoundException => throw new OnlineTestNotFound()
     }
   }
+
+  private def encodeUrlParam(str: String) = URLEncoder.encode(str, "UTF-8")
+
+  def startPhase3TestByToken(launchpadInviteId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/launchpad/${encodeUrlParam(launchpadInviteId)}/markAsStarted", "").map(_ => ())
+  }
+
+  def completePhase3TestByToken(launchpadInviteId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/launchpad/${encodeUrlParam(launchpadInviteId)}/markAsComplete", "").map(_ => ())
+  }
+
   def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"${url.host}${url.base}/cubiks/$cubiksUserId/start", "").map(_ => ())
   }
