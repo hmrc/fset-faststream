@@ -992,15 +992,17 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
 
+    // TODO LT: Add Unit test
     collection.find(query, projection).one[BSONDocument].map {
-      _.map { document =>
-        val root = document.getAs[BSONDocument]("assistance-details").get
-        val adjustmentList = root.getAs[List[String]]("typeOfAdjustments")
-        val adjustmentsConfirmed = root.getAs[Boolean]("adjustmentsConfirmed")
-        val etray = root.getAs[AdjustmentDetail]("etray")
-        val video = root.getAs[AdjustmentDetail]("video")
-
-        Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
+      _.flatMap { document =>
+        val rootOpt = document.getAs[BSONDocument]("assistance-details")
+        rootOpt.map { root =>
+          val adjustmentList = root.getAs[List[String]]("typeOfAdjustments")
+          val adjustmentsConfirmed = root.getAs[Boolean]("adjustmentsConfirmed")
+          val etray = root.getAs[AdjustmentDetail]("etray")
+          val video = root.getAs[AdjustmentDetail]("video")
+          Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
+        }
       }
     }
   }

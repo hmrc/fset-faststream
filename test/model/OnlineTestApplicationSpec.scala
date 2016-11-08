@@ -1,6 +1,5 @@
 package model
 
-import model.Commands.AdjustmentDetail
 import model.OnlineTestApplicationExamples._
 import org.scalatestplus.play.PlaySpec
 
