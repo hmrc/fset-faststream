@@ -106,7 +106,7 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     ))
 
     val errorActionHandler: Int => Unit = cubiksUserId => {
-      logger.warn(s"""Failed to update cubiks test: $cubiksUserId - test has expired or does not exist""")
+      Logger.warn(s"""Failed to update cubiks test: $cubiksUserId - test has expired or does not exist""")
       ()
     }
 

@@ -23,9 +23,13 @@ import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
+import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
+import model.events.AuditEvents.VideoInterviewRegistrationAndInviteComplete
+import model.events.EventTypes.{ EventType, Events }
+import model.persisted.{ ContactDetails, Event, Phase3TestGroupWithAppId }
 import model.persisted.ContactDetails
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.{ Address, ApplicationStatus }
+import model.{ Address, ApplicationStatus, ProgressStatuses }
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -95,9 +99,31 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
           testInterviewId,
           testLaunchpadCandidateId,
           expectedCustomInviteId,
-          s"http://www.foo.com/test/interview/fset-fast-stream/phase3-tests/complete/$expectedCustomInviteId"
+          s"http://www.foo.com/test/interview/fset-fast-stream/online-tests/phase3/complete/$expectedCustomInviteId"
         )
       ))
+    }
+  }
+
+  "mark as started" should {
+    "change progress to started" in new Phase3TestServiceFixture {
+      phase3TestServiceWithUnexpiredTestGroup.markAsStarted(testInviteId).futureValue
+
+      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED)
+
+      verifyDataStoreEvents(1, "VideoInterviewStarted")
+      verifyAuditEvents(1, "VideoInterviewStarted")
+    }
+  }
+
+  "mark as completed" should {
+    "change progress to completed if there are all tests completed" in new Phase3TestServiceFixture {
+      phase3TestServiceWithUnexpiredTestGroup.markAsCompleted(testInviteId).futureValue
+
+      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)
+
+      verifyDataStoreEvents(1, "VideoInterviewCompleted")
+      verifyAuditEvents(1, "VideoInterviewCompleted")
     }
   }
 
@@ -183,7 +209,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     val testExpiredTime = testTimeNow.minusDays(3)
     val testLaunchpadCandidateId = "CND_123"
     val testFaststreamCustomCandidateId = "FSCND_456"
-    val testInviteId = "INV_123"
+    val testInviteId = "FSINV_123"
     val testCandidateRedirectUrl = "http://www.foo.com/test/interview"
     val testEmail = "foo@bar.com"
 
@@ -210,6 +236,12 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       None
     )
 
+    val testTestGroup = Phase3TestGroup(
+      expectedFromNowExpiryTime,
+      List(testPhase3Test)
+    )
+
+    // Common Mocks
     when(tokenFactoryMock.generateUUID()).thenReturn(tokens.head.toString)
 
     when(dateTimeFactoryMock.nowLocalTimeZone).thenReturn(testTimeNow)
@@ -265,13 +297,24 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
           None
         )
       )))
+
+      // Extensions
       when(p3TestRepositoryMock.updateGroupExpiryTime(any(), any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
       when(launchpadGatewayClientMock.extendDeadline(any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
         ProgressResponse("appId")
       ))
-    }
+
+      // Mark As Started
+      when(p3TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
+        .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId123", testTestGroup)))
+      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED)).thenReturn(Future.successful(()))
+
+      // Mark as Complete
+      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])).thenReturn(Future.successful(()))    }
 
     lazy val phase3TestServiceWithExpiredTestGroup = mockService {
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(Some(

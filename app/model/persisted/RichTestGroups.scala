@@ -47,3 +47,7 @@ case class Phase3TestGroupWithAppId(
   applicationId: String,
   testGroup: Phase3TestGroup
 ) extends TestGroupWithIds[LaunchpadTest, Phase3TestGroup]
+
+object Phase3TestGroupWithAppId {
+  implicit val phase3TestGroupWithAppIdHandler = Macros.handler[Phase3TestGroupWithAppId]
+}
