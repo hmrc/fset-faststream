@@ -16,18 +16,22 @@
 
 package models
 
+import org.scalatestplus.play.PlaySpec
 
-import play.api.libs.json.Json
+class AdjustmentsSpec extends PlaySpec {
 
-case class Adjustments(adjustments: Option[List[String]],
-                        adjustmentsConfirmed: Option[Boolean]) {
-  def isInvigilatedETrayApproved = {
-    val approved = adjustmentsConfirmed.contains(true)
-    val invigilatedETray = adjustments.exists(_.contains("etrayInvigilated"))
-    invigilatedETray && approved
+  "Adjustments" should {
+    "be invigilated e-tray when it is approved" in {
+      Adjustments(Some(List("etrayInvigilated")), Some(true)).isInvigilatedETrayApproved mustBe true
+    }
+
+    "be not invigilated e-tray when it is not approved" in {
+      Adjustments(Some(List("etrayInvigilated")), Some(false)).isInvigilatedETrayApproved mustBe false
+    }
+
+    "be not invigilated e-tray when it is not present on the adjustments list" in {
+      Adjustments(Some(List()), Some(true)).isInvigilatedETrayApproved mustBe false
+    }
   }
-}
 
-object Adjustments {
-  implicit val adjustmentsFormat = Json.format[Adjustments]
 }

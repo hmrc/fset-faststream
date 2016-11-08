@@ -16,18 +16,7 @@
 
 package models
 
-
-import play.api.libs.json.Json
-
-case class Adjustments(adjustments: Option[List[String]],
-                        adjustmentsConfirmed: Option[Boolean]) {
-  def isInvigilatedETrayApproved = {
-    val approved = adjustmentsConfirmed.contains(true)
-    val invigilatedETray = adjustments.exists(_.contains("etrayInvigilated"))
-    invigilatedETray && approved
-  }
-}
-
-object Adjustments {
-  implicit val adjustmentsFormat = Json.format[Adjustments]
+object AdjustmentsExamples {
+  val InvigilatedETrayAdjustment = Adjustments(Some(List("etrayInvigilated")), Some(true))
+  val NoAdjustments = Adjustments(Some(Nil), Some(true))
 }
