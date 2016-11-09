@@ -39,6 +39,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
+import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.events.EventService
 import services.onlinetesting.Phase2TestService.NoActiveTestException
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -51,6 +52,7 @@ object Phase3TestService extends Phase3TestService {
 
   import config.MicroserviceAppConfig._
 
+  val adjustmentsService = AdjustmentsManagementService
   val appRepository = applicationRepository
   val phase3TestRepo = phase3TestRepository
   val cdRepository = faststreamContactDetailsRepository
@@ -65,6 +67,7 @@ object Phase3TestService extends Phase3TestService {
 }
 
 trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
+  val adjustmentsService: AdjustmentsManagementService
   val appRepository: GeneralApplicationRepository
   val phase3TestRepo: Phase3TestRepository
   val cdRepository: contactdetails.ContactDetailsRepository
@@ -300,6 +303,13 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
   // TODO: This needs to cater for 10% extra, 33% extra etc. See FSET-656
   private def getInterviewIdForApplication(application: OnlineTestApplication): Int = {
-    gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0pc")
+    (for {
+      videoAdjustments <- application.videoInterviewAdjustments
+      timeNeeded <- videoAdjustments.timeNeeded
+    } yield {
+      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage(s"${timeNeeded}pc")
+    }).getOrElse {
+      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0pc")
+    }
   }
 }
