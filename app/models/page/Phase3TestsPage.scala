@@ -19,7 +19,6 @@ package models.page
 import models.Adjustments
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 import org.joda.time.{ DateTime, Period, PeriodType }
-import play.api.Logger
 
 case class Phase3TestsPage(
                             expirationDate: DateTime,
