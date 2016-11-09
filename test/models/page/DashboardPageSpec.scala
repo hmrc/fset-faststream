@@ -40,27 +40,17 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
   // format: OFF
   // scalastyle:off line.size.limit
   val Applications = Table(
-    ("applicationStatus",                      "step1",          "step2",         "step3",                    "step4",                  "isApplicationSubmittedAndNotWithdrawn",  "isApplicationWithdrawn", "isApplicationInProgress", "isUserWithNoApplication",  "isPhase1TestsPassed", "isTestGroupExpired", "isPhase2TestGroupExpired", "isPhase3TestGroupExpired",   "isPhase1TestFailed", "isPhase2TestFailed",  "fullName",   "testProfile", "phase2TestProfile", "phase3TestProfile",  "assessmentInProgressStatus",       "assessmentCompletedStatus"),
-    (REGISTERED,                               ProgressInactive, ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                    false,                     true,                       false,                 false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (CREATED,                                  ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                    false,                     true,                       true,                  false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (IN_PROGRESS,                              ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                    true,                      false,                      true,                  false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (SUBMITTED,                                ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                     false,                      true,                  false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (WITHDRAWN,                                ProgressActive,   ProgressActive,   ProgressActive,            ProgressInactiveDisabled, false,                                    true,                     false,                     false,                      true,                  false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (PHASE1_TESTS,                             ProgressActive,   ProgressActive,   ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                    false,                     false,                      true,                  true,                  false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (PHASE1_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                    false,                     false,                      true,                  false,                 false,                     false,                        true,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    (PHASE2_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                    false,                     false,                      true,                  false,                 false,                     false,                        false,                true,                  "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN)
-    //(ALLOCATION_CONFIRMED,                     ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_BOOKED_CONFIRMED,        POSTASSESSMENT_STATUS_UNKNOWN),
-    //(ALLOCATION_UNCONFIRMED,                   ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_PENDING_CONFIRMATION,    POSTASSESSMENT_STATUS_UNKNOWN),
-    //(AWAITING_ALLOCATION,                      ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    //(FAILED_TO_ATTEND,                         ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_NOT_ATTENDED,            POSTASSESSMENT_FAILED_APPLY_AGAIN),
-    //(ASSESSMENT_SCORES_ENTERED,                ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_BOOKED_CONFIRMED,        POSTASSESSMENT_STATUS_UNKNOWN),
-    //(ASSESSMENT_SCORES_ACCEPTED,               ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_BOOKED_CONFIRMED,        POSTASSESSMENT_STATUS_UNKNOWN),
-    //(AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_BOOKED_CONFIRMED,        POSTASSESSMENT_STATUS_UNKNOWN),
-    //(ASSESSMENT_CENTRE_PASSED,                 ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    //(ASSESSMENT_CENTRE_FAILED,                 ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_STATUS_UNKNOWN),
-    //(ASSESSMENT_CENTRE_PASSED_NOTIFIED,        ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_PASSED_MORE_SOON),
-    //(ASSESSMENT_CENTRE_FAILED_NOTIFIED,        ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                              false,                         "John Biggs", None,   ASSESSMENT_STATUS_UNKNOWN,          POSTASSESSMENT_FAILED_APPLY_AGAIN)
+    ("applicationStatus",                      "step1",          "step2",         "step3",                    "step4",                  "isApplicationSubmittedAndNotWithdrawn",  "isApplicationWithdrawn", "isApplicationInProgress", "isUserWithNoApplication",  "isPhase1TestsPassed", "isTestGroupExpired", "isPhase2TestGroupExpired", "isPhase3TestGroupExpired",   "isPhase1TestFailed", "isPhase2TestFailed",  "fullName",   "testProfile", "phase2TestProfile", "phase3TestProfile",  "assessmentInProgressStatus"),
+    (REGISTERED,                               ProgressInactive, ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                    false,                     true,                       false,                 false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (CREATED,                                  ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                    false,                     true,                       true,                  false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (IN_PROGRESS,                              ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                    true,                      false,                      true,                  false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (SUBMITTED,                                ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         true,                                     false,                    false,                     false,                      true,                  false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (WITHDRAWN,                                ProgressActive,   ProgressActive,   ProgressActive,            ProgressInactiveDisabled, false,                                    true,                     false,                     false,                      true,                  false,                 false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (PHASE1_TESTS,                             ProgressActive,   ProgressActive,   ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                    false,                     false,                      true,                  true,                  false,                     false,                        false,                false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (PHASE1_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                    false,                     false,                      true,                  false,                 false,                     false,                        true,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (PHASE2_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                    false,                     false,                      true,                  false,                 false,                     false,                        false,                true,                  "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN)
   )
+
   // scalastyle:on line.size.limit
   // format: ON
   "The Steps visibility" should {
@@ -85,10 +75,9 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
          testProfile: Option[Phase1TestsPage],
          phase2TestProfile: Option[Phase2TestsPage],
          phase3TestGroup: Option[Phase3TestsPage],
-         assessmentInProgressStatus: AssessmentStageStatus,
-         assessmentCompletedStatus: PostAssessmentStageStatus
+         assessmentInProgressStatus: AssessmentStageStatus
         ) => {
-          DashboardPage(user(status), None, None, None, None) mustBe
+          DashboardPage(user(status), None, None, None) mustBe
             DashboardPage(
               step1,
               step2,
@@ -108,8 +97,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
               testProfile,
               phase2TestProfile,
               phase3TestGroup,
-              assessmentInProgressStatus,
-              assessmentCompletedStatus
+              assessmentInProgressStatus
             )
         }
       }
@@ -117,7 +105,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
 
     // TODO FIX ME - when all app statuses have been implemented
     "be tested for all statuses" ignore {
-      val statusesTested = Applications.toList.map { case (status, _, _, _, _, _ , _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => status }
+      val statusesTested = Applications.toList.map { case (status, _, _, _, _, _ , _, _, _, _, _, _, _, _, _, _, _, _, _, _) => status }
       val allStatuses = ApplicationStatus.values.toList
 
       val statusesNotTested = allStatuses.diff(statusesTested)
@@ -128,9 +116,9 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
   // format: off
   // scalastyle:off line.size.limit
   val WithdrawnApplications = Table(
-    ("Status before Withdraw", "step1", "step2", "step3", "step4", "isApplicationSubmittedAndNotWithdrawn", "isApplicationWithdrawn", "isApplicationInProgress", "isUserWithNoApplication", "isPhase1TestsPassed", "isTestGroupExpired", "isPhase2TestGroupExpired", "isPhase3TestGroupExpired", "isPhase1TestFailed", "isPhase2TestFailed", "fullName", "testProfile", "phase2TestProfile", "phase3TestGroup", "assessmentInProgressStatus", "assessmentCompletedStatus"),
-    (PersonalDetailsProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, true, false, false, false, false, false, false, false, false, "John Biggs", None, None, None, ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_STATUS_UNKNOWN),
-    (SubmittedProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, true, false, false, false, false, false, false, false, false, "John Biggs", None, None, None, ASSESSMENT_STATUS_UNKNOWN, POSTASSESSMENT_STATUS_UNKNOWN)
+    ("Status before Withdraw", "step1", "step2", "step3", "step4", "isApplicationSubmittedAndNotWithdrawn", "isApplicationWithdrawn", "isApplicationInProgress", "isUserWithNoApplication", "isPhase1TestsPassed", "isTestGroupExpired", "isPhase2TestGroupExpired", "isPhase3TestGroupExpired", "isPhase1TestFailed", "isPhase2TestFailed", "fullName", "testProfile", "phase2TestProfile", "phase3TestGroup", "assessmentInProgressStatus"),
+    (PersonalDetailsProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, true, false, false, false, false, false, false, false, false, "John Biggs", None, None, None, ASSESSMENT_STATUS_UNKNOWN),
+    (SubmittedProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, true, false, false, false, false, false, false, false, false, "John Biggs", None, None, None, ASSESSMENT_STATUS_UNKNOWN)
   )
   // scalastyle:on line.size.limit
   // format: on
@@ -157,10 +145,9 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
          testProfile: Option[Phase1TestsPage],
          phase2TestProfile: Option[Phase2TestsPage],
          phase3TestGroup: Option[Phase3TestsPage],
-         assessmentInProgressStatus: AssessmentStageStatus,
-         assessmentCompletedStatus: PostAssessmentStageStatus
+         assessmentInProgressStatus: AssessmentStageStatus
         ) => {
-          DashboardPage(withdrawnApplication(progress), None, None, None, None) mustBe
+          DashboardPage(withdrawnApplication(progress), None, None, None) mustBe
             DashboardPage(
               step1,
               step2,
@@ -180,8 +167,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
               testProfile,
               phase2TestProfile,
               phase3TestGroup,
-              assessmentInProgressStatus,
-              assessmentCompletedStatus
+              assessmentInProgressStatus
             )
         }
       }
@@ -189,7 +175,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
 
     "be tested for all statuses" in {
       val statusesTested = Applications.toList.map {
-        case (status, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => status
+        case (status, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => status
       }
       // For any new status DashboardPage.Step1/2/3 or 4 needs to have this status
       // Add this new status to isReached method and increase this value
