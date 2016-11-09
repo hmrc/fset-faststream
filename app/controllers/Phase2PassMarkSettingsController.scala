@@ -47,7 +47,7 @@ trait Phase2PassMarkSettingsController extends BaseController {
         for {
           createResult <- passMarkService.createPassMarkSettings(newPassMarkSettings)
         } yield {
-          auditService.logEvent("PassMarkSettingsCreated", Map(
+          auditService.logEvent("Phase2PassMarkSettingsCreated", Map(
             "Version" -> newVersionUUID,
             "CreatedByUserId" -> passMarkSettings.createdBy,
             "StoredCreateDate" -> passMarkSettings.createDate.toString
