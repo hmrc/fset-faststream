@@ -450,7 +450,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     collection.update(query, progressStatusBSON, upsert = true) map {
       case result if result.nModified == 0 && result.n == 0 =>
-        logger.error(
+        Logger.error(
           s"""Failed to write assistance details for application: $applicationId ->
               |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
         throw CannotUpdatePreview(applicationId)

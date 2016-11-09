@@ -156,7 +156,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
         customCandidateId = invitation.customCandidateId,
         invitationDate = invitationDate,
         startedDateTime = None,
-        completedDateTime = None
+        completedDateTime = None,
+        callbacks = None
       )
     }
   }

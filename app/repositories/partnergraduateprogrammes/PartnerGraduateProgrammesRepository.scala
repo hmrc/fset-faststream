@@ -18,6 +18,7 @@ package repositories.partnergraduateprogrammes
 
 import model.Exceptions._
 import model.persisted.PartnerGraduateProgrammes
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -46,7 +47,7 @@ class PartnerGraduateProgrammesMongoRepository(implicit mongo: () => DB)
 
     collection.update(query, updateBSON, upsert = true) map {
       case result if result.nModified == 0 && result.n == 0 =>
-        logger.error(
+        Logger.error(
           s"""Failed to write partner graduate programmes for application: $applicationId ->
              |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
         throw CannotUpdatePartnerGraduateProgrammes(applicationId)

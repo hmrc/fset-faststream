@@ -16,13 +16,17 @@
 
 package connectors.launchpadgateway.exchangeobjects.in
 
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class QuestionCallbackRequest(candidateId: String, customCandidateId: String, interviewId: Int,
+case class QuestionCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate,
   questionNumber: String)
 
 object QuestionCallbackRequest {
   implicit val questionCallbackFormat = Json.format[QuestionCallbackRequest]
+  import repositories.BSONDateTimeHandler
+  import repositories.BSONLocalDateHandler
+  implicit val bsonHandler: BSONHandler[BSONDocument, QuestionCallbackRequest] = Macros.handler[QuestionCallbackRequest]
 }

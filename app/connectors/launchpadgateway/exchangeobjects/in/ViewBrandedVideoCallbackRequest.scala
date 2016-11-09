@@ -20,12 +20,13 @@ import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class FinalCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
+case class ViewBrandedVideoCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
 
-object FinalCallbackRequest {
-  implicit val finalCallbackRequestFormat = Json.format[FinalCallbackRequest]
+object ViewBrandedVideoCallbackRequest {
+  implicit val viewBrandedVideoCallbackRequestFormat = Json.format[ViewBrandedVideoCallbackRequest]
   import repositories.BSONDateTimeHandler
   import repositories.BSONLocalDateHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, FinalCallbackRequest] = Macros.handler[FinalCallbackRequest]
+  implicit val bsonHandler: BSONHandler[BSONDocument, ViewBrandedVideoCallbackRequest] = Macros.handler[ViewBrandedVideoCallbackRequest]
 }
+
