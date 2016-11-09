@@ -34,6 +34,9 @@ import model.report.{ AdjustmentReportItem, CandidateProgressReportItem, Progres
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
+import play.api.Logger
+import play.api.libs.json.{ Format, JsNumber, JsObject }
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.BSONSerializationPack.Document
 import reactivemongo.api.collections.bson.BSONCollection
@@ -103,7 +106,13 @@ trait GeneralApplicationRepository {
 
   def applicationsReport(frameworkId: String): Future[List[(String, IsNonSubmitted, PreferencesWithContactDetails)]]
 
-  def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit]
+  def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit]
+
+  def findAdjustments(applicationId: String): Future[Option[Adjustments]]
+
+  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
+
+  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]]
 
   def rejectAdjustment(applicationId: String): Future[Unit]
 
@@ -132,8 +141,7 @@ trait GeneralApplicationRepository {
 
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
 
-  def findFailedTestForNotification(appStatus: ApplicationStatus,
-                                    progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]]
+  def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]]
 
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
 
@@ -204,7 +212,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.key),
           phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.key),
           phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
-          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key)
+          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key),
+          phase2TestsFailedNotified = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED.key)
         ),
         phase3ProgressResponse = Phase3ProgressResponse(
           phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
@@ -515,12 +524,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
     )))
 
-  override def findFailedTestForNotification(appStatus: ApplicationStatus,
-                                             progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]] = {
+  override def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> appStatus),
-      BSONDocument(s"progress-status.$progressStatus" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
+      BSONDocument("applicationStatus" -> failedTestType.appStatus),
+      BSONDocument(s"progress-status.${failedTestType.notificationProgress}" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${failedTestType.receiveStatus}" -> true)
     ))
 
     implicit val reader = bsonReader(NotificationFailedTest.fromBson)
@@ -961,7 +969,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       .cursor[A](ReadPreference.nearest)
       .collect[List](Int.MaxValue, true)
 
-  def confirmAdjustment(applicationId: String, data: AdjustmentManagement): Future[Unit] = {
+  def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
 
@@ -980,6 +988,51 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     collection.update(query, resetExerciseAdjustmentsBSON).flatMap{ result =>
       collection.update(query, adjustmentsConfirmationBSON, upsert = false)
     } map(_ => ())
+  }
+
+  def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
+
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      _.flatMap { document =>
+        val rootOpt = document.getAs[BSONDocument]("assistance-details")
+        rootOpt.map { root =>
+          val adjustmentList = root.getAs[List[String]]("typeOfAdjustments")
+          val adjustmentsConfirmed = root.getAs[Boolean]("adjustmentsConfirmed")
+          val etray = root.getAs[AdjustmentDetail]("etray")
+          val video = root.getAs[AdjustmentDetail]("video")
+          Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
+        }
+      }
+    }
+  }
+
+  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val projection = BSONDocument("$set" -> BSONDocument(
+      "assistance-details.adjustmentsComment" -> adjustmentsComment.comment.getOrElse("")
+    ))
+
+    collection.update(query, projection) map { _ => }
+  }
+
+  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      _.map { document =>
+        val root = document.getAs[BSONDocument]("assistance-details")
+        val comment = root.flatMap { r =>
+          r.getAs[String]("adjustmentsComment")
+        }
+
+        AdjustmentsComment(comment)
+      }
+    }
   }
 
   def rejectAdjustment(applicationId: String): Future[Unit] = {

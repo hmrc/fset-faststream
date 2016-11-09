@@ -95,13 +95,4 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def confirmAdjustment(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[AdjustmentManagement] { data =>
-      applicationService.confirmAdjustment(applicationId, data).map { _ =>
-        Ok
-      }.recover {
-        case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
-      }
-    }
-  }
 }

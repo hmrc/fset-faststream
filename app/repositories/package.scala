@@ -35,7 +35,7 @@ import repositories.onlinetesting._
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
-import model.ApplicationRoute
+import model.{ AdjustmentDetail, ApplicationRoute }
 import model.ApplicationRoute.ApplicationRoute
 import play.api.libs.json._
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }

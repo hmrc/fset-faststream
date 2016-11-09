@@ -22,7 +22,7 @@ import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
-import model._
+import model.{ ProgressStatuses, _ }
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, ProgressStatus }
@@ -63,7 +63,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     ),
     competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
     situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, Map("daro" -> Phase2ScheduleExamples.DaroShedule)),
+    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, expiryTimeInDaysForInvigilatedETray = 90, Map("daro" -> Phase2ScheduleExamples.DaroSchedule)),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"
@@ -507,11 +507,12 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
       phase1TestService.resetTests(onlineTestApplication, List("sjq"), "createdBy").futureValue
 
-      verify(otRepositoryMock).removeTestProfileProgresses("appId",
-        List(PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_RESULTS_READY))
+      verify(otRepositoryMock).resetTestProfileProgresses("appId",
+        List(PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_RESULTS_READY,
+          PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED))
       val expectedTestsAfterReset = List(phase1TestProfileWithStartedTests.tests.head.copy(usedForResults = false),
         phase1Test.copy(participantScheduleId = invitation.participantScheduleId))
 
@@ -540,6 +541,8 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val result = phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds(
         "appId", "userId", phase1TestProfile.copy(tests = List(successfulTest, failedTest))
       ))
+
+      result.failed.futureValue mustBe an[Exception]
     }
 
     "save a phase1 report for a candidate and update progress status" in new OnlineTest {
@@ -657,7 +660,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
 
     when(tokenFactoryMock.generateUUID()).thenReturn(token)
     when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
-    when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+    when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
 
     val phase1TestService = new Phase1TestService with EventServiceFixture {
       val appRepository = appRepositoryMock
@@ -670,6 +673,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = onlineTestInvitationDateFactoryMock
       val gatewayConfig = testGatewayConfig
+      val eventService = eventServiceMock
       val actor = ActorSystem()
     }
   }
@@ -686,6 +690,6 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     )).thenReturn(Future.successful(()))
     when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
     when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
-    when(otRepositoryMock.removeTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+    when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
   }
 }

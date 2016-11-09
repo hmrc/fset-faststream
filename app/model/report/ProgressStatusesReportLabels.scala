@@ -55,6 +55,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase2ProgressResponse.phase2TestsResultsReceived, 270, Phase2TestsResultsReceived),
     (progress.phase2ProgressResponse.phase2TestsPassed, 280, Phase2TestsPassed),
     (progress.phase2ProgressResponse.phase2TestsFailed, 290, Phase2TestsFailed),
+    (progress.phase2ProgressResponse.phase2TestsFailedNotified, 295, Phase2TestsFailedNotified),
     (progress.phase2ProgressResponse.phase2TestsResultsReceived, 300, Phase2TestsResultsReceived),
     (progress.phase3ProgressResponse.phase3TestsInvited, 305, Phase3TestsInvited),
     (progress.phase3ProgressResponse.phase3TestsFirstReminder, 210, Phase3TestsFirstReminder),
@@ -134,6 +135,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase2TestsResultsReceived = "phase2_tests_results_received"
   val Phase2TestsPassed = "phase2_tests_passed"
   val Phase2TestsFailed = "phase2_tests_failed"
+  val Phase2TestsFailedNotified = "phase2_tests_failed_notified"
   val Phase3TestsInvited = "phase3_tests_invited"
   val Phase3TestsFirstReminder = "phase3_tests_first_reminder"
   val Phase3TestsSecondReminder = "phase3_tests_second_reminder"

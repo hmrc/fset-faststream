@@ -24,6 +24,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
+import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -39,7 +40,7 @@ trait CreatedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      applicationId <- createApplication(candidateInPreviousStatus.userId, generatorConfig.applicationRoute)
+      applicationId <- createApplication(candidateInPreviousStatus.userId, generatorConfig.statusData.applicationRoute)
     } yield {
       candidateInPreviousStatus.copy(
         applicationId = Some(applicationId)

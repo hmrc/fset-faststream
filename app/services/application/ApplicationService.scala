@@ -25,7 +25,8 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import contactdetails.ContactDetailsRepository
-import model.Commands.{ AdjustmentDetail, AdjustmentManagement, Candidate }
+import model.{ AdjustmentDetail, Adjustments }
+import model.Commands.Candidate
 import model.Exceptions.ApplicationNotFound
 import play.api.Logger
 import scheduler.fixer.FixBatch
@@ -57,7 +58,7 @@ trait ApplicationService extends EventSink {
       case Some(candidate) =>
         cdRepository.find(candidate.userId).flatMap{ cd =>
           eventSink {
-            appRepository.withdraw(applicationId, withdrawRequest).map{ _ =>
+            appRepository.withdraw(applicationId, withdrawRequest).map { _ =>
               val commonEventList =
                   DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
                   AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
@@ -74,14 +75,14 @@ trait ApplicationService extends EventSink {
     }.map(_ => ())
   }
 
-  def confirmAdjustment(applicationId: String, adjustmentInformation: AdjustmentManagement)
+  def confirmAdjustment(applicationId: String, adjustmentInformation: Adjustments)
                        (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     val standardEventList = DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
       AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
       Nil
 
-    def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String ={
+    def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String = {
 
       def mkString(ad: Option[AdjustmentDetail]): Option[String] =
         ad.map(e => List(e.timeNeeded.map( tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
@@ -96,7 +97,7 @@ trait ApplicationService extends EventSink {
       case Some(candidate) =>
         cdRepository.find(candidate.userId).flatMap { cd =>
           eventSink {
-            appRepository.confirmAdjustment(applicationId, adjustmentInformation).map{ _ =>
+            appRepository.confirmAdjustments(applicationId, adjustmentInformation).map { _ =>
               adjustmentInformation.adjustments match {
                 case Some(list) if list.nonEmpty => EmailEvents.AdjustmentsConfirmed(cd.email,
                   candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),
@@ -123,16 +124,15 @@ trait ApplicationService extends EventSink {
   }
 
   private def toEvents(seq: Seq[Try[Option[Candidate]]], fixBatch: FixBatch): Events = {
-    seq.map {
+    seq.flatMap {
       case Success(Some(app)) => Some(AuditEvents.FixedProdData(Map("issue" -> fixBatch.fix.name,
         "applicationId" -> app.applicationId.getOrElse(""),
         "email" -> app.email.getOrElse(""),
         "applicationRoute" -> app.applicationRoute.getOrElse("").toString)))
       case Success(None) => None
-      case Failure(e) => {
+      case Failure(e) =>
         Logger.error(s"Failed to update ${fixBatch.fix.name}", e)
         None
-      }
-    }.flatten.toList
+    }.toList
   }
 }

@@ -50,6 +50,6 @@ trait AssistanceDetailsService {
     } yield AssistanceDetailsExchange(ad.hasDisability, ad.hasDisabilityDescription, ad.guaranteedInterview,
       ad.needsSupportForOnlineAssessment, ad.needsSupportForOnlineAssessmentDescription,
       ad.needsSupportAtVenue, ad.needsSupportAtVenueDescription, ad.needsSupportForPhoneInterview,
-      ad.needsSupportForPhoneInterviewDescription, ad.adjustmentsConfirmed)
+      ad.needsSupportForPhoneInterviewDescription)
   }
 }

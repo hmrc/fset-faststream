@@ -17,8 +17,8 @@
 package connectors.launchpadgateway
 
 import config.MicroserviceAppConfig._
-import config.WSHttp
-import connectors.launchpadgateway.exchangeobjects.out.{ InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest, RegisterApplicantResponse }
+import _root_.config.WSHttp
+import connectors.launchpadgateway.exchangeobjects.out._
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
 import play.api.libs.json.Reads
@@ -47,6 +47,14 @@ trait LaunchpadGatewayClient {
 
   def inviteApplicant(inviteApplicant: InviteApplicantRequest): Future[InviteApplicantResponse] =
     http.POST(s"$urlWithPathPrefix/invite", inviteApplicant).map(responseAsOrThrow[InviteApplicantResponse])
+
+  def extendDeadline(extendDeadline: ExtendDeadlineRequest): Future[Unit] =
+    http.POST(s"$urlWithPathPrefix/extend", extendDeadline).map { response =>
+      if (response.status != OK) {
+        throw new ConnectorException(s"There was a general problem connecting with the Launchpad Gateway. HTTP status " +
+          s"was ${response.status} and response was ${response.body}")
+      }
+    }
 
   private def responseAsOrThrow[A](response: HttpResponse)(implicit jsonFormat: Reads[A]) = {
     if (response.status == OK) {
