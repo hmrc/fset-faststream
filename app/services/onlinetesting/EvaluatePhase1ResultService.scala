@@ -17,28 +17,31 @@
 package services.onlinetesting
 
 import _root_.services.passmarksettings.PassMarkSettingsService
-import services.onlinetesting.phase1.{ ApplicationStatusCalculator, Phase1TestEvaluation, Phase1TestSelector }
+import services.onlinetesting.phase1.{ Phase1TestEvaluation, Phase1TestSelector }
 import config.MicroserviceAppConfig._
+import model.Phase
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation }
+import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation }
 import play.api.Logger
 import repositories._
-import repositories.onlinetesting.Phase1EvaluationRepository
+import repositories.onlinetesting.OnlineTestEvaluationRepository
+import scheduler.onlinetesting.EvaluateOnlineTestResultService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EvaluatePhase1ResultService extends EvaluatePhase1ResultService {
-  val phase1EvaluationRepository: Phase1EvaluationRepository = repositories.faststreamPhase1EvaluationRepository
+  val phase1EvaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
+    = repositories.faststreamPhase1EvaluationRepository
   val gatewayConfig = cubiksGatewayConfig
   val phase1PMSRepository = phase1PassMarkSettingsRepository
 }
 
-trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEvaluation with PassMarkSettingsService
-  with ApplicationStatusCalculator {
-  val phase1EvaluationRepository: Phase1EvaluationRepository
+trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService with Phase1TestSelector with Phase1TestEvaluation with
+  PassMarkSettingsService with ApplicationStatusCalculator {
+  val phase1EvaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
 
-  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationPhase1ReadyForEvaluation], Phase1PassMarkSettings)]] = {
+  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationReadyForEvaluation], Phase1PassMarkSettings)]] = {
     getLatestPhase1PassMarkSettings flatMap {
       case Some(passmark) =>
         phase1EvaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
@@ -50,13 +53,13 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
   }
 
   // scalastyle:off cyclomatic.complexity
-  def evaluate(application: ApplicationPhase1ReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
+  def evaluate(application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase1 appId=${application.applicationId}")
 
-    val tests = application.phase1.activeTests
-    require(tests.nonEmpty && tests.length <= 2, "Allowed active number of tests is 1 or 2")
-    val sjqTestOpt = findFirstSjqTest(tests)
-    val bqTestOpt = findFirstBqTest(tests)
+    val activeTests = application.activeTests
+    require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
+    val sjqTestOpt = findFirstSjqTest(activeTests)
+    val bqTestOpt = findFirstBqTest(activeTests)
 
     val schemeResults = (sjqTestOpt, bqTestOpt) match {
       case (Some(sjqTest), None) if application.isGis && sjqTest.testResult.isDefined =>
@@ -71,8 +74,8 @@ trait EvaluatePhase1ResultService extends Phase1TestSelector with Phase1TestEval
       case true =>
         phase1EvaluationRepository.savePassmarkEvaluation(
           application.applicationId,
-          PassmarkEvaluation(passmark.version, schemeResults),
-          determineApplicationStatus(application.applicationStatus, schemeResults)
+          PassmarkEvaluation(passmark.version, None, schemeResults),
+          determineApplicationStatus(application.applicationStatus, schemeResults, Phase.PHASE1)
         )
       case false => Future.successful(())
     }

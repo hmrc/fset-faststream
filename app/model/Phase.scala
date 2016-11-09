@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model
 
-import model.ApplicationStatus._
-import model.SelectedSchemes
-import play.api.libs.json._
+import scala.language.implicitConversions
 
-case class ApplicationPhase1ReadyForEvaluation(
-  applicationId: String,
-  applicationStatus: ApplicationStatus,
-  isGis: Boolean,
-  phase1: Phase1TestProfile,
-  preferences: SelectedSchemes
-) {
-  def nonGis = !isGis
-}
+object Phase extends Enumeration {
 
-object ApplicationPhase1ReadyForEvaluation {
-  implicit val applicationPhase1ReadyForEvaluationFormats = Json.format[ApplicationPhase1ReadyForEvaluation]
+  type Phase = Value
+
+  val PHASE1, PHASE2, PHASE3 = Value
+
+  implicit def toString(phase: Phase): String = phase.toString
+
 }

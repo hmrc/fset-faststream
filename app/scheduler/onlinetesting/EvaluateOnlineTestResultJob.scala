@@ -19,20 +19,25 @@ package scheduler.onlinetesting
 import common.FutureEx
 import config.ScheduledJobConfig
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.ApplicationPhase1ReadyForEvaluation
+import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.EvaluatePhase1ResultService
+import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase2ResultService }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
-object EvaluatePhase1ResultJob extends EvaluatePhase1ResultJob {
-  val evaluateService: EvaluatePhase1ResultService = EvaluatePhase1ResultService
+object EvaluatePhase1ResultJob extends EvaluateOnlineTestResultJob with EvaluatePhase1ResultJobConfig {
+  val evaluateService = EvaluatePhase1ResultService
 }
 
-trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePhase1ResultJobConfig {
-  val evaluateService: EvaluatePhase1ResultService
+object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob with EvaluatePhase2ResultJobConfig {
+  val evaluateService = EvaluatePhase2ResultService
+}
+
+trait EvaluateOnlineTestResultJob extends SingleInstanceScheduledJob {
+  val evaluateService: EvaluateOnlineTestResultService
+  val batchSize: Int
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     evaluateService.nextCandidatesReadyForEvaluation(batchSize) flatMap {
@@ -44,7 +49,7 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
     }
   }
 
-  private def evaluateInBatch(apps: List[ApplicationPhase1ReadyForEvaluation],
+  private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation],
                               passmarkSettings: Phase1PassMarkSettings)(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.debug(s"Evaluate Phase1 Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
@@ -62,7 +67,7 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
 
       if (errors.nonEmpty) {
         val errorMsg = apps.map {a =>
-          s"${a.applicationId}, cubiks Ids: ${a.phase1.tests.map(_.cubiksUserId).mkString(",")}"
+          s"${a.applicationId}, cubiks Ids: ${a.activeTests.map(_.cubiksUserId).mkString(",")}"
         }.mkString("\n")
 
         Logger.error(s"There were ${errors.size} errors in batch Phase 1 evaluation:\n$errorMsg")
@@ -83,3 +88,14 @@ trait EvaluatePhase1ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
   Logger.debug(s"Max number of applications in scheduler: $batchSize")
 }
+
+trait EvaluatePhase2ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  val conf = config.MicroserviceAppConfig.evaluatePhase2ResultJobConfig
+  val configPrefix = "scheduling.online-testing.evaluate-phase2-result-job."
+  val name = "EvaluatePhase2ResultJob"
+
+  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
+  Logger.debug(s"Max number of applications in scheduler: $batchSize")
+}
+

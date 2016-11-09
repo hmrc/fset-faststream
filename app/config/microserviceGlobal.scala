@@ -125,7 +125,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     }
 
   private lazy val evaluatePhase1ResultJob: Option[ScheduledJob] =
-    if (evaluatePhase1ResultJobConfigValues.enabled) Some(EvaluatePhase1ResultJob) else {
+    if (evaluatePhase1ResultJobConfigValues.enabled) Some(EvaluatePhase2ResultJob) else {
       Logger.warn("evaluate phase1 result job is disabled")
       None
     }

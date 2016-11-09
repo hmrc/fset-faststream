@@ -18,41 +18,43 @@ package services.onlinetesting.phase1
 
 import model.ApplicationStatus._
 import model.EvaluationResults._
+import model.Phase
 import model.SchemeType.{ apply => _, _ }
 import model.persisted.SchemeEvaluationResult
 import services.BaseServiceSpec
+import services.onlinetesting.ApplicationStatusCalculator
 
 class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   val calc = new ApplicationStatusCalculator {}
 
   "determine application status" should {
     "promote the application when at least one Green" in {
-      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS, List(red, amber, green))
+      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS, List(red, amber, green), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_PASSED)
     }
 
     "promote the application for all Greens" in {
-      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS, List(green, green, green))
+      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS, List(green, green, green), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_PASSED)
     }
 
     "fail application for all Reds" in {
-      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS, List(red, red, red))
+      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS, List(red, red, red), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_FAILED)
     }
 
     "do not update application status when amber - at least one amber and no greens" in {
-      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS, List(red, amber, red))
+      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS, List(red, amber, red), Phase.PHASE1)
       newStatus mustBe None
     }
 
     "do not update application status when PHASE1_TESTS_PASSED" in {
-      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS_PASSED, List(green, green, green))
+      val newStatus = calc.determineApplicationStatus(PHASE1_TESTS_PASSED, List(green, green, green), Phase.PHASE1)
       newStatus mustBe None
     }
 
     "return exception when no results found" in {
-      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(PHASE1_TESTS, Nil)
+      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(PHASE1_TESTS, Nil, Phase.PHASE1)
     }
   }
 

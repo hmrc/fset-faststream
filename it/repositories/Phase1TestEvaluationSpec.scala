@@ -7,7 +7,7 @@ import model.ApplicationStatus.{apply => _, _}
 import model.EvaluationResults._
 import model.SchemeType._
 import model.exchange.passmarksettings.{PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds}
-import model.persisted.{ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
+import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -166,7 +166,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     var phase1PassMarkSettings = createPhase1PassMarkSettings(phase1PassMarkSettingsTable)
 
-    var applicationReadyForEvaluation:ApplicationPhase1ReadyForEvaluation = _
+    var applicationReadyForEvaluation:ApplicationReadyForEvaluation = _
 
     var passMarkEvaluation: PassmarkEvaluation = _
 

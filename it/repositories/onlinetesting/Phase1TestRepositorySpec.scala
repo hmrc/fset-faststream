@@ -431,7 +431,7 @@ class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoReposito
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, testsWithResult)).futureValue
 
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Red.toString))
-      val evaluation = PassmarkEvaluation("version1", resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
 
       phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ApplicationStatus.PHASE1_TESTS_FAILED)).futureValue
 

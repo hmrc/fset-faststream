@@ -14,43 +14,33 @@
  * limitations under the License.
  */
 
-package services.onlinetesting.phase1
+package services.onlinetesting.phase2
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.SchemeType._
 import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings }
 import model.persisted.{ SchemeEvaluationResult, TestResult }
 
-trait Phase1TestEvaluation {
+trait Phase2TestEvaluation {
 
-  def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult,
-                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
-    evaluate(isGis = true, schemes, passmark, sjqTestResult)
-  }
-
-  def evaluateForNonGis(schemes: List[SchemeType], sjqTestResult: TestResult, bqTestResult: TestResult,
-                        passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
-    evaluate(isGis = false, schemes, passmark, sjqTestResult, Some(bqTestResult))
-  }
-
-  private def evaluate(isGis: Boolean, schemes: List[SchemeType], passmark: Phase1PassMarkSettings,
-               sjqTestResult: TestResult, bqTestResultOpt: Option[TestResult] = None) = {
+  def evaluate(schemes: List[SchemeType], etrayTestResult: TestResult,
+               phase1SchemesEvaluation: List[SchemeEvaluationResult],
+               passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     for {
       schemeToEvaluate <- schemes
       schemePassmarkOpt = passmark.schemes find (_.schemeName == schemeToEvaluate)
       schemePassmark <- schemePassmarkOpt
+      phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.scheme == schemeToEvaluate)
     } yield {
-      val sjqResult = evaluateResultsForExercise(schemePassmark.schemeThresholds.situational)(sjqTestResult)
-      val bqResult = bqTestResultOpt.map(evaluateResultsForExercise(schemePassmark.schemeThresholds.behavioural)).getOrElse(Green)
-
-      val result = (sjqResult, bqResult) match {
+      val phase2Result = evaluateResultsForExercise(schemePassmark.schemeThresholds.situational)(etrayTestResult)
+      val phase1Result = Result(phase1SchemeEvaluation.result)
+      val result = (phase2Result, phase1Result) match {
         case (Red, _) => Red
         case (_, Red) => Red
-        case (Amber, _) => Amber
-        case (_, Amber) => Amber
+        case (Amber, Red) => Red
+        case (Amber, Green) => Amber
         case (Green, Green) => Green
       }
-
       SchemeEvaluationResult(schemeToEvaluate, result.toString)
     }
   }
@@ -59,7 +49,6 @@ trait Phase1TestEvaluation {
     val tScore = testResult.tScore.get
     val failmark = threshold.failThreshold
     val passmark = threshold.passThreshold
-
     if (tScore >= passmark) {
       Green
     } else if (tScore <= failmark) {

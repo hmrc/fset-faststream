@@ -4,7 +4,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.persisted.{ CubiksTest, Phase1TestProfile }
 import model.Phase1TestExamples._
 import model.SchemeType._
-import model.persisted.{ ApplicationPhase1ReadyForEvaluation, AssistanceDetails, TestResult }
+import model.persisted.{ ApplicationReadyForEvaluation, AssistanceDetails, TestResult }
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.concurrent.ScalaFutures
@@ -32,13 +32,13 @@ trait CommonRepository {
 
 
   def insertApplicationWithPhase1TestResults(appId: String, sjq: Double, bq: Option[Double] = None, isGis: Boolean = false
-                                            )(schemes:SchemeType*): ApplicationPhase1ReadyForEvaluation = {
+                                            )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
     val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(sjq), None, None, None)))
     val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", bq, None, None, None)))
     val phase1Tests = if(isGis) List(sjqTest) else List(sjqTest, bqTest)
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
-    ApplicationPhase1ReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, isGis, Phase1TestProfile(now, phase1Tests),
-      selectedSchemes(schemes.toList))
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, isGis, Phase1TestProfile(now, phase1Tests).activeTests,
+      None, selectedSchemes(schemes.toList))
   }
 
   def insertApplication(appId: String, applicationStatus: ApplicationStatus, tests: Option[List[CubiksTest]] = None,

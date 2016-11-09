@@ -16,14 +16,21 @@
 
 package model.persisted
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import model.ApplicationStatus._
+import model.SelectedSchemes
+import play.api.libs.json._
 
-case class PassmarkEvaluation(passmarkVersion: String,
-                              previousPhasePassMarkVersion: Option[String],
-                              result: List[SchemeEvaluationResult])
+case class ApplicationReadyForEvaluation(
+  applicationId: String,
+  applicationStatus: ApplicationStatus,
+  isGis: Boolean,
+  activeTests: List[CubiksTest],
+  prevPhaseEvaluation: Option[PassmarkEvaluation],
+  preferences: SelectedSchemes
+) {
+  def nonGis = !isGis
+}
 
-object PassmarkEvaluation {
-  implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
-  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
+object ApplicationReadyForEvaluation {
+  implicit val applicationReadyForEvaluationFormats = Json.format[ApplicationReadyForEvaluation]
 }
