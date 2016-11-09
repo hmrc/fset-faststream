@@ -49,12 +49,12 @@ trait AdjustmentsManagementController extends BaseController {
     }
   }
 
-  def saveAdjustmentsComment(applicationId: String) = Action.async(parse.json) { implicit request =>
+  def updateAdjustmentsComment(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[AdjustmentsComment] { data =>
-      adjustmentsManagementService.saveAdjustmentsComment(applicationId, data).map { _ =>
-        Ok
+      adjustmentsManagementService.updateAdjustmentsComment(applicationId, data).map { _ =>
+        NoContent
       }.recover {
-        case e: ApplicationNotFound => NotFound(s"cannot find application for application with id: ${e.id}")
+        case e: CannotUpdateAdjustmentsComment => BadRequest(s"cannot update adjustments comment for application with id: ${e.applicationId}")
       }
     }
   }
@@ -62,6 +62,17 @@ trait AdjustmentsManagementController extends BaseController {
   def findAdjustmentsComment(applicationId: String) = Action.async { implicit request =>
     adjustmentsManagementService.findAdjustmentsComment(applicationId).map { adjustmentsComment =>
       Ok(Json.toJson(adjustmentsComment))
+    }.recover {
+      case c: AdjustmentsCommentNotFound => NotFound(s"cannot find adjustments comment for application with id: ${c.applicationId}")
+      case a: ApplicationNotFound => NotFound(s"cannot find application for application with id: ${a.id}")
+    }
+  }
+
+  def removeAdjustmentsComment(applicationId: String) = Action.async { implicit request =>
+    adjustmentsManagementService.removeAdjustmentsComment(applicationId).map { _ =>
+      NoContent
+    }.recover {
+      case e: CannotRemoveAdjustmentsComment => NotFound(s"cannot remove adjustments comment for application with id: ${e.applicationId}")
     }
   }
 

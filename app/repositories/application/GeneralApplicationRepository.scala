@@ -25,7 +25,7 @@ import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.Commands._
 import model.EvaluationResults._
-import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
+import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.PREVIEW
 import model.command._
@@ -52,6 +52,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Success
 
 // TODO FAST STREAM
 // This is far too large an interface - we should look at splitting up based on
@@ -110,9 +111,11 @@ trait GeneralApplicationRepository {
 
   def findAdjustments(applicationId: String): Future[Option[Adjustments]]
 
-  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
+  def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
 
-  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]]
+  def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment]
+
+  def removeAdjustmentsComment(applicationId: String): Future[Unit]
 
   def rejectAdjustment(applicationId: String): Future[Unit]
 
@@ -1009,29 +1012,56 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     }
   }
 
-  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
+  def removeAdjustmentsComment(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val projection = BSONDocument("$set" -> BSONDocument(
-      "assistance-details.adjustmentsComment" -> adjustmentsComment.comment.getOrElse("")
+    val removeBSON = BSONDocument("$unset" -> BSONDocument(
+      "assistance-details.adjustmentsComment" -> ""
     ))
 
-    collection.update(query, projection) map { _ => }
+    collection.update(query, removeBSON).map {
+      case result if result.nModified == 0 && result.n == 0 =>
+        logger.error(
+          s"""Failed to remove adjustments comment for application: $applicationId ->
+              |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
+        throw CannotRemoveAdjustmentsComment(applicationId)
+      case _ => ()
+    }
   }
 
-  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]] = {
+  def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val updateBSON = BSONDocument("$set" -> BSONDocument(
+      "assistance-details.adjustmentsComment" -> adjustmentsComment.comment
+    ))
+
+    collection.update(query, updateBSON).map {
+      case result if result.nModified == 0 && result.n == 0 =>
+        logger.error(
+          s"""Failed to write save adjustments comment for application: $applicationId ->
+             |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
+        throw CannotUpdateAdjustmentsComment(applicationId)
+      case _ => ()
+    }
+  }
+
+  def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument].map {
-      _.map { document =>
+      case Some(document) =>
         val root = document.getAs[BSONDocument]("assistance-details")
-        val comment = root.flatMap { r =>
-          r.getAs[String]("adjustmentsComment")
+        root match {
+          case Some(doc) =>
+            doc.getAs[String]("adjustmentsComment") match {
+              case Some(comment) => AdjustmentsComment(comment)
+              case None => throw AdjustmentsCommentNotFound(applicationId)
+            }
+          case None => throw AdjustmentsCommentNotFound(applicationId)
         }
-
-        AdjustmentsComment(comment)
-      }
+      case None => throw ApplicationNotFound(applicationId)
     }
   }
 
