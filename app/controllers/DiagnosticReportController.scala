@@ -16,7 +16,8 @@
 
 package controllers
 
-import play.api.libs.json.Json
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Action
 import repositories._
 import repositories.application.DiagnosticReportingRepository
@@ -42,11 +43,7 @@ trait DiagnosticReportController extends BaseController {
     }
   }
 
-  def getAllApplications() = Action.async { implicit request =>
-    val applications = drRepository.findAll()
-
-    applications.map { apps =>
-      Ok(Json.toJson(apps))
-    }
+  def getAllApplications() = Action { implicit request =>
+    Ok.chunked(drRepository.findAll())
   }
 }

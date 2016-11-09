@@ -59,33 +59,6 @@ class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoS
     }
   }
 
-  "All users report" should {
-    "return all non-sensitive information about the users" in new TestFixture {
-      val expectedApplications = List(
-        Json.obj("applicationId" -> "app1", "userId" -> "user1", "frameworkId" -> "FastStream-2016"),
-        Json.obj("applicationId" -> "app2", "userId" -> "user2", "frameworkId" -> "EDIP-2016")
-      )
-      when(mockdiagnosticReportRepository.findAll()).thenReturn(Future.successful(expectedApplications))
-      val result = TestableDiagnosticReportingController.getAllApplications()(createGetAllUsersRequest).run
-
-      val resultJson = contentAsJson(result)
-
-      val actualApplications = resultJson.as[JsValue]
-      status(result) must be(200)
-      resultJson mustBe JsArray(expectedApplications)
-    }
-
-    "return an empty list if there are no users" in new TestFixture {
-      when(mockdiagnosticReportRepository.findAll()).thenReturn(Future.successful(Nil))
-      val result = TestableDiagnosticReportingController.getAllApplications()(createGetAllUsersRequest).run
-
-      val resultJson = contentAsJson(result)
-      val actualApplications = resultJson.as[JsValue]
-      status(result) mustBe 200
-      resultJson mustBe JsArray()
-    }
-  }
-
   trait TestFixture extends TestFixtureBase {
     object TestableDiagnosticReportingController extends DiagnosticReportController {
       val drRepository = mockdiagnosticReportRepository
