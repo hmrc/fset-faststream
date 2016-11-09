@@ -146,6 +146,8 @@ trait GeneralApplicationRepository {
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
 
   def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
+
+  def fixDataByRemovingETray(appId: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -661,6 +663,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
       }
     }
+  }
+
+  def fixDataByRemovingETray(appId: String): Future[Unit] = {
+  // TODO LT: write query
+    Future.successful()
   }
 
   private def applicationPreferencesWithTestResults(query: BSONDocument): Future[List[ApplicationPreferencesWithTestResults]] = {
