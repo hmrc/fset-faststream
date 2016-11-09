@@ -18,36 +18,36 @@ package controllers
 
 import factories.UUIDFactory
 import model.Commands.Implicits._
-import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.exchange.passmarksettings.Phase2PassMarkSettings
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
-import services.passmarksettings.{ PassMarkSettingsService, Phase1PassMarkSettingsService }
+import services.passmarksettings.{ PassMarkSettingsService, Phase2PassMarkSettingsService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1PassMarkSettingsController extends Phase1PassMarkSettingsController {
-  val passMarkService = Phase1PassMarkSettingsService
+object Phase2PassMarkSettingsController extends Phase2PassMarkSettingsController {
+  val passMarkService = Phase2PassMarkSettingsService
   val auditService = AuditService
   val uuidFactory = UUIDFactory
 }
 
-trait Phase1PassMarkSettingsController extends BaseController {
+trait Phase2PassMarkSettingsController extends BaseController {
 
-  val passMarkService: PassMarkSettingsService[Phase1PassMarkSettings]
+  val passMarkService: PassMarkSettingsService[Phase2PassMarkSettings]
   val auditService: AuditService
   val uuidFactory: UUIDFactory
 
   def create = Action.async(parse.json) { implicit request =>
-    withJsonBody[Phase1PassMarkSettings] { passMarkSettings => {
+    withJsonBody[Phase2PassMarkSettings] { passMarkSettings => {
         val newVersionUUID = uuidFactory.generateUUID()
         val newPassMarkSettings = passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
         for {
           createResult <- passMarkService.createPassMarkSettings(newPassMarkSettings)
         } yield {
-          auditService.logEvent("Phase1PassMarkSettingsCreated", Map(
+          auditService.logEvent("Phase2PassMarkSettingsCreated", Map(
             "Version" -> newVersionUUID,
             "CreatedByUserId" -> passMarkSettings.createdBy,
             "StoredCreateDate" -> passMarkSettings.createDate.toString

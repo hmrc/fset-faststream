@@ -18,7 +18,7 @@ package services.onlinetesting.phase1
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.SchemeType._
-import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings, Phase1PassMarkThresholds }
+import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings }
 import model.persisted.{ SchemeEvaluationResult, TestResult }
 
 trait Phase1TestEvaluation {
