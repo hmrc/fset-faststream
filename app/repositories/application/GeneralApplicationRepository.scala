@@ -1021,7 +1021,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     collection.update(query, removeBSON).map {
       case result if result.nModified == 0 && result.n == 0 =>
-        logger.error(
+        Logger.error(
           s"""Failed to remove adjustments comment for application: $applicationId ->
               |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
         throw CannotRemoveAdjustmentsComment(applicationId)
@@ -1038,7 +1038,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     collection.update(query, updateBSON).map {
       case result if result.nModified == 0 && result.n == 0 =>
-        logger.error(
+        Logger.error(
           s"""Failed to write save adjustments comment for application: $applicationId ->
              |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
         throw CannotUpdateAdjustmentsComment(applicationId)
