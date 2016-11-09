@@ -64,7 +64,7 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
   }
 
   trait TestFixture extends WithApplication {
-    val mockEvaluateService = mock[EvaluatePhase1ResultService]
+    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase1PassMarkSettings]]
     val profile = Phase1TestProfileExamples.profile
     val schemes = SelectedSchemesExamples.TwoSchemes
     val passmark = Phase1PassMarkSettingsExamples.passmark
@@ -77,7 +77,7 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
       when(mockEvaluateService.evaluate(app, passmark)).thenReturn(Future.successful(()))
     }
 
-    lazy val scheduler = new EvaluateOnlineTestResultJob {
+    lazy val scheduler = new EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
       val evaluateService = mockEvaluateService
       val batchSize = 1
       val lockId: String = "1"

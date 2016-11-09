@@ -20,7 +20,7 @@ import _root_.services.onlinetesting.phase2.Phase2TestEvaluation
 import _root_.services.passmarksettings.PassMarkSettingsService
 import config.MicroserviceAppConfig._
 import model.Phase
-import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.exchange.passmarksettings.Phase2PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation }
 import play.api.Logger
 import repositories._
@@ -34,15 +34,15 @@ object EvaluatePhase2ResultService extends EvaluatePhase2ResultService {
   val phase2EvaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
     = repositories.faststreamPhase2EvaluationRepository
   val gatewayConfig = cubiksGatewayConfig
-  val phase1PMSRepository = phase1PassMarkSettingsRepository
+  val passMarkSettingsRepo = phase2PassMarkSettingsRepository
 }
 
-trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService with Phase2TestEvaluation with PassMarkSettingsService
-  with ApplicationStatusCalculator {
+trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestEvaluation
+  with PassMarkSettingsService[Phase2PassMarkSettings] with ApplicationStatusCalculator {
   val phase2EvaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
 
-  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationReadyForEvaluation], Phase1PassMarkSettings)]] = {
-    getLatestPhase1PassMarkSettings flatMap {
+  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationReadyForEvaluation], Phase2PassMarkSettings)]] = {
+    getLatestPassMarkSettings flatMap {
       case Some(passmark) =>
         phase2EvaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
           Some(candidates -> passmark)
@@ -51,7 +51,7 @@ trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService with P
     }
   }
 
-  def evaluate(application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
+  def evaluate(application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
 
     val activeTests = application.activeTests

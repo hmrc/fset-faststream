@@ -25,8 +25,8 @@ import model.persisted._
 import model.{ ApplicationStatus, Phase1TestExamples, Phase1TestProfileExamples, SchemeType }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import repositories._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
+import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
 import services.onlinetesting.phase1.Phase1TestEvaluation
 
@@ -139,7 +139,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]]
     val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
-    val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsRepository]
+    val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsMongoRepository]
 
     when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ApplicationStatus]]))
       .thenReturn(Future.successful(()))
@@ -147,7 +147,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val service = new EvaluatePhase1ResultService with StubbedPhase1TestEvaluation {
       val phase1EvaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockCubiksGatewayConfig
-      val phase1PMSRepository = mockPhase1PMSRepository
+      val passMarkSettingsRepo = mockPhase1PMSRepository
 
       override def sjq = SjqId
 
@@ -157,7 +157,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val edipSkipEvaluationService = new EvaluatePhase1ResultService {
       val phase1EvaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockCubiksGatewayConfig
-      val phase1PMSRepository = mockPhase1PMSRepository
+      val passMarkSettingsRepo = mockPhase1PMSRepository
 
       override def sjq = SjqId
 
@@ -184,5 +184,6 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
         EvaluateForNonGis
       }
     }
+
   }
 }

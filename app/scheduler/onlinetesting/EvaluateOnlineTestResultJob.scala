@@ -18,7 +18,7 @@ package scheduler.onlinetesting
 
 import common.FutureEx
 import config.ScheduledJobConfig
-import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings }
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -27,16 +27,16 @@ import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase2Resul
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
-object EvaluatePhase1ResultJob extends EvaluateOnlineTestResultJob with EvaluatePhase1ResultJobConfig {
+object EvaluatePhase1ResultJob extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] with EvaluatePhase1ResultJobConfig {
   val evaluateService = EvaluatePhase1ResultService
 }
 
-object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob with EvaluatePhase2ResultJobConfig {
+object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] with EvaluatePhase2ResultJobConfig {
   val evaluateService = EvaluatePhase2ResultService
 }
 
-trait EvaluateOnlineTestResultJob extends SingleInstanceScheduledJob {
-  val evaluateService: EvaluateOnlineTestResultService
+trait EvaluateOnlineTestResultJob[T <: PassMarkSettings] extends SingleInstanceScheduledJob {
+  val evaluateService: EvaluateOnlineTestResultService[T]
   val batchSize: Int
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
@@ -50,7 +50,7 @@ trait EvaluateOnlineTestResultJob extends SingleInstanceScheduledJob {
   }
 
   private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation],
-                              passmarkSettings: Phase1PassMarkSettings)(implicit ec: ExecutionContext): Future[Unit] = {
+                              passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.debug(s"Evaluate Phase1 Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
       Try(evaluateService.evaluate(app, passmarkSettings)) match {

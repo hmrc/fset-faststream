@@ -16,15 +16,15 @@
 
 package scheduler.onlinetesting
 
-import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.exchange.passmarksettings.PassMarkSettings
 import model.persisted.ApplicationReadyForEvaluation
 
 import scala.concurrent.Future
 
 
-trait EvaluateOnlineTestResultService {
+trait EvaluateOnlineTestResultService[T <: PassMarkSettings] {
 
-  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationReadyForEvaluation], Phase1PassMarkSettings)]]
+  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationReadyForEvaluation], T)]]
 
-  def evaluate(application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit]
+  def evaluate(application: ApplicationReadyForEvaluation, passmark: T): Future[Unit]
 }

@@ -1,13 +1,13 @@
 package repositories
 
-import config.{CubiksGatewayConfig, Phase1TestsConfig}
+import config.{ CubiksGatewayConfig, Phase1TestsConfig }
 import factories.DateTimeFactory
 import model.ApplicationStatus
-import model.ApplicationStatus.{apply => _, _}
+import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults._
 import model.SchemeType._
-import model.exchange.passmarksettings.{PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds}
-import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
+import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds }
+import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -16,9 +16,10 @@ import play.api.test.Helpers
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
-import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper}
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.onlinetesting.{Phase1EvaluationMongoRepository, Phase1TestMongoRepository}
+import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase1TestMongoRepository }
+import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.GBTimeZoneService
 import services.onlinetesting.EvaluatePhase1ResultService
 import testkit.MongoRepositorySpec
@@ -58,7 +59,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   def phase1TestEvaluationService = new EvaluatePhase1ResultService {
     val phase1EvaluationRepository = phase1EvaluationRepo
     val gatewayConfig = mockGatewayConfig
-    val phase1PMSRepository = phase1PassMarkSettingRepo
+    val passMarkSettingsRepo = phase1PassMarkSettingRepo
     val phase1TestsConfigMock = mock[Phase1TestsConfig]
 
     when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)

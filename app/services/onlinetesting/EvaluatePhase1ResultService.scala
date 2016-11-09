@@ -33,16 +33,17 @@ import scala.concurrent.Future
 object EvaluatePhase1ResultService extends EvaluatePhase1ResultService {
   val phase1EvaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
     = repositories.faststreamPhase1EvaluationRepository
+  val passMarkSettingsRepo = phase1PassMarkSettingsRepository
   val gatewayConfig = cubiksGatewayConfig
-  val phase1PMSRepository = phase1PassMarkSettingsRepository
 }
 
-trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService with Phase1TestSelector with Phase1TestEvaluation with
-  PassMarkSettingsService with ApplicationStatusCalculator {
+trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
+  Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] with ApplicationStatusCalculator {
+
   val phase1EvaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
 
   def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationReadyForEvaluation], Phase1PassMarkSettings)]] = {
-    getLatestPhase1PassMarkSettings flatMap {
+    getLatestPassMarkSettings flatMap {
       case Some(passmark) =>
         phase1EvaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
           Some(candidates -> passmark)

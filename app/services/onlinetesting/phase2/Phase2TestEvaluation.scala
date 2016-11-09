@@ -18,21 +18,21 @@ package services.onlinetesting.phase2
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.SchemeType._
-import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings }
+import model.exchange.passmarksettings.{ PassMarkThreshold, Phase2PassMarkSettings }
 import model.persisted.{ SchemeEvaluationResult, TestResult }
 
 trait Phase2TestEvaluation {
 
   def evaluate(schemes: List[SchemeType], etrayTestResult: TestResult,
                phase1SchemesEvaluation: List[SchemeEvaluationResult],
-               passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+               passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
     for {
       schemeToEvaluate <- schemes
       schemePassmarkOpt = passmark.schemes find (_.schemeName == schemeToEvaluate)
       schemePassmark <- schemePassmarkOpt
       phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.scheme == schemeToEvaluate)
     } yield {
-      val phase2Result = evaluateResultsForExercise(schemePassmark.schemeThresholds.situational)(etrayTestResult)
+      val phase2Result = evaluateResultsForExercise(schemePassmark.schemeThresholds.etray)(etrayTestResult)
       val phase1Result = Result(phase1SchemeEvaluation.result)
       val result = (phase2Result, phase1Result) match {
         case (Red, _) => Red
