@@ -24,6 +24,7 @@ import models.ApplicationData.ApplicationStatus._
 import models.page.DashboardPage._
 import models._
 import models.page.DashboardPage.Flags._
+import org.scalatest.MustMatchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.play.PlaySpec
 import play.api.i18n.Lang
@@ -31,7 +32,7 @@ import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import security.RolesSpec
 
-class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
+class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks with MustMatchers {
   import DashboardPageSpec._
 
   implicit val request: RequestHeader = FakeRequest()
@@ -105,11 +106,10 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
 
     // TODO FIX ME - when all app statuses have been implemented
     "be tested for all statuses" ignore {
-      val statusesTested = Applications.toList.map { case (status, _, _, _, _, _ , _, _, _, _, _, _, _, _, _, _, _, _, _, _) => status }
+      val statusesTested = Applications.toList.map(_._1)
       val allStatuses = ApplicationStatus.values.toList
 
-      val statusesNotTested = allStatuses.diff(statusesTested)
-      statusesNotTested mustBe empty
+      statusesTested must contain theSameElementsAs(allStatuses)
     }
   }
 
@@ -174,9 +174,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
     }
 
     "be tested for all statuses" in {
-      val statusesTested = Applications.toList.map {
-        case (status, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => status
-      }
+      val statusesTested = Applications.toList
       // For any new status DashboardPage.Step1/2/3 or 4 needs to have this status
       // Add this new status to isReached method and increase this value
       statusesTested.length mustBe 8
