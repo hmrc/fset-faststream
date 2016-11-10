@@ -54,6 +54,7 @@ GET         /report/online-test-pass-mark/:frameworkId                   control
 
 GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
 GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
+DELETE      /diagnostic/application/:applicationId/eTray                 controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getOnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
