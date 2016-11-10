@@ -110,6 +110,10 @@ trait GeneralApplicationRepository {
 
   def findAdjustments(applicationId: String): Future[Option[Adjustments]]
 
+  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
+
+  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]]
+
   def rejectAdjustment(applicationId: String): Future[Unit]
 
   def gisByApplication(applicationId: String): Future[Boolean]
@@ -137,12 +141,13 @@ trait GeneralApplicationRepository {
 
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
 
-  def findFailedTestForNotification(appStatus: ApplicationStatus,
-                                    progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]]
+  def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]]
 
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
 
   def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
+
+  def fixDataByRemovingETray(appId: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -209,7 +214,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           phase2TestsCompleted = getProgress(ProgressStatuses.PHASE2_TESTS_COMPLETED.key),
           phase2TestsExpired = getProgress(ProgressStatuses.PHASE2_TESTS_EXPIRED.key),
           phase2TestsPassed = getProgress(ProgressStatuses.PHASE2_TESTS_PASSED.key),
-          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key)
+          phase2TestsFailed = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED.key),
+          phase2TestsFailedNotified = getProgress(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED.key)
         ),
         phase3ProgressResponse = Phase3ProgressResponse(
           phase3TestsInvited = getProgress(ProgressStatuses.PHASE3_TESTS_INVITED.toString),
@@ -520,12 +526,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
     )))
 
-  override def findFailedTestForNotification(appStatus: ApplicationStatus,
-                                             progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]] = {
+  override def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> appStatus),
-      BSONDocument(s"progress-status.$progressStatus" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
+      BSONDocument("applicationStatus" -> failedTestType.appStatus),
+      BSONDocument(s"progress-status.${failedTestType.notificationProgress}" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${failedTestType.receiveStatus}" -> true)
     ))
 
     implicit val reader = bsonReader(NotificationFailedTest.fromBson)
@@ -658,6 +663,45 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
       }
     }
+  }
+
+  def fixDataByRemovingETray(appId: String): Future[Unit] = {
+    import ProgressStatuses._
+
+    val query = BSONDocument("$and" ->
+          BSONArray(
+            BSONDocument("applicationId" -> appId),
+            BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
+          ))
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_INVITED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_STARTED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_FIRST_REMINDER.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_SECOND_REMINDER.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_COMPLETED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_EXPIRED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_RESULTS_RECEIVED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_PASSED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_FAILED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE2_TESTS_FAILED_NOTIFIED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_INVITED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_STARTED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_FIRST_REMINDER.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_SECOND_REMINDER.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_COMPLETED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_EXPIRED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_RESULTS_RECEIVED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_PASSED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_FAILED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_FAILED_NOTIFIED.key}" -> ""),
+        "$unset" -> BSONDocument(s"testGroups.PHASE2" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
   }
 
   private def applicationPreferencesWithTestResults(query: BSONDocument): Future[List[ApplicationPreferencesWithTestResults]] = {
@@ -993,14 +1037,41 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument].map {
-      _.map { document =>
-        val root = document.getAs[BSONDocument]("assistance-details").get
-        val adjustmentList = root.getAs[List[String]]("typeOfAdjustments")
-        val adjustmentsConfirmed = root.getAs[Boolean]("adjustmentsConfirmed")
-        val etray = root.getAs[AdjustmentDetail]("etray")
-        val video = root.getAs[AdjustmentDetail]("video")
+      _.flatMap { document =>
+        val rootOpt = document.getAs[BSONDocument]("assistance-details")
+        rootOpt.map { root =>
+          val adjustmentList = root.getAs[List[String]]("typeOfAdjustments")
+          val adjustmentsConfirmed = root.getAs[Boolean]("adjustmentsConfirmed")
+          val etray = root.getAs[AdjustmentDetail]("etray")
+          val video = root.getAs[AdjustmentDetail]("video")
+          Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
+        }
+      }
+    }
+  }
 
-        Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
+  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val projection = BSONDocument("$set" -> BSONDocument(
+      "assistance-details.adjustmentsComment" -> adjustmentsComment.comment.getOrElse("")
+    ))
+
+    collection.update(query, projection) map { _ => }
+  }
+
+  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      _.map { document =>
+        val root = document.getAs[BSONDocument]("assistance-details")
+        val comment = root.flatMap { r =>
+          r.getAs[String]("adjustmentsComment")
+        }
+
+        AdjustmentsComment(comment)
       }
     }
   }

@@ -139,6 +139,13 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
       Some(Adjustments(Some(List("etrayTimeExtension")), Some(true), Some(AdjustmentDetail(Some(5))), None))
     )
 
+  override def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = Future.successful(Unit)
+
+  override def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]] =
+    Future.successful(
+      Some(AdjustmentsComment(Some("comment")))
+    )
+
   override def rejectAdjustment(applicationId: String): Future[Unit] = Future.successful(Unit)
 
   override def candidatesAwaitingAllocation(frameworkId: String): Future[List[CandidateAwaitingAllocation]] =
@@ -150,8 +157,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
       )
     )
 
-  override def findFailedTestForNotification(appStatus: ApplicationStatus.ApplicationStatus,
-                                             progressStatus: ProgressStatuses.ProgressStatus): Future[Option[NotificationFailedTest]] = {
+  override def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]] = {
     Future.successful(Some(NotificationFailedTest("31009ccc-1ac3-4d55-9c53-1908a13dc5e1", "fbb466a3-13a3-4dd0-93d6-9dfa764a5555", "George")))
   }
 
@@ -185,4 +191,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def removeProgressStatuses(appId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = ???
 
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
+
+  def fixDataByRemovingETray(appId: String): Future[Unit] = ???
 }

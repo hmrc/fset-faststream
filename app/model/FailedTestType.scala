@@ -17,10 +17,16 @@
 package model
 
 import model.ApplicationStatus.ApplicationStatus
-import model.ApplicationStatus.PHASE1_TESTS_FAILED
-import model.ProgressStatuses.{ PHASE1_TESTS_FAILED_NOTIFIED, ProgressStatus }
+import model.ApplicationStatus.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED }
+import model.ProgressStatuses._
 
-sealed case class FailedTestType(appStatus: ApplicationStatus, updatedProgress: ProgressStatus, template: String)
+sealed case class FailedTestType(appStatus: ApplicationStatus, notificationProgress: ProgressStatus,
+                                 receiveStatus: ProgressStatus, template: String)
 
 object Phase1FailedTestType
-  extends FailedTestType(PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED, "fset_faststream_app_online_phase1_test_failed")
+  extends FailedTestType(PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED, PHASE1_TESTS_RESULTS_RECEIVED,
+    "fset_faststream_app_online_phase1_test_failed")
+
+object Phase2FailedTestType
+  extends FailedTestType(PHASE2_TESTS_FAILED, PHASE2_TESTS_FAILED_NOTIFIED, PHASE2_TESTS_RESULTS_RECEIVED,
+    "fset_faststream_app_online_phase2_test_failed")

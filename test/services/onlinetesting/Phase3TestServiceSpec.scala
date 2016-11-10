@@ -29,7 +29,7 @@ import model.events.EventTypes.{ EventType, Events }
 import model.persisted.{ ContactDetails, Event, Phase3TestGroupWithAppId }
 import model.persisted.ContactDetails
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.{ Address, ApplicationStatus, ProgressStatuses }
+import model._
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -42,6 +42,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
+import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.events.EventServiceFixture
 import testkit.ExtendedTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -97,6 +98,52 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       verify(launchpadGatewayClientMock).inviteApplicant(eqTo(
         InviteApplicantRequest(
           testInterviewId,
+          testLaunchpadCandidateId,
+          expectedCustomInviteId,
+          s"http://www.foo.com/test/interview/fset-fast-stream/online-tests/phase3/complete/$expectedCustomInviteId"
+        )
+      ))
+    }
+
+    "call the register and invite methods of the 0% adjusted interview id when a candidate has no adjustments" in new Phase3TestServiceFixture {
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication).futureValue
+
+      verify(launchpadGatewayClientMock).registerApplicant(eqTo(
+        RegisterApplicantRequest(
+          testEmail,
+          "FSCND-" + tokens.head,
+          testFirstName,
+          testLastName
+        )
+      ))
+
+      val expectedCustomInviteId = "FSINV-" + tokens.head
+      verify(launchpadGatewayClientMock).inviteApplicant(eqTo(
+        InviteApplicantRequest(
+          zeroPCAdjustedInterviewId,
+          testLaunchpadCandidateId,
+          expectedCustomInviteId,
+          s"http://www.foo.com/test/interview/fset-fast-stream/online-tests/phase3/complete/$expectedCustomInviteId"
+        )
+      ))
+    }
+
+    "call the register and invite methods of the 33% interview id when a candidate has 33% time adjustments" in new Phase3TestServiceFixture {
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplicationWithThirtyThreeTimeAdjustment).futureValue
+
+      verify(launchpadGatewayClientMock).registerApplicant(eqTo(
+        RegisterApplicantRequest(
+          testEmail,
+          "FSCND-" + tokens.head,
+          testFirstName,
+          testLastName
+        )
+      ))
+
+      val expectedCustomInviteId = "FSINV-" + tokens.head
+      verify(launchpadGatewayClientMock).inviteApplicant(eqTo(
+        InviteApplicantRequest(
+          thirtyThreePCAdjustedInterviewId,
           testLaunchpadCandidateId,
           expectedCustomInviteId,
           s"http://www.foo.com/test/interview/fset-fast-stream/online-tests/phase3/complete/$expectedCustomInviteId"
@@ -183,6 +230,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     var auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val dateTimeFactoryMock = mock[DateTimeFactory]
+    val adjustmentsManagementServiceMock = mock[AdjustmentsManagementService]
     val tokens = UUIDFactory.generateUUID() :: Nil
 
     val testFirstName = "Optimus"
@@ -199,6 +247,10 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       None,
       None
     )
+    val onlineTestApplicationWithThirtyThreeTimeAdjustment = onlineTestApplication.copy(
+      videoInterviewAdjustments = Some(AdjustmentDetail(Some(33), None, None))
+    )
+
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
 
     val testInterviewId = 123
@@ -213,12 +265,16 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
     val testCandidateRedirectUrl = "http://www.foo.com/test/interview"
     val testEmail = "foo@bar.com"
 
+    val zeroPCAdjustedInterviewId = 12345
+    val thirtyThreePCAdjustedInterviewId = 67890
+
     val gatewayConfigMock = LaunchpadGatewayConfig(
       "localhost",
       Phase3TestsConfig(timeToExpireInDays = 7,
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
         Map(
-          "0%" -> 12345
+          "0pc" -> zeroPCAdjustedInterviewId,
+          "33pc"-> thirtyThreePCAdjustedInterviewId
         )
       )
     )
@@ -284,7 +340,7 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
         ProgressResponse("appId")
-        ))
+      ))
     }
 
     lazy val phase3TestServiceWithUnexpiredTestGroup = mockService {
@@ -352,7 +408,9 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
         val auditService = auditServiceMock
         val gatewayConfig = gatewayConfigMock
         val eventService = eventServiceMock
+        val adjustmentsService = adjustmentsManagementServiceMock
       }
     }
   }
 }
+

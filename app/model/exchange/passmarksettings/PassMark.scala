@@ -16,17 +16,31 @@
 
 package model.exchange.passmarksettings
 
+import model.SchemeType.SchemeType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-// format: OFF
-case class Phase1PassMarkThresholds(
-  situational: PassMarkThreshold,
-  behavioural: PassMarkThreshold
-)
+trait PassMark {
+  def schemeName: SchemeType
+  def schemeThresholds: PassMarkThresholds
+}
 
-// format: ON
-object Phase1PassMarkThresholds {
-  implicit val phase1PassMarkThresholds = Json.format[Phase1PassMarkThresholds]
-  implicit val phase1PassMarkThresholdsHandler = Macros.handler[Phase1PassMarkThresholds]
+case class Phase1PassMark(
+  schemeName: SchemeType,
+  schemeThresholds: Phase1PassMarkThresholds
+) extends PassMark
+
+object Phase1PassMark {
+  implicit val phase1PassMark = Json.format[Phase1PassMark]
+  implicit val phase1PassMarkHandler = Macros.handler[Phase1PassMark]
+}
+
+case class Phase2PassMark(
+  schemeName: SchemeType,
+  schemeThresholds: Phase2PassMarkThresholds
+) extends PassMark
+
+object Phase2PassMark {
+  implicit val phase1PassMark = Json.format[Phase2PassMark]
+  implicit val phase1PassMarkHandler = Macros.handler[Phase2PassMark]
 }

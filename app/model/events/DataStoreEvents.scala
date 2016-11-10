@@ -86,4 +86,6 @@ object DataStoreEvents {
   case class ManageAdjustmentsUpdated(appId: String) extends DataStoreEventWithAppId
   case class FastPassApproved(appId: String) extends DataStoreEventWithAppId
   case class FastPassRejected(appId: String) extends DataStoreEventWithAppId
+  case class AdjustmentsCommentUpdated(appId: String) extends DataStoreEventWithAppId
+
 }

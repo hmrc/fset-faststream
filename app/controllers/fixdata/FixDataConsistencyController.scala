@@ -14,36 +14,28 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.fixdata
 
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsValue, Json }
+import model.Exceptions.NotFoundException
 import play.api.mvc.Action
-import repositories._
-import repositories.application.DiagnosticReportingRepository
+import services.application.ApplicationService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object DiagnosticReportController extends DiagnosticReportController {
-  val drRepository: DiagnosticReportingRepository = diagnosticReportRepository
+object FixDataConsistencyController extends FixDataConsistencyController {
+  val applicationService = ApplicationService
 }
 
-trait DiagnosticReportController extends BaseController {
+trait FixDataConsistencyController extends BaseController {
+  val applicationService: ApplicationService
 
-  val drRepository: DiagnosticReportingRepository
-
-  def getApplicationByUserId(userId: String) = Action.async { implicit request =>
-    val applicationUser = drRepository.findByUserId(userId)
-
-    applicationUser.map { au =>
-      Ok(Json.toJson(au))
+  def removeETray(appId: String) = Action.async { implicit request =>
+    applicationService.fixDataByRemovingETray(appId).map { _ =>
+      NoContent
     } recover {
-      case e => NotFound
+      case _: NotFoundException => NotFound
     }
   }
 
-  def getAllApplications() = Action { implicit request =>
-    Ok.chunked(drRepository.findAll())
-  }
 }

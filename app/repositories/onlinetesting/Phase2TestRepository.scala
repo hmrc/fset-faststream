@@ -81,7 +81,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    val query = inviteToTestBSON(PHASE1_TESTS_PASSED, invigilatedKeyToExclude = "etrayInvigilated")
+    val query = inviteToTestBSON(PHASE1_TESTS_PASSED)
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, 50)

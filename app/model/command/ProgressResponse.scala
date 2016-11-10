@@ -57,7 +57,8 @@ case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
   phase2TestsResultsReady: Boolean = false,
   phase2TestsResultsReceived: Boolean = false,
   phase2TestsPassed: Boolean = false,
-  phase2TestsFailed: Boolean = false
+  phase2TestsFailed: Boolean = false,
+  phase2TestsFailedNotified: Boolean = false
 )
 
 case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,

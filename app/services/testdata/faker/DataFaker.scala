@@ -91,14 +91,14 @@ object DataFaker {
     def hasDisabilityDescription: String = randOne(List("I am too tall", "I am too good", "I get bored easily"))
 
     def onlineAdjustmentsDescription: String = randOne(List(
-      "I am too sensitive to the light screens",
+      "I am too sensitive to the light from screens",
       "I am allergic to electronic-magnetic waves",
-      "I was a cracker who was asked by the court to be away computer for 5 years"))
+      "I am a convicted cracker who was asked by the court to be away from computers for 5 years"))
 
     def assessmentCentreAdjustmentDescription: String = randOne(List(
-      "I am very week, I need constant support",
-      "I need a confortable chair because of my back problem",
-      "I need to take rest every 10 minutes"))
+      "I am very weak, I need constant support",
+      "I need a comfortable chair because of my back problem",
+      "I need to take a rest every 10 minutes"))
 
     def passmark: Result = randOne(List(EvaluationResults.Green, EvaluationResults.Amber, EvaluationResults.Red))
 

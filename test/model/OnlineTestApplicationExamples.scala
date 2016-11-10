@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package model.exchange.passmarksettings
+package model
 
-import model.SchemeType.SchemeType
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import model.OnlineTestCommands.OnlineTestApplication
 
-case class Phase1PassMark(schemeName: SchemeType, schemeThresholds: Phase1PassMarkThresholds)
-
-object Phase1PassMark {
-  implicit val phase1PassMark = Json.format[Phase1PassMark]
-  implicit val phase1PassMarkHandler = Macros.handler[Phase1PassMark]
+object OnlineTestApplicationExamples {
+  val OnlineTest = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS, "userId",
+    guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, "name", "lastname",
+    None, None)
 }
