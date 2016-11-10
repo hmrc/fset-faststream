@@ -120,7 +120,7 @@ class Phase3TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         phase3TestRepo.insertOrUpdateTestGroup(
           AppId,
           Phase3TestGroup(expirationDate = new DateTime().plusHours(30), tests = List(phase3Test))).futureValue
-        phase1TestRepo.nextTestForReminder(Phase3SecondReminder).futureValue mustBe None
+        phase3TestRepo.nextTestForReminder(Phase3SecondReminder).futureValue mustBe None
       }
 
       "the test is expired" in {
