@@ -18,15 +18,15 @@ package config
 
 import java.util.Base64
 
+import fixtures.UnitWithAppSpec
 import org.scalatest.TestData
-import org.scalatestplus.play.{ OneAppPerTest, PlaySpec }
 import play.api.test.Helpers._
 import play.api.test._
 
-class WhitelistFilterConfigSpec extends PlaySpec with OneAppPerTest {
+class WhitelistFilterConfigSpec extends UnitWithAppSpec {
 
-  implicit override def newAppForTest(td: TestData): FakeApplication =
-    FakeApplication(additionalConfiguration = Map(
+  override implicit lazy val app: FakeApplication =
+    FakeApplication(additionalConfiguration = additionalConfig ++ Map(
         "whitelistExcludedCalls" -> Base64.getEncoder.encodeToString("/ping/ping,/healthcheck".getBytes),
         "whitelist" -> Base64.getEncoder.encodeToString("11.22.33.44".getBytes)
       ),

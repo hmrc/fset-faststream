@@ -19,10 +19,10 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.CSRHttp
 import connectors.UserManagementClient.EmailTakenException
-import org.scalatestplus.play.OneServerPerSuite
+import fixtures.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-class UserManagementClientSpec extends ConnectorSpec with OneServerPerSuite {
+class UserManagementClientSpec extends UnitWithAppSpec with ConnectorSpec {
   implicit val hc = HeaderCarrier()
 
   private val connector = new UserManagementClient {
@@ -49,13 +49,13 @@ class UserManagementClientSpec extends ConnectorSpec with OneServerPerSuite {
         )
       ))
 
-      val response = await(connector.register("test@email.com", "password", "peter", "griffin"))
-      response.userId.toString should equal("4ca377d5-9b57-451b-9ca9-a8cd657c857f")
-      response.email should equal("test@email.com")
-      response.firstName should equal("peter")
-      response.lastName should equal("griffin")
-      response.role should equal("candidate")
-      response.isActive should equal(true)
+      val response = connector.register("test@email.com", "password", "peter", "griffin").futureValue
+      response.userId.toString mustBe "4ca377d5-9b57-451b-9ca9-a8cd657c857f"
+      response.email mustBe "test@email.com"
+      response.firstName mustBe "peter"
+      response.lastName mustBe "griffin"
+      response.role mustBe "candidate"
+      response.isActive mustBe true
     }
   }
 
@@ -65,6 +65,6 @@ class UserManagementClientSpec extends ConnectorSpec with OneServerPerSuite {
       aResponse().withStatus(409)
     ))
 
-    an[EmailTakenException] should be thrownBy await(connector.register("test@email.com", "pw", "fn", "ln"))
+    connector.register("test@email.com", "pw", "fn", "ln").failed.futureValue mustBe an[EmailTakenException]
   }
 }

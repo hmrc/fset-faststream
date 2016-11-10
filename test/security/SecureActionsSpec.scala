@@ -19,7 +19,7 @@ package security
 import java.util.UUID
 
 import config.{ CSRCache, SecurityEnvironmentImpl }
-import controllers.BaseSpec
+import controllers.UnitSpec
 import models.{ CachedData, CachedUser, SecurityUser, UniqueIdentifier }
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -35,7 +35,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class SecureActionsSpec extends BaseSpec with MustMatchers with ScalaFutures {
+class SecureActionsSpec extends UnitSpec with MustMatchers with ScalaFutures {
 
   "getCachedData" should {
     "return cachedData when parsing succeeds" in new TestFixture {

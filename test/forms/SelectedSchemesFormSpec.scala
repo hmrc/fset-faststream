@@ -16,10 +16,10 @@
 
 package forms
 
+import controllers.UnitSpec
 import forms.SelectedSchemesForm.{ form => selectedSchemesForm }
-import org.scalatestplus.play.PlaySpec
 
-class SelectedSchemesFormSpec extends PlaySpec {
+class SelectedSchemesFormSpec extends UnitSpec {
 
   "Selected Schemes form" should {
     "be valid when required values are supplied" in {

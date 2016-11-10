@@ -22,7 +22,7 @@ import connectors.ApplicationClient.ApplicationNotFound
 import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.exchange.{ ApplicationResponse, ProgressResponse, UserResponse }
 import connectors.{ ApplicationClient, UserManagementClient }
-import controllers.BaseSpec
+import controllers.UnitSpec
 import models.ApplicationData.ApplicationStatus
 import models._
 import org.mockito.Matchers._
@@ -36,7 +36,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class UserCacheServiceSpec extends BaseSpec with MustMatchers with ScalaFutures {
+class UserCacheServiceSpec extends UnitSpec with MustMatchers with ScalaFutures {
 
   "refreshCachedUser" should {
     "return a user and application CachedData when both are found" in new TestFixture {

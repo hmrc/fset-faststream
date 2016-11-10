@@ -23,7 +23,7 @@ import config.CSRHttp
 import connectors.exchange.UserResponse
 import connectors.UserManagementClient._
 import connectors.UserManagementClient.InvalidRoleException
-import controllers.BaseSpec
+import controllers.UnitSpec
 import models.{CachedUser, UniqueIdentifier}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
@@ -31,7 +31,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class CsrCredentialsProviderSpec extends BaseSpec with ScalaFutures{
+class CsrCredentialsProviderSpec extends UnitSpec with ScalaFutures{
 
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(2, Seconds), interval = Span(1, Seconds))

@@ -20,10 +20,12 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
+import fixtures.UnitWithAppSpec
 import models.SecurityUserExamples._
 import models._
 import org.joda.time.DateTime
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.mock.MockitoSugar
 import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -37,7 +39,7 @@ import scala.concurrent.Future
 /**
   * Each Controller test needs to extend this class to simplify controller testing
   */
-abstract class BaseControllerSpec extends BaseSpec with ScalaFutures {
+abstract class BaseControllerSpec extends UnitWithAppSpec with ScalaFutures with MockitoSugar {
   implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit val rh: RequestHeader = FakeRequest()
   val securityEnvironment = mock[security.SecurityEnvironment]

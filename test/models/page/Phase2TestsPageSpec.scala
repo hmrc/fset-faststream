@@ -16,13 +16,11 @@
 
 package models.page
 
-import connectors.exchange.{ CubiksTest, Phase1TestGroupWithNames, Phase2TestGroupWithActiveTest }
-import models.Adjustments
-import org.joda.time.DateTime
-import org.scalatestplus.play.PlaySpec
+import controllers.UnitSpec
 import models.AdjustmentsExamples._
+import org.joda.time.DateTime
 
-class Phase2TestsPageSpec extends PlaySpec {
+class Phase2TestsPageSpec extends UnitSpec {
 
   "Phase2TestsPage isInvigilatedETrayApproved" should {
     "return true when invigilated eTray has been approved" in {

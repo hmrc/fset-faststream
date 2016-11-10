@@ -16,12 +16,11 @@
 
 package controllers
 
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play._
+import fixtures.UnitWithAppSpec
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-class ApplicationSpec extends PlaySpec with MockitoSugar with OneServerPerSuite {
+class ApplicationSpec extends UnitWithAppSpec {
 
   "Application" should {
     "send 404 on a bad request" in {

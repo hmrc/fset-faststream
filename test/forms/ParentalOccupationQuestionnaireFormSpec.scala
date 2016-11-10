@@ -16,10 +16,10 @@
 
 package forms
 
-import controllers.BaseSpec
+import controllers.UnitSpec
 import forms.ParentalOccupationQuestionnaireForm.{ Data, form }
 
-class ParentalOccupationQuestionnaireFormSpec extends BaseSpec {
+class ParentalOccupationQuestionnaireFormSpec extends UnitSpec {
 
   "the occupation form" should {
 
