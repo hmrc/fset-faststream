@@ -32,7 +32,8 @@ class NotifyAssessmentCentrePassedOrFailedJobSpec extends PlaySpec with MockitoS
 
   "process next assessment centre passed or failed application" should {
     "work" in new TestFixture {
-      Job.tryExecute().futureValue mustBe ()
+      val unit = ()
+      Job.tryExecute().futureValue mustBe unit
     }
   }
 

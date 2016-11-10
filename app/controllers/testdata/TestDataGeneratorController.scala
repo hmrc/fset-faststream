@@ -22,15 +22,11 @@ import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
-import model.ApplicationStatus._
-import model.EvaluationResults.Result
 import model.Exceptions.EmailTakenException
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses }
+import model.command.testdata.GeneratorConfig
 import model.exchange.testdata._
-import model.command.testdata.{ GeneratorConfig, PersonalData, StatusData }
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.{ Logger, Play }
+import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses }
+import play.api.Play
 import play.api.libs.json.{ JsObject, JsString, Json }
 import play.api.mvc.{ Action, RequestHeader }
 import services.testdata._
@@ -113,7 +109,7 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
   // scalastyle:on method.length
-  
+
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String) = Action.async { implicit request =>
     try {
       TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
@@ -138,7 +134,6 @@ trait TestDataGeneratorController extends BaseController {
       testConfig.getString(s"testdata.$key")
     }
   }
-
 
   def createCandidatesInStatusPOST(numberToGenerate: Int) = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateInStatusRequest] { body =>

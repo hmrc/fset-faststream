@@ -18,13 +18,10 @@ package model.command.testdata
 
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
-import model.ProgressStatuses
-import model.{ ApplicationRoute, ApplicationStatus }
-import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
-import model.exchange.testdata._
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses }
 import org.joda.time.format.DateTimeFormat
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import services.testdata.faker.DataFaker.Random
 
 case class AssistanceDetails(
@@ -140,10 +137,10 @@ object PersonalData {
     val emailPrefix = o.emailPrefix.map( e => s"$e-$generatorId")
 
     PersonalData(
-      emailPrefix = emailPrefix.getOrElse(s"tesf${Random.number()}-${generatorId}"),
+      emailPrefix = emailPrefix.getOrElse(s"tesf${Random.number()}-$generatorId"),
       firstName = fname,
       lastName = o.lastName.getOrElse(Random.getLastname(generatorId)),
-      preferredName = o.preferredName.getOrElse(s"Pref${fname}"),
+      preferredName = o.preferredName.getOrElse(s"Pref$fname"),
       dob = o.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))).getOrElse(default.dob),
       postCode = o.postCode,
       country = o.country
@@ -167,7 +164,6 @@ object StatusData {
     )
   }
 }
-
 
 case class GeneratorConfig(statusData: StatusData,
   personalData: PersonalData = PersonalData(),

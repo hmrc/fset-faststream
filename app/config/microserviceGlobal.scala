@@ -180,11 +180,12 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
   private[config] def fixerJobConfigValues = fixerJobConfig
 
-  lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob, firstPhase1ReminderExpiringTestJob,
-    secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob, secondPhase2ReminderExpiringTestJob,
-    firstPhase3ReminderExpiringTestJob, secondPhase3ReminderExpiringTestJob, expirePhase1TestJob, expirePhase2TestJob, failedPhase1TestJob,
-    retrievePhase1ResultsJob, retrievePhase2ResultsJob, evaluatePhase1ResultJob, fixerJob, confirmAttendanceReminderJob,
-    evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
+  lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob,
+    firstPhase1ReminderExpiringTestJob, secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob,
+    secondPhase2ReminderExpiringTestJob, firstPhase3ReminderExpiringTestJob, secondPhase3ReminderExpiringTestJob,
+    expirePhase1TestJob, expirePhase2TestJob, failedPhase1TestJob, retrievePhase1ResultsJob, retrievePhase2ResultsJob,
+    evaluatePhase1ResultJob, fixerJob, confirmAttendanceReminderJob, evaluateAssessmentScoreJob,
+    notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with Scheduler {

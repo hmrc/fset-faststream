@@ -16,7 +16,6 @@
 
 package repositories
 
-import config.MicroserviceAppConfig
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import model.ApplicationStatus._
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
@@ -64,7 +63,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
           List("assistance-details.needsSupportAtVenue"),
           List("assistance-details.guaranteedInterview")
         )
-
     }
 
     "return the gis parameter" in {
@@ -80,10 +78,10 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   }
 
   "Finding an application by User Id" should {
-
     "throw a NotFound exception when application doesn't exists" in {
       applicationRepo.findByUserId("invalidUser", "invalidFramework")
-      an[ApplicationNotFound] must be thrownBy Await.result(applicationRepo.findByUserId("invalidUser", "invalidFramework"), timeout)
+      an[ApplicationNotFound] must be thrownBy Await.result(applicationRepo
+        .findByUserId("invalidUser", "invalidFramework"), timeout)
     }
 
     "throw an exception not of the type ApplicationNotFound when application is corrupt" in {
@@ -93,7 +91,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
         // but application Id framework, which is mandatory, so will fail to deserialise
       )), timeout)
 
-      val thrown = the[Exception] thrownBy Await.result(applicationRepo.findByUserId("validUser", "validFrameworkField"), timeout)
+      val thrown = the[Exception] thrownBy Await.result(applicationRepo
+        .findByUserId("validUser", "validFrameworkField"), timeout)
       thrown must not be an[ApplicationNotFound]
     }
   }
@@ -126,13 +125,16 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       applicationStatus.status mustBe SUBMITTED.toString
       timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
+
     "not allow multiple submissions" in {
       val app = applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream).futureValue
       applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.PREVIEW).futureValue
 
-      applicationRepo.submit(app.applicationId).futureValue mustBe ()
+      val unit = ()
+      applicationRepo.submit(app.applicationId).futureValue mustBe unit
       applicationRepo.submit(app.applicationId).failed.futureValue mustBe an[IllegalStateException]
     }
+
     "not allow submissions unless in PREVIEW" in {
       val app = applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream).futureValue
       applicationRepo.addProgressStatusAndUpdateAppStatus(app.applicationId, ProgressStatuses.CREATED).futureValue
@@ -155,7 +157,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   }
 
   "Applications report" should {
-
     "return an empty list when there are no applications" in {
       applicationRepo.applicationsReport(frameworkId).futureValue mustBe empty
     }
@@ -191,7 +192,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
           Unit
         }
       }, timeout)
-
 
       val results = applicationRepo.applicationsReport(frameworkId).futureValue
       results must have size 2
@@ -258,6 +258,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       result.head.applicationId must not be empty
     }
   }
+
   "find applications for assessment allocation" should {
     "return an empty list when there are no applications" in {
       lazy val testData = new TestDataMongoRepository()
@@ -267,6 +268,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       result mustBe a[ApplicationForAssessmentAllocationResult]
       result.result mustBe empty
     }
+
     "return an empty list when there are no applications awaiting for allocation" in {
       lazy val testData = new TestDataMongoRepository()
       testData.createApplications(5, false, Seq("London" -> "London")).futureValue
@@ -275,6 +277,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       result mustBe a[ApplicationForAssessmentAllocationResult]
       result.result mustBe empty
     }
+
     "return a one item list when there are applications awaiting for allocation and start item and end item is the same" in {
       lazy val testData = new TestDataMongoRepository()
       testData.createApplications(5, true, Seq("London" -> "London")).futureValue
@@ -283,6 +286,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       result mustBe a[ApplicationForAssessmentAllocationResult]
       result.result must have size (1)
     }
+
     "return a non empty list when there are applications" in {
       lazy val testData = new TestDataMongoRepository()
       testData.createApplications(20, true, Seq("London" -> "London")).futureValue
@@ -291,6 +295,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       result mustBe a[ApplicationForAssessmentAllocationResult]
       result.result.length mustBe 6
     }
+
     "return an empty list when start is beyond the number of results" in {
       lazy val testData = new TestDataMongoRepository()
       testData.createApplications(5, true, Seq("London" -> "London")).futureValue
@@ -299,6 +304,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       result mustBe a[ApplicationForAssessmentAllocationResult]
       result.result mustBe empty
     }
+
     "return an empty list when start is higher than end" in {
       lazy val testData = new TestDataMongoRepository()
       testData.createApplications(5, true, Seq("London" -> "London")).futureValue
@@ -427,6 +433,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val result = applicationRepo.candidatesAwaitingAllocation(frameworkId).futureValue
       result must have size 10
     }
+
     "not return candidates that are initially awaiting allocation but subsequently withdrawn" in {
       val testData = new TestDataMongoRepository()
       testData.createApplications(10, true).futureValue

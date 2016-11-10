@@ -51,7 +51,8 @@ class ExpireOnlineTestJobSpec extends PlaySpec with MockitoSugar with ScalaFutur
     "complete successfully when service completes successfully" in new WithApplication {
       when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
         .thenReturn(Future.successful(()))
-      TestableExpireTestJob.tryExecute().futureValue mustBe ()
+      val unit = ()
+      TestableExpireTestJob.tryExecute().futureValue mustBe unit
     }
 
     "fail when the service fails" in new WithApplication {

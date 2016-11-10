@@ -138,7 +138,6 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     findAndUpdateLaunchpadTest(launchpadInviteId, update, query, errorActionHandler)
   }
 
-  // TODO: check with Henri!!!
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
     val progressStatusQuery = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"progress-status.$PHASE3_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),

@@ -33,8 +33,8 @@ class PartnerGraduateProgrammesServiceSpec extends BaseServiceSpec {
       ).thenReturn(Future.successful(()))
 
       val response = service.update(AppId, PartnerGraduateProgrammesExchangeExamples.InterestedNotAll).futureValue
-
-      response mustBe ()
+      val unit = ()
+      response mustBe unit
     }
   }
 

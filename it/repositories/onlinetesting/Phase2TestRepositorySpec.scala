@@ -49,7 +49,6 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   }
 
   "Next application ready for online testing" must {
-
     "return application when does not need adjustments and is no gis and its status is PHASE1_TESTS_PASSED" in {
       createApplicationWithAllFields("userId0", "appId0", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
         needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
@@ -237,7 +236,6 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
   "Updating completion time" must {
     "update test completion time" in {
-
       val now =  DateTime.now(DateTimeZone.UTC)
       val input = Phase2TestGroup(expirationDate = now.plusDays(5),
         tests = List(CubiksTest(scheduleId = 1,
@@ -261,7 +259,6 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "not update profiles that have expired" in {
-
       val now =  DateTime.now(DateTimeZone.UTC)
       val input = Phase2TestGroup(expirationDate = now,
         tests = List(CubiksTest(scheduleId = 1,
@@ -293,7 +290,6 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         phase2TestGroup = Some(testProfileWithAppId.testGroup)
       ).futureValue
 
-
       val testResult = model.persisted.TestResult(status = "completed", norm = "some norm",
           tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
 
@@ -310,8 +306,6 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       val status = helperRepo.findProgress("appId").futureValue
       status.phase2ProgressResponse.phase2TestsResultsReceived mustBe false
-
     }
   }
-
 }

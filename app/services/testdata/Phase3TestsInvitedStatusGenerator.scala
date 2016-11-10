@@ -18,19 +18,18 @@ package services.testdata
 
 import java.util.UUID
 
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
-import repositories._
+import _root_.services.onlinetesting.Phase3TestService
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig._
+import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatus._
-import model.command.testdata.GeneratorConfig
-import play.api.mvc.RequestHeader
-import repositories.onlinetesting.{ Phase1TestRepository, Phase3TestRepository }
-import _root_.services.onlinetesting.Phase3TestService
 import model.OnlineTestCommands.OnlineTestApplication
+import model.command.testdata.GeneratorConfig
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.persisted.{ CubiksTest, Phase2TestGroup }
 import org.joda.time.DateTime
+import play.api.mvc.RequestHeader
+import repositories._
+import repositories.onlinetesting.Phase3TestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -51,6 +50,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
 
+    val oneDayInMillis = 1000 * 60 * 60 * 24
     val launchpad = LaunchpadTest(
       interviewId = 12345,
       usedForResults = true,
@@ -58,7 +58,8 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       token = UUID.randomUUID().toString,
       candidateId = UUID.randomUUID().toString,
       customCandidateId = "FSCND-123",
-      invitationDate = generatorConfig.phase3TestData.flatMap(_.start).getOrElse(DateTime.now().withDurationAdded(86400000, -1)),
+      invitationDate = generatorConfig.phase3TestData.flatMap(_.start)
+        .getOrElse(DateTime.now().withDurationAdded(oneDayInMillis, -1)),
       startedDateTime = generatorConfig.phase3TestData.flatMap(_.start),
       completedDateTime = generatorConfig.phase3TestData.flatMap(_.completion)
     )

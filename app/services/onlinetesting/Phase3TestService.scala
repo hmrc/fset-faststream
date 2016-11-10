@@ -130,11 +130,20 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     } yield {}
   }
 
-  override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+  override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+    phase3TestRepo.nextTestForReminder(reminder).flatMap {
+      case Some(expiringTest) => processReminder(expiringTest, reminder)
+      case None => Future.successful(())
+    }
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
                                                      emailAddress: String,
-                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+    emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
+      reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
+      audit(s"ReminderPhase3ExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
+        expiringTest.userId, Some(emailAddress))
+    }
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
     expirationDate: DateTime
