@@ -16,6 +16,7 @@
 
 package model.persisted.phase3tests
 
+import connectors.launchpadgateway.exchangeobjects.in.SetupProcessCallbackRequest
 import model.persisted.Test
 import org.joda.time.DateTime
 import play.api.libs.json.Json
@@ -30,7 +31,8 @@ case class LaunchpadTest(interviewId: Int,
                          customCandidateId: String,
                          invitationDate: DateTime,
                          startedDateTime: Option[DateTime],
-                         completedDateTime: Option[DateTime]
+                         completedDateTime: Option[DateTime],
+                         callbacks: LaunchpadTestCallbacks
                      ) extends Test
 
 object LaunchpadTest {

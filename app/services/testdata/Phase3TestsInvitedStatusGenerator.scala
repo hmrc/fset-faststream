@@ -25,7 +25,7 @@ import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatus._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.testdata.GeneratorConfig
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTestCallbacks, LaunchpadTest, Phase3TestGroup }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -60,7 +60,8 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       invitationDate = generatorConfig.phase3TestData.flatMap(_.start)
         .getOrElse(DateTime.now().plusDays(-1)),
       startedDateTime = generatorConfig.phase3TestData.flatMap(_.start),
-      completedDateTime = generatorConfig.phase3TestData.flatMap(_.completion)
+      completedDateTime = generatorConfig.phase3TestData.flatMap(_.completion),
+      callbacks = LaunchpadTestCallbacks()
     )
 
     val phase3TestGroup = Phase3TestGroup(

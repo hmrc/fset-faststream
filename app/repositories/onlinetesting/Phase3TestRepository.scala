@@ -28,6 +28,7 @@ import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppI
 import org.joda.time.{ DateTime, DateTimeZone }
 import model.persisted.phase3tests.Phase3TestGroup
 import play.api.Logger
+import play.api.libs.json.Format
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
@@ -44,6 +45,7 @@ object Phase3TestRepository {
 
 trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   this: ReactiveRepository[_, _] =>
+  def appendCallback[A](token: String, callbacksKey: String, callback: A)(implicit format: BSONHandler[BSONDocument, A]): Future[Unit]
 
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]]
 
@@ -71,6 +73,24 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override val expiredTestQuery: BSONDocument = BSONDocument()
 
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
+
+  override def appendCallback[A](token: String, callbacksKey: String, callback: A)
+                                (implicit handler: BSONHandler[BSONDocument, A]): Future[Unit] = {
+    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("token" -> token)
+    ))
+
+    val update = BSONDocument("$push" -> BSONDocument(s"testGroups.$phaseName.tests.$$.callbacks.$callbacksKey" -> callback))
+
+    collection.update(query, update, upsert = false) map { status =>
+      if (status.n != 1) {
+        val msg = s"${status.n} rows affected when appending callback instead of 1! (Token Id: $token)"
+        Logger.warn(msg)
+        throw UnexpectedException(msg)
+      }
+      ()
+    }
+  }
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     val query = inviteToTestBSON(PHASE2_TESTS_PASSED)
@@ -163,7 +183,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   private def defaultUpdateErrorHandler(launchpadInviteId: String) = {
-    logger.error(s"""Failed to update launchpad test: $launchpadInviteId""")
+    Logger.error(s"""Failed to update launchpad test: $launchpadInviteId""")
     throw CannotFindTestByLaunchpadId(s"Cannot find test group by launchpad Id: $launchpadInviteId")
   }
 }

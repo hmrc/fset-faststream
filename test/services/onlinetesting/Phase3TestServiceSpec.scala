@@ -28,7 +28,7 @@ import model.events.AuditEvents.VideoInterviewRegistrationAndInviteComplete
 import model.events.EventTypes.{ EventType, Events }
 import model.persisted.{ ContactDetails, Event, Phase3TestGroupWithAppId }
 import model.persisted.ContactDetails
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model._
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
@@ -289,7 +289,8 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       testFaststreamCustomCandidateId,
       testTimeNow,
       None,
-      None
+      None,
+      LaunchpadTestCallbacks()
     )
 
     val testTestGroup = Phase3TestGroup(
