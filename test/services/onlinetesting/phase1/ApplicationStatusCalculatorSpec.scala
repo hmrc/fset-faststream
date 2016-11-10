@@ -27,7 +27,7 @@ import services.onlinetesting.ApplicationStatusCalculator
 class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   val calc = new ApplicationStatusCalculator {}
 
-  "determine application status" should {
+  "determine phase1 application status" should {
     "promote the application when at least one Green" in {
       val newStatus = calc.determineApplicationStatus(PHASE1_TESTS, List(red, amber, green), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_PASSED)
@@ -55,6 +55,37 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
 
     "return exception when no results found" in {
       an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(PHASE1_TESTS, Nil, Phase.PHASE1)
+    }
+  }
+
+  "determine phase2 application status" should {
+    "promote the application when at least one Green" in {
+      val newStatus = calc.determineApplicationStatus(PHASE2_TESTS, List(red, amber, green), Phase.PHASE2)
+      newStatus mustBe Some(PHASE2_TESTS_PASSED)
+    }
+
+    "promote the application for all Greens" in {
+      val newStatus = calc.determineApplicationStatus(PHASE2_TESTS, List(green, green, green), Phase.PHASE2)
+      newStatus mustBe Some(PHASE2_TESTS_PASSED)
+    }
+
+    "fail application for all Reds" in {
+      val newStatus = calc.determineApplicationStatus(PHASE2_TESTS, List(red, red, red), Phase.PHASE2)
+      newStatus mustBe Some(PHASE2_TESTS_FAILED)
+    }
+
+    "do not update application status when amber - at least one amber and no greens" in {
+      val newStatus = calc.determineApplicationStatus(PHASE2_TESTS, List(red, amber, red), Phase.PHASE2)
+      newStatus mustBe None
+    }
+
+    "do not update application status when PHASE2_TESTS_PASSED" in {
+      val newStatus = calc.determineApplicationStatus(PHASE2_TESTS_PASSED, List(green, green, green), Phase.PHASE2)
+      newStatus mustBe None
+    }
+
+    "return exception when no results found" in {
+      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(PHASE2_TESTS, Nil, Phase.PHASE2)
     }
   }
 
