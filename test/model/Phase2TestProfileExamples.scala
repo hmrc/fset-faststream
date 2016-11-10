@@ -23,8 +23,8 @@ object Phase2TestProfileExamples {
 
   val testResult = TestResult("Ready", "norm", Some(12.5), None, None, None)
 
-  def etrayTest(implicit now: DateTime) = CubiksTest(16196, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
+  def getEtrayTest(implicit now: DateTime) = CubiksTest(16196, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
     testResult = Some(testResult))
 
-  def profile(implicit now: DateTime) = Phase2TestGroup(now, List(etrayTest))
+  def profile(implicit now: DateTime) = Phase2TestGroup(now, List(getEtrayTest))
 }

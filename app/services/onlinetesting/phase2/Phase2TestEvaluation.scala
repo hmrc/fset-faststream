@@ -35,11 +35,12 @@ trait Phase2TestEvaluation {
       val phase2Result = evaluateResultsForExercise(schemePassmark.schemeThresholds.etray)(etrayTestResult)
       val phase1Result = Result(phase1SchemeEvaluation.result)
       val result = (phase2Result, phase1Result) match {
+        case (Green, Green) => Green
+        case (Amber, Green) => Amber
+        case (Green, Amber) => Amber
+        case (Amber, Red) => Red
         case (Red, _) => Red
         case (_, Red) => Red
-        case (Amber, Red) => Red
-        case (Amber, Green) => Amber
-        case (Green, Green) => Green
       }
       SchemeEvaluationResult(schemeToEvaluate, result.toString)
     }
