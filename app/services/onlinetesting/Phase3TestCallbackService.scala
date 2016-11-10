@@ -66,4 +66,8 @@ trait Phase3TestCallbackService {
   def recordCallback(callbackData: FinishedCallbackRequest): Future[Unit] = {
     phase3TestRepo.appendCallback(callbackData.customInviteId, FinishedCallbackRequest.key, callbackData)
   }
+
+  def recordCallback(callbackData: ViewBrandedVideoCallbackRequest): Future[Unit] = {
+    phase3TestRepo.appendCallback(callbackData.customInviteId, ViewBrandedVideoCallbackRequest.key, callbackData)
+  }
 }

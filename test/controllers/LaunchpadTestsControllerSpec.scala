@@ -19,17 +19,21 @@ package controllers
 import java.util.UUID
 
 import connectors.launchpadgateway.exchangeobjects.in._
-import org.joda.time.LocalDate
-import org.mockito.Matchers.{ eq => eqTo }
+import org.joda.time.{ DateTime, LocalDate }
+import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Mockito._
 import play.api.test.Helpers._
 import services.events.EventService
-import services.onlinetesting.Phase3TestService
+import services.onlinetesting.{ Phase3TestCallbackService, Phase3TestService }
+
+import scala.concurrent.Future
 
 class LaunchpadTestsControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockPhase3TestService = mock[Phase3TestService]
     val mockEventService = mock[EventService]
+    val mockPhase3TestCallbackService = mock[Phase3TestCallbackService]
 
     val sampleCandidateId = UUID.randomUUID().toString
     val sampleCustomCandidateId = "FSCND-456"
@@ -37,12 +41,21 @@ class LaunchpadTestsControllerSpec extends BaseControllerSpec {
     val sampleInterviewId = 123
     val sampleDeadline = LocalDate.now.plusDays(7)
 
+    when(mockPhase3TestCallbackService.recordCallback(any[QuestionCallbackRequest]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[FinishedCallbackRequest]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[FinalCallbackRequest]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[ViewPracticeQuestionCallbackRequest]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[SetupProcessCallbackRequest]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[ViewBrandedVideoCallbackRequest]())).thenReturn(Future.successful(()))
+
     def controllerUnderTest = new LaunchpadTestsController {
       val phase3TestService = mockPhase3TestService
+      val phase3TestCallbackService = mockPhase3TestCallbackService
       val eventService = mockEventService
     }
 
     val sampleSetupProcessCallback = SetupProcessCallbackRequest(
+      DateTime.now(),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
@@ -52,6 +65,7 @@ class LaunchpadTestsControllerSpec extends BaseControllerSpec {
     )
 
     val sampleViewPracticeQuestionCallback = ViewPracticeQuestionCallbackRequest(
+      DateTime.now(),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
@@ -61,6 +75,7 @@ class LaunchpadTestsControllerSpec extends BaseControllerSpec {
     )
 
     val sampleQuestionCallback = QuestionCallbackRequest(
+      DateTime.now(),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
@@ -71,6 +86,7 @@ class LaunchpadTestsControllerSpec extends BaseControllerSpec {
     )
 
     val finalCallback = FinalCallbackRequest(
+      DateTime.now(),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
@@ -80,6 +96,7 @@ class LaunchpadTestsControllerSpec extends BaseControllerSpec {
     )
 
     val finishedCallback = FinishedCallbackRequest(
+      DateTime.now(),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
