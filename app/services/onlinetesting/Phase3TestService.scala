@@ -100,7 +100,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
   override def registerAndInviteForTestGroup(application: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier,
-                                             rh: RequestHeader): Future[Unit] = Future.failed(new NotImplementedError())
+                                             rh: RequestHeader): Future[Unit] =
+    Future.sequence(application.map(app => registerAndInviteForTestGroup(app))).map(_ => ())
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
