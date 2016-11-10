@@ -21,12 +21,12 @@ import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class LaunchpadTestCallbacks(
-                                 viewBrandedVideo: List[ViewBrandedVideoCallbackRequest],
-                                 setupProcess: List[SetupProcessCallbackRequest],
-                                 viewPracticeQuestion: List[ViewPracticeQuestionCallbackRequest],
-                                 question: List[ViewPracticeQuestionCallbackRequest],
-                                 finalCallback: List[FinalCallbackRequest],
-                                 finished: List[FinishedCallbackRequest]
+                                 viewBrandedVideo: List[ViewBrandedVideoCallbackRequest] = Nil,
+                                 setupProcess: List[SetupProcessCallbackRequest] = Nil,
+                                 viewPracticeQuestion: List[ViewPracticeQuestionCallbackRequest] = Nil,
+                                 question: List[ViewPracticeQuestionCallbackRequest] = Nil,
+                                 finalCallback: List[FinalCallbackRequest] = Nil,
+                                 finished: List[FinishedCallbackRequest] = Nil
                      )
 
 object LaunchpadTestCallbacks {

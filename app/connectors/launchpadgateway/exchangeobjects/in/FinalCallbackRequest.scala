@@ -24,6 +24,8 @@ case class FinalCallbackRequest(received: DateTime, candidateId: String, customC
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
 
 object FinalCallbackRequest {
+  // Should match LaunchpadTestsCallback case class
+  val key = "finalCallback"
   implicit val finalCallbackRequestFormat = Json.format[FinalCallbackRequest]
   import repositories.BSONDateTimeHandler
   import repositories.BSONLocalDateHandler

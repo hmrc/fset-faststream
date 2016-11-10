@@ -24,6 +24,8 @@ case class SetupProcessCallbackRequest(received: DateTime, candidateId: String, 
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
 
 object SetupProcessCallbackRequest {
+  // Should match LaunchpadTestsCallback case class
+  val key = "setupProcess"
   implicit val setupProcessCallbackFormat = Json.format[SetupProcessCallbackRequest]
   import repositories.BSONDateTimeHandler
   import repositories.BSONLocalDateHandler

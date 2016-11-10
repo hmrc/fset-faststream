@@ -32,7 +32,7 @@ case class LaunchpadTest(interviewId: Int,
                          invitationDate: DateTime,
                          startedDateTime: Option[DateTime],
                          completedDateTime: Option[DateTime],
-                         callbacks: Option[LaunchpadTestCallbacks]
+                         callbacks: LaunchpadTestCallbacks
                      ) extends Test
 
 object LaunchpadTest {

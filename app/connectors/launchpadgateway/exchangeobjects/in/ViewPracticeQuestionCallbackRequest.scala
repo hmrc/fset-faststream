@@ -24,6 +24,8 @@ case class ViewPracticeQuestionCallbackRequest(received: DateTime, candidateId: 
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
 
 object ViewPracticeQuestionCallbackRequest {
+  // Should match LaunchpadTestsCallback case class
+  val key = "viewPracticeQuestion"
   implicit val viewPracticeQuestionCallbackFormat = Json.format[ViewPracticeQuestionCallbackRequest]
   import repositories.BSONDateTimeHandler
   import repositories.BSONLocalDateHandler
