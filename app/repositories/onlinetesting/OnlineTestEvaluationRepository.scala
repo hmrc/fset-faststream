@@ -129,12 +129,13 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> true),
+      BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
       BSONDocument("$or" -> BSONArray(
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
         BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
-        BSONDocument(s"testGroups.$phase.evaluation.previousPhasePassMarkVersion" ->
-          BSONDocument("$ne" -> s"testGroups.$prevPhase.evaluation.passmarkVersion"))
-      ))
+        BSONDocument("$where" ->
+          s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
+      )
     ))
     implicit val reader = bsonReader(doc => {
       val applicationId = doc.getAs[String]("applicationId").get

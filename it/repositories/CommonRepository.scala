@@ -1,17 +1,16 @@
 package repositories
 
 import model.ApplicationStatus.ApplicationStatus
-import model.persisted.{ CubiksTest, Phase1TestProfile }
+import model.persisted._
 import model.Phase1TestExamples._
 import model.SchemeType._
-import model.persisted.{ ApplicationReadyForEvaluation, AssistanceDetails, TestResult }
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.onlinetesting.Phase1TestMongoRepository
+import repositories.onlinetesting.{ Phase1TestMongoRepository, Phase2TestMongoRepository }
 import repositories.schemepreferences.SchemePreferencesMongoRepository
 import testkit.MongoRepositorySpec
 
@@ -24,6 +23,7 @@ trait CommonRepository {
   def schemePreferencesRepository: SchemePreferencesMongoRepository
   def assistanceDetailsRepository: AssistanceDetailsMongoRepository
   def phase1TestRepository: Phase1TestMongoRepository
+  def phase2TestRepository: Phase2TestMongoRepository
 
 
   implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
@@ -41,8 +41,9 @@ trait CommonRepository {
       None, selectedSchemes(schemes.toList))
   }
 
-  def insertApplication(appId: String, applicationStatus: ApplicationStatus, tests: Option[List[CubiksTest]] = None,
-                        isGis: Boolean = false, schemes: List[SchemeType] = List(Commercial)): Unit = {
+  def insertApplication(appId: String, applicationStatus: ApplicationStatus, phase1Tests: Option[List[CubiksTest]] = None,
+                        phase2Tests: Option[List[CubiksTest]] = None, isGis: Boolean = false,
+                        schemes: List[SchemeType] = List(Commercial)): Unit = {
     val gis = if (isGis) Some(true) else None
     applicationRepository.collection.insert(BSONDocument(
       "applicationId" -> appId,
@@ -56,7 +57,7 @@ trait CommonRepository {
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
 
-    tests.foreach { t =>
+    phase1Tests.foreach { t =>
       phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t)).futureValue
       t.foreach { oneTest =>
         oneTest.testResult.foreach { result =>
@@ -65,6 +66,17 @@ trait CommonRepository {
       }
       if (t.exists(_.testResult.isDefined)) {
         phase1TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
+      }
+    }
+    phase2Tests.foreach { t =>
+      phase2TestRepository.insertOrUpdateTestGroup(appId, Phase2TestGroup(now, t)).futureValue
+      t.foreach { oneTest =>
+        oneTest.testResult.foreach { result =>
+          phase2TestRepository.insertTestResult(appId, oneTest, result).futureValue
+        }
+      }
+      if (t.exists(_.testResult.isDefined)) {
+        phase2TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).futureValue
       }
     }
     applicationRepository.collection.update(

@@ -18,7 +18,7 @@ import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase1TestMongoRepository }
+import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase1TestMongoRepository, Phase2TestMongoRepository }
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.GBTimeZoneService
 import services.onlinetesting.EvaluatePhase1ResultService
@@ -51,6 +51,8 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   def assistanceDetailsRepository = new AssistanceDetailsMongoRepository
 
   def phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
+
+  def phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
 
   def phase1PassMarkSettingRepo = new Phase1PassMarkSettingsMongoRepository()
 
