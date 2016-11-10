@@ -33,7 +33,6 @@ class AssistanceDetailsServiceSpec extends BaseServiceSpec {
       ).thenReturn(Future.successful(()))
 
       val response = service.update(AppId, UserId, AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments).futureValue
-      val unit = ()
       response mustBe unit
     }
   }

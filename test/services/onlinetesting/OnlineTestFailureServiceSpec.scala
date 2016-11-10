@@ -22,19 +22,17 @@ import model.PersistedObjects.ContactDetails
 import model.persisted.ApplicationForNotification
 import org.mockito.Matchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
-import org.scalatestplus.play.PlaySpec
 import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
-import services.AuditService
+import services.{ BaseServiceSpec, AuditService }
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
-import testkit.MockitoSugar
+import testkit.{MockitoSugar => TestKitMockitoSugar }
 import model.ApplicationStatus._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with MockitoSugar {
+class OnlineTestFailureServiceSpec extends BaseServiceSpec with TestKitMockitoSugar {
 
   /* TODO FAST STREAM FIX ME
   "when processing the next failed test" should {
@@ -52,9 +50,6 @@ class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with Mocki
       verify(service).processFailedTest(failedTest)
     }
   }*/
-
-  // This approach avoids both scala compiler and intellij warnings
-  val unit = ()
 
   "when processing an failed test" should {
     "email the candidate about their failed online test" in new ProcessFailedFixture {

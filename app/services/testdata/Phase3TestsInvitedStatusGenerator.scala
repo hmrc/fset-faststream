@@ -36,7 +36,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object Phase3TestsInvitedStatusGenerator extends Phase3TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsStartedStatusGenerator
+  override val previousStatusGenerator = Phase2TestsResultsReceivedStatusGenerator
   override val p3Repository = phase3TestRepository
   override val p3TestService = Phase3TestService
   override val gatewayConfig = launchpadGatewayConfig
@@ -50,7 +50,6 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
 
-    val oneDayInMillis = 1000 * 60 * 60 * 24
     val launchpad = LaunchpadTest(
       interviewId = 12345,
       usedForResults = true,
@@ -59,7 +58,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       candidateId = UUID.randomUUID().toString,
       customCandidateId = "FSCND-123",
       invitationDate = generatorConfig.phase3TestData.flatMap(_.start)
-        .getOrElse(DateTime.now().withDurationAdded(oneDayInMillis, -1)),
+        .getOrElse(DateTime.now().plusDays(-1)),
       startedDateTime = generatorConfig.phase3TestData.flatMap(_.start),
       completedDateTime = generatorConfig.phase3TestData.flatMap(_.completion)
     )

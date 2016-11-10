@@ -141,12 +141,23 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
                                                      emailAddress: String,
-                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
-    emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
-      reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
-      audit(s"ReminderPhase3ExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
-        expiringTest.userId, Some(emailAddress))
+                                                     reminder: ReminderNotice)
+                                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      _ <- emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
+        reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate)
+    } yield {
+      AuditEvents.VideoInterviewTestExpiryReminder(
+        Map(
+          "EmailReminderType" -> s"ReminderPhase3VideoInterviewExpiring${reminder.hoursBeforeReminder}HoursEmailed",
+          "User" -> expiringTest.userId,
+          "Email" -> emailAddress
+        )
+        ) ::
+        DataStoreEvents.VideoInterviewExpiryReminder(expiringTest.applicationId) ::
+        Nil
     }
+  }
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
     expirationDate: DateTime
