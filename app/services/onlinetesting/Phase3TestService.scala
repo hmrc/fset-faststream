@@ -30,7 +30,7 @@ import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.events.{ AuditEventNoRequest, AuditEvents, DataStoreEventWithAppId, DataStoreEvents }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase2TestGroup }
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model._
 import model.events.EventTypes.EventType
 import model.exchange.{ Phase2TestGroupWithActiveTest, Phase3TestGroupWithActiveTest }
@@ -157,7 +157,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
         customCandidateId = invitation.customCandidateId,
         invitationDate = invitationDate,
         startedDateTime = None,
-        completedDateTime = None
+        completedDateTime = None,
+        callbacks = LaunchpadTestCallbacks()
       )
     }
   }
