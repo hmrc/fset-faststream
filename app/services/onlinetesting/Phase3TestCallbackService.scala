@@ -48,13 +48,22 @@ trait Phase3TestCallbackService {
   val eventService: EventService
 
   def recordCallback(callbackData: SetupProcessCallbackRequest): Future[Unit] = {
-    phase3TestRepo.appendCallback(callbackData.customInviteId, "setupProcess", callbackData)
+    phase3TestRepo.appendCallback(callbackData.customInviteId, SetupProcessCallbackRequest.key, callbackData)
   }
 
-  def recordCallback(callbackData: ViewPracticeQuestionCallbackRequest): Future[Unit] = ???
-  def recordCallback(callbackData: QuestionCallbackRequest): Future[Unit] = ???
-  def recordCallback(callbackData: FinalCallbackRequest): Future[Unit] = ???
-  def recordCallback(callbackData: FinishedCallbackRequest): Future[Unit] = ???
+  def recordCallback(callbackData: ViewPracticeQuestionCallbackRequest): Future[Unit] = {
+    phase3TestRepo.appendCallback(callbackData.customInviteId, ViewPracticeQuestionCallbackRequest.key, callbackData)
+  }
 
-  def appendCallbackJson[T](toWrite: T)(implicit format: Format[T]) = ???
+  def recordCallback(callbackData: QuestionCallbackRequest): Future[Unit] = {
+    phase3TestRepo.appendCallback(callbackData.customInviteId, QuestionCallbackRequest.key, callbackData)
+  }
+
+  def recordCallback(callbackData: FinalCallbackRequest): Future[Unit] = {
+    phase3TestRepo.appendCallback(callbackData.customInviteId, FinalCallbackRequest.key, callbackData)
+  }
+
+  def recordCallback(callbackData: FinishedCallbackRequest): Future[Unit] = {
+    phase3TestRepo.appendCallback(callbackData.customInviteId, FinishedCallbackRequest.key, callbackData)
+  }
 }
