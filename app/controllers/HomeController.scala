@@ -58,9 +58,9 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
         phase3Tests <- getPhase3Test
         updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
       } yield {
-        val dashboardPage = DashboardPage(updatedData, Some(Phase1TestsPage.apply(phase1TestsWithNames)),
-          phase2TestsWithNames.map(p => Phase2TestsPage.apply(p, adjustmentsOpt)),
-          phase3Tests.map(p => Phase3TestsPage.apply(p, adjustmentsOpt))
+        val dashboardPage = DashboardPage(updatedData, Some(Phase1TestsPage(phase1TestsWithNames)),
+          phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
+          phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
         )
         Ok(views.html.home.dashboard(updatedData, dashboardPage))
       }
