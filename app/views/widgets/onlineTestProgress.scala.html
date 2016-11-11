@@ -1,13 +1,11 @@
 @(cachedUserData: CachedData,
         dashboardPage: models.page.DashboardPage,
-        allocationDetails: Option[_root_.connectors.exchange.AllocationDetails],
         assistanceDetails: Option[_root_.connectors.exchange.AssistanceDetails] = None,
         adjustments: Option[Adjustments] = None)(
         implicit request: Request[_])
 
-@import models.page.Phase2TestsPage
-@(cachedUserData: CachedData, dashboardPage: DashboardPage)(implicit request: Request[_])
 @import security.RoleUtils._
+@import models.page.Phase2TestsPage
 
 @requiresInvigilatedETray = @{
     adjustments.flatMap(_.adjustments).exists(_.contains("etrayInvigilated"))

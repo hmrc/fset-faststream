@@ -67,7 +67,7 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
           phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
           phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
         )
-        Ok(views.html.home.dashboard(updatedData, dashboardPage))
+        Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt))
       }
 
       dashboard recover {
