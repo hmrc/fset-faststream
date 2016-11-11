@@ -28,7 +28,7 @@ import model.events.AuditEvents.VideoInterviewRegistrationAndInviteComplete
 import model.events.EventTypes.{ EventType, Events }
 import model.persisted.{ ContactDetails, Event, Phase3TestGroupWithAppId }
 import model.persisted.ContactDetails
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model._
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
@@ -289,7 +289,8 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       testFaststreamCustomCandidateId,
       testTimeNow,
       None,
-      None
+      None,
+      LaunchpadTestCallbacks()
     )
 
     val testTestGroup = Phase3TestGroup(
@@ -395,21 +396,22 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       ))
     }
 
-      def mockService(mockSetup: => Unit): Phase3TestService = {
-        mockSetup
-        new Phase3TestService {
-          val appRepository = appRepositoryMock
-          val phase3TestRepo = p3TestRepositoryMock
-          val cdRepository = cdRepositoryMock
-          val launchpadGatewayClient = launchpadGatewayClientMock
-          val tokenFactory = tokenFactoryMock
-          val dateTimeFactory = dateTimeFactoryMock
-          val emailClient = emailClientMock
-          val auditService = auditServiceMock
-          val gatewayConfig = gatewayConfigMock
-          val eventService = eventServiceMock
-          val adjustmentsService = adjustmentsManagementServiceMock
-        }
+    def mockService(mockSetup: => Unit): Phase3TestService = {
+      mockSetup
+      new Phase3TestService {
+        val appRepository = appRepositoryMock
+        val phase3TestRepo = p3TestRepositoryMock
+        val cdRepository = cdRepositoryMock
+        val launchpadGatewayClient = launchpadGatewayClientMock
+        val tokenFactory = tokenFactoryMock
+        val dateTimeFactory = dateTimeFactoryMock
+        val emailClient = emailClientMock
+        val auditService = auditServiceMock
+        val gatewayConfig = gatewayConfigMock
+        val eventService = eventServiceMock
+        val adjustmentsService = adjustmentsManagementServiceMock
       }
+    }
   }
 }
+

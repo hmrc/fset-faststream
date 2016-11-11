@@ -38,6 +38,7 @@ trait MongoRepositorySpec extends PlaySpec with Inside with Inspectors with Scal
   import ImplicitBSONHandlers._
   import MongoRepositorySpec._
 
+  val unit = ()
   val timeout = 10 seconds
   val collectionName: String
 

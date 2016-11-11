@@ -22,19 +22,17 @@ import model.PersistedObjects.ContactDetails
 import model.persisted.ApplicationForNotification
 import org.mockito.Matchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
-import org.scalatestplus.play.PlaySpec
 import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
-import services.AuditService
+import services.{ BaseServiceSpec, AuditService }
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
-import testkit.MockitoSugar
+import testkit.{MockitoSugar => TestKitMockitoSugar }
 import model.ApplicationStatus._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with MockitoSugar {
+class OnlineTestFailureServiceSpec extends BaseServiceSpec with TestKitMockitoSugar {
 
   /* TODO FAST STREAM FIX ME
   "when processing the next failed test" should {
@@ -55,13 +53,14 @@ class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with Mocki
 
   "when processing an failed test" should {
     "email the candidate about their failed online test" in new ProcessFailedFixture {
-      service.processFailedTest(failedTest).futureValue mustBe ()
+
+      service.processFailedTest(failedTest).futureValue mustBe unit
 
       verify(service).emailCandidate(failedTest, emailAddress)
     }
 
     "update the application status on success" in new ProcessFailedFixture {
-      service.processFailedTest(failedTest).futureValue mustBe ()
+      service.processFailedTest(failedTest).futureValue mustBe unit
 
       verify(service).commitNotifiedStatus(failedTest)
     }
@@ -79,13 +78,13 @@ class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with Mocki
 
   "when emailing a candidate" should {
     "send the email to their email address" in new EmailCandidateFixture {
-      service.emailCandidate(failedTest, emailAddress).futureValue mustBe ()
+      service.emailCandidate(failedTest, emailAddress).futureValue mustBe unit
 
       verify(emailClient).sendOnlineTestFailed(eqTo(emailAddress), any())(any())
     }
 
     "greet candidate by their preferred name" in new EmailCandidateFixture {
-      service.emailCandidate(failedTest, emailAddress).futureValue mustBe ()
+      service.emailCandidate(failedTest, emailAddress).futureValue mustBe unit
 
       verify(emailClient).sendOnlineTestFailed(any(), eqTo(preferredName))(any())
     }
@@ -98,15 +97,15 @@ class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with Mocki
       val hcs = List(hc1, hc2).iterator
       override def hc = hcs.next()
 
-      service.emailCandidate(failedTest, emailAddress).futureValue mustBe ()
+      service.emailCandidate(failedTest, emailAddress).futureValue mustBe unit
       verify(emailClient).sendOnlineTestFailed(any(), any())(eqTo(hc1))
 
-      service.emailCandidate(failedTest, emailAddress).futureValue mustBe ()
+      service.emailCandidate(failedTest, emailAddress).futureValue mustBe unit
       verify(emailClient).sendOnlineTestFailed(any(), any())(eqTo(hc2))
     }
 
     "audit an event after sending" in new EmailCandidateFixture {
-      service.emailCandidate(failedTest, emailAddress).futureValue mustBe ()
+      service.emailCandidate(failedTest, emailAddress).futureValue mustBe unit
 
       verify(audit).logEventNoRequest(
         "FailedOnlineTestNotificationEmailed",
@@ -117,13 +116,13 @@ class OnlineTestFailureServiceSpec extends PlaySpec with ScalaFutures with Mocki
 
   "when updating the application status" should {
     "mark the relevant application as failed" in new CommitFailedStatusFixture {
-      service.commitNotifiedStatus(failedTest).futureValue mustBe ()
+      service.commitNotifiedStatus(failedTest).futureValue mustBe unit
 
       // TODO FAST STREAM FIX ME verify(applicationRepository).updateStatus(userId, "ONLINE_TEST_FAILED_NOTIFIED")
     }
 
     "audit an event after updating the application status" in new CommitFailedStatusFixture {
-      service.commitNotifiedStatus(failedTest).futureValue mustBe ()
+      service.commitNotifiedStatus(failedTest).futureValue mustBe unit
 
       //verify(audit).logEventNoRequest(
       //  "FailedOnlineTest",

@@ -16,10 +16,11 @@
 
 package repositories.contactdetails
 
-import model.Exceptions.{CannotUpdateContactDetails, ContactDetailsNotFound}
+import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound }
 import model.persisted.ContactDetails
+import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONDocument, BSONObjectID}
+import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -43,7 +44,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
     collection.update(query, contactDetailsBson, upsert = true) map {
       case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        logger.error(s"""Failed to write contact details for user: $userId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}""")
+        Logger.error(s"""Failed to write contact details for user: $userId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}""")
         throw CannotUpdateContactDetails(userId)
       case _ => ()
     }

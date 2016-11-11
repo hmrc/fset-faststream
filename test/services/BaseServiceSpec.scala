@@ -30,4 +30,5 @@ class BaseServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with 
 
   val AppId = "AppId"
   val UserId = "UserId"
+  val unit = () // This approach avoids both scala compiler and intellij warnings
 }

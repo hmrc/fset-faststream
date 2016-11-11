@@ -16,7 +16,6 @@
 
 package model.persisted
 
-import model.ReminderNotice
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONDocument
