@@ -22,4 +22,7 @@ object OnlineTestApplicationExamples {
   val OnlineTest = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS, "userId",
     guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, "name", "lastname",
     None, None)
+  val InvigilatedETrayCandidate = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS, "userId",
+    guaranteedInterview = false, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, "name", "lastname",
+    Some(AdjustmentDetail(invigilatedInfo = Some("invigilated e-tray"))), None)
 }

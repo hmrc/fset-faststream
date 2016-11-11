@@ -35,7 +35,8 @@ case class CubiksTest(
   reportId: Option[Int] = None,
   reportLinkURL: Option[String] = None,
   reportStatus: Option[String] = None,
-  testResult: Option[model.persisted.TestResult] = None
+  testResult: Option[model.persisted.TestResult] = None,
+  invigilatedAccessCode: Option[String] = None
 ) extends Test
 
 object CubiksTest {
