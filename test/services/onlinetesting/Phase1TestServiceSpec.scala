@@ -22,35 +22,31 @@ import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
-import model.{ ProgressStatuses, _ }
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, ProgressStatus }
-import model.events.{ AuditEvents, DataStoreEvents }
-import model.events.EventTypes.{ toString => _, _ }
+import model.events.EventTypes.{ toString => _ }
 import model.exchange.CubiksTestResultReady
 import model.persisted._
+import model.{ ProgressStatuses, _ }
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatest.{ BeforeAndAfterEach, PrivateMethodTester }
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.PrivateMethodTester
 import play.api.mvc.RequestHeader
-import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.Phase1TestRepository
 import repositories.TestReportRepository
+import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
-import testkit.ExtendedTimeout
+import testkit.{ ExtendedTimeout, UnitWithAppSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.TimeUnit
 import scala.concurrent.{ ExecutionContext, Future }
 
-class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with MockitoSugar with ScalaFutures with ExtendedTimeout
+class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
   with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
   val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
@@ -69,13 +65,13 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     emailDomain = "test.com"
   )
 
-  val sjqScheduleId =testGatewayConfig.phase1Tests.scheduleIds("sjq")
-  val bqScheduleId =testGatewayConfig.phase1Tests.scheduleIds("bq")
+  val sjqScheduleId = testGatewayConfig.phase1Tests.scheduleIds("sjq")
+  val bqScheduleId = testGatewayConfig.phase1Tests.scheduleIds("bq")
 
   val preferredName = "Preferred\tName"
   val preferredNameSanitized = "Preferred Name"
   val lastName = ""
-  val userId = "userId"
+  val userId = "testUserId"
 
   val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
     applicationStatus = ApplicationStatus.SUBMITTED,
@@ -663,6 +659,7 @@ class Phase1TestServiceSpec extends PlaySpec with BeforeAndAfterEach with Mockit
     when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
 
     val phase1TestService = new Phase1TestService with EventServiceFixture {
+      override val delaySecsBetweenRegistrations = 0
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val phase1TestRepo = otRepositoryMock

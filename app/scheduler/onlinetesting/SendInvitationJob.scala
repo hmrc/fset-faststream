@@ -27,17 +27,17 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 object SendPhase1InvitationJob extends SendInvitationJob with SendInvitationJobConfig {
-  val onlineTestingService = Phase1TestService
+  lazy val onlineTestingService = Phase1TestService
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 }
 
 object SendPhase2InvitationJob extends SendInvitationJob with SendPhase2InvitationJobConfig {
-  val onlineTestingService = Phase2TestService
+  lazy val onlineTestingService = Phase2TestService
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 }
 
 object SendPhase3InvitationJob extends SendInvitationJob with SendPhase3InvitationJobConfig {
-  val onlineTestingService = Phase3TestService
+  lazy val onlineTestingService = Phase3TestService
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 }
 

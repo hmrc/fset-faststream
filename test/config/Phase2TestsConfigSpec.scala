@@ -16,10 +16,10 @@
 
 package config
 
-import org.scalatestplus.play.PlaySpec
-import Phase2ScheduleExamples._
+import config.Phase2ScheduleExamples._
+import testkit.UnitSpec
 
-class Phase2TestsConfigSpec extends PlaySpec {
+class Phase2TestsConfigSpec extends UnitSpec {
 
   "Schedule name by schedule id" should {
     val config = Phase2TestsConfig(10, 20, Map("daro" -> DaroSchedule))

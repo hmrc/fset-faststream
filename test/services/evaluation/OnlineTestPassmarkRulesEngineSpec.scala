@@ -22,10 +22,9 @@ import model.EvaluationResults.{RuleCategoryResult, _}
 import model.OnlineTestCommands._
 import model.Schemes
 import org.joda.time.DateTime
-import org.scalatestplus.play.PlaySpec
 
 /* TODO: in faststream
-class OnlineTestPassmarkRulesEngineSpec extends PlaySpec {
+class OnlineTestPassmarkRulesEngineSpec extends UnitSpec {
   //scalastyle:off
   val PassmarkSettings = Settings(
     Scheme(Schemes.Business, SchemeThresholds(t(1.0, 99.0), t(5.0, 94.0), t(10.0, 90.0), t(30.0, 85.0), combination = None))

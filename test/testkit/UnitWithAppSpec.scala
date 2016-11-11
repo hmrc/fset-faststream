@@ -14,23 +14,29 @@
  * limitations under the License.
  */
 
-package controllers
+package testkit
 
-import org.mockito.Matchers.{eq => eqTo}
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{Json, Writes}
+import org.scalatestplus.play.OneAppPerSuite
+import play.api.libs.json.{ Json, Writes }
 import play.api.mvc.Results
-import play.api.test.{FakeHeaders, FakeRequest}
-import testkit.FutureHelper
+import play.api.test.{ FakeApplication, FakeHeaders, FakeRequest }
 
 /**
   * Common base class for all controller tests
   */
-abstract class BaseControllerSpec extends PlaySpec with MockitoSugar with Results with ScalaFutures with FutureHelper {
+abstract class UnitWithAppSpec extends UnitSpec with OneAppPerSuite with Results with FutureHelper {
   val AppId = "AppId"
   val UserId = "UserId"
+
+  // Suppress logging during tests
+  val additionalConfig = Map("logger.application" -> "ERROR")
+
+  override implicit lazy val app: FakeApplication = new FakeApplication(
+    additionalConfiguration = additionalConfig, withoutPlugins = Seq(
+      "play.modules.reactivemongo.ReactiveMongoPlugin",
+      "uk.gov.hmrc.play.health.HealthPlugin",
+      "com.kenshoo.play.metrics.MetricsPlugin")
+  )
 
   def fakeRequest[T](request: T)(implicit tjs: Writes[T]) =
     FakeRequest("", "", FakeHeaders(), Json.toJson(request)).withHeaders("Content-Type" -> "application/json")

@@ -26,12 +26,13 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.test.WithApplication
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
-class EvaluatePhase2ResultJobSpec extends PlaySpec with MockitoSugar with ScalaFutures {
+class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
   "Scheduler execution" should {
@@ -62,7 +63,7 @@ class EvaluatePhase2ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
     }
   }
 
-  trait TestFixture extends WithApplication {
+  trait TestFixture {
     val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase2PassMarkSettings]]
     val profile = Phase2TestProfileExamples.profile
     val schemes = SelectedSchemesExamples.TwoSchemes

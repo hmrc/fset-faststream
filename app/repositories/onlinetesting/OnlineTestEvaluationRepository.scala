@@ -38,14 +38,12 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
 
   val evaluationApplicationStatuses: List[ApplicationStatus]
 
-  val applicationBSONReader = (doc: BSONDocument) => {
+  def applicationBSONReader(activeTests: List[CubiksTest], prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
     val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
     val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
-    val applicationBuilder: (List[CubiksTest], Option[PassmarkEvaluation]) => ApplicationReadyForEvaluation =
-      ApplicationReadyForEvaluation(applicationId, applicationStatus, isGis, _, _, preferences)
-    applicationBuilder.curried
+    ApplicationReadyForEvaluation(applicationId, applicationStatus, isGis, activeTests, prevPhaseEvaluation, preferences)
   }
 
   def passMarkEvaluationReader(passMarkPhase: String, applicationId: String, optDoc: Option[BSONDocument]): PassmarkEvaluation =
@@ -67,7 +65,7 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
     val passMarkEvaluation = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phase.evaluation" -> evaluation
     ).add(
-      if (newApplicationStatus.isDefined) applicationStatusBSON(newApplicationStatus.get) else BSONDocument.empty
+      newApplicationStatus.map(applicationStatusBSON).getOrElse(BSONDocument.empty)
     ))
 
     collection.update(query, passMarkEvaluation) map { r =>
@@ -106,7 +104,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     implicit val reader = bsonReader(doc => {
       val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
       val phase1 = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
-      applicationBSONReader(doc)(phase1.activeTests)(None)
+      applicationBSONReader(phase1.activeTests, None)(doc)
     })
     selectRandom[ApplicationReadyForEvaluation](query, batchSize)
   }
@@ -142,7 +140,7 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
       val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
       val phase2 = bsonPhase2.map(Phase2TestGroup.bsonHandler.read).get
       val phase1Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
-      applicationBSONReader(doc)(phase2.activeTests)(Some(phase1Evaluation))
+      applicationBSONReader(phase2.activeTests, Some(phase1Evaluation))(doc)
     })
     selectRandom[ApplicationReadyForEvaluation](query, batchSize)
   }

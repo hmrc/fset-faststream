@@ -31,7 +31,7 @@ import testkit.MongoRepositorySpec
 
 import scala.concurrent.Await
 
-class Phase1TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
+class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
   override val collectionName = "application"
 

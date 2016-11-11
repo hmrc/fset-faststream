@@ -16,10 +16,9 @@
 
 package services.onlinetesting
 
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 
-class CubiksSanitizerSpec extends PlaySpec with MockitoSugar {
+class CubiksSanitizerSpec extends UnitSpec {
   "Cubiks Sanitizer" should {
     "remove new lines" in new TestFixture {
       val input = "hello\nworld"
