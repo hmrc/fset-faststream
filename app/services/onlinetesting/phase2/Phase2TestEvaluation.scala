@@ -16,12 +16,13 @@
 
 package services.onlinetesting.phase2
 
-import model.EvaluationResults.{ Amber, Green, Red, Result }
+import model.EvaluationResults.Result
 import model.SchemeType._
-import model.exchange.passmarksettings.{ PassMarkThreshold, Phase2PassMarkSettings }
+import model.exchange.passmarksettings.Phase2PassMarkSettings
 import model.persisted.{ SchemeEvaluationResult, TestResult }
+import services.onlinetesting.OnlineTestResultsCalculator
 
-trait Phase2TestEvaluation {
+trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
 
   def evaluate(schemes: List[SchemeType], etrayTestResult: TestResult,
                phase1SchemesEvaluation: List[SchemeEvaluationResult],
@@ -32,30 +33,9 @@ trait Phase2TestEvaluation {
       schemePassmark <- schemePassmarkOpt
       phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.scheme == schemeToEvaluate)
     } yield {
-      val phase2Result = evaluateResultsForExercise(schemePassmark.schemeThresholds.etray)(etrayTestResult)
+      val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.etray)(etrayTestResult.tScore)
       val phase1Result = Result(phase1SchemeEvaluation.result)
-      val result = (phase2Result, phase1Result) match {
-        case (Green, Green) => Green
-        case (Amber, Amber) => Amber
-        case (Amber, Green) => Amber
-        case (Green, Amber) => Amber
-        case (Red, _) => Red
-        case (_, Red) => Red
-      }
-      SchemeEvaluationResult(schemeToEvaluate, result.toString)
-    }
-  }
-
-  private def evaluateResultsForExercise(threshold: PassMarkThreshold)(testResult: TestResult): Result = {
-    val tScore = testResult.tScore.get
-    val failmark = threshold.failThreshold
-    val passmark = threshold.passThreshold
-    if (tScore >= passmark) {
-      Green
-    } else if (tScore <= failmark) {
-      Red
-    } else {
-      Amber
+      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, phase2Result).toString)
     }
   }
 }
