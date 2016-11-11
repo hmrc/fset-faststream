@@ -16,13 +16,15 @@
 
 package models.page
 
+import models.Adjustments
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 import org.joda.time.{ DateTime, Period, PeriodType }
 
 case class Phase3TestsPage(
                             expirationDate: DateTime,
                             started: Boolean,
-                            completed: Boolean
+                            completed: Boolean,
+                            adjustments: Option[Adjustments]
                           ) {
 
   def isStarted: Boolean = started
@@ -78,14 +80,18 @@ case class Phase3TestsPage(
 
     dateTimeFormat.print(expirationDate)
   }
+
+  def isInvigilatedVideoApproved = adjustments exists (_.isInvigilatedVideoApproved)
 }
 
 object Phase3TestsPage {
 
-  def apply(profile: connectors.exchange.Phase3TestGroup): Phase3TestsPage = {
-    Phase3TestsPage(expirationDate = profile.expirationDate,
+  def apply(profile: connectors.exchange.Phase3TestGroup, adjustments: Option[Adjustments]): Phase3TestsPage = {
+    Phase3TestsPage(
+      expirationDate = profile.expirationDate,
       started = profile.activeTests.headOption.exists(_.started),
-      completed = profile.activeTests.headOption.exists(_.completed)
+      completed = profile.activeTests.headOption.exists(_.completed),
+      adjustments = adjustments
     )
   }
 }

@@ -204,14 +204,6 @@ trait ApplicationClient {
     http.PUT(s"${url.host}${url.base}/cubiks/complete-by-token/$token", "").map(_ => ())
   }
 
-  def getAllocationDetails(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[AllocationDetails]] = {
-    http.GET(s"${url.host}${url.base}/allocation-status/$appId").map { response =>
-      Some(response.json.as[AllocationDetails])
-    } recover {
-      case _: NotFoundException => None
-    }
-  }
-
   def confirmAllocation(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(s"${url.host}${url.base}/allocation-status/confirm/$appId", "").map(_ => ())
   }

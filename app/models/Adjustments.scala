@@ -21,11 +21,12 @@ import play.api.libs.json.Json
 
 case class Adjustments(adjustments: Option[List[String]],
                         adjustmentsConfirmed: Option[Boolean]) {
-  def isInvigilatedETrayApproved = {
-    val approved = adjustmentsConfirmed.contains(true)
-    val invigilatedETray = adjustments.exists(_.contains("etrayInvigilated"))
-    invigilatedETray && approved
-  }
+  private val approved = adjustmentsConfirmed.contains(true)
+
+  def isInvigilatedETrayApproved = adjustments.exists(_.contains("etrayInvigilated")) && approved
+
+  def isInvigilatedVideoApproved = adjustments.exists(_.contains("videoInvigilated")) && approved
+
 }
 
 object Adjustments {
