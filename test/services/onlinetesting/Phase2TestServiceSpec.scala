@@ -632,7 +632,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       List(phase2Test, phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
     )
     val invigilatedTestProfile = Phase2TestGroup(
-      invigilatedExpirationDate, List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
+      invigilatedExpirationDate, List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId, invigilatedAccessCode = Some("accessCode")))
     )
 
     val testResult = OnlineTestCommands.TestResult(status = "Completed",

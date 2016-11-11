@@ -18,6 +18,7 @@ package services.events
 
 import connectors.AuthProviderClient
 import model.events.{ AuditEvent, DataStoreEvent, EmailEvent }
+import model.exchange.SimpleTokenResponse
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -60,6 +61,7 @@ trait EventServiceFixture extends MockitoSugar {
   when(dataStoreEventHandlerMock.handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
   when(auditEventHandlerMock.handle(any[AuditEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
   when(emailEventHandlerMock.handle(any[EmailEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
+  when(authProviderClientMock.generateAccessCode(any[HeaderCarrier])).thenReturn(Future.successful(SimpleTokenResponse("accessCode")))
 
   def verifyDataStoreEvents(n: Int): Unit =
     verify(dataStoreEventHandlerMock, times(n)).handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader])
