@@ -22,6 +22,7 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import security._
 import testables.NoIdentityTestableCSRUserAwareAction
+import testkit.BaseControllerSpec
 import uk.gov.hmrc.play.http.{ HeaderCarrier, SessionKeys }
 
 class LockAccountControllerSpec extends BaseControllerSpec {

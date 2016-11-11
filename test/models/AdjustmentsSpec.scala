@@ -16,9 +16,9 @@
 
 package models
 
-import org.scalatestplus.play.PlaySpec
+import controllers.UnitSpec
 
-class AdjustmentsSpec extends PlaySpec {
+class AdjustmentsSpec extends UnitSpec {
 
   "Adjustments" should {
     "be invigilated e-tray when it is approved" in {

@@ -16,11 +16,11 @@
 
 package util
 
+import controllers.UnitSpec
 import models.frameworks.{ Location, Region }
 import org.junit.Assert._
-import org.scalatestplus.play.PlaySpec
 
-class RegionToJsonSpec extends PlaySpec {
+class RegionToJsonSpec extends UnitSpec {
 
   "Regions" should {
     "render correctly to Json" in {

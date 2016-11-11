@@ -20,9 +20,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import config.FaststreamFrontendConfig
-import org.scalatestplus.play.PlaySpec
 
-class FaststreamConfigSpec extends PlaySpec {
+class FaststreamConfigSpec extends UnitSpec {
   "New Accounts creation and submit applications" should {
     "be enabled when there is no disable date" in {
       val config = FaststreamConfig(FaststreamFrontendConfig(None, None))

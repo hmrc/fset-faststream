@@ -16,11 +16,12 @@
 
 package forms
 
+import controllers.UnitSpec
 import forms.GeneralDetailsFormExamples._
 import org.joda.time.LocalDate
 import org.scalatestplus.play.PlaySpec
 
-class GeneralDetailsFormSpec extends PlaySpec {
+class GeneralDetailsFormSpec extends UnitSpec {
   implicit val now = LocalDate.now
 
   import GeneralDetailsForm.{ form => personalDetailsForm }

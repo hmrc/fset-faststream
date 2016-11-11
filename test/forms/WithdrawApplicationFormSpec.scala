@@ -16,11 +16,12 @@
 
 package forms
 
-import controllers.BaseSpec
+import controllers.UnitSpec
+import testkit.UnitWithAppSpec
 import forms.WithdrawApplicationForm.Data
 import play.api.data.Form
 
-class WithdrawApplicationFormSpec extends BaseSpec {
+class WithdrawApplicationFormSpec extends UnitWithAppSpec {
 
   "the withdraw application form" should {
     "be valid when the user selects I want to withdraw and provide a reason (no other reason)" in new Fixture {

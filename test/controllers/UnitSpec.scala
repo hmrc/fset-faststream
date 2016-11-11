@@ -16,7 +16,8 @@
 
 package controllers
 
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatestplus.play.PlaySpec
 
-abstract class BaseSpec extends PlaySpec with MockitoSugar with OneServerPerSuite
+abstract class UnitSpec extends PlaySpec with MockitoSugar with ScalaFutures

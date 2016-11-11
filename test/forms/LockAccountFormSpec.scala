@@ -16,9 +16,9 @@
 
 package forms
 
-import org.scalatestplus.play.PlaySpec
+import controllers.UnitSpec
 
-class LockAccountFormSpec extends PlaySpec {
+class LockAccountFormSpec extends UnitSpec {
 
   import LockAccountForm.{ form => lockAccountForm }
 
