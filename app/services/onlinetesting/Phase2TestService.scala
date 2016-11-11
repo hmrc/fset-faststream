@@ -21,7 +21,7 @@ import akka.actor.ActorSystem
 import common.Phase2TestConcern
 import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
-import connectors.{ CubiksGatewayClient, Phase2OnlineTestEmailClient }
+import connectors.{ AuthProviderClient, CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.OnlineTestCommands._
@@ -59,6 +59,7 @@ object Phase2TestService extends Phase2TestService {
   val gatewayConfig = cubiksGatewayConfig
   val actor = ActorSystem()
   val eventService = EventService
+  val authProvider = AuthProviderClient
 }
 
 // scalastyle:off number.of.methods
@@ -67,6 +68,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
+  val authProvider: AuthProviderClient
 
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
 
@@ -225,7 +227,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
         for {
           registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
           invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
-          _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate)
+          _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate, hc)
           _ <- emailInviteToApplicants(candidatesToProcess)(hc, rh, invitationDate, expirationDate)
         } yield {
           candidatesToProcess
@@ -245,19 +247,29 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   }
 
   private def insertPhase2TestGroups(o: List[Phase2TestInviteData])
-                                    (implicit invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
+                                    (implicit invitationDate: DateTime, expirationDate: DateTime, hc: HeaderCarrier): Future[Unit] =
     Future.sequence(o.map { completedInvite =>
-      val newTestGroup = Phase2TestGroup(expirationDate = expirationDate,
-        List(CubiksTest(scheduleId = completedInvite.scheduleId,
-          usedForResults = true,
-          cubiksUserId = completedInvite.registration.userId,
-          token = completedInvite.token,
-          testUrl = completedInvite.invitation.authenticateUrl,
-          invitationDate = invitationDate,
-          participantScheduleId = completedInvite.invitation.participantScheduleId
-        ))
-      )
-      insertOrUpdateTestGroup(completedInvite.application)(newTestGroup)
+      val maybeInvigilatedAccessCodeFut = if (completedInvite.application.isInvigilatedETray) {
+        authProvider.generateAccessCode.map(ac => Some(ac.token))
+      } else {
+        Future.successful(None)
+      }
+
+      for {
+        maybeInvigilatedAccessCode <- maybeInvigilatedAccessCodeFut
+        newTestGroup = Phase2TestGroup(expirationDate = expirationDate,
+          List(CubiksTest(scheduleId = completedInvite.scheduleId,
+            usedForResults = true,
+            cubiksUserId = completedInvite.registration.userId,
+            token = completedInvite.token,
+            testUrl = completedInvite.invitation.authenticateUrl,
+            invitationDate = invitationDate,
+            participantScheduleId = completedInvite.invitation.participantScheduleId,
+            invigilatedAccessCode = maybeInvigilatedAccessCode
+          ))
+        )
+        _ <- insertOrUpdateTestGroup(completedInvite.application)(newTestGroup)
+      } yield {}
     }).map(_ => ())
 
   private def insertOrUpdateTestGroup(application: OnlineTestApplication)
@@ -341,7 +353,11 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   def emailInviteToApplicants(candidates: List[OnlineTestApplication])
     (implicit hc: HeaderCarrier, rh: RequestHeader, invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
   Future.sequence(candidates.map { candidate =>
-    candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
+    if (candidate.isInvigilatedETray) {
+      Future.successful()
+    } else {
+      candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
+    }
   }).map( _ => () )
 
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
