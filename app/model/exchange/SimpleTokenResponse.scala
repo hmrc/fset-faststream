@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.exchange
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
-case class PassmarkEvaluation(passmarkVersion: String,
-                              previousPhasePassMarkVersion: Option[String],
-                              result: List[SchemeEvaluationResult])
+case class SimpleTokenResponse(token: String)
 
-object PassmarkEvaluation {
-  implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
-  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
+case object SimpleTokenResponse {
+  implicit val simpleTokenResponseFormat = Json.format[SimpleTokenResponse]
 }

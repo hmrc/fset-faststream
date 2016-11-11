@@ -21,9 +21,11 @@ import config.LaunchpadGatewayConfig
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import play.api.libs.json.Format
+import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.EventService
 import repositories._
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -34,16 +36,17 @@ object Phase3TestCallbackService extends Phase3TestCallbackService {
   import config.MicroserviceAppConfig._
 
   val phase3TestRepo = phase3TestRepository
+  val phase3TestService = Phase3TestService
   val auditService = AuditService
   val gatewayConfig = launchpadGatewayConfig
   val eventService = EventService
 
   case class InviteIdNotRecognisedException(message: String) extends Exception(message)
-
 }
 
 trait Phase3TestCallbackService {
   val phase3TestRepo: Phase3TestRepository
+  val phase3TestService: Phase3TestService
   val auditService: AuditService
   val gatewayConfig: LaunchpadGatewayConfig
   val eventService: EventService
@@ -60,12 +63,18 @@ trait Phase3TestCallbackService {
     phase3TestRepo.appendCallback(callbackData.customInviteId, QuestionCallbackRequest.key, callbackData)
   }
 
-  def recordCallback(callbackData: FinalCallbackRequest): Future[Unit] = {
-    phase3TestRepo.appendCallback(callbackData.customInviteId, FinalCallbackRequest.key, callbackData)
+  def recordCallback(callbackData: FinalCallbackRequest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    for {
+      _ <- phase3TestRepo.appendCallback(callbackData.customInviteId, FinalCallbackRequest.key, callbackData)
+      _ <- phase3TestService.markAsCompleted(callbackData.customInviteId)
+    } yield { }
   }
 
-  def recordCallback(callbackData: FinishedCallbackRequest): Future[Unit] = {
-    phase3TestRepo.appendCallback(callbackData.customInviteId, FinishedCallbackRequest.key, callbackData)
+  def recordCallback(callbackData: FinishedCallbackRequest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    for {
+      _ <- phase3TestRepo.appendCallback(callbackData.customInviteId, FinishedCallbackRequest.key, callbackData)
+      _ <- phase3TestService.markAsCompleted(callbackData.customInviteId)
+    } yield { }
   }
 
   def recordCallback(callbackData: ViewBrandedVideoCallbackRequest): Future[Unit] = {

@@ -16,19 +16,23 @@
 
 package scheduler.onlinetesting
 
-import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
+import model.exchange.passmarksettings.{ Phase2PassMarkSettings, Phase2PassMarkSettingsExamples }
 import model.persisted.ApplicationReadyForEvaluation
-import model.{ ApplicationStatus, Phase, Phase1TestProfileExamples, SelectedSchemesExamples }
+import model.{ ApplicationStatus, Phase, Phase2TestProfileExamples, SelectedSchemesExamples }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers._
 import org.mockito.Mockito._
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.play.PlaySpec
+import play.api.test.WithApplication
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
-class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
+class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
   "Scheduler execution" should {
@@ -55,26 +59,26 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
       when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])).thenReturn(Future.successful(None))
       scheduler.tryExecute().futureValue
 
-      verify(mockEvaluateService, never).evaluate(any[ApplicationReadyForEvaluation], any[Phase1PassMarkSettings])
+      verify(mockEvaluateService, never).evaluate(any[ApplicationReadyForEvaluation], any[Phase2PassMarkSettings])
     }
   }
 
   trait TestFixture {
-    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase1PassMarkSettings]]
-    val profile = Phase1TestProfileExamples.profile
+    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase2PassMarkSettings]]
+    val profile = Phase2TestProfileExamples.profile
     val schemes = SelectedSchemesExamples.TwoSchemes
-    val passmark = Phase1PassMarkSettingsExamples.passmark
+    val passmark = Phase2PassMarkSettingsExamples.passmark
 
     val apps = 1 to 10 map { id =>
-      ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE1_TESTS, isGis = false, profile.activeTests, None, schemes)
+      ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE2_TESTS, isGis = false, profile.activeTests, None, schemes)
     }
 
     apps.foreach { app =>
       when(mockEvaluateService.evaluate(app, passmark)).thenReturn(Future.successful(()))
     }
 
-    lazy val scheduler = new EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
-      val phase = Phase.PHASE1
+    lazy val scheduler = new EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
+      val phase = Phase.PHASE2
       val evaluateService = mockEvaluateService
       val batchSize = 1
       val lockId: String = "1"

@@ -426,10 +426,10 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
           ProgressStatuses.PHASE1_TESTS_COMPLETED -> true,
           ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
 
-      phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, testsWithResult)).futureValue
+      phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Red.toString))
-      val evaluation = PassmarkEvaluation("version1", resultToSave)
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
 
       phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ApplicationStatus.PHASE1_TESTS_FAILED)).futureValue
 

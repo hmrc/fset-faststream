@@ -7,7 +7,7 @@ import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults._
 import model.SchemeType._
 import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds }
-import model.persisted.{ ApplicationPhase1ReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -18,7 +18,7 @@ import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
 import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase1TestMongoRepository }
+import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase1TestMongoRepository, Phase2TestMongoRepository }
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.GBTimeZoneService
 import services.onlinetesting.EvaluatePhase1ResultService
@@ -51,6 +51,8 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   def assistanceDetailsRepository = new AssistanceDetailsMongoRepository
 
   def phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
+
+  def phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
 
   def phase1PassMarkSettingRepo = new Phase1PassMarkSettingsMongoRepository()
 
@@ -167,7 +169,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     var phase1PassMarkSettings = createPhase1PassMarkSettings(phase1PassMarkSettingsTable)
 
-    var applicationReadyForEvaluation:ApplicationPhase1ReadyForEvaluation = _
+    var applicationReadyForEvaluation:ApplicationReadyForEvaluation = _
 
     var passMarkEvaluation: PassmarkEvaluation = _
 
