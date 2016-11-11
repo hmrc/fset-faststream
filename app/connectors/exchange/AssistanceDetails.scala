@@ -28,7 +28,16 @@ final case class AssistanceDetails(
   needsSupportAtVenueDescription: Option[String],
   needsSupportForPhoneInterview: Option[Boolean],
   needsSupportForPhoneInterviewDescription: Option[String]
-)
+) {
+  def requiresAdjustments: Boolean = {
+    List(
+      guaranteedInterview.contains(true),
+      needsSupportForOnlineAssessment.contains(true),
+      needsSupportAtVenue.contains(true),
+      needsSupportForPhoneInterview.contains(true)
+    ).contains(true)
+  }
+}
 
 object AssistanceDetails {
   implicit val assistanceDetailsFormat = Json.format[AssistanceDetails]
