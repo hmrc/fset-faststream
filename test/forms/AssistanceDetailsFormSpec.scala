@@ -16,11 +16,12 @@
 
 package forms
 
-import controllers.BaseSpec
+import controllers.UnitSpec
+import testkit.UnitWithAppSpec
 import forms.AssistanceDetailsForm.Data
 import play.api.data.Form
 
-class AssistanceDetailsFormSpec extends BaseSpec {
+class AssistanceDetailsFormSpec extends UnitWithAppSpec {
 
   "the assistance details form" should {
     "be valid when the user selects no in the disability" in new Fixture {

@@ -19,11 +19,10 @@ package connectors
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
-import org.scalatest.mock.MockitoSugar
+import controllers.UnitSpec
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
-import uk.gov.hmrc.play.test.UnitSpec
 
-trait ConnectorSpec extends UnitSpec with MockitoSugar with BeforeAndAfterEach with BeforeAndAfterAll {
+trait ConnectorSpec extends UnitSpec with BeforeAndAfterEach with BeforeAndAfterAll {
 
   //override implicit val defaultTimeout = FiniteDuration(100, TimeUnit.SECONDS)
 

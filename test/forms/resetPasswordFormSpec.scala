@@ -16,9 +16,9 @@
 
 package forms
 
-import controllers.BaseSpec
+import controllers.UnitSpec
 
-class resetPasswordFormSpec extends BaseSpec {
+class resetPasswordFormSpec extends UnitSpec {
 
   "the validate method" should {
     "validate an email" in {

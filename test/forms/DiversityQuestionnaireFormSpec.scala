@@ -16,10 +16,10 @@
 
 package forms
 
-import controllers.BaseSpec
+import controllers.UnitSpec
 import forms.DiversityQuestionnaireForm.{ Data, form }
 
-class DiversityQuestionnaireFormSpec extends BaseSpec {
+class DiversityQuestionnaireFormSpec extends UnitSpec {
 
   "the diversity form" should {
     "be valid when all values are correct" in new Fixture {

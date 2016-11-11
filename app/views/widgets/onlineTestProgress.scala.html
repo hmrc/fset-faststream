@@ -6,6 +6,7 @@
         implicit request: Request[_])
 
 @import models.page.Phase2TestsPage
+@(cachedUserData: CachedData, dashboardPage: DashboardPage)(implicit request: Request[_])
 @import security.RoleUtils._
 
 @requiresInvigilatedETray = @{
@@ -25,6 +26,10 @@
 @invigilatedETraySection() = {
     <p>We're arranging for you to come in and take an invigilated e-tray.</p>
     <p>You'll be contacted by a member of our team with further details.</p>
+}
+
+@isInvigilatedVideoApproved = @{
+    dashboardPage.phase3TestsPage.exists(_.isInvigilatedVideoApproved)
 }
 
 @eTraySection(phase2Test: Phase2TestsPage) = {
@@ -283,7 +288,7 @@
             case (false, Some(phase3Test), _) => {
                 @if(phase3Test.isCompleted) {
                     <li id="videoSection">
-                        <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-check"></i>E-tray</p>
+                        <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-check"></i>Video interview</p>
                         <div id="videoBlurb">
                             <p>You've completed this section, we'll send you an email when we have your results.
                                 Make sure you check your junk inbox.</p>
@@ -294,25 +299,30 @@
                         <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-minus"></i>
                             Video interview </p>
                         <div id="videoBlurb">
-                            <p id="videoDescription" class="">Each of your answers is timed, although you can take a
-                                break in-between questions if needed.</p>
-                            <p id="videoTime" class="">You have <strong>@{
-                                phase3Test.getDuration
-                            }</strong> to finish
-                                the video interview</p>
-                            <div id="videoTestButton">
-                                @helper.form(action = routes.LaunchpadTestController.startPhase3Tests(), 'novalidate -> "novalidate") {
-                                    @helper.CSRF.formField
-                                    @if(!phase3Test.isStarted) {
-                                        <button id="videoButton" type="submit" value="submit" class="button">
-                                            Start section</button>
-                                    } else {
-                                        <button id="videoButton" type="submit" value="submit" class="button">
-                                            Continue section</button>
+                            @if(isInvigilatedVideoApproved) {
+                                <p>We're arranging for you to come in and take an invigilated video interview.<br />
+                                    You'll be contacted by a member of our team with further details.</p>
+                            } else {
+                                <p id="videoDescription" class="">Each of your answers is timed, although you can take a
+                                    break in-between questions if needed.</p>
+                                <p id="videoTime" class="">You have <strong>@{
+                                    phase3Test.getDuration
+                                }</strong> to finish
+                                    the video interview</p>
+                                <div id="videoTestButton">
+                                    @helper.form(action = routes.LaunchpadTestController.startPhase3Tests(), 'novalidate -> "novalidate") {
+                                        @helper.CSRF.formField
+                                        @if(!phase3Test.isStarted) {
+                                            <button id="videoButton" type="submit" value="submit" class="button">
+                                                Start section</button>
+                                        } else {
+                                            <button id="videoButton" type="submit" value="submit" class="button">
+                                                Continue section</button>
+                                        }
                                     }
-                                }
-                                <p>(The answers that you give are timed)</p>
-                            </div>
+                                    <p>(The answers that you give are timed)</p>
+                                </div>
+                            }
                         </div>
                     </li>
                 }

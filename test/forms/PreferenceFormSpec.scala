@@ -16,12 +16,12 @@
 
 package forms
 
-import controllers.BaseSpec
+import controllers.UnitSpec
 import forms.SchemeLocationPreferenceForm.{ Data, form, resetPreference, validateSchemeLocation }
 import models.frameworks.{ Location, Preference, Region }
 import org.junit.Assert._
 
-class PreferenceFormSpec extends BaseSpec {
+class PreferenceFormSpec extends UnitSpec {
 
   "personal details form" should {
     "be valid when all values are correct" in new Fixture {

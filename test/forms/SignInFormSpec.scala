@@ -16,9 +16,9 @@
 
 package forms
 
-import org.scalatestplus.play.PlaySpec
+import controllers.UnitSpec
 
-class SignInFormSpec extends PlaySpec {
+class SignInFormSpec extends UnitSpec {
 
   import SignInForm.{ form => signInForm }
 

@@ -16,11 +16,11 @@
 
 package controllers
 
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitWithAppSpec
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-class LandingPageControllerSpec extends PlaySpec {
+class LandingPageControllerSpec extends UnitWithAppSpec {
 
   "Landing page controller" should {
     "redirect to sign-in" in {

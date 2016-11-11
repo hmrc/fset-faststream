@@ -19,17 +19,16 @@ package security
 import java.util.UUID
 
 import connectors.exchange.ProgressExamples
+import controllers.UnitSpec
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus.{ CREATED, _ }
 import models._
-import org.scalatest.MustMatchers
-import org.scalatestplus.play.PlaySpec
 import play.api.i18n.Lang
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import security.Roles.{ AssessmentCentreFailedToAttendRole, CsrAuthorization, WithdrawComponent }
 
-class RolesSpec extends PlaySpec with MustMatchers {
+class RolesSpec extends UnitSpec {
   import RolesSpec._
 
   val request = FakeRequest(GET, "")

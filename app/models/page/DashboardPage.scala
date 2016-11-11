@@ -42,8 +42,7 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   phase1TestsPage: Option[Phase1TestsPage],
   phase2TestsPage: Option[Phase2TestsPage],
   phase3TestsPage: Option[Phase3TestsPage],
-  assessmentStageStatus: AssessmentStageStatus,
-  postAssessmentStageStatus: PostAssessmentStageStatus
+  assessmentStageStatus: AssessmentStageStatus
 )
 
 object DashboardPage {
@@ -52,7 +51,7 @@ object DashboardPage {
   import models.ApplicationData.ApplicationStatus
   import models.ApplicationData.ApplicationStatus.ApplicationStatus
 
-  def apply(user: CachedData, allocationDetails: Option[AllocationDetails], phase1TestGroup: Option[Phase1TestsPage],
+  def apply(user: CachedData, phase1TestGroup: Option[Phase1TestsPage],
     phase2TestGroup: Option[Phase2TestsPage], phase3TestGroup: Option[Phase3TestsPage]
   )(implicit request: RequestHeader, lang: Lang): DashboardPage = {
 
@@ -79,8 +78,7 @@ object DashboardPage {
       phase1TestGroup,
       phase2TestGroup,
       phase3TestGroup,
-      getAssessmentInProgressStatus(user, allocationDetails),
-      getPostAssessmentStatus(user, allocationDetails)
+      getAssessmentInProgressStatus(user)
     )
   }
 
@@ -104,27 +102,7 @@ object DashboardPage {
 
     case object ASSESSMENT_FAST_PASS_CERTIFICATE extends AssessmentStageStatus
 
-    case object ASSESSMENT_BOOKED_CONFIRMED extends AssessmentStageStatus
-
-    case object ASSESSMENT_CONFIRMATION_EXPIRED extends AssessmentStageStatus
-
-    case object ASSESSMENT_PENDING_CONFIRMATION extends AssessmentStageStatus
-
-    case object ASSESSMENT_FAILED extends AssessmentStageStatus
-
-    case object ASSESSMENT_PASSED extends AssessmentStageStatus
-
-    case object ASSESSMENT_NOT_ATTENDED extends AssessmentStageStatus
-
     case object ASSESSMENT_STATUS_UNKNOWN extends AssessmentStageStatus
-
-    sealed trait PostAssessmentStageStatus
-
-    case object POSTASSESSMENT_PASSED_MORE_SOON extends PostAssessmentStageStatus
-
-    case object POSTASSESSMENT_FAILED_APPLY_AGAIN extends PostAssessmentStageStatus
-
-    case object POSTASSESSMENT_STATUS_UNKNOWN extends PostAssessmentStageStatus
 
     sealed trait Step {
       def isReached(p: Progress): Boolean
@@ -197,40 +175,13 @@ object DashboardPage {
   private def isPhase3TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     Phase3TestExpiredRole.isAuthorized(user)
 
-  private def getAssessmentInProgressStatus(user: CachedData,
-    allocationDetails: Option[AllocationDetails])
+  private def getAssessmentInProgressStatus(user: CachedData)
   (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
 
     if(hasReceivedFastPass(user)) {
       ASSESSMENT_FAST_PASS_CERTIFICATE
-    } else if (ConfirmedAllocatedCandidateRole.isAuthorized(user)) {
-      ASSESSMENT_BOOKED_CONFIRMED
-    } else if (UnconfirmedAllocatedCandidateRole.isAuthorized(user)) {
-      if (isConfirmationAllocationExpired(allocationDetails)) {
-        ASSESSMENT_CONFIRMATION_EXPIRED
-      } else {
-        ASSESSMENT_PENDING_CONFIRMATION
-      }
-    } else if (AssessmentCentreFailedNotifiedRole.isAuthorized(user)) {
-      ASSESSMENT_FAILED
-    } else if (AssessmentCentrePassedNotifiedRole.isAuthorized(user)) {
-      ASSESSMENT_PASSED
-    } else if (AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
-      ASSESSMENT_NOT_ATTENDED
     } else {
       ASSESSMENT_STATUS_UNKNOWN
-    }
-  }
-
-  private def getPostAssessmentStatus(user: CachedData,
-    allocationDetails: Option[AllocationDetails])
-  (implicit request: RequestHeader, lang: Lang): PostAssessmentStageStatus = {
-    if (AssessmentCentreFailedNotifiedRole.isAuthorized(user) || AssessmentCentreFailedToAttendRole.isAuthorized(user)) {
-      POSTASSESSMENT_FAILED_APPLY_AGAIN
-    } else if (AssessmentCentrePassedNotifiedRole.isAuthorized(user)) {
-      POSTASSESSMENT_PASSED_MORE_SOON
-    } else {
-      POSTASSESSMENT_STATUS_UNKNOWN
     }
   }
 
