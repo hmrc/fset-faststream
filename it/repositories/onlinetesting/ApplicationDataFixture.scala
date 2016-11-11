@@ -2,6 +2,7 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ProgressStatuses.ProgressStatus
+import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{ Phase1TestProfile, Phase2TestGroup }
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
@@ -107,7 +108,6 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
     }
 
     result.futureValue
-
     appId
   }
 
@@ -127,6 +127,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
                                      additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
                                      phase1TestProfile: Option[Phase1TestProfile] = None,
                                      phase2TestGroup: Option[Phase2TestGroup] = None,
+                                     phase3TestGroup: Option[Phase3TestGroup] = None,
                                      typeOfEtrayOnlineAdjustments: List[String] = List("etrayTimeExtension", "etrayOther")
                                     ): Future[WriteResult] = {
     val doc = BSONDocument(
@@ -167,7 +168,7 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
         needsSupportAtVenue, isGis, typeOfEtrayOnlineAdjustments),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
-      "testGroups" -> testGroups(phase1TestProfile, phase2TestGroup)
+      "testGroups" -> testGroups(phase1TestProfile, phase2TestGroup, phase3TestGroup)
     )
 
     helperRepo.collection.insert(doc)
@@ -175,9 +176,11 @@ trait ApplicationDataFixture extends MongoRepositorySpec {
   // scalastyle:on method.length
   // scalastyle:on parameter.number
 
-  private def testGroups(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup]): BSONDocument = {
+  private def testGroups(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup], p3: Option[Phase3TestGroup]): BSONDocument = {
     BSONDocument("PHASE1" -> p1.map(Phase1TestProfile.bsonHandler.write),
-      "PHASE2" -> p2.map(Phase2TestGroup.bsonHandler.write))
+      "PHASE2" -> p2.map(Phase2TestGroup.bsonHandler.write),
+      "PHASE3" -> p3.map(Phase3TestGroup.bsonHandler.write)
+    )
   }
 
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {

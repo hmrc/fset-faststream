@@ -2,10 +2,11 @@ package repositories.onlinetesting
 
 import java.util.UUID
 
-import model.ProgressStatuses
+import model.{ ApplicationStatus, Phase2SecondReminder, Phase2FirstReminder, ProgressStatuses }
 import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import model.ProgressStatuses._
 import org.joda.time.{ DateTime, DateTimeZone }
+import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
 class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
@@ -49,7 +50,6 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
   }
 
   "Next application ready for online testing" must {
-
     "return application when does not need adjustments and is no gis and its status is PHASE1_TESTS_PASSED" in {
       createApplicationWithAllFields("userId0", "appId0", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
         needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
@@ -234,10 +234,8 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
   }
 
-
   "Updating completion time" must {
     "update test completion time" in {
-
       val now =  DateTime.now(DateTimeZone.UTC)
       val input = Phase2TestGroup(expirationDate = now.plusDays(5),
         tests = List(CubiksTest(scheduleId = 1,
@@ -261,7 +259,6 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
     }
 
     "not update profiles that have expired" in {
-
       val now =  DateTime.now(DateTimeZone.UTC)
       val input = Phase2TestGroup(expirationDate = now,
         tests = List(CubiksTest(scheduleId = 1,
@@ -293,7 +290,6 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
         phase2TestGroup = Some(testProfileWithAppId.testGroup)
       ).futureValue
 
-
       val testResult = model.persisted.TestResult(status = "completed", norm = "some norm",
           tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
 
@@ -310,8 +306,90 @@ class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoReposito
 
       val status = helperRepo.findProgress("appId").futureValue
       status.phase2ProgressResponse.phase2TestsResultsReceived mustBe false
-
     }
   }
 
+  "nextTestForReminder" should {
+    "return one result" when {
+      "there is an application in PHASE2_TESTS and is about to expire in the next 72 hours" in {
+        val date = DateTime.now().plusHours(Phase2FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val testGroup = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        phase2TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
+        val notification = phase2TestRepo.nextTestForReminder(Phase2FirstReminder).futureValue
+        notification.isDefined mustBe true
+        notification.get.applicationId mustBe AppId
+        notification.get.userId mustBe UserId
+        notification.get.preferredName mustBe "Georgy"
+        notification.get.expiryDate.getMillis mustBe date.getMillis
+        // Because we are far away from the 24h reminder's window
+        phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
+      }
+
+      "there is an application in PHASE2_TESTS and is about to expire in the next 24 hours" in {
+        val date = DateTime.now().plusHours(Phase2SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val testGroup = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        phase2TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
+        val notification = phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue
+        notification.isDefined mustBe true
+        notification.get.applicationId mustBe AppId
+        notification.get.userId mustBe UserId
+        notification.get.preferredName mustBe "Georgy"
+        notification.get.expiryDate.getMillis mustBe date.getMillis
+      }
+    }
+
+    "return no results" when {
+      val date = DateTime.now().plusHours(22)
+      val testProfile = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
+      "there are no applications in PHASE2_TESTS" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
+        phase2TestRepo.nextTestForReminder(Phase2FirstReminder).futureValue mustBe None
+      }
+
+      "the expiration date is in 26h but we send the second reminder only after 24h" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        phase2TestRepo.insertOrUpdateTestGroup(
+          AppId,
+          Phase2TestGroup(expirationDate = new DateTime().plusHours(30), tests = List(phase2Test))).futureValue
+        phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
+      }
+
+      "the test is expired" in {
+        import repositories.BSONDateTimeHandler
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("$set" -> BSONDocument(
+          "applicationStatus" -> PHASE2_TESTS_EXPIRED.applicationStatus,
+          s"progress-status.$PHASE2_TESTS_EXPIRED" -> true,
+          s"progress-status-timestamp.$PHASE2_TESTS_EXPIRED" -> DateTime.now()
+        )), AppId).futureValue
+        phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
+      }
+
+      "the test is completed" in {
+        import repositories.BSONDateTimeHandler
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("$set" -> BSONDocument(
+          "applicationStatus" -> PHASE2_TESTS_COMPLETED.applicationStatus,
+          s"progress-status.$PHASE2_TESTS_COMPLETED" -> true,
+          s"progress-status-timestamp.$PHASE2_TESTS_COMPLETED" -> DateTime.now()
+        )), AppId).futureValue
+        phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
+      }
+
+      "we already sent a second reminder" in {
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+        updateApplication(BSONDocument("$set" -> BSONDocument(
+          s"progress-status.$PHASE2_TESTS_SECOND_REMINDER" -> true
+        )), AppId).futureValue
+        phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
+      }
+    }
+  }
 }

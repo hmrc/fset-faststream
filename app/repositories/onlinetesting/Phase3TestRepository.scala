@@ -19,12 +19,12 @@ package repositories.onlinetesting
 import common.Phase3TestConcern
 import config.MicroserviceAppConfig.sendPhase3InvitationJobConfig
 import factories.DateTimeFactory
-import model.ApplicationStatus
+import model.{ ReminderNotice, ApplicationStatus }
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ NotFoundException, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
-import model.persisted.Phase3TestGroupWithAppId
+import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
 import org.joda.time.{ DateTime, DateTimeZone }
 import model.persisted.phase3tests.Phase3TestGroup
 import play.api.Logger
@@ -56,6 +56,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime): Future[Unit]
 
   def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
+
+  def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -141,7 +143,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     findAndUpdateLaunchpadTest(launchpadInviteId, update)
   }
 
-  def updateTestCompletionTime(launchpadInviteId: String, completedTime: DateTime) = {
+  override def updateTestCompletionTime(launchpadInviteId: String, completedTime: DateTime) = {
     import repositories.BSONDateTimeHandler
     val query = BSONDocument(s"testGroups.$phaseName.expirationDate" -> BSONDocument("$gt" -> DateTime.now(DateTimeZone.UTC)))
     val update = BSONDocument("$set" -> BSONDocument(
@@ -156,6 +158,16 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     findAndUpdateLaunchpadTest(launchpadInviteId, update, query, errorActionHandler)
   }
 
+  override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
+    val progressStatusQuery = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"progress-status.$PHASE3_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.$PHASE3_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
+    ))
+
+    nextTestForReminder(reminder, progressStatusQuery)
+  }
+
   private def findAndUpdateLaunchpadTest(launchpadInviteId: String, update: BSONDocument, query: BSONDocument = BSONDocument(),
                                       errorHandler: String => Unit = defaultUpdateErrorHandler): Future[Unit] = {
     val find = query ++ BSONDocument(
@@ -168,12 +180,10 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       case lastError if lastError.nModified == 0 && lastError.n == 0 => errorHandler(launchpadInviteId)
       case _ => ()
     }
-
   }
 
   private def defaultUpdateErrorHandler(launchpadInviteId: String) = {
     Logger.error(s"""Failed to update launchpad test: $launchpadInviteId""")
     throw CannotFindTestByLaunchpadId(s"Cannot find test group by launchpad Id: $launchpadInviteId")
   }
-
 }

@@ -25,7 +25,7 @@ import model.exchange.CubiksTestResultReady
 import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest }
 import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ any, eq => eqTo }
+import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -64,6 +64,7 @@ class OnlineTestServiceSpec extends PlaySpec with MockitoSugar {
       result.reportStatus mustBe Some(reportReady.reportStatus)
       cubiksTest eq result mustBe false
     }
+
     "create an updated copy of the cubiksTest when the report is not ready" in new OnlineTest {
 
       val cubiksTest = getCubiksTest(cubiksUserId)
@@ -81,16 +82,16 @@ class OnlineTestServiceSpec extends PlaySpec with MockitoSugar {
     "return an empty list for an empty list of test" in new OnlineTest {
       underTest.updateCubiksTestsById(cubiksUserId, List.empty, updateFn) mustBe List.empty
     }
+
     "update only the test with the given cubiksUserId" in new OnlineTest {
       val cubiksTests = List(getCubiksTest(cubiksUserId -1), getCubiksTest(cubiksUserId), getCubiksTest(cubiksUserId + 1))
       val result = underTest.updateCubiksTestsById(cubiksUserId, cubiksTests, updateFn)
 
       result.size mustBe 3
-      result.filter(t => t.cubiksUserId == cubiksUserId).size mustBe 1
+      result.count(t => t.cubiksUserId == cubiksUserId) mustBe 1
       result.filter(t => t.cubiksUserId == cubiksUserId).foreach(t => t.testUrl mustBe "www.bogustest.test")
-      result.filter(t => t.cubiksUserId != cubiksUserId).size mustBe 2
+      result.count(t => t.cubiksUserId != cubiksUserId) mustBe 2
       result.filter(t => t.cubiksUserId != cubiksUserId).foreach(t => t.testUrl mustBe authenticateUrl)
-
     }
   }
 
@@ -137,7 +138,6 @@ class OnlineTestServiceSpec extends PlaySpec with MockitoSugar {
       override val appRepository = appRepositoryMock
       override val eventService = eventServiceMock
 
-
       def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = Future.successful(List.empty)
       def registerAndInviteForTestGroup(application: OnlineTestApplication)
                                        (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = success
@@ -155,10 +155,5 @@ class OnlineTestServiceSpec extends PlaySpec with MockitoSugar {
       override def retrieveTestResult(testProfile: RichTestGroup)
         (implicit hc: HeaderCarrier): Future[Unit] = Future.successful(())
     }
-
   }
 }
-
-
-
-

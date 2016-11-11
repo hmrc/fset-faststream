@@ -396,21 +396,22 @@ class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       ))
     }
 
-      def mockService(mockSetup: => Unit): Phase3TestService = {
-        mockSetup
-        new Phase3TestService {
-          val appRepository = appRepositoryMock
-          val phase3TestRepo = p3TestRepositoryMock
-          val cdRepository = cdRepositoryMock
-          val launchpadGatewayClient = launchpadGatewayClientMock
-          val tokenFactory = tokenFactoryMock
-          val dateTimeFactory = dateTimeFactoryMock
-          val emailClient = emailClientMock
-          val auditService = auditServiceMock
-          val gatewayConfig = gatewayConfigMock
-          val eventService = eventServiceMock
-          val adjustmentsService = adjustmentsManagementServiceMock
-        }
+    def mockService(mockSetup: => Unit): Phase3TestService = {
+      mockSetup
+      new Phase3TestService {
+        val appRepository = appRepositoryMock
+        val phase3TestRepo = p3TestRepositoryMock
+        val cdRepository = cdRepositoryMock
+        val launchpadGatewayClient = launchpadGatewayClientMock
+        val tokenFactory = tokenFactoryMock
+        val dateTimeFactory = dateTimeFactoryMock
+        val emailClient = emailClientMock
+        val auditService = auditServiceMock
+        val gatewayConfig = gatewayConfigMock
+        val eventService = eventServiceMock
+        val adjustmentsService = adjustmentsManagementServiceMock
       }
+    }
   }
 }
+
