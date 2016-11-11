@@ -75,47 +75,10 @@ trait ApplicationService extends EventSink {
     }.map(_ => ())
   }
 
-  def confirmAdjustment(applicationId: String, adjustmentInformation: Adjustments)
-                       (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-
-    val standardEventList = DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
-      AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
-      Nil
-
-    def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String = {
-
-      def mkString(ad: Option[AdjustmentDetail]): Option[String] =
-        ad.map(e => List(e.timeNeeded.map( tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
-
-      mkString(adjustmentDetail) match {
-        case Some(txt) if !txt.isEmpty => s"$header $txt"
-        case _ => ""
-      }
-    }
-
-    appRepository.find(applicationId).flatMap {
-      case Some(candidate) =>
-        cdRepository.find(candidate.userId).flatMap { cd =>
-          eventSink {
-            appRepository.confirmAdjustments(applicationId, adjustmentInformation).map { _ =>
-              adjustmentInformation.adjustments match {
-                case Some(list) if list.nonEmpty => EmailEvents.AdjustmentsConfirmed(cd.email,
-                  candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),
-                  toEmailString("E-tray:", adjustmentInformation.etray),
-                  toEmailString("Video interview:", adjustmentInformation.video)) :: standardEventList
-                case _ => standardEventList
-              }
-            }
-          }
-        }
-      case None => throw ApplicationNotFound(applicationId)
-    }.map(_ => ())
-  }
-
   def fixDataByRemovingETray(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     appRepository.fixDataByRemovingETray(appId)
   }
-
+  
   def fix(toBeFixed: Seq[FixBatch])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     FutureEx.traverseSerial(toBeFixed)(fixData).map(_ => ())
   }

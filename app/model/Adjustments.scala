@@ -32,7 +32,7 @@ case class AdjustmentDetail(
 )
 
 case class AdjustmentsComment(
-  comment: Option[String]
+  comment: String
 )
 
 object Adjustments{

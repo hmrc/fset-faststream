@@ -16,6 +16,7 @@
 
 package model
 
+// scalastyle:off number.of.methods
 object Exceptions {
   sealed class ConnectorException(message: String) extends Exception(message)
 
@@ -78,4 +79,15 @@ object Exceptions {
   case class DataGenerationException(message: String) extends Exception(message)
 
   case class CannotFindTestByCubiksId(message: String) extends NotFoundException(message)
+
+  case class AdjustmentsCommentNotFound(applicationId: String) extends Exception(applicationId)
+
+  case class CannotUpdateAdjustmentsComment(applicationId: String) extends Exception(applicationId)
+
+  case class CannotRemoveAdjustmentsComment(applicationId: String) extends Exception(applicationId)
 }
+
+// scalastyle:on number.of.methods
+
+
+
