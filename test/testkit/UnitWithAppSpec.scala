@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-package controllers
+package testkit
 
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import controllers.UnitSpec
+import org.scalatestplus.play.OneAppPerSuite
+import play.api.test.FakeApplication
 
-abstract class BaseSpec extends PlaySpec with MockitoSugar with OneServerPerSuite
+abstract class UnitWithAppSpec extends UnitSpec with OneAppPerSuite {
+
+  // Suppress logging during tests
+  val additionalConfig = Map("logger.application" -> "ERROR")
+
+  override implicit lazy val app: FakeApplication = new FakeApplication(additionalConfiguration = additionalConfig)
+
+}

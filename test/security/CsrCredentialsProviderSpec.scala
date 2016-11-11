@@ -20,18 +20,16 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.util.Credentials
 import config.CSRHttp
+import connectors.UserManagementClient.{ InvalidRoleException, _ }
 import connectors.exchange.UserResponse
-import connectors.UserManagementClient._
-import connectors.UserManagementClient.InvalidRoleException
 import controllers.UnitSpec
-import models.{CachedUser, UniqueIdentifier}
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Seconds, Span}
+import models.{ CachedUser, UniqueIdentifier }
+import org.scalatest.time.{ Seconds, Span }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class CsrCredentialsProviderSpec extends UnitSpec with ScalaFutures{
+class CsrCredentialsProviderSpec extends UnitSpec {
 
   implicit override val patienceConfig =
     PatienceConfig(timeout = Span(2, Seconds), interval = Span(1, Seconds))

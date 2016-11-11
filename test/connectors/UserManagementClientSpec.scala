@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.CSRHttp
 import connectors.UserManagementClient.EmailTakenException
-import fixtures.UnitWithAppSpec
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 class UserManagementClientSpec extends UnitWithAppSpec with ConnectorSpec {

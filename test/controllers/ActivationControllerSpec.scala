@@ -25,6 +25,7 @@ import org.mockito.Mockito._
 import play.api.mvc.{ Request, Result, Results }
 import play.api.test.Helpers._
 import security.SignInService
+import testkit.BaseControllerSpec
 
 import scala.concurrent.Future
 

@@ -18,7 +18,7 @@ package config
 
 import java.util.Base64
 
-import fixtures.UnitWithAppSpec
+import testkit.UnitWithAppSpec
 import org.scalatest.TestData
 import play.api.test.Helpers._
 import play.api.test._

@@ -16,7 +16,7 @@
 
 package controllers
 
-import fixtures.UnitWithAppSpec
+import testkit.UnitWithAppSpec
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 

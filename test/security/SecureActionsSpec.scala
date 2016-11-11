@@ -23,8 +23,6 @@ import controllers.UnitSpec
 import models.{ CachedData, CachedUser, SecurityUser, UniqueIdentifier }
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.MustMatchers
-import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.{ JsString, Reads }
 import play.api.mvc.Request
 import play.api.test.FakeRequest
@@ -35,7 +33,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class SecureActionsSpec extends UnitSpec with MustMatchers with ScalaFutures {
+class SecureActionsSpec extends UnitSpec {
 
   "getCachedData" should {
     "return cachedData when parsing succeeds" in new TestFixture {

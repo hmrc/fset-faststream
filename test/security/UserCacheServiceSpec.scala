@@ -27,8 +27,6 @@ import models.ApplicationData.ApplicationStatus
 import models._
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.MustMatchers
-import org.scalatest.concurrent.ScalaFutures
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -36,7 +34,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class UserCacheServiceSpec extends UnitSpec with MustMatchers with ScalaFutures {
+class UserCacheServiceSpec extends UnitSpec {
 
   "refreshCachedUser" should {
     "return a user and application CachedData when both are found" in new TestFixture {

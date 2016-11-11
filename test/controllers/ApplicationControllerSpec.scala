@@ -18,6 +18,7 @@ package controllers
 
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
+import testkit.BaseControllerSpec
 
 class ApplicationControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]

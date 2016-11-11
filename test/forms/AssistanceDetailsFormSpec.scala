@@ -17,7 +17,7 @@
 package forms
 
 import controllers.UnitSpec
-import fixtures.UnitWithAppSpec
+import testkit.UnitWithAppSpec
 import forms.AssistanceDetailsForm.Data
 import play.api.data.Form
 
