@@ -121,12 +121,15 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
       List(
         AdjustmentReportItem("1", Some("11"), Some("John"), Some("Smith"), Some("Spiderman"), None, None, Some("Yes"),
           Some(ApplicationStatus.SUBMITTED), Some("Need help for online tests"), Some("Need help at the venue"),
-          Some("Yes"), Some("A wooden leg")),
+          Some("Yes"), Some("A wooden leg"),
+          Some(Adjustments(Some(List("etrayTimeExtension")),Some(true),Some(AdjustmentDetail(Some(55),None,None)),None)),None),
         AdjustmentReportItem("2", Some("22"), Some("Jones"), Some("Batman"), None, None, None, None,
-          Some(ApplicationStatus.PHASE1_TESTS), None, Some("Need help at the venue"), None, None),
+          Some(ApplicationStatus.PHASE1_TESTS), None, Some("Need help at the venue"), None, None,
+          Some(Adjustments(Some(List("etrayTimeExtension")),Some(true),Some(AdjustmentDetail(Some(55),None,None)),None)),None),
         AdjustmentReportItem("3", Some("33"), Some("Kathrine"), Some("Jones"), Some("Supergirl"), None, None, None,
           Some(ApplicationStatus.PHASE1_TESTS_PASSED), Some("Need help for online tests"), None,
-          Some("Yes"), Some("A glass eye"))
+          Some("Yes"), Some("A glass eye"),
+          Some(Adjustments(Some(List("etrayTimeExtension")),Some(true),Some(AdjustmentDetail(Some(55),None,None)),None)),None)
       )
     )
 

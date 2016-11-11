@@ -800,7 +800,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "assistance-details.needsSupportAtVenueDescription" -> "1",
       "assistance-details.needsSupportForOnlineAssessmentDescription" -> "1",
       "assistance-details.guaranteedInterview" -> "1",
-      "assistance-details.hasDisabilityDescription" -> "1"
+      "assistance-details.hasDisabilityDescription" -> "1",
+      "assistance-details.typeOfAdjustments" -> "1",
+      "assistance-details.etray" -> "1",
+      "assistance-details.video" -> "1",
+      "assistance-details.adjustmentsConfirmed" -> "1",
+      "assistance-details.adjustmentsComment" -> "1"
     )
 
     reportQueryWithProjections[BSONDocument](query, projection).map { list =>
@@ -820,6 +825,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         val needsSupportAtVenueDescription = extract("needsSupportAtVenueDescription")(assistance)
         val hasDisability = extract("hasDisability")(assistance)
         val hasDisabilityDescription = extract("hasDisabilityDescription")(assistance)
+        val adjustmentsConfirmed = assistance.flatMap(_.getAs[Boolean]("adjustmentsConfirmed"))
+        val adjustmentsComment = extract("adjustmentsComment")(assistance)
+        val etray = assistance.flatMap(_.getAs[AdjustmentDetail]("etray"))
+        val video = assistance.flatMap(_.getAs[AdjustmentDetail]("video"))
+        val typeOfAdjustments = assistance.flatMap(_.getAs[List[String]]("typeOfAdjustments"))
+
+        val adjustments = adjustmentsConfirmed.flatMap { ac =>
+          if (ac) Some(Adjustments(typeOfAdjustments, adjustmentsConfirmed, etray, video)) else None
+        }
 
         AdjustmentReportItem(
           userId,
@@ -834,7 +848,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           needsSupportForOnlineAssessmentDescription,
           needsSupportAtVenueDescription,
           hasDisability,
-          hasDisabilityDescription)
+          hasDisabilityDescription,
+          adjustments,
+          adjustmentsComment)
       }
     }
   }

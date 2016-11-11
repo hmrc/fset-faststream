@@ -16,6 +16,7 @@
 
 package model.report
 
+import model.Adjustments
 import play.api.libs.json.Json
 
 final case class AdjustmentReportItem(userId: String,
@@ -30,7 +31,9 @@ final case class AdjustmentReportItem(userId: String,
                                       needsSupportForOnlineAssessmentDescription: Option[String],
                                       needsSupportAtVenueDescription: Option[String],
                                       hasDisability: Option[String],
-                                      hasDisabilityDescription: Option[String])
+                                      hasDisabilityDescription: Option[String],
+                                      adjustments: Option[Adjustments],
+                                      adjustmentsComment: Option[String])
 
 object AdjustmentReportItem {
   implicit val adjustmentReportFormat = Json.format[AdjustmentReportItem]
