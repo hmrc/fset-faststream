@@ -35,7 +35,6 @@ trait UserManagementClient {
   import Implicits._
   import config.FrontendAppConfig.userManagementConfig._
 
-
   def register(email: String, password: String, firstName: String, lastName: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
     http.POST(s"${url.host}/add",
       AddUserRequest(email.toLowerCase, password, firstName, lastName, role, ServiceName)).map { (resp: HttpResponse) =>

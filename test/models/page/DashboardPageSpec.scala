@@ -19,19 +19,19 @@ package models.page
 import java.util.UUID
 
 import connectors.exchange._
+import controllers.UnitSpec
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus._
-import models.page.DashboardPage._
 import models._
 import models.page.DashboardPage.Flags._
+import models.page.DashboardPage._
 import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatestplus.play.PlaySpec
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import security.RolesSpec
 
-class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
+class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks {
   import DashboardPageSpec._
 
   implicit val request: RequestHeader = FakeRequest()
@@ -213,7 +213,7 @@ class DashboardPageSpec extends PlaySpec with TableDrivenPropertyChecks {
 object DashboardPageSpec {
 
   import connectors.exchange.AllocationDetails
-  import org.joda.time.{DateTime, LocalDate}
+  import org.joda.time.{ DateTime, LocalDate }
 
   def user(status: ApplicationStatus.Value) = {
     if (status == ApplicationStatus.REGISTERED) {

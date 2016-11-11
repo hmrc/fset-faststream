@@ -18,9 +18,9 @@ package config
 
 import java.time.format.{ DateTimeFormatter, DateTimeParseException }
 
-import org.scalatestplus.play.PlaySpec
+import controllers.UnitSpec
 
-class FaststreamFrontendConfigSpec extends PlaySpec {
+class FaststreamFrontendConfigSpec extends UnitSpec {
   val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
   "Faststream frontend configuration reader" should {

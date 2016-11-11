@@ -16,12 +16,13 @@
 
 package forms
 
-import controllers.BaseSpec
+import controllers.UnitSpec
 import forms.EducationQuestionnaireFormExamples._
+import org.scalatestplus.play.PlaySpec
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
-class EducationQuestionnaireFormSpec extends BaseSpec {
+class EducationQuestionnaireFormSpec extends UnitSpec {
 
   "the education form" should {
     "be valid when all values are correct" in new Fixture {

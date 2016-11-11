@@ -27,6 +27,7 @@ import play.api.mvc.{ Flash, Request, Result, Results }
 import play.api.test.Helpers._
 import security._
 import testables.{ NoIdentityTestableCSRUserAwareAction, TestableCSRUserAwareAction }
+import testkit.BaseControllerSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

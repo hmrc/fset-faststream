@@ -18,9 +18,8 @@ package controllers
 
 import connectors.exchange.GeneralDetails
 import forms.GeneralDetailsFormExamples._
-import org.scalatestplus.play.PlaySpec
 
-class GeneralDetailsToExchangeConverterSpec extends PlaySpec {
+class GeneralDetailsToExchangeConverterSpec extends UnitSpec {
   val converter = new GeneralDetailsToExchangeConverter {}
 
   "general deatils to exchange converter" should {

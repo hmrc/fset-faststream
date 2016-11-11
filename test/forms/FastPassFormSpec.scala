@@ -16,10 +16,11 @@
 
 package forms
 
+import controllers.UnitSpec
 import forms.FastPassForm.{ form => fastPassForm, _ }
 import org.scalatestplus.play.PlaySpec
 
-class FastPassFormSpec extends PlaySpec {
+class FastPassFormSpec extends UnitSpec {
 
   "FastPass form" should {
     "be valid when fast pass is not applicable" in {

@@ -16,12 +16,12 @@
 
 package forms
 
+import controllers.UnitSpec
 import forms.PartnerGraduateProgrammesForm.Data
 import forms.PartnerGraduateProgrammesFormExamples._
-import org.scalatestplus.play.PlaySpec
 import play.api.data.Form
 
-class PartnerGraduateProgrammesFormSpec extends PlaySpec {
+class PartnerGraduateProgrammesFormSpec extends UnitSpec {
 
   "the partner graduate programmes form" should {
     "be valid when the user selects no in the interested" in new Fixture {

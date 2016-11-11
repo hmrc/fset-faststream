@@ -16,9 +16,9 @@
 
 package forms
 
-import org.scalatestplus.play.PlaySpec
+import controllers.UnitSpec
 
-class ActivateAccountFormSpec extends PlaySpec {
+class ActivateAccountFormSpec extends UnitSpec {
 
   import ActivateAccountForm.{ form => activateAccountForm }
 

@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package models.page
+package testkit
 
 import controllers.UnitSpec
-import models.AdjustmentsExamples._
-import org.joda.time.DateTime
+import org.scalatestplus.play.OneAppPerSuite
+import play.api.test.FakeApplication
 
-class Phase2TestsPageSpec extends UnitSpec {
+abstract class UnitWithAppSpec extends UnitSpec with OneAppPerSuite {
 
-  "Phase2TestsPage isInvigilatedETrayApproved" should {
-    "return true when invigilated eTray has been approved" in {
-      val page = Phase2TestsPage(DateTime.now(), None, Some(InvigilatedETrayAdjustment))
-      page.isInvigilatedETrayApproved mustBe true
-    }
+  // Suppress logging during tests
+  val additionalConfig = Map("logger.application" -> "ERROR")
 
-    "return false when invigilated eTray has not been approved" in {
-      val page = Phase2TestsPage(DateTime.now(), None, Some(NoAdjustments))
-      page.isInvigilatedETrayApproved mustBe false
-    }
-  }
+  override implicit lazy val app: FakeApplication = new FakeApplication(additionalConfiguration = additionalConfig)
+
 }
