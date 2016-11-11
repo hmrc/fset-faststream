@@ -36,6 +36,7 @@ trait Phase2TestEvaluation {
       val phase1Result = Result(phase1SchemeEvaluation.result)
       val result = (phase2Result, phase1Result) match {
         case (Green, Green) => Green
+        case (Amber, Amber) => Amber
         case (Amber, Green) => Amber
         case (Green, Amber) => Amber
         case (Red, _) => Red

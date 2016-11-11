@@ -125,8 +125,14 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None, List(SchemeEvaluationResult(European, Green.toString)))
-        applicationEvaluation("application-2", 50, European) mustResultIn (
+        applicationEvaluation("application-3", 50, European) mustResultIn (
           PHASE2_TESTS, European -> Amber)
+      }
+      {
+        phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None, List(SchemeEvaluationResult(European, Amber.toString),
+          SchemeEvaluationResult(ProjectDelivery, Amber.toString)))
+        applicationEvaluation("application-2", 50, European, ProjectDelivery) mustResultIn (
+          PHASE2_TESTS, European -> Amber, ProjectDelivery -> Amber)
       }
     }
     "give pass results on re-evaluation when all schemes are green" in new TestFixture {
