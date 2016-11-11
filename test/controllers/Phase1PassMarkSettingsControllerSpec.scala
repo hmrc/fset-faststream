@@ -25,18 +25,16 @@ import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
-import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import services.passmarksettings.PassMarkSettingsService
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class Phase1PassMarkSettingsControllerSpec extends PlaySpec with Results with MockitoSugar {
+class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
   "Try and get latest settings" should {
     "Return a settings objects with schemes but no thresholds if there are no settings saved" in new TestFixture {
       val passMarkSettingsServiceMockWithNoSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]

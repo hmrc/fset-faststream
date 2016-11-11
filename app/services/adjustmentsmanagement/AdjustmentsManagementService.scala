@@ -81,10 +81,10 @@ trait AdjustmentsManagementService extends EventSink {
     appRepository.findAdjustments(applicationId)
   }
 
-  def saveAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment)
-                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment)
+                              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     eventSink {
-      appRepository.saveAdjustmentsComment(applicationId, adjustmentsComment).map { _ =>
+      appRepository.updateAdjustmentsComment(applicationId, adjustmentsComment).map { _ =>
         DataStoreEvents.AdjustmentsCommentUpdated(applicationId) ::
         AuditEvents.AdjustmentsCommentUpdated(Map("applicationId" -> applicationId, "adjustmentsComment" -> adjustmentsComment.toString)) ::
           Nil
@@ -92,7 +92,17 @@ trait AdjustmentsManagementService extends EventSink {
     }
   }
 
-  def findAdjustmentsComment(applicationId: String): Future[Option[AdjustmentsComment]] = {
+  def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = {
     appRepository.findAdjustmentsComment(applicationId)
+  }
+
+  def removeAdjustmentsComment(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    eventSink {
+      appRepository.removeAdjustmentsComment(applicationId).map { _ =>
+        DataStoreEvents.AdjustmentsCommentRemoved(applicationId) ::
+          AuditEvents.AdjustmentsCommentRemoved(Map("applicationId" -> applicationId)) ::
+          Nil
+      }
+    }
   }
 }

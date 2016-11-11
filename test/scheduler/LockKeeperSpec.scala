@@ -19,16 +19,14 @@ package scheduler
 import org.joda.time.Duration
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import repositories.LockRepository
+import testkit.UnitSpec
 
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
-class LockKeeperSpec extends PlaySpec with MockitoSugar with ScalaFutures {
+class LockKeeperSpec extends UnitSpec {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val lockRepository = mock[LockRepository]

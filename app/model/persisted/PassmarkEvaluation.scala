@@ -20,6 +20,7 @@ import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 case class PassmarkEvaluation(passmarkVersion: String,
+                              previousPhasePassMarkVersion: Option[String],
                               result: List[SchemeEvaluationResult])
 
 object PassmarkEvaluation {

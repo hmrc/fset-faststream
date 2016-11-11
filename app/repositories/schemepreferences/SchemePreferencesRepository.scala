@@ -16,10 +16,11 @@
 
 package repositories.schemepreferences
 
-import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.SelectedSchemes
+import play.api.Logger
 import reactivemongo.api.DB
-import reactivemongo.bson.{BSONDocument, BSONObjectID, _}
+import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -56,7 +57,7 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
     ))
     collection.update(query, preferencesBSON, upsert = false) map {
       case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        logger.error(
+        Logger.error(
           s"""Failed to write scheme preferences for application Id:
              | $applicationId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
         throw CannotUpdateSchemePreferences(applicationId)

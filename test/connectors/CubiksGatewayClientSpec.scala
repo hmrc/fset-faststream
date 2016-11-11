@@ -23,19 +23,16 @@ import mockws.MockWS
 import model.Exceptions.ConnectorException
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ Json, _ }
 import play.api.mvc.Action
 import play.api.mvc.Results._
 import play.api.test.Helpers._
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, _ }
 
 import scala.concurrent.Future
 
-class CubiksGatewayClientSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
+class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
 
   val FirstName = "firstName"
   val LastName = "lastName"

@@ -17,27 +17,25 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import model.persisted.Phase1TestProfile
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED }
 import model.command.{ Phase1ProgressResponse, ProgressResponse }
+import model.persisted.Phase1TestProfile
 import org.joda.time.DateTime
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
-import repositories.onlinetesting.Phase1TestRepository
 import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.events.EventServiceFixture
 import services.onlinetesting.Exceptions.TestExtensionException
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
-import testkit.MockitoSugar
+import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class OnlineTestExtensionServiceSpec extends PlaySpec with ScalaFutures with MockitoSugar {
+class OnlineTestExtensionServiceSpec extends UnitSpec {
 
   "extendTestGroupExpiryTime" should {
     "return a successful Future" when {

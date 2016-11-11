@@ -18,7 +18,6 @@ package model.exchange.testdata
 
 import play.api.libs.json.Json
 
-
 case class AssistanceDetailsRequest(hasDisability: Option[String] = None,
   hasDisabilityDescription: Option[String] = None,
   setGis: Option[Boolean] = None,
@@ -64,6 +63,16 @@ object Phase2TestDataRequest {
   implicit val phase2TestDataFormat = Json.format[Phase2TestDataRequest]
 }
 
+case class Phase3TestDataRequest(
+  start: Option[String] = None,
+  expiry: Option[String] = None,
+  completion: Option[String] = None
+) extends TestDatesRequest
+
+object Phase3TestDataRequest {
+  implicit val phase3TestDataFormat = Json.format[Phase3TestDataRequest]
+}
+
 case class PersonalDataRequest(
   emailPrefix: Option[String] = None,
   firstName: Option[String] = None,
@@ -89,7 +98,6 @@ object StatusDataRequest{
   implicit def statusDataFormat = Json.format[StatusDataRequest]
 }
 
-
 case class CreateCandidateInStatusRequest(
   statusData: StatusDataRequest = new StatusDataRequest,
   personalData: Option[PersonalDataRequest],
@@ -101,7 +109,8 @@ case class CreateCandidateInStatusRequest(
   loc1scheme2EvaluationResult: Option[String],
   confirmedAllocation: Option[Boolean],
   phase1TestData: Option[Phase1TestDataRequest],
-  phase2TestData: Option[Phase2TestDataRequest]
+  phase2TestData: Option[Phase2TestDataRequest],
+  phase3TestData: Option[Phase3TestDataRequest]
 )
 
 object CreateCandidateInStatusRequest {

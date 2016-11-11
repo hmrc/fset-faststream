@@ -46,6 +46,7 @@ object AuditEvents {
 
   case class AdjustmentsConfirmed(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class AdjustmentsCommentUpdated(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
+  case class AdjustmentsCommentRemoved(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
 
   case class VideoInterviewCandidateRegistered(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
   case class VideoInterviewInvited(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
@@ -55,6 +56,7 @@ object AuditEvents {
   case class VideoInterviewReset(seqDetails: (String, String)*) extends AuditEventNoRequest(seqDetails.toMap)
   case class VideoInterviewStarted(applicationId: String) extends AuditEventWithAppId(applicationId)
   case class VideoInterviewCompleted(applicationId: String) extends AuditEventWithAppId(applicationId)
+  case class VideoInterviewTestExpiryReminder(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
 
   case class FixedProdData(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class FailedFixedProdData(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)

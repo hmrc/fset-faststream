@@ -47,7 +47,7 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
       cubiksUserId = scala.util.Random.nextInt(Int.MaxValue),
       token = UUID.randomUUID().toString,
       testUrl = generatorConfig.cubiksUrl,
-      invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now()).withDurationAdded(86400000, -1),
+      invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now()).plusDays(-1),
       participantScheduleId = 243357,
       scheduleId = gatewayConfig.phase2Tests.schedules("daro").scheduleId,
       usedForResults = true

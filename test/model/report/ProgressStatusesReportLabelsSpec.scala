@@ -17,9 +17,9 @@
 package model.report
 
 import model.command.{ ProgressResponse, ProgressResponseExamples }
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 
-class ProgressStatusesReportLabelsSpec extends PlaySpec {
+class ProgressStatusesReportLabelsSpec extends UnitSpec {
 
   import ProgressStatusesReportLabelsSpec._
 

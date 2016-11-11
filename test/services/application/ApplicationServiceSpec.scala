@@ -20,9 +20,6 @@ import model.Commands.Candidate
 import model.events.AuditEvents
 import org.mockito.Matchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -31,13 +28,13 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.application.ApplicationService
 import services.events.EventServiceFixture
-import testkit.ExtendedTimeout
+import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 
-class ApplicationServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
+class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "fix" should {
     "process all issues we have examples of" in new ApplicationServiceTest {

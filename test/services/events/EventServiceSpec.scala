@@ -22,15 +22,15 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import services.events.handler.{ AuditEventHandler, DataStoreEventHandler, EmailEventHandler }
+import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
 
-class EventServiceSpec extends PlaySpec with MockitoSugar with EventServiceFixture {
+class EventServiceSpec extends UnitSpec with EventServiceFixture {
 
   "Event service" should {
     "consume lists of events properly" in {

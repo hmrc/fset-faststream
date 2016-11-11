@@ -14,37 +14,36 @@
  * limitations under the License.
  */
 
-package services.onlinetesting.phase1
+package services.onlinetesting
 
 import model.ApplicationStatus
 import model.ApplicationStatus._
 import model.EvaluationResults.{ Result, _ }
+import model.Phase.Phase
+import model.Phase._
 import model.persisted.SchemeEvaluationResult
 
 trait ApplicationStatusCalculator {
 
   def determineApplicationStatus(originalApplicationStatus: ApplicationStatus,
-                                 evaluatedSchemes: List[SchemeEvaluationResult]): Option[ApplicationStatus] = {
+                                 evaluatedSchemes: List[SchemeEvaluationResult],
+                                 phase: Phase): Option[ApplicationStatus] = {
     require(evaluatedSchemes.nonEmpty)
-    originalApplicationStatus match {
-      case ApplicationStatus.PHASE1_TESTS =>
-        val results = evaluatedSchemes.map(s => Result(s.result))
+    (phase, originalApplicationStatus) match {
+      case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(evaluatedSchemes, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
+      case (PHASE2, ApplicationStatus.PHASE2_TESTS) => processResults(evaluatedSchemes, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED)
+      case _ => None
+    }
+  }
 
-        if (results.forall(_ == Red)) {
-          Some(PHASE1_TESTS_FAILED)
-        } else if (results.contains(Green)) {
-          Some(PHASE1_TESTS_PASSED)
-        } else {
-          None
-        }
-      case _ =>
-        // Because failmark cannot be decreased,
-        // and passmark cannot be increased, we are sure that
-        // applications after PHASE1_TESTS (in eTray)
-        // will need to be only evaluated for removing ambers.
-        // Application status should not be changed by Phase1 evaluation
-        // after PHASE1_TESTS.
-        None
+  def processResults(evaluatedSchemes: List[SchemeEvaluationResult], pass: ApplicationStatus, fail: ApplicationStatus) = {
+    val results = evaluatedSchemes.map(s => Result(s.result))
+    if (results.forall(_ == Red)) {
+      Some(fail)
+    } else if (results.contains(Green)) {
+      Some(pass)
+    } else {
+      None
     }
   }
 }

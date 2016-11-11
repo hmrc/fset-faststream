@@ -88,6 +88,18 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
+  private lazy val firstPhase3ReminderExpiringTestJob: Option[ScheduledJob] =
+    if (firstPhase3ReminderJobConfigValues.enabled) Some(FirstPhase3ReminderExpiringTestJob) else {
+      Logger.warn("First Phase3 reminder for expiring test job is disabled")
+      None
+    }
+
+  private lazy val secondPhase3ReminderExpiringTestJob: Option[ScheduledJob] =
+    if (secondPhase3ReminderJobConfigValues.enabled) Some(SecondPhase3ReminderExpiringTestJob) else {
+      Logger.warn("Second Phase3 reminder for expiring test job is disabled")
+      None
+    }
+
   private lazy val expirePhase1TestJob: Option[ScheduledJob] =
     if (expirePhase1TestJobConfigValues.enabled) Some(ExpirePhase1TestJob) else {
       Logger.warn("Expire Phase1 test job is disabled")
@@ -130,6 +142,12 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
+  private lazy val evaluatePhase2ResultJob: Option[ScheduledJob] =
+    if (evaluatePhase2ResultJobConfigValues.enabled) Some(EvaluatePhase2ResultJob) else {
+      Logger.warn("evaluate phase2 result job is disabled")
+      None
+    }
+
   private lazy val confirmAttendanceReminderJob: Option[ScheduledJob] =
     if (confirmAttendanceReminderJobConfigValues.enabled) Some(ConfirmAttendanceReminderJob) else {
       Logger.warn("confirm attendance reminder job is disabled")
@@ -163,20 +181,25 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def secondPhase1ReminderJobConfigValues = secondPhase1ReminderJobConfig
   private[config] def firstPhase2ReminderJobConfigValues = firstPhase2ReminderJobConfig
   private[config] def secondPhase2ReminderJobConfigValues = secondPhase2ReminderJobConfig
+  private[config] def firstPhase3ReminderJobConfigValues = firstPhase3ReminderJobConfig
+  private[config] def secondPhase3ReminderJobConfigValues = secondPhase3ReminderJobConfig
   private[config] def failedPhase1TestJobConfigValues = failedPhase1TestJobConfig
   private[config] def failedPhase2TestJobConfigValues = failedPhase2TestJobConfig
   private[config] def retrievePhase1ResultsJobConfigValues = retrievePhase1ResultsJobConfig
   private[config] def retrievePhase2ResultsJobConfigValues = retrievePhase2ResultsJobConfig
   private[config] def evaluatePhase1ResultJobConfigValues = evaluatePhase1ResultJobConfig
+  private[config] def evaluatePhase2ResultJobConfigValues = evaluatePhase2ResultJobConfig
   private[config] def confirmAttendanceReminderJobConfigValues = confirmAttendanceReminderJobConfig
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
   private[config] def fixerJobConfigValues = fixerJobConfig
 
-  lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob, firstPhase1ReminderExpiringTestJob,
-    secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob, secondPhase2ReminderExpiringTestJob, expirePhase1TestJob,
-    expirePhase2TestJob, failedPhase1TestJob, failedPhase2TestJob, retrievePhase1ResultsJob, retrievePhase2ResultsJob, evaluatePhase1ResultJob,
-    fixerJob, confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
+  lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob,
+    firstPhase1ReminderExpiringTestJob, secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob,
+    secondPhase2ReminderExpiringTestJob, firstPhase3ReminderExpiringTestJob, secondPhase3ReminderExpiringTestJob,
+    expirePhase1TestJob, expirePhase2TestJob, failedPhase1TestJob, failedPhase2TestJob, retrievePhase1ResultsJob,
+    retrievePhase2ResultsJob, evaluatePhase1ResultJob, evaluatePhase2ResultJob, fixerJob, confirmAttendanceReminderJob,
+    evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with Scheduler {
@@ -190,3 +213,4 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with Scheduler {
 
   override val authFilter = None
 }
+

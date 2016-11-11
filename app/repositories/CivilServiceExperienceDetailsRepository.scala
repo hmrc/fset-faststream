@@ -18,6 +18,7 @@ package repositories
 
 import model.CivilServiceExperienceDetails
 import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -49,7 +50,7 @@ class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) ext
 
     collection.update(query, updateBSON, upsert = false) map {
       case result if result.nModified == 0 && result.n == 0 =>
-        logger.error(
+        Logger.error(
           s"""Failed to write fast pass details for application Id: $applicationId ->
               |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
         throw CannotUpdateCivilServiceExperienceDetails(applicationId)

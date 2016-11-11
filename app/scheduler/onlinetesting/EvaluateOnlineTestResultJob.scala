@@ -18,35 +18,45 @@ package scheduler.onlinetesting
 
 import common.FutureEx
 import config.ScheduledJobConfig
-import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.ApplicationPhase1ReadyForEvaluation
+import model.Phase
+import model.Phase.Phase
+import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings }
+import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.EvaluatePhase1ResultService
+import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase2ResultService }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
-object EvaluatePhase1ResultJob extends EvaluatePhase1ResultJob {
-  val evaluateService: EvaluatePhase1ResultService = EvaluatePhase1ResultService
+object EvaluatePhase1ResultJob extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] with EvaluatePhase1ResultJobConfig {
+  val evaluateService = EvaluatePhase1ResultService
+  val phase = Phase.PHASE1
 }
 
-trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePhase1ResultJobConfig {
-  val evaluateService: EvaluatePhase1ResultService
+object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] with EvaluatePhase2ResultJobConfig {
+  val evaluateService = EvaluatePhase2ResultService
+  val phase = Phase.PHASE2
+}
+
+trait EvaluateOnlineTestResultJob[T <: PassMarkSettings] extends SingleInstanceScheduledJob {
+  val evaluateService: EvaluateOnlineTestResultService[T]
+  val batchSize: Int
+  val phase: Phase
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     evaluateService.nextCandidatesReadyForEvaluation(batchSize) flatMap {
       case Some((apps, passmarkSettings)) =>
         evaluateInBatch(apps, passmarkSettings)
       case None =>
-        Logger.info("Passmark settings or an application to evaluate phase1 result not found")
+        Logger.info(s"Passmark settings or an application to evaluate $phase result not found")
         Future.successful(())
     }
   }
 
-  private def evaluateInBatch(apps: List[ApplicationPhase1ReadyForEvaluation],
-                              passmarkSettings: Phase1PassMarkSettings)(implicit ec: ExecutionContext): Future[Unit] = {
-    Logger.debug(s"Evaluate Phase1 Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
+  private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation],
+                              passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
+    Logger.debug(s"Evaluate $phase Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
       Try(evaluateService.evaluate(app, passmarkSettings)) match {
         case Success(fut) => fut
@@ -62,7 +72,7 @@ trait EvaluatePhase1ResultJob extends SingleInstanceScheduledJob with EvaluatePh
 
       if (errors.nonEmpty) {
         val errorMsg = apps.map {a =>
-          s"${a.applicationId}, cubiks Ids: ${a.phase1.tests.map(_.cubiksUserId).mkString(",")}"
+          s"${a.applicationId}, cubiks Ids: ${a.activeTests.map(_.cubiksUserId).mkString(",")}"
         }.mkString("\n")
 
         Logger.error(s"There were ${errors.size} errors in batch Phase 1 evaluation:\n$errorMsg")
@@ -83,3 +93,14 @@ trait EvaluatePhase1ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
   Logger.debug(s"Max number of applications in scheduler: $batchSize")
 }
+
+trait EvaluatePhase2ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  val conf = config.MicroserviceAppConfig.evaluatePhase2ResultJobConfig
+  val configPrefix = "scheduling.online-testing.evaluate-phase2-result-job."
+  val name = "EvaluatePhase2ResultJob"
+
+  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
+  Logger.debug(s"Max number of applications in scheduler: $batchSize")
+}
+
