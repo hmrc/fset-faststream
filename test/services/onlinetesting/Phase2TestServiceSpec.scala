@@ -19,10 +19,8 @@ package services.onlinetesting
 import akka.actor.ActorSystem
 import config.Phase2ScheduleExamples._
 import config._
-import connectors.ExchangeObjects.{ toString => _, _ }
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments, toString => _ }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments }
-import connectors.{ AuthProviderClient, CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
@@ -520,6 +518,15 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         eTrayAdjustments = None, videoInterviewAdjustments = None)
       val result = phase2TestService.calculateAbsoluteTimeWithAdjustments(onlineTestApplicationGisWithNoAdjustments)
       result mustBe 80
+    }
+  }
+
+  "email Invite to Applicants" should {
+    "not be sent for invigilated e-tray" in new Phase2TestServiceFixture {
+      override val candidates = List(OnlineTestApplicationExamples.InvigilatedETrayCandidate)
+      implicit val date: DateTime = invitationDate
+      phase2TestService.emailInviteToApplicants(candidates).futureValue
+      verifyZeroInteractions(emailClientMock)
     }
   }
 
