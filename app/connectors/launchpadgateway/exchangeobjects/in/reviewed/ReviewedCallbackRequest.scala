@@ -16,6 +16,7 @@
 
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest.LaunchpadQuestionIsUnscoredException
 import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json.Json
 import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
@@ -28,7 +29,27 @@ case class ReviewedCallbackRequest(
   customInterviewId: Option[String],
   customInviteId: String,
   deadline: LocalDate,
-  reviews: ReviewSectionRequest)
+  reviews: ReviewSectionRequest) {
+
+  def calculateTotalScore(): Double = {
+    val reviewers = reviews.reviewers
+    val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))
+
+    def throwUnscored(questionNo: Int): Double = throw LaunchpadQuestionIsUnscoredException(s"$questionNo is unscored, score cannot be calculated")
+
+    def scoreForQuestion(questionNo: Int, question: ReviewSectionQuestionRequest) =
+      question.reviewCriteria1.score.getOrElse(throwUnscored(questionNo)) + question.reviewCriteria2.score.getOrElse(throwUnscored(questionNo))
+
+    scoreForQuestion(1, latestReviewer.question1) +
+    scoreForQuestion(2, latestReviewer.question2) +
+    scoreForQuestion(3, latestReviewer.question3) +
+    scoreForQuestion(4, latestReviewer.question4) +
+    scoreForQuestion(5, latestReviewer.question5) +
+    scoreForQuestion(6, latestReviewer.question6) +
+    scoreForQuestion(7, latestReviewer.question7) +
+    scoreForQuestion(8, latestReviewer.question8)
+  }
+}
 
 object ReviewedCallbackRequest {
   val key = "reviewed"
@@ -36,4 +57,6 @@ object ReviewedCallbackRequest {
   import repositories.BSONDateTimeHandler
   import repositories.BSONLocalDateHandler
   implicit val bsonHandler: BSONHandler[BSONDocument, ReviewedCallbackRequest] = Macros.handler[ReviewedCallbackRequest]
+
+  case class LaunchpadQuestionIsUnscoredException(message: String) extends Exception(message)
 }

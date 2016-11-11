@@ -17,8 +17,9 @@
 package model.persisted.phase3tests
 
 import connectors.launchpadgateway.exchangeobjects.in._
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
 case class LaunchpadTestCallbacks(
                                  viewBrandedVideo: List[ViewBrandedVideoCallbackRequest] = Nil,
@@ -26,7 +27,8 @@ case class LaunchpadTestCallbacks(
                                  viewPracticeQuestion: List[ViewPracticeQuestionCallbackRequest] = Nil,
                                  question: List[ViewPracticeQuestionCallbackRequest] = Nil,
                                  finalCallback: List[FinalCallbackRequest] = Nil,
-                                 finished: List[FinishedCallbackRequest] = Nil
+                                 finished: List[FinishedCallbackRequest] = Nil,
+                                 reviewed: List[ReviewedCallbackRequest] = Nil
                      )
 
 object LaunchpadTestCallbacks {
