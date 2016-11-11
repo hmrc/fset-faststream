@@ -27,7 +27,6 @@ case class ReviewedCallbackRequest(
   interviewId: Int,
   customInterviewId: Option[String],
   customInviteId: String,
-  status: String,
   deadline: LocalDate,
   reviews: ReviewSectionRequest)
 
