@@ -27,18 +27,17 @@ import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
+import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class OnlineTestServiceSpec extends PlaySpec with MockitoSugar {
+class OnlineTestServiceSpec extends UnitSpec {
 
   "commitProgressStatus" should {
     "call the corresponding repo method" in new OnlineTest {

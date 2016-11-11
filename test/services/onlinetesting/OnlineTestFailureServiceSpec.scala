@@ -26,13 +26,13 @@ import org.scalatest.time.{ Millis, Span }
 import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
-import services.{ BaseServiceSpec, AuditService }
+import services.{ AuditService, BaseServiceSpec }
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
-import testkit.{MockitoSugar => TestKitMockitoSugar }
 import model.ApplicationStatus._
+import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-class OnlineTestFailureServiceSpec extends BaseServiceSpec with TestKitMockitoSugar {
+class OnlineTestFailureServiceSpec extends BaseServiceSpec {
 
   /* TODO FAST STREAM FIX ME
   "when processing the next failed test" should {

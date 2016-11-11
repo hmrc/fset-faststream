@@ -23,7 +23,6 @@
 //import org.mockito.Mockito._
 //import org.scalatest.concurrent.ScalaFutures
 //import org.scalatest.time.{ Millis, Span }
-//import org.scalatestplus.play.PlaySpec
 //import repositories.ContactDetailsRepository
 //import repositories.onlinetesting.OnlineTestRepository
 //import services.AuditService
@@ -31,7 +30,7 @@
 //import testkit.MockitoSugar
 //import uk.gov.hmrc.play.http.HeaderCarrier
 
-//class OnlineTestExpiryServiceSpec extends PlaySpec with ScalaFutures with MockitoSugar {
+//class OnlineTestExpiryServiceSpec extends UnitSpec {
 
   //"when processing the next expiring test" should {
   //  "do nothing when there are no expiring tests" in new ProcessNextExpiredFixture {

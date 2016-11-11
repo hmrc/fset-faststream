@@ -19,25 +19,21 @@ package services.onlinetesting
 import akka.actor.ActorSystem
 import config.Phase2ScheduleExamples._
 import config._
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments }
+import connectors.ExchangeObjects.{ toString => _, _ }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
+import model._
 import model.command.{ Phase2ProgressResponse, ProgressResponse }
 import model.events.AuditEvents.Phase2TestInvitationProcessComplete
 import model.events.DataStoreEvents
 import model.events.DataStoreEvents.OnlineExerciseResultSent
-import model.events.EventTypes.Events
 import model.exchange.CubiksTestResultReady
 import model.persisted.{ ContactDetails, Phase2TestGroup, Phase2TestGroupWithAppId, _ }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -46,14 +42,14 @@ import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
 import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.phase2.ScheduleSelector
-import testkit.ExtendedTimeout
+import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
-class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
+class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "Register applicants" should {
     "correctly register a batch of candidates" in new Phase2TestServiceFixture {

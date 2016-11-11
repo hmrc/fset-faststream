@@ -14,7 +14,9 @@ import reactivemongo.json.ImplicitBSONHandlers
 import scala.concurrent.Future
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 
-trait ApplicationDataFixture extends MongoRepositorySpec {
+trait ApplicationDataFixture {
+  this: MongoRepositorySpec =>
+
   def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
 
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)

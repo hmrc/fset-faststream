@@ -24,18 +24,16 @@ import model.PersistedObjects.PersonalDetails
 import org.joda.time.LocalDate
 import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
-import play.api.mvc.Results
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
 import repositories.{ ApplicationAssessmentRepository, ApplicationAssessmentScoresRepository }
-import testkit.MockitoSugar
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
-class CandidateScoresControllerSpec extends PlaySpec with Results with MockitoSugar {
+class CandidateScoresControllerSpec extends UnitWithAppSpec {
 
   val CandidateScoresWithFeedback = CandidateScoresAndFeedback("app1", Some(true), assessmentIncomplete = false,
     CandidateScores(Some(4.0), Some(3.0), Some(2.0)), CandidateScores(Some(4.0), Some(3.0), Some(2.0)),

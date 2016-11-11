@@ -69,7 +69,7 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
   val DebugTestNameAppId: Option[String] = None
 
   "Assessment Centre Passmark Service" should {
-    "for each test in the path evaluate scores" in new WithApplication {
+    "for each test in the path evaluate scores" ignore new WithApplication {
       suites.foreach(executeSuite _)
     }
   }

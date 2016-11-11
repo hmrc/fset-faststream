@@ -16,12 +16,9 @@
 
 package connectors
 
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitSpec }
 
-class AuthProviderClientSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
+class AuthProviderClientSpec extends UnitSpec with ShortTimeout {
 
   "AuthProviderClient getRole" should {
     "return valid roles when passed valid strings" in {

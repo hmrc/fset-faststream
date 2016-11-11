@@ -18,9 +18,9 @@ package services.onlinetesting.phase2
 
 import config.Phase2ScheduleExamples._
 import config.{ Phase2Schedule, Phase2TestsConfig }
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 
-class ScheduleSelectorSpec extends PlaySpec {
+class ScheduleSelectorSpec extends UnitSpec {
 
   "get random schedule" should {
     "throw an exception when no schedules are configured" in {

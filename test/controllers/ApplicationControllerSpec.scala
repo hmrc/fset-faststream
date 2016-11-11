@@ -22,8 +22,6 @@ import model.ApplicationRoute
 import model.command.WithdrawApplication
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
@@ -31,12 +29,13 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.application.ApplicationService
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class ApplicationControllerSpec extends PlaySpec with MockitoSugar with Results {
+class ApplicationControllerSpec extends UnitWithAppSpec {
 
   val ApplicationId = "1111-1111"
   val aWithdrawApplicationRequest = WithdrawApplication("Something", Some("Else"), "Candidate")

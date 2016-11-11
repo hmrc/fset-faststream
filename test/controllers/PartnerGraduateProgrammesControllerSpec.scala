@@ -24,12 +24,13 @@ import org.mockito.Mockito._
 import play.api.mvc._
 import play.api.test.Helpers._
 import services.partnergraduateprogrammes.PartnerGraduateProgrammesService
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
+class PartnerGraduateProgrammesControllerSpec extends UnitWithAppSpec {
 
   "Update" should {
     "return CREATED and update the partnet graduate programmes and audit PartnerGraduateProgrammesSaved event" in new TestFixture {

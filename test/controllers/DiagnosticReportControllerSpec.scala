@@ -19,17 +19,15 @@ package controllers
 import config.TestFixtureBase
 import model.Exceptions.ApplicationNotFound
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsArray, JsValue, Json }
-import play.api.mvc.Results
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.DiagnosticReportingRepository
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
-class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoSugar {
+class DiagnosticReportControllerSpec extends UnitWithAppSpec {
 
   val mockdiagnosticReportRepository = mock[DiagnosticReportingRepository]
 

@@ -19,13 +19,10 @@ package scheduler.onlinetesting
 import model.Phase1FirstReminder
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import play.api.test.WithApplication
 import services.onlinetesting.OnlineTestService
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitWithAppSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
@@ -35,7 +32,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 Test only one type of reminder as the difference is only in the kind of reminder notice they
 pass to the service.
  */
-class ReminderExpiringTestJobSpec  extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
+class ReminderExpiringTestJobSpec  extends UnitWithAppSpec with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val serviceMock = mock[OnlineTestService]
@@ -52,13 +49,13 @@ class ReminderExpiringTestJobSpec  extends PlaySpec with MockitoSugar with Scala
   }
 
   "send first reminder job" should {
-    "complete successfully when service completes successfully" in new WithApplication {
+    "complete successfully when service completes successfully" in {
       when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
       TestableFirstReminderExpiringTestJob.tryExecute().futureValue mustBe (())
     }
 
-    "fail when the service fails" in new WithApplication {
+    "fail when the service fails" in {
       when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(new Exception))
       TestableFirstReminderExpiringTestJob.tryExecute().failed.futureValue mustBe an[Exception]

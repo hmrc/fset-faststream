@@ -25,11 +25,12 @@ import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
 import services.events.EventService
 import services.onlinetesting.{ Phase1TestService, Phase2TestService }
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class CubiksTestControllerSpec extends BaseControllerSpec {
+class CubiksTestControllerSpec extends UnitWithAppSpec {
 
   val mockPhase1TestService = mock[Phase1TestService]
   val mockPhase2TestService = mock[Phase2TestService]
