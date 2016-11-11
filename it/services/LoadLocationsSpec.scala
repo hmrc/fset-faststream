@@ -16,9 +16,9 @@
 
 package services
 
-import fixture.UnitWithAppSpec
 import repositories.FrameworkRepository.Region
 import repositories._
+import testkit.UnitWithAppSpec
 
 import language.postfixOps
 import scala.concurrent.Await
@@ -31,7 +31,7 @@ class LoadLocationsSpec extends UnitWithAppSpec {
   "load locations " should {
     "load regions" in {
 
-      val yamlRepository = frameworkRepository
+      val yamlRepository = new FrameworkYamlRepository()
 
       val s: List[Region] = Await.result(yamlRepository.getFrameworksByRegion, timeout)
 

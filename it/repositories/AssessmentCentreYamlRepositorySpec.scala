@@ -16,10 +16,10 @@
 
 package repositories
 
-import fixture.UnitWithAppSpec
 import model.Exceptions.{ NoSuchVenueDateException, NoSuchVenueException }
 import org.joda.time.LocalDate
 import play.Logger
+import testkit.UnitWithAppSpec
 
 class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
   val DateFormat = "d/M/yy"

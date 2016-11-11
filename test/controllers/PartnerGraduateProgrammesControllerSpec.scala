@@ -17,7 +17,6 @@
 package controllers
 
 import config.TestFixtureBase
-import fixture.UnitWithAppSpec
 import model.Exceptions.CannotUpdatePartnerGraduateProgrammes
 import model.command.PartnerGraduateProgrammesExchangeExamples
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -25,6 +24,7 @@ import org.mockito.Mockito._
 import play.api.mvc._
 import play.api.test.Helpers._
 import services.partnergraduateprogrammes.PartnerGraduateProgrammesService
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

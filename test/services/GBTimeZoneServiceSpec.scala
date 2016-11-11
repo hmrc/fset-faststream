@@ -16,8 +16,8 @@
 
 package services
 
-import fixture.UnitSpec
 import org.joda.time.LocalDateTime
+import testkit.UnitSpec
 
 class GBTimeZoneServiceSpec extends UnitSpec {
   val service = GBTimeZoneService

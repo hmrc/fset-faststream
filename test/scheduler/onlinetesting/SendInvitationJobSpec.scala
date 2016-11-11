@@ -16,10 +16,9 @@
 
 package scheduler.onlinetesting
 
-import fixture.UnitWithAppSpec
 import org.mockito.Mockito._
 import services.onlinetesting.OnlineTestService
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitWithAppSpec }
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }

@@ -19,7 +19,6 @@ package connectors
 import config.WSHttp
 import connectors.ExchangeObjects.Implicits._
 import connectors.ExchangeObjects._
-import fixture.UnitSpec
 import mockws.MockWS
 import model.Exceptions.ConnectorException
 import org.mockito.Matchers._
@@ -28,7 +27,7 @@ import play.api.libs.json.{ Json, _ }
 import play.api.mvc.Action
 import play.api.mvc.Results._
 import play.api.test.Helpers._
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, _ }
 
 import scala.concurrent.Future

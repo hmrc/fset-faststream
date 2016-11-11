@@ -16,10 +16,10 @@
 
 package model
 
-import fixture.UnitSpec
 import model.ApplicationStatus._
 import play.api.libs.json.{ JsSuccess, Json }
 import reactivemongo.bson.BSONString
+import testkit.UnitSpec
 
 class ApplicationStatusSpec extends UnitSpec {
 

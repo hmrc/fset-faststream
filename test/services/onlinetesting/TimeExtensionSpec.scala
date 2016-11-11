@@ -17,8 +17,8 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import fixture.UnitSpec
 import org.mockito.Mockito._
+import testkit.UnitSpec
 
 class TimeExtensionSpec extends UnitSpec {
 

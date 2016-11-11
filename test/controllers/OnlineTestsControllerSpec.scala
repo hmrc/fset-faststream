@@ -16,7 +16,6 @@
 
 package controllers
 
-import fixture.UnitWithAppSpec
 import model.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.ResetOnlineTest
@@ -27,6 +26,7 @@ import play.api.test.Helpers._
 import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.{ Phase1TestService, Phase2TestService, Phase3TestService }
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

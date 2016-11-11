@@ -17,7 +17,6 @@
 package services.allocation
 
 import connectors.CSREmailClient
-import fixture.UnitSpec
 import model.Address
 import model.Commands.ApplicationAssessment
 import model.PersistedObjects.{ AllocatedCandidate, ContactDetails, PersonalDetailsWithUserId }
@@ -28,6 +27,7 @@ import org.scalatest.time.{ Seconds, Span }
 import repositories.application.CandidateAllocationRepository
 import repositories.{ ApplicationAssessmentRepository, ContactDetailsRepository }
 import services.AuditService
+import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

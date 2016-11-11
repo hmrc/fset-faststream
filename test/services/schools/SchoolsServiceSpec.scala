@@ -16,10 +16,9 @@
 
 package services.schools
 
-import fixture.UnitWithAppSpec
 import model.School
 import repositories.{ SchoolsCSVRepository, SchoolsRepository }
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitWithAppSpec }
 
 import scala.concurrent.Future
 

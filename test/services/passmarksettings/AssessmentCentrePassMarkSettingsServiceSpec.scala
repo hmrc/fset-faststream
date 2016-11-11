@@ -16,12 +16,12 @@
 
 package services.passmarksettings
 
-import fixture.UnitSpec
 import model.Commands.AssessmentCentrePassMarkSettingsResponse
 import model.PassmarkPersistedObjects._
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import repositories.{ AssessmentCentrePassMarkSettingsMongoRepository, FrameworkRepository }
+import testkit.UnitSpec
 
 import scala.concurrent.Future
 

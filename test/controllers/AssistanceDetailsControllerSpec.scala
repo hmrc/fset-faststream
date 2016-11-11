@@ -17,7 +17,6 @@
 package controllers
 
 import config.TestFixtureBase
-import fixture.UnitWithAppSpec
 import model.Exceptions.CannotUpdateAssistanceDetails
 import model.command.AssistanceDetailsExchangeExamples
 import model.exchange.AssistanceDetailsExchange
@@ -26,6 +25,7 @@ import org.mockito.Mockito._
 import play.api.mvc._
 import play.api.test.Helpers._
 import services.assistancedetails.AssistanceDetailsService
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

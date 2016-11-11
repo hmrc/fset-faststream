@@ -19,7 +19,6 @@ package testkit
 import org.joda.time.DateTime
 import org.joda.time.Seconds._
 import org.scalatest._
-import fixture.UnitWithAppSpec
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
 import play.api.test.{ FakeApplication, Helpers }
@@ -36,14 +35,10 @@ import scala.language.postfixOps
 
 abstract class MongoRepositorySpec extends UnitWithAppSpec with Inside with Inspectors with IndexesReader {
   import ImplicitBSONHandlers._
-  import MongoRepositorySpec._
 
-  val unit = ()
   val timeout = 10 seconds
   val collectionName: String
 
-  val AppId = "AppId"
-  val UserId = "UserId"
   val FrameworkId = "FrameworkId"
 
   val timesApproximatelyEqual = (time1: DateTime, time2: DateTime) => secondsBetween(time1, time2)
@@ -51,13 +46,17 @@ abstract class MongoRepositorySpec extends UnitWithAppSpec with Inside with Insp
 
   override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(timeout.toMillis, Millis)))
 
-  implicit final def app: FakeApplication = fakeApplication
-
   implicit val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
 
   implicit def mongo: () => DefaultDB = {
     ReactiveMongoPlugin.mongoConnector.db
   }
+
+  override implicit lazy val app: FakeApplication = new FakeApplication(
+    additionalConfiguration = additionalConfig, withoutPlugins = Seq(
+      "uk.gov.hmrc.play.health.HealthPlugin",
+      "com.kenshoo.play.metrics.MetricsPlugin")
+  )
 
   override def withFixture(test: NoArgTest) = {
     Helpers.running(app) {
@@ -77,8 +76,4 @@ trait IndexesReader {
     val indexes = indexesManager.list().futureValue
     indexes.map(_.key.map(_._1))
   }
-}
-
-object MongoRepositorySpec {
-  val fakeApplication = FakeApplication()
 }

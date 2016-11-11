@@ -16,9 +16,9 @@
 
 package model
 
-import fixture.UnitSpec
 import model.Commands.ApplicationAssessment
 import org.joda.time.{ DateTimeZone, LocalDate, LocalTime }
+import testkit.UnitSpec
 
 class ApplicationAssessmentSpec extends UnitSpec {
 

@@ -19,7 +19,6 @@ package services.onlinetesting
 import common.Phase1TestConcern
 import connectors.OnlineTestEmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
-import fixture.UnitSpec
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.PHASE1_TESTS_EXPIRED
 import model.exchange.CubiksTestResultReady
@@ -33,6 +32,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
+import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

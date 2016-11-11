@@ -16,11 +16,10 @@
 
 package scheduler.assessment
 
-import fixture.UnitWithAppSpec
 import model.OnlineTestCommands.OnlineTestApplicationWithCubiksUser
 import org.mockito.Mockito._
 import services.applicationassessment.ApplicationAssessmentService
-import testkit.ExtendedTimeout
+import testkit.{ ExtendedTimeout, UnitWithAppSpec }
 
 import scala.concurrent.{ ExecutionContext, Future }
 

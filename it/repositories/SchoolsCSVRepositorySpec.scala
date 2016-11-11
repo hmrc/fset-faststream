@@ -1,7 +1,6 @@
 package repositories
 
-import fixture.UnitWithAppSpec
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitWithAppSpec }
 
 class SchoolsCSVRepositorySpec extends UnitWithAppSpec with ShortTimeout {
 

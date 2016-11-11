@@ -17,7 +17,6 @@
 package controllers
 
 import config.TestFixtureBase
-import fixture.UnitWithAppSpec
 import mocks.QuestionnaireInMemoryRepository
 import mocks.application.DocumentRootInMemoryRepository
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -29,6 +28,7 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.QuestionnaireRepository
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.language.postfixOps

@@ -17,13 +17,13 @@
 package controllers
 
 import config.TestFixtureBase
-import fixture.UnitWithAppSpec
 import model.Exceptions.ApplicationNotFound
 import org.mockito.Mockito._
 import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.DiagnosticReportingRepository
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 

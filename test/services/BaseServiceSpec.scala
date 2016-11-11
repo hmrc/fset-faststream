@@ -16,9 +16,8 @@
 
 package services
 
-import fixture.UnitSpec
 import org.joda.time.{ DateTime, DateTimeZone }
-import testkit.FutureHelper
+import testkit.{ FutureHelper, UnitSpec }
 
 /**
   * Common base class for all service tests

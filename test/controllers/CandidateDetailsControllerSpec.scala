@@ -16,7 +16,6 @@
 
 package controllers
 
-import fixture.UnitWithAppSpec
 import model.Exceptions._
 import model.command.UpdateGeneralDetailsExamples._
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -25,6 +24,7 @@ import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
 import services.AuditService
 import services.generaldetails.CandidateDetailsService
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

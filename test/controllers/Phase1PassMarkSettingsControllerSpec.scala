@@ -18,7 +18,6 @@ package controllers
 
 import config.TestFixtureBase
 import factories.UUIDFactory
-import fixture.UnitWithAppSpec
 import model.Commands.PassMarkSettingsCreateResponse
 import model.SchemeType._
 import model.exchange.passmarksettings._
@@ -30,6 +29,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import services.passmarksettings.PassMarkSettingsService
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 import scala.language.postfixOps

@@ -18,7 +18,7 @@ package services.onlinetesting.phase2
 
 import config.Phase2ScheduleExamples._
 import config.{ Phase2Schedule, Phase2TestsConfig }
-import fixture.UnitSpec
+import testkit.UnitSpec
 
 class ScheduleSelectorSpec extends UnitSpec {
 

@@ -19,13 +19,13 @@ package controllers
 import java.util.UUID
 
 import connectors.launchpadgateway.exchangeobjects.in._
-import fixture.UnitWithAppSpec
 import org.joda.time.{ DateTime, LocalDate }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import services.events.EventService
 import services.onlinetesting.{ Phase3TestCallbackService, Phase3TestService }
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 

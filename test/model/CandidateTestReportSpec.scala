@@ -16,10 +16,10 @@
 
 package model
 
-import fixture.UnitSpec
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.CandidateTestReport
 import org.scalatest.prop.TableDrivenPropertyChecks
+import testkit.UnitSpec
 
 class CandidateTestReportSpec extends UnitSpec with TableDrivenPropertyChecks {
   import CandidateTestReportSpec._

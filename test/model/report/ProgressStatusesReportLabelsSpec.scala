@@ -16,8 +16,8 @@
 
 package model.report
 
-import fixture.UnitSpec
 import model.command.{ ProgressResponse, ProgressResponseExamples }
+import testkit.UnitSpec
 
 class ProgressStatusesReportLabelsSpec extends UnitSpec {
 

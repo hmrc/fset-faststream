@@ -16,14 +16,13 @@
 
 package scheduler.onlinetesting
 
-import fixture.UnitWithAppSpec
 import model.Phase1ExpirationEvent
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import services.BaseServiceSpec
 import services.onlinetesting.OnlineTestService
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitWithAppSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }

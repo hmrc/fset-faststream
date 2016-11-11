@@ -17,7 +17,7 @@
 package config
 
 import config.Phase2ScheduleExamples._
-import fixture.UnitSpec
+import testkit.UnitSpec
 
 class Phase2TestsConfigSpec extends UnitSpec {
 

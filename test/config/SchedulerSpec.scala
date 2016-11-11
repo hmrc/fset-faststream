@@ -16,9 +16,8 @@
 
 package config
 
-import fixture.UnitWithAppSpec
 import scheduler.onlinetesting.SendPhase1InvitationJob
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitWithAppSpec }
 
 class SchedulerSpec extends UnitWithAppSpec with ShortTimeout {
 

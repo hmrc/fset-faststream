@@ -17,7 +17,6 @@
 package services.onlinetesting
 
 import connectors.CSREmailClient
-import fixture.UnitSpec
 import model.Address
 import model.PersistedObjects.ContactDetails
 import model.persisted.ApplicationForNotification
@@ -27,9 +26,10 @@ import org.scalatest.time.{ Millis, Span }
 import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
-import services.{ BaseServiceSpec, AuditService }
+import services.{ AuditService, BaseServiceSpec }
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
 import model.ApplicationStatus._
+import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 class OnlineTestFailureServiceSpec extends BaseServiceSpec {

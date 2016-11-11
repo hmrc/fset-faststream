@@ -18,7 +18,6 @@ package controllers
 
 import config.TestFixtureBase
 import connectors.AuthProviderClient
-import fixture.UnitWithAppSpec
 import model.persisted.MediaExamples
 import model.report.{ DiversityReportItem, DiversityReportItemExamples, QuestionnaireReportItemExamples }
 import org.mockito.Matchers._
@@ -29,6 +28,7 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
 import testkit.MockitoImplicits.OngoingStubbingExtension
+import testkit.UnitWithAppSpec
 
 import scala.language.postfixOps
 

@@ -16,7 +16,6 @@
 
 package controllers
 
-import fixture.UnitWithAppSpec
 import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
 import org.joda.time.DateTime
@@ -26,6 +25,7 @@ import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
 import services.events.EventService
 import services.onlinetesting.{ Phase1TestService, Phase2TestService }
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

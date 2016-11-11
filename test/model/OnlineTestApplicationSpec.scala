@@ -16,8 +16,8 @@
 
 package model
 
-import fixture.UnitSpec
 import model.OnlineTestApplicationExamples._
+import testkit.UnitSpec
 
 class OnlineTestApplicationSpec extends UnitSpec {
 

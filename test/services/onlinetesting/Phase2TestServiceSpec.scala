@@ -22,7 +22,6 @@ import config._
 import connectors.ExchangeObjects.{ toString => _, _ }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import fixture.UnitSpec
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
 import model._
@@ -43,7 +42,7 @@ import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
 import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.phase2.ScheduleSelector
-import testkit.ExtendedTimeout
+import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._

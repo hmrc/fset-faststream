@@ -16,7 +16,6 @@
 
 package controllers
 
-import fixture.UnitWithAppSpec
 import model.Exceptions.NotFoundException
 import model.FlagCandidateCommands
 import model.FlagCandidatePersistedObject._
@@ -26,6 +25,7 @@ import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.FlagCandidateRepository
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 

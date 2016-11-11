@@ -21,7 +21,6 @@ import connectors.CSREmailClient
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
-import fixture.UnitSpec
 import model.OnlineTestCommands.OnlineTestApplication
 import model._
 import model.command.{ Phase3ProgressResponse, ProgressResponse }
@@ -38,7 +37,7 @@ import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
 import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.events.EventServiceFixture
-import testkit.ExtendedTimeout
+import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

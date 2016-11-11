@@ -16,7 +16,6 @@
 
 package controllers
 
-import fixture.UnitWithAppSpec
 import model.PassmarkPersistedObjects.Implicits._
 import model.PassmarkPersistedObjects._
 import org.joda.time.DateTime
@@ -26,6 +25,7 @@ import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories._
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 

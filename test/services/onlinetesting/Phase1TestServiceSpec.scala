@@ -21,7 +21,6 @@ import config._
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import fixture.UnitWithAppSpec
 import model.Commands.PostCode
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
@@ -41,7 +40,7 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
-import testkit.ExtendedTimeout
+import testkit.{ ExtendedTimeout, UnitWithAppSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.TimeUnit

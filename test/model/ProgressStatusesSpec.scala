@@ -16,8 +16,8 @@
 
 package model
 
-import fixture.UnitSpec
 import services.testdata.ApplicationStatusOnlyForTest
+import testkit.UnitSpec
 
 class ProgressStatusesSpec extends UnitSpec {
 

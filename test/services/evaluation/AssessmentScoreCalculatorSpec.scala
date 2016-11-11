@@ -16,9 +16,9 @@
 
 package services.evaluation
 
-import fixture.UnitSpec
 import model.CandidateScoresCommands.{ CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults.CompetencyAverageResult
+import testkit.UnitSpec
 
 class AssessmentScoreCalculatorSpec extends UnitSpec {
 

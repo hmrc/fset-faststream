@@ -16,7 +16,7 @@
 
 package services.reporting
 
-import fixture.UnitSpec
+import testkit.UnitSpec
 
 class SocioEconomicCalculatorSpec extends UnitSpec {
 

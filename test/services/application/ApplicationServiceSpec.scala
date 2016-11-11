@@ -16,7 +16,6 @@
 
 package services
 
-import fixture.UnitSpec
 import model.Commands.Candidate
 import model.events.AuditEvents
 import org.mockito.Matchers.{ any, eq => eqTo }
@@ -29,7 +28,7 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.application.ApplicationService
 import services.events.EventServiceFixture
-import testkit.ExtendedTimeout
+import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

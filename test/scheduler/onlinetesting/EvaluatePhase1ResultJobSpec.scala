@@ -16,7 +16,6 @@
 
 package scheduler.onlinetesting
 
-import fixture.UnitWithAppSpec
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted.ApplicationPhase1ReadyForEvaluation
 import model.{ ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples }
@@ -24,6 +23,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import services.onlinetesting.EvaluatePhase1ResultService
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

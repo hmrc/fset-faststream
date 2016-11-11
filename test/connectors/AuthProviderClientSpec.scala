@@ -16,8 +16,7 @@
 
 package connectors
 
-import fixture.UnitSpec
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitSpec }
 
 class AuthProviderClientSpec extends UnitSpec with ShortTimeout {
 

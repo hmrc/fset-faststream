@@ -9,7 +9,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
-class Phase2TestRepositorySpec extends ApplicationDataFixture with MongoRepositorySpec {
+class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
   val Now =  DateTime.now(DateTimeZone.UTC)
   val DatePlus7Days = Now.plusDays(7)

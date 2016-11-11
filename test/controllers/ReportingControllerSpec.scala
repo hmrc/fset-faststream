@@ -19,7 +19,6 @@ package controllers
 import config.TestFixtureBase
 import connectors.AuthProviderClient
 import connectors.ExchangeObjects.Candidate
-import fixture.UnitWithAppSpec
 import mocks._
 import mocks.application.DocumentRootInMemoryRepository
 import model.Address
@@ -32,6 +31,7 @@ import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 import scala.language.postfixOps

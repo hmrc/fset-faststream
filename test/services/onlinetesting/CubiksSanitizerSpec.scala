@@ -16,7 +16,7 @@
 
 package services.onlinetesting
 
-import fixture.UnitSpec
+import testkit.UnitSpec
 
 class CubiksSanitizerSpec extends UnitSpec {
   "Cubiks Sanitizer" should {

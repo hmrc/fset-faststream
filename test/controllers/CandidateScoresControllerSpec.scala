@@ -16,7 +16,6 @@
 
 package controllers
 
-import fixture.UnitWithAppSpec
 import model.ApplicationStatus
 import model.CandidateScoresCommands.Implicits._
 import model.CandidateScoresCommands.{ ApplicationScores, CandidateScores, CandidateScoresAndFeedback, RecordCandidateScores }
@@ -30,6 +29,7 @@ import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
 import repositories.{ ApplicationAssessmentRepository, ApplicationAssessmentScoresRepository }
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 

@@ -17,7 +17,6 @@
 package services.evaluation
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import fixture.UnitSpec
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
 import model.CandidateScoresCommands.{ CandidateScores, CandidateScoresAndFeedback }
 import model.Commands.AssessmentCentrePassMarkSettingsResponse
@@ -25,6 +24,7 @@ import model.EvaluationResults._
 import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold }
 import model.{ Alternatives, LocationPreference, Preferences }
 import org.joda.time.DateTime
+import testkit.UnitSpec
 
 class AssessmentCentrePassmarkRulesEngineSpec extends UnitSpec {
 

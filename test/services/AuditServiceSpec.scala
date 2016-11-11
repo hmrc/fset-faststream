@@ -16,11 +16,11 @@
 
 package services
 
-import fixture.UnitSpec
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
+import testkit.UnitSpec
 import uk.gov.hmrc.play.audit.model.{ Audit, DataEvent }
 import uk.gov.hmrc.play.http.HeaderCarrier
 

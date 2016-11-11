@@ -17,14 +17,13 @@
 package scheduler.assessment
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
-import fixture.UnitWithAppSpec
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
 import model.CandidateScoresCommands.CandidateScoresAndFeedback
 import model.Commands.AssessmentCentrePassMarkSettingsResponse
 import model.{ LocationPreference, Preferences }
 import org.mockito.Mockito._
 import services.applicationassessment.ApplicationAssessmentService
-import testkit.ShortTimeout
+import testkit.{ ShortTimeout, UnitWithAppSpec }
 
 import scala.concurrent.{ ExecutionContext, Future }
 

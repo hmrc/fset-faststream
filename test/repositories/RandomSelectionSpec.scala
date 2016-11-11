@@ -16,7 +16,7 @@
 
 package repositories
 
-import fixture.UnitSpec
+import testkit.UnitSpec
 
 import scala.language.postfixOps
 

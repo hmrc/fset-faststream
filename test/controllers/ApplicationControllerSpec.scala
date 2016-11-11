@@ -17,7 +17,6 @@
 package controllers
 
 import config.TestFixtureBase
-import fixture.UnitWithAppSpec
 import mocks.application.DocumentRootInMemoryRepository
 import model.ApplicationRoute
 import model.command.WithdrawApplication
@@ -30,6 +29,7 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.application.ApplicationService
+import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

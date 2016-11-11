@@ -16,12 +16,12 @@
 
 package services
 
-import fixture.UnitSpec
 import model.PersistedObjects.PersonalDetails
 import model.persisted.AssistanceDetailsExamples
 import model.{ ApplicationValidator, LocationPreference, Preferences }
 import org.joda.time.LocalDate
 import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
+import testkit.UnitSpec
 
 class ApplicationValidatorSpec extends UnitSpec {
 
