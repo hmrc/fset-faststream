@@ -21,12 +21,11 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.SchemeType.SchemeType
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
-import model.persisted.{ ApplicationPhase1EvaluationExamples, CubiksTest, PassmarkEvaluation, SchemeEvaluationResult, TestResult }
+import model.persisted._
 import model.{ ApplicationStatus, Phase1TestExamples, Phase1TestProfileExamples, SchemeType }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import repositories._
-import repositories.onlinetesting.Phase1EvaluationRepository
+import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
 import services.onlinetesting.phase1.Phase1TestEvaluation
@@ -136,9 +135,9 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val SjqId = 16196
     val BqId = 16194
     val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
-    val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, EvaluateForNonGis)
+    val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis)
 
-    val mockPhase1EvaluationRepository = mock[Phase1EvaluationRepository]
+    val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]]
     val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
     val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsMongoRepository]
 
@@ -172,7 +171,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     def createAppWithTestGroup(tests: List[CubiksTest]) = {
       val phase1 = Phase1TestProfileExamples.profile.copy(tests = tests)
-      ApplicationPhase1EvaluationExamples.application.copy(phase1 = phase1)
+      ApplicationPhase1EvaluationExamples.application.copy(activeTests = phase1.activeTests)
     }
 
     def createGisAppWithTestGroup(tests: List[CubiksTest]) = {
@@ -185,5 +184,6 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
         EvaluateForNonGis
       }
     }
+
   }
 }

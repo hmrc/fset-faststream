@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import model.persisted.{ CubiksTest, Phase2TestGroup, TestResult }
+import org.joda.time.DateTime
 
-case class PassmarkEvaluation(passmarkVersion: String,
-                              previousPhasePassMarkVersion: Option[String],
-                              result: List[SchemeEvaluationResult])
+object Phase2TestProfileExamples {
 
-object PassmarkEvaluation {
-  implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
-  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
+  val testResult = TestResult("Ready", "norm", Some(12.5), None, None, None)
+
+  def getEtrayTest(implicit now: DateTime) = CubiksTest(16196, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
+    testResult = Some(testResult))
+
+  def profile(implicit now: DateTime) = Phase2TestGroup(now, List(getEtrayTest))
 }

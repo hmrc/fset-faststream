@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package model.persisted
+package scheduler.onlinetesting
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import model.exchange.passmarksettings.PassMarkSettings
+import model.persisted.ApplicationReadyForEvaluation
 
-case class PassmarkEvaluation(passmarkVersion: String,
-                              previousPhasePassMarkVersion: Option[String],
-                              result: List[SchemeEvaluationResult])
+import scala.concurrent.Future
 
-object PassmarkEvaluation {
-  implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
-  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
+
+trait EvaluateOnlineTestResultService[T <: PassMarkSettings] {
+
+  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationReadyForEvaluation], T)]]
+
+  def evaluate(application: ApplicationReadyForEvaluation, passmark: T): Future[Unit]
 }
