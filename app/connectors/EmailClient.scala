@@ -42,7 +42,7 @@ object Phase2OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
   override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
                                         timeUnit: TimeUnit, expiryDate: DateTime)
                                        (implicit hc: HeaderCarrier): Future[Unit] = {
-    sendExpiringReminder("fset_faststream_app_online_phase2_test_reminder", to,name,timeLeftInHours, timeUnit, expiryDate)
+    sendExpiringReminder("fset_faststream_app_online_phase2_test_reminder", to, name, timeLeftInHours, timeUnit, expiryDate)
   }
 
   override def sendOnlineTestFailed(to: String, name: String)
@@ -64,15 +64,7 @@ object Phase3OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
   override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
                                         timeUnit: TimeUnit, expiryDate: DateTime)
                                        (implicit hc: HeaderCarrier): Future[Unit] =
-    sendEmail(
-      to,
-      "fset_faststream_app_online_test_reminder",
-      Map("name" -> name,
-        "expireDateTime" -> EmailDateFormatter.toExpiryTime(expiryDate),
-        "timeUnit" -> timeUnit.toString.toLowerCase,
-        "timeLeft" -> EmailDateFormatter.convertToHoursOrDays(timeUnit, timeLeftInHours)
-      )
-    )
+    sendExpiringReminder("fset_faststream_app_online_phase3_test_reminder", to, name, timeLeftInHours, timeUnit, expiryDate)
 
   override def sendOnlineTestFailed(to: String, name: String)
                                    (implicit hc: HeaderCarrier) =

@@ -20,14 +20,12 @@ import model.Commands.AssessmentCentrePassMarkSettingsResponse
 import model.PassmarkPersistedObjects._
 import org.joda.time.DateTime
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import repositories.{ AssessmentCentrePassMarkSettingsMongoRepository, FrameworkRepository }
+import testkit.UnitSpec
 
 import scala.concurrent.Future
 
-class AssessmentCentrePassMarkSettingsServiceSpec extends PlaySpec with ScalaFutures with MockitoSugar {
+class AssessmentCentrePassMarkSettingsServiceSpec extends UnitSpec {
   val mockAssessmentCentrePassMarkSettingsRepository = mock[AssessmentCentrePassMarkSettingsMongoRepository]
   val mockFrameworkRepository = mock[FrameworkRepository]
 

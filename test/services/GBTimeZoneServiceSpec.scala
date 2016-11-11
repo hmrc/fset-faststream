@@ -17,9 +17,9 @@
 package services
 
 import org.joda.time.LocalDateTime
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 
-class GBTimeZoneServiceSpec extends PlaySpec {
+class GBTimeZoneServiceSpec extends UnitSpec {
   val service = GBTimeZoneService
 
   "Time Zone Service (GB)" should {

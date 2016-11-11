@@ -27,7 +27,7 @@ import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model.command.ProgressResponse
-import model.events.EventTypes.{ EventType, Events }
+import model.events.EventTypes.EventType
 import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
 import model.persisted._
@@ -107,7 +107,6 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
     phase2TestRepo.nextTestGroupWithReportReady
   }
-
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
                                                      emailAddress: String,

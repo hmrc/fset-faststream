@@ -16,11 +16,11 @@
 
 package repositories
 
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 
 import scala.language.postfixOps
 
-class RandomSelectionSpec extends PlaySpec {
+class RandomSelectionSpec extends UnitSpec {
   "RandomSelection" should {
     "calculate the correct batch size and random offset" in {
 

@@ -30,7 +30,7 @@ import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.events.{ AuditEventNoRequest, AuditEvents, DataStoreEventWithAppId, DataStoreEvents }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase2TestGroup }
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model._
 import model.events.EventTypes.EventType
 import model.exchange.{ Phase2TestGroupWithActiveTest, Phase3TestGroupWithActiveTest }
@@ -100,7 +100,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
   override def registerAndInviteForTestGroup(application: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier,
-                                             rh: RequestHeader): Future[Unit] = Future.failed(new NotImplementedError())
+                                             rh: RequestHeader): Future[Unit] =
+    Future.sequence(application.map(app => registerAndInviteForTestGroup(app))).map(_ => ())
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -133,11 +134,31 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     } yield {}
   }
 
-  override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+  override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+    phase3TestRepo.nextTestForReminder(reminder).flatMap {
+      case Some(expiringTest) => processReminder(expiringTest, reminder)
+      case None => Future.successful(())
+    }
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
                                                      emailAddress: String,
-                                                     reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+                                                     reminder: ReminderNotice)
+                                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      _ <- emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
+        reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate)
+    } yield {
+      AuditEvents.VideoInterviewTestExpiryReminder(
+        Map(
+          "EmailReminderType" -> s"ReminderPhase3VideoInterviewExpiring${reminder.hoursBeforeReminder}HoursEmailed",
+          "User" -> expiringTest.userId,
+          "Email" -> emailAddress
+        )
+        ) ::
+        DataStoreEvents.VideoInterviewExpiryReminder(expiringTest.applicationId) ::
+        Nil
+    }
+  }
 
   private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
     expirationDate: DateTime
@@ -156,7 +177,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
         customCandidateId = invitation.customCandidateId,
         invitationDate = invitationDate,
         startedDateTime = None,
-        completedDateTime = None
+        completedDateTime = None,
+        callbacks = LaunchpadTestCallbacks()
       )
     }
   }

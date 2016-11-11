@@ -22,15 +22,11 @@ import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
 import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
-import model.ApplicationStatus._
-import model.EvaluationResults.Result
 import model.Exceptions.EmailTakenException
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses }
+import model.command.testdata.GeneratorConfig
 import model.exchange.testdata._
-import model.command.testdata.{ GeneratorConfig, PersonalData, StatusData }
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.{ Logger, Play }
+import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses }
+import play.api.Play
 import play.api.libs.json.{ JsObject, JsString, Json }
 import play.api.mvc.{ Action, RequestHeader }
 import services.testdata._
@@ -58,6 +54,7 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
+  // scalastyle:off method.length
   def requestExample = Action.async { implicit request =>
     Future {
       val example = CreateCandidateInStatusRequest(
@@ -100,12 +97,18 @@ trait TestDataGeneratorController extends BaseController {
           start = Some("2340-01-01"),
           expiry = Some("2340-01-29"),
           completion = Some("2340-01-16")
+        )),
+        phase3TestData = Some(Phase3TestDataRequest(
+          start = Some("2340-01-01"),
+          expiry = Some("2340-01-29"),
+          completion = Some("2340-01-16")
         ))
       )
 
       Ok(Json.toJson(example))
     }
   }
+  // scalastyle:on method.length
 
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String) = Action.async { implicit request =>
     try {
@@ -131,7 +134,6 @@ trait TestDataGeneratorController extends BaseController {
       testConfig.getString(s"testdata.$key")
     }
   }
-
 
   def createCandidatesInStatusPOST(numberToGenerate: Int) = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateInStatusRequest] { body =>

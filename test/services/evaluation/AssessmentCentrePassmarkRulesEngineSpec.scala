@@ -24,10 +24,9 @@ import model.EvaluationResults._
 import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold }
 import model.{ Alternatives, LocationPreference, Preferences }
 import org.joda.time.DateTime
-import org.scalatest.MustMatchers
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 
-class AssessmentCentrePassmarkRulesEngineSpec extends PlaySpec with MustMatchers {
+class AssessmentCentrePassmarkRulesEngineSpec extends UnitSpec {
 
   val rulesEngine = AssessmentCentrePassmarkRulesEngine
 

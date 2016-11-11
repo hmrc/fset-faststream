@@ -18,14 +18,13 @@ package services
 
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
+import testkit.UnitSpec
 import uk.gov.hmrc.play.audit.model.{ Audit, DataEvent }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-class AuditServiceSpec extends PlaySpec with MockitoSugar {
+class AuditServiceSpec extends UnitSpec {
   val auditMock = mock[Audit]
   val auditMockResponse = mock[(DataEvent) => Unit]
   val eventCaptor = ArgumentCaptor.forClass(classOf[DataEvent])

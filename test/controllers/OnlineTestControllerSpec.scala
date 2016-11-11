@@ -30,7 +30,6 @@ import model.PersistedObjects.ContactDetails
 import org.joda.time.DateTime
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers._
@@ -43,7 +42,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class OnlineTestControllerSpec extends PlaySpec with Results with MockitoSugar {
+class OnlineTestControllerSpec extends UnitSpec with Results with MockitoSugar {
   "Get Online Test" should {
 
     "get an online test" in new TestFixture {

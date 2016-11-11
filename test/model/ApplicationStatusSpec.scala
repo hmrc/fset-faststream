@@ -17,11 +17,11 @@
 package model
 
 import model.ApplicationStatus._
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsSuccess, Json }
 import reactivemongo.bson.BSONString
+import testkit.UnitSpec
 
-class ApplicationStatusSpec extends PlaySpec {
+class ApplicationStatusSpec extends UnitSpec {
 
   "Application status" should {
     "read JSON formatter should ignore case sensitivity" in {

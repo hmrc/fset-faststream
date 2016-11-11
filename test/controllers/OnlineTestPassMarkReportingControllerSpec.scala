@@ -21,18 +21,16 @@ import connectors.AuthProviderClient
 import model.report.{ OnlineTestPassMarkReportItem, _ }
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatestplus.play.PlaySpec
-import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
 import testkit.MockitoImplicits.OngoingStubbingExtension
-import testkit.MockitoSugar
+import testkit.UnitWithAppSpec
 
 import scala.language.postfixOps
 
-class OnlineTestPassMarkReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
+class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
 
   "Online test pass mark report" should {
     "return nothing if no application exists" in new PassMarkReportTestFixture {

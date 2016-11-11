@@ -16,9 +16,9 @@
 
 package services.reporting
 
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 
-class SocioEconomicCalculatorSpec extends PlaySpec {
+class SocioEconomicCalculatorSpec extends UnitSpec {
 
   import SocioEconomicCalculatorSpec._
   val calculator = new SocioEconomicScoreCalculator {}
