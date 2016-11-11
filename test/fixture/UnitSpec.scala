@@ -18,9 +18,8 @@ package fixture
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
-import testkit.MockitoSugar
 
-class UnitSpec extends PlaySpec with MockitoSugar with ScalaFutures with TestKitMockitoSugar {
+class UnitSpec extends PlaySpec with testkit.MockitoSugar with ScalaFutures {
 
   val unit = () // This approach avoids both scala compiler and intellij warnings
 }
