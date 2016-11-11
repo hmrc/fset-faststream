@@ -18,23 +18,21 @@ package controllers
 
 import config.TestFixtureBase
 import connectors.AuthProviderClient
+import fixture.UnitWithAppSpec
 import model.persisted.MediaExamples
 import model.report.{ DiversityReportItem, DiversityReportItemExamples, QuestionnaireReportItemExamples }
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatestplus.play.PlaySpec
 import persisted.ApplicationForDiversityReportExamples
-import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
 import testkit.MockitoImplicits.OngoingStubbingExtension
-import testkit.MockitoSugar
 
 import scala.language.postfixOps
 
-class DiversityReportingControllerSpec extends PlaySpec with Results with MockitoSugar {
+class DiversityReportingControllerSpec extends UnitWithAppSpec {
 
   "Diversity report" should {
     "return empty if no applications exist" in new DiversityReportTestFixture {

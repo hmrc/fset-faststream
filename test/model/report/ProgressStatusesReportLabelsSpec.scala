@@ -16,10 +16,10 @@
 
 package model.report
 
+import fixture.UnitSpec
 import model.command.{ ProgressResponse, ProgressResponseExamples }
-import org.scalatestplus.play.PlaySpec
 
-class ProgressStatusesReportLabelsSpec extends PlaySpec {
+class ProgressStatusesReportLabelsSpec extends UnitSpec {
 
   import ProgressStatusesReportLabelsSpec._
 

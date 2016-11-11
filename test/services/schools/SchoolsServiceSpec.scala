@@ -16,30 +16,28 @@
 
 package services.schools
 
+import fixture.UnitWithAppSpec
 import model.School
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.play.PlaySpec
-import play.api.test.WithApplication
 import repositories.{ SchoolsCSVRepository, SchoolsRepository }
-import testkit.{ MockitoSugar, ShortTimeout }
+import testkit.ShortTimeout
 
 import scala.concurrent.Future
 
-class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
+class SchoolsServiceSpec extends UnitWithAppSpec with ShortTimeout {
   val service = new SchoolsService {
     override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
     override val MaxNumberOfSchools = Integer.MAX_VALUE
   }
 
   "Schools Service" should {
-    "return simple 3 letter matches from beginning of school name" in new WithApplication {
+    "return simple 3 letter matches from beginning of school name" in {
       val term = "Abb"
       val result = service.getSchools(term).futureValue
 
       expect23SchoolsContains("Abb", result)
     }
 
-    "return simple 3 letter matches from beginning of school name ignoring case" in new WithApplication {
+    "return simple 3 letter matches from beginning of school name ignoring case" in {
       val term = "aBB"
 
       val result = service.getSchools(term).futureValue
@@ -71,14 +69,14 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
         List(school1WithGrammarName, school2WithGrammarName)
     }
 
-    "ignore whitespace in term" in new WithApplication {
+    "ignore whitespace in term" in {
       val term = "A b b "
       val result = service.getSchools(term).futureValue
 
       expect23SchoolsContains("Abb", result)
     }
 
-    "ignore punctuation in term" in new WithApplication {
+    "ignore punctuation in term" in {
       val term = "-A?(b_@'b,)&"
 
       val result = service.getSchools(term).futureValue
@@ -86,7 +84,7 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
       expect23SchoolsContains("Abb", result)
     }
 
-    "ignore punctuation in school name" in new WithApplication {
+    "ignore punctuation in school name" in {
       val term = "Girls High"
 
       val result = service.getSchools(term).futureValue
@@ -97,7 +95,7 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
       })
     }
 
-    "should limit number of results to 16" in new WithApplication {
+    "should limit number of results to 16" in {
       val service = new SchoolsService {
         override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
       }
@@ -110,7 +108,7 @@ class SchoolsServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
       })
     }
 
-    "should return less than 16 if the criteria narrows down the result" in new WithApplication {
+    "should return less than 16 if the criteria narrows down the result" in {
       val service = new SchoolsService {
         override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
       }

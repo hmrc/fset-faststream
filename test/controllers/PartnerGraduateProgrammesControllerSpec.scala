@@ -17,6 +17,7 @@
 package controllers
 
 import config.TestFixtureBase
+import fixture.UnitWithAppSpec
 import model.Exceptions.CannotUpdatePartnerGraduateProgrammes
 import model.command.PartnerGraduateProgrammesExchangeExamples
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -29,7 +30,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
+class PartnerGraduateProgrammesControllerSpec extends UnitWithAppSpec {
 
   "Update" should {
     "return CREATED and update the partnet graduate programmes and audit PartnerGraduateProgrammesSaved event" in new TestFixture {

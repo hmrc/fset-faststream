@@ -17,10 +17,11 @@
 package controllers
 
 import config.TestFixtureBase
+import fixture.UnitWithAppSpec
 import model.Exceptions.CannotUpdateAssistanceDetails
 import model.command.AssistanceDetailsExchangeExamples
 import model.exchange.AssistanceDetailsExchange
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc._
 import play.api.test.Helpers._
@@ -30,7 +31,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class AssistanceDetailsControllerSpec extends BaseControllerSpec {
+class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
 
   "Update" should {
 

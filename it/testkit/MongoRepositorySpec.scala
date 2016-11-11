@@ -19,9 +19,9 @@ package testkit
 import org.joda.time.DateTime
 import org.joda.time.Seconds._
 import org.scalatest._
+import fixture.UnitWithAppSpec
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
-import org.scalatestplus.play.PlaySpec
 import play.api.test.{ FakeApplication, Helpers }
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.DefaultDB
@@ -34,7 +34,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
 import scala.language.postfixOps
 
-trait MongoRepositorySpec extends PlaySpec with Inside with Inspectors with ScalaFutures with IndexesReader {
+abstract class MongoRepositorySpec extends UnitWithAppSpec with Inside with Inspectors with IndexesReader {
   import ImplicitBSONHandlers._
   import MongoRepositorySpec._
 

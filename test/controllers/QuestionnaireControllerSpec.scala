@@ -17,11 +17,11 @@
 package controllers
 
 import config.TestFixtureBase
+import fixture.UnitWithAppSpec
 import mocks.QuestionnaireInMemoryRepository
 import mocks.application.DocumentRootInMemoryRepository
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.language.postfixOps
 
-class QuestionnaireControllerSpec extends PlaySpec with Results {
+class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
 
   "The Questionnaire API" should {
     "append questions to the questionnaire for the current application" in new TestFixture {

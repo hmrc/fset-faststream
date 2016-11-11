@@ -17,6 +17,7 @@
 package services.onlinetesting
 
 import connectors.CSREmailClient
+import fixture.UnitSpec
 import model.Address
 import model.PersistedObjects.ContactDetails
 import model.persisted.ApplicationForNotification
@@ -28,11 +29,10 @@ import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.{ BaseServiceSpec, AuditService }
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
-import testkit.{MockitoSugar => TestKitMockitoSugar }
 import model.ApplicationStatus._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-class OnlineTestFailureServiceSpec extends BaseServiceSpec with TestKitMockitoSugar {
+class OnlineTestFailureServiceSpec extends BaseServiceSpec {
 
   /* TODO FAST STREAM FIX ME
   "when processing the next failed test" should {

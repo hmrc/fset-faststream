@@ -16,15 +16,14 @@
 
 package config
 
-import org.scalatestplus.play.PlaySpec
-import play.api.test.WithApplication
+import fixture.UnitWithAppSpec
 import scheduler.onlinetesting.SendPhase1InvitationJob
 import testkit.ShortTimeout
 
-class SchedulerSpec extends PlaySpec with ShortTimeout {
+class SchedulerSpec extends UnitWithAppSpec with ShortTimeout {
 
   "Scheduler" should {
-    "contain send invitation job if it is enabled" in new WithApplication {
+    "contain send invitation job if it is enabled" in {
       val scheduler = new Scheduler {
         override def sendPhase1InvitationJobConfigValues = ScheduledJobConfig(true, Some("id"), Some(5), Some(5))
       }
@@ -32,7 +31,7 @@ class SchedulerSpec extends PlaySpec with ShortTimeout {
       scheduler.scheduledJobs must contain(SendPhase1InvitationJob)
     }
 
-    "not contain send invitation job if it is disabled" in new WithApplication {
+    "not contain send invitation job if it is disabled" in {
       val scheduler = new Scheduler {
         override def sendPhase1InvitationJobConfigValues = ScheduledJobConfig(false, Some("id"), Some(5), Some(5))
       }

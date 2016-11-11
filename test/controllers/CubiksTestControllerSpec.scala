@@ -16,6 +16,7 @@
 
 package controllers
 
+import fixture.UnitWithAppSpec
 import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
 import org.joda.time.DateTime
@@ -29,7 +30,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class CubiksTestControllerSpec extends BaseControllerSpec {
+class CubiksTestControllerSpec extends UnitWithAppSpec {
 
   val mockPhase1TestService = mock[Phase1TestService]
   val mockPhase2TestService = mock[Phase2TestService]

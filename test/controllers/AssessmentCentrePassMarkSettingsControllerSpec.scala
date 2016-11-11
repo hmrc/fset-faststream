@@ -16,12 +16,11 @@
 
 package controllers
 
+import fixture.UnitWithAppSpec
 import model.PassmarkPersistedObjects.Implicits._
 import model.PassmarkPersistedObjects._
 import org.joda.time.DateTime
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
@@ -30,7 +29,7 @@ import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 
 import scala.concurrent.Future
 
-class AssessmentCentrePassMarkSettingsControllerSpec extends PlaySpec with MockitoSugar {
+class AssessmentCentrePassMarkSettingsControllerSpec extends UnitWithAppSpec {
   val mockAssessmentCentrePassMarkSettingsRepository = mock[AssessmentCentrePassMarkSettingsMongoRepository]
   val mockPassmarkService = mock[AssessmentCentrePassMarkSettingsService]
 

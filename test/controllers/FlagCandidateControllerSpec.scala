@@ -16,21 +16,20 @@
 
 package controllers
 
+import fixture.UnitWithAppSpec
 import model.Exceptions.NotFoundException
 import model.FlagCandidateCommands
 import model.FlagCandidatePersistedObject._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Result, Results }
+import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.FlagCandidateRepository
 
 import scala.concurrent.Future
 
-class FlagCandidateControllerSpec extends PlaySpec with MockitoSugar with Results {
+class FlagCandidateControllerSpec extends UnitWithAppSpec {
   val mockFlagCandidateRepository = mock[FlagCandidateRepository]
 
   object TestableFlagCandidateController extends FlagCandidateController {

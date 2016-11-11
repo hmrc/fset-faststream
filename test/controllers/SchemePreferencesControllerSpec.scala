@@ -16,7 +16,8 @@
 
 package controllers
 
-import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import fixture.UnitWithAppSpec
+import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.SelectedSchemes
 import model.SelectedSchemesExamples._
 import org.mockito.Mockito._
@@ -26,7 +27,7 @@ import services.scheme.SchemePreferencesService
 
 import scala.concurrent.Future
 
-class SchemePreferencesControllerSpec extends BaseControllerSpec {
+class SchemePreferencesControllerSpec extends UnitWithAppSpec {
   val mockSchemePreferencesService = mock[SchemePreferencesService]
   val mockAuditService = mock[AuditService]
 

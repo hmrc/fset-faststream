@@ -16,12 +16,11 @@
 
 package model
 
+import fixture.UnitSpec
 import model.Commands.ApplicationAssessment
 import org.joda.time.{ DateTimeZone, LocalDate, LocalTime }
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 
-class ApplicationAssessmentSpec extends PlaySpec with MockitoSugar {
+class ApplicationAssessmentSpec extends UnitSpec {
 
   val Today = LocalDate.now(DateTimeZone.UTC)
 

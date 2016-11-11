@@ -16,6 +16,7 @@
 
 package controllers
 
+import fixture.UnitWithAppSpec
 import model.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.ResetOnlineTest
@@ -30,7 +31,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class OnlineTestsControllerSpec extends BaseControllerSpec {
+class OnlineTestsControllerSpec extends UnitWithAppSpec {
   val mockPhase1TestService = mock[Phase1TestService]
   val mockPhase2TestService = mock[Phase2TestService]
   val mockPhase3TestService = mock[Phase3TestService]

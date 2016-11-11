@@ -16,10 +16,10 @@
 
 package model
 
-import org.scalatestplus.play.PlaySpec
+import fixture.UnitSpec
 import services.testdata.ApplicationStatusOnlyForTest
 
-class ProgressStatusesSpec extends PlaySpec {
+class ProgressStatusesSpec extends UnitSpec {
 
   "Progress statuses" should {
     "be assigned to all application statuses" in {

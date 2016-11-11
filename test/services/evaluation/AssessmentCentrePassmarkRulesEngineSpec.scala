@@ -17,6 +17,7 @@
 package services.evaluation
 
 import config.AssessmentEvaluationMinimumCompetencyLevel
+import fixture.UnitSpec
 import model.AssessmentEvaluationCommands.AssessmentPassmarkPreferencesAndScores
 import model.CandidateScoresCommands.{ CandidateScores, CandidateScoresAndFeedback }
 import model.Commands.AssessmentCentrePassMarkSettingsResponse
@@ -24,10 +25,8 @@ import model.EvaluationResults._
 import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme, PassMarkSchemeThreshold }
 import model.{ Alternatives, LocationPreference, Preferences }
 import org.joda.time.DateTime
-import org.scalatest.MustMatchers
-import org.scalatestplus.play.PlaySpec
 
-class AssessmentCentrePassmarkRulesEngineSpec extends PlaySpec with MustMatchers {
+class AssessmentCentrePassmarkRulesEngineSpec extends UnitSpec {
 
   val rulesEngine = AssessmentCentrePassmarkRulesEngine
 

@@ -16,22 +16,19 @@
 
 package scheduler.onlinetesting
 
+import fixture.UnitWithAppSpec
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted.ApplicationPhase1ReadyForEvaluation
 import model.{ ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import play.api.test.WithApplication
 import services.onlinetesting.EvaluatePhase1ResultService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaFutures {
+class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
   "Scheduler execution" should {
@@ -62,7 +59,7 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
     }
   }
 
-  trait TestFixture extends WithApplication {
+  trait TestFixture {
     val mockEvaluateService = mock[EvaluatePhase1ResultService]
     val profile = Phase1TestProfileExamples.profile
     val schemes = SelectedSchemesExamples.TwoSchemes

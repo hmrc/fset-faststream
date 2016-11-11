@@ -16,14 +16,14 @@
 
 package services
 
+import fixture.UnitSpec
 import model.PersistedObjects.PersonalDetails
 import model.persisted.AssistanceDetailsExamples
 import model.{ ApplicationValidator, LocationPreference, Preferences }
 import org.joda.time.LocalDate
-import org.scalatestplus.play.PlaySpec
 import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
 
-class ApplicationValidatorSpec extends PlaySpec {
+class ApplicationValidatorSpec extends UnitSpec {
 
   import ApplicationValidatorSpec._
 

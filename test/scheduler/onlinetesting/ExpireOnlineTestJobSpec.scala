@@ -16,11 +16,11 @@
 
 package scheduler.onlinetesting
 
+import fixture.UnitWithAppSpec
 import model.Phase1ExpirationEvent
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
-import play.api.test.WithApplication
 import services.BaseServiceSpec
 import services.onlinetesting.OnlineTestService
 import testkit.ShortTimeout
@@ -28,6 +28,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
+
 
 class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -46,13 +47,13 @@ class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {
   }
 
   "expire test phase 1 job" should {
-    "complete successfully when service completes successfully" in new WithApplication {
+    "complete successfully when service completes successfully" in {
       when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
         .thenReturn(Future.successful(()))
       TestableExpireTestJob.tryExecute().futureValue mustBe unit
     }
 
-    "fail when the service fails" in new WithApplication {
+    "fail when the service fails" in {
       when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
         .thenReturn(Future.failed(new Exception))
       TestableExpireTestJob.tryExecute().failed.futureValue mustBe an[Exception]

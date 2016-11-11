@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package services
+package fixture
 
-import fixture.UnitSpec
-import org.joda.time.{ DateTime, DateTimeZone }
-import testkit.FutureHelper
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.PlaySpec
+import testkit.MockitoSugar
 
-/**
-  * Common base class for all service tests
-  */
-class BaseServiceSpec extends UnitSpec with FutureHelper {
-  implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
+class UnitSpec extends PlaySpec with MockitoSugar with ScalaFutures with TestKitMockitoSugar {
 
-  val AppId = "AppId"
-  val UserId = "UserId"
+  val unit = () // This approach avoids both scala compiler and intellij warnings
 }

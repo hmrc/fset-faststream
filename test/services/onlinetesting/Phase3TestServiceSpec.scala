@@ -21,22 +21,16 @@ import connectors.CSREmailClient
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
+import fixture.UnitSpec
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
-import model.events.AuditEvents.VideoInterviewRegistrationAndInviteComplete
-import model.events.EventTypes.{ EventType, Events }
-import model.persisted.{ ContactDetails, Event, Phase3TestGroupWithAppId }
-import model.persisted.ContactDetails
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model._
+import model.command.{ Phase3ProgressResponse, ProgressResponse }
+import model.persisted.{ ContactDetails, Phase3TestGroupWithAppId }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -49,7 +43,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class Phase3TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures with ExtendedTimeout {
+class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "Register and Invite an applicant" should {
     "send audit events" in new Phase3TestServiceFixture {

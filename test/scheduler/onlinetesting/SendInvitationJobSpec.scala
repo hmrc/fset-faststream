@@ -16,18 +16,15 @@
 
 package scheduler.onlinetesting
 
+import fixture.UnitWithAppSpec
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import play.api.test.WithApplication
 import services.onlinetesting.OnlineTestService
 import testkit.ShortTimeout
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
-class SendInvitationJobSpec extends PlaySpec with MockitoSugar with ScalaFutures with ShortTimeout {
+class SendInvitationJobSpec extends UnitWithAppSpec with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val onlineTestingServiceMock = mock[OnlineTestService]
@@ -42,12 +39,12 @@ class SendInvitationJobSpec extends PlaySpec with MockitoSugar with ScalaFutures
   }
 
   "send invitation job" should {
-    "complete successfully when there is no application ready for online testing" in new WithApplication {
+    "complete successfully when there is no application ready for online testing" in {
       when(onlineTestingServiceMock.nextApplicationReadyForOnlineTesting).thenReturn(Future.successful(Nil))
       TestableSendInvitationJob.tryExecute().futureValue mustBe (_: Unit)
     }
 
-    "fail when there is an exception getting next application ready for online testing" in new WithApplication {
+    "fail when there is an exception getting next application ready for online testing" in {
       when(onlineTestingServiceMock.nextApplicationReadyForOnlineTesting).thenReturn(Future.failed(new Exception))
       TestableSendInvitationJob.tryExecute().failed.futureValue mustBe an[Exception]
     }

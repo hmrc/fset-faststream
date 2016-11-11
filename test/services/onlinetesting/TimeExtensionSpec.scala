@@ -17,11 +17,10 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import fixture.UnitSpec
 import org.mockito.Mockito._
 
-class TimeExtensionSpec extends PlaySpec with MockitoSugar {
+class TimeExtensionSpec extends UnitSpec {
 
   "Extend time" should {
     "add days to current date if the test has already expired" in new TimeExtensionFixture {

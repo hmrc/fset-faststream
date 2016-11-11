@@ -16,25 +16,23 @@
 
 package repositories
 
-import model.Exceptions.{NoSuchVenueDateException, NoSuchVenueException}
+import fixture.UnitWithAppSpec
+import model.Exceptions.{ NoSuchVenueDateException, NoSuchVenueException }
 import org.joda.time.LocalDate
-import org.scalatest.mock.MockitoSugar
 import play.Logger
-import play.api.test.WithApplication
-import testkit.IntegrationSpec
 
-class AssessmentCentreYamlRepositorySpec extends IntegrationSpec with MockitoSugar {
+class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
   val DateFormat = "d/M/yy"
 
   "Locations and assessment centre mapping" should {
-    "return non empty mapping" in new WithApplication {
+    "return non empty mapping" in {
       val mapping = AssessmentCentreYamlRepository.locationsAndAssessmentCentreMapping.futureValue
       mapping must not be empty
       mapping("London") must be("London")
       mapping("Cardiff") must be("Bristol")
     }
 
-    "be consistent with regions-locations-frameworks" in new WithApplication {
+    "be consistent with regions-locations-frameworks" in {
       val allLocationsFromFrameworkRepo = allLocationsFromFrameworkRepository
       val locationToAssessmentCentre = AssessmentCentreYamlRepository.locationsAndAssessmentCentreMapping.futureValue.keys.toSet
 
@@ -58,7 +56,7 @@ class AssessmentCentreYamlRepositorySpec extends IntegrationSpec with MockitoSug
   }
 
   "Assessment centre capacities" should {
-    "return non empty mapping" in new WithApplication {
+    "return non empty mapping" in {
       val capacities = AssessmentCentreYamlRepository.assessmentCentreCapacities.futureValue
       capacities must not be empty
       val assessmentCapacity = capacities.head
@@ -72,7 +70,7 @@ class AssessmentCentreYamlRepositorySpec extends IntegrationSpec with MockitoSug
       capacityDate.date.toString(DateFormat) must be("24/5/17")
     }
 
-    "reject invalid configuration" in new WithApplication {
+    "reject invalid configuration" in {
       val capacities = AssessmentCentreYamlRepository.assessmentCentreCapacities.futureValue
       for {
         c <- capacities
@@ -86,12 +84,12 @@ class AssessmentCentreYamlRepositorySpec extends IntegrationSpec with MockitoSug
   }
 
   "Assessment centre capacity by date" should {
-    "Throw NoSuchVenueException when a bad venue name is passed" in new WithApplication {
+    "Throw NoSuchVenueException when a bad venue name is passed" in {
         val exception = AssessmentCentreYamlRepository.assessmentCentreCapacityDate("Bleurgh", LocalDate.parse("2015-04-01")).failed.futureValue
         exception mustBe a[NoSuchVenueException]
     }
 
-    "Throw NoSuchVenueDateException when there are no sessions on the specified date" in new WithApplication {
+    "Throw NoSuchVenueDateException when there are no sessions on the specified date" in {
         val exception = AssessmentCentreYamlRepository.assessmentCentreCapacityDate("London (Berkeley House)",
           LocalDate.parse("2010-04-01")).failed.futureValue
         exception mustBe a[NoSuchVenueDateException]
@@ -107,7 +105,7 @@ class AssessmentCentreYamlRepositorySpec extends IntegrationSpec with MockitoSug
 
   "Assessment centre production YAML file" should {
 
-    "remain parsable and load" in new WithApplication {
+    "remain parsable and load" in {
       val repo = new AssessmentCentreRepositoryImpl {
         val assessmentCentresLocationsPath = "assessment-centres-preferred-locations-prod.yaml"
         val assessmentCentresConfigPath = "assessment-centres-prod.yaml"

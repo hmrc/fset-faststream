@@ -19,6 +19,7 @@ package controllers
 import java.util.UUID
 
 import connectors.launchpadgateway.exchangeobjects.in._
+import fixture.UnitWithAppSpec
 import org.joda.time.{ DateTime, LocalDate }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -28,7 +29,7 @@ import services.onlinetesting.{ Phase3TestCallbackService, Phase3TestService }
 
 import scala.concurrent.Future
 
-class LaunchpadTestsControllerSpec extends BaseControllerSpec {
+class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture {
     val mockPhase3TestService = mock[Phase3TestService]

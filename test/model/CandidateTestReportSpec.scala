@@ -16,13 +16,12 @@
 
 package model
 
+import fixture.UnitSpec
 import model.OnlineTestCommands.TestResult
 import model.PersistedObjects.CandidateTestReport
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatestplus.play.PlaySpec
 
-class CandidateTestReportSpec extends PlaySpec with MockitoSugar with TableDrivenPropertyChecks {
+class CandidateTestReportSpec extends UnitSpec with TableDrivenPropertyChecks {
   import CandidateTestReportSpec._
 
   // format: OFF

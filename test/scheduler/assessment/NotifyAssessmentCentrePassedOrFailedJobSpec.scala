@@ -16,16 +16,15 @@
 
 package scheduler.assessment
 
+import fixture.UnitWithAppSpec
 import model.OnlineTestCommands.OnlineTestApplicationWithCubiksUser
 import org.mockito.Mockito._
-import play.api.test.WithApplication
-import services.BaseServiceSpec
 import services.applicationassessment.ApplicationAssessmentService
 import testkit.ExtendedTimeout
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class NotifyAssessmentCentrePassedOrFailedJobSpec extends BaseServiceSpec with ExtendedTimeout {
+class NotifyAssessmentCentrePassedOrFailedJobSpec extends UnitWithAppSpec with ExtendedTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   "process next assessment centre passed or failed application" should {
@@ -34,7 +33,7 @@ class NotifyAssessmentCentrePassedOrFailedJobSpec extends BaseServiceSpec with E
     }
   }
 
-  trait TestFixture extends WithApplication {
+  trait TestFixture {
     val applicationAssessmentServiceMock = mock[ApplicationAssessmentService]
     when(applicationAssessmentServiceMock.processNextAssessmentCentrePassedOrFailedApplication).thenReturn(Future.successful(()))
 
