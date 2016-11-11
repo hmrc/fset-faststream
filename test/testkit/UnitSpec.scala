@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package model.exchange.passmarksettings
+package testkit
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.PlaySpec
 
-// format: OFF
-case class Phase1PassMarkThresholds(
-  situational: PassMarkThreshold,
-  behavioural: PassMarkThreshold
-)
+class UnitSpec extends PlaySpec with testkit.MockitoSugar with ScalaFutures {
 
-// format: ON
-object Phase1PassMarkThresholds {
-  implicit val phase1PassMarkThresholds = Json.format[Phase1PassMarkThresholds]
-  implicit val phase1PassMarkThresholdsHandler = Macros.handler[Phase1PassMarkThresholds]
+  val unit = () // This approach avoids both scala compiler and intellij warnings
 }

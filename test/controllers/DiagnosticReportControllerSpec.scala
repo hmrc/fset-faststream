@@ -19,17 +19,15 @@ package controllers
 import config.TestFixtureBase
 import model.Exceptions.ApplicationNotFound
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsArray, JsValue, Json }
-import play.api.mvc.Results
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.DiagnosticReportingRepository
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
-class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoSugar {
+class DiagnosticReportControllerSpec extends UnitWithAppSpec {
 
   val mockdiagnosticReportRepository = mock[DiagnosticReportingRepository]
 
@@ -56,33 +54,6 @@ class DiagnosticReportControllerSpec extends PlaySpec with Results with MockitoS
       val result = TestableDiagnosticReportingController.getApplicationByUserId(IncorrectUserId)(createGetUserByIdRequest(IncorrectUserId)).run
 
       status(result) must be(NOT_FOUND)
-    }
-  }
-
-  "All users report" should {
-    "return all non-sensitive information about the users" in new TestFixture {
-      val expectedApplications = List(
-        Json.obj("applicationId" -> "app1", "userId" -> "user1", "frameworkId" -> "FastStream-2016"),
-        Json.obj("applicationId" -> "app2", "userId" -> "user2", "frameworkId" -> "EDIP-2016")
-      )
-      when(mockdiagnosticReportRepository.findAll()).thenReturn(Future.successful(expectedApplications))
-      val result = TestableDiagnosticReportingController.getAllApplications()(createGetAllUsersRequest).run
-
-      val resultJson = contentAsJson(result)
-
-      val actualApplications = resultJson.as[JsValue]
-      status(result) must be(200)
-      resultJson mustBe JsArray(expectedApplications)
-    }
-
-    "return an empty list if there are no users" in new TestFixture {
-      when(mockdiagnosticReportRepository.findAll()).thenReturn(Future.successful(Nil))
-      val result = TestableDiagnosticReportingController.getAllApplications()(createGetAllUsersRequest).run
-
-      val resultJson = contentAsJson(result)
-      val actualApplications = resultJson.as[JsValue]
-      status(result) mustBe 200
-      resultJson mustBe JsArray()
     }
   }
 

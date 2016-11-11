@@ -17,9 +17,9 @@
 package model
 
 import model.OnlineTestApplicationExamples._
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 
-class OnlineTestApplicationSpec extends PlaySpec {
+class OnlineTestApplicationSpec extends UnitSpec {
 
   "Online Test" should {
     "be invigilated e-tray when needs online adjustments and invigilated e-tray are set" in {

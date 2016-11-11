@@ -65,6 +65,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   val trRepository: TestReportRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
+  val delaySecsBetweenRegistrations = 1
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     phase1TestRepo.nextApplicationsReadyForOnlineTesting
@@ -162,7 +163,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     val registerAndInvite = FutureEx.traverseToTry(scheduleNames.zipWithIndex) {
       case (scheduleName, delayModifier) =>
         val scheduleId = scheduleIdByName(scheduleName)
-        val delay = delayModifier.second
+        val delay = (delayModifier * delaySecsBetweenRegistrations).second
         akka.pattern.after(delay, actor.scheduler)(
           registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
         )
@@ -370,7 +371,6 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
       updated
     }
   }
-
 }
 
 trait ResetPhase1Test {

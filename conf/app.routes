@@ -31,6 +31,8 @@ PUT         /media/create                                                control
 
 PUT         /phase1/pass-mark-settings/create                            controllers.Phase1PassMarkSettingsController.create
 GET         /phase1/pass-mark-settings/getLatestVersion                  controllers.Phase1PassMarkSettingsController.getLatestVersion
+PUT         /phase2/pass-mark-settings/create                            controllers.Phase2PassMarkSettingsController.create
+GET         /phase2/pass-mark-settings/getLatestVersion                  controllers.Phase2PassMarkSettingsController.getLatestVersion
 
 GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 PUT         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.create
@@ -53,6 +55,7 @@ GET         /report/online-test-pass-mark/:frameworkId                   control
 
 GET         /diagnostic/user/:userId                                     controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
 GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
+DELETE      /diagnostic/application/:applicationId/eTray                 controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getOnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)

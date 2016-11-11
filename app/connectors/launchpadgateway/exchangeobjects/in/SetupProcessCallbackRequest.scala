@@ -16,12 +16,18 @@
 
 package connectors.launchpadgateway.exchangeobjects.in
 
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Json
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-case class SetupProcessCallbackRequest(candidateId: String, customCandidateId: String, interviewId: Int,
+case class SetupProcessCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
 
 object SetupProcessCallbackRequest {
+  // Should match LaunchpadTestsCallback case class
+  val key = "setupProcess"
   implicit val setupProcessCallbackFormat = Json.format[SetupProcessCallbackRequest]
+  import repositories.BSONDateTimeHandler
+  import repositories.BSONLocalDateHandler
+  implicit val bsonHandler: BSONHandler[BSONDocument, SetupProcessCallbackRequest] = Macros.handler[SetupProcessCallbackRequest]
 }

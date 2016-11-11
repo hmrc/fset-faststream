@@ -92,7 +92,7 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       )
     collection.update(query, update, upsert = false) map {
       case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        logger.error(s"""Failed to append cubiks tests for application: $applicationId""")
+        Logger.error(s"""Failed to append cubiks tests for application: $applicationId""")
         throw ApplicationNotFound(applicationId)
       case _ => ()
     }
@@ -208,7 +208,7 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
   }
 
   private def defaultUpdateErrorHandler(cubiksUserId: Int) = {
-    logger.error(s"""Failed to update cubiks test: $cubiksUserId""")
+    Logger.error(s"""Failed to update cubiks test: $cubiksUserId""")
     throw cannotFindTestByCubiksId(cubiksUserId)
   }
 
@@ -259,7 +259,7 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
 
     collection.update(query, updateQuery, upsert = false) map {
       case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        logger.error(s"Failed to reset progress statuses for " +
+        Logger.error(s"Failed to reset progress statuses for " +
           s"application Id: $appId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}")
         throw ApplicationNotFound(appId)
       case _ => ()

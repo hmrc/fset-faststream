@@ -18,10 +18,9 @@ package services.evaluation
 
 import model.CandidateScoresCommands.{ CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults.CompetencyAverageResult
-import org.scalatest.MustMatchers
-import org.scalatestplus.play.PlaySpec
+import testkit.UnitSpec
 
-class AssessmentScoreCalculatorSpec extends PlaySpec with MustMatchers {
+class AssessmentScoreCalculatorSpec extends UnitSpec {
 
   val calculator = new AssessmentScoreCalculator {}
 

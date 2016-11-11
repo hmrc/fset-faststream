@@ -18,6 +18,7 @@ package repositories.assistancedetails
 
 import model.Exceptions.{ AssistanceDetailsNotFound, CannotUpdateAssistanceDetails }
 import model.persisted.AssistanceDetails
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -46,7 +47,7 @@ class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
 
     collection.update(query, updateBSON, upsert = true) map {
       case result if result.nModified == 0 && result.n == 0 =>
-        logger.error(s"""Failed to write assistance details for user: $userId -> ${result.writeConcernError.map(_.errmsg).mkString(",")}""")
+        Logger.error(s"""Failed to write assistance details for user: $userId -> ${result.writeConcernError.map(_.errmsg).mkString(",")}""")
         throw CannotUpdateAssistanceDetails(userId)
       case _ => ()
     }

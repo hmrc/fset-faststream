@@ -19,7 +19,8 @@ package repositories.application
 import model.Commands
 import model.Commands.CreateApplicationRequest
 import model.Exceptions.ApplicationNotFound
-import play.api.libs.json.{ JsObject, Json }
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -30,7 +31,7 @@ import scala.concurrent.Future
 
 trait DiagnosticReportingRepository {
   def findByUserId(userId: String): Future[List[JsObject]]
-  def findAll(): Future[List[JsObject]]
+  def findAll(): Enumerator[JsValue]
 }
 
 class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
@@ -49,10 +50,10 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
     }
   }
 
-  def findAll(): Future[List[JsObject]] = {
-    val projection = Json.obj("personal-details" -> 0)
+  def findAll(): Enumerator[JsValue] = {
+    val projection = Json.obj("personal-details" -> 0, "_id" -> 0)
     collection.find(Json.obj(), projection)
-      .cursor[JsObject](ReadPreference.primaryPreferred)
-      .collect[List]()
+      .cursor[JsValue](ReadPreference.primaryPreferred)
+      .enumerate()
   }
 }

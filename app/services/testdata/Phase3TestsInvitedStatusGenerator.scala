@@ -16,21 +16,27 @@
 
 package services.testdata
 
-import repositories._
+import java.util.UUID
+
+import _root_.services.onlinetesting.Phase3TestService
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig._
+import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.ApplicationStatus._
-import model.command.testdata.GeneratorConfig
-import play.api.mvc.RequestHeader
-import repositories.onlinetesting.{ Phase1TestRepository, Phase3TestRepository }
-import _root_.services.onlinetesting.Phase3TestService
 import model.OnlineTestCommands.OnlineTestApplication
+import model.command.testdata.GeneratorConfig
+import model.persisted.phase3tests.{ LaunchpadTestCallbacks, LaunchpadTest, Phase3TestGroup }
+import org.joda.time.DateTime
+import play.api.mvc.RequestHeader
+import repositories._
+import repositories.onlinetesting.Phase3TestRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object Phase3TestsInvitedStatusGenerator extends Phase3TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsStartedStatusGenerator
+  override val previousStatusGenerator = Phase2TestsResultsReceivedStatusGenerator
   override val p3Repository = phase3TestRepository
   override val p3TestService = Phase3TestService
   override val gatewayConfig = launchpadGatewayConfig
@@ -41,7 +47,27 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
   val p3TestService: Phase3TestService
   val gatewayConfig: LaunchpadGatewayConfig
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
+
+    val launchpad = LaunchpadTest(
+      interviewId = 12345,
+      usedForResults = true,
+      testUrl = "http:///www.fake.url",
+      token = UUID.randomUUID().toString,
+      candidateId = UUID.randomUUID().toString,
+      customCandidateId = "FSCND-123",
+      invitationDate = generatorConfig.phase3TestData.flatMap(_.start)
+        .getOrElse(DateTime.now().plusDays(-1)),
+      startedDateTime = generatorConfig.phase3TestData.flatMap(_.start),
+      completedDateTime = generatorConfig.phase3TestData.flatMap(_.completion),
+      callbacks = LaunchpadTestCallbacks()
+    )
+
+    val phase3TestGroup = Phase3TestGroup(
+      expirationDate = generatorConfig.phase3TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
+      tests = List(launchpad)
+    )
 
     // TODO: This is "real" integration with launchpad, ultimately we should mock the invite
     for {
@@ -58,7 +84,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         None,
         None
       )
-      _ <- p3TestService.registerAndInviteForTestGroup(phase3TestApplication)
+      _ <- p3Repository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase3TestGroup)
       testGroup <- p3Repository.getTestGroup(phase3TestApplication.applicationId)
     } yield {
       candidateInPreviousStatus.copy(
