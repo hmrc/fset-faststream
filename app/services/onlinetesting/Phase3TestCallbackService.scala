@@ -19,6 +19,7 @@ package services.onlinetesting
 import _root_.services.AuditService
 import config.LaunchpadGatewayConfig
 import connectors.launchpadgateway.exchangeobjects.in._
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import play.api.libs.json.Format
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.EventService
@@ -69,5 +70,9 @@ trait Phase3TestCallbackService {
 
   def recordCallback(callbackData: ViewBrandedVideoCallbackRequest): Future[Unit] = {
     phase3TestRepo.appendCallback(callbackData.customInviteId, ViewBrandedVideoCallbackRequest.key, callbackData)
+  }
+
+  def recordCallback(callbackData: ReviewedCallbackRequest): Future[Unit] = {
+    phase3TestRepo.appendCallback(callbackData.customInviteId, ReviewedCallbackRequest.key, callbackData)
   }
 }

@@ -79,7 +79,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
       "$elemMatch" -> BSONDocument("token" -> token)
     ))
-
+    
     val update = BSONDocument("$push" -> BSONDocument(s"testGroups.$phaseName.tests.$$.callbacks.$callbacksKey" -> callback))
 
     collection.update(query, update, upsert = false) map { status =>
