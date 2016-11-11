@@ -8,5 +8,7 @@ jdk:
 cache:
   directories:
     - '$HOME/.ivy2/cache'
-services:
-  - mongodb
+addons:
+  apt:
+    packages:
+    - mongodb-org-server=3.2.0
