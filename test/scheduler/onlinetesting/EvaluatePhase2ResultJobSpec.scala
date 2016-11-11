@@ -18,7 +18,7 @@ package scheduler.onlinetesting
 
 import model.exchange.passmarksettings.{ Phase2PassMarkSettings, Phase2PassMarkSettingsExamples }
 import model.persisted.ApplicationReadyForEvaluation
-import model.{ ApplicationStatus, Phase2TestProfileExamples, SelectedSchemesExamples }
+import model.{ ApplicationStatus, Phase, Phase2TestProfileExamples, SelectedSchemesExamples }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -77,6 +77,7 @@ class EvaluatePhase2ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
     }
 
     lazy val scheduler = new EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
+      val phase = Phase.PHASE2
       val evaluateService = mockEvaluateService
       val batchSize = 1
       val lockId: String = "1"

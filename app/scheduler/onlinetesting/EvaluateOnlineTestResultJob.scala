@@ -18,6 +18,8 @@ package scheduler.onlinetesting
 
 import common.FutureEx
 import config.ScheduledJobConfig
+import model.Phase
+import model.Phase.Phase
 import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings }
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
@@ -29,29 +31,32 @@ import scala.util.{ Failure, Success, Try }
 
 object EvaluatePhase1ResultJob extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] with EvaluatePhase1ResultJobConfig {
   val evaluateService = EvaluatePhase1ResultService
+  val phase = Phase.PHASE1
 }
 
 object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] with EvaluatePhase2ResultJobConfig {
   val evaluateService = EvaluatePhase2ResultService
+  val phase = Phase.PHASE2
 }
 
 trait EvaluateOnlineTestResultJob[T <: PassMarkSettings] extends SingleInstanceScheduledJob {
   val evaluateService: EvaluateOnlineTestResultService[T]
   val batchSize: Int
+  val phase: Phase
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     evaluateService.nextCandidatesReadyForEvaluation(batchSize) flatMap {
       case Some((apps, passmarkSettings)) =>
         evaluateInBatch(apps, passmarkSettings)
       case None =>
-        Logger.info("Passmark settings or an application to evaluate phase1 result not found")
+        Logger.info(s"Passmark settings or an application to evaluate $phase result not found")
         Future.successful(())
     }
   }
 
   private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation],
                               passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
-    Logger.debug(s"Evaluate Phase1 Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
+    Logger.debug(s"Evaluate $phase Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
       Try(evaluateService.evaluate(app, passmarkSettings)) match {
         case Success(fut) => fut

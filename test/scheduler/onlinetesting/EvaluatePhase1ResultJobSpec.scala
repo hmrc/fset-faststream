@@ -18,7 +18,7 @@ package scheduler.onlinetesting
 
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted.ApplicationReadyForEvaluation
-import model.{ ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples }
+import model.{ ApplicationStatus, Phase, Phase1TestProfileExamples, SelectedSchemesExamples }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -26,11 +26,10 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.test.WithApplication
-import services.onlinetesting.EvaluatePhase1ResultService
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.concurrent.{ ExecutionContext, Future }
 
 class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaFutures {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
@@ -78,6 +77,7 @@ class EvaluatePhase1ResultJobSpec extends PlaySpec with MockitoSugar with ScalaF
     }
 
     lazy val scheduler = new EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
+      val phase = Phase.PHASE1
       val evaluateService = mockEvaluateService
       val batchSize = 1
       val lockId: String = "1"

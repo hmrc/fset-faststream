@@ -121,7 +121,7 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
 
   val prevPhase = PHASE1
 
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_PASSED)
+  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE2_TESTS)
 
   val evaluationProgressStatus = ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED
 

@@ -125,8 +125,14 @@ trait Scheduler extends RunningOfScheduledJobs {
     }
 
   private lazy val evaluatePhase1ResultJob: Option[ScheduledJob] =
-    if (evaluatePhase1ResultJobConfigValues.enabled) Some(EvaluatePhase2ResultJob) else {
+    if (evaluatePhase1ResultJobConfigValues.enabled) Some(EvaluatePhase1ResultJob) else {
       Logger.warn("evaluate phase1 result job is disabled")
+      None
+    }
+
+  private lazy val evaluatePhase2ResultJob: Option[ScheduledJob] =
+    if (evaluatePhase2ResultJobConfigValues.enabled) Some(EvaluatePhase2ResultJob) else {
+      Logger.warn("evaluate phase2 result job is disabled")
       None
     }
 
@@ -168,6 +174,7 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def retrievePhase1ResultsJobConfigValues = retrievePhase1ResultsJobConfig
   private[config] def retrievePhase2ResultsJobConfigValues = retrievePhase2ResultsJobConfig
   private[config] def evaluatePhase1ResultJobConfigValues = evaluatePhase1ResultJobConfig
+  private[config] def evaluatePhase2ResultJobConfigValues = evaluatePhase2ResultJobConfig
   private[config] def confirmAttendanceReminderJobConfigValues = confirmAttendanceReminderJobConfig
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
@@ -176,7 +183,7 @@ trait Scheduler extends RunningOfScheduledJobs {
   lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob, firstPhase1ReminderExpiringTestJob,
     secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob, secondPhase2ReminderExpiringTestJob, expirePhase1TestJob,
     expirePhase2TestJob, failedPhase1TestJob, failedPhase2TestJob, retrievePhase1ResultsJob, retrievePhase2ResultsJob, evaluatePhase1ResultJob,
-    fixerJob, confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
+    evaluatePhase2ResultJob, fixerJob, confirmAttendanceReminderJob, evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with Scheduler {
