@@ -197,14 +197,20 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
 
   def markAsCompleted(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    for {
-      _ <- phase3TestRepo.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
-      updated <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
-      _ <- phase3TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
-    } yield {
-      AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
-        DataStoreEvents.VideoInterviewCompleted(updated.applicationId) ::
-        Nil
+    phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
+      if (test.testGroup.tests.find(_.token == launchpadInviteId).get.completedDateTime.isEmpty) {
+        for {
+          _ <- phase3TestRepo.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
+          updated <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+          _ <- phase3TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
+        } yield {
+          AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
+            DataStoreEvents.VideoInterviewCompleted(updated.applicationId) ::
+            Nil
+        }
+      } else {
+        Future.successful(List[EventType]())
+      }
     }
   }
 

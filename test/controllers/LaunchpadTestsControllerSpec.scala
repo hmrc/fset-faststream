@@ -22,16 +22,22 @@ import connectors.launchpadgateway.exchangeobjects.in._
 import org.joda.time.{ DateTime, LocalDate }
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import play.api.mvc.RequestHeader
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.events.EventService
 import services.onlinetesting.{ Phase3TestCallbackService, Phase3TestService }
 import testkit.UnitWithAppSpec
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture {
+    implicit val hc = new HeaderCarrier()
+    implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
+
     val mockPhase3TestService = mock[Phase3TestService]
     val mockEventService = mock[EventService]
     val mockPhase3TestCallbackService = mock[Phase3TestCallbackService]
@@ -43,8 +49,10 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     val sampleDeadline = LocalDate.now.plusDays(7)
 
     when(mockPhase3TestCallbackService.recordCallback(any[QuestionCallbackRequest]())).thenReturn(Future.successful(()))
-    when(mockPhase3TestCallbackService.recordCallback(any[FinishedCallbackRequest]())).thenReturn(Future.successful(()))
-    when(mockPhase3TestCallbackService.recordCallback(any[FinalCallbackRequest]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[FinishedCallbackRequest]())
+    (any[HeaderCarrier](), any[RequestHeader])).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[FinalCallbackRequest]())
+    (any[HeaderCarrier](), any[RequestHeader])).thenReturn(Future.successful(()))
     when(mockPhase3TestCallbackService.recordCallback(any[ViewPracticeQuestionCallbackRequest]())).thenReturn(Future.successful(()))
     when(mockPhase3TestCallbackService.recordCallback(any[SetupProcessCallbackRequest]())).thenReturn(Future.successful(()))
     when(mockPhase3TestCallbackService.recordCallback(any[ViewBrandedVideoCallbackRequest]())).thenReturn(Future.successful(()))
@@ -111,6 +119,8 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     "respond ok" in new TestFixture {
       val response = controllerUnderTest.setupProcessCallback(sampleInviteId)(fakeRequest(sampleSetupProcessCallback))
       status(response) mustBe OK
+
+      verify(mockPhase3TestCallbackService, times(1)).recordCallback(any[SetupProcessCallbackRequest]())
     }
   }
 
@@ -118,27 +128,35 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     "respond ok" in new TestFixture {
       val response = controllerUnderTest.viewPracticeQuestionCallback(sampleInviteId)(fakeRequest(sampleViewPracticeQuestionCallback))
       status(response) mustBe OK
+
+      verify(mockPhase3TestCallbackService, times(1)).recordCallback(any[ViewPracticeQuestionCallbackRequest]())
     }
   }
 
   "question callback" should {
     "respond ok" in new TestFixture {
-      val response = controllerUnderTest.setupProcessCallback(sampleInviteId)(fakeRequest(sampleQuestionCallback))
+      val response = controllerUnderTest.questionCallback(sampleInviteId)(fakeRequest(sampleQuestionCallback))
       status(response) mustBe OK
+
+      verify(mockPhase3TestCallbackService, times(1)).recordCallback(any[QuestionCallbackRequest]())
     }
   }
 
   "final callback" should {
     "respond ok" in new TestFixture {
-      val response = controllerUnderTest.setupProcessCallback(sampleInviteId)(fakeRequest(finalCallback))
+      val response = controllerUnderTest.finalCallback(sampleInviteId)(fakeRequest(finalCallback))
       status(response) mustBe OK
+
+      verify(mockPhase3TestCallbackService, times(1)).recordCallback(eqTo(finalCallback))(any[HeaderCarrier](), any[RequestHeader]())
     }
   }
 
   "finished callback" should {
     "respond ok" in new TestFixture {
-      val response = controllerUnderTest.setupProcessCallback(sampleInviteId)(fakeRequest(finishedCallback))
+      val response = controllerUnderTest.finishedCallback(sampleInviteId)(fakeRequest(finishedCallback))
       status(response) mustBe OK
+
+      verify(mockPhase3TestCallbackService, times(1)).recordCallback(eqTo(finishedCallback))(any[HeaderCarrier](), any[RequestHeader]())
     }
   }
 }
