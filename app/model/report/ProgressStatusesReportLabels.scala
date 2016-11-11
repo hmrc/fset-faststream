@@ -56,7 +56,6 @@ trait ProgressStatusesReportLabels {
     (progress.phase2ProgressResponse.phase2TestsPassed, 280, Phase2TestsPassed),
     (progress.phase2ProgressResponse.phase2TestsFailed, 290, Phase2TestsFailed),
     (progress.phase2ProgressResponse.phase2TestsFailedNotified, 295, Phase2TestsFailedNotified),
-    (progress.phase2ProgressResponse.phase2TestsResultsReceived, 300, Phase2TestsResultsReceived),
     (progress.phase3ProgressResponse.phase3TestsInvited, 305, Phase3TestsInvited),
     (progress.phase3ProgressResponse.phase3TestsFirstReminder, 210, Phase3TestsFirstReminder),
     (progress.phase3ProgressResponse.phase3TestsSecondReminder, 220, Phase3TestsSecondReminder),
