@@ -38,4 +38,5 @@ trait Test {
   def token: String
   def startedDateTime: Option[DateTime]
   def completedDateTime: Option[DateTime]
+  def invigilatedAccessCode: Option[String]
 }

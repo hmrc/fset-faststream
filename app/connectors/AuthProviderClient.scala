@@ -21,6 +21,7 @@ import connectors.AuthProviderClient._
 import connectors.ExchangeObjects.Implicits._
 import connectors.ExchangeObjects._
 import model.Exceptions.{ ConnectorException, EmailTakenException }
+import model.exchange.SimpleTokenResponse
 import play.api.http.Status._
 import uk.gov.hmrc.play.http._
 
@@ -117,6 +118,14 @@ trait AuthProviderClient {
         throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
       case errorResponse =>
         throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
+    }
+  }
+
+  def generateAccessCode(implicit hc: HeaderCarrier): Future[SimpleTokenResponse] = {
+    WSHttp.GET(s"$url/user-friendly-access-token").map { response =>
+      response.json.as[SimpleTokenResponse]
+    }.recover {
+      case errorResponse => throw new ConnectorException(s"Bad response received when getting access code")
     }
   }
 }

@@ -16,6 +16,7 @@
 
 package services.events
 
+import connectors.AuthProviderClient
 import model.events.{ AuditEvent, DataStoreEvent, EmailEvent }
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
@@ -53,6 +54,8 @@ trait EventServiceFixture extends MockitoSugar {
     val auditEventHandler = auditEventHandlerMock
     val emailEventHandler = emailEventHandlerMock
   }
+
+  val authProviderClientMock = mock[AuthProviderClient]
 
   when(dataStoreEventHandlerMock.handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
   when(auditEventHandlerMock.handle(any[AuditEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))

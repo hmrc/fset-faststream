@@ -20,7 +20,7 @@ import akka.actor.ActorSystem
 import config.Phase2ScheduleExamples._
 import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments }
-import connectors.{ CSREmailClient, CubiksGatewayClient }
+import connectors.{ AuthProviderClient, CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model._
 import model.OnlineTestCommands.OnlineTestApplication
@@ -692,6 +692,7 @@ class Phase2TestServiceSpec extends PlaySpec with MockitoSugar with ScalaFutures
       val gatewayConfig = gatewayConfigMock
       val eventService = eventServiceMock
       val actor = ActorSystem()
+      val authProvider = authProviderClientMock
     }
   }
 }

@@ -30,7 +30,8 @@ case class LaunchpadTest(interviewId: Int,
                          customCandidateId: String,
                          invitationDate: DateTime,
                          startedDateTime: Option[DateTime],
-                         completedDateTime: Option[DateTime]
+                         completedDateTime: Option[DateTime],
+                         invigilatedAccessCode: Option[String] = None
                      ) extends Test
 
 object LaunchpadTest {
