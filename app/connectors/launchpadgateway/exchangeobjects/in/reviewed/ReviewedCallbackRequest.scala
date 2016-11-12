@@ -35,7 +35,9 @@ case class ReviewedCallbackRequest(
     val reviewers = reviews.reviewers
     val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))
 
-    def throwUnscored(questionNo: Int): Double = throw LaunchpadQuestionIsUnscoredException(s"$questionNo is unscored, score cannot be calculated")
+    def throwUnscored(questionNo: Int): Double = {
+      throw LaunchpadQuestionIsUnscoredException(s"$questionNo is unscored, score cannot be calculated")
+    }
 
     def scoreForQuestion(questionNo: Int, question: ReviewSectionQuestionRequest) =
       question.reviewCriteria1.score.getOrElse(throwUnscored(questionNo)) + question.reviewCriteria2.score.getOrElse(throwUnscored(questionNo))
