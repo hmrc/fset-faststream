@@ -272,8 +272,8 @@
             case _ => {}
         }
 
-        @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage) match {
-            case (_, None, _) => {
+        @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
+            case (_, None, _, Some(_)) => {
                 <li id="videoSection">
                     <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
                         <span class="font-xsmall">- locked</span>
@@ -281,7 +281,7 @@
                     <p>Unlocked if you're successful in the e-tray</p>
                 </li>
             }
-            case (false, Some(phase3Test), _) => {
+            case (false, Some(phase3Test), _, _) => {
                 @if(phase3Test.isCompleted) {
                     <li id="videoSection">
                         <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-check"></i>Video interview</p>
@@ -324,7 +324,7 @@
                 }
             }
 
-            case (true, Some(phase3Test), _) => {
+            case (true, Some(phase3Test), _, _) => {
                 <li id="videoSection">
                     <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                         Video interview</p>
