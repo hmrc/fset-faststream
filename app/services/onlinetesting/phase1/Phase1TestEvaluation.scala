@@ -16,12 +16,13 @@
 
 package services.onlinetesting.phase1
 
-import model.EvaluationResults.{ Amber, Green, Red, Result }
+import model.EvaluationResults.Green
 import model.SchemeType._
-import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMarkSettings }
+import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ SchemeEvaluationResult, TestResult }
+import services.onlinetesting.OnlineTestResultsCalculator
 
-trait Phase1TestEvaluation {
+trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
 
   def evaluateForGis(schemes: List[SchemeType], sjqTestResult: TestResult,
                      passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
@@ -40,32 +41,9 @@ trait Phase1TestEvaluation {
       schemePassmarkOpt = passmark.schemes find (_.schemeName == schemeToEvaluate)
       schemePassmark <- schemePassmarkOpt
     } yield {
-      val sjqResult = evaluateResultsForExercise(schemePassmark.schemeThresholds.situational)(sjqTestResult)
-      val bqResult = bqTestResultOpt.map(evaluateResultsForExercise(schemePassmark.schemeThresholds.behavioural)).getOrElse(Green)
-
-      val result = (sjqResult, bqResult) match {
-        case (Red, _) => Red
-        case (_, Red) => Red
-        case (Amber, _) => Amber
-        case (_, Amber) => Amber
-        case (Green, Green) => Green
-      }
-
-      SchemeEvaluationResult(schemeToEvaluate, result.toString)
-    }
-  }
-
-  private def evaluateResultsForExercise(threshold: PassMarkThreshold)(testResult: TestResult): Result = {
-    val tScore = testResult.tScore.get
-    val failmark = threshold.failThreshold
-    val passmark = threshold.passThreshold
-
-    if (tScore >= passmark) {
-      Green
-    } else if (tScore <= failmark) {
-      Red
-    } else {
-      Amber
+      val sjqResult = evaluateTestResult(schemePassmark.schemeThresholds.situational)(sjqTestResult.tScore)
+      val bqResult = bqTestResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.behavioural)).getOrElse(Green)
+      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(sjqResult, bqResult).toString)
     }
   }
 }
