@@ -14,36 +14,39 @@
  * limitations under the License.
  */
 
-package services.testdata
+package services.testdata.onlinetests.phase2
 
-import model.ProgressStatuses.PHASE2_TESTS_EXPIRED
-import model.persisted.ExpiringOnlineTest
+import common.FutureEx
+import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.command.testdata.GeneratorConfig
+import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
 import services.onlinetesting.Phase2TestService
+import services.testdata.ConstructiveGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-object Phase2TestsExpiredFromStartedStatusGenerator extends Phase2TestsExpiredFromStartedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsStartedStatusGenerator
+object Phase2TestsStartedStatusGenerator extends Phase2TestsStartedStatusGenerator {
+  override val previousStatusGenerator = Phase2TestsInvitedStatusGenerator
   override val otRepository = phase2TestRepository
   override val otService = Phase2TestService
 }
 
-trait Phase2TestsExpiredFromStartedStatusGenerator extends ConstructiveGenerator {
+trait Phase2TestsStartedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase2TestRepository
   val otService: Phase2TestService
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)
+      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
     for {
-      candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otService.commitProgressStatus(candidateInPreviousStatus.applicationId.get, PHASE2_TESTS_EXPIRED)
-    } yield {
-      candidateInPreviousStatus
-    }
-
+      candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
+      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.testId))(id =>
+        otService.markAsStarted(id, generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now))
+      )
+    } yield candidate
   }
 }

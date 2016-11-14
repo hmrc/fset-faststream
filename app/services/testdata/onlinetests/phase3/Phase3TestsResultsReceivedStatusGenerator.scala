@@ -14,32 +14,31 @@
  * limitations under the License.
  */
 
-package services.testdata
+package services.testdata.onlinetests.phase3
 
-import common.FutureEx
+import model.ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
+import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.onlinetesting.Phase1TestRepository
-import services.onlinetesting.Phase1TestService
+import repositories.application.GeneralApplicationRepository
+import services.onlinetesting.Phase3TestService
+import services.testdata.ConstructiveGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1TestsCompletedStatusGenerator extends Phase1TestsCompletedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsStartedStatusGenerator
-  override val otRepository = phase1TestRepository
-  override val otService = Phase1TestService
+object Phase3TestsResultsReceivedStatusGenerator extends Phase3TestsResultsReceivedStatusGenerator {
+  val previousStatusGenerator = Phase3TestsCompletedStatusGenerator
+  val appRepository = applicationRepository
 }
 
-trait Phase1TestsCompletedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase1TestRepository
-  val otService: Phase1TestService
+trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
+  val appRepository: GeneralApplicationRepository
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
-      candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.cubiksUserId))(id => otService.markAsCompleted(id))
-    } yield candidate
+        candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
+        _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, PHASE3_TESTS_RESULTS_RECEIVED)
+      } yield candidate
+    }
   }
-}

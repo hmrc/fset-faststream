@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package services.testdata
+package services.testdata.onlinetests.phase1
 
 import java.util.UUID
 
 import config.CubiksGatewayConfig
-import connectors.testdata.ExchangeObjects.{ TestGroupResponse, CubiksTestResponse }
-import model.persisted.{ CubiksTest, Phase1TestProfile }
+import config.MicroserviceAppConfig.cubiksGatewayConfig
+import connectors.testdata.ExchangeObjects.{ TestGroupResponse, TestResponse }
 import model.command.testdata.GeneratorConfig
+import model.persisted.{ CubiksTest, Phase1TestProfile }
 import org.joda.time.DateTime
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
+import services.testdata.{ ConstructiveGenerator, SubmittedStatusGenerator }
 import uk.gov.hmrc.play.http.HeaderCarrier
-import config.MicroserviceAppConfig.cubiksGatewayConfig
-import play.api.mvc.RequestHeader
-import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -78,9 +78,9 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
         TestGroupResponse(
-          List(CubiksTestResponse(sjq.cubiksUserId, sjq.token, sjq.testUrl)) ++
+          List(TestResponse(sjq.cubiksUserId, sjq.token, sjq.testUrl)) ++
           bq.map { b =>
-            List(CubiksTestResponse(b.cubiksUserId, b.token, b.testUrl))
+            List(TestResponse(b.cubiksUserId, b.token, b.testUrl))
           }.getOrElse(Nil)
         )
       ))

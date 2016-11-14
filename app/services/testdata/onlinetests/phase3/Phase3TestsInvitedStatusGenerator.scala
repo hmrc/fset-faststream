@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package services.testdata
+package services.testdata.onlinetests.phase3
 
 import java.util.UUID
 
 import _root_.services.onlinetesting.Phase3TestService
+import _root_.services.testdata.ConstructiveGenerator
+import _root_.services.testdata.onlinetests.phase2.Phase2TestsResultsReceivedStatusGenerator
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig._
-import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import connectors.testdata.ExchangeObjects.{ DataGenerationResponse, TestGroupResponse, TestResponse }
 import model.ApplicationStatus._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.testdata.GeneratorConfig
-import model.persisted.phase3tests.{ LaunchpadTestCallbacks, LaunchpadTest, Phase3TestGroup }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -87,8 +89,11 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       _ <- p3Repository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase3TestGroup)
       testGroup <- p3Repository.getTestGroup(phase3TestApplication.applicationId)
     } yield {
+      val phase3TestGroupResponse = TestResponse(testId = launchpad.interviewId, token = launchpad.token,
+        testUrl = testGroup.get.tests.find(_.usedForResults).get.testUrl)
+
       candidateInPreviousStatus.copy(
-        phase3TestUrl = Some(testGroup.get.tests.find(_.usedForResults).get.testUrl)
+        phase3TestGroup = Some(TestGroupResponse(List(phase3TestGroupResponse)))
       )
     }
   }
