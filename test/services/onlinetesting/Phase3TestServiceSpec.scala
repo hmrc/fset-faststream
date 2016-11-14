@@ -63,6 +63,14 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )
     }
 
+    "supress the invitation email for invigilated applicants" in new Phase3TestServiceFixture {
+
+      val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
+      val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
+      verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+    }
+
     "insert a valid test group" in new Phase3TestServiceFixture {
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
@@ -407,4 +415,3 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 }
-
