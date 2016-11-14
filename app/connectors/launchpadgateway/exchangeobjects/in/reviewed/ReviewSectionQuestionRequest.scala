@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package model.persisted
+package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
-import model.ApplicationStatus._
-import model.SelectedSchemes
-import play.api.libs.json._
+import play.api.libs.json.Json
+import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
-case class ApplicationPhase1ReadyForEvaluation(
-  applicationId: String,
-  applicationStatus: ApplicationStatus,
-  isGis: Boolean,
-  phase1: Phase1TestProfile,
-  preferences: SelectedSchemes
-) {
-  def nonGis = !isGis
-}
+case class ReviewSectionQuestionRequest(id: Int, reviewCriteria1: ReviewSectionCriteriaRequest,
+  reviewCriteria2: ReviewSectionCriteriaRequest)
 
-object ApplicationPhase1ReadyForEvaluation {
-  implicit val applicationPhase1ReadyForEvaluationFormats = Json.format[ApplicationPhase1ReadyForEvaluation]
+object ReviewSectionQuestionRequest {
+  implicit val reviewSectionReviewerQuestion = Json.format[ReviewSectionQuestionRequest]
+  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewSectionQuestionRequest] = Macros.handler[ReviewSectionQuestionRequest]
 }

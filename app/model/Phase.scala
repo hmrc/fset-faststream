@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import scala.language.implicitConversions
 
-case class PassmarkEvaluation(passmarkVersion: String,
-                              previousPhasePassMarkVersion: Option[String],
-                              result: List[SchemeEvaluationResult])
+object Phase extends Enumeration {
 
-object PassmarkEvaluation {
-  implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
-  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
+  type Phase = Value
+
+  val PHASE1, PHASE2, PHASE3 = Value
+
+  implicit def toString(phase: Phase): String = phase.toString
+
 }

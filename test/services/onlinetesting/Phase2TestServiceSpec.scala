@@ -19,7 +19,7 @@ package services.onlinetesting
 import akka.actor.ActorSystem
 import config.Phase2ScheduleExamples._
 import config._
-import connectors.ExchangeObjects.{ toString => _, _ }
+import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments, toString => _ }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
@@ -521,6 +521,15 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
+  "email Invite to Applicants" should {
+    "not be sent for invigilated e-tray" in new Phase2TestServiceFixture {
+      override val candidates = List(OnlineTestApplicationExamples.InvigilatedETrayCandidate)
+      implicit val date: DateTime = invitationDate
+      phase2TestService.emailInviteToApplicants(candidates).futureValue
+      verifyZeroInteractions(emailClientMock)
+    }
+  }
+
   private def phase2Progress(phase2ProgressResponse: Phase2ProgressResponse) =
     ProgressResponse("appId", phase2ProgressResponse = phase2ProgressResponse)
 
@@ -623,7 +632,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       List(phase2Test, phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
     )
     val invigilatedTestProfile = Phase2TestGroup(
-      invigilatedExpirationDate, List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
+      invigilatedExpirationDate, List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId, invigilatedAccessCode = Some("accessCode")))
     )
 
     val testResult = OnlineTestCommands.TestResult(status = "Completed",
@@ -688,6 +697,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val gatewayConfig = gatewayConfigMock
       val eventService = eventServiceMock
       val actor = ActorSystem()
+      val authProvider = authProviderClientMock
     }
   }
 }

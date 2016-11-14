@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package model.persisted
+package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
-case class PassmarkEvaluation(passmarkVersion: String,
-                              previousPhasePassMarkVersion: Option[String],
-                              result: List[SchemeEvaluationResult])
+case class ReviewSectionReviewersRequest(
+  reviewer1: ReviewSectionReviewerRequest,
+  reviewer2: Option[ReviewSectionReviewerRequest],
+  reviewer3: Option[ReviewSectionReviewerRequest]
+)
 
-object PassmarkEvaluation {
-  implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
-  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
+object ReviewSectionReviewersRequest {
+  implicit val reviewSectionReviewersFormat = Json.format[ReviewSectionReviewersRequest]
+  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewSectionReviewersRequest] = Macros.handler[ReviewSectionReviewersRequest]
 }

@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model.exchange.passmarksettings
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import org.joda.time.DateTime
 
-case class PassmarkEvaluation(passmarkVersion: String,
-                              previousPhasePassMarkVersion: Option[String],
-                              result: List[SchemeEvaluationResult])
-
-object PassmarkEvaluation {
-  implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
-  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
+object Phase2PassMarkSettingsExamples {
+  def passmark(implicit now: DateTime) = Phase2PassMarkSettings(List(), "version", now, "userId")
 }
