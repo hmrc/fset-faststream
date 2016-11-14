@@ -25,7 +25,7 @@ import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatExc
 import model.Exceptions.EmailTakenException
 import model.command.testdata.GeneratorConfig
 import model.exchange.testdata._
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses }
+import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType }
 import play.api.Play
 import play.api.libs.json.{ JsObject, JsString, Json }
 import play.api.mvc.{ Action, RequestHeader }
@@ -82,6 +82,7 @@ trait TestDataGeneratorController extends BaseController {
           assessmentCentreAdjustments = Some(false),
           assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
         )),
+        schemeTypes = Some(List(SchemeType.Commercial, SchemeType.European, SchemeType.DigitalAndTechnology)),
         isCivilServant = Some(Random.bool),
         hasDegree = Some(Random.bool),
         region = Some("region"),
@@ -105,7 +106,7 @@ trait TestDataGeneratorController extends BaseController {
         ))
       )
 
-      Ok(Json.toJson(example))
+      Ok(Json.toJson(example)).withHeaders(CONTENT_TYPE -> "application/json")
     }
   }
   // scalastyle:on method.length

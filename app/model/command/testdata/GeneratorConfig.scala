@@ -19,6 +19,7 @@ package model.command.testdata
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
+import model.SchemeType.SchemeType
 import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
@@ -169,6 +170,7 @@ case class GeneratorConfig(statusData: StatusData,
   personalData: PersonalData = PersonalData(),
   assistanceDetails: AssistanceDetails = AssistanceDetails(),
   cubiksUrl: String,
+  schemeTypes: Option[List[SchemeType]] = None,
   isCivilServant: Boolean = Random.bool,
   hasDegree: Boolean = Random.bool,
   region: Option[String] = None,
@@ -190,6 +192,7 @@ object GeneratorConfig {
       personalData = o.personalData.map( p => PersonalData(p, generatorId)).getOrElse(PersonalData()),
       assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
       cubiksUrl = cubiksUrlFromConfig,
+      schemeTypes = o.schemeTypes,
       isCivilServant = o.isCivilServant.getOrElse(Random.bool),
       hasDegree = o.hasDegree.getOrElse(Random.bool),
       region = o.region,
