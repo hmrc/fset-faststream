@@ -59,21 +59,19 @@
 
 @eTraySectionBeforeOnlineExercisesFinishes() = {
     <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray
-        <span class="font-xsmall" data-locked>- locked</span>
+        <span class="font-xsmall">- locked</span>
     </p>
-    <p data-locked>
+    <p>
         Unlocked if you're successful in the online exercises
     </p>
 }
 
 @onlineExercisesForUnconfirmedAdjustments() = {
     <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon"></i>E-tray</p>
-    <p data-locked>
-        Before you take the e-tray we need to contact you to confirm your requested extra support.
-    </p>
+    <p>Before you take the e-tray we need to contact you to confirm your requested extra support.</p>
 }
 
-<div data-hidesdip>
+<div>
 
     @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
         case (true, _, _) => {
@@ -109,17 +107,17 @@
                 <ul class="list-text list-withicons" id="testsIndividual">
                     <li>
                         <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
-                            <span class="font-xsmall" data-locked>- locked</span>
+                            <span class="font-xsmall">- locked</span>
                         </p>
                     </li>
                     <li>
                         <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>E-tray
-                            <span class="font-xsmall" data-locked>- locked</span>
+                            <span class="font-xsmall">- locked</span>
                         </p>
                     </li>
                     <li>
                         <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Video interview
-                            <span class="font-xsmall" data-locked>- locked</span>
+                            <span class="font-xsmall">- locked</span>
                         </p>
                     </li>
                 </ul>
@@ -129,12 +127,12 @@
                         <li>
                             <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>
                                 Situational judgement questionnaire
-                                <span class="font-xsmall" data-locked>- locked</span>
+                                <span class="font-xsmall">- locked</span>
                             </p>
                         </li>
                         <li>
                             <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Behavioural questionnaire
-                                <span class="font-xsmall" data-locked>- locked</span>
+                                <span class="font-xsmall">- locked</span>
                             </p>
                         </li>
                         <p>We'll let you know when the online tests are ready for you to complete.</p>
@@ -278,9 +276,9 @@
             case (_, None, Some(tests)) => {
                 <li id="videoSection">
                     <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
-                        <span class="font-xsmall" data-locked>- locked</span>
+                        <span class="font-xsmall">- locked</span>
                     </p>
-                    <p data-locked>Unlocked if you're successful in e-tray</p>
+                    <p>Unlocked if you're successful in e-tray</p>
                 </li>
             }
             case (false, Some(phase3Test), _) => {
