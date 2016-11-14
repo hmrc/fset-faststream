@@ -106,7 +106,7 @@ trait TestDataGeneratorController extends BaseController {
         ))
       )
 
-      Ok(Json.toJson(example)).withHeaders(CONTENT_TYPE -> "application/json")
+      Ok(Json.toJson(example))
     }
   }
   // scalastyle:on method.length
