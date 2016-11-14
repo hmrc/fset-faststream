@@ -18,6 +18,7 @@ package controllers
 
 import config.CSRCache
 import connectors.ApplicationClient
+import connectors.UserManagementClient.TokenEmailPairInvalidException
 import forms.VerifyCodeForm
 import helpers.NotificationType._
 import models.CachedData
@@ -43,7 +44,9 @@ class InvigilatedController(applicationClient: ApplicationClient, cacheClient: C
         data =>
           applicationClient.verifyInvigilatedToken(data.email, data.token).flatMap {
           invigilatedTest => Future.successful(Redirect(invigilatedTest.url))
-        }.fallbackTo(Future.successful(showValidationError(data)))
+        }.recover {
+            case e: TokenEmailPairInvalidException => Ok(Future.successful(showValidationError(data)))
+        }
       )
   }
 
