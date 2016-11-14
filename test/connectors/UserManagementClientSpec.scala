@@ -18,7 +18,7 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.CSRHttp
-import connectors.UserManagementClient.EmailTakenException
+import connectors.UserManagementClient.{ EmailTakenException, TokenEmailPairInvalidException }
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -57,14 +57,15 @@ class UserManagementClientSpec extends UnitWithAppSpec with ConnectorSpec {
       response.role mustBe "candidate"
       response.isActive mustBe true
     }
+
+    "throw EmailTakenException if the email address is already taken" in {
+
+      stubFor(post(urlPathEqualTo(s"/add")).willReturn(
+        aResponse().withStatus(409)
+      ))
+
+      connector.register("test@email.com", "pw", "fn", "ln").failed.futureValue mustBe an[EmailTakenException]
+    }
   }
 
-  "throw EmailTakenException if the email address is already taken" in {
-
-    stubFor(post(urlPathEqualTo(s"/add")).willReturn(
-      aResponse().withStatus(409)
-    ))
-
-    connector.register("test@email.com", "pw", "fn", "ln").failed.futureValue mustBe an[EmailTakenException]
-  }
 }

@@ -1,0 +1,36 @@
+@(verifyTokenForm: Form[_root_.forms.VerifyCodeForm.Data], notification: Option[(helpers.NotificationType, String)] = None
+)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, faststreamConfig: FaststreamConfig)
+
+@import helpers.CSRFieldConstructor._
+
+@main_template(title = "Start invigilated e-tray", pageForms = Seq(verifyTokenForm), notification = notification) {
+
+    <h1 class="heading-xlarge">Start invigilated e-tray</h1>
+    <section class="panel-indent text">
+        <p>You'll need the candidate's email address and 7-character access code to continue.</p>
+    </section>
+
+    @helper.form(action = routes.InvigilatedController.verifyToken, 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        <div class="form-group form-group-compound">
+            @helper.inputText(verifyTokenForm("email"),
+            '_label -> "Email",
+            'type -> "email",
+            'class -> "form-control",
+            '_class -> "form-group-compound",
+            '_showConstraints -> false)
+        </div>
+        <div class="form-group">
+            @helper.inputText(verifyTokenForm("token"),
+            '_label -> "Access code",
+            '_hasLink -> true,
+            'autocapitalize -> "characters",
+            'autocorrect -> "off",
+            'class -> "form-control",
+            '_showConstraints -> false)
+        </div>
+        <div class="form-group small-btm-margin">
+            <button id="btnSignIn" type="submit" value="submit" class="button">Start e-tray</button>
+        </div>
+    }
+}

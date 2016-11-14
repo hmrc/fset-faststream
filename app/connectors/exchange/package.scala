@@ -83,6 +83,10 @@ package object exchange {
 
   case class PreviewRequest(flag: Boolean)
 
+  final case class VerifyInvigilatedTokenUrlRequest(email: String, accessCode: String)
+
+  final case class InvigilatedTestUrl(url: String)
+
   object Implicits {
 
     implicit val emailWrapperFormat = Json.format[EmailWrapper]
@@ -121,5 +125,8 @@ package object exchange {
     implicit val resetPasswordRequestFormat = Json.format[ResetPasswordRequest]
 
     implicit val previewFormat = Json.format[PreviewRequest]
+
+    implicit val invigilatedTestUrlFormat = Json.format[InvigilatedTestUrl]
+    implicit val verifyInvigilatedTokenUrlRequestFormat = Json.format[VerifyInvigilatedTokenUrlRequest]
   }
 }
