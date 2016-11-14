@@ -46,6 +46,8 @@ object Exceptions {
 
   case class ContactDetailsNotFound(userId: String) extends Exception(userId)
 
+  case class ContactDetailsNotFoundForEmail() extends Exception
+
   case class SchemePreferencesNotFound(applicationId: String) extends Exception(applicationId)
 
   case class PassMarkEvaluationNotFound(applicationId: String) extends Exception(applicationId)
