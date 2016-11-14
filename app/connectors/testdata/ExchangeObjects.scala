@@ -37,21 +37,21 @@ object ExchangeObjects {
                                     assistanceDetails: Option[AssistanceDetails] = None,
                                     phase1TestGroup: Option[TestGroupResponse] = None,
                                     phase2TestGroup: Option[TestGroupResponse] = None,
+                                    phase3TestGroup: Option[TestGroupResponse] = None,
                                     applicationAssessment: Option[ApplicationAssessment] = None,
-                                    schemePreferences: Option[SelectedSchemes] = None,
-                                    phase3TestUrl: Option[String] = None
+                                    schemePreferences: Option[SelectedSchemes] = None
                                    )
 
-  case class TestGroupResponse(tests: List[CubiksTestResponse])
+  case class TestGroupResponse(tests: List[TestResponse])
 
-  case class CubiksTestResponse(cubiksUserId: Int, token: String, testUrl: String)
+  case class TestResponse(testId: Int, token: String, testUrl: String)
+
 
   object Implicits {
 
     import model.Commands.Implicits._
-
-    implicit val phase1TestResponseFormat = Json.format[CubiksTestResponse]
-    implicit val phase1TestGroupResponseFormat = Json.format[TestGroupResponse]
+    implicit val testResponseFormat = Json.format[TestResponse]
+    implicit val testGroupResponseFormat = Json.format[TestGroupResponse]
     implicit val dataGenerationResponseFormat = Json.format[DataGenerationResponse]
   }
 }

@@ -14,36 +14,33 @@
  * limitations under the License.
  */
 
-package services.testdata
+package services.testdata.onlinetests.phase2
 
-import model.ProgressStatuses.PHASE2_TESTS_EXPIRED
-import model.persisted.ExpiringOnlineTest
+import common.FutureEx
+import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
 import services.onlinetesting.Phase2TestService
+import services.testdata.ConstructiveGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase2TestsExpiredFromInvitedStatusGenerator extends Phase2TestsExpiredFromInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsInvitedStatusGenerator
+object Phase2TestsCompletedStatusGenerator extends Phase2TestsCompletedStatusGenerator {
+  override val previousStatusGenerator = Phase2TestsStartedStatusGenerator
   override val otRepository = phase2TestRepository
   override val otService = Phase2TestService
 }
 
-trait Phase2TestsExpiredFromInvitedStatusGenerator extends ConstructiveGenerator {
+trait Phase2TestsCompletedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase2TestRepository
   val otService: Phase2TestService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
-      candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otService.commitProgressStatus(candidateInPreviousStatus.applicationId.get, PHASE2_TESTS_EXPIRED)
-    } yield {
-      candidateInPreviousStatus
-    }
-
+      candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
+      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.testId))(id => otService.markAsCompleted(id))
+    } yield candidate
   }
 }

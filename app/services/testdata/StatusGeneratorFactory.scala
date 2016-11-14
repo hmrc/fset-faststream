@@ -21,6 +21,10 @@ import model.Exceptions.InvalidStatusException
 import model.ProgressStatuses
 import model.ProgressStatuses.ProgressStatus
 import model.command.testdata.GeneratorConfig
+import services.testdata.onlinetests._
+import services.testdata.onlinetests.phase1._
+import services.testdata.onlinetests.phase2._
+import services.testdata.onlinetests.phase3._
 
 object StatusGeneratorFactory {
   // scalastyle:off cyclomatic.complexity method.length
@@ -28,6 +32,7 @@ object StatusGeneratorFactory {
 
     val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
     val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)
+    val phase3StartTime = generatorConfig.phase3TestData.flatMap(_.start)
 
     (generatorConfig.statusData.applicationStatus, generatorConfig.statusData.progressStatus) match {
       case (appStatus, None) => appStatus match {
@@ -77,6 +82,17 @@ object StatusGeneratorFactory {
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_PASSED)) => Phase2TestsPassedStatusGenerator
 
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_INVITED)) => Phase3TestsInvitedStatusGenerator
+      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_STARTED)) => Phase3TestsStartedStatusGenerator
+      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_EXPIRED)) =>
+        if (phase3StartTime.isDefined) {
+          Phase3TestsExpiredFromStartedStatusGenerator
+        } else {
+          Phase3TestsExpiredFromInvitedStatusGenerator
+        }
+      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_COMPLETED)) => Phase3TestsCompletedStatusGenerator
+      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)) => Phase3TestsResultsReceivedStatusGenerator
+      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => Phase3TestsPassedStatusGenerator
+
       case _ => throw InvalidStatusException(s"${generatorConfig.statusData.applicationStatus} is not valid or not supported")
     }
   }
