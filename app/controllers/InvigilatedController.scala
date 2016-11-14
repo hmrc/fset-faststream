@@ -45,7 +45,7 @@ class InvigilatedController(applicationClient: ApplicationClient, cacheClient: C
           applicationClient.verifyInvigilatedToken(data.email, data.token).flatMap {
           invigilatedTest => Future.successful(Redirect(invigilatedTest.url))
         }.recover {
-            case e: TokenEmailPairInvalidException => Ok(Future.successful(showValidationError(data)))
+            case e: TokenEmailPairInvalidException => showValidationError(data)
         }
       )
   }
