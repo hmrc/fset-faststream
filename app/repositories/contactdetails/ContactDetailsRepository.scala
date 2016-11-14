@@ -16,7 +16,7 @@
 
 package repositories.contactdetails
 
-import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound }
+import model.Exceptions.{ ContactDetailsNotFoundForEmail, CannotUpdateContactDetails, ContactDetailsNotFound }
 import model.persisted.ContactDetails
 import play.api.Logger
 import reactivemongo.api.DB
@@ -31,6 +31,8 @@ trait ContactDetailsRepository {
   def update(userId: String, contactDetails: ContactDetails): Future[Unit]
 
   def find(userId: String): Future[ContactDetails]
+
+  def findUserIdByEmail(email: String): Future[String]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -58,6 +60,17 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       case Some(d) if d.getAs[BSONDocument]("contact-details").isDefined =>
         d.getAs[ContactDetails]("contact-details").get
       case None => throw ContactDetailsNotFound(userId)
+    }
+  }
+
+  def findUserIdByEmail(email: String): Future[String] = {
+    val query = BSONDocument("contact-details.email" -> email)
+    val projection = BSONDocument("userId" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(d) if d.getAs[String]("userId").isDefined =>
+        d.getAs[String]("userId").get
+      case None => throw ContactDetailsNotFoundForEmail()
     }
   }
 }

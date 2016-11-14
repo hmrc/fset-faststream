@@ -18,11 +18,13 @@ package controllers
 
 import model.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.ResetOnlineTest
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import model.command.{ InvigilatedTestUrl, ResetOnlineTest, VerifyAccessCode }
+import org.mockito.Matchers._
 import org.mockito.Mockito._
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
 import play.api.test.Helpers._
+import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.{ Phase1TestService, Phase2TestService, Phase3TestService }
@@ -64,6 +66,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe OK
     }
+
     "return the response as reset limit exceeded" in {
       when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
@@ -72,6 +75,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe LOCKED
     }
+
     "return cannot reset phase2 tests exception" in {
       when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotResetPhase2Tests()))
@@ -80,6 +84,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe NOT_FOUND
     }
+
     "return not found exception" in {
       when(mockPhase2TestService.resetTests(any[OnlineTestApplication], any[String])
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(ResetLimitExceededException()))
@@ -88,5 +93,45 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe NOT_FOUND
     }
+  }
+
+  "verify access code" should {
+    "return an invigilated test url when the supplied email and access code belong to a valid user" in {
+      val verifyAccessCode = VerifyAccessCode(email = "test@email.com", accessCode = "ACCESS-CODE")
+      val jsonString = Json.toJson(verifyAccessCode).toString()
+
+      val json: JsValue = Json.parse(jsonString)
+      val fakeRequest = verifyAccessCodeRequest(json)
+
+      val invigilatedTestUrl = "invigilated.test.url"
+      when(mockPhase2TestService.verifyAccessCode(any[String], any[String]))
+        .thenReturn(Future.successful(Some(invigilatedTestUrl)))
+
+      val response = controller.verifyAccessCode()(fakeRequest)
+      status(response) mustBe OK
+
+      val invigilatedTestUrlReturned = contentAsJson(response).as[InvigilatedTestUrl]
+      invigilatedTestUrlReturned mustBe InvigilatedTestUrl(invigilatedTestUrl)
+    }
+
+    "return NOT FOUND when the supplied email and access code do not belong to a valid user" in {
+      val verifyAccessCode = VerifyAccessCode(email = "test@email.com", accessCode = "ACCESS-CODE")
+      val jsonString = Json.toJson(verifyAccessCode).toString()
+
+      val json: JsValue = Json.parse(jsonString)
+      val fakeRequest = verifyAccessCodeRequest(json)
+
+      when(mockPhase2TestService.verifyAccessCode(any[String], any[String])).thenReturn(Future.successful(None))
+
+      val response = controller.verifyAccessCode()(fakeRequest)
+      status(response) mustBe NOT_FOUND
+    }
+  }
+
+  private def verifyAccessCodeRequest(json: JsValue) = {
+    FakeRequest(
+      Helpers.POST,
+      controllers.routes.OnlineTestController.verifyAccessCode().url, FakeHeaders(), json
+    ).withHeaders("Content-Type" -> "application/json")
   }
 }

@@ -22,6 +22,7 @@ import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments, toString => _ }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.Exceptions.ContactDetailsNotFoundForEmail
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
 import model._
@@ -50,6 +51,37 @@ import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
 class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
+
+  "Verify access code" should {
+    "return an invigilated test url for a valid candidate" in new Phase2TestServiceFixture {
+      when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.successful(authenticateUrl))
+
+      val accessCode = "TEST-CODE"
+      val phase2TestGroup = Phase2TestGroup(expirationDate, List(phase2Test.copy(invigilatedAccessCode = Some(accessCode))))
+      when(otRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
+
+      val result = phase2TestService.verifyAccessCode("test-email.com", accessCode).futureValue
+      result mustBe Some(authenticateUrl)
+    }
+
+    "return no invigilated test url if the access code does not match" in new Phase2TestServiceFixture {
+      when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.successful(authenticateUrl))
+
+      val accessCode = "TEST-CODE"
+      val phase2TestGroup = Phase2TestGroup(expirationDate, List(phase2Test.copy(invigilatedAccessCode = Some(accessCode))))
+      when(otRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
+
+      val result = phase2TestService.verifyAccessCode("test-email.com", "I-DO-NOT-MATCH").futureValue
+      result mustBe None
+    }
+
+    "return no invigilated test url if the user cannot be located by email" in new Phase2TestServiceFixture {
+      when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.failed(ContactDetailsNotFoundForEmail()))
+
+      val result = phase2TestService.verifyAccessCode("test-email.com", "ANY-CODE").futureValue
+      result mustBe None
+    }
+  }
 
   "Register applicants" should {
     "correctly register a batch of candidates" in new Phase2TestServiceFixture {

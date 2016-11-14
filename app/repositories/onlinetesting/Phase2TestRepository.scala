@@ -39,6 +39,8 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
 
   def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup]]
 
+  def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup]]
+
   def getTestProfileByToken(token: String): Future[Phase2TestGroup]
 
   def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase2TestGroupWithAppId]
@@ -74,6 +76,17 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup]] = {
     getTestGroup(applicationId, phaseName)
+  }
+
+  override def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup]] = {
+    val query = BSONDocument("userId" -> userId)
+    val projection = BSONDocument(s"testGroups.PHASE2" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+      optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
+        .flatMap {_.getAs[BSONDocument]("PHASE2")}
+        .map {x => bsonHandler.read(x)}
+    }
   }
 
   override def getTestProfileByToken(token: String): Future[Phase2TestGroup] = {

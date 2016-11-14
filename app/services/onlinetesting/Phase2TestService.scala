@@ -23,7 +23,7 @@ import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
 import connectors.{ AuthProviderClient, CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
+import model.Exceptions.{ ContactDetailsNotFoundForEmail, ApplicationNotFound, NotFoundException }
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model.command.ProgressResponse
@@ -92,6 +92,25 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
         test,
         schedulesAvailable(phase2.tests.map(_.scheduleId))
       )
+    }
+  }
+
+  def verifyAccessCode(email: String, accessCode: String): Future[Option[String]] = {
+    (for {
+      userId <- cdRepository.findUserIdByEmail(email)
+      testGroupOpt <- phase2TestRepo.getTestGroupByUserId(userId)
+    } yield {
+      testGroupOpt.flatMap { testGroup =>
+        val eTrayTest = testGroup.activeTests.head
+        val accessCodeOpt = eTrayTest.invigilatedAccessCode
+        if (accessCodeOpt.contains(accessCode)) {
+          Some(eTrayTest.testUrl)
+        } else {
+          None
+        }
+      }
+    }) recover {
+      case _: ContactDetailsNotFoundForEmail => None
     }
   }
 

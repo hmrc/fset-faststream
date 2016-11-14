@@ -19,7 +19,7 @@ package controllers
 import model.ApplicationStatus._
 import model.Commands
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.ResetOnlineTest
+import model.command.{ InvigilatedTestUrl, VerifyAccessCode, ResetOnlineTest }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
@@ -124,6 +124,15 @@ trait OnlineTestController extends BaseController {
       appRepository.getOnlineTestApplication(appId).flatMap {
         case Some(onlineTestApp) => reset(onlineTestApp, resetOnlineTest.actionTriggeredBy)
         case _ => Future.successful(NotFound)
+      }
+    }
+  }
+
+  def verifyAccessCode() = Action.async(parse.json) { implicit request =>
+    withJsonBody[VerifyAccessCode] { verifyAccessCode =>
+      phase2TestService.verifyAccessCode(verifyAccessCode.email, verifyAccessCode.accessCode).map {
+        case Some(invigilatedTestUrl) => Ok(Json.toJson(InvigilatedTestUrl(invigilatedTestUrl)))
+        case None => NotFound
       }
     }
   }
