@@ -273,7 +273,7 @@
         }
 
         @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage) match {
-            case (_, None, Some(tests)) => {
+            case (_, None, _) => {
                 <li id="videoSection">
                     <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
                         <span class="font-xsmall">- locked</span>
