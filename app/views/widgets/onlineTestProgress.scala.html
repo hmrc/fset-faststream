@@ -1,13 +1,29 @@
-@import _root_.connectors.exchange.{ AllocationDetails, Phase1TestGroup }
+@(cachedUserData: CachedData,
+        dashboardPage: models.page.DashboardPage,
+        assistanceDetails: Option[_root_.connectors.exchange.AssistanceDetails] = None,
+        adjustments: Option[Adjustments] = None)(
+        implicit request: Request[_])
+
 @import security.RoleUtils._
-@import models.page.{ DashboardPage, Phase1TestsPage, CubiksTestPage }
 @import models.page.Phase2TestsPage
-@(cachedUserData: CachedData, dashboardPage: DashboardPage)(implicit request: Request[_])
 
-@import models.ApplicationData.ApplicationStatus._
+@requiresInvigilatedETray = @{
+    adjustments.flatMap(_.adjustments).exists(_.contains("etrayInvigilated"))
+}
 
-@isInvigilatedETrayApproved = @{
-    dashboardPage.phase2TestsPage.exists(_.isInvigilatedETrayApproved)
+@hasUnconfirmedAdjustments = @{
+    val requiresAdjustments = assistanceDetails.exists(a => a.requiresAdjustments)
+    // Some(adjustments) is returned when adjustments are confirmed,
+    // otherwise None is returned. None means two cases:
+    // - no adjustments have been requested
+    // - adjustments have been requested, but they are awaiting confirmation
+    val adjustmentsConfirmed = adjustments.flatMap(_.adjustmentsConfirmed).getOrElse(false)
+    requiresAdjustments && !adjustmentsConfirmed
+}
+
+@invigilatedETraySection() = {
+    <p>We're arranging for you to come in and take an invigilated e-tray.</p>
+    <p>You'll be contacted by a member of our team with further details.</p>
 }
 
 @isInvigilatedVideoApproved = @{
@@ -16,9 +32,8 @@
 
 @eTraySection(phase2Test: Phase2TestsPage) = {
     <div id="etrayBlurb">
-        @if(isInvigilatedETrayApproved) {
-            <p>We're arranging for you to come in and take an invigilated e-tray.</p>
-            <p>You'll be contacted by a member of our team with further details.</p>
+        @if(requiresInvigilatedETray) {
+            @invigilatedETraySection()
         } else {
             <p id="etrayDescription" class="">This section is timed, after starting the section you'll have 80 minutes to complete it. If we've agreed you require extra time, this will be added to the 80 minutes.</p>
             <p id="etrayTime" class="">You have <strong>@{
@@ -42,7 +57,21 @@
     </div>
 }
 
-<div data-hidesdip>
+@eTraySectionBeforeOnlineExercisesFinishes() = {
+    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray
+        <span class="font-xsmall">- locked</span>
+    </p>
+    <p>
+        Unlocked if you're successful in the online exercises
+    </p>
+}
+
+@onlineExercisesForUnconfirmedAdjustments() = {
+    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon"></i>E-tray</p>
+    <p>Before you take the e-tray we need to contact you to confirm your requested extra support.</p>
+}
+
+<div>
 
     @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
         case (true, _, _) => {
@@ -78,17 +107,17 @@
                 <ul class="list-text list-withicons" id="testsIndividual">
                     <li>
                         <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
-                            <span class="font-xsmall" data-locked>- locked</span>
+                            <span class="font-xsmall">- locked</span>
                         </p>
                     </li>
                     <li>
                         <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>E-tray
-                            <span class="font-xsmall" data-locked>- locked</span>
+                            <span class="font-xsmall">- locked</span>
                         </p>
                     </li>
                     <li>
                         <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Video interview
-                            <span class="font-xsmall" data-locked>- locked</span>
+                            <span class="font-xsmall">- locked</span>
                         </p>
                     </li>
                 </ul>
@@ -98,12 +127,12 @@
                         <li>
                             <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>
                                 Situational judgement questionnaire
-                                <span class="font-xsmall" data-locked>- locked</span>
+                                <span class="font-xsmall">- locked</span>
                             </p>
                         </li>
                         <li>
                             <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Behavioural questionnaire
-                                <span class="font-xsmall" data-locked>- locked</span>
+                                <span class="font-xsmall">- locked</span>
                             </p>
                         </li>
                         <p>We'll let you know when the online tests are ready for you to complete.</p>
@@ -214,10 +243,14 @@
             }
             case (_, _, None, Some(tests)) => {
                 <li id="etraySection">
-                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray
-                        <span class="font-xsmall" data-locked>- locked</span>
-                    </p>
-                    <p data-locked>Unlocked if you're successful in the online exercises</p>
+                    @if(dashboardPage.isPhase1TestsPassed && hasUnconfirmedAdjustments) {
+                        @onlineExercisesForUnconfirmedAdjustments()
+                    } else { @if(dashboardPage.isPhase1TestsPassed && requiresInvigilatedETray) {
+                        <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon"></i>E-tray</p>
+                        @invigilatedETraySection
+                    } else {
+                        @eTraySectionBeforeOnlineExercisesFinishes()
+                    }}
                 </li>
             }
             case (false, false, Some(phase2Test), _) => {
@@ -239,16 +272,16 @@
             case _ => {}
         }
 
-        @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage) match {
-            case (_, None, _) => {
+        @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
+            case (_, None, _, Some(_)) => {
                 <li id="videoSection">
                     <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
-                        <span class="font-xsmall" data-locked>- locked</span>
+                        <span class="font-xsmall">- locked</span>
                     </p>
-                    <p data-locked>Unlocked if you're successful in the e-tray</p>
+                    <p>Unlocked if you're successful in the e-tray</p>
                 </li>
             }
-            case (false, Some(phase3Test), _) => {
+            case (false, Some(phase3Test), _, _) => {
                 @if(phase3Test.isCompleted) {
                     <li id="videoSection">
                         <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-check"></i>Video interview</p>
@@ -291,7 +324,7 @@
                 }
             }
 
-            case (true, Some(phase3Test), _) => {
+            case (true, Some(phase3Test), _, _) => {
                 <li id="videoSection">
                     <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                         Video interview</p>

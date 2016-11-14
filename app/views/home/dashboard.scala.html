@@ -13,7 +13,9 @@
 @import security.RoleUtils._
 @import views.html.widgets.onlineTestProgress
 
-@(usr: CachedData, dashboardPage: DashboardPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(usr: CachedData, dashboardPage: DashboardPage,
+        assistanceDetails: Option[connectors.exchange.AssistanceDetails] = None,
+        adjustments: Option[Adjustments] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @renderProgressElement(showLink: Boolean, checked: Boolean, id: String)(link: Call)(body: Html) = {
     <li id="@id"><i id="@id-icon" class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
@@ -112,7 +114,7 @@
                                         you can progress as a Fast Pass candidate.</p>
                                 </div>
                             } else {
-                                @onlineTestProgress(usr, dashboardPage)
+                                @onlineTestProgress(usr, dashboardPage, assistanceDetails, adjustments)
                             }
                         </div>
                     </div>

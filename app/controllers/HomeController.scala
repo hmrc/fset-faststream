@@ -20,7 +20,7 @@ import _root_.forms.WithdrawApplicationForm
 import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.{ FrameworkId, Phase2TestGroupWithActiveTest, Phase3TestGroup, WithdrawApplication }
+import connectors.exchange._
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.{ Adjustments, CachedData }
@@ -29,6 +29,7 @@ import security.Roles
 import security.Roles._
 
 import scala.concurrent.Future
+import connectors.exchange._
 
 object HomeController extends HomeController(ApplicationClient, CSRCache)
 
@@ -46,13 +47,17 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
         applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))
       } else { Future.successful(None) }
 
-      def getAdjustments: Future[Option[Adjustments]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS ||
-      application.applicationStatus == ApplicationStatus.PHASE3_TESTS) {
+      def getAdjustments: Future[Option[Adjustments]] = if (application.progress.assistanceDetails) {
         applicationClient.findAdjustments(application.applicationId)
+      } else { Future.successful(None) }
+
+      def getAssistanceDetails: Future[Option[AssistanceDetails]] = if (application.progress.assistanceDetails) {
+        applicationClient.getAssistanceDetails(cachedData.user.userID, application.applicationId).map(a => Some(a))
       } else { Future.successful(None) }
 
       val dashboard = for {
         adjustmentsOpt <- getAdjustments
+        assistanceDetailsOpt <- getAssistanceDetails
         phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
         phase2TestsWithNames <- getPhase2Test
         phase3Tests <- getPhase3Test
@@ -62,7 +67,7 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
           phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
           phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
         )
-        Ok(views.html.home.dashboard(updatedData, dashboardPage))
+        Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt))
       }
 
       dashboard recover {
