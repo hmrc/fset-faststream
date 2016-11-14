@@ -19,6 +19,7 @@ package connectors
 import java.net.URLEncoder
 
 import config.CSRHttp
+import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
@@ -161,6 +162,15 @@ trait ApplicationClient {
       case _: BadRequestException => throw new CannotUpdateRecord()
     }
   }
+
+  def verifyInvigilatedToken(email: String, token: String)(implicit hc: HeaderCarrier): Future[InvigilatedTestUrl] =
+    http.POST(s"${url.host}${url.base}/online-test/phase2/verifyAccessCode", VerifyInvigilatedTokenUrlRequest(email.toLowerCase, token)).map {
+      (resp: HttpResponse) => {
+        resp.json.as[InvigilatedTestUrl]
+      }
+    }.recover {
+      case e: NotFoundException => throw new TokenEmailPairInvalidException()
+    }
 
   def getPhase1TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
     http.GET(s"${url.host}${url.base}/online-test/phase1/candidate/$appId").map { response =>

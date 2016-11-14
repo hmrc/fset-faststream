@@ -17,7 +17,7 @@
 package controllers
 
 import config.CSRCache
-import connectors.{ ApplicationClient, UserManagementClient }
+import connectors.ApplicationClient
 import forms.VerifyCodeForm
 import helpers.NotificationType._
 import models.CachedData
@@ -25,9 +25,9 @@ import play.api.mvc.{ Request, Result }
 
 import scala.concurrent.Future
 
-object InvigilatedController extends InvigilatedController(ApplicationClient, CSRCache, UserManagementClient)
+object InvigilatedController extends InvigilatedController(ApplicationClient, CSRCache)
 
-class InvigilatedController(applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
+class InvigilatedController(applicationClient: ApplicationClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRUserAwareAction { implicit request =>
@@ -40,7 +40,8 @@ class InvigilatedController(applicationClient: ApplicationClient, cacheClient: C
       VerifyCodeForm.form.bindFromRequest.fold(
         invalidForm =>
           Future.successful(Ok(views.html.index.invigilatedEtraySignin(invalidForm))),
-        data => userManagementClient.verifyInvigilatedToken(data.email, data.token).flatMap {
+        data =>
+          applicationClient.verifyInvigilatedToken(data.email, data.token).flatMap {
           invigilatedTest => Future.successful(Redirect(invigilatedTest.url))
         }.fallbackTo(Future.successful(showValidationError(data)))
       )

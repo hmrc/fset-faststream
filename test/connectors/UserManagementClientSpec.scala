@@ -68,31 +68,4 @@ class UserManagementClientSpec extends UnitWithAppSpec with ConnectorSpec {
     }
   }
 
-  "verifyInvigilatedToken" should {
-    "return test url upon success" in {
-      stubFor(post(urlPathEqualTo("/online-test/phase2/verifyAccessCode")).willReturn(
-        aResponse().withStatus(201).withBody(
-          s"""
-             |{
-             |  "url":"https://bogus-test.vx.yy/4ca377d5-9b57-451b-9ca9-a8cd657c857f"
-             |}
-        """.stripMargin
-        )
-      ))
-
-      val response = connector.verifyInvigilatedToken("test@email.com", "GG7IK9K").futureValue
-      response.url mustBe "https://bogus-test.vx.yy/4ca377d5-9b57-451b-9ca9-a8cd657c857f"
-    }
-
-    "throw TokenEmailPairInvalidException if credentials are invalid and a 404 is returned" in {
-      stubFor(post(urlPathEqualTo("/online-test/phase2/verifyAccessCode")).willReturn(
-        aResponse().withStatus(404)
-      ))
-
-      connector.verifyInvigilatedToken("test@email.com", "GG7IK9K").failed.futureValue mustBe an[TokenEmailPairInvalidException]
-
-    }
-  }
-
-
 }
