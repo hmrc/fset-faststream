@@ -39,10 +39,14 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getSchemePreferences: Future[SelectedSchemes] = {
        Future.successful(
-         if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Edip) {
-           SelectedSchemes(List(model.SchemeType.Edip), true, true)
-         } else {
-           SelectedSchemes(Random.schemeTypes, true, true)
+         generatorConfig.schemeTypes.map { schemeTypesList =>
+           SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
+         }.getOrElse {
+           if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Edip) {
+             SelectedSchemes(List(model.SchemeType.Edip), orderAgreed = true, eligible = true)
+           } else {
+             SelectedSchemes(Random.schemeTypes, orderAgreed = true, eligible = true)
+           }
          }
        )
     }

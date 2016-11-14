@@ -16,6 +16,7 @@
 
 package model.exchange.testdata
 
+import model.SchemeType.SchemeType
 import play.api.libs.json.Json
 
 case class AssistanceDetailsRequest(hasDisability: Option[String] = None,
@@ -102,6 +103,7 @@ case class CreateCandidateInStatusRequest(
   statusData: StatusDataRequest = new StatusDataRequest,
   personalData: Option[PersonalDataRequest],
   assistanceDetails: Option[AssistanceDetailsRequest],
+  schemeTypes: Option[List[SchemeType]],
   isCivilServant: Option[Boolean],
   hasDegree: Option[Boolean],
   region: Option[String],
