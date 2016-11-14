@@ -53,6 +53,14 @@ trait UserManagementClient {
       case Upstream4xxResponse(_, 401, _, _) => throw new InvalidCredentialsException()
     }
 
+  def verifyInvigilatedToken(email: String, token: String)(implicit hc: HeaderCarrier): Future[InvigilatedTestUrl] =
+    http.POST(s"${url.host}/online-test/phase2/verifyAccessCode", VerifyInvigilatedTokenUrlRequest(email.toLowerCase, token)).map {
+      (resp: HttpResponse) => resp.json.as[InvigilatedTestUrl]
+    }.recover {
+      case e: NotFoundException => throw new TokenEmailPairInvalidException()
+    }
+
+
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] =
     http.POST(s"${url.host}/activate", ActivateEmailRequest(email.toLowerCase, token, ServiceName)).map(_ => (): Unit)
       .recover {

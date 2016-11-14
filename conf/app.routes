@@ -78,6 +78,10 @@ GET         /online-tests/phase2/complete/:token                    controllers.
 GET         /online-tests/phase3/complete/:token                    controllers.LaunchpadTestController.completePhase3TestsByToken(token: String)
 GET         /online-tests/complete/:token                           controllers.CubiksTestController.completeTestByToken(token: UniqueIdentifier)
 
+# Invigilated e-tray
+GET         /invigilated-etray                                      controllers.InvigilatedController.present
+POST        /invigilated-etray                                      controllers.InvigilatedController.verifyToken
+
 # Assets controller
 GET         /assets/*file                                           controllers.Assets.versioned(path="/public", file: Asset)
 

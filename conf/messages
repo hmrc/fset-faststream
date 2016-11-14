@@ -15,6 +15,11 @@ error.otherReason.maxLength = Information must not exceed 300 characters
 signIn.giveFeedback = You''ve successfully signed out.<p><a href="{0}" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>
 signIn.invalid = Invalid email or password
 
+# Verify token form
+error.token.required.email = Enter your email
+error.token.required.token = Enter your access code
+error.token.invalid = Invalid email or access code
+
 # Signup form
 error.firstName = Enter your first name
 error.lastName = Enter your last name
