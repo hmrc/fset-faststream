@@ -170,7 +170,7 @@ trait ApplicationClient {
       }
     }.recover {
       case e: NotFoundException => throw new TokenEmailPairInvalidException()
-      case e: ForbiddenException => throw new TestForTokenExpiredException()
+      case Upstream4xxResponse(_, FORBIDDEN, _, _) => throw new TestForTokenExpiredException()
     }
 
   def getPhase1TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
