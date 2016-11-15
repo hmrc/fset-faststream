@@ -17,34 +17,19 @@
 package models.page
 
 import models.Adjustments
-import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
-import org.joda.time.{ DateTime, Period, PeriodType }
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormatterBuilder
 
 case class Phase2TestsPage(expirationDate: DateTime,
                            etray: Option[CubiksTestPage],
-                           adjustments: Option[Adjustments]) {
+                           adjustments: Option[Adjustments]
+) extends DurationFormatter {
 
   def isStarted: Boolean = etray.exists(_.started)
 
   def isCompleted: Boolean = etray.exists(_.completed)
 
-  def getDuration: String = {
-
-    val now = DateTime.now
-
-    val period = new Period(now, expirationDate).normalizedStandard(PeriodType.dayTime())
-
-    val periodFormat = new PeriodFormatterBuilder()
-      .printZeroAlways()
-      .appendDays()
-      .appendSuffix(" day ", " days ")
-      .appendSeparator(" and ")
-      .appendHours()
-      .appendSuffix(" hour ", " hours ")
-      .toFormatter
-
-    periodFormat print period
-  }
+  def getDuration: String = durationFromNow(expirationDate)
 
   def getExpireDateTime: String = {
 

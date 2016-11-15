@@ -17,38 +17,20 @@
 package models.page
 
 import models.Adjustments
-import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
-import org.joda.time.{ DateTime, Period, PeriodType }
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormatterBuilder
 
-case class Phase3TestsPage(
-                            expirationDate: DateTime,
+case class Phase3TestsPage(expirationDate: DateTime,
                             started: Boolean,
                             completed: Boolean,
                             adjustments: Option[Adjustments]
-                          ) {
+) extends DurationFormatter {
 
   def isStarted: Boolean = started
 
   def isCompleted: Boolean = completed
 
-  def getDuration: String = {
-
-    val now = DateTime.now
-    val date = expirationDate
-
-    val period = new Period(now, date).normalizedStandard(PeriodType.dayTime())
-
-    val periodFormat = new PeriodFormatterBuilder()
-      .printZeroAlways()
-      .appendDays()
-      .appendSuffix(" day ", " days ")
-      .appendSeparator(" and ")
-      .appendHours()
-      .appendSuffix(" hour ", " hours ")
-      .toFormatter
-
-    periodFormat print period
-  }
+  def getDuration: String = durationFromNow(expirationDate)
 
   def getExpireDateTime: String = {
 
