@@ -47,7 +47,7 @@ class TestReportRepositorySpec extends MongoRepositorySpec {
     "remove a report" in {
       repo.saveOnlineTestReport(candidateTestReport).futureValue
       repo.remove(candidateTestReport.applicationId).futureValue
-      repo.getReportByApplicationId("appId").futureValue must be (empty)
+      repo.getReportByApplicationId("appId").futureValue mustBe empty
     }
   }
 }

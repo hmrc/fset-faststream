@@ -37,7 +37,7 @@ class ApplicationAssessmentRepositorySpec extends MongoRepositorySpec {
       indexes must contain (List("_id"))
       indexes must contain (List("venue", "date", "session", "slot"))
       indexes must contain (List("applicationId"))
-      indexes.size must be (3)
+      indexes.size mustBe 3
     }
 
     "return an applicant's assessment details if one has been inserted" in {
@@ -50,13 +50,13 @@ class ApplicationAssessmentRepositorySpec extends MongoRepositorySpec {
 
       val result = repository.applicationAssessments.futureValue
 
-      result.size must be(1)
+      result.size mustBe 1
       val appAssessment = result.head
-      appAssessment.applicationId must be (appId)
-      appAssessment.venue must be (venue)
-      appAssessment.date must be (date)
-      appAssessment.session must be (session)
-      appAssessment.confirmed must be (false)
+      appAssessment.applicationId mustBe appId
+      appAssessment.venue mustBe venue
+      appAssessment.date mustBe date
+      appAssessment.session mustBe session
+      appAssessment.confirmed mustBe false
     }
 
     "return an application's assessment details by venue and date, if one has been inserted" in {
@@ -70,13 +70,13 @@ class ApplicationAssessmentRepositorySpec extends MongoRepositorySpec {
 
       val result = repository.applicationAssessments(venue, date).futureValue
 
-      result.size must be(1)
+      result.size mustBe 1
       val appAssessment = result.head
-      appAssessment.applicationId must be (appId)
-      appAssessment.venue must be (venue)
-      appAssessment.date must be (date)
-      appAssessment.session must be (session)
-      appAssessment.confirmed must be (false)
+      appAssessment.applicationId mustBe appId
+      appAssessment.venue mustBe venue
+      appAssessment.date mustBe date
+      appAssessment.session mustBe session
+      appAssessment.confirmed mustBe false
     }
 
     "return an application's assessment details by applicationId, if one has been inserted" in {
@@ -90,18 +90,18 @@ class ApplicationAssessmentRepositorySpec extends MongoRepositorySpec {
 
       val result = repository.applicationAssessment(appId).futureValue
 
-      result.isDefined must be(true)
+      result.isDefined mustBe true
       val appAssessment = result.get
-      appAssessment.applicationId must be (appId)
-      appAssessment.venue must be (venue)
-      appAssessment.date must be (date)
-      appAssessment.session must be (session)
-      appAssessment.confirmed must be (false)
+      appAssessment.applicationId mustBe appId
+      appAssessment.venue mustBe venue
+      appAssessment.date mustBe date
+      appAssessment.session mustBe session
+      appAssessment.confirmed mustBe false
     }
 
     "return a None when no application assessment has been inserted and looked up by applicationId" in {
       val appId = "appId-5"
-      repository.applicationAssessment(appId).futureValue must be(None)
+      repository.applicationAssessment(appId).futureValue mustBe None
     }
 
     "delete an application assessment when one exists" in {
@@ -117,7 +117,7 @@ class ApplicationAssessmentRepositorySpec extends MongoRepositorySpec {
 
       val checkResult = repository.collection.find(BSONDocument("applicationId" ->  appId)).one[BSONDocument].futureValue
 
-      checkResult must be(None)
+      checkResult mustBe None
     }
 
     "throw an exception when trying to delete an application assessment that does not exist" in {

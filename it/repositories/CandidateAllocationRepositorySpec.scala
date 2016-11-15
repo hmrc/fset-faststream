@@ -55,7 +55,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       createApplication("user1", "app1", ALLOCATION_UNCONFIRMED, "John", Some(LocalDate.now().plusDays(4)))
       val candidate = candidateAllocationRepo.nextUnconfirmedCandidateToSendReminder(3).futureValue
 
-      candidate must be(empty)
+      candidate mustBe empty
     }
 
     "return one candidate which expire date is between 0 to 3 day from now" in {
@@ -77,7 +77,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       createApplication("user2", "app2", ALLOCATION_CONFIRMED, "Bob", Some(LocalDate.now()))
       val candidate = candidateAllocationRepo.nextUnconfirmedCandidateToSendReminder(3).futureValue
 
-      candidate must be(empty)
+      candidate mustBe empty
     }
   }
 
@@ -88,7 +88,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       candidateAllocationRepo.saveAllocationReminderSentDate("app1", DateTime.now()).futureValue
 
       val candidate = candidateAllocationRepo.nextUnconfirmedCandidateToSendReminder(3).futureValue
-      candidate must be(empty)
+      candidate mustBe empty
     }
 
     "mark candidate as contacted even if the date was sent in the past" in {
@@ -97,7 +97,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       candidateAllocationRepo.saveAllocationReminderSentDate("app1", DateTime.now().minusDays(3)).futureValue
 
       val candidate = candidateAllocationRepo.nextUnconfirmedCandidateToSendReminder(3).futureValue
-      candidate must be(empty)
+      candidate mustBe empty
     }
   }
 
@@ -120,4 +120,3 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       )).futureValue
   }
 }
-

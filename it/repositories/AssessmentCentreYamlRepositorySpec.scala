@@ -28,8 +28,8 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
     "return non empty mapping" in {
       val mapping = AssessmentCentreYamlRepository.locationsAndAssessmentCentreMapping.futureValue
       mapping must not be empty
-      mapping("London") must be("London")
-      mapping("Cardiff") must be("Bristol")
+      mapping("London") mustBe "London"
+      mapping("Cardiff") mustBe "Bristol"
     }
 
     "be consistent with regions-locations-frameworks" in {
@@ -47,10 +47,10 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
       }
 
       withClue("missingLocationsInAssessmentCentresMapping") {
-        missingLocationsInAssessmentCentresMapping must be(empty)
+        missingLocationsInAssessmentCentresMapping mustBe empty
       }
       withClue("missingLocationsInFrameworkRepo") {
-        missingLocationsInFrameworkRepo must be(empty)
+        missingLocationsInFrameworkRepo mustBe empty
       }
     }
   }
@@ -60,14 +60,14 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
       val capacities = AssessmentCentreYamlRepository.assessmentCentreCapacities.futureValue
       capacities must not be empty
       val assessmentCapacity = capacities.head
-      assessmentCapacity.locationName must be("London")
+      assessmentCapacity.locationName mustBe "London"
       val venue = assessmentCapacity.venues.head
-      venue.venueName must be("London (Berkeley House)")
-      venue.venueDescription must be ("Berkeley House")
+      venue.venueName mustBe "London (Berkeley House)"
+      venue.venueDescription mustBe "Berkeley House"
       val capacityDate = venue.capacityDates.head
-      capacityDate.amCapacity must be(6)
-      capacityDate.pmCapacity must be(6)
-      capacityDate.date.toString(DateFormat) must be("24/5/17")
+      capacityDate.amCapacity mustBe 6
+      capacityDate.pmCapacity mustBe 6
+      capacityDate.date.toString(DateFormat) mustBe "24/5/17"
     }
 
     "reject invalid configuration" in {
@@ -95,7 +95,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
         exception mustBe a[NoSuchVenueDateException]
     }
 
-    "Return date capacity information for a venue on a date with valid inputs" is (pending)
+    "Return date capacity information for a venue on a date with valid inputs" is pending
 
   }
 
@@ -114,13 +114,13 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
       val capacities = repo.assessmentCentreCapacities.futureValue
       capacities must not be empty
       val assessmentCapacity = capacities.head
-      assessmentCapacity.locationName must be("London")
+      assessmentCapacity.locationName mustBe "London"
       val venue = assessmentCapacity.venues(1)
-      venue.venueName must be("London (FSAC) 1")
-      venue.venueDescription must be ("FSAC")
+      venue.venueName mustBe "London (FSAC) 1"
+      venue.venueDescription mustBe "FSAC"
       val capacityDate = venue.capacityDates.find(_.date == new LocalDate("2016-07-04")).get
-      capacityDate.amCapacity must be(6)
-      capacityDate.pmCapacity must be(6)
+      capacityDate.amCapacity mustBe 6
+      capacityDate.pmCapacity mustBe 6
     }
   }
 

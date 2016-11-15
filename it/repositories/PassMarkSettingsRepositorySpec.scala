@@ -82,7 +82,7 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
       val indexes = indexesWithFields(passMarkSettingsRepo.asInstanceOf[ReactiveRepository[_, _]])
       indexes must contain (List("_id"))
       indexes must contain (List("createDate"))
-      indexes.size must be (2)
+      indexes.size mustBe 2
     }
   }
 

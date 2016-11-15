@@ -35,6 +35,21 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     )
   )
 
+  "Get test group" must {
+    "return NONE if there is no test got the specific user id" in {
+      val result = phase2TestRepo.getTestGroupByUserId("userId").futureValue
+      result mustBe None
+    }
+
+    "return an online test for the specific user id" in {
+      val userId = "userId"
+      insertApplication("appId", userId)
+      phase2TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+      val result: Option[Phase2TestGroup] = phase2TestRepo.getTestGroupByUserId(userId).futureValue
+      result mustBe Some(TestProfile)
+    }
+  }
+
   "Get online test" must {
     "return None if there is no test for the specific user id" in {
       val result = phase2TestRepo.getTestGroup("userId").futureValue
@@ -197,7 +212,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     "Not return candidates whose phase 1 tests have expired" in {
       createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = true,
         needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_EXPIRED -> true))
+        fastPassReceived = false, additionalProgressStatuses = List(PHASE1_TESTS_EXPIRED -> true)
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
