@@ -175,6 +175,17 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
+  "mark as results received" should {
+    "change progress to results received when any result set arrives" in new Phase3TestServiceFixture {
+      phase3TestServiceWithUnexpiredTestGroup.markAsResultsReceived(testInviteId).futureValue
+
+      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+
+      verifyDataStoreEvents(1, "VideoInterviewResultsReceived")
+      verifyAuditEvents(1, "VideoInterviewResultsReceived")
+    }
+  }
+
   "extend a test group's expiry" should {
     "throw IllegalStateException when there is no test group" in new Phase3TestServiceFixture {
       phase3TestServiceNoTestGroup.extendTestGroupExpiryTime("a", 1, "1").failed.futureValue mustBe an[IllegalStateException]
@@ -372,7 +383,12 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       // Mark as Complete
       when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)).thenReturn(Future.successful(()))
-      when(p3TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])).thenReturn(Future.successful(()))    }
+      when(p3TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
+
+      // Mark as results received
+      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
+
+    }
 
     lazy val phase3TestServiceWithExpiredTestGroup = mockService {
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(Some(

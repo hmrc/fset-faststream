@@ -81,7 +81,10 @@ trait Phase3TestCallbackService {
     phase3TestRepo.appendCallback(callbackData.customInviteId, ViewBrandedVideoCallbackRequest.key, callbackData)
   }
 
-  def recordCallback(callbackData: ReviewedCallbackRequest): Future[Unit] = {
-    phase3TestRepo.appendCallback(callbackData.customInviteId, ReviewedCallbackRequest.key, callbackData)
+  def recordCallback(callbackData: ReviewedCallbackRequest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    for {
+      _ <- phase3TestRepo.appendCallback(callbackData.customInviteId, ReviewedCallbackRequest.key, callbackData)
+      _ <- phase3TestService.markAsResultsReceived(callbackData.customInviteId)
+    } yield {}
   }
 }
