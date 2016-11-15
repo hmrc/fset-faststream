@@ -20,7 +20,6 @@ import model.Address
 import model.PersistedObjects.ContactDetails
 import testkit.MongoRepositorySpec
 
-
 class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = "contact-details"
@@ -34,11 +33,11 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
       val indexes = indexesWithFields(repo)
       indexes must contain (List("_id"))
       indexes must contain (List("userId"))
-      indexes.size must be (2)
+      indexes.size mustBe 2
     }
 
     "return empty list for empty contact details" in {
-      repo.findAll.futureValue must be (empty)
+      repo.findAll.futureValue mustBe empty
     }
 
     "return list of contact details" in {
@@ -46,7 +45,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
       insert("2", ContactDetails(Address("line1b"), "456", "email2@email.com", Some("67890")))
 
       val result = repo.findAll.futureValue
-      result.size must be (2)
+      result.size mustBe 2
     }
 
     "return only the first 10 documents if there is more than 10" in {
@@ -55,10 +54,9 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
       }
 
       val result = repo.findAll.futureValue
-      result.size must be (10)
+      result.size mustBe 10
     }
   }
 
   private def insert(userId: String, cd: ContactDetails) = repo.update(userId, cd).futureValue
-
 }

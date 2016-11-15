@@ -42,7 +42,7 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
 
       val actualIssue = repository.tryGetCandidateIssue(appId).futureValue
       actualIssue must not be empty
-      actualIssue must be (Some(flagCandidate))
+      actualIssue mustBe Some(flagCandidate)
     }
 
     "update and get an issue for the candidate" in {
@@ -54,7 +54,7 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
 
       val actualIssue = repository.tryGetCandidateIssue(appId).futureValue
       actualIssue must not be empty
-      actualIssue must be (Some(FlagCandidate(appId, Some(issue2))))
+      actualIssue mustBe Some(FlagCandidate(appId, Some(issue2)))
     }
 
     "return an exception when create an issue for application which does not exist" in {
@@ -70,14 +70,14 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
       val appId = createApplication()
       val actualIssue = repository.tryGetCandidateIssue(appId).futureValue
 
-      actualIssue must be (empty)
+      actualIssue mustBe empty
     }
 
     "return None if there is no application" in {
       val appId = "no-app-id"
       val actualIssue = repository.tryGetCandidateIssue(appId).futureValue
 
-      actualIssue must be (empty)
+      actualIssue mustBe empty
     }
 
     "remove an issue" in {
@@ -88,7 +88,7 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
       repository.remove(appId).futureValue
 
       val actualIssue = repository.tryGetCandidateIssue(appId).futureValue
-      actualIssue must be (empty)
+      actualIssue mustBe empty
     }
 
     "return an exception when remove an issue for application which does not exist" in {
@@ -103,5 +103,4 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
     helperRepo.collection.insert(BSONDocument("applicationId" -> appId)).futureValue
     appId
   }
-
 }

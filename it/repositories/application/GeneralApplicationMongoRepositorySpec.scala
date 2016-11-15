@@ -31,7 +31,7 @@ import model.ApplicationRoute.{ apply => _ }
 import model.Commands.Candidate
 import model.command.ProgressResponse
 import model.persisted._
-import repositories.{ CommonBSONDocuments }
+import repositories.CommonBSONDocuments
 import repositories.onlinetesting.Phase1TestMongoRepository
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
@@ -55,10 +55,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(CandidateProgressReportItem(appId, Some("submitted"),
+      result.head mustBe CandidateProgressReportItem(appId, Some("submitted"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
         Some("No"), Some("No"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))
-      )
     }
 
     "Get overall report for the minimum application" in {
@@ -82,7 +81,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.diversityReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(ApplicationForDiversityReport(appId, userId, Some("registered"), List.empty, None, None, None, None, None))
+      result.head mustBe ApplicationForDiversityReport(appId, userId, Some("registered"),
+        List.empty, None, None, None, None, None)
     }
 
     "Get diversity report for an application with all fields" in {
@@ -252,16 +252,16 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     val emptyProgressResponse = ProgressResponse("1")
 
     "be true for non submitted progress" in {
-      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = false)) must be(true)
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = false)) mustBe true
     }
 
     "be false for withdrawn progress" in {
-      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = true)) must be(false)
-      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = true)) must be(false)
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = true)) mustBe false
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = false, withdrawn = true)) mustBe false
     }
 
     "be false for submitted but not withdrawn progress" in {
-      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = false)) must be(false)
+      repository.isNonSubmittedStatus(emptyProgressResponse.copy(submitted = true, withdrawn = false)) mustBe false
     }
   }
 
