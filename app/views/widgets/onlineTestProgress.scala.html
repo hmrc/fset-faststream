@@ -216,8 +216,17 @@
     }
 
     @if(isFaststream(cachedUserData)) {
-        @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.isPhase2TestFailed, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
-            case (true, _, Some(phase2Test), _) => {
+        @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.isPhase2TestsPassed, dashboardPage.isPhase2TestFailed, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
+            case (_, true, _, _, _) => {
+                <li id="etraySection">
+                    <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>E-tray</p>
+                    <div id="etrayBlurb">
+                        <p>Congratulations, you've passed this section and can now
+                            continue to the next section.</p>
+                    </div>
+                </li>
+            }
+            case (true, _, _, Some(phase2Test), _) => {
                 <li id="etraySection">
                     <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                         E-tray</p>
@@ -230,7 +239,7 @@
                     </div>
                 </li>
             }
-             case (_, true, _, _) => {
+             case (_, _, true, _, _) => {
                 <li id="etraySection">
                     <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                         E-tray</p>
@@ -241,7 +250,7 @@
                     </div>
                 </li>
             }
-            case (_, _, None, Some(tests)) => {
+            case (_, _, _, None, Some(tests)) => {
                 <li id="etraySection">
                     @if(dashboardPage.isPhase1TestsPassed && hasUnconfirmedAdjustments) {
                         @onlineExercisesForUnconfirmedAdjustments()
@@ -253,13 +262,13 @@
                     }}
                 </li>
             }
-            case (false, false, Some(phase2Test), _) => {
+            case (false, _, false, Some(phase2Test), _) => {
                 @if(phase2Test.isCompleted) {
                     <li id="etraySection">
                         <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>E-tray</p>
                         <div id="etrayBlurb">
                             <p>You've completed this section, we'll send you an email when we have your results.
-                                Make sure you check your junk inbox.</p>
+                            Make sure you check your junk inbox.</p>
                         </div>
                     </li>
                 } else {
