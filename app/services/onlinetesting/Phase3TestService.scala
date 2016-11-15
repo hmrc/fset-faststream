@@ -219,6 +219,19 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
+  def markAsResultsReceived(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
+      for {
+        testGroup <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+        _ <- phase3TestRepo.updateProgressStatus(testGroup.applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+      } yield {
+        AuditEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
+          DataStoreEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
+          Nil
+      }
+    }
+  }
+
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val progressFut = appRepository.findProgress(applicationId)
