@@ -226,7 +226,7 @@
                     </div>
                 </li>
             }
-            case (true, _, _, Some(phase2Test), _) => {
+            case (true, false, _, Some(phase2Test), _) => {
                 <li id="etraySection">
                     <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                         E-tray</p>
@@ -239,7 +239,7 @@
                     </div>
                 </li>
             }
-             case (_, _, true, _, _) => {
+             case (_, false, true, _, _) => {
                 <li id="etraySection">
                     <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                         E-tray</p>
@@ -250,7 +250,7 @@
                     </div>
                 </li>
             }
-            case (_, _, _, None, Some(tests)) => {
+            case (_, false, _, None, Some(tests)) => {
                 <li id="etraySection">
                     @if(dashboardPage.isPhase1TestsPassed && hasUnconfirmedAdjustments) {
                         @onlineExercisesForUnconfirmedAdjustments()
@@ -262,7 +262,7 @@
                     }}
                 </li>
             }
-            case (false, _, false, Some(phase2Test), _) => {
+            case (false, false, false, Some(phase2Test), _) => {
                 @if(phase2Test.isCompleted) {
                     <li id="etraySection">
                         <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>E-tray</p>

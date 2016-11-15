@@ -78,9 +78,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks {
          phase3TestGroup: Option[Phase3TestsPage],
          assessmentInProgressStatus: AssessmentStageStatus
         ) => {
-          println("Table: Status => " + status + "P2P = " + isPhase2TestsPassed)
           val obj = DashboardPage(user(status), None, None, None)
-          println("Obj: Status => " + status + "P2P = " + obj.isPhase2TestsPassed)
           DashboardPage(user(status), None, None, None) mustBe
             DashboardPage(
               step1,
