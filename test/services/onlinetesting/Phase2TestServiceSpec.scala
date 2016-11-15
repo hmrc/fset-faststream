@@ -22,7 +22,7 @@ import config._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments, toString => _ }
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.ContactDetailsNotFoundForEmail
+import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenException, InvalidTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
 import model._
@@ -49,6 +49,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
+import scala.util.{ Failure, Success }
 
 class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -61,10 +62,10 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(otRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
 
       val result = phase2TestService.verifyAccessCode("test-email.com", accessCode).futureValue
-      result mustBe Some(authenticateUrl)
+      result mustBe Success(authenticateUrl)
     }
 
-    "return no invigilated test url if the access code does not match" in new Phase2TestServiceFixture {
+    "return a Failure if the access code does not match" in new Phase2TestServiceFixture {
       when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.successful(authenticateUrl))
 
       val accessCode = "TEST-CODE"
@@ -72,14 +73,25 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(otRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
 
       val result = phase2TestService.verifyAccessCode("test-email.com", "I-DO-NOT-MATCH").futureValue
-      result mustBe None
+      result mustBe Failure(InvalidTokenException("Token mismatch"))
     }
 
-    "return no invigilated test url if the user cannot be located by email" in new Phase2TestServiceFixture {
+    "return a Failure if the user cannot be located by email" in new Phase2TestServiceFixture {
       when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.failed(ContactDetailsNotFoundForEmail()))
 
       val result = phase2TestService.verifyAccessCode("test-email.com", "ANY-CODE").futureValue
-      result mustBe None
+      result mustBe Failure(ContactDetailsNotFoundForEmail())
+    }
+
+    "return A Failure if the test is Expired" in new Phase2TestServiceFixture {
+      when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.successful(authenticateUrl))
+
+      val accessCode = "TEST-CODE"
+      val phase2TestGroup = Phase2TestGroup(expiredDate, List(phase2Test.copy(invigilatedAccessCode = Some(accessCode))))
+      when(otRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
+
+      val result = phase2TestService.verifyAccessCode("test-email.com", accessCode).futureValue
+      result mustBe Failure(ExpiredTestForTokenException("Test expired for token"))
     }
   }
 
@@ -597,6 +609,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val invitationDate = now
     val startedDate = invitationDate.plusDays(1)
     val expirationDate = invitationDate.plusDays(7)
+    val expiredDate = now.minusMinutes(1)
     val invigilatedExpirationDate = invitationDate.plusDays(90)
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
