@@ -19,6 +19,7 @@ signIn.invalid = Invalid email or password
 error.token.required.email = Enter your email
 error.token.required.token = Enter your access code
 error.token.invalid = Invalid email or access code
+error.token.expired = Test is expired
 
 # Signup form
 error.firstName = Enter your first name
