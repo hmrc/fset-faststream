@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package services.testdata
+package services.testdata.onlinetests.phase2
 
 import java.util.UUID
 
 import config.CubiksGatewayConfig
-import connectors.testdata.ExchangeObjects.{ CubiksTestResponse, TestGroupResponse }
-import model.persisted.{ CubiksTest, Phase2TestGroup }
+import config.MicroserviceAppConfig.cubiksGatewayConfig
+import connectors.testdata.ExchangeObjects.{ TestGroupResponse, TestResponse }
 import model.command.testdata.GeneratorConfig
+import model.persisted.{ CubiksTest, Phase2TestGroup }
 import org.joda.time.DateTime
+import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
+import services.testdata.ConstructiveGenerator
+import services.testdata.onlinetests.phase1.Phase1TestsResultsReceivedStatusGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
-import config.MicroserviceAppConfig.cubiksGatewayConfig
-import play.api.mvc.RequestHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -66,7 +68,7 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
 
       candidateInPreviousStatus.copy(phase2TestGroup = Some(
         TestGroupResponse(
-          List(CubiksTestResponse(etray.cubiksUserId, etray.token, etray.testUrl))
+          List(TestResponse(etray.cubiksUserId, etray.token, etray.testUrl))
         )
       ))
     }

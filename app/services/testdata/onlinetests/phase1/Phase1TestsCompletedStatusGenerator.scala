@@ -14,32 +14,33 @@
  * limitations under the License.
  */
 
-package services.testdata
+package services.testdata.onlinetests.phase1
 
 import common.FutureEx
+import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.onlinetesting.Phase2TestRepository
-import services.onlinetesting.Phase2TestService
+import repositories.onlinetesting.Phase1TestRepository
+import services.onlinetesting.Phase1TestService
+import services.testdata.ConstructiveGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase2TestsCompletedStatusGenerator extends Phase2TestsCompletedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsStartedStatusGenerator
-  override val otRepository = phase2TestRepository
-  override val otService = Phase2TestService
+object Phase1TestsCompletedStatusGenerator extends Phase1TestsCompletedStatusGenerator {
+  override val previousStatusGenerator = Phase1TestsStartedStatusGenerator
+  override val otRepository = phase1TestRepository
+  override val otService = Phase1TestService
 }
 
-trait Phase2TestsCompletedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase2TestRepository
-  val otService: Phase2TestService
+trait Phase1TestsCompletedStatusGenerator extends ConstructiveGenerator {
+  val otRepository: Phase1TestRepository
+  val otService: Phase1TestService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.cubiksUserId))(id => otService.markAsCompleted(id))
+      _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.testId))(id => otService.markAsCompleted(id))
     } yield candidate
   }
 }

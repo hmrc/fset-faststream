@@ -122,10 +122,15 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     val (invitationDate, expirationDate) =
       dateTimeFactory.nowLocalTimeZone -> dateTimeFactory.nowLocalTimeZone.plusDays(gatewayConfig.phase3Tests.timeToExpireInDays)
 
+    def emailProcess(emailAddress: String) = application.isInvigilatedVideo match {
+      case true => Future.successful(())
+      case false => emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+    }
+
     for {
       emailAddress <- candidateEmailAddress(application)
       phase3Test <- registerAndInviteApplicant(application, emailAddress, interviewId, invitationDate, expirationDate)
-      _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+      _ <- emailProcess(emailAddress)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
       _ <- eventService.handle(
         AuditEvents.VideoInterviewRegistrationAndInviteComplete("userId" -> application.userId) ::
@@ -269,15 +274,15 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
-     eventService.handle(
-       AuditEvents.VideoInterviewInvitationEmailSent(
-        "userId" -> application.userId,
-        "emailAddress" -> emailAddress
-      ) ::
-       DataStoreEvents.VideoInterviewInvitationEmailSent(
-        application.applicationId
-       ) :: Nil
-     )
+      eventService.handle(
+        AuditEvents.VideoInterviewInvitationEmailSent(
+          "userId" -> application.userId,
+          "emailAddress" -> emailAddress
+        ) ::
+        DataStoreEvents.VideoInterviewInvitationEmailSent(
+          application.applicationId
+        ) :: Nil
+      )
     }
   }
 
