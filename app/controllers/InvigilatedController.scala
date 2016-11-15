@@ -18,6 +18,7 @@ package controllers
 
 import config.CSRCache
 import connectors.ApplicationClient
+import connectors.ApplicationClient.TestForTokenExpiredException
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import forms.VerifyCodeForm
 import helpers.NotificationType._
@@ -46,6 +47,7 @@ class InvigilatedController(applicationClient: ApplicationClient, cacheClient: C
           invigilatedTest => Future.successful(Redirect(invigilatedTest.url))
         }.recover {
             case e: TokenEmailPairInvalidException => showValidationError(data)
+            case e: TestForTokenExpiredException => showValidationError(data, "error.token.expired")
         }
       )
   }

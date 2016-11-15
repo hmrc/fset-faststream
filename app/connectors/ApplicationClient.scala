@@ -170,6 +170,7 @@ trait ApplicationClient {
       }
     }.recover {
       case e: NotFoundException => throw new TokenEmailPairInvalidException()
+      case e: ForbiddenException => throw new TestForTokenExpiredException()
     }
 
   def getPhase1TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
@@ -269,4 +270,6 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class OnlineTestNotFound extends Exception
 
   sealed class PdfReportNotFoundException extends Exception
+
+  sealed class TestForTokenExpiredException extends Exception
 }
