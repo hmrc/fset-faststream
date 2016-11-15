@@ -16,14 +16,14 @@
 
 package models.page
 
-import org.joda.time.{ DateTime, Period, PeriodType }
-import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormatterBuilder
 
 case class Phase1TestsPage(
   expirationDate: DateTime,
   sjq: Option[CubiksTestPage],
   bq: Option[CubiksTestPage]
-) {
+) extends DurationFormatter {
 
   def areStarted: Boolean = {
     sjq.exists(_.started) || bq.exists(_.started)
@@ -35,24 +35,7 @@ case class Phase1TestsPage(
     case _ => false
   }
 
-  def getDuration: String = {
-
-    val now = DateTime.now
-    val date = expirationDate
-
-    val period = new Period(now, date).normalizedStandard(PeriodType.dayTime())
-
-    val periodFormat = new PeriodFormatterBuilder()
-      .printZeroAlways()
-      .appendDays()
-      .appendSuffix(" day ", " days ")
-      .appendSeparator(" and ")
-      .appendHours()
-      .appendSuffix(" hour ", " hours ")
-      .toFormatter
-
-    periodFormat print period
-  }
+  def getDuration: String = durationFromNow(expirationDate)
 
   def getExpireDateTime: String = {
 
