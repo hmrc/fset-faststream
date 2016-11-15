@@ -34,14 +34,14 @@ object EventService extends EventService {
 }
 
 trait EventService {
-  val dataStoreEventHandler: DataStoreEventHandler
-  val auditEventHandler: AuditEventHandler
-  val emailEventHandler: EmailEventHandler
+  protected[events] val dataStoreEventHandler: DataStoreEventHandler
+  protected[events] val auditEventHandler: AuditEventHandler
+  protected[events] val emailEventHandler: EmailEventHandler
 
-  implicit def toEvents(e: EventType): Events = List(e)
+  protected[events] implicit def toEvents(e: EventType): Events = List(e)
 
   // TODO: Error handling
-  def handle(events: Events)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  protected[events] def handle(events: Events)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val result = events.collect {
       case event: DataStoreEvent => dataStoreEventHandler.handle(event)
       case event: AuditEvent => auditEventHandler.handle(event)
@@ -54,7 +54,7 @@ trait EventService {
     Future.sequence(result) map (_ => ())
   }
 
-  def handle(event: EventType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = handle(List(event))
+  protected[events] def handle(event: EventType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = handle(List(event))
 }
 
 trait EventSink {
@@ -63,5 +63,7 @@ trait EventSink {
   def eventSink(block: => Future[Events])(implicit hc: HeaderCarrier, rh: RequestHeader) = block.flatMap { events =>
     eventService.handle(events)
   }
+
+  def eventSink(block: Events)(implicit hc: HeaderCarrier, rh: RequestHeader) = eventService.handle(block)
 }
 
