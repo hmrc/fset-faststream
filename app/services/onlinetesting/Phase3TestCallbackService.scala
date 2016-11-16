@@ -20,11 +20,11 @@ import _root_.services.AuditService
 import config.LaunchpadGatewayConfig
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
-import play.api.libs.json.Format
+import model.EmptyRequestHeader
 import play.api.mvc.RequestHeader
+import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.EventService
-import repositories._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -51,8 +51,11 @@ trait Phase3TestCallbackService {
   val gatewayConfig: LaunchpadGatewayConfig
   val eventService: EventService
 
-  def recordCallback(callbackData: SetupProcessCallbackRequest): Future[Unit] = {
-    phase3TestRepo.appendCallback(callbackData.customInviteId, SetupProcessCallbackRequest.key, callbackData)
+  def recordCallback(callbackData: SetupProcessCallbackRequest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    for{
+      _ <- phase3TestRepo.appendCallback(callbackData.customInviteId, SetupProcessCallbackRequest.key, callbackData)
+      _ <- phase3TestService.addResetEventMayBe(callbackData.customInviteId)
+    } yield {}
   }
 
   def recordCallback(callbackData: ViewPracticeQuestionCallbackRequest): Future[Unit] = {
@@ -67,14 +70,14 @@ trait Phase3TestCallbackService {
     for {
       _ <- phase3TestRepo.appendCallback(callbackData.customInviteId, FinalCallbackRequest.key, callbackData)
       _ <- phase3TestService.markAsCompleted(callbackData.customInviteId)
-    } yield { }
+    } yield {}
   }
 
   def recordCallback(callbackData: FinishedCallbackRequest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       _ <- phase3TestRepo.appendCallback(callbackData.customInviteId, FinishedCallbackRequest.key, callbackData)
       _ <- phase3TestService.markAsCompleted(callbackData.customInviteId)
-    } yield { }
+    } yield {}
   }
 
   def recordCallback(callbackData: ViewBrandedVideoCallbackRequest): Future[Unit] = {

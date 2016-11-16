@@ -229,6 +229,24 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
+  "add reset event" should {
+    "capture video interview reset event when phase3 tests are completed" in new Phase3TestServiceFixture {
+      phase3TestServiceWithCompletedTestGroup.addResetEventMayBe(testInviteId).futureValue
+      verifyAuditEvents(1, "VideoInterviewReset")
+      verifyDataStoreEvents(1, "VideoInterviewReset")
+    }
+    "capture video interview reset event when phase3 test results are completed" in new Phase3TestServiceFixture {
+      phase3TestServiceWithResultsReceivedTestGroup.addResetEventMayBe(testInviteId).futureValue
+      verifyAuditEvents(1, "VideoInterviewReset")
+      verifyDataStoreEvents(1, "VideoInterviewReset")
+    }
+    "not capture reset event when phase3 tests are not completed or test results not received" in new Phase3TestServiceFixture {
+      phase3TestServiceWithUnexpiredTestGroup.addResetEventMayBe(testInviteId).futureValue
+      verifyAuditEvents(0)
+      verifyDataStoreEvents(0)
+    }
+  }
+
   trait Phase3TestServiceFixture extends EventServiceFixture {
 
     implicit val hc = mock[HeaderCarrier]
@@ -386,7 +404,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(p3TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
 
       // Mark as results received
-      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateProgressStatus("appId123",
+        ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
 
     }
 
@@ -408,6 +427,44 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
           "appId",
           phase3ProgressResponse = Phase3ProgressResponse(
             phase3TestsExpired = true
+          )
+        )
+      ))
+    }
+
+    lazy val phase3TestServiceWithCompletedTestGroup = mockService {
+      when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
+        .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId", Phase3TestGroup(
+          testExpiredTime,
+          List(
+            testPhase3Test
+          ),
+          None
+        ))))
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
+        ProgressResponse(
+          "appId",
+          phase3ProgressResponse = Phase3ProgressResponse(
+            phase3TestsCompleted = true
+          )
+        )
+      ))
+    }
+
+    lazy val phase3TestServiceWithResultsReceivedTestGroup = mockService {
+      when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
+        .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId", Phase3TestGroup(
+          testExpiredTime,
+          List(
+            testPhase3Test
+          ),
+          None
+        ))))
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
+        ProgressResponse(
+          "appId",
+          phase3ProgressResponse = Phase3ProgressResponse(
+            phase3TestsResultsReceived = true
           )
         )
       ))

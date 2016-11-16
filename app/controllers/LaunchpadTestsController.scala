@@ -21,13 +21,12 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackR
 import controllers.LaunchpadTestsController.CannotFindTestByLaunchpadInviteId
 import model.Exceptions.NotFoundException
 import play.api.Logger
-import play.api.mvc.{Action, Result}
+import play.api.mvc.{ Action, Result }
 import services.events.EventService
-import services.onlinetesting.{Phase3TestCallbackService, Phase3TestService}
+import services.onlinetesting.{ Phase3TestCallbackService, Phase3TestService }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object LaunchpadTestsController extends LaunchpadTestsController {
   override val phase3TestService = Phase3TestService

@@ -80,7 +80,7 @@ object DataStoreEvents {
   case class VideoInterviewStarted(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewCompleted(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewExtended(appId: String, createdByUser: String) extends DataStoreEventWithAppId
-  case class VideoInterviewReset(appId: String, createdByUser: String) extends DataStoreEventWithAppId
+  case class VideoInterviewReset(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewResultsReceived(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewExpiryReminder(appId: String) extends DataStoreEventWithAppId
 
