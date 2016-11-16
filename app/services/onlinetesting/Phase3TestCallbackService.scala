@@ -50,10 +50,8 @@ trait Phase3TestCallbackService {
   val auditService: AuditService
   val gatewayConfig: LaunchpadGatewayConfig
   val eventService: EventService
-  implicit val rh = EmptyRequestHeader
-  implicit val hc = new HeaderCarrier()
 
-  def recordCallback(callbackData: SetupProcessCallbackRequest): Future[Unit] = {
+  def recordCallback(callbackData: SetupProcessCallbackRequest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for{
       _ <- phase3TestRepo.appendCallback(callbackData.customInviteId, SetupProcessCallbackRequest.key, callbackData)
       _ <- phase3TestService.addResetEventMayBe(callbackData.customInviteId)
