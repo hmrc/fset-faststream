@@ -82,7 +82,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     phase3TestRepo.nextApplicationsReadyForOnlineTesting
   }
 
-  def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = phase3TestRepo.getTestGroup(applicationId)
+  def getTestGroup(applicationId: String, withCallbacks: Boolean = true): Future[Option[Phase3TestGroup]] = {
+    // TODO if true false here
+    phase3TestRepo.getTestGroup(applicationId)
+  }
 
   def getTestGroupWithActiveTest(applicationId: String): Future[Option[Phase3TestGroupWithActiveTest]] = {
     for {

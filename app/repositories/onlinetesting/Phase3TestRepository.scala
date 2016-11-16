@@ -47,7 +47,7 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   this: ReactiveRepository[_, _] =>
   def appendCallback[A](token: String, callbacksKey: String, callback: A)(implicit format: BSONHandler[BSONDocument, A]): Future[Unit]
 
-  def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]]
+  def getTestGroup(applicationId: String, additionalProjection: BSONDocument): Future[Option[Phase3TestGroup]]
 
   def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId]
 
@@ -116,8 +116,8 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
   }
 
-  override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = {
-    getTestGroup(applicationId, phaseName)
+  override def getTestGroup(applicationId: String, additionalProjection: BSONDocument = BSONDocument()): Future[Option[Phase3TestGroup]] = {
+    super.getTestGroup(applicationId, phaseName, additionalProjection)
   }
 
   override def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId] = {

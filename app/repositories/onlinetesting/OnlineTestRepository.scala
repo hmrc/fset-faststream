@@ -48,9 +48,10 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
 
   def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]]
 
-  def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
+  def getTestGroup(applicationId: String, phase: String = "PHASE1",
+                   additionalProjection: BSONDocument = BSONDocument()): Future[Option[T]] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    phaseTestProfileByQuery(query, phase)
+    phaseTestProfileByQuery(query, phase, additionalProjection)
   }
 
   def getTestProfileByToken(token: String, phase: String = "PHASE1"): Future[T] = {
@@ -131,8 +132,9 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     throw CannotFindTestByCubiksId(s"Cannot find test group by token: $token")
   }
 
-  private def phaseTestProfileByQuery(query: BSONDocument, phase: String = "PHASE1"): Future[Option[T]] = {
-    val projection = BSONDocument(s"testGroups.$phase" -> 1, "_id" -> 0)
+  private def phaseTestProfileByQuery(query: BSONDocument, phase: String = "PHASE1",
+                                      additionalProjection: BSONDocument = BSONDocument()): Future[Option[T]] = {
+    val projection = BSONDocument(s"testGroups.$phase" -> 1, "_id" -> 0) ++ additionalProjection
 
     collection.find(query, projection).one[BSONDocument] map { optDocument =>
       optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}

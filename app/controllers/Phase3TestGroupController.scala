@@ -34,7 +34,7 @@ trait Phase3TestGroupController extends BaseController {
   val eventService: EventService
 
   def getTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
-    phase3TestService.getTestGroup(applicationId).map {
+    phase3TestService.getTestGroup(applicationId, withCallbacks = false).map {
         case Some(testGroup) =>
           Ok(Json.toJson(testGroup))
         case None =>
