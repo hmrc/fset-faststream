@@ -81,7 +81,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         guaranteedInterview = false,
         needsOnlineAdjustments = false,
         needsAtVenueAdjustments = false,
-        candidateInPreviousStatus.preferredName,
+        generatorConfig.personalData.getPreferredName,
         candidateInPreviousStatus.lastName,
         None,
         None
