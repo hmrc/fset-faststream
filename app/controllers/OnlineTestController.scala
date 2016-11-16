@@ -18,8 +18,9 @@ package controllers
 
 import model.ApplicationStatus._
 import model.Commands
+import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenException, InvalidTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.{ InvigilatedTestUrl, VerifyAccessCode, ResetOnlineTest }
+import model.command.{ InvigilatedTestUrl, ResetOnlineTest, VerifyAccessCode }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
@@ -32,6 +33,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{ Failure, Success }
 
 case class OnlineTestDetails(
   inviteDate: DateTime, expireDate: DateTime, onlineTestLink: String,
@@ -131,8 +133,10 @@ trait OnlineTestController extends BaseController {
   def verifyAccessCode() = Action.async(parse.json) { implicit request =>
     withJsonBody[VerifyAccessCode] { verifyAccessCode =>
       phase2TestService.verifyAccessCode(verifyAccessCode.email, verifyAccessCode.accessCode).map {
-        case Some(invigilatedTestUrl) => Ok(Json.toJson(InvigilatedTestUrl(invigilatedTestUrl)))
-        case None => NotFound
+        invigilatedTestUrl => Ok(Json.toJson(InvigilatedTestUrl(invigilatedTestUrl)))
+      }.recover {
+        case _: ExpiredTestForTokenException => Forbidden
+        case _ => NotFound
       }
     }
   }

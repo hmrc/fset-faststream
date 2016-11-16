@@ -87,6 +87,10 @@ object Exceptions {
   case class CannotUpdateAdjustmentsComment(applicationId: String) extends Exception(applicationId)
 
   case class CannotRemoveAdjustmentsComment(applicationId: String) extends Exception(applicationId)
+
+  case class InvalidTokenException(m: String) extends Exception(m)
+
+  case class ExpiredTestForTokenException(m: String) extends Exception(m)
 }
 
 // scalastyle:on number.of.methods
