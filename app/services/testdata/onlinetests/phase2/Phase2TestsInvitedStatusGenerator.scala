@@ -28,13 +28,13 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
 import services.testdata.ConstructiveGenerator
-import services.testdata.onlinetests.phase1.Phase1TestsResultsReceivedStatusGenerator
+import services.testdata.onlinetests.Phase1TestsPassedStatusGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase2TestsInvitedStatusGenerator extends Phase2TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
+  override val previousStatusGenerator = Phase1TestsPassedStatusGenerator
   override val otRepository = phase2TestRepository
   override val gatewayConfig = cubiksGatewayConfig
 }
