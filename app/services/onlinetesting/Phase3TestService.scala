@@ -21,19 +21,18 @@ import common.Phase3TestConcern
 import config.LaunchpadGatewayConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
-import connectors.launchpadgateway.exchangeobjects._
-import connectors.launchpadgateway.exchangeobjects.out.{ ExtendDeadlineRequest, InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest }
+import connectors.launchpadgateway.exchangeobjects.out.{ ExtendDeadlineRequest, InviteApplicantRequest,
+        InviteApplicantResponse, RegisterApplicantRequest }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
 import model.ProgressStatuses._
-import model.command.ProgressResponse
-import model.events.{ AuditEventNoRequest, AuditEvents, DataStoreEventWithAppId, DataStoreEvents }
-import model.persisted.{ NotificationExpiringOnlineTest, Phase2TestGroup }
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model._
+import model.command.ProgressResponse
 import model.events.EventTypes.EventType
-import model.exchange.{ Phase2TestGroupWithActiveTest, Phase3TestGroupWithActiveTest }
+import model.events.{ AuditEvents, DataStoreEvents }
+import model.exchange.Phase3TestGroupWithActiveTest
+import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -215,6 +214,22 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
         }
       } else {
         Future.successful(List[EventType]())
+      }
+    }
+  }
+
+  def addResetEventMayBe(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      testGroup <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+      progressResponse <- appRepository.findProgress(testGroup.applicationId)
+    } yield {
+      val phase3Progress = progressResponse.phase3ProgressResponse
+      val phase3Completed = phase3Progress.phase3TestsResultsReceived || phase3Progress.phase3TestsCompleted
+      phase3Completed match {
+        case true => AuditEvents.VideoInterviewReset(testGroup.applicationId) ::
+          DataStoreEvents.VideoInterviewReset(testGroup.applicationId) ::
+          Nil
+        case false => Nil
       }
     }
   }
