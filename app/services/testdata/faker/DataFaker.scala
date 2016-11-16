@@ -669,7 +669,13 @@ object DataFaker {
     def postCode: String = {
       s"${Random.upperLetter}${Random.upperLetter}1 2${Random.upperLetter}${Random.upperLetter}"
     }
-  }
 
+    def accessCode = randomAlphaString(7)
+
+    private def randomAlphaString(n: Int) = {
+      val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      Stream.continually(util.Random.nextInt(alphabet.length)).map(alphabet).take(n).mkString
+    }
+  }
 }
 //scalastyle:on number.of.methods

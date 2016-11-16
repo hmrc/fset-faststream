@@ -39,7 +39,8 @@ object ExchangeObjects {
                                     phase2TestGroup: Option[TestGroupResponse] = None,
                                     phase3TestGroup: Option[TestGroupResponse] = None,
                                     applicationAssessment: Option[ApplicationAssessment] = None,
-                                    schemePreferences: Option[SelectedSchemes] = None
+                                    schemePreferences: Option[SelectedSchemes] = None,
+                                    accessCode: Option[String] = None
                                    )
 
   case class TestGroupResponse(tests: List[TestResponse])
