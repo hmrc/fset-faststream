@@ -20,7 +20,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
 import model.SchemeType.SchemeType
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses }
+import model.{ Adjustments, ApplicationRoute, ApplicationStatus, ProgressStatuses }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import services.testdata.faker.DataFaker.Random
@@ -179,7 +179,8 @@ case class GeneratorConfig(statusData: StatusData,
   confirmedAllocation: Boolean = true,
   phase1TestData: Option[Phase1TestData] = None,
   phase2TestData: Option[Phase2TestData] = None,
-  phase3TestData: Option[Phase3TestData] = None
+  phase3TestData: Option[Phase3TestData] = None,
+  adjustmentInformation: Option[Adjustments] = None
 )
 
 object GeneratorConfig {
@@ -205,7 +206,8 @@ object GeneratorConfig {
       },
       phase1TestData = o.phase1TestData.map(Phase1TestData.apply),
       phase2TestData = o.phase2TestData.map(Phase2TestData.apply),
-      phase3TestData = o.phase3TestData.map(Phase3TestData.apply)
+      phase3TestData = o.phase3TestData.map(Phase3TestData.apply),
+      adjustmentInformation = o.adjustmentInformation
     )
   }
 }
