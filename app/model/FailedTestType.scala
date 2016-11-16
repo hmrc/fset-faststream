@@ -17,7 +17,7 @@
 package model
 
 import model.ApplicationStatus.ApplicationStatus
-import model.ApplicationStatus.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED }
+import model.ApplicationStatus.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED, PHASE3_TESTS_FAILED}
 import model.ProgressStatuses._
 
 sealed case class FailedTestType(appStatus: ApplicationStatus, notificationProgress: ProgressStatus,
@@ -30,3 +30,7 @@ object Phase1FailedTestType
 object Phase2FailedTestType
   extends FailedTestType(PHASE2_TESTS_FAILED, PHASE2_TESTS_FAILED_NOTIFIED, PHASE2_TESTS_RESULTS_RECEIVED,
     "fset_faststream_app_online_phase2_test_failed")
+
+object Phase3FailedTestType
+  extends FailedTestType(PHASE3_TESTS_FAILED, PHASE3_TESTS_FAILED_NOTIFIED, PHASE3_TESTS_RESULTS_RECEIVED,
+      "fset_faststream_app_online_phase3_test_failed")
