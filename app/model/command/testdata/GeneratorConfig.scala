@@ -124,11 +124,13 @@ case class PersonalData(
   emailPrefix: String = s"tesf${Random.number()-1}",
   firstName: String = Random.getFirstname(1),
   lastName: String = Random.getLastname(1),
-  preferredName: String = s"Pref${Random.getFirstname(1)}",
+  preferredName: Option[String] = None,
   dob: LocalDate = new LocalDate(1981, 5, 21),
   postCode: Option[String] = None,
   country: Option[String] = None
-)
+) {
+  def getPreferredName: String = preferredName.getOrElse(s"Pref$firstName")
+}
 
 object PersonalData {
 
@@ -141,7 +143,7 @@ object PersonalData {
       emailPrefix = emailPrefix.getOrElse(s"tesf${Random.number()}-$generatorId"),
       firstName = fname,
       lastName = o.lastName.getOrElse(Random.getLastname(generatorId)),
-      preferredName = o.preferredName.getOrElse(s"Pref$fname"),
+      preferredName = o.preferredName,
       dob = o.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))).getOrElse(default.dob),
       postCode = o.postCode,
       country = o.country
@@ -190,7 +192,7 @@ object GeneratorConfig {
 
     GeneratorConfig(
       statusData = statusData,
-      personalData = o.personalData.map( p => PersonalData(p, generatorId)).getOrElse(PersonalData()),
+      personalData = o.personalData.map(PersonalData(_, generatorId)).getOrElse(PersonalData()),
       assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
       cubiksUrl = cubiksUrlFromConfig,
       schemeTypes = o.schemeTypes,
