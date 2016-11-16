@@ -16,6 +16,7 @@
 
 package model.exchange.testdata
 
+import model.Adjustments
 import model.SchemeType.SchemeType
 import play.api.libs.json.Json
 
@@ -112,7 +113,8 @@ case class CreateCandidateInStatusRequest(
   confirmedAllocation: Option[Boolean],
   phase1TestData: Option[Phase1TestDataRequest],
   phase2TestData: Option[Phase2TestDataRequest],
-  phase3TestData: Option[Phase3TestDataRequest]
+  phase3TestData: Option[Phase3TestDataRequest],
+  adjustmentInformation: Option[Adjustments] = None
 )
 
 object CreateCandidateInStatusRequest {

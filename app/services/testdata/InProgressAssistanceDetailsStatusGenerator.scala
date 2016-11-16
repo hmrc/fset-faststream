@@ -16,82 +16,89 @@
 
 package services.testdata
 
+import model.command.testdata.GeneratorConfig
 import model.persisted.AssistanceDetails
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.assistancedetails.AssistanceDetailsRepository
+import services.adjustmentsmanagement.AdjustmentsManagementService
+import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import services.testdata.faker.DataFaker._
+import scala.concurrent.Future
 
 object InProgressAssistanceDetailsStatusGenerator extends InProgressAssistanceDetailsStatusGenerator {
-  override val previousStatusGenerator = InProgressPartnerGraduateProgrammesStatusGenerator
-  override val adRepository = faststreamAssistanceDetailsRepository
+  val previousStatusGenerator = InProgressPartnerGraduateProgrammesStatusGenerator
+  val adRepository = faststreamAssistanceDetailsRepository
+  val adjustmentsManagementService = AdjustmentsManagementService
 }
 
 // scalastyle:off method.length
 trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
   val adRepository: AssistanceDetailsRepository
+  val adjustmentsManagementService: AdjustmentsManagementService
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
-
-    def getAssistanceDetails(config: GeneratorConfig) = {
-      val hasDisabilityFinalValue = config.assistanceDetails.hasDisability
-
-      val hasDisabilityDescriptionFinalValue =
-        if (hasDisabilityFinalValue == "Yes") {
-          Some(config.assistanceDetails.hasDisabilityDescription)
-        } else {
-          None
-        }
-      val gisFinalValue = if (hasDisabilityFinalValue == "Yes" && config.assistanceDetails.setGis) {
-        Some(true)
-      } else { Some(false) }
-
-      val onlineAdjustmentsFinalValue = config.assistanceDetails.onlineAdjustments
-      val onlineAdjustmentsDescriptionFinalValue =
-        if (onlineAdjustmentsFinalValue) {
-          Some(config.assistanceDetails.onlineAdjustmentsDescription)
-        } else {
-          None
-        }
-      val assessmentCentreAdjustmentsFinalValue = config.assistanceDetails.assessmentCentreAdjustments
-      val assessmentCentreAdjustmentsDescriptionFinalValue =
-        if (assessmentCentreAdjustmentsFinalValue) {
-          Some(config.assistanceDetails.assessmentCentreAdjustmentsDescription)
-        } else {
-          None
-        }
-
-      val phoneInterviewAdjustmentsFinalValue = Random.bool
-      val phoneInterviewAdjustmentsDescriptionFinalValue =
-        if (phoneInterviewAdjustmentsFinalValue) {
-          Some("")
-        } else {
-          None
-        }
-
-      AssistanceDetails(
-        hasDisabilityFinalValue,
-        hasDisabilityDescriptionFinalValue,
-        gisFinalValue,
-        Some(onlineAdjustmentsFinalValue),
-        onlineAdjustmentsDescriptionFinalValue,
-        Some(assessmentCentreAdjustmentsFinalValue),
-        assessmentCentreAdjustmentsDescriptionFinalValue,
-        Some(phoneInterviewAdjustmentsFinalValue),
-        phoneInterviewAdjustmentsDescriptionFinalValue
-      )
-    }
     val assistanceDetails = getAssistanceDetails(generatorConfig)
+    val maybeAdjustments = generatorConfig.adjustmentInformation
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- adRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId, assistanceDetails)
+      appId = candidateInPreviousStatus.applicationId.get
+      _ <- adRepository.update(appId, candidateInPreviousStatus.userId, assistanceDetails)
+      _ <- maybeAdjustments.map(adjustmentsManagementService.confirmAdjustment(appId, _)).getOrElse(Future.successful())
     } yield {
       candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails))
     }
+  }
+
+  private def getAssistanceDetails(config: GeneratorConfig): AssistanceDetails = {
+    val hasDisabilityFinalValue = config.assistanceDetails.hasDisability
+
+    val hasDisabilityDescriptionFinalValue =
+      if (hasDisabilityFinalValue == "Yes") {
+        Some(config.assistanceDetails.hasDisabilityDescription)
+      } else {
+        None
+      }
+    val gisFinalValue = if (hasDisabilityFinalValue == "Yes" && config.assistanceDetails.setGis) {
+      Some(true)
+    } else { Some(false) }
+
+    val onlineAdjustmentsFinalValue = config.assistanceDetails.onlineAdjustments
+    val onlineAdjustmentsDescriptionFinalValue =
+      if (onlineAdjustmentsFinalValue) {
+        Some(config.assistanceDetails.onlineAdjustmentsDescription)
+      } else {
+        None
+      }
+    val assessmentCentreAdjustmentsFinalValue = config.assistanceDetails.assessmentCentreAdjustments
+    val assessmentCentreAdjustmentsDescriptionFinalValue =
+      if (assessmentCentreAdjustmentsFinalValue) {
+        Some(config.assistanceDetails.assessmentCentreAdjustmentsDescription)
+      } else {
+        None
+      }
+
+    val phoneInterviewAdjustmentsFinalValue = Random.bool
+    val phoneInterviewAdjustmentsDescriptionFinalValue =
+      if (phoneInterviewAdjustmentsFinalValue) {
+        Some("")
+      } else {
+        None
+      }
+
+    AssistanceDetails(
+      hasDisabilityFinalValue,
+      hasDisabilityDescriptionFinalValue,
+      gisFinalValue,
+      Some(onlineAdjustmentsFinalValue),
+      onlineAdjustmentsDescriptionFinalValue,
+      Some(assessmentCentreAdjustmentsFinalValue),
+      assessmentCentreAdjustmentsDescriptionFinalValue,
+      Some(phoneInterviewAdjustmentsFinalValue),
+      phoneInterviewAdjustmentsDescriptionFinalValue
+    )
   }
 }

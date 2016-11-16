@@ -1,6 +1,6 @@
 package repositories.contactdetails
 
-import model.Exceptions.ContactDetailsNotFound
+import model.Exceptions.{ ContactDetailsNotFoundForEmail, ContactDetailsNotFound }
 import model.persisted.ContactDetailsExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -32,7 +32,6 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
       } yield cd).futureValue
 
       result mustBe ContactDetailsUK
-
     }
   }
 
@@ -40,6 +39,22 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     "return an exception when user does not exist" in {
       val result = repository.find("IdWhichDoesNotExistForSure").failed.futureValue
       result mustBe ContactDetailsNotFound("IdWhichDoesNotExistForSure")
+    }
+  }
+
+  "find user id by email" should {
+    "return an exception when user does not exist for given email" in {
+      val result = repository.findUserIdByEmail("EmailWhichDoesNotExist").failed.futureValue
+      result mustBe ContactDetailsNotFoundForEmail()
+    }
+
+    "return the user id when a user does exist with the given email" in {
+      val result = (for {
+        _ <- insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsUK))
+        userId <- repository.findUserIdByEmail(ContactDetailsUK.email)
+      } yield userId).futureValue
+
+      result mustBe UserId
     }
   }
 

@@ -55,9 +55,11 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     when(mockPhase3TestCallbackService.recordCallback(any[FinalCallbackRequest]())
     (any[HeaderCarrier](), any[RequestHeader])).thenReturn(Future.successful(()))
     when(mockPhase3TestCallbackService.recordCallback(any[ViewPracticeQuestionCallbackRequest]())).thenReturn(Future.successful(()))
-    when(mockPhase3TestCallbackService.recordCallback(any[SetupProcessCallbackRequest]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[SetupProcessCallbackRequest]())
+    (any[HeaderCarrier](), any[RequestHeader]())).thenReturn(Future.successful(()))
     when(mockPhase3TestCallbackService.recordCallback(any[ViewBrandedVideoCallbackRequest]())).thenReturn(Future.successful(()))
-    when(mockPhase3TestCallbackService.recordCallback(any[ReviewedCallbackRequest]())).thenReturn(Future.successful(()))
+    when(mockPhase3TestCallbackService.recordCallback(any[ReviewedCallbackRequest]())
+    (any[HeaderCarrier](), any[RequestHeader]())).thenReturn(Future.successful(()))
 
     def controllerUnderTest = new LaunchpadTestsController {
       val phase3TestService = mockPhase3TestService
@@ -169,7 +171,8 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
       val response = controllerUnderTest.setupProcessCallback(sampleInviteId)(fakeRequest(sampleSetupProcessCallback))
       status(response) mustBe OK
 
-      verify(mockPhase3TestCallbackService, times(1)).recordCallback(any[SetupProcessCallbackRequest]())
+      verify(mockPhase3TestCallbackService, times(1)).recordCallback(any[SetupProcessCallbackRequest]()
+      )(any[HeaderCarrier](), any[RequestHeader]())
     }
   }
 
@@ -214,7 +217,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
       val response = controllerUnderTest.reviewedCallback(sampleInviteId)(fakeRequest(sampleReviewedCallback))
       status(response) mustBe OK
 
-      verify(mockPhase3TestCallbackService, times(1)).recordCallback(eqTo(sampleReviewedCallback))
+      verify(mockPhase3TestCallbackService, times(1)).recordCallback(eqTo(sampleReviewedCallback))(any[HeaderCarrier](), any[RequestHeader]())
     }
   }
 }

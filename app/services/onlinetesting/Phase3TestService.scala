@@ -21,19 +21,18 @@ import common.Phase3TestConcern
 import config.LaunchpadGatewayConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
-import connectors.launchpadgateway.exchangeobjects._
-import connectors.launchpadgateway.exchangeobjects.out.{ ExtendDeadlineRequest, InviteApplicantRequest, InviteApplicantResponse, RegisterApplicantRequest }
+import connectors.launchpadgateway.exchangeobjects.out.{ ExtendDeadlineRequest, InviteApplicantRequest,
+        InviteApplicantResponse, RegisterApplicantRequest }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands._
-import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
 import model.ProgressStatuses._
-import model.command.ProgressResponse
-import model.events.{ AuditEventNoRequest, AuditEvents, DataStoreEventWithAppId, DataStoreEvents }
-import model.persisted.{ NotificationExpiringOnlineTest, Phase2TestGroup }
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model._
+import model.command.ProgressResponse
 import model.events.EventTypes.EventType
-import model.exchange.{ Phase2TestGroupWithActiveTest, Phase3TestGroupWithActiveTest }
+import model.events.{ AuditEvents, DataStoreEvents }
+import model.exchange.Phase3TestGroupWithActiveTest
+import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -98,10 +97,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  override def registerAndInviteForTestGroup(application: List[OnlineTestApplication])
+  override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier,
                                              rh: RequestHeader): Future[Unit] =
-    Future.sequence(application.map(app => registerAndInviteForTestGroup(app))).map(_ => ())
+    Future.sequence(applications.map(app => registerAndInviteForTestGroup(app))).map(_ => ())
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -132,10 +131,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       phase3Test <- registerAndInviteApplicant(application, emailAddress, interviewId, invitationDate, expirationDate)
       _ <- emailProcess(emailAddress)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
-      _ <- eventService.handle(
+      _ <- eventSink {
         AuditEvents.VideoInterviewRegistrationAndInviteComplete("userId" -> application.userId) ::
-        DataStoreEvents.VideoInterviewRegistrationAndInviteComplete(application.applicationId) :: Nil
-      )
+          DataStoreEvents.VideoInterviewRegistrationAndInviteComplete(application.applicationId) :: Nil
+      }
     } yield {}
   }
 
@@ -219,6 +218,35 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
+  def addResetEventMayBe(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      testGroup <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+      progressResponse <- appRepository.findProgress(testGroup.applicationId)
+    } yield {
+      val phase3Progress = progressResponse.phase3ProgressResponse
+      val phase3Completed = phase3Progress.phase3TestsResultsReceived || phase3Progress.phase3TestsCompleted
+      phase3Completed match {
+        case true => AuditEvents.VideoInterviewReset(testGroup.applicationId) ::
+          DataStoreEvents.VideoInterviewReset(testGroup.applicationId) ::
+          Nil
+        case false => Nil
+      }
+    }
+  }
+
+  def markAsResultsReceived(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
+      for {
+        testGroup <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+        _ <- phase3TestRepo.updateProgressStatus(testGroup.applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+      } yield {
+        AuditEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
+          DataStoreEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
+          Nil
+      }
+    }
+  }
+
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val progressFut = appRepository.findProgress(applicationId)
@@ -237,22 +265,21 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       _ <- phase3TestRepo.updateGroupExpiryTime(applicationId, newExpiryDate, phase3TestRepo.phaseName)
       _ <- progressStatusesToRemoveWhenExtendTime(newExpiryDate, phase3, progress)
         .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
-      _ <- eventService.handle(AuditEvents.VideoInterviewExtended(
+      _ <- eventSink { AuditEvents.VideoInterviewExtended(
         "isAlreadyExpired" -> isAlreadyExpired.toString,
         "applicationId" -> applicationId) ::
-        DataStoreEvents.VideoInterviewExtended(applicationId, actionTriggeredBy) :: Nil)
+        DataStoreEvents.VideoInterviewExtended(applicationId, actionTriggeredBy) :: Nil }
     } yield {}
   }
 
   private def registerApplicant(application: OnlineTestApplication,
                         emailAddress: String, customCandidateId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
-    launchpadGatewayClient.registerApplicant(registerApplicant).map { registration =>
-      eventService.handle(
+    launchpadGatewayClient.registerApplicant(registerApplicant).flatMap { registration =>
+      eventSink {
         AuditEvents.VideoInterviewCandidateRegistered("userId" -> application.userId) ::
-        DataStoreEvents.VideoInterviewCandidateRegistered(application.applicationId) :: Nil
-      )
-      registration.candidateId
+          DataStoreEvents.VideoInterviewCandidateRegistered(application.applicationId) :: Nil
+      }.map(_ => registration.candidateId)
     }
   }
 
@@ -273,16 +300,16 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     invitationDate: DateTime, expirationDate: DateTime
   )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val preferredName = application.preferredName
-    emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
-      eventService.handle(
+    emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).flatMap { _ =>
+      eventSink {
         AuditEvents.VideoInterviewInvitationEmailSent(
           "userId" -> application.userId,
           "emailAddress" -> emailAddress
         ) ::
-        DataStoreEvents.VideoInterviewInvitationEmailSent(
-          application.applicationId
-        ) :: Nil
-      )
+          DataStoreEvents.VideoInterviewInvitationEmailSent(
+            application.applicationId
+          ) :: Nil
+      }
     }
   }
 
@@ -310,8 +337,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       currentPhase3TestGroup <- phase3TestRepo.getTestGroup(application.applicationId)
       updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
       _ <- phase3TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
-      _ <- eventService.handle(AuditEvents.VideoInterviewInvited("userId" -> application.userId) ::
-        DataStoreEvents.VideoInterviewInvited(application.applicationId) :: Nil)
+      _ <- eventSink { AuditEvents.VideoInterviewInvited("userId" -> application.userId) ::
+        DataStoreEvents.VideoInterviewInvited(application.applicationId) :: Nil }
     } yield {}
   }
 
@@ -335,13 +362,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     cdRepository.find(application.userId).map(_.email)
 
   private def getInterviewIdForApplication(application: OnlineTestApplication): Int = {
-    (for {
+    val time = (for {
       videoAdjustments <- application.videoInterviewAdjustments
       timeNeeded <- videoAdjustments.timeNeeded
-    } yield {
-      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage(s"${timeNeeded}pc")
-    }).getOrElse {
-      gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage("0pc")
-    }
+    } yield timeNeeded).getOrElse(0)
+
+    gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage(s"${time}pc")
   }
 }

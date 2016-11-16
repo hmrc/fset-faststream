@@ -29,34 +29,31 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
   override val collectionName = "questionnaire"
 
   "The Questionnaire Repo" should {
-
     "create collection, append questions to the application and overwrite existing questions" in new TestFixture {
-
       val applicationId = System.currentTimeMillis() + ""
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("what?", PersistedAnswer(Some("nothing"), None, None)))).futureValue
       val result = questionnaireRepo.find(applicationId).futureValue
-      result.size must be(1)
+      result.size mustBe 1
 
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("what?", PersistedAnswer(Some("nada"), None, None)))).futureValue
       val result1 = questionnaireRepo.find(applicationId).futureValue
-      result1.size must be(1)
+      result1.size mustBe 1
       result1.head.answer.answer must be(Some("nada"))
 
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("where?", PersistedAnswer(None, None, Some(true))))).futureValue
       val result2 = questionnaireRepo.find(applicationId).futureValue
-      result2.size must be(2)
+      result2.size mustBe 2
     }
 
     "find questions should return a map of questions/answers ignoring the non answered ones" in new TestFixture {
-
       val applicationId = System.currentTimeMillis() + ""
 
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("what?", PersistedAnswer(Some("nada"), None, None)))).futureValue
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("where?", PersistedAnswer(None, None, Some(true))))).futureValue
       val result2 = questionnaireRepo.findQuestions(applicationId).futureValue
 
-      result2.keys.size must be(2)
-      result2("where?") must be("")
+      result2.keys.size mustBe 2
+      result2("where?") mustBe ""
     }
 
     "return data relevant to the pass mark report" in new TestFixture {
@@ -151,5 +148,4 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       questionnaireRepo.addQuestions(applicationId3, partiallyCompleteQuestionnaire).futureValue
     }
   }
-
 }

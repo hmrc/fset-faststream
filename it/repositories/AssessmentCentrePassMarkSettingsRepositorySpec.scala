@@ -33,13 +33,13 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends MongoRepositorySpec
       val indexes = indexesWithFields(repo)
       indexes must contain (List("_id"))
       indexes must contain (List("info.createDate"))
-      indexes.size must be (2)
+      indexes.size mustBe 2
     }
 
     "return None if the pass mark settings do not exist" in {
       val result = repository.tryGetLatestVersion.futureValue
 
-      result must be(None)
+      result mustBe None
     }
 
     "create and fetch the passmark settings" in {
@@ -51,7 +51,7 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends MongoRepositorySpec
       repository.create(settings).futureValue
       val result = repository.tryGetLatestVersion.futureValue
 
-      result.get must be(settings)
+      result.get mustBe settings
     }
 
     "create two different version of pass mark settings and return the newest" in {
@@ -69,7 +69,7 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends MongoRepositorySpec
       repository.create(olderSettings).futureValue
       val result = repository.tryGetLatestVersion.futureValue
 
-      result.get must be(newerSettings)
+      result.get mustBe newerSettings
     }
   }
 }

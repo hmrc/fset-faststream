@@ -23,7 +23,7 @@ import config.{ CubiksGatewayConfig, Phase2Schedule, Phase2TestsConfig }
 import connectors.ExchangeObjects._
 import connectors.{ AuthProviderClient, CubiksGatewayClient, Phase2OnlineTestEmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.{ ContactDetailsNotFoundForEmail, ApplicationNotFound, NotFoundException }
+import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model.command.ProgressResponse
@@ -43,6 +43,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
+import scala.util.{ Failure, Success, Try }
 
 object Phase2TestService extends Phase2TestService {
 
@@ -95,24 +96,11 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
     }
   }
 
-  def verifyAccessCode(email: String, accessCode: String): Future[Option[String]] = {
-    (for {
-      userId <- cdRepository.findUserIdByEmail(email)
-      testGroupOpt <- phase2TestRepo.getTestGroupByUserId(userId)
-    } yield {
-      testGroupOpt.flatMap { testGroup =>
-        val eTrayTest = testGroup.activeTests.head
-        val accessCodeOpt = eTrayTest.invigilatedAccessCode
-        if (accessCodeOpt.contains(accessCode)) {
-          Some(eTrayTest.testUrl)
-        } else {
-          None
-        }
-      }
-    }) recover {
-      case _: ContactDetailsNotFoundForEmail => None
-    }
-  }
+  def verifyAccessCode(email: String, accessCode: String): Future[String] = for {
+    userId <- cdRepository.findUserIdByEmail(email)
+    testGroupOpt <- phase2TestRepo.getTestGroupByUserId(userId)
+    testUrl <- Future.fromTry(processEtrayToken(testGroupOpt, accessCode))
+  } yield testUrl
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     phase2TestRepo.nextApplicationsReadyForOnlineTesting
@@ -222,6 +210,22 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
                 "scheduleName" -> s"$scheduleName")) ::
               Nil
           }).flatten
+        }
+      }
+    }
+  }
+
+  private def processEtrayToken(phase: Option[Phase2TestGroup], accessCode: String): Try[String] = {
+    phase.fold[Try[String]](Failure(new NotFoundException(Some("No Phase2TestGroup found")))){
+      group => {
+        val eTrayTest = group.activeTests.head
+        val accessCodeOpt = eTrayTest.invigilatedAccessCode
+        if(group.expirationDate.isBefore(dateTimeFactory.nowLocalTimeZone)) {
+          Failure(ExpiredTestForTokenException("Test expired for token"))
+        } else if (accessCodeOpt.contains(accessCode)) {
+          Success(eTrayTest.testUrl)
+        } else {
+          Failure(InvalidTokenException("Token mismatch"))
         }
       }
     }

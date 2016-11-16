@@ -17,6 +17,7 @@
 package controllers
 
 import model.ApplicationStatus
+import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ InvigilatedTestUrl, ResetOnlineTest, VerifyAccessCode }
 import org.mockito.Matchers._
@@ -32,6 +33,7 @@ import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import scala.util.{ Failure, Success }
 
 class OnlineTestsControllerSpec extends UnitWithAppSpec {
   val mockPhase1TestService = mock[Phase1TestService]
@@ -105,7 +107,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
       val invigilatedTestUrl = "invigilated.test.url"
       when(mockPhase2TestService.verifyAccessCode(any[String], any[String]))
-        .thenReturn(Future.successful(Some(invigilatedTestUrl)))
+        .thenReturn(Future.successful(invigilatedTestUrl))
 
       val response = controller.verifyAccessCode()(fakeRequest)
       status(response) mustBe OK
@@ -120,11 +122,26 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
       val json: JsValue = Json.parse(jsonString)
       val fakeRequest = verifyAccessCodeRequest(json)
+      val noUserFound = Future.failed(ContactDetailsNotFoundForEmail())
 
-      when(mockPhase2TestService.verifyAccessCode(any[String], any[String])).thenReturn(Future.successful(None))
+      when(mockPhase2TestService.verifyAccessCode(any[String], any[String])).thenReturn(noUserFound)
 
       val response = controller.verifyAccessCode()(fakeRequest)
       status(response) mustBe NOT_FOUND
+    }
+
+    "return FORBIDDEN when the test is expired" in {
+      val verifyAccessCode = VerifyAccessCode(email = "test@email.com", accessCode = "ACCESS-CODE")
+      val jsonString = Json.toJson(verifyAccessCode).toString()
+
+      val json: JsValue = Json.parse(jsonString)
+      val fakeRequest = verifyAccessCodeRequest(json)
+      val tokenExpired = Future.failed(ExpiredTestForTokenException(""))
+
+      when(mockPhase2TestService.verifyAccessCode(any[String], any[String])).thenReturn(tokenExpired)
+
+      val response = controller.verifyAccessCode()(fakeRequest)
+      status(response) mustBe FORBIDDEN
     }
   }
 

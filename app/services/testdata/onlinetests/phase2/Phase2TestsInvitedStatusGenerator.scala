@@ -21,6 +21,7 @@ import java.util.UUID
 import config.CubiksGatewayConfig
 import config.MicroserviceAppConfig.cubiksGatewayConfig
 import connectors.testdata.ExchangeObjects.{ TestGroupResponse, TestResponse }
+import model.Adjustments
 import model.command.testdata.GeneratorConfig
 import model.persisted.{ CubiksTest, Phase2TestGroup }
 import org.joda.time.DateTime
@@ -28,13 +29,14 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
 import services.testdata.ConstructiveGenerator
-import services.testdata.onlinetests.phase1.Phase1TestsResultsReceivedStatusGenerator
+import services.testdata.faker.DataFaker._
+import services.testdata.onlinetests.Phase1TestsPassedStatusGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Phase2TestsInvitedStatusGenerator extends Phase2TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
+  override val previousStatusGenerator = Phase1TestsPassedStatusGenerator
   override val otRepository = phase2TestRepository
   override val gatewayConfig = cubiksGatewayConfig
 }
@@ -52,7 +54,14 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
       invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now()).plusDays(-1),
       participantScheduleId = 243357,
       scheduleId = gatewayConfig.phase2Tests.schedules("daro").scheduleId,
-      usedForResults = true
+      usedForResults = true,
+      invigilatedAccessCode = generatorConfig.adjustmentInformation.flatMap { adjustments =>
+        if (isInvigilatedETray(adjustments)) {
+          Some(Random.accessCode)
+        } else {
+          None
+        }
+      }
     )
 
     val phase2TestGroup = Phase2TestGroup(
@@ -66,11 +75,16 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
     } yield {
       val etray = phase2TestGroup.tests.head
 
-      candidateInPreviousStatus.copy(phase2TestGroup = Some(
-        TestGroupResponse(
-          List(TestResponse(etray.cubiksUserId, etray.token, etray.testUrl))
-        )
-      ))
+      candidateInPreviousStatus.copy(
+        phase2TestGroup = Some(TestGroupResponse(List(TestResponse(etray.cubiksUserId, etray.token, etray.testUrl)))),
+        accessCode = etray.invigilatedAccessCode
+      )
     }
+  }
+
+  def isInvigilatedETray(adjustments: Adjustments) = {
+    val isConfirmed = adjustments.adjustmentsConfirmed.contains(true)
+    val hasInvigilatedETray = adjustments.etray.exists(_.invigilatedInfo.isDefined)
+    isConfirmed && hasInvigilatedETray
   }
 }
