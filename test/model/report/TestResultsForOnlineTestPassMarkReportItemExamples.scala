@@ -32,5 +32,5 @@ object TestResultsForOnlineTestPassMarkReportItemExamples {
   def maybe[A](value: => A) = if (Random.nextBoolean()) Some(value) else None
 
   def newTestResults =
-    TestResultsForOnlineTestPassMarkReportItem(maybe(newTestResult), maybe(newTestResult), maybe(newTestResult))
+    TestResultsForOnlineTestPassMarkReportItem(maybe(newTestResult), maybe(newTestResult), maybe(newTestResult), None)
 }

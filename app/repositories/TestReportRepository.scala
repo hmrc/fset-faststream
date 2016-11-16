@@ -135,6 +135,7 @@ class TestReportMongoRepository(implicit mongo: () => DB)
     (applicationId, TestResultsForOnlineTestPassMarkReportItem(
       getTest("behavioural"),
       getTest("situational"),
+      None,
       None
     ))
   }

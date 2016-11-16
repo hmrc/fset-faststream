@@ -16,6 +16,7 @@
 
 package repositories.application
 
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewedCallbackRequest }
 import model.ApplicationStatus.{ apply => _, _ }
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocation
 import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _, _ }
@@ -179,6 +180,7 @@ trait GeneralApplicationRepoBSONToModelHelper {
       toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId))
   }
 
+  //scalastyle:off method.length
   private def toTestResultsForOnlineTestPassMarkReportItem(doc: BSONDocument, applicationId: String) = {
     import config.MicroserviceAppConfig._
 
@@ -209,7 +211,34 @@ trait GeneralApplicationRepoBSONToModelHelper {
           None
       }
     }
-    TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult)
+    val reviewedDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE3"))
+      .flatMap(_.getAs[BSONArray]("tests")).flatMap(_.getAs[BSONDocument](0))
+      .flatMap(_.getAs[BSONDocument]("callbacks")).flatMap(_.getAs[List[BSONDocument]]("reviewed"))
+
+    val reviewed = reviewedDocOpt.map (_.map(ReviewedCallbackRequest.bsonHandler.read(_)))
+    val latestReviewedOpt = reviewed.map ( _.sortWith { (r1, r2) => r1.received.isAfter(r2.received)}).flatMap(_.headOption)
+
+    val videoInterviewResults = latestReviewedOpt.map { latestReviewed =>
+      VideoInterviewTestResult(
+        toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question1),
+        toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question2),
+        toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question3),
+        toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question4),
+        toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question5),
+        toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question6),
+        toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question7),
+        toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question8),
+        latestReviewed.calculateTotalScore
+      )
+    }
+    TestResultsForOnlineTestPassMarkReportItem(behaviouralTestResult, situationalTestResult, etrayTestResult, videoInterviewResults)
+  }
+  //scalastyle:on method.length
+
+  private def toVideoInterviewQuestionTestResult(question: ReviewSectionQuestionRequest) = {
+    VideoInterviewQuestionTestResult(
+      question.reviewCriteria1.score,
+      question.reviewCriteria2.score)
   }
 
   private def toTestResult(tr: model.persisted.TestResult) = {

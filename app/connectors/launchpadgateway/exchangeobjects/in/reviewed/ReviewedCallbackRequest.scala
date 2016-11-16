@@ -31,16 +31,17 @@ case class ReviewedCallbackRequest(
   deadline: LocalDate,
   reviews: ReviewSectionRequest) {
 
+  val reviewers = reviews.reviewers
+  val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))
+
   def calculateTotalScore(): Double = {
-    val reviewers = reviews.reviewers
-    val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))
 
     def throwUnscored(questionNo: Int): Double = {
       throw LaunchpadQuestionIsUnscoredException(s"$questionNo is unscored, score cannot be calculated")
     }
 
     def scoreForQuestion(questionNo: Int, question: ReviewSectionQuestionRequest) =
-      question.reviewCriteria1.score.getOrElse(throwUnscored(questionNo)) + question.reviewCriteria2.score.getOrElse(throwUnscored(questionNo))
+      question.reviewCriteria1.score.getOrElse(0.0) + question.reviewCriteria2.score.getOrElse(0.0)
 
     scoreForQuestion(1, latestReviewer.question1) +
     scoreForQuestion(2, latestReviewer.question2) +
