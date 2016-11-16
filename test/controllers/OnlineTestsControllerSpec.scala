@@ -107,7 +107,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
       val invigilatedTestUrl = "invigilated.test.url"
       when(mockPhase2TestService.verifyAccessCode(any[String], any[String]))
-        .thenReturn(Future.successful(Success(invigilatedTestUrl)))
+        .thenReturn(Future.successful(invigilatedTestUrl))
 
       val response = controller.verifyAccessCode()(fakeRequest)
       status(response) mustBe OK
@@ -122,7 +122,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
       val json: JsValue = Json.parse(jsonString)
       val fakeRequest = verifyAccessCodeRequest(json)
-      val noUserFound = Future.successful(Failure(ContactDetailsNotFoundForEmail()))
+      val noUserFound = Future.failed(ContactDetailsNotFoundForEmail())
 
       when(mockPhase2TestService.verifyAccessCode(any[String], any[String])).thenReturn(noUserFound)
 
@@ -136,7 +136,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
       val json: JsValue = Json.parse(jsonString)
       val fakeRequest = verifyAccessCodeRequest(json)
-      val tokenExpired = Future.successful(Failure(ExpiredTestForTokenException("")))
+      val tokenExpired = Future.failed(ExpiredTestForTokenException(""))
 
       when(mockPhase2TestService.verifyAccessCode(any[String], any[String])).thenReturn(tokenExpired)
 

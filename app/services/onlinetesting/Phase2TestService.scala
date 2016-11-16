@@ -96,14 +96,11 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
     }
   }
 
-  def verifyAccessCode(email: String, accessCode: String): Future[Try[String]] = {
-    (for {
-      userId <- cdRepository.findUserIdByEmail(email)
-      testGroupOpt <- phase2TestRepo.getTestGroupByUserId(userId)
-    } yield processEtrayToken(testGroupOpt, accessCode)) recover {
-      case e: ContactDetailsNotFoundForEmail => Failure(e)
-    }
-  }
+  def verifyAccessCode(email: String, accessCode: String): Future[String] = for {
+    userId <- cdRepository.findUserIdByEmail(email)
+    testGroupOpt <- phase2TestRepo.getTestGroupByUserId(userId)
+    testUrl <- Future.fromTry(processEtrayToken(testGroupOpt, accessCode))
+  } yield testUrl
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
     phase2TestRepo.nextApplicationsReadyForOnlineTesting

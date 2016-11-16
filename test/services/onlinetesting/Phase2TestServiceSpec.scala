@@ -62,7 +62,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(otRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
 
       val result = phase2TestService.verifyAccessCode("test-email.com", accessCode).futureValue
-      result mustBe Success(authenticateUrl)
+      result mustBe authenticateUrl
     }
 
     "return a Failure if the access code does not match" in new Phase2TestServiceFixture {
@@ -72,15 +72,15 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val phase2TestGroup = Phase2TestGroup(expirationDate, List(phase2Test.copy(invigilatedAccessCode = Some(accessCode))))
       when(otRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
 
-      val result = phase2TestService.verifyAccessCode("test-email.com", "I-DO-NOT-MATCH").futureValue
-      result mustBe Failure(InvalidTokenException("Token mismatch"))
+      val result = phase2TestService.verifyAccessCode("test-email.com", "I-DO-NOT-MATCH").failed.futureValue
+      result mustBe an[InvalidTokenException]
     }
 
     "return a Failure if the user cannot be located by email" in new Phase2TestServiceFixture {
       when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.failed(ContactDetailsNotFoundForEmail()))
 
-      val result = phase2TestService.verifyAccessCode("test-email.com", "ANY-CODE").futureValue
-      result mustBe Failure(ContactDetailsNotFoundForEmail())
+      val result = phase2TestService.verifyAccessCode("test-email.com", "ANY-CODE").failed.futureValue
+      result mustBe an[ContactDetailsNotFoundForEmail]
     }
 
     "return A Failure if the test is Expired" in new Phase2TestServiceFixture {
@@ -90,8 +90,8 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val phase2TestGroup = Phase2TestGroup(expiredDate, List(phase2Test.copy(invigilatedAccessCode = Some(accessCode))))
       when(otRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
 
-      val result = phase2TestService.verifyAccessCode("test-email.com", accessCode).futureValue
-      result mustBe Failure(ExpiredTestForTokenException("Test expired for token"))
+      val result = phase2TestService.verifyAccessCode("test-email.com", accessCode).failed.futureValue
+      result mustBe an[ExpiredTestForTokenException]
     }
   }
 

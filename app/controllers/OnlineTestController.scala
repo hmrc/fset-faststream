@@ -133,8 +133,9 @@ trait OnlineTestController extends BaseController {
   def verifyAccessCode() = Action.async(parse.json) { implicit request =>
     withJsonBody[VerifyAccessCode] { verifyAccessCode =>
       phase2TestService.verifyAccessCode(verifyAccessCode.email, verifyAccessCode.accessCode).map {
-        case Success(invigilatedTestUrl) => Ok(Json.toJson(InvigilatedTestUrl(invigilatedTestUrl)))
-        case Failure(f: ExpiredTestForTokenException) => Forbidden
+        invigilatedTestUrl => Ok(Json.toJson(InvigilatedTestUrl(invigilatedTestUrl)))
+      }.recover {
+        case _: ExpiredTestForTokenException => Forbidden
         case _ => NotFound
       }
     }
