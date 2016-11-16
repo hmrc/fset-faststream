@@ -359,7 +359,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     val query = BSONDocument("$and" -> fullQuery)
 
-    bsonCollection.find(query).cursor[Candidate]().collect[List]()
+    val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
+    "personal-details" -> true)
+
+    bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
   }
 
   override def findApplicationIdsByLocation(location: String): Future[List[String]] = {
