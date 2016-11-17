@@ -63,8 +63,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )
     }
 
-    "supress the invitation email for invigilated applicants" in new Phase3TestServiceFixture {
-
+    "suppress the invitation email for invigilated applicants" in new Phase3TestServiceFixture {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
       val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
@@ -300,7 +299,9 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val gatewayConfigMock = LaunchpadGatewayConfig(
       "localhost",
-      Phase3TestsConfig(timeToExpireInDays = 7,
+      Phase3TestsConfig(
+        timeToExpireInDays = 7,
+        invigilatedTimeToExpireInDays = 90,
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
         Map(
           "0pc" -> zeroPCAdjustedInterviewId,

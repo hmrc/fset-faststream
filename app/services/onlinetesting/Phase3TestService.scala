@@ -118,12 +118,26 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
   def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    val (invitationDate, expirationDate) =
-      dateTimeFactory.nowLocalTimeZone -> dateTimeFactory.nowLocalTimeZone.plusDays(gatewayConfig.phase3Tests.timeToExpireInDays)
 
-    def emailProcess(emailAddress: String) = application.isInvigilatedVideo match {
+    val daysUntilExpiry = if (application.isInvigilatedVideo) {
+      gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays
+    } else {
+      gatewayConfig.phase3Tests.timeToExpireInDays
+    }
+
+    val (invitationDate, expirationDate) =
+      dateTimeFactory.nowLocalTimeZone -> dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry)
+
+    def emailProcess(emailAddress: String): Future[Unit] = application.isInvigilatedVideo match {
       case true => Future.successful(())
       case false => emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+    }
+
+    // All invites default to 7 day expiry in launchpad, extend the test in their system to match the value of
+    // invigilatedTimeToExpiryInDays, by adding (invigilatedTimetoExpiryInDays - 7 days)
+    def extendIfInvigilated(application: OnlineTestApplication): Future[Unit] = application.isInvigilatedVideo match {
+      case true => extendTestGroupExpiryTime(application.applicationId, daysUntilExpiry - 7, "InvigilatedInviteSystem")
+      case false => Future.successful(())
     }
 
     for {
@@ -131,6 +145,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       phase3Test <- registerAndInviteApplicant(application, emailAddress, interviewId, invitationDate, expirationDate)
       _ <- emailProcess(emailAddress)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
+      _ <- extendIfInvigilated(application)
       _ <- eventSink {
         AuditEvents.VideoInterviewRegistrationAndInviteComplete("userId" -> application.userId) ::
           DataStoreEvents.VideoInterviewRegistrationAndInviteComplete(application.applicationId) :: Nil
