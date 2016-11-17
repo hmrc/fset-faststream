@@ -39,11 +39,11 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
   val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     cachedData.application.map { application =>
 
-      def getPhase2Test: Future[Option[Phase2TestGroupWithActiveTest]] = if (application.applicationStatus == ApplicationStatus.PHASE2_TESTS) {
+      def getPhase2Test: Future[Option[Phase2TestGroupWithActiveTest]] = if (application.isPhase2) {
         applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
       } else { Future.successful(None) }
 
-      def getPhase3Test: Future[Option[Phase3TestGroup]] = if (application.applicationStatus == ApplicationStatus.PHASE3_TESTS) {
+      def getPhase3Test: Future[Option[Phase3TestGroup]] = if (application.isPhase3) {
         applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))
       } else { Future.successful(None) }
 

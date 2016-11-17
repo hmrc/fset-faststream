@@ -281,7 +281,33 @@
             case _ => {}
         }
 
-        @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.isPhase2TestFailed, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
+        @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.isPhase3TestFailed, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
+            case (true, _, Some(phase3Test), _, _) => {
+                <li id="videoSection">
+                    <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                        Video interview</p>
+                    <div id="groupTestExpired">
+                        <p>Unfortunately the time you had to finish the video interview has expired.</p>
+                        <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>
+                            .</p>
+                        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
+                            site for more opportunities with us.</p>
+                    </div>
+                </li>
+            }
+
+            case (_, true, Some(phase3Test), _, _) => {
+                <li id="videoSection">
+                    <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                        Video interview</p>
+                    <div id="phase3TestFailed">
+                        <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
+                        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
+                            site for more opportunities with us.</p>
+                    </div>
+                </li>
+            }
+
             case (_, _, None, _, Some(_)) => {
                 <li id="videoSection">
                     <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
@@ -290,7 +316,7 @@
                     <p>Unlocked if you're successful in the e-tray</p>
                 </li>
             }
-            case (false, _, Some(phase3Test), _, _) => {
+            case (false, false, Some(phase3Test), _, _) => {
                 @if(phase3Test.isCompleted) {
                     <li id="videoSection">
                         <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-check"></i>Video interview</p>
@@ -331,32 +357,6 @@
                         </div>
                     </li>
                 }
-            }
-
-            case (true, _, Some(phase3Test), _, _) => {
-                <li id="videoSection">
-                    <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
-                        Video interview</p>
-                    <div id="groupTestExpired">
-                        <p>Unfortunately the time you had to finish the video interview has expired.</p>
-                        <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>
-                            .</p>
-                        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
-                            site for more opportunities with us.</p>
-                    </div>
-                </li>
-            }
-
-            case (_, true, Some(phase3Test), _, _) => {
-                <li id="videoSection">
-                    <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
-                        Video interview</p>
-                    <div id="phase3TestFailed">
-                        <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
-                        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
-                            site for more opportunities with us.</p>
-                    </div>
-                </li>
             }
             case _ => {}
         }
