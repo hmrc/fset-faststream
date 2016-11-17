@@ -50,21 +50,21 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       user <- createUser(generationId, email, firstName, lastName, preferredName, AuthProviderClient.CandidateRole)
       _ <- medRepository.create(Media(user.userId, mediaReferrer.getOrElse("")))
     } yield {
-      DataGenerationResponse(generationId, user.userId, None, email, firstName, lastName, preferredName, mediaReferrer = mediaReferrer)
+      DataGenerationResponse(generationId, user.userId, None, email, firstName, lastName, mediaReferrer = mediaReferrer)
     }
   }
 
   def createUser(
     generationId: Int,
     email: String,
-    firstName: String, lastName: String, preferredName: String, role: AuthProviderClient.UserRole
+    firstName: String, lastName: String, preferredName: Option[String], role: AuthProviderClient.UserRole
   )(implicit hc: HeaderCarrier) = {
     for {
       user <- authProviderClient.addUser(email, "Service01", firstName, lastName, role)
       token <- authProviderClient.getToken(email)
       activateUser <- authProviderClient.activate(email, token)
     } yield {
-      DataGenerationResponse(generationId, user.userId.toString, None, email, firstName, lastName, preferredName)
+      DataGenerationResponse(generationId, user.userId.toString, None, email, firstName, lastName)
     }
   }
 

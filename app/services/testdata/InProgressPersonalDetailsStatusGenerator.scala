@@ -47,7 +47,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       PersonalDetails(
         candidateInformation.firstName,
         candidateInformation.lastName,
-        candidateInformation.preferredName,
+        generatorConfig.personalData.getPreferredName,
         generatorConfig.personalData.dob
       )
     }

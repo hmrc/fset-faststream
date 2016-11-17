@@ -45,7 +45,7 @@ trait TestDataGeneratorService {
       removeAllUsers <- AuthProviderClient.removeAllUsers()
       makeAdminUser1 <- RegisteredStatusGenerator.createUser(
         1,
-        "test_service_manager_1@mailinator.com", "CSR Test", "Service Manager", "TestServiceManager", AuthProviderClient.TechnicalAdminRole
+        "test_service_manager_1@mailinator.com", "CSR Test", "Service Manager", Some("TestServiceManager"), AuthProviderClient.TechnicalAdminRole
       )
     } yield {
       ()
@@ -65,7 +65,7 @@ trait TestDataGeneratorService {
           s"test_service_manager_${emailPrefix.getOrElse(Random.number(Some(10000)))}a$candidateGenerationId@mailinator.com",
           "CSR Test",
           "Service Manager",
-          "TestServiceManager",
+          Some("TestServiceManager"),
           role
         )
         Await.result(fut, 10 seconds)
