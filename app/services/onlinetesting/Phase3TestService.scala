@@ -35,15 +35,13 @@ import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phas
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
-import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.events.EventService
 import services.onlinetesting.Phase2TestService.NoActiveTestException
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Future
 import scala.language.postfixOps
 
 object Phase3TestService extends Phase3TestService {
@@ -64,14 +62,9 @@ object Phase3TestService extends Phase3TestService {
 }
 
 trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
-  val appRepository: GeneralApplicationRepository
+
   val phase3TestRepo: Phase3TestRepository
-  val cdRepository: contactdetails.ContactDetailsRepository
   val launchpadGatewayClient: LaunchpadGatewayClient
-  val tokenFactory: UUIDFactory
-  val dateTimeFactory: DateTimeFactory
-  val emailClient: OnlineTestEmailClient
-  val auditService: AuditService
   val gatewayConfig: LaunchpadGatewayConfig
 
   override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
@@ -140,9 +133,9 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     for {
       emailAddress <- candidateEmailAddress(application)
       phase3Test <- registerAndInviteApplicant(application, emailAddress, interviewId, invitationDate, expirationDate)
+      _ <- extendIfInvigilated(application)
       _ <- emailProcess(emailAddress)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
-      _ <- extendIfInvigilated(application)
       _ <- eventSink {
         AuditEvents.VideoInterviewRegistrationAndInviteComplete("userId" -> application.userId) ::
           DataStoreEvents.VideoInterviewRegistrationAndInviteComplete(application.applicationId) :: Nil
@@ -264,7 +257,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     val progressFut = appRepository.findProgress(applicationId)
     val phase3TestGroup = phase3TestRepo.getTestGroup(applicationId)
       .map(tg => tg.getOrElse(throw new IllegalStateException(s"Phase 3 tests Expiration date for app id: '$applicationId' " +
-        s"cannot be extended. Test group not found.")))
+        "cannot be extended. Test group not found.")))
 
     for {
       progress <- progressFut

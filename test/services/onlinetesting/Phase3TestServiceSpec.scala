@@ -414,7 +414,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val phase3TestServiceSpy = spy(service)
 
-      doReturn(Future.successful(()), Nil.toSeq:_*).when(phase3TestServiceSpy).extendTestGroupExpiryTime(any(), any(),
+      doReturn(Future.successful(()), Nil:_*).when(phase3TestServiceSpy).extendTestGroupExpiryTime(any(), any(),
         any())(any[HeaderCarrier](), any[RequestHeader]())
 
       phase3TestServiceSpy
