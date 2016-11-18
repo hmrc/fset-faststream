@@ -25,7 +25,7 @@ import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import play.api.libs.json.Json
+import play.api.libs.json.{ Format, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import services.passmarksettings.PassMarkSettingsService
@@ -39,7 +39,8 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
     "Return a settings objects with schemes but no thresholds if there are no settings saved" in new TestFixture {
       val passMarkSettingsServiceMockWithNoSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceMockWithNoSettings.getLatestPassMarkSettings(mockJsonFormat)).thenReturn(Future.successful(None))
+      when(passMarkSettingsServiceMockWithNoSettings.getLatestPassMarkSettings(
+        any[Format[Phase1PassMarkSettings]])).thenReturn(Future.successful(None))
 
       val passMarkSettingsControllerWithNoSettings = buildPMS(passMarkSettingsServiceMockWithNoSettings)
 
@@ -52,7 +53,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
 
       val passMarkSettingsServiceMockWithSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceMockWithSettings.getLatestPassMarkSettings(mockJsonFormat)).thenReturn(
+      when(passMarkSettingsServiceMockWithSettings.getLatestPassMarkSettings(any[Format[Phase1PassMarkSettings]])).thenReturn(
         Future.successful(Some(mockSettings)))
 
       val passMarkSettingsControllerWithSettings = buildPMS(passMarkSettingsServiceMockWithSettings)
@@ -127,7 +128,6 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
       val passMarkService = mockService
       val auditService = mockAuditService
       val uuidFactory = mockUUIDFactory
-      implicit val jsonFormat = mockJsonFormat
       val passMarksCreatedEvent = "Phase1PassMarksCreated"
       def getCopy(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
         passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
