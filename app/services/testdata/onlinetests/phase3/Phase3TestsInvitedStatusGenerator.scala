@@ -60,7 +60,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       candidateId = UUID.randomUUID().toString,
       customCandidateId = "FSCND-123",
       invitationDate = generatorConfig.phase3TestData.flatMap(_.start)
-        .getOrElse(DateTime.now().plusDays(-1)),
+        .getOrElse(DateTime.now()),
       startedDateTime = generatorConfig.phase3TestData.flatMap(_.start),
       completedDateTime = generatorConfig.phase3TestData.flatMap(_.completion),
       callbacks = LaunchpadTestCallbacks()

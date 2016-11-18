@@ -99,7 +99,8 @@ trait BaseBSONToModelHelper {
           phase3TestsExpired = getProgress(ProgressStatuses.PHASE3_TESTS_EXPIRED.toString),
           phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
           phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
-          phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString)
+          phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString),
+          phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key)
         ),
         failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
         assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
@@ -115,7 +116,7 @@ trait BaseBSONToModelHelper {
   }
   // scalastyle:on method.length
 
-  protected def booleanTranslator(bool: Boolean) = bool match {
+  private def booleanTranslator(bool: Boolean) = bool match {
     case true => "Yes"
     case false => "No"
   }
