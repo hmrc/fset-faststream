@@ -16,21 +16,11 @@
 
 package repositories.application
 
-import factories.UUIDFactory
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
-import model.SchemeType.SchemeType
-import model._
-import model.report.{ AdjustmentReportItem, CandidateProgressReportItem, VideoInterviewQuestionTestResult, VideoInterviewTestResult }
-import services.GBTimeZoneService
-import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
-import model.command.{ ProgressResponse, WithdrawApplication }
-import model.persisted._
+import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
+import model.report.{ VideoInterviewQuestionTestResult, VideoInterviewTestResult }
 import reactivemongo.bson.{ BSONArray, BSONDateTime, BSONDocument }
-import repositories.CommonBSONDocuments
-import testkit.{ MongoRepositorySpec, UnitWithAppSpec }
-
-import scala.concurrent.Await
+import testkit.UnitWithAppSpec
 
 class ReportingRepoBSONToModelHelperSpec extends UnitWithAppSpec {
 
