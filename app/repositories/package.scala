@@ -38,8 +38,7 @@ import config.MicroserviceAppConfig._
 import model.{ AdjustmentDetail, ApplicationRoute }
 import model.ApplicationRoute.ApplicationRoute
 import play.api.libs.json._
-import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }
-
+import repositories.passmarksettings._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -78,6 +77,7 @@ package object repositories {
   lazy val testReportRepository = new TestReportMongoRepository()
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
+  lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val candidateAllocationMongoRepository = new CandidateAllocationMongoRepository(DateTimeFactory)
@@ -102,6 +102,8 @@ package object repositories {
     phase1PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
     phase2PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
+
+    phase3PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
     assessmentCentrePassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("info.createDate", Ascending)), unique = true)),
 
