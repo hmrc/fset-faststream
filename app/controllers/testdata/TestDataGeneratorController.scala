@@ -25,7 +25,7 @@ import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatExc
 import model.Exceptions.EmailTakenException
 import model.command.testdata.GeneratorConfig
 import model.exchange.testdata._
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType }
+import model._
 import play.api.Play
 import play.api.libs.json.{ JsObject, JsString, Json }
 import play.api.mvc.{ Action, RequestHeader }
@@ -103,6 +103,14 @@ trait TestDataGeneratorController extends BaseController {
           start = Some("2340-01-01"),
           expiry = Some("2340-01-29"),
           completion = Some("2340-01-16")
+        )),
+        adjustmentInformation = Some(Adjustments(
+          adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
+          adjustmentsConfirmed = Some(true),
+          etray = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
+            , otherInfo = Some("Some other comments here"))),
+          video = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
+            , otherInfo = Some("Some other comments here")))
         ))
       )
 
