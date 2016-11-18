@@ -53,7 +53,7 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
         Future.successful()
       }
     } yield {
-      candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails))
+      candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails), adjustmentInformation = maybeAdjustments)
     }
   }
 
