@@ -24,7 +24,7 @@ import mocks.application.DocumentRootInMemoryRepository
 import model.Address
 import model.PersistedObjects.ContactDetailsWithId
 import model.report._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.JsArray
 import play.api.test.Helpers._

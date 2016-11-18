@@ -20,7 +20,7 @@ import connectors.AuthProviderClient
 import model.events.{ AuditEvent, DataStoreEvent, EmailEvent }
 import model.exchange.SimpleTokenResponse
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import play.api.mvc.RequestHeader

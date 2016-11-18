@@ -28,7 +28,7 @@ import model.persisted.{ ContactDetails, Phase3TestGroupWithAppId }
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -46,7 +46,6 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "Register and Invite an applicant" should {
 
-    /*
     "send audit events" in new Phase3TestServiceFixture {
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
@@ -63,7 +62,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
           "VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvitationEmailSent")
       )
-    }*/
+    }
 
     "suppress the invitation email for invigilated applicants" in new Phase3TestServiceFixture {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
@@ -76,10 +75,17 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
       val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
       phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
-      verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+      verify(phase3TestServiceNoTestGroupForInvigilated, times(1)).extendTestGroupExpiryTime(any(), any(),
+        any())(any[HeaderCarrier](), any[RequestHeader]())
     }
 
-    /*
+    "invite and not immediately extend when the applicant is not invigilated" in new Phase3TestServiceFixture {
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+
+      verify(phase3TestServiceNoTestGroupForInvigilated, times(0)).extendTestGroupExpiryTime(any(), any(),
+        any())(any[HeaderCarrier](), any[RequestHeader]())
+    }
+
     "insert a valid test group" in new Phase3TestServiceFixture {
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
@@ -254,7 +260,6 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyAuditEvents(0)
       verifyDataStoreEvents(0)
     }
-    */
   }
 
   trait Phase3TestServiceFixture extends EventServiceFixture {
@@ -409,7 +414,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val phase3TestServiceSpy = spy(service)
 
-      when(phase3TestServiceSpy.extendTestGroupExpiryTime(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
+      doReturn(Future.successful(()), Nil.toSeq:_*).when(phase3TestServiceSpy).extendTestGroupExpiryTime(any(), any(),
+        any())(any[HeaderCarrier](), any[RequestHeader]())
 
       phase3TestServiceSpy
     }

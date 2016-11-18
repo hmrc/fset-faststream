@@ -30,7 +30,7 @@ import model.exchange.CubiksTestResultReady
 import model.persisted._
 import model.{ ProgressStatuses, _ }
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.PrivateMethodTester
 import play.api.mvc.RequestHeader

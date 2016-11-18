@@ -23,8 +23,8 @@ import scala.concurrent.Future
 
 trait MockitoSugar extends org.scalatest.mock.MockitoSugar {
   // Unfortunately we cannot use the `when().thenReturn` format for spies.
-  def doReturnAsync() = Mockito.doReturn(Future.successful(()))
-  def doReturnAsync[A](value: A) = Mockito.doReturn(Future.successful(value))
+  def doReturnAsync() = Mockito.doReturn(Future.successful(()), Nil.toSeq:_*)
+  def doReturnAsync[A](value: A) = Mockito.doReturn(Future.successful(value), Nil.toSeq:_*)
   def doThrowAsync(): Stubber = doThrowAsync(new Exception("Unexpected error"))
-  def doThrowAsync(exception: Throwable): Stubber = Mockito.doReturn(Future.failed(exception))
+  def doThrowAsync(exception: Throwable): Stubber = Mockito.doReturn(Future.failed(exception), Nil.toSeq:_*)
 }

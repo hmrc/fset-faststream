@@ -19,7 +19,7 @@ package controllers
 import config.TestFixtureBase
 import connectors.AuthProviderClient
 import model.report.{ OnlineTestPassMarkReportItem, _ }
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }

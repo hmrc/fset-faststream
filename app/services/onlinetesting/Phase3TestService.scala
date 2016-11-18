@@ -50,7 +50,6 @@ object Phase3TestService extends Phase3TestService {
 
   import config.MicroserviceAppConfig._
 
-  val adjustmentsService = AdjustmentsManagementService
   val appRepository = applicationRepository
   val phase3TestRepo = phase3TestRepository
   val cdRepository = faststreamContactDetailsRepository
@@ -65,7 +64,6 @@ object Phase3TestService extends Phase3TestService {
 }
 
 trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
-  val adjustmentsService: AdjustmentsManagementService
   val appRepository: GeneralApplicationRepository
   val phase3TestRepo: Phase3TestRepository
   val cdRepository: contactdetails.ContactDetailsRepository
@@ -265,7 +263,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val progressFut = appRepository.findProgress(applicationId)
     val phase3TestGroup = phase3TestRepo.getTestGroup(applicationId)
-      .map(tg => tg.getOrElse(throw new IllegalStateException("Expiration date for Phase 3 cannot be extended. Test group not found.")))
+      .map(tg => tg.getOrElse(throw new IllegalStateException(s"Phase 3 tests Expiration date for app id: '$applicationId' " +
+        s"cannot be extended. Test group not found.")))
 
     for {
       progress <- progressFut
