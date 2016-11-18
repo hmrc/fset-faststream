@@ -33,7 +33,6 @@ object Phase1PassMarkSettingsController extends PassMarkSettingsController[Phase
   val auditService = AuditService
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase1PassMarkSettingsCreated"
-  val jsonFormat = Json.format[Phase1PassMarkSettings]
   def getCopy(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
@@ -43,7 +42,6 @@ object Phase2PassMarkSettingsController extends PassMarkSettingsController[Phase
   val auditService = AuditService
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase2PassMarkSettingsCreated"
-  val jsonFormat = Json.format[Phase2PassMarkSettings]
   def getCopy(passMarkSettings:Phase2PassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
@@ -53,18 +51,17 @@ object Phase3PassMarkSettingsController extends PassMarkSettingsController[Phase
   val auditService = AuditService
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase3PassMarkSettingsCreated"
-  val jsonFormat = Json.format[Phase3PassMarkSettings]
   def getCopy(passMarkSettings:Phase3PassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
 
-abstract class PassMarkSettingsController[T <: PassMarkSettings](implicit manifest: Manifest[T]) extends BaseController {
+abstract class PassMarkSettingsController[T <: PassMarkSettings]
+(implicit manifest: Manifest[T], jsonFormat: Format[T]) extends BaseController {
 
   val passMarkService: PassMarkSettingsService[T]
   val auditService: AuditService
   val uuidFactory: UUIDFactory
   val passMarksCreatedEvent : String
-  implicit val jsonFormat : Format[T]
 
   def getCopy(passMarkSettings:T, newVersionUUID: String) : T
 
