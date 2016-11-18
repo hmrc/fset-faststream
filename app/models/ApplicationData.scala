@@ -30,7 +30,12 @@ case class ApplicationData(applicationId: UniqueIdentifier,
                            applicationRoute: ApplicationRoute,
                            progress: Progress,
                            civilServiceExperienceDetails: Option[CivilServiceExperienceDetails]
-                          )
+                          ) {
+  import ApplicationData.ApplicationStatus._
+  def isPhase1 = applicationStatus == PHASE1_TESTS || applicationStatus == PHASE1_TESTS_PASSED || applicationStatus == PHASE1_TESTS_FAILED
+  def isPhase2 = applicationStatus == PHASE2_TESTS || applicationStatus == PHASE2_TESTS_PASSED || applicationStatus == PHASE2_TESTS_FAILED
+  def isPhase3 = applicationStatus == PHASE3_TESTS || applicationStatus == PHASE3_TESTS_PASSED || applicationStatus == PHASE3_TESTS_FAILED
+}
 
 object ApplicationData {
 
@@ -41,7 +46,7 @@ object ApplicationData {
     val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED = Value
     val PHASE1_TESTS, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED = Value
     val PHASE2_TESTS, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED = Value
-    val PHASE3_TESTS = Value
+    val PHASE3_TESTS, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED  = Value
 
     val REGISTERED = Value
     val IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES, IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES, IN_PROGRESS_ASSISTANCE_DETAILS,
