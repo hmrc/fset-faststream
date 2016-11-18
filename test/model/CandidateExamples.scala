@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package services.testdata.examples
+package model
 
-import model.{ AdjustmentDetail, Adjustments }
+import model.Commands.Candidate
 
-object AdjustmentsExamples {
-  val InvigilatedETrayAdjustments = Adjustments(
-    Some(List("etrayInvigilated")), Some(true), Some(AdjustmentDetail(invigilatedInfo = Some("invigilated e-tray approved"))), None
-  )
-  val ETrayTimeExtensionAdjustments = Adjustments(
-    Some(List("etrayTimeExtension")), Some(true), Some(AdjustmentDetail(invigilatedInfo = Some("time extension info"))), None
-  )
-  val EmptyAdjustments = Adjustments(None, adjustmentsConfirmed = Some(true), etray = None, video = None)
-
+object CandidateExamples {
+  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None)
 }

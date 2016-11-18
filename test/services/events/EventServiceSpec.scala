@@ -44,7 +44,7 @@ class EventServiceSpec extends UnitSpec with EventServiceFixture {
   }
 }
 
-trait EventServiceFixture extends MockitoSugar {
+trait EventServiceFixture extends MockitoSugar with org.scalatest.MustMatchers {
 
   val dataStoreEventHandlerMock = mock[DataStoreEventHandler]
   val auditEventHandlerMock = mock[AuditEventHandler]
@@ -72,6 +72,13 @@ trait EventServiceFixture extends MockitoSugar {
     assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
   }
 
+  def verifyDataStoreEvent(eventName: String): Unit = {
+    val eventCaptor = ArgumentCaptor.forClass(classOf[DataStoreEvent])
+    verify(dataStoreEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    eventCaptor.getAllValues.size() mustBe 1
+    eventCaptor.getAllValues.map(_.eventName).headOption mustBe Some(eventName)
+  }
+
   def verifyDataStoreEvents(n: Int, eventNames: List[String]): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[DataStoreEvent])
     verify(dataStoreEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
@@ -87,6 +94,13 @@ trait EventServiceFixture extends MockitoSugar {
     assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
   }
 
+  def verifyAuditEvent(eventName: String): Unit = {
+    val eventCaptor = ArgumentCaptor.forClass(classOf[AuditEvent])
+    verify(auditEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    eventCaptor.getAllValues.size() mustBe 1
+    eventCaptor.getAllValues.map(_.eventName).headOption mustBe Some(eventName)
+  }
+
   def verifyAuditEvents(n: Int, eventNames: List[String]): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[AuditEvent])
     verify(auditEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
@@ -100,5 +114,12 @@ trait EventServiceFixture extends MockitoSugar {
     val eventCaptor = ArgumentCaptor.forClass(classOf[EmailEvent])
     verify(emailEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
     assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
+  }
+
+  def verifyEmailEvent(eventName: String): Unit = {
+    val eventCaptor = ArgumentCaptor.forClass(classOf[EmailEvent])
+    verify(emailEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    eventCaptor.getAllValues.size() mustBe 1
+    eventCaptor.getAllValues.map(_.eventName).headOption mustBe Some(eventName)
   }
 }
