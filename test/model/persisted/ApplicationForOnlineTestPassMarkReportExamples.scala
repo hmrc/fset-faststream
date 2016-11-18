@@ -18,6 +18,7 @@ package model.report
 
 import model.SchemeType
 import model.persisted.ApplicationForOnlineTestPassMarkReport
+import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
 
 import scala.util.Random
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package repositories.event
+package repositories
 
 import model.persisted.Event
 import reactivemongo.api.DB
@@ -22,8 +22,8 @@ import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait EventRepository {
 

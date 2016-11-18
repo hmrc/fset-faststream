@@ -29,6 +29,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+// TODO: Do we use this repo?
 trait TestReportRepository {
   def saveOnlineTestReport(report: CandidateTestReport): Future[Unit]
 

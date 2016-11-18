@@ -30,7 +30,6 @@ import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
 import repositories.application._
-import repositories.event.EventMongoRepository
 import repositories.onlinetesting._
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
@@ -38,6 +37,8 @@ import config.MicroserviceAppConfig._
 import model.{ AdjustmentDetail, ApplicationRoute }
 import model.ApplicationRoute.ApplicationRoute
 import play.api.libs.json._
+import repositories.EventMongoRepository
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -66,6 +67,7 @@ package object repositories {
   lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService,
     cubiksGatewayConfig,
     GeneralApplicationRepoBSONToModelHelper)
+  lazy val reportingRepository = new ReportingMongoRepository(timeZoneService, ReportingRepoBSONToModelHelper)
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()

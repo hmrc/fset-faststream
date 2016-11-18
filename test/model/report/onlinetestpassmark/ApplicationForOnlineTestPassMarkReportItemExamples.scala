@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package model.report
+package model.report.onlinetestpassmark
 
 import model.SchemeType
+import model.report.{ ApplicationForOnlineTestPassMarkReportItem, TestResultsForOnlineTestPassMarkReportItem }
 
 import scala.util.Random
 

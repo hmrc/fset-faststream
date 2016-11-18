@@ -21,6 +21,7 @@ import model.command.GeneralDetails
 import model.persisted.{ ContactDetails, PersonalDetails }
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.AuditService

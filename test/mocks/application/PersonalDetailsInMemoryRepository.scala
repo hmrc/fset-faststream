@@ -20,7 +20,7 @@ import mocks.InMemoryStorage
 import model.Exceptions.PersonalDetailsNotFound
 import model.PersistedObjects.{ PersonalDetails, PersonalDetailsWithUserId }
 import org.joda.time.LocalDate
-import repositories.application.PersonalDetailsRepository
+import repositories.PersonalDetailsRepository
 
 import scala.concurrent.Future
 
