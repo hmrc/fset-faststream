@@ -116,7 +116,7 @@ trait BaseBSONToModelHelper {
   }
   // scalastyle:on method.length
 
-  private def booleanTranslator(bool: Boolean) = bool match {
+  protected def booleanTranslator(bool: Boolean) = bool match {
     case true => "Yes"
     case false => "No"
   }
