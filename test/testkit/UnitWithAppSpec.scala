@@ -31,7 +31,7 @@ abstract class UnitWithAppSpec extends UnitSpec with OneAppPerSuite with Results
   // Suppress logging during tests
   val additionalConfig = Map("logger.application" -> "ERROR")
 
-  override implicit lazy val app: FakeApplication = new FakeApplication(
+  override implicit lazy val app: FakeApplication = FakeApplication(
     additionalConfiguration = additionalConfig, withoutPlugins = Seq(
       "play.modules.reactivemongo.ReactiveMongoPlugin",
       "uk.gov.hmrc.play.health.HealthPlugin",
