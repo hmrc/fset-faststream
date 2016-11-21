@@ -98,6 +98,7 @@ case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, 
 case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
 
 case class Phase3TestsConfig(timeToExpireInDays: Int,
+                             invigilatedTimeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
                              interviewsByAdjustmentPercentage: Map[String, Int])
 

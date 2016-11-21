@@ -19,7 +19,8 @@ package controllers
 import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._

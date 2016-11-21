@@ -70,8 +70,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       expirationDate = generatorConfig.phase3TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
       tests = List(launchpad)
     )
-
-    // TODO: This is "real" integration with launchpad, ultimately we should mock the invite
+    
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       phase3TestApplication = OnlineTestApplication(

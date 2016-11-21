@@ -18,7 +18,7 @@ package services
 
 import model.Commands.Candidate
 import model.events.AuditEvents
-import org.mockito.Matchers.{ any, eq => eqTo }
+import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
