@@ -41,7 +41,7 @@ import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import scheduler.fixer.FixBatch
-import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
+import scheduler.fixer.RequiredFixes.{ PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.TimeZoneService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -461,6 +461,14 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
         selectRandom[Candidate](query, issue.batchSize)
       }
+      case PassToPhase1TestPassed =>
+        val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> BSONDocument("$ne" -> true))
+        ))
+
+        selectRandom[Candidate](query, issue.batchSize)
       case ResetPhase1TestInvitedSubmitted => {
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
@@ -484,6 +492,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         val updateOp = bsonCollection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)))
         bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
       }
+      case PassToPhase1TestPassed =>
+        val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationId" -> application.applicationId),
+          BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> BSONDocument("$ne" -> true))
+        ))
+        val updateOp = bsonCollection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED)))
+        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
       case ResetPhase1TestInvitedSubmitted => {
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),
