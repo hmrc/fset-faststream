@@ -29,11 +29,12 @@ object RequiredFixes {
     * to phase 2 but they can't proceed as there is no button for phase 2 test on the dashboard.
     */
   object PassToPhase2 extends Fix("PassToPhase2")
+  object PassToPhase1TestPassed extends Fix("PassToPhase1TestPassed")
   object ResetPhase1TestInvitedSubmitted extends Fix("ResetPhase1TestInvitedSubmitted")
 
   /**
     * If a further fix is needed, add it to the list. If not needed remove it from the list and possibly
     * remove it's implementation.
     */
-  val allFixes = PassToPhase2 :: ResetPhase1TestInvitedSubmitted :: Nil
+  val allFixes = PassToPhase2 :: PassToPhase1TestPassed :: ResetPhase1TestInvitedSubmitted :: Nil
 }
