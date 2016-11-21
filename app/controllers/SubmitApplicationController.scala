@@ -21,7 +21,7 @@ import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
 import play.api.mvc.{ Action, RequestHeader }
 import repositories.FrameworkRepository.CandidateHighestQualification
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
 import services.events.{ EventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier

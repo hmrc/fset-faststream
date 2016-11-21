@@ -4,6 +4,7 @@ import model.persisted.Event
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
+import repositories.EventMongoRepository
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future

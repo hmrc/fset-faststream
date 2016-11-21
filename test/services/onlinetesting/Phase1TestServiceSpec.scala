@@ -34,7 +34,6 @@ import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.PrivateMethodTester
 import play.api.mvc.RequestHeader
-import repositories.TestReportRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
@@ -308,7 +307,6 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
       when(otRepositoryMock.insertOrUpdateTestGroup("appId", phase1TestProfile))
         .thenReturn(Future.failed(new Exception))
-      when(trRepositoryMock.remove("appId")).thenReturn(Future.successful(()))
 
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
       result.failed.futureValue mustBe an[Exception]
@@ -336,7 +334,6 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       )).thenReturn(Future.successful(()))
       when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.successful(()))
-      when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
 
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
       result.futureValue mustBe (())
@@ -646,7 +643,6 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val otRepositoryMock = mock[Phase1TestRepository]
-    val trRepositoryMock = mock[TestReportRepository]
     val cubiksGatewayClientMock = mock[CubiksGatewayClient]
     val emailClientMock = mock[CSREmailClient]
     val auditServiceMock = mock[AuditService]
@@ -663,7 +659,6 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val phase1TestRepo = otRepositoryMock
-      val trRepository = trRepositoryMock
       val cubiksGatewayClient = cubiksGatewayClientMock
       val emailClient = emailClientMock
       val auditService = auditServiceMock
@@ -686,7 +681,6 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       any[HeaderCarrier]
     )).thenReturn(Future.successful(()))
     when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
-    when(trRepositoryMock.remove(any[String])).thenReturn(Future.successful(()))
     when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
   }
 }

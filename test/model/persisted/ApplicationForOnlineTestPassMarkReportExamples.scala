@@ -18,6 +18,7 @@ package model.report
 
 import model.SchemeType
 import model.persisted.ApplicationForOnlineTestPassMarkReport
+import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
 
 import scala.util.Random
 
@@ -26,9 +27,9 @@ object ApplicationForOnlineTestPassMarkReportExamples {
   lazy val application2 = newApplicationForOnlineTestPassMarkReport(TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
 
   lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReport(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None))
   lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReport(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None))
 
   def newApplicationForOnlineTestPassMarkReport(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
     ApplicationForOnlineTestPassMarkReport(

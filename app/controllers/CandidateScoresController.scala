@@ -21,8 +21,8 @@ import model.CandidateScoresCommands.{ ApplicationScores, CandidateScoresAndFeed
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import model.ApplicationStatus._
-import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
-import repositories.{ ApplicationAssessmentRepository, ApplicationAssessmentScoresRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.{ ApplicationAssessmentRepository, ApplicationAssessmentScoresRepository, PersonalDetailsRepository }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
