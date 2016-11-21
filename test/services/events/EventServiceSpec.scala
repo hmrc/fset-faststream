@@ -22,6 +22,7 @@ import model.exchange.SimpleTokenResponse
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
+import org.scalatest.MustMatchers
 import org.scalatest.mock.MockitoSugar
 import play.api.mvc.RequestHeader
 import services.events.handler.{ AuditEventHandler, DataStoreEventHandler, EmailEventHandler }
@@ -44,7 +45,7 @@ class EventServiceSpec extends UnitSpec with EventServiceFixture {
   }
 }
 
-trait EventServiceFixture extends MockitoSugar with org.scalatest.MustMatchers {
+trait EventServiceFixture extends MockitoSugar with MustMatchers {
 
   val dataStoreEventHandlerMock = mock[DataStoreEventHandler]
   val auditEventHandlerMock = mock[AuditEventHandler]
