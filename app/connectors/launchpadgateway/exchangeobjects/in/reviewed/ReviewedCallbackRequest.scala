@@ -36,10 +36,6 @@ case class ReviewedCallbackRequest(
 
   def calculateTotalScore(): Double = {
 
-    def throwUnscored(questionNo: Int): Double = {
-      throw LaunchpadQuestionIsUnscoredException(s"$questionNo is unscored, score cannot be calculated")
-    }
-
     def scoreForQuestion(questionNo: Int, question: ReviewSectionQuestionRequest) =
       question.reviewCriteria1.score.getOrElse(0.0) + question.reviewCriteria2.score.getOrElse(0.0)
 

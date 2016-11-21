@@ -117,7 +117,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService,
   override def onlineTestPassMarkReport(frameworkId: String): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("frameworkId" -> frameworkId),
-      BSONDocument(s"progress-status.PHASE1_TESTS_RESULTS_RECEIVED" -> true)
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
     ))
 
     val projection = BSONDocument(
