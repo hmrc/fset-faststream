@@ -70,7 +70,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
     // overall should be 38 + score
     def reviewerBSONDoc(score: Double) = BSONDocument(
       "name" -> "Test user 1",
-      "email" -> "testuser1@mailinator.com",
+      "email" -> "testuser1@localhost",
       "question1" -> BSONDocument(
         "id" -> 100,
         "reviewCriteria1" -> BSONDocument(
