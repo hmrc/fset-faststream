@@ -43,7 +43,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   val collectionName = "application"
 
-  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
+  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
   def testDataRepo = new TestDataMongoRepository()
 

@@ -26,6 +26,7 @@ import repositories.{ BSONHelpers, CommonBSONDocuments, RandomSelection }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import model.Phase._
+import repositories.application.BaseBSONReader
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -85,7 +86,7 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] {
+    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] with BaseBSONReader{
 
   val phase = PHASE1
 
@@ -113,7 +114,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
 class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] {
+    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] with BaseBSONReader {
 
   val phase = PHASE2
 

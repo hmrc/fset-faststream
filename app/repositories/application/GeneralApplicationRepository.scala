@@ -132,16 +132,11 @@ trait GeneralApplicationRepository {
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
 class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
-                                        gatewayConfig: CubiksGatewayConfig,
-                                        bsonToModelHelper: GeneralApplicationRepoBSONToModelHelper)(implicit mongo: () => DB)
+                                        gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats,
-    ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments {
-
-  implicit val readerCandidate = bsonReader(toCandidate)
-
-  // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
-  lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
+    ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
+    with GeneralApplicationRepoBSONReader with BSONHelpers {
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -174,7 +169,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val projection = BSONDocument("progress-status" -> 2, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(document) => bsonToModelHelper.toProgressResponse(document, applicationId)
+      case Some(document) => toProgressResponse(applicationId).read(document)
       case None => throw ApplicationNotFound(applicationId)
     }
   }
@@ -304,7 +299,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         collection.find(query, projection).sort(sort).options(QueryOpts(skipN = start)).cursor[BSONDocument]().collect[List](end - start + 1).
           map { docList =>
             docList.map { doc =>
-              bsonToModelHelper.toApplicationsForAssessmentAllocation(doc)
+              toApplicationsForAssessmentAllocation.read(doc)
             }
           }.flatMap { result =>
           Future.successful(ApplicationForAssessmentAllocationResult(result, count))
@@ -637,11 +632,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   private def isoTimeToPrettyDateTime(utcMillis: Long): String =
     timeZoneService.localize(utcMillis).toString("yyyy-MM-dd HH:mm:ss")
 
-  private def booleanTranslator(bool: Boolean) = bool match {
-    case true => "Yes"
-    case false => "No"
-  }
-
   private def reportQueryWithProjections[A](
                                              query: BSONDocument,
                                              prj: BSONDocument,
@@ -830,7 +820,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         )
       )
     )
-    implicit val reader = bsonReader(bsonToModelHelper.toApplicationForNotification)
     selectOneRandom[ApplicationForNotification](query)
   }
 
@@ -920,9 +909,4 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     case _ => BSONDocument.empty
   }
 
-  private def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
-    }
-  }
 }

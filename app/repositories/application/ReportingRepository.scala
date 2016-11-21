@@ -57,21 +57,10 @@ trait ReportingRepository {
 
 }
 
-class ReportingMongoRepository(timeZoneService: TimeZoneService,
-                               bsonToModelHelper: ReportingRepoBSONToModelHelper)(implicit mongo: () => DB)
+class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
-    Commands.Implicits.createApplicationRequestFormats,
-    ReactiveMongoFormats.objectIdFormats) with ReportingRepository with RandomSelection with CommonBSONDocuments {
-
-
-  // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
-  lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
-
-  implicit val readerPD = bsonReader(bsonToModelHelper.toReportWithPersonalDetails)
-  implicit val readerOnlineTestPassMark = bsonReader(bsonToModelHelper.toApplicationForOnlineTestPassMarkReport)
-  implicit val readerCandidate = bsonReader(toCandidate)
-  implicit val readerCPR = bsonReader(bsonToModelHelper.toCandidateProgressReportItem)
-  implicit val readerDiversity = bsonReader(bsonToModelHelper.toApplicationForDiversityReport)
+    Commands.Implicits.createApplicationRequestFormats, ReactiveMongoFormats.objectIdFormats) with ReportingRepository with RandomSelection with
+    CommonBSONDocuments with ReportingRepoBSONReader with BSONHelpers {
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
     candidateProgressReport(BSONDocument("$and" -> BSONArray(
@@ -320,7 +309,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService,
           val location2Scheme1 = frameworkPreferences.flatMap(_.secondLocation.map(_.firstFramework))
           val location2Scheme2 = frameworkPreferences.flatMap(_.secondLocation.flatMap(_.secondFramework))
 
-          val p = bsonToModelHelper.toProgressResponse(document, applicationId)
+          val p = toProgressResponse(applicationId).read(document)
 
           val preferences = PreferencesWithContactDetails(None, None, preferredName, None, None,
             location1, location1Scheme1, location1Scheme2,
@@ -364,11 +353,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService,
   private def isoTimeToPrettyDateTime(utcMillis: Long): String =
     timeZoneService.localize(utcMillis).toString("yyyy-MM-dd HH:mm:ss")
 
-  private def booleanTranslator(bool: Boolean) = bool match {
-    case true => "Yes"
-    case false => "No"
-  }
-
   private def reportQueryWithProjections[A](
                                              query: BSONDocument,
                                              prj: BSONDocument,
@@ -388,10 +372,4 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService,
     bsonCollection.find(query).projection(prj)
       .cursor[A](ReadPreference.nearest)
       .collect[List](Int.MaxValue, true)
-
-  private def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
-    }
-  }
 }

@@ -24,10 +24,4 @@ trait BSONHelpers {
   this: ReactiveRepository[_, _] =>
 
   protected lazy val bsonCollection = collection.db.collection[BSONCollection](collection.name)
-
-  protected def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
-    }
-  }
 }

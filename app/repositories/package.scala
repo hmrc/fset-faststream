@@ -64,10 +64,8 @@ package object repositories {
   lazy val schoolsRepository = SchoolsCSVRepository
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService,
-    cubiksGatewayConfig,
-    GeneralApplicationRepoBSONToModelHelper)
-  lazy val reportingRepository = new ReportingMongoRepository(timeZoneService, ReportingRepoBSONToModelHelper)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)
+  lazy val reportingRepository = new ReportingMongoRepository(timeZoneService)
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
@@ -146,22 +144,6 @@ package object repositories {
       "preferredName" -> psDoc.preferredName,
       "dateOfBirth" -> psDoc.dateOfBirth
     )
-  }
-
-  def toCandidate(doc: BSONDocument): Candidate = {
-    val userId = doc.getAs[String]("userId").getOrElse("")
-    val applicationId = doc.getAs[String]("applicationId")
-    // If the application does not have applicationRoute, it is legacy data
-    // as it needs to be interpreted as Faststream
-    val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
-
-    val psRoot = doc.getAs[BSONDocument]("personal-details")
-    val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
-    val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
-    val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
-    val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
-
-    Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None, Some(applicationRoute))
   }
 
   implicit object BSONMapHandler extends BSONHandler[BSONDocument, Map[String, Int]] {

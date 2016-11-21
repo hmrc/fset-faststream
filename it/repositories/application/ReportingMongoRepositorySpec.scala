@@ -47,8 +47,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   val collectionName = "application"
 
-  def repository = new ReportingMongoRepository(GBTimeZoneService, ReportingRepoBSONToModelHelper)
-  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
+  def repository = new ReportingMongoRepository(GBTimeZoneService)
+  def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def testDataRepo = new TestDataMongoRepository()
 
   "Candidate Progress Report" should {
