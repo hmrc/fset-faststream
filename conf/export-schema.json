@@ -246,7 +246,7 @@
             "hasDisability": {
               "type": "string",
               "minLength": 2,
-              "maxLength": 3
+              "maxLength": 35
             },
             "needsSupportForOnlineAssessment": {
               "type": "boolean"
@@ -654,7 +654,7 @@
                 "minLength": 1,
                 "maxLength": 64,
                 "enum": [
-                  "CentralDepartments",
+                  "Generalist",
                   "Commercial",
                   "DigitalAndTechnology",
                   "DiplomaticService",
@@ -671,7 +671,8 @@
                   "HumanResources",
                   "ProjectDelivery",
                   "ScienceAndEngineering",
-                  "Edip"
+                  "Edip",
+                  "Sdip"
                 ]
               }
             }
