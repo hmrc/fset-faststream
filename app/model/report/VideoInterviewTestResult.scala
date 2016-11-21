@@ -18,7 +18,6 @@ package model.report
 
 import play.api.libs.json.Json
 
-// TODO: We do not know yet if we will be need to store questions as options
 case class VideoInterviewTestResult(question1: VideoInterviewQuestionTestResult,
                                     question2: VideoInterviewQuestionTestResult,
                                     question3: VideoInterviewQuestionTestResult,
