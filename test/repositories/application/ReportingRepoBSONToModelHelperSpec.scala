@@ -68,8 +68,8 @@ class ReportingRepoBSONToModelHelperSpec extends UnitWithAppSpec {
     //scalastyle:off method.length
     // overall should be 38 + score
     def reviewerBSONDoc(score: Double) = BSONDocument(
-      "name" -> "Garfiled the cat",
-      "email" -> "garfieldthecat@mailinator.com",
+      "name" -> "Test user 1",
+      "email" -> "testuser1@mailinator.com",
       "question1" -> BSONDocument(
         "id" -> 100,
         "reviewCriteria1" -> BSONDocument(

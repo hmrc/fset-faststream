@@ -27,7 +27,7 @@ import model.SchemeType._
 import model.command._
 import model.persisted._
 import model.report._
-import model.{ CivilServiceExperienceType, InternshipType }
+import model.{ CivilServiceExperienceType, InternshipType, Phase }
 import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
 
@@ -185,7 +185,7 @@ trait ReportingRepoBSONToModelHelper extends BaseBSONToModelHelper {
   }
 
   private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]) = {
-    val phase1Doc = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE1"))
+    val phase1Doc = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1))
     val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc.get)
 
     val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
@@ -200,7 +200,7 @@ trait ReportingRepoBSONToModelHelper extends BaseBSONToModelHelper {
   }
 
   private[application] def toPhase2TestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]) = {
-    val phase2DocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE2"))
+    val phase2DocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE2))
     phase2DocOpt.flatMap { phase2Doc =>
       val phase2TestProfile = Phase2TestGroup.bsonHandler.read(phase2Doc)
       phase2TestProfile.activeTests.size match {
@@ -214,7 +214,7 @@ trait ReportingRepoBSONToModelHelper extends BaseBSONToModelHelper {
   }
 
   private[application] def toPhase3TestResults(testGroupsDoc: Option[BSONDocument]): Option[VideoInterviewTestResult] = {
-    val reviewedDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("PHASE3"))
+    val reviewedDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE3))
       .flatMap(_.getAs[BSONArray]("tests")).flatMap(_.getAs[BSONDocument](0))
       .flatMap(_.getAs[BSONDocument]("callbacks")).flatMap(_.getAs[List[BSONDocument]]("reviewed"))
 
