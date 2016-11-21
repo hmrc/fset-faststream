@@ -409,7 +409,6 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
           val auditService = auditServiceMock
           val gatewayConfig = gatewayConfigMock
           val eventService = eventServiceMock
-          val adjustmentsService = adjustmentsManagementServiceMock
         }
 
       val phase3TestServiceSpy = spy(service)
