@@ -347,7 +347,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   "fix PassToPhase1TestPassed" should {
     "get None for PHASE1_TESTS_PASSED but with PHASE2_TESTS_INVITED" in {
       val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup)
       val candidates = repository.getApplicationsToFix(FixBatch(PassToPhase1TestPassed, 1)).futureValue
       candidates mustBe empty
@@ -355,7 +355,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "get a candidate for PHASE1_TESTS_PASSED and without PHASE2_TESTS_INVITED" in {
       val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup)
       val candidates = repository.getApplicationsToFix(FixBatch(PassToPhase1TestPassed, 1)).futureValue
       candidates.headOption.flatMap(_.applicationId) mustBe Some("appId123")
@@ -363,7 +363,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "move PHASE1_TESTS to PHASE1_TESTS_PASSED if PHASE1_TESTS_PASSED exists without PHASE2_TESTS_INVITED" in {
       val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup)
       val matchResponse = repository.fix(candidate, FixBatch(PassToPhase1TestPassed, 1)).futureValue
       matchResponse mustBe defined
@@ -376,7 +376,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "do not change application status for non PHASE1_TESTS" in {
       val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
         additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup)
       val matchResponse = repository.fix(candidate, FixBatch(PassToPhase1TestPassed, 1)).futureValue
       matchResponse mustNot be(defined)
