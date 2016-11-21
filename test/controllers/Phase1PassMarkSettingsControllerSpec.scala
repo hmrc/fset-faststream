@@ -129,7 +129,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
       val auditService = mockAuditService
       val uuidFactory = mockUUIDFactory
       val passMarksCreatedEvent = "Phase1PassMarksCreated"
-      def getCopy(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
+      def upgradeVersion(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
         passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
     }
 
