@@ -137,8 +137,17 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
           AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
             DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
         }
-      case Some(phase2TestGroup) if !schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
+      case Some(phase2TestGroup) if !application.isInvigilatedETray && !schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
         throw ResetLimitExceededException()
+
+      case Some(phase2TestGroup) if application.isInvigilatedETray =>
+        val scheduleInv = testConfig.scheduleForInvigilatedETray
+        val (scheduleName, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
+        registerAndInviteForTestGroup(List(application), schedule).map { _ =>
+          AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
+            DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
+        }
+
       case _ =>
         throw CannotResetPhase2Tests()
     }

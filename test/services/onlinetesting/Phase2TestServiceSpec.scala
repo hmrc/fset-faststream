@@ -322,6 +322,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
     }
 
+    /*
     "throw an eception when reset invigilated e-tray" in new Phase2TestServiceFixture {
       override val phase2TestProfile = Phase2TestGroup(expirationDate, List(phase2Test))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfile)))
@@ -329,6 +330,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       an[CannotResetPhase2Tests] must be thrownBy
         Await.result(phase2TestService.resetTests(invigilatedETrayApp, "createdBy"), 1 seconds)
     }
+    */
   }
 
   "Extend time for expired test" should {
