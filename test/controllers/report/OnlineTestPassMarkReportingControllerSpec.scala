@@ -26,7 +26,7 @@ import org.mockito.Mockito._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
+import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -38,7 +38,6 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     "return nothing if no application exists" in new TestFixture {
       when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(Nil)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
-      when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -50,7 +49,6 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     "return nothing if applications exist, but no questionnaires" in new TestFixture {
       when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
-      when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -81,7 +79,6 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnaires)
-      when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(testResults)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -101,14 +98,12 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
 
     val mockReportRepository = mock[ReportingRepository]
     val mockQuestionRepository = mock[QuestionnaireRepository]
-    val mockTestResultRepository = mock[TestReportRepository]
     val mockMediaRepository = mock[MediaRepository]
     val controller = new ReportingController {
       val reportRepository = mockReportRepository
       val cdRepository = mock[ContactDetailsRepository]
       val authProviderClient = mock[AuthProviderClient]
       val questionnaireRepository = mockQuestionRepository
-      val testReportRepository = mockTestResultRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
       val medRepository: MediaRepository = mockMediaRepository
     }

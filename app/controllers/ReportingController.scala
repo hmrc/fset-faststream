@@ -35,7 +35,6 @@ object ReportingController extends ReportingController {
   val cdRepository = contactDetailsRepository
   val authProviderClient = AuthProviderClient
   val questionnaireRepository = repositories.questionnaireRepository
-  val testReportRepository = repositories.testReportRepository
   val assessmentScoresRepository = repositories.applicationAssessmentScoresRepository
   val medRepository = repositories.mediaRepository
 }
@@ -48,7 +47,6 @@ trait ReportingController extends BaseController {
   val cdRepository: ContactDetailsRepository
   val authProviderClient: AuthProviderClient
   val questionnaireRepository: QuestionnaireRepository
-  val testReportRepository: TestReportRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresRepository
   val medRepository: MediaRepository
 

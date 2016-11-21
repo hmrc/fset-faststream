@@ -17,7 +17,6 @@
 package services.evaluation
 
 import fixture.PreferencesFixture
-import fixture.TestReportFixture._
 import model.EvaluationResults.{RuleCategoryResult, _}
 import model.OnlineTestCommands._
 import model.Schemes

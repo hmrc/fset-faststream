@@ -31,7 +31,7 @@ import play.api.libs.json.JsArray
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
+import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository }
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -44,7 +44,6 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     override val cdRepository: ContactDetailsRepository = new ContactDetailsInMemoryRepository
     override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
       override val questionnaireRepository: QuestionnaireRepository = QuestionnaireInMemoryRepository
-    override val testReportRepository: TestReportRepository = TestReportInMemoryRepository
     override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
     override val medRepository: MediaRepository = MediaInMemoryRepository
   }
