@@ -16,10 +16,12 @@
 
 package services.adjustmentsmanagement
 
-import model.{ AdjustmentDetail, Adjustments, AdjustmentsComment }
+import model.Commands.Candidate
 import model.Exceptions.ApplicationNotFound
+import model.events.EventTypes.Events
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
-import model.exchange.AssistanceDetailsExchange
+import model.persisted.ContactDetails
+import model.{ AdjustmentDetail, Adjustments, AdjustmentsComment }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -43,38 +45,62 @@ trait AdjustmentsManagementService extends EventSink {
   def confirmAdjustment(applicationId: String, adjustmentInformation: Adjustments)
                        (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    val standardEventList = DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
+    val adjustmentsDataStoreAndAuditEvents: Events =
+      DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
       AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
       Nil
 
-    def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String = {
-
-      def mkString(ad: Option[AdjustmentDetail]): Option[String] =
-        ad.map(e => List(e.timeNeeded.map( tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
-
-      mkString(adjustmentDetail) match {
-        case Some(txt) if !txt.isEmpty => s"$header $txt"
-        case _ => ""
-      }
-    }
-
     appRepository.find(applicationId).flatMap {
-      case Some(candidate) =>
-        cdRepository.find(candidate.userId).flatMap { cd =>
-          eventSink {
-            appRepository.confirmAdjustments(applicationId, adjustmentInformation).map { _ =>
-              adjustmentInformation.adjustments match {
-                case Some(list) if list.nonEmpty => EmailEvents.AdjustmentsConfirmed(cd.email,
-                  candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),
-                  toEmailString("E-tray:", adjustmentInformation.etray),
-                  toEmailString("Video interview:", adjustmentInformation.video)) :: standardEventList
-                case _ => standardEventList
-              }
-            }
+      case Some(candidate) => eventSink {
+        for {
+          cd <- cdRepository.find(candidate.userId)
+          previousAdjustments <- appRepository.findAdjustments(applicationId)
+          _ <- appRepository.confirmAdjustments(applicationId, adjustmentInformation)
+        } yield {
+          val hasNewAdjustments = adjustmentInformation.adjustments.exists(_.nonEmpty)
+          val hasPreviousAdjustments = previousAdjustments.nonEmpty
+
+          val events = if (hasNewAdjustments || hasPreviousAdjustments) {
+            createEmailEvents(candidate, adjustmentInformation, hasPreviousAdjustments, cd) :: adjustmentsDataStoreAndAuditEvents
+          } else {
+            adjustmentsDataStoreAndAuditEvents
           }
+
+          events
         }
+      }
       case None => throw ApplicationNotFound(applicationId)
     }.map(_ => ())
+  }
+
+  private def createEmailEvents(candidate: Candidate, adjustmentInformation: Adjustments,
+                                hasPreviousAdjustments: Boolean, cd: ContactDetails) = {
+    if (hasPreviousAdjustments) {
+      EmailEvents.AdjustmentsChanged(
+        cd.email,
+        candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),
+        toEmailString("E-tray:", adjustmentInformation.etray),
+        toEmailString("Video interview:", adjustmentInformation.video)
+      )
+    } else {
+      EmailEvents.AdjustmentsConfirmed(
+        cd.email,
+        candidate.preferredName.getOrElse(candidate.firstName.getOrElse("")),
+        toEmailString("E-tray:", adjustmentInformation.etray),
+        toEmailString("Video interview:", adjustmentInformation.video)
+      )
+    }
+  }
+
+  private def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String = {
+
+    def mkString(ad: Option[AdjustmentDetail]): Option[String] =
+      ad.map(e => List(e.timeNeeded.map( tn => s"$tn% extra time"), e.invigilatedInfo, e.otherInfo).flatten.mkString(", "))
+
+    mkString(adjustmentDetail) match {
+      case Some(txt) if !txt.isEmpty => s"$header $txt"
+      case _ => ""
+    }
   }
 
   def find(applicationId: String): Future[Option[Adjustments]] = {
