@@ -25,7 +25,7 @@ import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.Json
+import play.api.libs.json.{ Format, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import services.passmarksettings.PassMarkSettingsService
@@ -36,10 +36,11 @@ import scala.language.postfixOps
 
 class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
   "Try and get latest settings" should {
-    "Return a settings objects with schemes but no thresholds if there are no settings saved" in new TestFixture {
+    "Return 404 if there are no settings saved" in new TestFixture {
       val passMarkSettingsServiceMockWithNoSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceMockWithNoSettings.getLatestPassMarkSettings).thenReturn(Future.successful(None))
+      when(passMarkSettingsServiceMockWithNoSettings.getLatestPassMarkSettings(
+        any[Format[Phase1PassMarkSettings]])).thenReturn(Future.successful(None))
 
       val passMarkSettingsControllerWithNoSettings = buildPMS(passMarkSettingsServiceMockWithNoSettings)
 
@@ -52,7 +53,7 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
 
       val passMarkSettingsServiceMockWithSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-      when(passMarkSettingsServiceMockWithSettings.getLatestPassMarkSettings).thenReturn(
+      when(passMarkSettingsServiceMockWithSettings.getLatestPassMarkSettings(any[Format[Phase1PassMarkSettings]])).thenReturn(
         Future.successful(Some(mockSettings)))
 
       val passMarkSettingsControllerWithSettings = buildPMS(passMarkSettingsServiceMockWithSettings)
@@ -119,12 +120,17 @@ class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
 
     val mockUUIDFactory = mock[UUIDFactory]
 
+    val mockJsonFormat = Json.format[Phase1PassMarkSettings]
+
     when(mockUUIDFactory.generateUUID()).thenReturn("uuid-1")
 
-    def buildPMS(mockService: PassMarkSettingsService[Phase1PassMarkSettings]) = new Phase1PassMarkSettingsController {
+    def buildPMS(mockService: PassMarkSettingsService[Phase1PassMarkSettings]) = new PassMarkSettingsController[Phase1PassMarkSettings] {
       val passMarkService = mockService
       val auditService = mockAuditService
       val uuidFactory = mockUUIDFactory
+      val passMarksCreatedEvent = "Phase1PassMarksCreated"
+      def upgradeVersion(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
+        passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
     }
 
     def createPassMarkSettingsRequest(jsonString: String) = {
