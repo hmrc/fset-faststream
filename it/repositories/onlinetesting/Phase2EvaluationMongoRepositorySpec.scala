@@ -11,7 +11,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
+import repositories.application.{ GeneralApplicationMongoRepository }
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.{ CommonRepository, schemepreferences }
 import services.GBTimeZoneService
@@ -29,8 +29,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository
 
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mock[CubiksGatewayConfig],
-    GeneralApplicationRepoBSONToModelHelper)
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mock[CubiksGatewayConfig])
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 

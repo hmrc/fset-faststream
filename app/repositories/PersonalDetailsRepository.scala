@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package repositories.application
+package repositories
 
 import model.Exceptions.PersonalDetailsNotFound
 import model.PersistedObjects
@@ -22,7 +22,6 @@ import model.PersistedObjects.{ PersonalDetails, PersonalDetailsWithUserId }
 import org.joda.time.LocalDate
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 

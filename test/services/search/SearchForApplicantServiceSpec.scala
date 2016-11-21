@@ -23,8 +23,8 @@ import model.PersistedObjects.ContactDetailsWithId
 import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import repositories.ContactDetailsRepository
-import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.{ ContactDetailsRepository, PersonalDetailsRepository }
+import repositories.application.GeneralApplicationRepository
 import services.BaseServiceSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 

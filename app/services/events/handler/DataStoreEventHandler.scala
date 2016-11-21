@@ -19,8 +19,7 @@ package services.events.handler
 import model.events.DataStoreEvent
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import repositories.event.EventRepository
-import repositories.eventMongoRepository
+import repositories.{ EventRepository, eventMongoRepository }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

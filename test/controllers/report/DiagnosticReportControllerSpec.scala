@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.report
 
 import config.TestFixtureBase
+import controllers.DiagnosticReportController
 import model.Exceptions.ApplicationNotFound
 import org.mockito.Mockito._
 import play.api.libs.json.{ JsArray, JsValue, Json }

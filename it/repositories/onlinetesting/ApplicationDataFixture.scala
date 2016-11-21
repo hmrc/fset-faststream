@@ -6,7 +6,7 @@ import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{ Phase1TestProfile, Phase2TestGroup }
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
+import repositories.application.{ GeneralApplicationMongoRepository }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 import reactivemongo.json.ImplicitBSONHandlers
@@ -17,7 +17,7 @@ import config.MicroserviceAppConfig.cubiksGatewayConfig
 trait ApplicationDataFixture {
   this: MongoRepositorySpec =>
 
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
 
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
 

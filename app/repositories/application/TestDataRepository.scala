@@ -17,11 +17,13 @@
 package repositories.application
 
 import connectors.ExchangeObjects
-import model.{ Address, PersistedObjects }
+import model.ApplicationStatus._
+import model.{ ApplicationStatus => _, _ }
 import model.PersistedObjects.ContactDetails
+import model.ProgressStatuses.ProgressStatus
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -94,6 +96,85 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     Future.sequence(
       (0 until num).map { i => createSingleApplication(i, onlyAwaitingAllocation, locationsAndRegions) }
     ).map(_ => ())
+
+  // scalastyle:off parameter.number
+  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
+                                     appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
+                                     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
+                                     firstName: Option[String] = None, preferredName: Option[String] = None, additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
+                                     additionalDoc: BSONDocument = BSONDocument()
+                                    ) = {
+    import repositories.BSONLocalDateHandler
+    collection.insert(BSONDocument(
+      "applicationId" -> appId,
+      "applicationStatus" -> appStatus,
+      "userId" -> userId,
+      "frameworkId" -> frameworkId,
+      "scheme-preferences" -> BSONDocument(
+        "schemes" -> BSONArray(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService)
+      ),
+      "personal-details" -> BSONDocument(
+        "firstName" -> firstName.getOrElse(s"${testCandidate("firstName")}"),
+        "lastName" -> lastName.getOrElse(s"${testCandidate("lastName")}"),
+        "preferredName" -> preferredName.getOrElse(s"${testCandidate("preferredName")}"),
+        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"
+      ),
+      "civil-service-experience-details" -> BSONDocument(
+        "applicable" -> true,
+        "fastPassReceived" -> true,
+        "certificateNumber" -> "1234567",
+        "civilServiceExperienceType" -> CivilServiceExperienceType.CivilServant,
+        "internshipTypes" -> BSONArray(InternshipType.SDIPCurrentYear, InternshipType.EDIP)
+      ),
+      "assistance-details" -> BSONDocument(
+        "hasDisability" -> "Yes",
+        "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
+        "needsSupportAtVenue" -> needsSupportAtVenue,
+        "guaranteedInterview" -> guaranteedInterview
+      ),
+      "issue" -> "this candidate has changed the email",
+      "progress-status" -> progressStatus(additionalProgressStatuses),
+      "progress-status-dates" -> BSONDocument(
+        "submitted" -> LocalDate.now()
+      )
+    ) ++ additionalDoc) //.futureValue
+  }
+  // scalastyle:on parameter.number
+
+  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
+    val baseDoc = BSONDocument(
+      "personal-details" -> true,
+      "in_progress" -> true,
+      "scheme-preferences" -> true,
+      "partner-graduate-programmes" -> true,
+      "assistance-details" -> true,
+      "questionnaire" -> BSONDocument(
+        "start_questionnaire" -> true,
+        "diversity_questionnaire" -> true,
+        "education_questionnaire" -> true,
+        "occupation_questionnaire" -> true
+      ),
+      "preview" -> true,
+      "submitted" -> true
+    )
+
+    args.foldLeft(baseDoc)((acc, v) => acc ++ (v._1.toString -> v._2))
+  }
+
+  val testCandidate = Map(
+    "firstName" -> "George",
+    "lastName" -> "Jetson",
+    "preferredName" -> "Georgy",
+    "dateOfBirth" -> "1986-05-01"
+  )
+
+  def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
+    collection.insert(BSONDocument(
+      "applicationId" -> appId,
+      "userId" -> userId,
+      "frameworkId" -> frameworkId
+    )) //.futureValue
+  }
 
   private def createSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false,
                                       locationsAndRegions: Seq[(String, String)]): Future[Unit] = {

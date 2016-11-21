@@ -16,7 +16,7 @@ import play.api.test.Helpers
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
+import repositories.application.{ GeneralApplicationMongoRepository }
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase1TestMongoRepository, Phase2TestMongoRepository }
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
@@ -43,8 +43,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   val mockGatewayConfig = mock[CubiksGatewayConfig]
 
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig,
-    GeneralApplicationRepoBSONToModelHelper)
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig)
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 
