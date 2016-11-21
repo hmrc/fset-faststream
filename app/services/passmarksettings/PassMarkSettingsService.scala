@@ -17,7 +17,7 @@
 package services.passmarksettings
 
 import model.Commands.PassMarkSettingsCreateResponse
-import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings }
+import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
 import play.api.libs.json.Format
 import repositories._
 import repositories.passmarksettings.PassMarkSettingsRepository
@@ -30,6 +30,10 @@ object Phase1PassMarkSettingsService extends PassMarkSettingsService[Phase1PassM
 
 object Phase2PassMarkSettingsService extends PassMarkSettingsService[Phase2PassMarkSettings] {
   val passMarkSettingsRepo = phase2PassMarkSettingsRepository
+}
+
+object Phase3PassMarkSettingsService extends PassMarkSettingsService[Phase3PassMarkSettings] {
+  val passMarkSettingsRepo = phase3PassMarkSettingsRepository
 }
 
 trait PassMarkSettingsService[T <: PassMarkSettings] {

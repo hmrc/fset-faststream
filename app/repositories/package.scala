@@ -16,7 +16,6 @@
 
 import factories.DateTimeFactory
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
-import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
@@ -34,12 +33,10 @@ import repositories.onlinetesting._
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
-import model.{ AdjustmentDetail, ApplicationRoute }
-import model.ApplicationRoute.ApplicationRoute
+import model.AdjustmentDetail
 import play.api.libs.json._
-import repositories.EventMongoRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
-import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }
+import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -77,6 +74,7 @@ package object repositories {
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
+  lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val candidateAllocationMongoRepository = new CandidateAllocationMongoRepository(DateTimeFactory)
@@ -101,6 +99,8 @@ package object repositories {
     phase1PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
     phase2PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
+
+    phase3PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
     assessmentCentrePassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("info.createDate", Ascending)), unique = true)),
 
