@@ -20,7 +20,7 @@ import model.Adjustments
 import model.CandidateExamples._
 import model.Exceptions.ApplicationNotFound
 import model.persisted.ContactDetailsExamples._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
