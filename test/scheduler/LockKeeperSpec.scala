@@ -17,7 +17,7 @@
 package scheduler
 
 import org.joda.time.Duration
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.LockRepository
 import testkit.UnitSpec

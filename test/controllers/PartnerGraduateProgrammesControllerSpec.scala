@@ -19,7 +19,7 @@ package controllers
 import config.TestFixtureBase
 import model.Exceptions.CannotUpdatePartnerGraduateProgrammes
 import model.command.PartnerGraduateProgrammesExchangeExamples
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc._
 import play.api.test.Helpers._

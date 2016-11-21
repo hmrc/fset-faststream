@@ -21,7 +21,7 @@ import connectors.AuthProviderClient
 import controllers.ReportingController
 import model.persisted.MediaExamples
 import model.report.{ DiversityReportItem, DiversityReportItemExamples, QuestionnaireReportItemExamples }
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import persisted.ApplicationForDiversityReportExamples
 import play.api.test.Helpers._

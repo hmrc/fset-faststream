@@ -18,7 +18,7 @@ package repositories
 
 import model.PersistedObjects.{PersistedAnswer, PersistedQuestion}
 import model.report.QuestionnaireReportItem
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import services.reporting.SocioEconomicScoreCalculator

@@ -36,7 +36,7 @@ private object Versions {
 
   val scalatest                     = "2.2.6"
   val pegdown                       = "1.6.0"
-  val mockito                       = "1.10.19"
+  val mockito                       = "2.2.17"
   val scalatestplus                 = "1.2.0"
   val specs2                        = "3.6.5"
 }
@@ -69,7 +69,7 @@ private object AppDependencies {
   abstract class TestDependencies(scope: String) {
     lazy val test: Seq[ModuleID] = Seq(
       "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
-      "org.mockito" % "mockito-all" % mockito % scope,
+      "org.mockito" % "mockito-core" % mockito % scope,
       "org.scalatestplus" %% "play" % scalatestplus % scope,
       "org.scalatest" %% "scalatest" % scalatest % scope,
       "org.pegdown" % "pegdown" % pegdown % scope,
