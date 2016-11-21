@@ -33,7 +33,7 @@ object Phase1PassMarkSettingsController extends PassMarkSettingsController[Phase
   val auditService = AuditService
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase1PassMarkSettingsCreated"
-  def getCopy(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
+  def upgradeVersion(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
 
@@ -42,7 +42,7 @@ object Phase2PassMarkSettingsController extends PassMarkSettingsController[Phase
   val auditService = AuditService
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase2PassMarkSettingsCreated"
-  def getCopy(passMarkSettings:Phase2PassMarkSettings, newVersionUUID: String) =
+  def upgradeVersion(passMarkSettings:Phase2PassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
 
@@ -51,7 +51,7 @@ object Phase3PassMarkSettingsController extends PassMarkSettingsController[Phase
   val auditService = AuditService
   val uuidFactory = UUIDFactory
   val passMarksCreatedEvent = "Phase3PassMarkSettingsCreated"
-  def getCopy(passMarkSettings:Phase3PassMarkSettings, newVersionUUID: String) =
+  def upgradeVersion(passMarkSettings:Phase3PassMarkSettings, newVersionUUID: String) =
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
 
@@ -63,12 +63,12 @@ abstract class PassMarkSettingsController[T <: PassMarkSettings]
   val uuidFactory: UUIDFactory
   val passMarksCreatedEvent : String
 
-  def getCopy(passMarkSettings:T, newVersionUUID: String) : T
+  def upgradeVersion(passMarkSettings:T, newVersionUUID: String) : T
 
   def create = Action.async(parse.json) { implicit request =>
     withJsonBody[T] { passMarkSettings => {
         val newVersionUUID = uuidFactory.generateUUID()
-        val newPassMarkSettings = getCopy(passMarkSettings, newVersionUUID)
+        val newPassMarkSettings = upgradeVersion(passMarkSettings, newVersionUUID)
         for {
           createResult <- passMarkService.createPassMarkSettings(newPassMarkSettings)
         } yield {

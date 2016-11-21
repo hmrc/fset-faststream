@@ -36,7 +36,7 @@ import scala.language.postfixOps
 
 class Phase1PassMarkSettingsControllerSpec extends UnitWithAppSpec {
   "Try and get latest settings" should {
-    "Return a settings objects with schemes but no thresholds if there are no settings saved" in new TestFixture {
+    "Return 404 if there are no settings saved" in new TestFixture {
       val passMarkSettingsServiceMockWithNoSettings = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
       when(passMarkSettingsServiceMockWithNoSettings.getLatestPassMarkSettings(
