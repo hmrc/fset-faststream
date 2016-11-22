@@ -27,8 +27,7 @@ import model.persisted._
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories._
-import repositories.application.BaseBSONReader
+import repositories.{ BaseBSONReader, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
