@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package repositories.application
+package repositories
 
-import model.ApplicationStatus.{ apply => _, _ }
-import model.CivilServiceExperienceType.{ apply => _ }
-import model.InternshipType.{ apply => _ }
+import model.ApplicationStatus._
 import model.ProgressStatuses
 import model.command.{ AssessmentCentre, _ }
-import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.BSONHelpers
+import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader }
 
 trait BaseBSONReader {
   // scalastyle:off method.length

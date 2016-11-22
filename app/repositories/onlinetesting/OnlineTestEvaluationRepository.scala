@@ -22,11 +22,10 @@ import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.{ BSONHelpers, CommonBSONDocuments, RandomSelection }
+import repositories.{ BSONHelpers, BaseBSONReader, CommonBSONDocuments, RandomSelection }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import model.Phase._
-import repositories.application.BaseBSONReader
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

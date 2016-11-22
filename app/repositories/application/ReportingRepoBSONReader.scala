@@ -30,7 +30,7 @@ import model.report._
 import model.{ CivilServiceExperienceType, InternshipType, Phase }
 import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.BSONHelpers
+import repositories.{ BSONHelpers, BaseBSONReader }
 
 trait ReportingRepoBSONReader extends BaseBSONReader {
 
