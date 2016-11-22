@@ -79,9 +79,9 @@ trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
 
   implicit val toApplicationPreferencesWithTestResults = bsonReader {
     (doc: BSONDocument) => {
-      val userId = document.getAs[String]("userId").getOrElse("")
+      val userId = doc.getAs[String]("userId").getOrElse("")
 
-      val fr = document.getAs[BSONDocument]("framework-preferences")
+      val fr = doc.getAs[BSONDocument]("framework-preferences")
 
       val fr1 = fr.flatMap(_.getAs[BSONDocument]("firstLocation"))
       val fr1FirstLocation = fr1.flatMap(_.getAs[String]("location"))
@@ -97,9 +97,9 @@ trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
       val location = frAlternatives.flatMap(_.getAs[IsNonSubmitted]("location").map(booleanTranslator))
       val framework = frAlternatives.flatMap(_.getAs[IsNonSubmitted]("framework").map(booleanTranslator))
 
-      val applicationId = document.getAs[String]("applicationId").getOrElse("")
+      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
 
-      val pe = document.getAs[BSONDocument]("assessment-centre-passmark-evaluation")
+      val pe = doc.getAs[BSONDocument]("assessment-centre-passmark-evaluation")
 
       val ca = pe.flatMap(_.getAs[BSONDocument]("competency-average"))
       val leadingAndCommunicatingAverage = ca.flatMap(_.getAs[Double]("leadingAndCommunicatingAverage"))
@@ -118,7 +118,7 @@ trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
       val projectDelivery = se.flatMap(_.getAs[String](Schemes.ProjectDelivery).map(Result(_).toPassmark))
       val finance = se.flatMap(_.getAs[String](Schemes.Finance).map(Result(_).toPassmark))
 
-      val pd = document.getAs[BSONDocument]("personal-details")
+      val pd = doc.getAs[BSONDocument]("personal-details")
       val firstName = pd.flatMap(_.getAs[String]("firstName"))
       val lastName = pd.flatMap(_.getAs[String]("lastName"))
       val preferredName = pd.flatMap(_.getAs[String]("preferredName"))
