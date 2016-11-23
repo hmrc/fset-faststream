@@ -122,7 +122,7 @@
                     </li>
                 </ul>
             } else {
-                @if(isEdip(cachedUserData)) {
+                @if(isEdip(cachedUserData) || isSdip(cachedUserData)) {
                     <ul class="list-text list-withicons" id="testsIndividual">
                         <li>
                             <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>
