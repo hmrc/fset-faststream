@@ -20,7 +20,7 @@ import config.TestFixtureBase
 import mocks.application.DocumentRootInMemoryRepository
 import model.ApplicationRoute
 import model.command.WithdrawApplication
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc._

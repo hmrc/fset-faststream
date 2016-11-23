@@ -22,7 +22,7 @@ import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalD
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.application.GeneralApplicationRepository
 import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 

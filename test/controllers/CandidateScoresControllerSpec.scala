@@ -22,13 +22,13 @@ import model.CandidateScoresCommands.{ ApplicationScores, CandidateScores, Candi
 import model.Commands.ApplicationAssessment
 import model.PersistedObjects.PersonalDetails
 import org.joda.time.LocalDate
-import org.mockito.Matchers.{ eq => eqTo }
+import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
-import repositories.{ ApplicationAssessmentRepository, ApplicationAssessmentScoresRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.{ ApplicationAssessmentRepository, ApplicationAssessmentScoresRepository, PersonalDetailsRepository }
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future

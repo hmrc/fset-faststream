@@ -20,6 +20,8 @@ import model.ApplicationStatus._
 import model.command.GeneralDetails
 import model.persisted.{ ContactDetails, PersonalDetails }
 import repositories._
+import repositories.application.GeneralApplicationRepository
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.NorthSouthIndicatorCSVRepository.calculateFsacIndicator
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
@@ -69,6 +71,7 @@ trait CandidateDetailsService {
     val personalDetailsFut = pdRepository.find(applicationId)
     val contactDetailsFut = cdRepository.find(userId)
     val civilServiceExperienceDetailsFut = fpdRepository.find(applicationId)
+
     for {
       personalDetails <- personalDetailsFut
       contactDetails <- contactDetailsFut

@@ -20,7 +20,7 @@ import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkS
 import model.persisted.ApplicationReadyForEvaluation
 import model.{ ApplicationStatus, Phase, Phase1TestProfileExamples, SelectedSchemesExamples }
 import org.joda.time.{ DateTime, DateTimeZone }
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import testkit.UnitWithAppSpec
 

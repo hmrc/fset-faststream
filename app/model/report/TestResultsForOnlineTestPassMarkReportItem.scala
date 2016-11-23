@@ -23,8 +23,9 @@ import model.OnlineTestCommands.Implicits._
 case class TestResultsForOnlineTestPassMarkReportItem(
                                                       behavioural: Option[TestResult],
                                                       situational: Option[TestResult],
-                                                      etray: Option[TestResult]
-                                                    )
+                                                      etray: Option[TestResult],
+                                                      videoInterview: Option[VideoInterviewTestResult]
+                                                     )
 
 object TestResultsForOnlineTestPassMarkReportItem {
   implicit val testResultsForOnlineTestPassMarkReportItemFormat = Json.format[TestResultsForOnlineTestPassMarkReportItem]

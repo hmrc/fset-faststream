@@ -41,6 +41,16 @@ case class Phase2PassMark(
 ) extends PassMark
 
 object Phase2PassMark {
-  implicit val phase1PassMark = Json.format[Phase2PassMark]
-  implicit val phase1PassMarkHandler = Macros.handler[Phase2PassMark]
+  implicit val phase2PassMark = Json.format[Phase2PassMark]
+  implicit val phase2PassMarkHandler = Macros.handler[Phase2PassMark]
+}
+
+case class Phase3PassMark(
+  schemeName: SchemeType,
+  schemeThresholds: Phase3PassMarkThresholds
+) extends PassMark
+
+object Phase3PassMark {
+  implicit val phase3PassMark = Json.format[Phase3PassMark]
+  implicit val phase3PassMarkHandler = Macros.handler[Phase3PassMark]
 }

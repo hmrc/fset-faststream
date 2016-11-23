@@ -21,7 +21,7 @@ import model.Address
 import model.Commands.ApplicationAssessment
 import model.PersistedObjects.{ AllocatedCandidate, ContactDetails, PersonalDetailsWithUserId }
 import org.joda.time.{ DateTime, LocalDate }
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.time.{ Seconds, Span }
 import repositories.application.CandidateAllocationRepository

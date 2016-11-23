@@ -18,7 +18,7 @@ package services.assistancedetails
 
 import model.command.AssistanceDetailsExchangeExamples
 import model.persisted.AssistanceDetailsExamples
-import org.mockito.Matchers.{ eq => eqTo }
+import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import repositories.assistancedetails.AssistanceDetailsRepository
 import services.BaseServiceSpec

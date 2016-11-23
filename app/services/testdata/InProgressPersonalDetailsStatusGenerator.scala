@@ -27,6 +27,7 @@ import repositories.personaldetails.PersonalDetailsRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 import model.command.testdata.GeneratorConfig
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

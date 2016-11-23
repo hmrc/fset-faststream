@@ -21,7 +21,7 @@ import connectors.ExchangeObjects.Implicits._
 import connectors.ExchangeObjects._
 import mockws.MockWS
 import model.Exceptions.ConnectorException
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.{ Json, _ }
 import play.api.mvc.Action

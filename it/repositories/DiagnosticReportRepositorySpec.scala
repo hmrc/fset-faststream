@@ -22,7 +22,7 @@ import reactivemongo.bson.{ BSONBoolean, BSONDocument }
 import model.Exceptions.ApplicationNotFound
 import reactivemongo.bson.{ BSONBoolean, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository, GeneralApplicationRepoBSONToModelHelper }
+import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import play.api.libs.iteratee.Iteratee
@@ -35,7 +35,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   override val collectionName = "application"
   
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository()
-  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
+  def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
 
 
   "Find by user id" should {
@@ -71,7 +71,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
       val resultE = diagnosticReportRepo.findAll()
 
       val listProducer = Iteratee.fold[JsValue, List[JsValue]](Nil){(acc, v) => acc :+ v}
-      val result = (resultE.run(listProducer)).futureValue
+      val result = (resultE.run(listProducer)).futureValue.sortBy(x => (x \ "applicationId").as[String])
 
       result.length mustBe 3
       (result(0) \ "applicationId").as[String] mustBe "app1"

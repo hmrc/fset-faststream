@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package repositories
+package repositories.civilserviceexperiencedetails
 
 import model.CivilServiceExperienceDetails
 import model.Exceptions.CannotUpdateCivilServiceExperienceDetails

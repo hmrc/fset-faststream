@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.report
 
 import config.TestFixtureBase
 import connectors.AuthProviderClient
 import connectors.ExchangeObjects.Candidate
+import controllers.ReportingController
 import mocks._
-import mocks.application.DocumentRootInMemoryRepository
+import mocks.application.ReportingInMemoryRepository
 import model.Address
 import model.PersistedObjects.ContactDetailsWithId
 import model.report._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.JsArray
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.application.GeneralApplicationRepository
+import repositories.application.ReportingRepository
 import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, TestReportRepository, contactdetails }
 import testkit.UnitWithAppSpec
 
@@ -39,12 +40,11 @@ import scala.language.postfixOps
 class ReportingControllerSpec extends UnitWithAppSpec {
 
   class TestableReportingController extends ReportingController {
-    override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
+    override val reportRepository: ReportingRepository = ReportingInMemoryRepository
     override val cdRepository: ContactDetailsRepository = new ContactDetailsInMemoryRepository
     override val fsCdRepository = mock[contactdetails.ContactDetailsRepository]
     override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
     override val questionnaireRepository: QuestionnaireRepository = QuestionnaireInMemoryRepository
-    override val testReportRepository: TestReportRepository = TestReportInMemoryRepository
     override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
     override val medRepository: MediaRepository = MediaInMemoryRepository
     override val indicatorRepository: NorthSouthIndicatorCSVRepository = mock[NorthSouthIndicatorCSVRepository]
@@ -89,7 +89,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     "return no adjustments if there's no data on the server" in new TestFixture {
       val controller = new TestableReportingController {
-        override val appRepository = new DocumentRootInMemoryRepository {
+        override val reportRepository = new ReportingInMemoryRepository {
           override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]] = {
             Future.successful(List.empty[AdjustmentReportItem])
           }

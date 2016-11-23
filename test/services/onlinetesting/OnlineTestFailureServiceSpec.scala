@@ -20,7 +20,7 @@ import connectors.CSREmailClient
 import model.Address
 import model.PersistedObjects.ContactDetails
 import model.persisted.ApplicationForNotification
-import org.mockito.Matchers.{ any, eq => eqTo }
+import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatest.time.{ Millis, Span }
 import repositories.ContactDetailsRepository

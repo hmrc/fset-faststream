@@ -18,7 +18,7 @@ package controllers
 
 import model.Exceptions._
 import model.command.UpdateGeneralDetailsExamples._
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._

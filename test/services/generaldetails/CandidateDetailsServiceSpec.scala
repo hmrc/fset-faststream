@@ -20,9 +20,9 @@ import model.{ ApplicationStatus, CivilServiceExperienceDetails }
 import model.command.UpdateGeneralDetailsExamples._
 import model.persisted.ContactDetailsExamples._
 import model.persisted.PersonalDetailsExamples._
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import repositories.CivilServiceExperienceDetailsRepository
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.AuditService

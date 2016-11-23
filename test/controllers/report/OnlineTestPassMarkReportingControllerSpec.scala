@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.report
 
 import config.TestFixtureBase
 import connectors.AuthProviderClient
+import controllers.ReportingController
+import model.report.onlinetestpassmark.{ ApplicationForOnlineTestPassMarkReportItemExamples, TestResultsForOnlineTestPassMarkReportItemExamples }
 import model.report.{ OnlineTestPassMarkReportItem, _ }
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import repositories.application.ReportingRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, TestReportRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
@@ -33,10 +36,9 @@ import scala.language.postfixOps
 class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
 
   "Online test pass mark report" should {
-    "return nothing if no application exists" in new PassMarkReportTestFixture {
-      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(Nil)
+    "return nothing if no application exists" in new TestFixture {
+      when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(Nil)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
-      when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -45,10 +47,9 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       result mustBe empty
     }
 
-    "return nothing if applications exist, but no questionnaires" in new PassMarkReportTestFixture {
-      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
+    "return nothing if applications exist, but no questionnaires" in new TestFixture {
+      when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(Map.empty)
-      when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(Map.empty)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -57,8 +58,8 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       result mustBe empty
     }
 
-    "return applications and questionnaires if applications and questionnaires exist, but no test results" in new PassMarkReportTestFixture {
-      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applicationsWithNoTestResults)
+    "return applications and questionnaires if applications and questionnaires exist, but no test results" in new TestFixture {
+      when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applicationsWithNoTestResults)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnairesForNoTestResults)
 
@@ -75,11 +76,10 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
         QuestionnaireReportItemExamples.questionnaire2))
     }
 
-    "return applications with questionnaire and test results" in new PassMarkReportTestFixture {
-      when(mockAppRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
+    "return applications with questionnaire and test results" in new TestFixture {
+      when(mockReportRepository.onlineTestPassMarkReport(any())).thenReturnAsync(applications)
 
       when(mockQuestionRepository.findForOnlineTestPassMarkReport).thenReturnAsync(questionnaires)
-      when(mockTestResultRepository.getOnlineTestReports).thenReturnAsync(testResults)
 
       val response = controller.onlineTestPassMarkReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[OnlineTestPassMarkReportItem]]
@@ -94,20 +94,18 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  trait PassMarkReportTestFixture extends TestFixtureBase {
+  trait TestFixture extends TestFixtureBase {
     val frameworkId = "FastStream-2016"
 
-    val mockAppRepository = mock[GeneralApplicationRepository]
+    val mockReportRepository = mock[ReportingRepository]
     val mockQuestionRepository = mock[QuestionnaireRepository]
-    val mockTestResultRepository = mock[TestReportRepository]
     val mockMediaRepository = mock[MediaRepository]
     val controller = new ReportingController {
-      val appRepository = mockAppRepository
+      val reportRepository = mockReportRepository
       val cdRepository = mock[ContactDetailsRepository]
       val fsCdRepository = mock[contactdetails.ContactDetailsRepository]
       val authProviderClient = mock[AuthProviderClient]
       val questionnaireRepository = mockQuestionRepository
-      val testReportRepository = mockTestResultRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
       val medRepository: MediaRepository = mockMediaRepository
       val indicatorRepository: NorthSouthIndicatorCSVRepository = mock[NorthSouthIndicatorCSVRepository]

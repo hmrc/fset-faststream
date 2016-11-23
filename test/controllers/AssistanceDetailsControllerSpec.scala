@@ -20,7 +20,7 @@ import config.TestFixtureBase
 import model.Exceptions.CannotUpdateAssistanceDetails
 import model.command.AssistanceDetailsExchangeExamples
 import model.exchange.AssistanceDetailsExchange
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc._
 import play.api.test.Helpers._
