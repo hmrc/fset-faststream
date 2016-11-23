@@ -4,7 +4,7 @@
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
 @import views.html.widgets.{ applicationRoute, pageProgress, saveAndContinueButton }
 @import security.Roles.EditPersonalDetailsAndContinueRole
-@import security.RoleUtils
+@import security.RoleUtils._
 
 @redirectUrl = @{
     if (updateStatus) routes.PersonalDetailsController.submitGeneralDetailsAndContinue()
@@ -20,9 +20,8 @@
         @helper.CSRF.formField
         @applicationRoute(optCachedData)
         @nameAndDateOfBirth(details)
-        @contactDetails(details, isLastSection = optCachedData.exists(cachedData => RoleUtils.isEdip(optCachedData)))
-        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
-            isEdip(optCachedData)){
+        @contactDetails(details, isLastSection = optCachedData.exists(cachedData => isEdip(optCachedData)))
+        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) && isFaststream(optCachedData)){
             @civilServiceExperienceDetailsPanel(details)
         }
         @saveAndContinueButton()
