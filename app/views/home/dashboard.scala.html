@@ -137,8 +137,8 @@
                                 }
                                 <p><a href="https://www.faststream.gov.uk/faqs/"
                                 rel="external" target="_blank">Find out more about the assessment day</a></p>
-                            } else { @if(isEdip(usr)) {
-                                @home.edipExtraInfo(usr)
+                            } else { @if(isEdip(usr) || isSdip(usr)) {
+                                @home.diversityInternExtraInfo(usr)
                             }}
                         </div>
                     </div>
@@ -156,8 +156,8 @@
                                 <p><a href="https://www.faststream.gov.uk/faqs/"
                                 rel="external" target="_blank">
                                     Find out more about what happens after you've been accepted for the Fast Stream</a></p>
-                            } else { @if(isEdipOrSdip(usr)) {
-                                @home.edipFinalStages(usr)
+                            } else { @if(isEdip(usr) || isSdip(usr)) {
+                                @home.diversityInternFinalStages(usr)
                             }}
                         </div>
                     </div>

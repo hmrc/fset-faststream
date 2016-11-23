@@ -281,22 +281,16 @@ object RoleUtils {
 
   def isSdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Sdip
 
-  def isEdipOrSdip(implicit user: CachedDataWithApp): Boolean = isEdip(user) || isSdip(user)
-
   def isFaststream(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Faststream)
 
   def isEdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Edip)
 
   def isSdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Sdip)
 
-  def isEdipOrSdip(implicit user: CachedData): Boolean = isEdip(user) || isSdip(user)
-
   def isFaststream(implicit user: Option[CachedData]): Boolean = user.forall(u => isFaststream(u))
 
   def isEdip(implicit user: Option[CachedData]): Boolean = user.exists(isEdip(_))
 
   def isSdip(implicit user: Option[CachedData]): Boolean = user.exists(isSdip(_))
-
-  def isEdipOrSdip(implicit user: Option[CachedData]): Boolean = isEdip(user) || isSdip(user)
 }
 // scalastyle:on
