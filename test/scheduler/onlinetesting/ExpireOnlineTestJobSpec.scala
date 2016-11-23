@@ -16,7 +16,7 @@
 
 package scheduler.onlinetesting
 
-import model.Phase1ExpirationEvent
+import model.{ Phase1ExpirationEvent, Phase2ExpirationEvent, Phase3ExpirationEvent }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -45,7 +45,7 @@ class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {
     def interval: FiniteDuration = mock[FiniteDuration]
   }
 
-  "expire test phase 1 job" should {
+  "expire test phase N job" should {
     "complete successfully when service completes successfully" in {
       when(serviceMock.processNextExpiredTest(eqTo(Phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
         .thenReturn(Future.successful(()))

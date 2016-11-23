@@ -69,6 +69,7 @@ object StatusGeneratorFactory {
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_COMPLETED)) => Phase1TestsCompletedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)) => Phase1TestsResultsReceivedStatusGenerator
       case (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED)) => Phase1TestsPassedStatusGenerator
+      case (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED)) => Phase1TestsFailedStatusGenerator
 
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_INVITED)) => Phase2TestsInvitedStatusGenerator
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_STARTED)) => Phase2TestsStartedStatusGenerator
@@ -80,7 +81,8 @@ object StatusGeneratorFactory {
         }
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_COMPLETED)) => Phase2TestsCompletedStatusGenerator
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED)) => Phase2TestsResultsReceivedStatusGenerator
-      case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_PASSED)) => Phase2TestsPassedStatusGenerator
+      case (PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED)) => Phase2TestsPassedStatusGenerator
+      case (PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED)) => Phase2TestsFailedStatusGenerator
 
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_INVITED)) => Phase3TestsInvitedStatusGenerator
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_STARTED)) => Phase3TestsStartedStatusGenerator
@@ -92,8 +94,8 @@ object StatusGeneratorFactory {
         }
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_COMPLETED)) => Phase3TestsCompletedStatusGenerator
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)) => Phase3TestsResultsReceivedStatusGenerator
-      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => Phase3TestsPassedStatusGenerator
-      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
+      case (PHASE3_TESTS_PASSED, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => Phase3TestsPassedStatusGenerator
+      case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
 
       case _ => throw InvalidStatusException(s"${generatorConfig.statusData.applicationStatus} is not valid or not supported")
     }

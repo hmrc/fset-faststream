@@ -16,7 +16,7 @@
 
 package services.testdata.onlinetests
 
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED, PHASE2_TESTS_PASSED, PHASE3_TESTS_PASSED, ProgressStatus }
+import model.ProgressStatuses.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED, PHASE3_TESTS_FAILED, ProgressStatus }
 import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
 import repositories._
@@ -32,19 +32,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Phase1TestsFailedStatusGenerator extends TestsFailedStatusGenerator {
   val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
   val appRepository = applicationRepository
-  val failedStatus = PHASE1_TESTS_PASSED
+  val failedStatus = PHASE1_TESTS_FAILED
 }
 
 object Phase2TestsFailedStatusGenerator extends TestsFailedStatusGenerator {
   val previousStatusGenerator = Phase2TestsResultsReceivedStatusGenerator
   val appRepository = applicationRepository
-  val failedStatus = PHASE2_TESTS_PASSED
+  val failedStatus = PHASE2_TESTS_FAILED
 }
 
 object Phase3TestsFailedStatusGenerator extends TestsFailedStatusGenerator {
   val previousStatusGenerator = Phase3TestsResultsReceivedStatusGenerator
   val appRepository = applicationRepository
-  val failedStatus = PHASE3_TESTS_PASSED
+  val failedStatus = PHASE3_TESTS_FAILED
 }
 
 trait TestsFailedStatusGenerator extends ConstructiveGenerator {
