@@ -23,7 +23,6 @@ import model.command.ProgressResponse
 import model.report.{ DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels, _ }
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
-import repositories.application.GeneralApplicationRepository
 import repositories.application.ReportingRepository
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -76,19 +75,10 @@ trait ReportingController extends BaseController {
   }
 
   def candidateProgressReport(frameworkId: String) = Action.async { implicit request =>
-    val fut: Future[List[CandidateProgressReportItem]] = reportRepository.candidateProgressReport(frameworkId)
+    val candidates: Future[List[CandidateProgressReportItem]] = reportRepository.candidateProgressReport(frameworkId)
     val postCodes: Future[Map[String, String]] = fsCdRepository.findAllPostCode()
 
-    fut.zip(postCodes).flatMap(tuple => {
-      Future(enrichReport(tuple._1, tuple._2))
-    }).map(r => Ok(Json.toJson(r)))
-
-
-  }
-
-  private def enrichReport(candidates: List[CandidateProgressReportItem], postcodes: Map[String, String]): List[CandidateProgressReportItem] = {
-    candidates.map(candidate => candidate.copy(
-      fsacIndicator = indicatorRepository.calculateFsacIndicatorForReports(postcodes.get(candidate.userId), candidate)))
+    candidates.zip(postCodes).flatMap(cp => enrichReport(cp._1, cp._2)).map(r => Ok(Json.toJson(r)))
   }
 
   def diversityReport(frameworkId: String) = Action.async { implicit request =>
@@ -135,6 +125,13 @@ trait ReportingController extends BaseController {
     reportRepository.allApplicationAndUserIds(frameworkId).map { list =>
       Ok(Json.toJson(list))
     }
+  }
+
+  private def enrichReport(candidates: List[CandidateProgressReportItem], postcodes: Map[String, String]):
+  Future[List[CandidateProgressReportItem]] = {
+
+    Future(candidates.map(candidate => candidate.copy(
+      fsacIndicator = indicatorRepository.calculateFsacIndicatorForReports(postcodes.get(candidate.userId), candidate))))
   }
 
   private def preferencesAndContactReports(nonSubmittedOnly: Boolean)(frameworkId: String) = Action.async { implicit request =>
