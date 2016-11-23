@@ -69,8 +69,12 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE3_TESTS
   override val resetStatuses = List[String](thisApplicationStatus)
   override val dateTimeFactory = dateTime
-  // TO DO: expiredTestQuery need to be changed once we tackle the expiry test in phase 3
-  override val expiredTestQuery: BSONDocument = BSONDocument()
+  override val expiredTestQuery: BSONDocument = {
+    BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"progress-status.$PHASE3_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.$PHASE3_TESTS_EXPIRED" -> BSONDocument("$ne" -> true))
+    ))
+  }
 
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
 

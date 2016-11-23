@@ -93,6 +93,7 @@ object StatusGeneratorFactory {
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_COMPLETED)) => Phase3TestsCompletedStatusGenerator
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)) => Phase3TestsResultsReceivedStatusGenerator
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => Phase3TestsPassedStatusGenerator
+      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
 
       case _ => throw InvalidStatusException(s"${generatorConfig.statusData.applicationStatus} is not valid or not supported")
     }

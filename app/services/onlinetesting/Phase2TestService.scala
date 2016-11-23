@@ -380,7 +380,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
     (implicit hc: HeaderCarrier, rh: RequestHeader, invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
   Future.sequence(candidates.map { candidate =>
     if (candidate.isInvigilatedETray) {
-      Future.successful()
+      Future.successful(())
     } else {
       candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
     }
