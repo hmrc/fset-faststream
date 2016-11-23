@@ -130,16 +130,16 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     phase2TestRepo.getTestGroup(application.applicationId).flatMap {
-      case Some(phase2TestGroup) if !application.isInvigilatedETray && schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
-        val (scheduleName, schedule) = getRandomScheduleWithName(phase2TestGroup.tests.map(_.scheduleId))
+      case Some(phase2TestGroup) if !application.isInvigilatedETray /*&& schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId))*/ =>
+        val (scheduleName, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
         registerAndInviteForTestGroup(List(application), schedule).map { _ =>
           audit("Phase2TestInvitationProcessComplete", application.userId)
           AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
             DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
         }
-      case Some(phase2TestGroup) if !application.isInvigilatedETray && !schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
+      /*case Some(phase2TestGroup) if !application.isInvigilatedETray && !schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
         throw ResetLimitExceededException()
-
+        */
       case Some(phase2TestGroup) if application.isInvigilatedETray =>
         val scheduleInv = testConfig.scheduleForInvigilatedETray
         val (scheduleName, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
@@ -205,7 +205,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
       val schedule = testConfig.scheduleForInvigilatedETray
       (testConfig.scheduleNameByScheduleId(schedule.scheduleId), schedule)
     } else {
-      getRandomScheduleWithName()
+      getNextSchedule()
     }
     registerAndInviteForTestGroup(applicationsWithTheSameType, schedule) flatMap { candidatesToProgress =>
       eventSink {
@@ -507,7 +507,7 @@ object ResetPhase2Test {
     (if (testGroup.hasNotStartedYet) List(PHASE2_TESTS_STARTED) else List()) ++
       (if (testGroup.hasNotCompletedYet) List(PHASE2_TESTS_COMPLETED) else List()) ++
       (if (testGroup.hasNotResultReadyToDownloadForAllTestsYet) List(PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY) else List()) ++
-      List(PHASE2_TESTS_FAILED)
+      List(PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED)
   }
 }
 

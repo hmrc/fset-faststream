@@ -293,12 +293,14 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       phase2TestService.resetTests(onlineTestApplication, "createdBy").futureValue
 
       verify(otRepositoryMock).resetTestProfileProgresses("appId",
-        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY, PHASE2_TESTS_FAILED))
+        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
+          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED))
       verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
       verify(otRepositoryMock).insertCubiksTests(any[String], any[Phase2TestGroup])
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
     }
 
+    /*
     "return reset limit exceeded exception" in new Phase2TestServiceFixture {
       val expectedRegistration = registrations.head
       val expectedInvite = invites.head
@@ -314,6 +316,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       an[ResetLimitExceededException] must be thrownBy
         Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
     }
+    */
 
     "return cannot reset phase2 tests exception" in new Phase2TestServiceFixture {
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(None))

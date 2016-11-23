@@ -63,7 +63,8 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override val phaseName = "PHASE2"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE2_TESTS
-  override val resetStatuses = List[String](ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED)
+  override val resetStatuses = List[String](ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED,
+    ApplicationStatus.PHASE2_TESTS_PASSED)
   override val dateTimeFactory = dateTime
   override val expiredTestQuery: BSONDocument = {
     BSONDocument("$and" -> BSONArray(
