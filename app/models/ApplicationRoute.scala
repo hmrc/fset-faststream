@@ -22,7 +22,7 @@ import scala.language.implicitConversions
 object ApplicationRoute extends Enumeration {
   type ApplicationRoute = Value
 
-  val Faststream, Edip = Value
+  val Faststream, Edip, Sdip = Value
 
   implicit val applicationRouteFormat = new Format[ApplicationRoute] {
     def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String]))

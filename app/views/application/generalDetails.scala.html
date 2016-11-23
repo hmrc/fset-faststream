@@ -22,7 +22,7 @@
         @nameAndDateOfBirth(details)
         @contactDetails(details, isLastSection = optCachedData.exists(cachedData => RoleUtils.isEdip(optCachedData)))
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
-            !RoleUtils.isEdip(optCachedData)){
+            isEdip(optCachedData)){
             @civilServiceExperienceDetailsPanel(details)
         }
         @saveAndContinueButton()
