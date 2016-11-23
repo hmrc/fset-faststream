@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.exchange.{ AssistanceDetailsExamples, GeneralDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
+import connectors.exchange.{ AssistanceDetailsExamples, PersonalDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
 import connectors.{ ApplicationClient, SchemeClient }
 import forms.AssistanceDetailsFormExamples
 import models.SecurityUserExamples._
@@ -123,7 +123,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     val mockUserService = mock[UserService]
 
     when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
+      .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
     when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(SchemePreferencesExamples.DefaultSelectedSchemes))
     when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))

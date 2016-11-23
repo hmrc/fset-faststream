@@ -90,9 +90,11 @@ object Roles {
   object AssistanceDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
-        (hasPartnerGraduateProgrammes(user) ||
+        (
+          hasPartnerGraduateProgrammes(user) ||
           (hasSchemes(user) && isCivilServant(user)) ||
-          hasPersonalDetails(user) && isEdip(user))
+          hasPersonalDetails(user) && (isEdip(user) || isSdip(user))
+          )
   }
 
   object PreviewApplicationRole extends CsrAuthorization {
@@ -293,6 +295,14 @@ object RoleUtils {
 
   def isEdip(implicit user: Option[CachedData]): Boolean = {
     user.exists(isEdip(_))
+  }
+
+  def isSdip(implicit user: CachedData): Boolean = {
+    user.application exists (_.applicationRoute == ApplicationRoute.Sdip)
+  }
+
+  def isSdip(implicit user: Option[CachedData]): Boolean = {
+    user.exists(isSdip(_))
   }
 }
 // scalastyle:on

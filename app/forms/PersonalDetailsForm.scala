@@ -16,18 +16,20 @@
 
 package forms
 
-import connectors.exchange.{ CivilServiceExperienceDetails, GeneralDetails }
+import connectors.exchange.{ CivilServiceExperienceDetails, PersonalDetails }
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping._
 import mappings.{ Address, DayMonthYear, PhoneNumberMapping, PostCodeMapping }
 import models.ApplicationRoute
+import models.ApplicationRoute._
 import org.joda.time.LocalDate
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
 
-object GeneralDetailsForm {
+object PersonalDetailsForm {
+
   private val MinAge = 16
   private val MinDob = new LocalDate(1900, 1, 1)
 
@@ -40,14 +42,13 @@ object GeneralDetailsForm {
   val postCode = "postCode"
   val country = "country"
   val phone = "phone"
+  val edipCompleted = "edipCompleted"
 
   def ageReference(implicit now: LocalDate) = new LocalDate(now.getYear, 8, 31)
 
   def maxDob(implicit now: LocalDate) = Some(ageReference.minusYears(MinAge))
 
-  def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false) = {
-
-    Form(
+  def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false) = Form(
       mapping(
         firstName -> nonEmptyTrimmedText("error.firstName", 256),
         lastName -> nonEmptyTrimmedText("error.lastName", 256),
@@ -58,21 +59,26 @@ object GeneralDetailsForm {
         postCode -> of(postCodeFormatter),
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
-        FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations))
+        FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations)),
+        edipCompleted -> of(Mappings.mayBeOptionalString("error.needsEdipCompleted.required", 31, isSdip))
       )(Data.apply)(Data.unapply)
     )
-  }
 
   val isFastStream = (requestParams: Map[String, String]) => {
-    requestParams.getOrElse("applicationRoute", ApplicationRoute.Faststream.toString) == ApplicationRoute.Faststream.toString}
+    requestParams.getOrElse("applicationRoute", ApplicationRoute.Faststream.toString) == ApplicationRoute.Faststream.toString
+  }
 
-  def fastPassFormFormatter(ignoreValidations:Boolean) = new Formatter[Option[FastPassForm.Data]] {
+  val isSdip = (requestParams: Map[String, String]) =>
+    requestParams.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
+
+  def fastPassFormFormatter(ignoreValidations: Boolean) = new Formatter[Option[FastPassForm.Data]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[FastPassForm.Data]] = {
       (ignoreValidations, isFastStream(data)) match {
         case (false, true) => FastPassForm.form.mapping.bind(data).right.map(Some(_))
         case _ => Right(None)
       }
     }
+
     override def unbind(key: String, fastPassData: Option[FastPassForm.Data]) =
       fastPassData.map(fpd => FastPassForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
@@ -102,6 +108,7 @@ object GeneralDetailsForm {
         case _ => Right(Some(postCode))
       }
     }
+
     override def unbind(key: String, value: Option[String]) = Map(key -> value.getOrElse(""))
   }
 
@@ -116,6 +123,7 @@ object GeneralDetailsForm {
         case _ => Right(None)
       }
     }
+
     override def unbind(key: String, value: Option[String]) = Map(key -> value.getOrElse(""))
   }
 
@@ -128,7 +136,8 @@ object GeneralDetailsForm {
                   postCode: Option[PostCode],
                   country: Option[String],
                   phone: Option[PhoneNumber],
-                  civilServiceExperienceDetails: Option[FastPassForm.Data]
+                  civilServiceExperienceDetails: Option[FastPassForm.Data],
+                  edipCompleted: Option[String]
                  ) {
 
     def insideUk = outsideUk match {
@@ -137,19 +146,26 @@ object GeneralDetailsForm {
     }
 
     def toExchange(email: String, updateApplicationStatus: Option[Boolean],
-                   overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None) = GeneralDetails(
-      firstName,
-      lastName,
-      preferredName,
-      email,
-      LocalDate.parse(s"${dateOfBirth.year}-${dateOfBirth.month}-${dateOfBirth.day}"),
-      outsideUk.getOrElse(false),
-      address,
-      postCode.map(p => PostCodeMapping.formatPostcode(p)),
-      country,
-      phone,
-      overrideCivilServiceExperienceDetails.orElse(civilServiceExperienceDetails),
-      updateApplicationStatus
-    )
+                   overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None) = {
+      PersonalDetails(
+        firstName,
+        lastName,
+        preferredName,
+        email,
+        LocalDate.parse(s"${dateOfBirth.year}-${dateOfBirth.month}-${dateOfBirth.day}"),
+        outsideUk.getOrElse(false),
+        address,
+        postCode.map(p => PostCodeMapping.formatPostcode(p)),
+        country,
+        phone,
+        overrideCivilServiceExperienceDetails.orElse(civilServiceExperienceDetails),
+        edipCompleted match {
+          case Some("false") => Some(false)
+          case Some("true") => Some(true)
+          case _ => None
+        },
+        updateApplicationStatus
+      )
+    }
   }
 }

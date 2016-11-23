@@ -17,14 +17,14 @@
 package forms
 
 import controllers.UnitSpec
-import forms.GeneralDetailsFormExamples._
+import forms.PersonalDetailsFormExamples._
 import org.joda.time.LocalDate
 import org.scalatestplus.play.PlaySpec
 
-class GeneralDetailsFormSpec extends UnitSpec {
+class PersonalDetailsFormSpec extends UnitSpec {
   implicit val now = LocalDate.now
 
-  import GeneralDetailsForm.{ form => personalDetailsForm }
+  import PersonalDetailsForm.{ form => personalDetailsForm }
 
   "Personal Details form" should {
     "be invalid for missing mandatory fields" in {
@@ -139,7 +139,7 @@ class GeneralDetailsFormSpec extends UnitSpec {
     assertFormError(expectedError, ValidUKAddress + (fieldKey -> ""))
 
   def assertFormError(expectedError: String, invalidFormValues: Map[String, String]) = {
-    val invalidForm = GeneralDetailsForm.form.bind(invalidFormValues)
+    val invalidForm = PersonalDetailsForm.form.bind(invalidFormValues)
     invalidForm.hasErrors mustBe true
     invalidForm.errors.map(_.message) mustBe Seq(expectedError)
   }
@@ -148,7 +148,7 @@ class GeneralDetailsFormSpec extends UnitSpec {
     val day = validDate.getDayOfMonth.toString
     val month = validDate.getMonthOfYear.toString
     val year = validDate.getYear.toString
-    val validForm = GeneralDetailsForm.form.bind(ValidUKAddress +
+    val validForm = PersonalDetailsForm.form.bind(ValidUKAddress +
       ("dateOfBirth.day" -> day) +
       ("dateOfBirth.month" -> month) +
       ("dateOfBirth.year" -> year))

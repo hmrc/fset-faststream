@@ -1,14 +1,15 @@
-@(details: Form[_root_.forms.GeneralDetailsForm.Data], updateStatus: Boolean)(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
+@(details: Form[_root_.forms.PersonalDetailsForm.Data], updateStatus: Boolean)(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
 
 @import views.html.application.personalDetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
+@import views.html.application.edipExperienceDetails.edipExperienceDetailsPanel
 @import views.html.widgets.{ applicationRoute, pageProgress, saveAndContinueButton }
 @import security.Roles.EditPersonalDetailsAndContinueRole
 @import security.RoleUtils
 
 @redirectUrl = @{
-    if (updateStatus) routes.PersonalDetailsController.submitGeneralDetailsAndContinue()
-    else routes.PersonalDetailsController.submitGeneralDetails()
+    if(updateStatus) routes.PersonalDetailsController.submitPersonalDetailsAndContinue()
+    else routes.PersonalDetailsController.submitPersonalDetails()
 }
 
 @main_template(title = "Personal details", pageForms = Seq(details)) {
@@ -22,8 +23,12 @@
         @nameAndDateOfBirth(details)
         @contactDetails(details, isLastSection = optCachedData.exists(cachedData => RoleUtils.isEdip(optCachedData)))
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
-            !RoleUtils.isEdip(optCachedData)){
+                RoleUtils.isFaststream(optCachedData)) {
             @civilServiceExperienceDetailsPanel(details)
+        }
+        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
+                RoleUtils.isSdip(optCachedData)) {
+            @edipExperienceDetailsPanel(details)
         }
         @saveAndContinueButton()
     }

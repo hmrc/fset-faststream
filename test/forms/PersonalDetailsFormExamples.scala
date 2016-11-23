@@ -21,7 +21,7 @@ import connectors.exchange.CivilServiceExperienceDetails.toData
 import mappings.{ AddressExamples, DayMonthYear }
 import org.joda.time.{ DateTime, LocalDate }
 
-object GeneralDetailsFormExamples {
+object PersonalDetailsFormExamples {
   val ValidOutsideUKDetails = Map[String, String](
     "firstName" -> "John",
     "lastName" -> "Biggs",
@@ -55,13 +55,13 @@ object GeneralDetailsFormExamples {
     "civilServiceExperienceDetails.applicable"
   )
 
-  val ValidUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
+  val ValidUKAddressForm = PersonalDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
     outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), None, Some("1234567890"),
-    toData(Some(CivilServiceExperienceDetails(applicable = false))))
+    toData(Some(CivilServiceExperienceDetails(applicable = false))), None)
 
-  val ValidNonUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
+  val ValidNonUKAddressForm = PersonalDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
     outsideUk = Some(true), AddressExamples.FullAddress, None, Some("France"), Some("1234567890"),
-    toData(Some(CivilServiceExperienceDetails(applicable = false))))
+    toData(Some(CivilServiceExperienceDetails(applicable = false))), None)
 
   val ValidFormUrlEncodedBody = Seq(
     "firstName" -> ValidUKAddressForm.firstName,

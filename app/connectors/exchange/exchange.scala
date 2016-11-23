@@ -19,7 +19,7 @@ package connectors
 import mappings.Address
 import mappings.PhoneNumberMapping._
 import mappings.PostCodeMapping._
-import models.ApplicationRoute.ApplicationRoute
+import models.ApplicationRoute._
 import models.UniqueIdentifier
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Format, Json }
@@ -35,20 +35,6 @@ package object exchange {
   case class FindByUserIdRequest(userId: UniqueIdentifier)
 
   case class CreateApplicationRequest(userId: UniqueIdentifier, frameworkId: String, applicationRoute: ApplicationRoute)
-
-  case class GeneralDetails(firstName: String,
-                            lastName: String,
-                            preferredName: String,
-                            email: String,
-                            dateOfBirth: LocalDate,
-                            outsideUk: Boolean,
-                            address: Address,
-                            postCode: Option[PostCode],
-                            country: Option[String],
-                            phone: Option[PhoneNumber],
-                            civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
-                            updateApplicationStatus: Option[Boolean]
-                                   )
 
   case class AddReferral(userId: UniqueIdentifier, media: String)
 
@@ -118,7 +104,6 @@ package object exchange {
 
     /** Requests serialization */
     implicit val createApplicationRequestFormat: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
-    implicit val updatePersonalDetailsRequestFormat: Format[GeneralDetails] = Json.format[GeneralDetails]
     implicit val updateAssistanceDetailsRequestFormat: Format[AssistanceDetails] = Json.format[AssistanceDetails]
 
     implicit val sendPasswordCodeRequestFormat = Json.format[SendPasswordCodeRequest]
