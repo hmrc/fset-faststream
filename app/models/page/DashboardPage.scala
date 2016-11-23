@@ -21,7 +21,7 @@ import models.{ CachedData, Progress }
 import org.joda.time.LocalDate
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
-import security.RoleUtils._
+import security.RoleUtils
 import security.Roles._
 
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
@@ -70,8 +70,8 @@ object DashboardPage {
       isApplicationWithdrawn(user),
       isApplicationInProgress(user),
       isUserWithNoApplication(user),
-      isPhase1TestsPassed(user),
-      isPhase2TestsPassed(user),
+      RoleUtils.isPhase1TestsPassed(user),
+      RoleUtils.isPhase2TestsPassed(user),
       isTestGroupExpired(user),
       isPhase2TestGroupExpired(user),
       isPhase3TestGroupExpired(user),
@@ -185,7 +185,7 @@ object DashboardPage {
   private def getAssessmentInProgressStatus(user: CachedData)
   (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
 
-    if(hasReceivedFastPass(user)) {
+    if(RoleUtils.hasReceivedFastPass(user)) {
       ASSESSMENT_FAST_PASS_CERTIFICATE
     } else {
       ASSESSMENT_STATUS_UNKNOWN
@@ -213,13 +213,14 @@ object DashboardPage {
       //val isStatusOnlineTestFailedNotified = user.application.exists(_.applicationStatus == ApplicationStatus.PHASE1_TESTS)
       val isStatusOnlineTestFailedNotified = false
 
-      val firstStep = if (activeUserWithApp(user)) { ProgressActive } else { ProgressInactive }
-      val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || hasReceivedFastPass(user)) {
+      val firstStep = if (RoleUtils.activeUserWithApp(user)) { ProgressActive } else { ProgressInactive }
+      val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || RoleUtils.hasReceivedFastPass(user)) {
         ProgressActive
       } else {
         ProgressInactive
       }
       val thirdStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) ||
+        isPhase2TestGroupExpired(user) || isPhase3TestGroupExpired(user) ||
         isPhase1TestFailed(user) || isPhase2TestFailed(user) || isPhase3TestFailed(user)) {
         ProgressInactiveDisabled
       }
@@ -227,6 +228,7 @@ object DashboardPage {
         ProgressInactive
       }
       val fourthStep = if (isStatusOnlineTestFailedNotified || isTestGroupExpired(user) ||
+        isPhase2TestGroupExpired(user) || isPhase3TestGroupExpired(user) ||
         isPhase1TestFailed(user) || isPhase2TestFailed(user) || isPhase3TestFailed(user)) {
         ProgressInactiveDisabled
       }
