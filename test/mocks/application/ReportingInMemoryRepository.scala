@@ -16,23 +16,14 @@
 
 package mocks.application
 
-import model.ApplicationRoute.ApplicationRoute
-import model.ApplicationStatus.ApplicationStatus
-import model.AssessmentScheduleCommands.{ ApplicationForAssessmentAllocation, ApplicationForAssessmentAllocationResult }
+
 import model.Commands._
-import model.EvaluationResults.AssessmentRuleCategoryResult
-import model.Exceptions.ApplicationNotFound
-import model.OnlineTestCommands.OnlineTestApplication
 import model._
-import model.command._
 import model.persisted._
 import model.report._
-import org.joda.time.{ DateTime, LocalDate }
-import repositories.application.GeneralApplicationRepository
+import org.joda.time.LocalDate
 import repositories.application.ReportingRepository
-import scheduler.fixer.FixBatch
 
-import scala.collection.mutable
 import scala.concurrent.Future
 
 object ReportingInMemoryRepository extends ReportingInMemoryRepository
@@ -55,8 +46,8 @@ class ReportingInMemoryRepository extends ReportingRepository {
     candidateProgressReport(frameworkId)
 
   override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReportItem]] = Future.successful(List(
-    CandidateProgressReportItem("", Some("registered"),
-      List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None))
+    CandidateProgressReportItem("","", Some("registered"),
+      List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None, None))
   )
 
   override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = ???
