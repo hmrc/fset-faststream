@@ -36,5 +36,5 @@ case class PersonalDetails(firstName: String,
                            updateApplicationStatus: Option[Boolean] = None)
 
 object PersonalDetails {
-  implicit val generalDetailsFormat = Json.format[PersonalDetails]
+  implicit val personalDetailsFormat = Json.format[PersonalDetails]
 }
