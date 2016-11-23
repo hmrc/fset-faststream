@@ -105,11 +105,12 @@ trait ReportingRepoBSONReader extends BaseBSONReader {
 
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val userId = doc.getAs[String]("userId").getOrElse("")
+      val applicationRoute = doc.getAs[String]("applicationRoute")
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
       CandidateProgressReportItem(userId, applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
         schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, gis, civilServant,
-        fastTrack, edip, sdipPrevious, sdip, fastPassCertificate, None)
+        fastTrack, edip, sdipPrevious, sdip, fastPassCertificate, None, applicationRoute)
     }
   }
 

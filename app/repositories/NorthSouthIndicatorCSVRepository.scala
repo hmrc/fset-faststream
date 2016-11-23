@@ -17,7 +17,7 @@
 package repositories
 
 import model.report.CandidateProgressReportItem
-import model.FSACIndicator
+import model.{ ApplicationRoute, FSACIndicator }
 import play.api.Play
 import resource._
 
@@ -59,12 +59,9 @@ object NorthSouthIndicatorCSVRepository extends NorthSouthIndicatorCSVRepository
   }
 
   override def calculateFsacIndicatorForReports(postcode: Option[String], candidate: CandidateProgressReportItem): Option[String] = {
-    (postcode, candidate.edip, candidate.sdip, candidate.progress) match {
-      case (_, _, Some("Yes"), _) => None
-      case (_, Some("Yes"), _, _) => None
-      case (_, _, _, Some("registered")) => None
-      case _ => calculateFsacIndicator(postcode, true)
-    }
+    if(candidate.applicationRoute.isDefined && !candidate.applicationRoute.contains(ApplicationRoute.Faststream.toString)) { None }
+    else if (candidate.progress.contains("registered")) { None }
+    else { calculateFsacIndicator(postcode, true) }
   }
 
 }

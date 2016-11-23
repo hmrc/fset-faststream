@@ -51,16 +51,16 @@ class NorthSouthIndicatorCSVRepositorySpec extends UnitWithAppSpec with ShortTim
   }
 
   "calculateFsacIndicatorForReports" should {
-    "returns an indicator if the candidate is a faststream" in {
+    "returns an indicator if the candidate is a faststream with no applicationRoute" in {
       val result = NorthSouthIndicatorCSVRepository.calculateFsacIndicatorForReports(Some("EH1 3EG"), CandidateProgressReportItemFaststream)
       result mustBe Some("Newcastle")
     }
-    "returns no indicator if the candidate is a EDIP" in {
-      val result = NorthSouthIndicatorCSVRepository.calculateFsacIndicatorForReports(Some("EH1 3EG"), CandidateProgressReportItemEDIP)
-      result mustBe None
+    "returns an indicator if the candidate is a faststream with applicationRoute" in {
+      val result = NorthSouthIndicatorCSVRepository.calculateFsacIndicatorForReports(Some("EH1 3EG"), CandidateProgressReportItemFaststream)
+      result mustBe Some("Newcastle")
     }
-    "returns no indicator if the candidate is a SDIP" in {
-      val result = NorthSouthIndicatorCSVRepository.calculateFsacIndicatorForReports(Some("EH1 3EG"), CandidateProgressReportItemSDIP)
+    "returns no indicator if the candidate is a Edip" in {
+      val result = NorthSouthIndicatorCSVRepository.calculateFsacIndicatorForReports(Some("EH1 3EG"), CandidateProgressReportItemEdip)
       result mustBe None
     }
     "returns no indicator if the candidate is in a registered status" in {
@@ -72,11 +72,11 @@ class NorthSouthIndicatorCSVRepositorySpec extends UnitWithAppSpec with ShortTim
 
 object TestFixture {
 
-  val CandidateProgressReportItemFaststream = CandidateProgressReportItem("user123", "app123", Some("submitted"),
+  val CandidateProgressReportItemFaststreamBase = CandidateProgressReportItem("user123", "app123", Some("submitted"),
     List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-    Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None)
-  val CandidateProgressReportItemEDIP = CandidateProgressReportItemFaststream.copy(edip = Some("Yes"))
-  val CandidateProgressReportItemSDIP = CandidateProgressReportItemFaststream.copy(sdip = Some("Yes"))
-  val CandidateProgressReportItemRegistered = CandidateProgressReportItemFaststream.copy(progress = Some("registered"))
+    Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None, None)
+  val CandidateProgressReportItemFaststream = CandidateProgressReportItemFaststreamBase.copy(applicationRoute = Some("Faststream"))
+  val CandidateProgressReportItemEdip = CandidateProgressReportItemFaststreamBase.copy(applicationRoute = Some("Edip"))
+  val CandidateProgressReportItemRegistered = CandidateProgressReportItemFaststreamBase.copy(progress = Some("registered"))
 
 }
