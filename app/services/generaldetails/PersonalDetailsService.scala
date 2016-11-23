@@ -17,7 +17,7 @@
 package services.generaldetails
 
 import model.ApplicationStatus._
-import model.command.GeneralDetails
+import model.command.PersonalDetails
 import model.persisted.{ ContactDetails, PersonalDetails }
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -29,34 +29,34 @@ import services.AuditService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object CandidateDetailsService extends CandidateDetailsService {
+object PersonalDetailsService extends PersonalDetailsService {
   val pdRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
-  val fpdRepository = civilServiceExperienceDetailsRepository
+  val csedRepository = civilServiceExperienceDetailsRepository
   val auditService = AuditService
 }
 
-trait CandidateDetailsService {
+trait PersonalDetailsService {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
-  val fpdRepository: CivilServiceExperienceDetailsRepository
+  val csedRepository: CivilServiceExperienceDetailsRepository
   val auditService: AuditService
 
-  def update(applicationId: String, userId: String, candidateDetails: GeneralDetails): Future[Unit] = {
-    val personalDetails = PersonalDetails(candidateDetails.firstName, candidateDetails.lastName, candidateDetails.preferredName,
-      candidateDetails.dateOfBirth)
-    val contactDetails = ContactDetails(candidateDetails.outsideUk, candidateDetails.address, candidateDetails.postCode,
-      candidateDetails.country, candidateDetails.email, candidateDetails.phone)
+  def update(applicationId: String, userId: String, personalDetails: model.command.PersonalDetails): Future[Unit] = {
+    val personalDetailsToPersist = model.persisted.PersonalDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
+      personalDetails.dateOfBirth, personalDetails.edipCompleted)
+    val contactDetails = ContactDetails(personalDetails.outsideUk, personalDetails.address, personalDetails.postCode,
+      personalDetails.country, personalDetails.email, personalDetails.phone)
 
-    val updatePersonalDetailsFut = candidateDetails.updateApplicationStatus match {
-      case Some(true) => pdRepository.update(applicationId, userId, personalDetails, List(CREATED, IN_PROGRESS), IN_PROGRESS)
-      case Some(false) => pdRepository.updateWithoutStatusChange(applicationId, userId, personalDetails)
+    val updatePersonalDetailsFut = personalDetails.updateApplicationStatus match {
+      case Some(true) => pdRepository.update(applicationId, userId, personalDetailsToPersist, List(CREATED, IN_PROGRESS), IN_PROGRESS)
+      case Some(false) => pdRepository.updateWithoutStatusChange(applicationId, userId, personalDetailsToPersist)
       case None => throw new IllegalArgumentException("Update application status must be set for update operation")
     }
 
     val contactDetailsFut = cdRepository.update(userId, contactDetails)
-    val civilServiceExperienceDetailsFut = candidateDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
-      fpdRepository.update(applicationId, civilServiceExperienceDetails)
+    val civilServiceExperienceDetailsFut = personalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
+      csedRepository.update(applicationId, civilServiceExperienceDetails)
     } getOrElse Future.successful(())
 
     for {
@@ -66,18 +66,18 @@ trait CandidateDetailsService {
     } yield {}
   }
 
-  def find(applicationId: String, userId: String): Future[GeneralDetails] = {
+  def find(applicationId: String, userId: String): Future[model.command.PersonalDetails] = {
     val personalDetailsFut = pdRepository.find(applicationId)
     val contactDetailsFut = cdRepository.find(userId)
-    val civilServiceExperienceDetailsFut = fpdRepository.find(applicationId)
+    val civilServiceExperienceDetailsFut = csedRepository.find(applicationId)
 
     for {
       personalDetails <- personalDetailsFut
       contactDetails <- contactDetailsFut
       civilServiceExperienceDetails <- civilServiceExperienceDetailsFut
-    } yield GeneralDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
+    } yield model.command.PersonalDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
       contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
-      contactDetails.country, contactDetails.phone, civilServiceExperienceDetails)
+      contactDetails.country, contactDetails.phone, civilServiceExperienceDetails, personalDetails.edipCompleted)
   }
 
 }

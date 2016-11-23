@@ -35,10 +35,10 @@ class CandidateDetailsServiceSpec extends BaseServiceSpec {
   val mockCivilServiceExperienceDetailsRepository = mock[CivilServiceExperienceDetailsRepository]
   val mockAuditService = mock[AuditService]
 
-  val service = new CandidateDetailsService {
+  val service = new PersonalDetailsService {
     val pdRepository = mockPersonalDetailsRepository
     val cdRepository = mockContactDetailsRepository
-    val fpdRepository = mockCivilServiceExperienceDetailsRepository
+    val csedRepository = mockCivilServiceExperienceDetailsRepository
     val auditService = mockAuditService
   }
 
