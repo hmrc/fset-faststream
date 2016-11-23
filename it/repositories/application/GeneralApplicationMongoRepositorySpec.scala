@@ -55,9 +55,9 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head mustBe CandidateProgressReportItem(appId, Some("submitted"),
+      result.head mustBe CandidateProgressReportItem(userId, appId, Some("submitted"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-        Some("No"), Some("No"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))
+        Some("No"), Some("No"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"), None)
     }
 
     "Get overall report for the minimum application" in {
@@ -68,8 +68,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(CandidateProgressReportItem(appId, Some("registered"),
-        List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None)
+      result.head must be(CandidateProgressReportItem(userId, appId, Some("registered"),
+        List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None, None)
       )
     }
 

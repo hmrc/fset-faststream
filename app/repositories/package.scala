@@ -38,6 +38,7 @@ import config.MicroserviceAppConfig._
 import model.{ AdjustmentDetail, ApplicationRoute }
 import model.ApplicationRoute.ApplicationRoute
 import play.api.libs.json._
+import repositories.NorthSouthIndicatorCSVRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -61,6 +62,7 @@ package object repositories {
   lazy val faststreamPhase1EvaluationRepository = new onlinetesting.Phase1EvaluationMongoRepository()
   lazy val faststreamPhase2EvaluationRepository = new onlinetesting.Phase2EvaluationMongoRepository()
   lazy val schoolsRepository = SchoolsCSVRepository
+  lazy val northSouthIndicatorRepository = NorthSouthIndicatorCSVRepository
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
   lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService,

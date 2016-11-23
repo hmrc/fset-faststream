@@ -28,15 +28,18 @@ import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object ReportingController extends ReportingController {
   val appRepository = applicationRepository
   val cdRepository = contactDetailsRepository
+  val fsCdRepository = repositories.faststreamContactDetailsRepository
   val authProviderClient = AuthProviderClient
   val questionnaireRepository = repositories.questionnaireRepository
   val testReportRepository = repositories.testReportRepository
   val assessmentScoresRepository = repositories.applicationAssessmentScoresRepository
   val medRepository = repositories.mediaRepository
+  val indicatorRepository = repositories.northSouthIndicatorRepository
 }
 
 trait ReportingController extends BaseController {
@@ -45,11 +48,13 @@ trait ReportingController extends BaseController {
 
   val appRepository: GeneralApplicationRepository
   val cdRepository: ContactDetailsRepository
+  val fsCdRepository: contactdetails.ContactDetailsRepository
   val authProviderClient: AuthProviderClient
   val questionnaireRepository: QuestionnaireRepository
   val testReportRepository: TestReportRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresRepository
   val medRepository: MediaRepository
+  val indicatorRepository: NorthSouthIndicatorCSVRepository
 
   def adjustmentReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
@@ -72,7 +77,19 @@ trait ReportingController extends BaseController {
   }
 
   def candidateProgressReport(frameworkId: String) = Action.async { implicit request =>
-    appRepository.candidateProgressReport(frameworkId).map(r => Ok(Json.toJson(r)))
+    val fut: Future[List[CandidateProgressReportItem]] = appRepository.candidateProgressReport(frameworkId)
+    val postCodes: Future[Map[String, String]] = fsCdRepository.findAllPostCode()
+
+    fut.zip(postCodes).flatMap(tuple => {
+      Future(enrichReport(tuple._1, tuple._2))
+    }).map(r => Ok(Json.toJson(r)))
+
+
+  }
+
+  private def enrichReport(candidates: List[CandidateProgressReportItem], postcodes: Map[String, String]): List[CandidateProgressReportItem] = {
+    candidates.map(candidate => candidate.copy(
+      fsacIndicator = indicatorRepository.calculateFsacIndicatorForReports(postcodes.get(candidate.userId), candidate)))
   }
 
   def diversityReport(frameworkId: String) = Action.async { implicit request =>

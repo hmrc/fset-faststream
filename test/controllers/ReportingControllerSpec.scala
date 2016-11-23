@@ -30,7 +30,7 @@ import play.api.libs.json.JsArray
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
+import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, TestReportRepository, contactdetails }
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -41,11 +41,13 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   class TestableReportingController extends ReportingController {
     override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
     override val cdRepository: ContactDetailsRepository = new ContactDetailsInMemoryRepository
+    override val fsCdRepository = mock[contactdetails.ContactDetailsRepository]
     override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
-      override val questionnaireRepository: QuestionnaireRepository = QuestionnaireInMemoryRepository
+    override val questionnaireRepository: QuestionnaireRepository = QuestionnaireInMemoryRepository
     override val testReportRepository: TestReportRepository = TestReportInMemoryRepository
     override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
     override val medRepository: MediaRepository = MediaInMemoryRepository
+    override val indicatorRepository: NorthSouthIndicatorCSVRepository = mock[NorthSouthIndicatorCSVRepository]
   }
 
   "Reporting controller create adjustment report" should {

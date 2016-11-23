@@ -108,8 +108,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
     candidateProgressReport(frameworkId)
 
   override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReportItem]] = Future.successful(List(
-    CandidateProgressReportItem("", Some("registered"),
-      List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None))
+    CandidateProgressReportItem("", "", Some("registered"),
+      List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None, None))
   )
 
   override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = ???

@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package model.command
+package model
 
-import org.joda.time.LocalDate
-import model.AddressExamples._
-import model.CivilServiceExperienceDetails
+import play.api.libs.json.Json
 
-object UpdateGeneralDetailsExamples {
-  val CandidateContactDetailsUK = GeneralDetails("John", "Doe", "johnd",
-    "johndoe@test.com", LocalDate.now().minusYears(20), outsideUk = false, FullAddress, Some("A1 B23"), Some("London"),
-    None, "1234567890", Some(CivilServiceExperienceDetails(applicable = false)), Some(true))
+final case class FSACIndicator(area: String, assessmentCentre: String)
+
+object FSACIndicator {
+  implicit val fsacIndicatorFormat = Json.format[FSACIndicator]
 }
