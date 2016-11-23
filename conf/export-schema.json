@@ -6,6 +6,12 @@
     "application": {
       "type": "object",
       "properties": {
+        "token": {
+          "type": "string",
+          "format": "uuid",
+          "minLength": 36,
+          "maxLength": 36
+        },
         "userId": {
           "type": "string",
           "format": "uuid",
@@ -271,7 +277,38 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 200
+            },
+            "etray": {
+              "timeNeeded": {
+                "type": "integer"
+              },
+              "invigilatedInfo": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "otherInfo": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "video": {
+              "timeNeeded": {
+                "type": "integer"
+              },
+              "invigilatedInfo": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "otherInfo": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
             }
+
           },
           "required": [
             "hasDisability",
@@ -499,24 +536,7 @@
                     }
                   }
                 },
-                "Did any of your parent(s) or guardian(s) complete a university degree course or equivalent?": {
-                  "type": "object",
-                  "properties": {
-                    "answer": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 256
-                    },
-                    "otherDetails": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 256
-                    },
-                    "unknown": {
-                      "type": "boolean"
-                    }
-                  }
-                },
+
                 "Do you have a parent or guardian that has completed a university degree course or equivalent?": {
                   "type": "object",
                   "properties": {
