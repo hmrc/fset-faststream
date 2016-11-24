@@ -146,6 +146,8 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase1-job")
   lazy val expirePhase2TestJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase2-job")
+  lazy val expirePhase3TestJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase3-job")
   lazy val failedPhase1TestJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-phase1-test-job")
   lazy val failedPhase2TestJobConfig =
