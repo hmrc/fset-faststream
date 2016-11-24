@@ -1,0 +1,34 @@
+@(field: play.api.data.Field, args: (Symbol,Any)*)(togglePanel: Html)
+
+@import helpers.CSRSkinnyFieldConstructor._
+
+@selectRadio(currentValue: Option[String], questionType: String) = @{(currentValue, questionType) match {
+    case (Some("true"), "yes") | (Some("false"), "no") => "checked=\"checked\""
+    case _ => ""
+}}
+
+@formatId(id:String) = @{
+    id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_")
+}
+
+@helper.input(field, args:_*) { (id, name, value, _) =>
+    <fieldset>
+        @if(args.toMap.exists(_._1 == '_label)){
+            <legend class="form-label">@args.toMap.getOrElse('_label, "")</legend>
+        }
+        @if(args.toMap.exists(_._1 == '_help)){
+            <p class="form-hint text">@args.toMap.getOrElse('_help, "")</p>
+        }
+        <div class="form-group">
+            <label data-target="@formatId(id)-panel-yes" for="@formatId(id)-yes" class="block-label">
+                <input name="@name" type="radio" id="@formatId(id)-yes" aria-controls="@formatId(id)-panel-yes"
+                       aria-expanded="false" value="true" @selectRadio(value, "yes")>Yes
+            </label>
+            <label data-target="@formatId(id)-panel-no" for="@formatId(id)-no" class="block-label">
+                <input name="@name" type="radio" id="@formatId(id)-no" aria-controls="@formatId(id)-panel-no"
+                       aria-expanded="false" value="false" @selectRadio(value, "no")>No
+            </label>
+        </div>
+        @togglePanel
+    </fieldset>
+}
