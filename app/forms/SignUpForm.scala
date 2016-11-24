@@ -106,6 +106,7 @@ object SignUpForm {
               if (edipEligable) { Right(appRoute) }
                 else { Left(List(FormError("edipEligible", Messages("agree.edipEligible")))) }
 
+            case ApplicationRoute.Sdip => sdipEligibiliyCheck(data)
 
             case unknown => Left(List(FormError("eligible", s"Unrecognised application route $unknown")))
           }
@@ -115,6 +116,24 @@ object SignUpForm {
     }
 
     override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
+  }
+
+  private def sdipEligibiliyCheck(postData: Map[String, String]): Either[Seq[FormError], String] = {
+    val sdipEligable = postData.getOrElse("sdipEligible", "false").toBoolean
+    val hasAppliedtoFaststream = postData.lift("hasAppliedToFaststream").map(_.toBoolean)
+
+    val errors = (hasAppliedtoFaststream match {
+                    case Some(true) => List(FormError("hasAppliedToFaststream", Messages("error.hasAppliedToFaststream")))
+                    case Some(false) => Nil
+                    case None => List(FormError("hasAppliedToFaststream", Messages("agree.hasAppliedToFaststream")))
+                  }) ++
+      (if (!sdipEligable) { List(FormError("sdipEligible", Messages("agree.sdipEligible"))) } else { Nil })
+
+    if (errors.isEmpty) {
+      Right(ApplicationRoute.Sdip)
+    } else {
+      Left(errors)
+    }
   }
 
   val form = Form(
@@ -130,7 +149,9 @@ object SignUpForm {
       "applicationRoute" -> of(applicationRouteFormatter),
       "agree" -> checked(Messages("agree.accept")),
       "faststreamEligible" -> boolean,
-      "edipEligible" -> boolean
+      "edipEligible" -> boolean,
+      "sdipEligible" -> boolean,
+      "hasAppliedToFaststream" -> optional(boolean)
     )(Data.apply)(Data.unapply)
   )
 
@@ -160,7 +181,8 @@ object SignUpForm {
       }
   }
 
-  case class Data(firstName: String,
+  case class Data(
+    firstName: String,
     lastName: String,
     email: String,
     confirmEmail: String,
@@ -171,6 +193,8 @@ object SignUpForm {
     applicationRoute: String,
     agree: Boolean,
     faststreamEligible: Boolean,
-    edipEligible: Boolean
+    edipEligible: Boolean,
+    sdipEligible: Boolean,
+    hasAppliedToFaststream: Option[Boolean]
   )
 }
