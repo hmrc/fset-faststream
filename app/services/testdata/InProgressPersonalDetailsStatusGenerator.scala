@@ -18,16 +18,16 @@ package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model._
+import model.command.testdata.GeneratorConfig
 import model.persisted.{ ContactDetails, PersonalDetails }
-import org.joda.time.LocalDate
 import play.api.mvc.RequestHeader
 import repositories._
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
+import repositories.schemepreferences.SchemePreferencesRepository
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
-import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -36,13 +36,16 @@ object InProgressPersonalDetailsStatusGenerator extends InProgressPersonalDetail
   override val pdRepository = faststreamPersonalDetailsRepository
   override val cdRepository = faststreamContactDetailsRepository
   override val fpdRepository = civilServiceExperienceDetailsRepository
+  override val spRepository = schemePreferencesRepository
 }
 
 trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
   val fpdRepository: CivilServiceExperienceDetailsRepository
+  val spRepository: SchemePreferencesRepository
 
+  //scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
       PersonalDetails(
@@ -50,7 +53,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         candidateInformation.lastName,
         generatorConfig.personalData.getPreferredName,
         generatorConfig.personalData.dob,
-        None // TODO
+        generatorConfig.personalData.edipCompleted
       )
     }
 
@@ -58,7 +61,11 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       ContactDetails(
         outsideUk = false,
         Address("123, Fake street"),
-        if (generatorConfig.personalData.country.isEmpty) { generatorConfig.personalData.postCode.orElse(Some(Random.postCode)) } else { None },
+        if (generatorConfig.personalData.country.isEmpty) {
+          generatorConfig.personalData.postCode.orElse(Some(Random.postCode))
+        } else {
+          None
+        },
         generatorConfig.personalData.country,
         candidateInformation.email,
         "07770 774 914"
@@ -86,4 +93,5 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       candidateInPreviousStatus.copy(personalDetails = Some(pd), contactDetails = Some(cd))
     }
   }
+  //scalastyle:off method.length
 }

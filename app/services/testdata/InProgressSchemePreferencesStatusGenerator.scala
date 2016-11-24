@@ -42,10 +42,10 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
          generatorConfig.schemeTypes.map { schemeTypesList =>
            SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
          }.getOrElse {
-           if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Edip) {
-             SelectedSchemes(List(model.SchemeType.Edip), orderAgreed = true, eligible = true)
-           } else {
-             SelectedSchemes(Random.schemeTypes, orderAgreed = true, eligible = true)
+           generatorConfig.statusData.applicationRoute match {
+             case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeType.Edip), orderAgreed = true, eligible = true)
+             case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeType.Sdip), orderAgreed = true, eligible = true)
+             case _ => SelectedSchemes(Random.schemeTypes, orderAgreed = true, eligible = true)
            }
          }
        )

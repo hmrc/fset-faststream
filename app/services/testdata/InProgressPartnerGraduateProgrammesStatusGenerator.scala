@@ -16,6 +16,7 @@
 
 package services.testdata
 
+import model.ApplicationRoute
 import model.persisted.PartnerGraduateProgrammes
 import play.api.mvc.RequestHeader
 import repositories._
@@ -24,6 +25,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import model.command.testdata.GeneratorConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object InProgressPartnerGraduateProgrammesStatusGenerator extends InProgressPartnerGraduateProgrammesStatusGenerator {
   override val previousStatusGenerator = InProgressSchemePreferencesStatusGenerator
@@ -36,8 +38,11 @@ trait InProgressPartnerGraduateProgrammesStatusGenerator extends ConstructiveGen
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- pgpRepository.update(candidateInPreviousStatus.applicationId.get, PartnerGraduateProgrammes(true,
-        Some(List("Entrepreneur First", "Police Now"))))
+      _ <- generatorConfig.statusData.applicationRoute match {
+        case ApplicationRoute.Faststream => pgpRepository.update(candidateInPreviousStatus.applicationId.get,
+          PartnerGraduateProgrammes(true, Some(List("Entrepreneur First", "Police Now"))))
+        case _ => Future.successful(())
+      }
     } yield {
       candidateInPreviousStatus
     }

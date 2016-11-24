@@ -16,6 +16,7 @@
 
 package services.testdata
 
+import model.ApplicationRoute
 import model.command.testdata.GeneratorConfig
 import model.persisted.AssistanceDetails
 import play.api.mvc.RequestHeader
@@ -85,13 +86,14 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
         None
       }
 
-    val phoneInterviewAdjustmentsFinalValue = Random.bool
-    val phoneInterviewAdjustmentsDescriptionFinalValue =
-      if (phoneInterviewAdjustmentsFinalValue) {
-        Some("")
-      } else {
-        None
-      }
+    val phoneInterviewAdjustmentsFinalValue = config.statusData.applicationRoute match {
+      case ApplicationRoute.Edip | ApplicationRoute.Sdip => Some(Random.bool)
+      case _ => None
+    }
+    val phoneInterviewAdjustmentsDescriptionFinalValue: Option[String] = config.statusData.applicationRoute match {
+      case ApplicationRoute.Edip | ApplicationRoute.Sdip => phoneInterviewAdjustmentsFinalValue.map(_ => "phone interview adjustments")
+      case _ => None
+    }
 
     AssistanceDetails(
       hasDisabilityFinalValue,
@@ -101,7 +103,7 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       onlineAdjustmentsDescriptionFinalValue,
       Some(assessmentCentreAdjustmentsFinalValue),
       assessmentCentreAdjustmentsDescriptionFinalValue,
-      Some(phoneInterviewAdjustmentsFinalValue),
+      phoneInterviewAdjustmentsFinalValue,
       phoneInterviewAdjustmentsDescriptionFinalValue
     )
   }
