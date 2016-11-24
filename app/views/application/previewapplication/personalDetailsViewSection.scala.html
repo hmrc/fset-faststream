@@ -1,7 +1,7 @@
-@(generalDetails: connectors.exchange.PersonalDetails)(edit: Html)
+@(personalDetails: connectors.exchange.PersonalDetails)(edit: Html)(implicit user: Option[CachedData])
 
 @import _root_.forms.FastPassForm
-
+@import security.RoleUtils._
 
 @displayFastPassSection(id:String, display:Boolean, heading: String, text: => String) = @{
     if(display){
@@ -29,37 +29,53 @@
     </h2>
     <section>
         <h3 class="heading-small">Full name</h3>
-        <p id="fullName">@generalDetails.firstName @generalDetails.lastName </p>
+        <p id="fullName">@personalDetails.firstName @personalDetails.lastName </p>
     </section>
     <section>
         <h3 class="heading-small">Preferred name</h3>
-        <p id="preferredName">@generalDetails.preferredName</p>
+        <p id="preferredName">@personalDetails.preferredName</p>
     </section>
     <section>
         <h3 class="heading-small">Date of birth</h3>
-        <p id="dateOfBirth">@generalDetails.dateOfBirth.toString("dd MMMM yyyy")</p>
+        <p id="dateOfBirth">@personalDetails.dateOfBirth.toString("dd MMMM yyyy")</p>
     </section>
     <section>
         <h3 class="heading-small">Address</h3>
         <ul class="list-text">
-            <li id="address1">@generalDetails.address.line1</li>
-            <li id="address2">@generalDetails.address.line2.getOrElse("")</li>
-            <li id="address3">@generalDetails.address.line3.getOrElse("")</li>
-            <li id="address4">@generalDetails.address.line4.getOrElse("")</li>
-            <li id="postCode">@generalDetails.postCode</li>
-            <li id="postCode">@generalDetails.country</li>
+            <li id="address1">@personalDetails.address.line1</li>
+            <li id="address2">@personalDetails.address.line2.getOrElse("")</li>
+            <li id="address3">@personalDetails.address.line3.getOrElse("")</li>
+            <li id="address4">@personalDetails.address.line4.getOrElse("")</li>
+            <li id="postCode">@personalDetails.postCode</li>
+            <li id="postCode">@personalDetails.country</li>
         </ul>
     </section>
     <section>
         <h3 class="heading-small">Telephone number</h3>
-        @if(generalDetails.phone.isDefined || generalDetails.phone.map(!_.isEmpty)) {
-            <p id="phone-input">@generalDetails.phone.getOrElse("No phone number provided")</p>
+        @if(personalDetails.phone.isDefined || personalDetails.phone.map(!_.isEmpty)) {
+            <p id="phone-input">@personalDetails.phone.getOrElse("No phone number provided")</p>
         }
-        @if(generalDetails.phone.isEmpty) {
+        @if(personalDetails.phone.isEmpty) {
             <p id="phone-input3">No number provided</p>
         }
     </section>
-    @generalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
+    @if(isSdip(user)) {
+        @personalDetails.edipCompleted.map { edipCompleted =>
+            <section>
+                <h3 class="heading-small">Have you completed the Early Diversity Internship Programme (EDIP)?</h3>
+                <p id="editCompleted">
+                    @{
+                        if(edipCompleted) {
+                            "Yes"
+                        } else {
+                            "No"
+                        }
+                    }
+                </p>
+            </section>
+        }
+    }
+    @personalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
         @displayFastPassSection("fastPassApplicable", true, "Are you a civil servant or been on a diversity internship or the Fast Track?",
             getYesOrNo(civilServiceExperienceDetails.applicable))
         @displayFastPassSection("civilServiceExperienceType" +

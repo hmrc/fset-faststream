@@ -151,7 +151,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
 
   private def createDefaultSchemes(implicit cacheData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Unit] =
     cacheData.application.applicationRoute match {
-    case appRoute if appRoute == ApplicationRoute.Edip =>
+    case appRoute@(ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
       for {
         _ <- schemeClient.updateSchemePreferences(SelectedSchemes(List(appRoute), orderAgreed = true,
           eligible = true))(cacheData.application.applicationId)

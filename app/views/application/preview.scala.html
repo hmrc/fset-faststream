@@ -5,7 +5,7 @@
         assistanceDetails: connectors.exchange.AssistanceDetails,
         applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@import views.html.application.previewapplication.{assistanceDetailsViewSection, generalDetailsViewSection, schemePreferencesViewSection, partnerGraduateProgrammesViewSection, diversityQuestionnaireViewSection}
+@import views.html.application.previewapplication.{assistanceDetailsViewSection, personalDetailsViewSection, schemePreferencesViewSection, partnerGraduateProgrammesViewSection, diversityQuestionnaireViewSection}
 @import models.ApplicationData.ApplicationStatus._
 @import security.Roles._
 @import security.RoleUtils._
@@ -46,9 +46,9 @@
       </div>
     </div>
 
-    @generalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", routes.PersonalDetailsController.presentAndContinue()))
+    @personalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", routes.PersonalDetailsController.presentAndContinue()))
 
-    @if(!isEdip(user)) {
+    @if(isFaststream(user)) {
         @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", routes.SchemePreferencesController.present()))
     }
 

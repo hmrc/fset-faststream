@@ -55,7 +55,7 @@
                                                             rel="external" target="_blank">eligibility requirements</a></li>
             </ul>
                 @yesNoQuestion(form("sdipEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
-                               noMessage = "You must be eligible to apply for the Summer Diversity Internship Programme.")
+                               noMessage = Some("You must be eligible to apply for the Summer Diversity Internship Programme."))
 
                 @yesNoRadioWithNestedTogglePanel(form("hasAppliedToFaststream"),
                     'id -> "sdipEligible.hasAppliedToFaststream",

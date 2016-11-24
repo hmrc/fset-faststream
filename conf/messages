@@ -150,6 +150,8 @@ scheme.HousesOfParliament.description=Houses of Parliament
 scheme.HumanResources.description=Human Resources
 scheme.ProjectDelivery.description=Project Delivery
 scheme.ScienceAndEngineering.description=Science & Engineering
+scheme.Edip.description=Edip
+scheme.Sdip.description=Sdip
 
 scheme.DiplomaticServiceEconomics.link=government-economic-service
 scheme.DiplomaticServiceEuropean.link=european
