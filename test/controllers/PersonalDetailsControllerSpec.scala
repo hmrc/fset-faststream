@@ -17,7 +17,8 @@
 package controllers
 
 import model.Exceptions._
-import model.command.UpdateGeneralDetailsExamples._
+import model.command.PersonalDetails
+import model.command.UpdatePersonalDetailsExamples._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -26,6 +27,7 @@ import services.AuditService
 import services.personaldetails.PersonalDetailsService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
+import play.api.libs.json.Json
 
 import scala.concurrent.Future
 
@@ -90,6 +92,7 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
       when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.successful(CandidateContactDetailsUK))
       val response = controller.find(UserId, AppId)(fakeRequest)
       status(response) mustBe OK
+      contentAsJson(response) mustBe Json.toJson[PersonalDetails](CandidateContactDetailsUK)
     }
 
     "return Not Found when contact details cannot be found" in {

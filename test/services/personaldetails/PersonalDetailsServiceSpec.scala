@@ -17,7 +17,7 @@
 package services.personaldetails
 
 import model.{ ApplicationStatus, CivilServiceExperienceDetails }
-import model.command.UpdateGeneralDetailsExamples._
+import model.command.UpdatePersonalDetailsExamples._
 import model.persisted.ContactDetailsExamples._
 import model.persisted.PersonalDetailsExamples._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -72,6 +72,17 @@ class PersonalDetailsServiceSpec extends BaseServiceSpec {
       val response = service.find(AppId, UserId).futureValue
 
       response mustBe CandidateContactDetailsUK.copy(updateApplicationStatus = None)
+    }
+
+    "return personal and contact details for sdip candidates" in {
+      when(mockPersonalDetailsRepository.find(AppId)).thenReturn(Future.successful(SdipJohnDoe))
+      when(mockContactDetailsRepository.find(UserId)).thenReturn(Future.successful(ContactDetailsUK))
+      when(mockCivilServiceExperienceDetailsRepository.find(AppId)
+      ).thenReturn(Future.successful(Some(CivilServiceExperienceDetails(applicable = false))))
+
+      val response = service.find(AppId, UserId).futureValue
+
+      response mustBe CandidateContactDetailsUKSdip.copy(updateApplicationStatus = None)
     }
   }
 }
