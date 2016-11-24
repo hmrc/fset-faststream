@@ -22,4 +22,6 @@ object FieldNameHelpers {
 
   def formatId(id:String, v:(String,String)) =
     createId(id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_"), v)
+
+  def formatId(id:String) = id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_")
 }

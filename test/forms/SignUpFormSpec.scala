@@ -93,7 +93,7 @@ class SignUpFormSpec extends UnitSpec {
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(2)
       signUpForm.errors("sdipEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
-      signUpForm.errors("sdipEligible.hasAppliedToFaststream").head.messages must be(Seq(Messages("agree.hasAppliedToFaststream")))
+      signUpForm.errors("hasAppliedToFaststream").head.messages must be(Seq(Messages("agree.hasAppliedToFaststream")))
     }
 
     "throw an error if I haven't clicked on the I am eligible for SDIP but have clicked that I've applied to Fast Stream this year" in {
@@ -102,7 +102,7 @@ class SignUpFormSpec extends UnitSpec {
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(2)
       signUpForm.errors("sdipEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
-      signUpForm.errors("sdipEligible.hasAppliedToFaststream").head.messages must be(Seq(Messages("error.hasAppliedToFaststream")))
+      signUpForm.errors("hasAppliedToFaststream").head.messages must be(Seq(Messages("error.hasAppliedToFaststream")))
     }
 
     "throw an error if I haven't clicked on the I am eligible for SDIP and haven't clicked that I've applied to Fast Stream this year" in {
@@ -111,7 +111,7 @@ class SignUpFormSpec extends UnitSpec {
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
       signUpForm.errors("sdipEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
-      signUpForm.errors("sdipEligible.hasAppliedToFaststream") mustBe Nil
+      signUpForm.errors("hasAppliedToFaststream") mustBe Nil
     }
 
     "throw an error if I haven't clicked on the I agree" in {
