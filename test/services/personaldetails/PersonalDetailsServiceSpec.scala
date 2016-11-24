@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.generaldetails
+package services.personaldetails
 
 import model.{ ApplicationStatus, CivilServiceExperienceDetails }
 import model.command.UpdateGeneralDetailsExamples._
@@ -29,7 +29,7 @@ import services.{ AuditService, BaseServiceSpec }
 
 import scala.concurrent.Future
 
-class CandidateDetailsServiceSpec extends BaseServiceSpec {
+class PersonalDetailsServiceSpec extends BaseServiceSpec {
   val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
   val mockContactDetailsRepository = mock[ContactDetailsRepository]
   val mockCivilServiceExperienceDetailsRepository = mock[CivilServiceExperienceDetailsRepository]

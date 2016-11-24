@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.generaldetails
+package services.personaldetails
 
 import model.ApplicationStatus._
 import model.command.PersonalDetails

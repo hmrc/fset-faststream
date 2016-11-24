@@ -23,13 +23,13 @@ import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
 import services.AuditService
-import services.generaldetails.PersonalDetailsService
+import services.personaldetails.PersonalDetailsService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class CandidateDetailsControllerSpec extends UnitWithAppSpec {
+class PersonalDetailsControllerSpec extends UnitWithAppSpec {
   val mockCandidateDetailsService = mock[PersonalDetailsService]
   val mockAuditService = mock[AuditService]
 

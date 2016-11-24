@@ -21,7 +21,7 @@ import model.command.PersonalDetails
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
-import services.generaldetails.PersonalDetailsService
+import services.personaldetails.PersonalDetailsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
