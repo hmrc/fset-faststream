@@ -1,27 +1,30 @@
 @(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@import views.html.application.assistancedetails.{hasDisability, needsSupportOnlineAssessments, needsSupportAtVenue, needsSupportPhoneInterview}
-@import views.html.widgets.{pageProgress, saveAndContinueButton}
-@import security.RoleUtils._
-@import models.ApplicationRoute._
+    @import views.html.application.assistancedetails.{ hasDisability, needsSupportOnlineAssessments, needsSupportAtVenue, needsSupportPhoneInterview }
+    @import views.html.widgets.{ pageProgress, saveAndContinueButton }
+    @import security.RoleUtils._
+    @import models.ApplicationRoute._
 
-@applicationRoute = @{user.flatMap(_.application).map(_.applicationRoute).getOrElse(Faststream)}
-
-@main_template(title = "Disability and health conditions", pageForms = Seq(form)) {
-    @pageProgress(4, 8)
-    <div class="text">
-        <h1 class="heading-xlarge" id="assistanceDetailsHeading">Disability and health conditions</h1>
-    </div>
-    @helper.form(action = routes.AssistanceDetailsController.submit(), 'novalidate -> "novalidate") {
-        <input type="hidden" id="applicationRoute" name="applicationRoute" value="@applicationRoute" />
-        @helper.CSRF.formField
-        @hasDisability(form)
-        @if(!isEdip(user)) {
-            @needsSupportOnlineAssessments(form)
-            @needsSupportAtVenue(form)
-        } else {
-            @needsSupportPhoneInterview(form)
-        }
-        @saveAndContinueButton()
+    @applicationRoute = @{
+        user.flatMap(_.application).map(_.applicationRoute).getOrElse(Faststream)
     }
-}
+
+    @main_template(title = "Disability and health conditions", pageForms = Seq(form)) {
+        @pageProgress(4, 8)
+        <div class="text">
+            <h1 class="heading-xlarge" id="assistanceDetailsHeading">Disability and health conditions</h1>
+        </div>
+        @helper.form(action = routes.AssistanceDetailsController.submit(), 'novalidate -> "novalidate") {
+            <input type="hidden" id="applicationRoute" name="applicationRoute" value="@applicationRoute" />
+            @helper.CSRF.formField
+            @hasDisability(form)
+            @if(isFaststream(user)) {
+                @needsSupportOnlineAssessments(form)
+                @needsSupportAtVenue(form)
+            }
+            @if(isEdip(user)||isSdip(user)) {
+                @needsSupportPhoneInterview(form)
+            }
+            @saveAndContinueButton()
+        }
+    }

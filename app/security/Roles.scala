@@ -26,6 +26,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 // scalastyle:off
 object Roles {
+
   import RoleUtils._
 
   trait CsrAuthorization {
@@ -92,14 +93,14 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
         (
           hasPartnerGraduateProgrammes(user) ||
-          (hasSchemes(user) && isCivilServant(user)) ||
-          hasPersonalDetails(user) && (isEdip(user) || isSdip(user))
+            (hasSchemes(user) && isCivilServant(user)) ||
+            (hasPersonalDetails(user) && (isEdip(user) || isSdip(user)))
           )
   }
 
   object PreviewApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && !statusIn(user)(CREATED) &&
+    activeUserWithApp(user) && !statusIn(user)(CREATED) &&
         hasDiversity(user) && hasEducation(user) && hasOccupation(user)
   }
 
@@ -175,6 +176,7 @@ object Roles {
         ALLOCATION_CONFIRMED, ALLOCATION_UNCONFIRMED, AWAITING_ALLOCATION, FAILED_TO_ATTEND,
         ASSESSMENT_SCORES_ENTERED, ASSESSMENT_SCORES_ACCEPTED, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ASSESSMENT_CENTRE_PASSED,
         ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED_NOTIFIED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
+
     // format: ON
   }
 
@@ -256,25 +258,29 @@ object RoleUtils {
   def hasPreview(implicit user: CachedData) = progress.preview
 
   def isCivilServant(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      user.application
-        .flatMap(_.civilServiceExperienceDetails)
-        .exists(_.isCivilServant)
-
-  def hasReceivedFastPass(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-  activeUserWithApp(user) && statusIn(user)(SUBMITTED) &&
     user.application
       .flatMap(_.civilServiceExperienceDetails)
-      .flatMap(_.fastPassReceived)
-      .getOrElse(false)
+      .exists(_.isCivilServant)
+
+  def hasReceivedFastPass(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    activeUserWithApp(user) && statusIn(user)(SUBMITTED) &&
+      user.application
+        .flatMap(_.civilServiceExperienceDetails)
+        .flatMap(_.fastPassReceived)
+        .getOrElse(false)
 
   def isTestExpired(implicit user: CachedData) = progress.phase1TestProgress.phase1TestsExpired
+
   def isPhase1TestsPassed(implicit user: CachedData) = {
     user.application.isDefined && progress.phase1TestProgress.phase1TestsPassed
   }
+
   def isPhase2TestsPassed(implicit user: CachedData) = {
     user.application.isDefined && progress.phase2TestProgress.phase2TestsPassed
   }
+
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
+
   def isPhase3TestExpired(implicit user: CachedData) = progress.phase3TestProgress.phase3TestsExpired
 
   def isFaststream(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Faststream
@@ -305,4 +311,5 @@ object RoleUtils {
     user.exists(isSdip(_))
   }
 }
+
 // scalastyle:on
