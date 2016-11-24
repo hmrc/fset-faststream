@@ -37,15 +37,18 @@ case class UserManagementUrl(host: String)
 case class FaststreamConfig(url: FaststreamUrl)
 case class FaststreamUrl(host: String, base: String)
 
-case class FaststreamFrontendConfig(blockNewAccountsDate: Option[LocalDateTime], blockApplicationsDate: Option[LocalDateTime])
+case class ApplicationRouteFrontendConfig(startNewAccountsDate: Option[LocalDateTime], blockNewAccountsDate: Option[LocalDateTime],
+                                          blockApplicationsDate: Option[LocalDateTime])
 
-object FaststreamFrontendConfig {
-  def read(blockNewAccountsDate: Option[String], blockApplicationsDate: Option[String]): FaststreamFrontendConfig = {
+object ApplicationRouteFrontendConfig {
+  def read(startNewAccountsDate: Option[String], blockNewAccountsDate: Option[String],
+           blockApplicationsDate: Option[String]): ApplicationRouteFrontendConfig = {
     val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
     def parseDate(dateStr: String): LocalDateTime = LocalDateTime.parse(dateStr, format)
 
-    new FaststreamFrontendConfig(blockNewAccountsDate map parseDate, blockApplicationsDate map parseDate)
+    new ApplicationRouteFrontendConfig(startNewAccountsDate map parseDate, blockNewAccountsDate map parseDate,
+      blockApplicationsDate map parseDate)
   }
 }
 
@@ -57,7 +60,9 @@ trait AppConfig {
   val emailConfig: EmailConfig
   val userManagementConfig: UserManagementConfig
   val faststreamConfig: FaststreamConfig
-  val faststreamFrontendConfig: FaststreamFrontendConfig
+  val faststreamFrontendConfig: ApplicationRouteFrontendConfig
+  val edipFrontendConfig: ApplicationRouteFrontendConfig
+  val sdipFrontendConfig: ApplicationRouteFrontendConfig
 }
 
 object FrontendAppConfig extends AppConfig with ServicesConfig {
@@ -78,9 +83,20 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
   override lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
   override lazy val faststreamConfig = configuration.underlying.as[FaststreamConfig]("microservice.services.faststream")
-  override val faststreamFrontendConfig = FaststreamFrontendConfig.read(
-    blockNewAccountsDate = configuration.getString("application.blockNewAccountsDate"),
-    blockApplicationsDate = configuration.getString("application.blockApplicationsDate")
+  val faststreamFrontendConfig = ApplicationRouteFrontendConfig.read(
+    startNewAccountsDate = configuration.getString("applicationRoute.faststream.startNewAccountsDate"),
+    blockNewAccountsDate = configuration.getString("applicationRoute.faststream.blockNewAccountsDate"),
+    blockApplicationsDate = configuration.getString("applicationRoute.faststream.blockApplicationsDate")
+  )
+  val edipFrontendConfig = ApplicationRouteFrontendConfig.read(
+    startNewAccountsDate = configuration.getString("applicationRoute.edip.startNewAccountsDate"),
+    blockNewAccountsDate = configuration.getString("applicationRoute.edip.blockNewAccountsDate"),
+    blockApplicationsDate = configuration.getString("applicationRoute.edip.blockApplicationsDate")
+  )
+  val sdipFrontendConfig = ApplicationRouteFrontendConfig.read(
+    startNewAccountsDate = configuration.getString("applicationRoute.sdip.startNewAccountsDate"),
+    blockNewAccountsDate = configuration.getString("applicationRoute.sdip.blockNewAccountsDate"),
+    blockApplicationsDate = configuration.getString("applicationRoute.sdip.blockApplicationsDate")
   )
 
   // Whitelist Configuration

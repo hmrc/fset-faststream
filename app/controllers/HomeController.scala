@@ -23,13 +23,12 @@ import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, Onlin
 import connectors.exchange._
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
-import models.{ Adjustments, CachedData }
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
+import models.{ Adjustments, CachedData }
 import security.Roles
 import security.Roles._
 
 import scala.concurrent.Future
-import connectors.exchange._
 
 object HomeController extends HomeController(ApplicationClient, CSRCache)
 
@@ -67,7 +66,8 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
           phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
           phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
         )
-        Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt))
+        Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt,
+          submitApplicationsEnabled = false))
       }
 
       dashboard recover {
@@ -75,24 +75,15 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
           val applicationSubmitted = !cachedData.application.forall { app =>
             app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
           }
-          val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled || applicationSubmitted
-
-          if (isDashboardEnabled) {
-            val dashboardPage = DashboardPage(cachedData, None, None, None)
-            Ok(views.html.home.dashboard(cachedData, dashboardPage))
-          } else {
-            Ok(views.html.home.submit_disabled(cachedData))
-          }
+          val isDashboardEnabled = isSubmitApplicationsEnabled(application.applicationRoute) || applicationSubmitted
+          val dashboardPage = DashboardPage(cachedData, None, None, None)
+          Ok(views.html.home.dashboard(cachedData, dashboardPage, submitApplicationsEnabled = isDashboardEnabled))
       }
     }.getOrElse {
-      val isDashboardEnabled = faststreamConfig.applicationsSubmitEnabled
-
-      if (isDashboardEnabled) {
-        val dashboardPage = DashboardPage(cachedData, None, None, None)
-        Future.successful(Ok(views.html.home.dashboard(cachedData, dashboardPage)))
-      } else {
-        Future.successful(Ok(views.html.home.submit_disabled(cachedData)))
-      }
+      val dashboardPage = DashboardPage(cachedData, None, None, None)
+      Future.successful(
+        Ok(views.html.home.dashboard(cachedData, dashboardPage, submitApplicationsEnabled = isSubmitApplicationsEnabled))
+      )
     }
   }
 
@@ -108,7 +99,7 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
           case _: ApplicationNotFound => applicationClient.createApplication(user.user.userID, FrameworkId)
         }
         _ <- env.userService.save(user.copy(application = Some(response)))
-        if faststreamConfig.applicationsSubmitEnabled
+        if isSubmitApplicationsEnabled(response.applicationRoute)
       } yield {
         Redirect(routes.PersonalDetailsController.presentAndContinue())
       }

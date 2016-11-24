@@ -18,9 +18,10 @@ package controllers
 
 import java.time.LocalDateTime
 
-import config.{ CSRCache, FaststreamFrontendConfig }
+import config.{ CSRCache, ApplicationRouteFrontendConfig }
 import connectors.ApplicationClient
 import helpers.NotificationType._
+import models.ApplicationRoute.{ apply => _, _ }
 import models.{ CachedData, CachedDataWithApp }
 import play.api.mvc.Request
 import security.SecureActions
@@ -29,14 +30,22 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-case class FaststreamConfig(newAccountsEnabled: Boolean, applicationsSubmitEnabled: Boolean)
+case class ApplicationRouteConfig(newAccountsStarted: Boolean, newAccountsEnabled: Boolean, applicationsSubmitEnabled: Boolean)
 
-object FaststreamConfig {
-  def apply(config: FaststreamFrontendConfig) = {
+object ApplicationRouteConfig {
+  def apply(config: ApplicationRouteFrontendConfig) = {
+    require(
+      config.startNewAccountsDate.forall(startDate => config.blockNewAccountsDate.forall(_.isAfter(startDate))),
+      "start new accounts date must be before block new accounts date"
+    )
     val now = LocalDateTime.now()
+
     def isAfterNow(date: Option[LocalDateTime]) = date forall (_.isAfter(now))
 
-    new FaststreamConfig(isAfterNow(config.blockNewAccountsDate), isAfterNow(config.blockApplicationsDate))
+    def isBeforeNow(date: Option[LocalDateTime]) = date forall (_.isBefore(now))
+
+    new ApplicationRouteConfig(isBeforeNow(config.startNewAccountsDate), isAfterNow(config.blockNewAccountsDate),
+      isAfterNow(config.blockApplicationsDate))
   }
 }
 
@@ -47,7 +56,12 @@ abstract class BaseController(applicationClient: ApplicationClient, val cacheCli
   extends SecureActions with FrontendController {
 
   implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
-  implicit def faststreamConfig = FaststreamConfig(config.FrontendAppConfig.faststreamFrontendConfig)
+
+  implicit val applicationRouteConfigMap = Map(
+    Faststream -> ApplicationRouteConfig(config.FrontendAppConfig.faststreamFrontendConfig),
+    Edip -> ApplicationRouteConfig(config.FrontendAppConfig.edipFrontendConfig),
+    Sdip -> ApplicationRouteConfig(config.FrontendAppConfig.sdipFrontendConfig)
+  )
 
   val redirectNoApplication = Future.successful {
     Redirect(routes.HomeController.present()).flashing(warning("info.create.application"))
@@ -67,4 +81,13 @@ abstract class BaseController(applicationClient: ApplicationClient, val cacheCli
           onUpdate(cd)
         }
     }
+
+  def isNewAccountsStarted(implicit applicationRoute: ApplicationRoute = Faststream) =
+    applicationRouteConfigMap.get(applicationRoute).forall(_.newAccountsStarted)
+
+  def isNewAccountsEnabled(implicit applicationRoute: ApplicationRoute = Faststream) =
+    applicationRouteConfigMap.get(applicationRoute).forall(_.newAccountsEnabled)
+
+  def isSubmitApplicationsEnabled(implicit applicationRoute: ApplicationRoute = Faststream) =
+    applicationRouteConfigMap.get(applicationRoute).forall(_.applicationsSubmitEnabled)
 }

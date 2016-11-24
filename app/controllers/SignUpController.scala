@@ -20,13 +20,14 @@ import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
 import config.{ CSRCache, CSRHttp }
-import connectors.{ ApplicationClient, SchemeClient }
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange.Implicits._
+import connectors.exchange._
+import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
 import models.{ ApplicationRoute, SecurityUser }
+import play.api.mvc.Result
 import security.SignInService
-import connectors.exchange._
 
 import scala.concurrent.Future
 
@@ -48,27 +49,42 @@ abstract class SignUpController(val applicationClient: ApplicationClient, scheme
   def signUp = CSRUserAwareAction { implicit request =>
     implicit user =>
 
+      def checkAppRouteWindowAndProceed (data: Map[String, String], fn: => Future[Result]) =
+        data.get("applicationRoute").map(ApplicationRoute.withName).map {
+          case appRoute if !isNewAccountsStarted(appRoute) =>
+            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(s"$appRoute applications not opened yet")))
+          case appRoute if !isNewAccountsEnabled(appRoute) =>
+            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(s"$appRoute applications are now closed")))
+          case _ => fn
+        } getOrElse fn
+
       SignUpForm.form.bindFromRequest.fold(
-        invalidForm => Future.successful(Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize)))),
+        invalidForm => {
+          checkAppRouteWindowAndProceed(invalidForm.data, Future.successful(
+            Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize))))
+          )
+        },
         data => {
           val appRoute = ApplicationRoute.withName(data.applicationRoute)
-          env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
-            applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
-              applicationClient.createApplication(u.userId, FrameworkId, appRoute).flatMap { appResponse =>
-                  signInUser(
-                    u.toCached,
-                    redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
-                    env = env
-                  ).map { r =>
-                    env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
-                    r
+          checkAppRouteWindowAndProceed(SignUpForm.form.fill(data).data, {
+              env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
+                applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
+                  applicationClient.createApplication(u.userId, FrameworkId, appRoute).flatMap { appResponse =>
+                    signInUser(
+                      u.toCached,
+                      redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
+                      env = env
+                    ).map { r =>
+                      env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
+                      r
+                    }
                   }
+                }
+              }.recover {
+                case e: EmailTakenException =>
+                  Ok(views.html.registration.signup(SignUpForm.form.fill(data), Some(danger("user.exists"))))
               }
-            }
-          }.recover {
-            case e: EmailTakenException =>
-              Ok(views.html.registration.signup(SignUpForm.form.fill(data), Some(danger("user.exists"))))
-          }
+          })
         }
       )
   }
