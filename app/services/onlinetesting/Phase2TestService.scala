@@ -132,7 +132,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
     phase2TestRepo.getTestGroup(application.applicationId).flatMap {
       case Some(phase2TestGroup) if !application.isInvigilatedETray /*&& schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId))*/ =>
         val (scheduleName, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
-        registerAndInviteForTestGroup(List(application), schedule).map { _ =>
+        registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
           audit("Phase2TestInvitationProcessComplete", application.userId)
           AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
             DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
@@ -143,7 +143,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
       case Some(phase2TestGroup) if application.isInvigilatedETray =>
         val scheduleInv = testConfig.scheduleForInvigilatedETray
         val (scheduleName, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
-        registerAndInviteForTestGroup(List(application), schedule).map { _ =>
+        registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
           AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
             DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
         }
@@ -240,6 +240,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
     }
   }
 
+  /*
   private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = {
     require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
@@ -254,7 +255,40 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
         } else {
           gatewayConfig.phase2Tests.expiryTimeInDays
         }
-        implicit val (invitationDate, expirationDate) = calcOnlineTestDates(expiryTimeInDays)
+         val (invitationDate, expirationDate) = calcOnlineTestDates(expiryTimeInDays)
+
+        for {
+          registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
+          invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
+          _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate, hc)
+          _ <- emailInviteToApplicants(candidatesToProcess)(hc, rh, invitationDate, expirationDate)
+        } yield {
+          candidatesToProcess
+        }
+    }
+  }
+  */
+
+  private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule,
+                                              expiresDate: Option[DateTime] = None)
+                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = {
+    require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
+
+    applications match {
+      case Nil => Future.successful(Nil)
+      case candidatesToProcess =>
+        val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
+        val isInvigilatedETrayBatch = applications.head.isInvigilatedETray
+        val expiryTimeInDays = if (isInvigilatedETrayBatch) {
+          gatewayConfig.phase2Tests.expiryTimeInDaysForInvigilatedETray
+        } else {
+          gatewayConfig.phase2Tests.expiryTimeInDays
+        }
+
+        implicit val (invitationDate, expirationDate) = expiresDate match {
+          case Some(expDate) => (dateTimeFactory.nowLocalTimeZone, expDate)
+          case _ => calcOnlineTestDates(expiryTimeInDays)
+        }
 
         for {
           registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
