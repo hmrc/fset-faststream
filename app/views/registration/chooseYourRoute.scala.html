@@ -58,14 +58,13 @@
                                noMessage = "You must be eligible to apply for the Summer Diversity Internship Programme.")
 
                 @yesNoRadioWithNestedTogglePanel(form("hasAppliedToFaststream"),
-                    'id -> "sdipEligible.hasAppliedToFaststream",
                     '_label -> "Have you applied to the Civil Service Fast Stream this year?") {
-                    <div id="sdipEligible_hasAppliedToFaststream-panel-yes" class="toggle-content">
+                    <div id="hasAppliedToFaststream-panel-yes" class="toggle-content">
                         <div class="panel-danger" role="alert">
                             <p>If you want to apply for the Summer Diversity Internship Programme and have an existing Fast Stream account, you need to <a rel="external" target="_blank" href="https://www.faststream.gov.uk/summer-diversity-internship-programme/">sign in</a>.</p>
                         </div>
                     </div>
-                    }
+                }
         </div>
     </fieldset>
 </section>

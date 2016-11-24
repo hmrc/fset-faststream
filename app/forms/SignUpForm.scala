@@ -123,9 +123,9 @@ object SignUpForm {
     val hasAppliedtoFaststream = postData.lift("hasAppliedToFaststream").map(_.toBoolean)
 
     val errors = (hasAppliedtoFaststream match {
-                    case Some(true) => List(FormError("sdipEligible.hasAppliedToFaststream", Messages("error.hasAppliedToFaststream")))
+                    case Some(true) => List(FormError("hasAppliedToFaststream", Messages("error.hasAppliedToFaststream")))
                     case Some(false) => Nil
-                    case None => List(FormError("sdipEligible.hasAppliedToFaststream", Messages("agree.hasAppliedToFaststream")))
+                    case None => List(FormError("hasAppliedToFaststream", Messages("agree.hasAppliedToFaststream")))
                   }) ++
       (if (!sdipEligable) { List(FormError("sdipEligible", Messages("agree.sdipEligible"))) } else { Nil })
 
