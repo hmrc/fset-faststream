@@ -87,11 +87,11 @@ trait ApplicationClient {
     }
   }
 
-  def updateGeneralDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, generalDetails: PersonalDetails)
-                          (implicit hc: HeaderCarrier) = {
+  def updatePersonalDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, personalDetails: PersonalDetails)
+                           (implicit hc: HeaderCarrier) = {
     http.POST(
       s"${url.host}${url.base}/personal-details/$userId/$applicationId",
-      generalDetails
+      personalDetails
     ).map {
       case x: HttpResponse if x.status == CREATED => ()
     } recover {

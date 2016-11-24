@@ -55,6 +55,22 @@ object PersonalDetailsFormExamples {
     "civilServiceExperienceDetails.applicable"
   )
 
+  val SdipValidOutsideUKDetails = Map[String, String](
+    "applicationRoute" -> "Sdip",
+    "firstName" -> "John",
+    "lastName" -> "Biggs",
+    "preferredName" -> "john",
+    "dateOfBirth.day" -> "1",
+    "dateOfBirth.month" -> "2",
+    "dateOfBirth.year" -> "1990",
+    "address.line1" -> "Line 1",
+    "outsideUk" -> "true",
+    "country" -> "France",
+    "phone" -> "123456789",
+    "civilServiceExperienceDetails.applicable" -> "false",
+    "edipCompleted" -> "true"
+  )
+
   val ValidUKAddressForm = PersonalDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
     outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), None, Some("1234567890"),
     toData(Some(CivilServiceExperienceDetails(applicable = false))), None)

@@ -184,7 +184,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
           civilServiceExperienceDetails = Some(CivilServiceExperienceDetailsExamples.CivilServantExperience))
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+      when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitPersonalDetailsAndContinue()(Request)
@@ -205,7 +205,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
       when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier],
         any[Request[_]])).thenReturn(Future.successful(UpdatedCandidate))
-      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+      when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
@@ -227,7 +227,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
       when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier],
         any[Request[_]])).thenReturn(Future.successful(UpdatedCandidate))
-      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+      when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
@@ -246,7 +246,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
         .copy(progress = ProgressResponseExamples.Submitted, applicationStatus = ApplicationStatus.SUBMITTED)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+      when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(false))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitPersonalDetails()(Request)

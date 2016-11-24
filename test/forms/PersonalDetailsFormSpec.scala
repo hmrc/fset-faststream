@@ -133,6 +133,17 @@ class PersonalDetailsFormSpec extends UnitSpec {
     "be invalid without any phone number" in {
       assertFormError("error.phone.required", ValidUKAddress + ("phone" -> ""))
     }
+
+    "be valid with all mandatory fields for an sdip candidate" in {
+      val form = personalDetailsForm.bind(SdipValidOutsideUKDetails)
+
+      form.hasErrors must be(false)
+      form.hasGlobalErrors must be(false)
+    }
+
+    "be invalid with all mandatory fields but edip completed question for sdip candidate" in {
+      assertFormError("error.needsEdipCompleted.required", (SdipValidOutsideUKDetails - "edipCompleted"))
+    }
   }
 
   def assertFieldRequired(expectedError: String, fieldKey: String) =

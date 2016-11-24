@@ -63,15 +63,7 @@
         @personalDetails.edipCompleted.map { edipCompleted =>
             <section>
                 <h3 class="heading-small">Have you completed the Early Diversity Internship Programme (EDIP)?</h3>
-                <p id="editCompleted">
-                    @{
-                        if(edipCompleted) {
-                            "Yes"
-                        } else {
-                            "No"
-                        }
-                    }
-                </p>
+                <p id="editCompleted">@{if(edipCompleted) {"Yes"} else {"No"}}</p>
             </section>
         }
     }

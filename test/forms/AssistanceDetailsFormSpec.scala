@@ -62,6 +62,17 @@ class AssistanceDetailsFormSpec extends UnitWithAppSpec {
       ), invalidRequest)
     }
 
+    "be valid for an sdip application" in new Fixture {
+      AssistanceDetailsForm.form.bind(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsSdipMap).hasErrors mustBe false
+    }
+
+    "be invalid sdip application when adjustments are not selected for phone interview" in new Fixture {
+      val invalidRequest = AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsSdipMap - "needsSupportForPhoneInterview"
+      assertFormError(Seq(
+        "Tell us if you need extra support for your phone interview"
+      ), invalidRequest)
+    }
+
     "be valid when application route is not selected" in new Fixture {
       val request = AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "applicationRoute"
       AssistanceDetailsForm.form.bind(request).hasErrors mustBe false

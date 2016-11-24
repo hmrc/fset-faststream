@@ -132,7 +132,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
       val civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] =
         overrideCivilServiceExperienceDetails.orElse(form.civilServiceExperienceDetails)
       for {
-        _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
+        _ <- applicationClient.updatePersonalDetails(cachedData.application.applicationId, cachedData.user.userID,
           toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideCivilServiceExperienceDetails))
         _ <- createDefaultSchemes
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))

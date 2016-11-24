@@ -22,4 +22,6 @@ import org.joda.time.LocalDate
 object PersonalDetailsExamples {
   val FullDetails = PersonalDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
     FullAddress, Some("postCode"), None, Some("1234567"), Some(CivilServiceExperienceDetails(applicable = false)), None, None)
+  val SdipFullDetailsWithEdipCompleted = PersonalDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
+    FullAddress, Some("postCode"), None, Some("1234567"), Some(CivilServiceExperienceDetails(applicable = false)), Some(true), None)
 }

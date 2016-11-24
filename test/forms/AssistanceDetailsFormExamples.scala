@@ -48,6 +48,14 @@ object AssistanceDetailsFormExamples {
     "needsSupportForPhoneInterview" -> "Yes",
     "needsSupportForPhoneInterviewDescription" -> "Some adjustment")
 
+  val DisabilityGisAndAdjustmentsSdipMap = Map[String, String](
+    "applicationRoute" -> ApplicationRoute.Sdip.toString,
+    "hasDisability" -> "Yes",
+    "hasDisabilityDescription" -> "Epilepsy",
+    "guaranteedInterview" -> "Yes",
+    "needsSupportForPhoneInterview" -> "Yes",
+    "needsSupportForPhoneInterviewDescription" -> "Some adjustment")
+
   val DisabilityGisAndAdjustmentsFormUrlEncodedBody = Seq(
     "applicationRoute" -> ApplicationRoute.Faststream.toString,
     "hasDisability" -> "Yes",
