@@ -19,7 +19,7 @@ package scheduler.onlinetesting
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.ScheduledJobConfig
-import model.{ EmptyRequestHeader, Phase1ExpirationEvent, Phase2ExpirationEvent, TestExpirationEvent }
+import model._
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -35,6 +35,12 @@ object ExpirePhase1TestJob extends ExpireOnlineTestJob with ExpirePhase1TestJobC
 object ExpirePhase2TestJob extends ExpireOnlineTestJob with ExpirePhase2TestJobConfig {
   override val onlineTestingService = Phase2TestService
   override val expiryTest = Phase2ExpirationEvent
+  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+}
+
+object ExpirePhase3TestJob extends ExpireOnlineTestJob with ExpirePhase3TestJobConfig {
+  override val onlineTestingService = Phase3TestService
+  override val expiryTest = Phase3ExpirationEvent
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 }
 
@@ -61,4 +67,11 @@ trait ExpirePhase2TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   override val conf = config.MicroserviceAppConfig.expirePhase2TestJobConfig
   val configPrefix = "scheduling.online-testing.expiry-phase2-job."
   val name = "ExpirePhase2TestJob"
+}
+
+trait ExpirePhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  override val conf = config.MicroserviceAppConfig.expirePhase3TestJobConfig
+  val configPrefix = "scheduling.online-testing.expiry-phase3-job."
+  val name = "ExpirePhase3TestJob"
 }

@@ -16,9 +16,10 @@
 
 package model
 
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, ProgressStatus }
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus }
 
 sealed case class TestExpirationEvent(phase: String, expiredStatus: ProgressStatus, template: String)
 
 object Phase1ExpirationEvent extends TestExpirationEvent("PHASE1", PHASE1_TESTS_EXPIRED, "fset_faststream_app_online_phase1_test_expired")
 object Phase2ExpirationEvent extends TestExpirationEvent("PHASE2", PHASE2_TESTS_EXPIRED, "fset_faststream_app_online_phase2_test_expired")
+object Phase3ExpirationEvent extends TestExpirationEvent("PHASE3", PHASE3_TESTS_EXPIRED, "fset_faststream_app_online_phase3_test_expired")
