@@ -56,6 +56,9 @@ abstract class BaseControllerSpec extends UnitWithAppSpec {
   def currentCandidateWithEdipApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
     CreatedApplication.copy(userId = ActiveCandidate.user.userID, applicationRoute = ApplicationRoute.Edip))
 
+  def currentCandidateWithSdipApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
+    CreatedApplication.copy(userId = ActiveCandidate.user.userID, applicationRoute = ApplicationRoute.Sdip))
+
   def currentApplicationId = currentCandidateWithApp.application.applicationId
 
   def randomUUID = UniqueIdentifier(UUID.randomUUID().toString)
