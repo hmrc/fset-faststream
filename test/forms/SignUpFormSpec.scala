@@ -72,22 +72,49 @@ class SignUpFormSpec extends UnitSpec {
       signUpForm.errors("password").head.messages must be(Seq(Messages("error.password")))
     }
 
-    "throw an error if I haven't click on the I am eligible for Fast Stream" in {
-      val (_, signUpForm) = SignupFormGenerator(faststreamEligable = false).get
+    "throw an error if I haven't clicked on the I am eligible for Fast Stream" in {
+      val (_, signUpForm) = SignupFormGenerator(faststreamEligible = false).get
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
       signUpForm.errors("faststreamEligible").head.messages must be(Seq(Messages("agree.faststreamEligible")))
     }
 
-    "throw an error if I haven't click on the I am eligible for EDIP" in {
+    "throw an error if I haven't clicked on the I am eligible for EDIP" in {
       val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Edip),
-        faststreamEligable = false, edipEligable = false).get
+        faststreamEligible = false, edipEligible = false).get
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
       signUpForm.errors("edipEligible").head.messages must be(Seq(Messages("agree.edipEligible")))
     }
 
-    "throw an error if I haven't click on the I agree" in {
+    "throw an error if I haven't clicked on the I am eligible for SDIP" in {
+      val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Sdip),
+                                                faststreamEligible = false, sdipEligible = false).get
+      signUpForm.hasErrors must be(true)
+      signUpForm.errors.length must be(2)
+      signUpForm.errors("sdipEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
+      signUpForm.errors("sdipEligible.hasAppliedToFaststream").head.messages must be(Seq(Messages("agree.hasAppliedToFaststream")))
+    }
+
+    "throw an error if I haven't clicked on the I am eligible for SDIP but have clicked that I've applied to Fast Stream this year" in {
+      val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Sdip),
+                                                faststreamEligible = false, sdipEligible = false, hasAppliedToFaststream = Some(true)).get
+      signUpForm.hasErrors must be(true)
+      signUpForm.errors.length must be(2)
+      signUpForm.errors("sdipEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
+      signUpForm.errors("sdipEligible.hasAppliedToFaststream").head.messages must be(Seq(Messages("error.hasAppliedToFaststream")))
+    }
+
+    "throw an error if I haven't clicked on the I am eligible for SDIP and haven't clicked that I've applied to Fast Stream this year" in {
+      val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Sdip),
+                                                faststreamEligible = false, sdipEligible = false, hasAppliedToFaststream = Some(false)).get
+      signUpForm.hasErrors must be(true)
+      signUpForm.errors.length must be(1)
+      signUpForm.errors("sdipEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
+      signUpForm.errors("sdipEligible.hasAppliedToFaststream") mustBe Nil
+    }
+
+    "throw an error if I haven't clicked on the I agree" in {
       val (_, signUpForm) = SignupFormGenerator(agree = false).get
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
@@ -119,20 +146,25 @@ class SignUpFormSpec extends UnitSpec {
   *    val (data, signupForm) = SignupFormGenerator(email = "some_wrong_email).get
   *
   */
-case class SignupFormGenerator(firstName: String = "name",
-                               lastName: String = "last name",
-                               email: String = "test@email.com",
-                               confirmEmail: String = "test@email.com",
-                               password: String = "aA1234567",
-                               confirm: String = "aA1234567",
-                               campaignReferrer: Option[String] = Some("Recruitment website"),
-                               campaignOther: Option[String] = None,
-                               agree: Boolean = true,
-                               applicationRoute: Option[ApplicationRoute.ApplicationRoute] = Some(ApplicationRoute.Faststream),
-                               faststreamEligable: Boolean = true,
-                               edipEligable: Boolean = false) {
+case class SignupFormGenerator(
+  firstName: String = "name",
+  lastName: String = "last name",
+  email: String = "test@email.com",
+  confirmEmail: String = "test@email.com",
+  password: String = "aA1234567",
+  confirm: String = "aA1234567",
+  campaignReferrer: Option[String] = Some("Recruitment website"),
+  campaignOther: Option[String] = None,
+  agree: Boolean = true,
+  applicationRoute: Option[ApplicationRoute.ApplicationRoute] = Some(ApplicationRoute.Faststream),
+  faststreamEligible: Boolean = true,
+  edipEligible: Boolean = false,
+  sdipEligible: Boolean = false,
+  hasAppliedToFaststream: Option[Boolean] = None
+) {
 
-  private val data = Data(firstName,
+  private val data = Data(
+    firstName,
     lastName,
     email,
     confirmEmail,
@@ -142,8 +174,10 @@ case class SignupFormGenerator(firstName: String = "name",
     campaignOther,
     applicationRoute.map(_.toString).getOrElse(""),
     agree,
-    faststreamEligable,
-    edipEligable
+    faststreamEligible,
+    edipEligible,
+    sdipEligible,
+    hasAppliedToFaststream
   )
 
   private val validFormData = Map(
@@ -158,8 +192,9 @@ case class SignupFormGenerator(firstName: String = "name",
     "agree" -> data.agree.toString,
     "applicationRoute" -> applicationRoute.map(_.toString).getOrElse(""),
     "faststreamEligible" -> data.faststreamEligible.toString,
-    "edipEligible" -> data.edipEligible.toString
-  )
+    "edipEligible" -> data.edipEligible.toString,
+    "sdipEligible" -> data.sdipEligible.toString
+  ) ++ data.hasAppliedToFaststream.map( x => "hasAppliedToFaststream" -> x.toString )
 
   private def signUpForm = Form(SignUpForm.form.mapping).bind(validFormData)
 

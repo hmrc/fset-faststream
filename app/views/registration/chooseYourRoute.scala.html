@@ -2,7 +2,7 @@
 
 @import helpers.CSRFieldConstructor._
 @import models.ApplicationRoute
-@import views.html.widgets.{radioBox, radioBoxVerticalMultiToggle, yesNoQuestion}
+@import views.html.widgets.{radioBox, radioBoxVerticalMultiToggle, yesNoQuestion, yesNoRadioWithNestedTogglePanel}
 
 <section class="section-border clearfix" id="routeElig">
     <div class="text">
@@ -12,7 +12,8 @@
         <legend class="form-label">Which route do you want to choose?</legend>
         @radioBoxVerticalMultiToggle(form("applicationRoute"),
                                  options = List((ApplicationRoute.Faststream.toString, "Civil Service Fast Stream", "faststream-elig-describe"),
-                                                (ApplicationRoute.Edip.toString, "Early Diversity Internship Programme (EDIP)", "edip-elig-describe"))
+                                                (ApplicationRoute.Edip.toString, "Early Diversity Internship Programme (EDIP)", "edip-elig-describe"),
+                                                (ApplicationRoute.Sdip.toString, "Summer Diversity Internship Programme (SDIP)", "sdip-elig-describe"))
         )
         <div class="toggle-content form-group form-group-compound" id="faststream-elig-describe">
             <div id="fs-panel" class="clearfix">
@@ -41,6 +42,30 @@
             </ul>
                 @yesNoQuestion(form("edipEligible"), question = "Are you eligible to apply for the Early Diversity Internship Programme (EDIP)?",
                                noMessage = Some("You must be eligible to apply for the Early Diversity Internship Programme."))
+        </div>
+        <div class="toggle-content form-group form-group-compound" id="sdip-elig-describe">
+            <div class="text">
+                <h2 class="heading-medium">Confirm the following statements are true</h2>
+            </div>
+            <ul id="eligibility-list" class="para-btm-margin text">
+                <li>I'm either from a BAME or socially/economically disadvantaged
+                    background</li>
+                <li>I'm in the final 2 years at university</li>
+                <li>I qualify to apply according to the <a href="https://www.faststream.gov.uk/summer-diversity-internship-programme/"
+                                                            rel="external" target="_blank">eligibility requirements</a></li>
+            </ul>
+                @yesNoQuestion(form("sdipEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
+                               noMessage = "You must be eligible to apply for the Summer Diversity Internship Programme.")
+
+                @yesNoRadioWithNestedTogglePanel(form("hasAppliedToFaststream"),
+                    'id -> "sdipEligible.hasAppliedToFaststream",
+                    '_label -> "Have you applied to the Civil Service Fast Stream this year?") {
+                    <div id="sdipEligible_hasAppliedToFaststream-panel-yes" class="toggle-content">
+                        <div class="panel-danger" role="alert">
+                            <p>If you want to apply for the Summer Diversity Internship Programme and have an existing Fast Stream account, you need to <a rel="external" target="_blank" href="https://www.faststream.gov.uk/summer-diversity-internship-programme/">sign in</a>.</p>
+                        </div>
+                    </div>
+                    }
         </div>
     </fieldset>
 </section>
