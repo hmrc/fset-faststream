@@ -3,15 +3,16 @@
   "description": "Fast Stream Data Export",
   "type": "object",
   "properties": {
+    "token": {
+      "type": "string",
+      "format": "uuid",
+      "minLength": 36,
+      "maxLength": 36
+    },
     "application": {
       "type": "object",
       "properties": {
-        "token": {
-          "type": "string",
-          "format": "uuid",
-          "minLength": 36,
-          "maxLength": 36
-        },
+
         "userId": {
           "type": "string",
           "format": "uuid",
@@ -393,7 +394,24 @@
                     }
                   }
                 },
-                "Did you live in the UK between the ages of 14 and 18?": {},
+                "Did you live in the UK between the ages of 14 and 18?": {
+                  "type": "object",
+                  "properties": {
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    },
+                    "otherDetails": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    },
+                    "unknown": {
+                      "type": "boolean"
+                    }
+                  }
+                },
                 "What was your home postcode when you were 14?": {
                   "type": "object",
                   "properties": {
@@ -741,11 +759,13 @@
         "scheme-preferences",
         "assistance-details",
         "diversity-questionnaire",
+        "assessment-location",
         "results"
       ]
     }
   },
   "required": [
-    "application"
+    "application",
+    "token"
   ]
 }
