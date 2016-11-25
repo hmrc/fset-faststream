@@ -136,7 +136,7 @@ object SignUpForm {
     }
   }
 
-  val form = Form(
+  def form = Form(
     mapping(
       "firstName" -> nonEmptyTrimmedText("error.firstName", 256),
       "lastName" -> nonEmptyTrimmedText("error.lastName", 256),
