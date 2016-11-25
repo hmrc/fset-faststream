@@ -20,10 +20,10 @@ import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
 import config.{ CSRCache, CSRHttp }
+import connectors.ApplicationClient
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange.Implicits._
 import connectors.exchange._
-import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
 import models.{ ApplicationRoute, SecurityUser }
 import play.api.mvc.Result
@@ -31,11 +31,11 @@ import security.SignInService
 
 import scala.concurrent.Future
 
-object SignUpController extends SignUpController(ApplicationClient, SchemeClient, CSRCache) {
+object SignUpController extends SignUpController(ApplicationClient, CSRCache) {
   val http = CSRHttp
 }
 
-abstract class SignUpController(val applicationClient: ApplicationClient, schemeClient: SchemeClient, cacheClient: CSRCache)
+abstract class SignUpController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) with SignInService {
 
   def present = CSRUserAwareAction { implicit request =>
@@ -49,7 +49,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, scheme
   def signUp = CSRUserAwareAction { implicit request =>
     implicit user =>
 
-      def checkAppRouteWindowAndProceed (data: Map[String, String], fn: => Future[Result]) =
+      def checkAppWindowBeforeProceeding (data: Map[String, String], fn: => Future[Result]) =
         data.get("applicationRoute").map(ApplicationRoute.withName).map {
           case appRoute if !isNewAccountsStarted(appRoute) =>
             Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(s"$appRoute applications not opened yet")))
@@ -60,13 +60,13 @@ abstract class SignUpController(val applicationClient: ApplicationClient, scheme
 
       SignUpForm.form.bindFromRequest.fold(
         invalidForm => {
-          checkAppRouteWindowAndProceed(invalidForm.data, Future.successful(
+          checkAppWindowBeforeProceeding(invalidForm.data, Future.successful(
             Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize))))
           )
         },
         data => {
           val appRoute = ApplicationRoute.withName(data.applicationRoute)
-          checkAppRouteWindowAndProceed(SignUpForm.form.fill(data).data, {
+          checkAppWindowBeforeProceeding(SignUpForm.form.fill(data).data, {
               env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
                 applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
                   applicationClient.createApplication(u.userId, FrameworkId, appRoute).flatMap { appResponse =>

@@ -23,8 +23,18 @@ import config.ApplicationRouteFrontendConfig
 
 class ApplicationRouteConfigSpec extends UnitSpec {
   "New Accounts creation and submit applications" should {
-    "be enabled when there is no disable date" in {
+    "be enabled when there is no start date and disable date" in {
       val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig(None, None, None))
+      config.newAccountsStarted mustBe true
+      config.newAccountsEnabled mustBe true
+      config.applicationsSubmitEnabled mustBe true
+    }
+
+    "be enabled when there is no start date" in {
+      val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+      val futureDate = LocalDateTime.now.plusDays(2L).format(format)
+      val config = ApplicationRouteConfig(ApplicationRouteFrontendConfig.read(None, Some(futureDate), Some(futureDate)))
+
       config.newAccountsStarted mustBe true
       config.newAccountsEnabled mustBe true
       config.applicationsSubmitEnabled mustBe true
@@ -52,7 +62,7 @@ class ApplicationRouteConfigSpec extends UnitSpec {
       config.newAccountsEnabled mustBe false
     }
 
-    "throw an exception when start is in the future and disable date is in the past" in {
+    "throw an exception when start date is in the future and disable date is in the past" in {
       val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
       val futureDate = LocalDateTime.now.plusDays(2L).format(format)
       val pastDate = LocalDateTime.now.minusMinutes(1L).format(format)

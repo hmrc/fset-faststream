@@ -1,7 +1,7 @@
 @import models.ApplicationRoute._
 @import controllers.ApplicationRouteConfig
 
-@(form: Form[_root_.forms.SignUpForm.Data])(implicit lang: play.api.i18n.Lang, applicationRouteConfig: Map[ApplicationRoute, ApplicationRouteConfig])
+@(form: Form[_root_.forms.SignUpForm.Data])(implicit lang: play.api.i18n.Lang, appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteConfig])
 
 @import helpers.CSRFieldConstructor._
 @import models.ApplicationRoute
@@ -20,7 +20,7 @@
         )
         <div class="toggle-content form-group form-group-compound" id="faststream-elig-describe">
             <div id="fs-panel" class="clearfix">
-                @if(applicationRouteConfig.get(Faststream).forall(_.newAccountsEnabled)) {
+                @if(appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled)) {
                     <div class="text">
                         <h3 class="heading-medium">Confirm the following statements are true</h3>
                     </div>
@@ -53,7 +53,7 @@
                                noMessage = "You must be eligible to apply for the Early Diversity Internship Programme.")
         </div>
         <div class="toggle-content form-group form-group-compound" id="sdip-elig-describe">
-            @if(applicationRouteConfig.get(Sdip).forall(_.newAccountsStarted)) {
+            @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted)) {
                 <div class="text">
                     <h2 class="heading-medium">Confirm the following statements are true</h2>
                 </div>

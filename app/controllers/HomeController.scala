@@ -35,7 +35,7 @@ object HomeController extends HomeController(ApplicationClient, CSRCache)
 class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache) extends BaseController(applicationClient, cacheClient) {
   val Withdrawer = "Candidate"
 
-  val present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
+  def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     cachedData.application.map { application =>
 
       def getPhase2Test: Future[Option[Phase2TestGroupWithActiveTest]] = if (application.isPhase2) {
@@ -67,7 +67,7 @@ class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache
           phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
         )
         Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt,
-          submitApplicationsEnabled = false))
+          submitApplicationsEnabled = true))
       }
 
       dashboard recover {

@@ -57,7 +57,7 @@ abstract class BaseController(applicationClient: ApplicationClient, val cacheCli
 
   implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
 
-  implicit val applicationRouteConfigMap = Map(
+  implicit val appRouteConfigMap = Map(
     Faststream -> ApplicationRouteConfig(config.FrontendAppConfig.faststreamFrontendConfig),
     Edip -> ApplicationRouteConfig(config.FrontendAppConfig.edipFrontendConfig),
     Sdip -> ApplicationRouteConfig(config.FrontendAppConfig.sdipFrontendConfig)
@@ -83,11 +83,11 @@ abstract class BaseController(applicationClient: ApplicationClient, val cacheCli
     }
 
   def isNewAccountsStarted(implicit applicationRoute: ApplicationRoute = Faststream) =
-    applicationRouteConfigMap.get(applicationRoute).forall(_.newAccountsStarted)
+    appRouteConfigMap.get(applicationRoute).forall(_.newAccountsStarted)
 
   def isNewAccountsEnabled(implicit applicationRoute: ApplicationRoute = Faststream) =
-    applicationRouteConfigMap.get(applicationRoute).forall(_.newAccountsEnabled)
+    appRouteConfigMap.get(applicationRoute).forall(_.newAccountsEnabled)
 
   def isSubmitApplicationsEnabled(implicit applicationRoute: ApplicationRoute = Faststream) =
-    applicationRouteConfigMap.get(applicationRoute).forall(_.applicationsSubmitEnabled)
+    appRouteConfigMap.get(applicationRoute).forall(_.applicationsSubmitEnabled)
 }
