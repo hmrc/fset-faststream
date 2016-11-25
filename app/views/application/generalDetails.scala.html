@@ -5,7 +5,7 @@
 @import views.html.application.edipExperienceDetails.edipExperienceDetailsPanel
 @import views.html.widgets.{ applicationRoute, pageProgress, saveAndContinueButton }
 @import security.Roles.EditPersonalDetailsAndContinueRole
-@import security.RoleUtils
+@import security.RoleUtils._
 
 @redirectUrl = @{
     if(updateStatus) routes.PersonalDetailsController.submitPersonalDetailsAndContinue()
@@ -21,13 +21,12 @@
         @helper.CSRF.formField
         @applicationRoute(optCachedData)
         @nameAndDateOfBirth(details)
-        @contactDetails(details, isLastSection = optCachedData.exists(cachedData => RoleUtils.isEdip(optCachedData)))
-        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
-                RoleUtils.isFaststream(optCachedData)) {
+        @contactDetails(details, isLastSection = optCachedData.exists(cachedData => isEdip(optCachedData)))
+        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) && isFaststream(optCachedData)){
             @civilServiceExperienceDetailsPanel(details)
         }
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
-                RoleUtils.isSdip(optCachedData)) {
+                isSdip(optCachedData)) {
             @edipExperienceDetailsPanel(details)
         }
         @saveAndContinueButton()
