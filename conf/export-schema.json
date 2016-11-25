@@ -280,33 +280,39 @@
               "maxLength": 200
             },
             "etray": {
-              "timeNeeded": {
-                "type": "integer"
-              },
-              "invigilatedInfo": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 256
-              },
-              "otherInfo": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 256
+              "type": "object",
+              "properties": {
+                "timeNeeded": {
+                  "type": "integer"
+                },
+                "invigilatedInfo": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "otherInfo": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
               }
             },
             "video": {
-              "timeNeeded": {
-                "type": "integer"
-              },
-              "invigilatedInfo": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 256
-              },
-              "otherInfo": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 256
+              "type": "object",
+              "properties": {
+                "timeNeeded": {
+                  "type": "integer"
+                },
+                "invigilatedInfo": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "otherInfo": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
               }
             }
 
