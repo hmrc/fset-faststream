@@ -21,7 +21,6 @@ import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus.SUBMITTED
-import models.CachedData
 import security.Roles.{ SubmitApplicationRole, WithdrawApplicationRole }
 
 import scala.concurrent.Future
@@ -33,10 +32,10 @@ class SubmitApplicationController(applicationClient: ApplicationClient, cacheCli
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
-      if (faststreamConfig.applicationsSubmitEnabled) {
+      if (isSubmitApplicationsEnabled(user.application.applicationRoute)) {
         Future.successful(Ok(views.html.application.submit()))
       } else {
-        Future.successful(Ok(views.html.home.submit_disabled(CachedData(user.user, Some(user.application)))))
+        Future.successful(Redirect(routes.HomeController.present()))
       }
   }
 
@@ -47,7 +46,7 @@ class SubmitApplicationController(applicationClient: ApplicationClient, cacheCli
 
   def submit = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
-      if (faststreamConfig.applicationsSubmitEnabled) {
+      if (isSubmitApplicationsEnabled(user.application.applicationRoute)) {
         applicationClient.submitApplication(user.user.userID, user.application.applicationId).flatMap { _ =>
           updateProgress(data =>
             data.copy(application = data.application.map(_.copy(applicationStatus = SUBMITTED))))(_ =>
@@ -56,7 +55,7 @@ class SubmitApplicationController(applicationClient: ApplicationClient, cacheCli
           case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present()).flashing(danger("error.cannot.submit"))
         }
       } else {
-        Future.successful(Ok(views.html.home.submit_disabled(CachedData(user.user, Some(user.application)))))
+        Future.successful(Redirect(routes.HomeController.present()))
       }
   }
 }

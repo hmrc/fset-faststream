@@ -1,5 +1,5 @@
 @(verifyTokenForm: Form[_root_.forms.VerifyCodeForm.Data], notification: Option[(helpers.NotificationType, String)] = None
-)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, faststreamConfig: FaststreamConfig)
+)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import helpers.CSRFieldConstructor._
 

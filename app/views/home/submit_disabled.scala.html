@@ -1,13 +1,12 @@
-@(usr: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, faststreamConfig: FaststreamConfig)
+@(usr: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
-@main_template(title = "Home") {
-
-    <div class="hgroup">
-        <h1 class="heading-xlarge">Applications are now closed</h1>
+<div class="panel-info standard-panel">
+    <div class="text">
+        <h2 class="heading-medium">Fast Stream applications are now closed</h2>
+        <p>Unfortunately, you didn't submit your application before the deadline.</p>
+        <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank"
+                        rel="external">Civil Service jobs</a> site for more opportunities
+            with us. Or alternatively you can apply when the next application
+            window opens.</p>
     </div>
-    <div class="lede text">
-        <p>You can no longer apply for the Civil Service Fast Stream.</p>
-        <p>You'll be able to apply again next year.</p>
-        <p>Or you can use the <a href="https://civilservicejobs.service.gov.uk/" rel="external" target="_blank">Civil Service job search</a>.</p>
-    </div>
-}
+</div>
