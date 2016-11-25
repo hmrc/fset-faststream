@@ -37,7 +37,7 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
     CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
 
   "present" should {
-    "display submit application page" in new TestFixture {
+    "display submit application page when application submission is enabled" in new TestFixture {
       val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
         newAccountsEnabled = true, applicationsSubmitEnabled = true)
       val result = controller(currentCandidateWithEdipApp, applicationRouteConfig).present()(fakeRequest)
@@ -45,7 +45,7 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include("Submit application")
     }
-    "redirect to home page" in new TestFixture {
+    "redirect to home page when application submission is disabled" in new TestFixture {
       val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
         newAccountsEnabled = true, applicationsSubmitEnabled = false)
       val result = controller(currentCandidateWithEdipApp, applicationRouteConfig).present()(fakeRequest)
@@ -58,12 +58,15 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
     "redirect to submit success page" in new TestFixture {
       val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
         newAccountsEnabled = true, applicationsSubmitEnabled = true)
+
       when(mockApplicationClient.submitApplication(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InPreview))
       when(mockUserService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(currentCandidate))
+
       val result = controller(currentCandidateWithEdipApp, applicationRouteConfig).submit()(fakeRequest)
+
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SubmitApplicationController.success().url))
       verify(mockApplicationClient).submitApplication(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier])
