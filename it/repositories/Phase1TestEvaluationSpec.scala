@@ -226,6 +226,15 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       phase1PassMarkSettingRepo.getLatestVersion.futureValue.get
     }
 
+    val appCollection = mongo().collection[JSONCollection](collectionName)
+
+    def createUser(userId: String, appId: String) = {
+      appCollection.insert(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED)).futureValue
+    }
+
+    createUser("user-1", "application-1")
+    createUser("user-2", "application-2")
+    createUser("user-3", "application-3")
   }
 
 }

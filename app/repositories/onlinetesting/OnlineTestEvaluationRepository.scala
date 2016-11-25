@@ -68,9 +68,9 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
       newApplicationStatus.map(applicationStatusBSON).getOrElse(BSONDocument.empty)
     ))
 
-    collection.update(query, passMarkEvaluation) map { r =>
-      require(r.n == 1, s"None or more than one application have been updated during $phase evaluation: appId=$applicationId")
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"saving passmark evaluation during $phase evaluation")
+
+    collection.update(query, passMarkEvaluation) map validator
   }
 
   private[repositories] def getPassMarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {

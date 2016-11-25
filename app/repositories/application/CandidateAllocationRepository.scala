@@ -60,9 +60,9 @@ class CandidateAllocationMongoRepository(dateTime: DateTimeFactory)(implicit mon
       "allocation-reminder-sent-date" -> date
     ))
 
-    collection.update(query, result, upsert = false) map {
-       _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "saving allocation")
+
+    collection.update(query, result) map validator
   }
 
   private def bsonToAllocatedCandidate(doc: BSONDocument) = {

@@ -16,12 +16,75 @@
 
 package repositories
 
+import model.Exceptions.{ CannotUpdateRecord, NotFoundException, TooManyEntries }
+import play.api.Logger
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+import reactivemongo.api.commands.{ UpdateWriteResult, WriteResult }
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 trait BSONHelpers {
   this: ReactiveRepository[_, _] =>
 
   protected lazy val bsonCollection = collection.db.collection[BSONCollection](collection.name)
+
+  def singleUpdateValidator(id: String,
+                            actionDesc: String,
+                            notFound: => Exception): UpdateWriteResult => Unit = {
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = false, notFound, upsert = false) _
+  }
+
+  def singleUpdateValidator(id: String,
+                            actionDesc: String, ignoreNotFound: Boolean = false): UpdateWriteResult => Unit = {
+
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound,
+      new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false) _
+  }
+
+  def singleUpsertValidator(id: String,
+                            actionDesc: String): UpdateWriteResult => Unit = {
+
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true) _
+  }
+
+  def singleRemovalValidator(id: String, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
+    if (result.ok) {
+      if (result.n == 1) {
+        ()
+      } else if (result.n == 0) {
+        throw new NotFoundException(s"No document found whilst $actionDesc for id $id")
+      } else if (result.n > 1) {
+        throw new TooManyEntries(s"Deletion successful, but too many documents deleted whilst $actionDesc for id $id")
+      }
+    } else {
+      val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
+      val msg = s"Failed to $actionDesc for id: $id -> $mongoError"
+      Logger.error(msg)
+      throw CannotUpdateRecord(msg)
+    }
+  }
+
+  private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean = false,
+                                              notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult) = {
+
+    val docsAffected = if (upsert) result.n else result.nModified
+
+    if (result.ok) {
+      if (result.nModified == 1) {
+        ()
+      } else if (result.nModified == 0 && ignoreNotFound) {
+        val msg = s"Failed to find record whilst $actionDesc for id: $id"
+        Logger.warn(msg)
+      } else if (result.nModified == 0) {
+        throw notFound
+      } else if (result.nModified > 1) {
+        throw new TooManyEntries(s"Update successful, but too many documents updated whilst $actionDesc for id $id")
+      }
+    } else {
+      val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
+      val msg = s"Failed to $actionDesc for id: $id -> $mongoError"
+      Logger.error(msg)
+      throw CannotUpdateRecord(msg)
+    }
+  }
+
 }

@@ -67,8 +67,4 @@ trait CommonBSONDocuments {
     )
   }
 
-  def validateSingleWriteOrThrow(failureException: => Exception)(writeResult: UpdateWriteResult) = writeResult.n match {
-    case 1 => ()
-    case _ => throw failureException
-  }
 }

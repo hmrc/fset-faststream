@@ -91,12 +91,11 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
          s"testGroups.$phaseName.expirationDate" -> newTestProfile.expirationDate
         )
       )
-    collection.update(query, update, upsert = false) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        Logger.error(s"""Failed to append cubiks tests for application: $applicationId""")
-        throw ApplicationNotFound(applicationId)
-      case _ => ()
-    }
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName",
+      ApplicationNotFound(applicationId))
+
+    collection.update(query, update) map validator
   }
 
   def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime) = {
@@ -106,12 +105,7 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
     ))
 
-    val errorActionHandler: Int => Unit = cubiksUserId => {
-      Logger.warn(s"""Failed to update cubiks test: $cubiksUserId - test has expired or does not exist""")
-      ()
-    }
-
-    findAndUpdateCubiksTest(cubiksUserId, update, query, errorActionHandler)
+    findAndUpdateCubiksTest(cubiksUserId, update, query, ignoreNotFound = true)
   }
 
   def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady) = {
@@ -145,16 +139,12 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime, phase: String = "PHASE1"): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"updating test group expiration in $phaseName",
+      ApplicationNotFound(applicationId))
+
     collection.update(query, BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phase.expirationDate" -> expirationDate
-    ))).map { status =>
-      if (status.n != 1) {
-        val msg = s"Query to update testgroup expiration affected ${status.n} rows instead of 1! (App Id: $applicationId)"
-        Logger.warn(msg)
-        throw UnexpectedException(msg)
-      }
-      ()
-    }
+    ))) map validator
   }
 
   def nextExpiringApplication(expiryTest: TestExpirationEvent): Future[Option[ExpiringOnlineTest]] = {
@@ -192,7 +182,9 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     )
 
     val update = BSONDocument("$set" -> applicationStatusBSON(progressStatus))
-    collection.update(query, update, upsert = false) map ( _ => () )
+    val validator = singleUpdateValidator(appId, actionDesc = "updating progress status")
+
+    collection.update(query, update) map validator
   }
 
   def nextTestGroupWithReportReady[TestGroup](implicit reader: BSONDocumentReader[TestGroup]): Future[Option[TestGroup]] = {
@@ -208,23 +200,22 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     selectOneRandom[TestGroup](query)
   }
 
-  private def defaultUpdateErrorHandler(cubiksUserId: Int) = {
-    Logger.error(s"""Failed to update cubiks test: $cubiksUserId""")
-    throw cannotFindTestByCubiksId(cubiksUserId)
-  }
-
-  private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument, query: BSONDocument = BSONDocument(),
-    errorHandler: Int => Unit = defaultUpdateErrorHandler): Future[Unit] = {
+  private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument, query: BSONDocument = BSONDocument.empty,
+                                      ignoreNotFound: Boolean = false): Future[Unit] = {
         val find = query ++ BSONDocument(
       s"testGroups.$phaseName.tests" -> BSONDocument(
         "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
       )
     )
 
-    collection.update(find, update, upsert = false) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 => errorHandler(cubiksUserId)
-      case _ => ()
+    val validator = if (ignoreNotFound) {
+      singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
+    } else {
+      singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests",
+        CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId"))
     }
+
+    collection.update(find, update) map validator
   }
 
   def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
@@ -237,7 +228,10 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
     ))
-    collection.update(query, update, upsert = false) map( _ => () )
+
+    val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test result")
+
+    collection.update(query, update) map validator
   }
 
   def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
@@ -258,12 +252,8 @@ trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonB
       "$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> "")
     )
 
-    collection.update(query, updateQuery, upsert = false) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        Logger.error(s"Failed to reset progress statuses for " +
-          s"application Id: $appId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}")
-        throw ApplicationNotFound(appId)
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(appId, actionDesc = s"resetting $phaseName test progresses", ApplicationNotFound(appId))
+
+    collection.update(query, updateQuery) map validator
   }
 }

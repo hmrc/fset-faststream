@@ -16,6 +16,7 @@
 
 package repositories
 
+import model.Exceptions.CannotUpdateContactDetails
 import model.PersistedObjects
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import model.report.QuestionnaireReportItem
@@ -41,22 +42,20 @@ trait QuestionnaireRepository {
 
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
   extends ReactiveRepository[PersistedAnswer, BSONObjectID]("questionnaire", mongo,
-    PersistedObjects.Implicits.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository {
-
-  // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
-  lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
+    PersistedObjects.Implicits.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
+    with BSONHelpers {
 
   override def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit] = {
 
     val appId = "applicationId" -> applicationId
 
+    val validator = singleUpsertValidator(applicationId, actionDesc = "adding questions")
+
     collection.update(
       BSONDocument(appId),
       BSONDocument("$set" -> questions.map(q => s"questions.${q.question}" -> q.answer).foldLeft(document ++ appId)((d, v) => d ++ v)),
       upsert = true
-    ) map {
-        case _ => ()
-      }
+    ) map validator
   }
 
   override def findQuestions(applicationId: String): Future[Map[String, String]] = {
@@ -80,7 +79,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
   }
 
   override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] = {
-    findAllAsReportItem(BSONDocument())
+    findAllAsReportItem(BSONDocument.empty)
   }
 
   protected def findAllAsReportItem(query: BSONDocument): Future[Map[String, QuestionnaireReportItem]] = {

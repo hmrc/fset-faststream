@@ -35,6 +35,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject }
+import reactivemongo.api.commands._
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
@@ -46,7 +47,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 // TODO FAST STREAM
 // This is far too large an interface - we should look at splitting up based on
@@ -312,8 +313,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("applicationId" -> applicationId) ++ guard
 
     val updateBSON = BSONDocument("$set" -> applicationStatusBSON(SUBMITTED))
-    collection.update(query, updateBSON, upsert = false)
-      .map(validateSingleWriteOrThrow(new IllegalStateException(s"Already submitted $applicationId")))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "submitting",
+      new IllegalStateException(s"Already submitted $applicationId"))
+
+    collection.update(query, updateBSON) map validator
   }
 
   override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
@@ -324,7 +328,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         applicationStatusBSON(WITHDRAWN)
       )
     )
-    collection.update(query, applicationBSON, upsert = false) map { _ => }
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "withdrawing")
+
+    collection.update(query, applicationBSON) map validator
   }
 
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {
@@ -333,7 +340,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       s"progress-status.questionnaire.$sectionKey" -> true
     ))
 
-    collection.update(query, progressStatusBSON, upsert = false) map { _ => }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "update questionnaire status")
+
+    collection.update(query, progressStatusBSON) map validator
   }
 
   override def preview(applicationId: String): Future[Unit] = {
@@ -342,14 +351,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "progress-status.preview" -> true
     ))
 
-    collection.update(query, progressStatusBSON, upsert = true) map {
-      case result if result.nModified == 0 && result.n == 0 =>
-        Logger.error(
-          s"""Failed to write assistance details for application: $applicationId ->
-              |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
-        throw CannotUpdatePreview(applicationId)
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "preview",
+      new CannotUpdatePreview(s"preview $applicationId"))
+
+    collection.update(query, progressStatusBSON) map validator
   }
 
   override def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]] =
@@ -630,9 +635,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "assistance-details.video" -> data.video
     ))
 
-    collection.update(query, resetExerciseAdjustmentsBSON).flatMap{ result =>
-      collection.update(query, adjustmentsConfirmationBSON, upsert = false)
-    } map(_ => ())
+    val resetValidator = singleUpdateValidator(applicationId, actionDesc = "reset")
+    val adjustmentValidator = singleUpdateValidator(applicationId, actionDesc = "updateAdjustments")
+
+    collection.update(query, resetExerciseAdjustmentsBSON).map(resetValidator).flatMap { _ =>
+      collection.update(query, adjustmentsConfirmationBSON) map adjustmentValidator
+    }
   }
 
   def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
@@ -661,14 +669,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "assistance-details.adjustmentsComment" -> ""
     ))
 
-    collection.update(query, removeBSON).map {
-      case result if result.nModified == 0 && result.n == 0 =>
-        Logger.error(
-          s"""Failed to remove adjustments comment for application: $applicationId ->
-              |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
-        throw CannotRemoveAdjustmentsComment(applicationId)
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId,
+      actionDesc = "remove adjustments comment",
+      notFound = CannotRemoveAdjustmentsComment(applicationId))
+
+    collection.update(query, removeBSON) map validator
   }
 
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
@@ -678,14 +683,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "assistance-details.adjustmentsComment" -> adjustmentsComment.comment
     ))
 
-    collection.update(query, updateBSON).map {
-      case result if result.nModified == 0 && result.n == 0 =>
-        Logger.error(
-          s"""Failed to write save adjustments comment for application: $applicationId ->
-             |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
-        throw CannotUpdateAdjustmentsComment(applicationId)
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId,
+      actionDesc = "save adjustments comment",
+      notFound = CannotUpdateAdjustmentsComment(applicationId))
+
+    collection.update(query, updateBSON) map validator
   }
 
   def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = {
@@ -715,7 +717,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "assistance-details.needsAdjustment" -> "No"
     ))
 
-    collection.update(query, adjustmentRejection, upsert = false) map { _ => }
+    val validator = singleUpdateValidator(applicationId,
+      actionDesc = "remove adjustments comment",
+      notFound = CannotRemoveAdjustmentsComment(applicationId))
+
+    collection.update(query, adjustmentRejection) map validator
   }
 
   def gisByApplication(applicationId: String): Future[Boolean] = {
@@ -748,7 +754,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    collection.update(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map { _ => }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating status")
+
+    collection.update(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map validator
   }
 
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]] = {
@@ -815,7 +823,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         .add(applicationStatusBSON(newApplicationStatus))
     )
 
-    collection.update(query, passMarkEvaluation, upsert = false) map { _ => }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "saving pass marks", ignoreNotFound = true)
+
+    collection.update(query, passMarkEvaluation) map validator
   }
 
   override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
@@ -827,9 +837,11 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating progress and app status")
+
     collection.update(query, BSONDocument("$set" ->
       applicationStatusBSON(progressStatus))
-    ) map { _ => }
+    ) map validator
   }
 
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
@@ -847,8 +859,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))
 
-    collection.update(query, unsetDoc)
-      .map { _ => () }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing progress and app status")
+
+    collection.update(query, unsetDoc) map validator
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

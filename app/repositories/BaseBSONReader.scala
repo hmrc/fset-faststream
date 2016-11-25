@@ -21,6 +21,8 @@ import model.ProgressStatuses
 import model.command.{ AssessmentCentre, _ }
 import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader }
 
+import scala.language.implicitConversions
+
 trait BaseBSONReader {
   // scalastyle:off method.length
   def toProgressResponse(applicationId: String) = bsonReader {

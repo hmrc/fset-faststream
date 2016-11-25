@@ -76,11 +76,6 @@ trait CommonRepository {
 
     phase1Tests.foreach { t =>
       phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t)).futureValue
-      t.foreach { oneTest =>
-        oneTest.testResult.foreach { result =>
-          phase1TestRepository.insertTestResult(appId, oneTest, result).futureValue
-        }
-      }
       if (t.exists(_.testResult.isDefined)) {
         phase1TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
       }

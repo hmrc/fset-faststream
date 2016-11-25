@@ -21,6 +21,7 @@ import model.SelectedSchemes
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
+import repositories.BSONHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -35,7 +36,8 @@ trait SchemePreferencesRepository {
 
 class SchemePreferencesMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[SelectedSchemes, BSONObjectID]("application", mongo,
-    SelectedSchemes.selectedSchemesFormat, ReactiveMongoFormats.objectIdFormats) with SchemePreferencesRepository {
+    SelectedSchemes.selectedSchemesFormat, ReactiveMongoFormats.objectIdFormats) with SchemePreferencesRepository with BSONHelpers {
+
   private val SchemePreferencesDocumentKey = "scheme-preferences"
 
   def find(applicationId: String): Future[SelectedSchemes] = {
@@ -55,13 +57,10 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
       SchemePreferencesDocumentKey -> schemePreference,
       "progress-status." + SchemePreferencesDocumentKey -> true
     ))
-    collection.update(query, preferencesBSON, upsert = false) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        Logger.error(
-          s"""Failed to write scheme preferences for application Id:
-             | $applicationId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
-        throw CannotUpdateSchemePreferences(applicationId)
-      case _ => ()
-    }
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "saving scheme preferences",
+      CannotUpdateSchemePreferences(applicationId))
+
+    collection.update(query, preferencesBSON) map validator
   }
 }

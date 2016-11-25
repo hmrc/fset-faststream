@@ -41,7 +41,8 @@ trait ApplicationAssessmentRepository {
 
 class ApplicationAssessmentMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationAssessment, BSONObjectID]("application-assessment", mongo,
-    Commands.Implicits.applicationAssessmentFormat, ReactiveMongoFormats.objectIdFormats) with ApplicationAssessmentRepository {
+    Commands.Implicits.applicationAssessmentFormat, ReactiveMongoFormats.objectIdFormats) with
+    ApplicationAssessmentRepository with BSONHelpers {
 
   def find(applicationId: String): Future[ApplicationAssessment] = {
     val query = BSONDocument(
@@ -66,7 +67,7 @@ class ApplicationAssessmentMongoRepository()(implicit mongo: () => DB)
   }
 
   def applicationAssessments: Future[List[ApplicationAssessment]] = {
-    val query = BSONDocument()
+    val query = BSONDocument.empty
 
     getApplicationAssessments(query)
   }
@@ -85,15 +86,9 @@ class ApplicationAssessmentMongoRepository()(implicit mongo: () => DB)
       "applicationId" -> applicationId
     )
 
-    collection.remove(query, firstMatchOnly = false).map { writeResult =>
-      if (writeResult.n == 0) {
-        throw new NotFoundException(s"No application assessments were found with applicationId $applicationId")
-      } else if (writeResult.n > 1) {
-        throw new TooManyEntries(s"Deletion successful, but too many application assessments matched for applicationId $applicationId.")
-      } else {
-        ()
-      }
-    }
+    val validator = singleRemovalValidator(applicationId, actionDesc = "deleting allocation")
+
+    collection.remove(query, firstMatchOnly = false) map validator
   }
 
   private def getApplicationAssessments(query: BSONDocument) = {
@@ -138,9 +133,9 @@ class ApplicationAssessmentMongoRepository()(implicit mongo: () => DB)
         "confirmed" -> true
       ))
 
-    collection.update(query, confirmedBSON, upsert = false) map {
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "confirming allocation")
+
+    collection.update(query, confirmedBSON) map validator
   }
 
   private def parseApplicationAssessment(item: BSONDocument): ApplicationAssessment = {

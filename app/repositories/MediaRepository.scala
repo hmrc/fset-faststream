@@ -48,7 +48,7 @@ class MediaMongoRepository(implicit mongo: () => DB)
   }
 
   override def findAll(): Future[Map[String, Media]] = {
-    val query = BSONDocument()
+    val query = BSONDocument.empty
     implicit val reader = bsonReader(docToMedia)
     val queryResult = bsonCollection.find(query)
       .cursor[(String, Media)](ReadPreference.nearest).collect[List]()

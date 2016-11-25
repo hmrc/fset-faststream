@@ -128,14 +128,9 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val updateBson = BSONDocument("$set" -> applicationStatusBSON(PHASE2_TESTS_INVITED)
     ) ++ BSONDocument("$set" -> BSONDocument("testGroups.PHASE2" -> phase2TestProfile))
 
-    collection.update(query, updateBson, upsert = false) map { status =>
-      if (status.n != 1) {
-        val msg = s"${status.n} rows affected when inserting or updating instead of 1! (App Id: $applicationId)"
-        Logger.warn(msg)
-        throw UnexpectedException(msg)
-      }
-      ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
+
+    collection.update(query, updateBson) map validator
   }
 
   override def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit] = {
@@ -150,7 +145,9 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
     ))
 
-    collection.update(query, update, upsert = false) map (_ => ())
+    val validator = singleUpdateValidator(appId, actionDesc = "inserting test results")
+
+    collection.update(query, update) map validator
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {

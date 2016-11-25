@@ -39,7 +39,8 @@ trait FlagCandidateRepository {
 
 class FlagCandidateMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[FlagCandidate, BSONObjectID]("application", mongo,
-    FlagCandidate.FlagCandidateFormats, ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository {
+    FlagCandidate.FlagCandidateFormats, ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository
+    with BSONHelpers {
 
   def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = {
     val query = BSONDocument("applicationId" -> appId)
@@ -59,18 +60,17 @@ class FlagCandidateMongoRepository(implicit mongo: () => DB)
       "issue" -> flagCandidate.issue
     ))
 
-    collection.update(query, result, upsert = false).map(validateResult(flagCandidate.applicationId))
+    val validator = singleUpdateValidator(flagCandidate.applicationId, actionDesc = "saving flag")
+
+    collection.update(query, result) map validator
   }
 
   def remove(appId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> appId)
     val result = BSONDocument("$unset" -> BSONDocument("issue" -> ""))
 
-    collection.update(query, result, upsert = false).map(validateResult(appId))
+    val validator = singleUpdateValidator(appId, actionDesc = "removing flag")
+    collection.update(query, result) map validator
   }
 
-  private def validateResult(appId: String)(writeResult: UpdateWriteResult) = writeResult.n match {
-    case 0 => throw new NotFoundException(s"No application found with applicationId=$appId")
-    case _ => ()
-  }
 }

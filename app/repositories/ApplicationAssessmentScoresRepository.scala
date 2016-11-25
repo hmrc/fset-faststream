@@ -39,7 +39,7 @@ trait ApplicationAssessmentScoresRepository {
 class ApplicationAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[CandidateScoresAndFeedback, BSONObjectID]("application-assessment-scores", mongo,
     CandidateScoresCommands.Implicits.CandidateScoresAndFeedbackFormats, ReactiveMongoFormats.objectIdFormats)
-  with ApplicationAssessmentScoresRepository {
+  with ApplicationAssessmentScoresRepository with BSONHelpers {
 
   def tryFind(applicationId: String): Future[Option[CandidateScoresAndFeedback]] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -48,7 +48,7 @@ class ApplicationAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(impl
   }
 
   def allScores: Future[Map[String, CandidateScoresAndFeedback]] = {
-    val query = BSONDocument()
+    val query = BSONDocument.empty
     val queryResult = collection.find(query).cursor[BSONDocument](ReadPreference.nearest).collect[List]()
     queryResult.map { docs =>
       docs.map { doc =>
@@ -76,11 +76,8 @@ class ApplicationAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(impl
       "feedback" -> candidateScoresAndFeedbck.feedback
     )
 
-    collection.update(query, candidateScoresAndFeedbackBSON, upsert = true) map {
-      case r if r.n > 1 =>
-        throw new UnexpectedException("save application scores somehow updated more than one " +
-          s"record for applicationId:$applicationId")
-      case _ =>
-    }
+    val validator = singleUpsertValidator(applicationId, actionDesc = "saving allocation")
+
+    collection.update(query, candidateScoresAndFeedbackBSON, upsert = true) map validator
   }
 }

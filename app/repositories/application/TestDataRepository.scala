@@ -47,7 +47,9 @@ trait TestDataContactDetailsRepository {
 
 class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo,
-    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with TestDataContactDetailsRepository {
+    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with
+    TestDataContactDetailsRepository with BSONHelpers {
+
   import Utils.chooseOne
 
   val postcodes = Seq("AB1 3CD", "BC1 2DE", "CD28 7EF", "DE23 8FG")
@@ -64,13 +66,16 @@ class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
       "contact-details" -> contactDetails
     ))
 
-    collection.update(BSONDocument("userId" -> id.toString), contactDetailsBson, upsert = true) map (_ => ())
+    val validator = singleUpsertValidator(id.toString, actionDesc = "creating contact test data")
+    collection.update(BSONDocument("userId" -> id.toString), contactDetailsBson, upsert = true) map validator
   }
 }
 
 class TestDataMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("application", mongo,
-    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with TestDataRepository {
+    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with TestDataRepository
+    with BSONHelpers {
+
   import Utils.chooseOne
 
   val applicationStatuses = Seq("CREATED", "IN_PROGRESS", "SUBMITTED", "WITHDRAWN")
@@ -102,7 +107,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
                                      appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
                                      needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
                                      firstName: Option[String] = None, preferredName: Option[String] = None, additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
-                                     additionalDoc: BSONDocument = BSONDocument()
+                                     additionalDoc: BSONDocument = BSONDocument.empty
                                     ) = {
     import repositories.BSONLocalDateHandler
     collection.insert(BSONDocument(
@@ -179,7 +184,10 @@ class TestDataMongoRepository(implicit mongo: () => DB)
   private def createSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false,
                                       locationsAndRegions: Seq[(String, String)]): Future[Unit] = {
     val document = buildSingleApplication(id, onlyAwaitingAllocation, locationsAndRegions)
-    collection.update(BSONDocument("userId" -> id.toString), document, upsert = true) map (_ => ())
+
+    val validator = singleUpsertValidator(id.toString, actionDesc = "creating application test data")
+
+    collection.update(BSONDocument("userId" -> id.toString), document, upsert = true) map validator
   }
 
   private def createProgress(
@@ -189,7 +197,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
                               isSubmitted: Option[Boolean],
                               isWithdrawn: Option[Boolean]
                             ) = {
-    var progress = BSONDocument()
+    var progress = BSONDocument.empty
 
     progress = personalDetails.map(_ => progress ++ ("personal-details" -> true)).getOrElse(progress)
     progress = frameworks.map(_ => progress ++ ("frameworks-location" -> true)).getOrElse(progress)

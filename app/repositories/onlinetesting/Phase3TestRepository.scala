@@ -88,14 +88,9 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val update = BSONDocument("$push" -> BSONDocument(s"testGroups.$phaseName.tests.$$.callbacks.$callbacksKey" -> callback))
 
-    collection.update(query, update, upsert = false) map { status =>
-      if (status.n != 1) {
-        val msg = s"${status.n} rows affected when appending callback instead of 1! (Token Id: $token)"
-        Logger.warn(msg)
-        throw UnexpectedException(msg)
-      }
-      ()
-    }
+    val validator = singleUpdateValidator(token, actionDesc = "appending phase 3 callback")
+
+    collection.update(query, update) map validator
   }
 
   override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
@@ -112,14 +107,9 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ) ++ BSONDocument("$set" -> BSONDocument(s"testGroups.$phaseName" -> phase3TestGroup)
     )
 
-    collection.update(query, appStatusBSON, upsert = false) map { status =>
-      if (status.n != 1) {
-        val msg = s"${status.n} rows affected when inserting or updating instead of 1! (App Id: $applicationId)"
-        Logger.warn(msg)
-        throw UnexpectedException(msg)
-      }
-      ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
+
+    collection.update(query, appStatusBSON) map validator
   }
 
   def removeTestGroup(applicationId: String): Future[Unit] = {
@@ -173,6 +163,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
     ))
+
     findAndUpdateLaunchpadTest(launchpadInviteId, update)
   }
 
@@ -183,12 +174,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
     ))
 
-    val errorActionHandler: String => Unit = launchpadInviteId => {
-      Logger.warn(s"""Failed to update launchpad test: $launchpadInviteId - test has expired or does not exist""")
-      ()
-    }
-
-    findAndUpdateLaunchpadTest(launchpadInviteId, update, query, errorActionHandler)
+    findAndUpdateLaunchpadTest(launchpadInviteId, update, query, ignoreNotFound = true)
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
@@ -201,18 +187,23 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     nextTestForReminder(reminder, progressStatusQuery)
   }
 
-  private def findAndUpdateLaunchpadTest(launchpadInviteId: String, update: BSONDocument, query: BSONDocument = BSONDocument(),
-                                      errorHandler: String => Unit = defaultUpdateErrorHandler): Future[Unit] = {
+  private def findAndUpdateLaunchpadTest(launchpadInviteId: String, update: BSONDocument,
+                                         query: BSONDocument = BSONDocument.empty,
+                                         ignoreNotFound: Boolean = false): Future[Unit] = {
     val find = query ++ BSONDocument(
       s"testGroups.$phaseName.tests" -> BSONDocument(
         "$elemMatch" -> BSONDocument("token" -> launchpadInviteId)
       )
     )
 
-    collection.update(find, update, upsert = false) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 => errorHandler(launchpadInviteId)
-      case _ => ()
+    val validator = if (ignoreNotFound) {
+      singleUpdateValidator(launchpadInviteId, actionDesc = "updating phase3 tests", ignoreNotFound = true)
+    } else {
+      singleUpdateValidator(launchpadInviteId, actionDesc = "updating phase3 tests",
+        CannotFindTestByLaunchpadId(s"Cannot find test group by launchpad Id: $launchpadInviteId"))
     }
+
+    collection.update(find, update) map validator
   }
 
   private def defaultUpdateErrorHandler(launchpadInviteId: String) = {
