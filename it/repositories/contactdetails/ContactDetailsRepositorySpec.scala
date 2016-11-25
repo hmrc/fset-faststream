@@ -60,14 +60,14 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
   "find all PostCode" should {
     "return an empty map if no record is present" in {
-      val result = repository.findAllPostCode.futureValue
+      val result = repository.findAllPostcodes.futureValue
       result mustBe Map.empty
     }
 
     "return an empty map if the present records have no post code" in {
       val result = (for {
         _ <- insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsOutsideUK))
-        res <- repository.findAllPostCode
+        res <- repository.findAllPostcodes
       } yield res).futureValue
 
       result.isEmpty mustBe true
@@ -76,7 +76,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     "return the postcode for a given user Id if present" in {
       val result: Map[String, String] = (for {
         _ <- insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsUK))
-        res <- repository.findAllPostCode
+        res <- repository.findAllPostcodes
       } yield res).futureValue
 
       result.get(UserId) mustBe Some("A1 B23")

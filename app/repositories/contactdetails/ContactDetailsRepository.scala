@@ -37,7 +37,7 @@ trait ContactDetailsRepository {
 
   def findUserIdByEmail(email: String): Future[String]
 
-  def findAllPostCode(): Future[Map[String, String]]
+  def findAllPostcodes(): Future[Map[String, String]]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -79,7 +79,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     }
   }
 
-  def findAllPostCode(): Future[Map[String, String]] = {
+  def findAllPostcodes(): Future[Map[String, String]] = {
     val query = BSONDocument("contact-details.postCode" -> BSONDocument("$exists" -> true))
     val projection = BSONDocument("userId" -> 1, "contact-details.postCode" -> 1)
     implicit val tupleReads: Reads[(String, String)] = (

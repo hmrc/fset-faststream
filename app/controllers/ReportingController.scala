@@ -76,7 +76,7 @@ trait ReportingController extends BaseController {
 
   def candidateProgressReport(frameworkId: String) = Action.async { implicit request =>
     val candidatesFut: Future[List[CandidateProgressReportItem]] = reportRepository.candidateProgressReport(frameworkId)
-    val postCodesFut: Future[Map[String, String]] = fsCdRepository.findAllPostCode()
+    val postCodesFut: Future[Map[String, String]] = fsCdRepository.findAllPostcodes()
 
     for{
       (candidates, postCodes) <- candidatesFut.zip(postCodesFut)
@@ -131,9 +131,9 @@ trait ReportingController extends BaseController {
   }
 
   private def enrichReport(candidates: List[CandidateProgressReportItem], postcodes: Map[String, String]):
-  Future[List[CandidateProgressReportItem]] = {
+    Future[List[CandidateProgressReportItem]] = {
 
-    Future(candidates.map(candidate => candidate.copy(
+    Future.successful(candidates.map(candidate => candidate.copy(
       fsacIndicator = indicatorRepository.calculateFsacIndicatorForReports(postcodes.get(candidate.userId), candidate))))
   }
 
