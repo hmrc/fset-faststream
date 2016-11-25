@@ -1,0 +1,4 @@
+@(optCachedData: Option[CachedData])
+@defining(optCachedData.fold("")(_.application.fold("")(_.applicationStatus.toString))) { applicationStatus =>
+    <input type="hidden" id="applicationStatus" name="applicationStatus" value="@applicationStatus" />
+}

@@ -3,7 +3,7 @@
 @import views.html.application.personalDetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
 @import views.html.application.edipExperienceDetails.edipExperienceDetailsPanel
-@import views.html.widgets.{ applicationRoute, pageProgress, saveAndContinueButton }
+@import views.html.widgets.{ applicationRoute, applicationStatus, pageProgress, saveAndContinueButton }
 @import security.Roles.EditPersonalDetailsAndContinueRole
 @import security.RoleUtils._
 
@@ -20,6 +20,7 @@
     @helper.form(action = redirectUrl, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
         @applicationRoute(optCachedData)
+        @applicationStatus(optCachedData)
         @nameAndDateOfBirth(details)
         @contactDetails(details, isLastSection = optCachedData.exists(cachedData => isEdip(optCachedData)))
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) && isFaststream(optCachedData)){

@@ -60,7 +60,7 @@ object PersonalDetailsForm {
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
         FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations)),
-        edipCompleted -> of(Mappings.mayBeOptionalString("error.needsEdipCompleted.required", 31, isSdip))
+        edipCompleted -> of(Mappings.mayBeOptionalString("error.needsEdipCompleted.required", 31, isSdipAndNotSubmitted))
       )(Data.apply)(Data.unapply)
     )
 
@@ -70,6 +70,12 @@ object PersonalDetailsForm {
 
   val isSdip = (requestParams: Map[String, String]) =>
     requestParams.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
+
+  val isSubmitted = (requestParams: Map[String, String]) =>
+    requestParams.getOrElse("applicationStatus", "") == "SUBMITTED"
+
+  val isSdipAndNotSubmitted = (requestParams: Map[String, String]) =>
+    isSdip(requestParams) && !isSubmitted(requestParams)
 
   def fastPassFormFormatter(ignoreValidations: Boolean) = new Formatter[Option[FastPassForm.Data]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[FastPassForm.Data]] = {
