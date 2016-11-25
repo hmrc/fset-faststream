@@ -75,10 +75,13 @@ trait ReportingController extends BaseController {
   }
 
   def candidateProgressReport(frameworkId: String) = Action.async { implicit request =>
-    val candidates: Future[List[CandidateProgressReportItem]] = reportRepository.candidateProgressReport(frameworkId)
-    val postCodes: Future[Map[String, String]] = fsCdRepository.findAllPostCode()
+    val candidatesFut: Future[List[CandidateProgressReportItem]] = reportRepository.candidateProgressReport(frameworkId)
+    val postCodesFut: Future[Map[String, String]] = fsCdRepository.findAllPostCode()
 
-    candidates.zip(postCodes).flatMap(cp => enrichReport(cp._1, cp._2)).map(r => Ok(Json.toJson(r)))
+    for{
+      (candidates, postCodes) <- candidatesFut.zip(postCodesFut)
+      report <- enrichReport(candidates, postCodes)
+    } yield Ok(Json.toJson(report))
   }
 
   def diversityReport(frameworkId: String) = Action.async { implicit request =>
