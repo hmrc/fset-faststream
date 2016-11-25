@@ -1,4 +1,7 @@
-@(form: Form[_root_.forms.SignUpForm.Data])(implicit lang: play.api.i18n.Lang)
+@import models.ApplicationRoute._
+@import controllers.ApplicationRouteConfig
+
+@(form: Form[_root_.forms.SignUpForm.Data])(implicit lang: play.api.i18n.Lang, appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteConfig])
 
 @import helpers.CSRFieldConstructor._
 @import models.ApplicationRoute
@@ -17,16 +20,22 @@
         )
         <div class="toggle-content form-group form-group-compound" id="faststream-elig-describe">
             <div id="fs-panel" class="clearfix">
-                <div class="text">
-                    <h3 class="heading-medium">Confirm the following statements are true</h3>
-                </div>
-                <ul class="para-btm-margin text">
-                    <li>I'm <a href="https://www.faststream.gov.uk/faqs/" target="_blank" rel="external">eligible to work in the UK</a></li>
-                    <li>I have a relevant degree or qualify as a current civil servant</li>
-                    <li>I meet my schemes eligibility requirements</li>
-                </ul>
-                @yesNoQuestion(form("faststreamEligible"), question = "Are you eligible to apply for the Civil Service Fast Stream?",
-                               noMessage = "You must be eligible to apply for the Civil Service Fast Stream.")
+                @if(appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled)) {
+                    <div class="text">
+                        <h3 class="heading-medium">Confirm the following statements are true</h3>
+                    </div>
+                    <ul class="para-btm-margin text">
+                        <li>I'm <a href="https://www.faststream.gov.uk/faqs/" target="_blank" rel="external">eligible to work in the UK</a></li>
+                        <li>I have a relevant degree or qualify as a current civil servant</li>
+                        <li>I meet my schemes eligibility requirements</li>
+                    </ul>
+                    @yesNoQuestion(form("faststreamEligible"), question = "Are you eligible to apply for the Civil Service Fast Stream?",
+                    noMessage = "You must be eligible to apply for the Civil Service Fast Stream.")
+                } else {
+                    <div class="panel-info standard-panel">
+                        <p class="text">Unfortunately, applications for the Civil Service Fast Stream are now closed.</p>
+                    </div>
+                }
             </div>
         </div>
         <div class="toggle-content form-group form-group-compound" id="edip-elig-describe">
@@ -44,27 +53,33 @@
                                noMessage = "You must be eligible to apply for the Early Diversity Internship Programme.")
         </div>
         <div class="toggle-content form-group form-group-compound" id="sdip-elig-describe">
-            <div class="text">
-                <h2 class="heading-medium">Confirm the following statements are true</h2>
-            </div>
-            <ul id="eligibility-list" class="para-btm-margin text">
-                <li>I'm either from a BAME or socially/economically disadvantaged
-                    background</li>
-                <li>I'm in the final 2 years at university</li>
-                <li>I qualify to apply according to the <a href="https://www.faststream.gov.uk/summer-diversity-internship-programme/"
-                                                            rel="external" target="_blank">eligibility requirements</a></li>
-            </ul>
-                @yesNoQuestion(form("sdipEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
-                               noMessage = "You must be eligible to apply for the Summer Diversity Internship Programme.")
+            @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted)) {
+                <div class="text">
+                    <h2 class="heading-medium">Confirm the following statements are true</h2>
+                </div>
+                <ul id="eligibility-list" class="para-btm-margin text">
+                    <li>I'm either from a BAME or socially/economically disadvantaged
+                        background</li>
+                    <li>I'm in the final 2 years at university</li>
+                    <li>I qualify to apply according to the <a href="https://www.faststream.gov.uk/summer-diversity-internship-programme/"
+                                                                rel="external" target="_blank">eligibility requirements</a></li>
+                </ul>
+                    @yesNoQuestion(form("sdipEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
+                                   noMessage = "You must be eligible to apply for the Summer Diversity Internship Programme.")
 
-                @yesNoRadioWithNestedTogglePanel(form("hasAppliedToFaststream"),
-                    '_label -> "Have you applied to the Civil Service Fast Stream this year?") {
-                    <div id="hasAppliedToFaststream-panel-yes" class="toggle-content">
-                        <div class="panel-danger" role="alert">
-                            <p>If you want to apply for the Summer Diversity Internship Programme and have an existing Fast Stream account, you need to <a rel="external" target="_blank" href="https://www.faststream.gov.uk/summer-diversity-internship-programme/">sign in</a>.</p>
+                    @yesNoRadioWithNestedTogglePanel(form("hasAppliedToFaststream"),
+                        '_label -> "Have you applied to the Civil Service Fast Stream this year?") {
+                        <div id="hasAppliedToFaststream-panel-yes" class="toggle-content">
+                            <div class="panel-danger" role="alert">
+                                <p>If you want to apply for the Summer Diversity Internship Programme and have an existing Fast Stream account, you need to <a rel="external" target="_blank" href="https://www.faststream.gov.uk/summer-diversity-internship-programme/">sign in</a>.</p>
+                            </div>
                         </div>
-                    </div>
-                }
+                    }
+            } else {
+                <div class="panel-info standard-panel">
+                    <p class="text">Unfortunately, applications for the <a href="https://faststream.gov.uk/summer-diversity-internship-programme/">Summer Diversity Internship Programme</a> open in early December 2016</p>
+                </div>
+            }
         </div>
     </fieldset>
 </section>

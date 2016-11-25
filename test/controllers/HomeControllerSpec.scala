@@ -19,10 +19,11 @@ package controllers
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
-import connectors.ApplicationClient.CannotWithdraw
-import connectors.exchange.WithdrawApplicationExamples
+import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
+import connectors.exchange.{ AssistanceDetailsExamples, WithdrawApplicationExamples }
 import forms.WithdrawApplicationFormExamples
 import models.ApplicationData.ApplicationStatus
+import models.ApplicationRoute._
 import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
@@ -42,6 +43,42 @@ class HomeControllerSpec extends BaseControllerSpec {
   override def currentCandidateWithApp: CachedDataWithApp = {
     CachedDataWithApp(ActiveCandidate.user,
       CachedDataExample.SubmittedApplication.copy(userId = ActiveCandidate.user.userID))
+  }
+
+  "present" should {
+    "display home page" in new TestFixture {
+      val previewApp = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new OnlineTestNotFound))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
+      val result = controller(previewApp).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+      content mustNot include("Fast Stream applications are now closed")
+      content must include("""<ol class="step-by-step-coloured " id="sixSteps">""")
+    }
+
+    "display home page with submit disabled" in new TestFixture {
+      val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
+        newAccountsEnabled = true, applicationsSubmitEnabled = false)
+      val previewApp = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new OnlineTestNotFound))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
+      val result = controller(previewApp, applicationRouteConfig).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+      content must include("Fast Stream applications are now closed")
+      content must include("""<ol class="step-by-step-coloured disabled" id="sixSteps">""")
+    }
   }
 
   "presentWithdrawApplication" should {
@@ -113,6 +150,11 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(securityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller = new TestableHomeController
+    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp,
+                   appRouteConfig: ApplicationRouteConfig = defaultApplicationRouteConfig) = new TestableHomeController {
+      override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+      override implicit val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteConfig] =
+        Map(Faststream -> appRouteConfig, Edip -> appRouteConfig, Sdip -> appRouteConfig)
+    }
   }
 }
