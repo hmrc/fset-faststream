@@ -35,7 +35,7 @@ class SignUpControllerSpec extends BaseControllerSpec {
     CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
 
   "present" should {
-    "display the sign up page" ignore new TestFixture {
+    "display the sign up page" in new TestFixture {
       val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
         newAccountsEnabled = false, applicationsSubmitEnabled = false)
       val result = controller(applicationRouteConfig).present()(fakeRequest)
@@ -44,7 +44,7 @@ class SignUpControllerSpec extends BaseControllerSpec {
       content must include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
     }
 
-    "display the sign up page with fast stream applications closed message" ignore new TestFixture {
+    "display the sign up page with fast stream applications closed message" in new TestFixture {
       val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
         newAccountsEnabled = true, applicationsSubmitEnabled = false)
       val result = controller(applicationRouteConfig).present()(fakeRequest)
@@ -55,7 +55,7 @@ class SignUpControllerSpec extends BaseControllerSpec {
   }
 
   "sign up" should {
-    "display fast stream applications closed message" ignore new TestFixture {
+    "display fast stream applications closed message" in new TestFixture {
       val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
         newAccountsEnabled = false, applicationsSubmitEnabled = false)
       val (data, signUpForm) = SignupFormGenerator().get
@@ -65,7 +65,7 @@ class SignUpControllerSpec extends BaseControllerSpec {
       redirectLocation(result) must be(Some(routes.SignUpController.present().url))
       flash(result).data must be (Map("warning" -> "Faststream applications are now closed"))
     }
-    "display fast stream applications not started message" ignore new TestFixture {
+    "display fast stream applications not started message" in new TestFixture {
       val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = false,
         newAccountsEnabled = false, applicationsSubmitEnabled = false)
       val (data, signUpForm) = SignupFormGenerator().get
