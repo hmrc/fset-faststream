@@ -26,15 +26,16 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
-import model.command.ProgressResponse
+import model.command.{ Phase3ProgressResponse, ProgressResponse }
 import model.events.EventTypes.EventType
 import model.events.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest }
 import model.persisted._
-import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent, _ }
+import model.{ ApplicationStatus, _ }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
+import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.events.EventService
 import services.onlinetesting.ResetPhase2Test._
@@ -61,6 +62,7 @@ object Phase2TestService extends Phase2TestService {
   val actor = ActorSystem()
   val eventService = EventService
   val authProvider = AuthProviderClient
+  val phase3TestService = Phase3TestService
 }
 
 // scalastyle:off number.of.methods
@@ -70,6 +72,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
   val authProvider: AuthProviderClient
+  val phase3TestService: Phase3TestService
 
   def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
 
@@ -128,29 +131,60 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
   }
 
   def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
-                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    phase2TestRepo.getTestGroup(application.applicationId).flatMap {
-      case Some(phase2TestGroup) if !application.isInvigilatedETray /*&& schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId))*/ =>
-        val (scheduleName, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
-        registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
-          audit("Phase2TestInvitationProcessComplete", application.userId)
-          AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
-            DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
-        }
-      /*case Some(phase2TestGroup) if !application.isInvigilatedETray && !schedulesAvailable(phase2TestGroup.tests.map(_.scheduleId)) =>
-        throw ResetLimitExceededException()
-        */
-      case Some(phase2TestGroup) if application.isInvigilatedETray =>
-        val scheduleInv = testConfig.scheduleForInvigilatedETray
-        val (scheduleName, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
-        registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
-          AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
-            DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
-        }
+                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    import ApplicationStatus._
 
-      case _ =>
-        throw CannotResetPhase2Tests()
+    ApplicationStatus.withName(application.applicationStatus) match {
+      case PHASE2_TESTS | PHASE2_TESTS_PASSED | PHASE2_TESTS_FAILED =>
+        resetPhase2Tests(application, actionTriggeredBy)
+      case PHASE3_TESTS => {
+        inPhase3TestsInvited(application.applicationId).flatMap { result =>
+          if (result) {
+            phase3TestService.removeTestGroup(application.applicationId).flatMap { _ =>
+              resetPhase2Tests(application, actionTriggeredBy)
+            }
+          } else {
+            throw CannotResetPhase2Tests()
+          }
+        }
+      }
+
+      case _ => throw CannotResetPhase2Tests()
     }
+  }
+
+  private def inPhase3TestsInvited(applicationId: String): Future[Boolean] = {
+    for {
+      progressResponse <- appRepository.findProgress(applicationId)
+    } yield {
+      progressResponse.phase3ProgressResponse match {
+        case Phase3ProgressResponse(true, false, false, false, false, false, false, false, false) => true
+        case _ => false
+      }
+    }
+  }
+
+  private def resetPhase2Tests(application: OnlineTestApplication, actionTriggeredBy: String)
+                              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+      phase2TestRepo.getTestGroup(application.applicationId).flatMap {
+        case Some(phase2TestGroup) if !application.isInvigilatedETray =>
+          val (scheduleName, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
+          registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
+            AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
+              DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
+          }
+
+        case Some(phase2TestGroup) if application.isInvigilatedETray =>
+          val scheduleInv = testConfig.scheduleForInvigilatedETray
+          val (scheduleName, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
+          registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
+            AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
+              DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
+          }
+
+        case _ =>
+          throw CannotResetPhase2Tests()
+      }
   }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
@@ -239,35 +273,6 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
       }
     }
   }
-
-  /*
-  private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule)
-                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = {
-    require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
-
-    applications match {
-      case Nil => Future.successful(Nil)
-      case candidatesToProcess =>
-        val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
-        val isInvigilatedETrayBatch = applications.head.isInvigilatedETray
-        val expiryTimeInDays = if (isInvigilatedETrayBatch) {
-          gatewayConfig.phase2Tests.expiryTimeInDaysForInvigilatedETray
-        } else {
-          gatewayConfig.phase2Tests.expiryTimeInDays
-        }
-         val (invitationDate, expirationDate) = calcOnlineTestDates(expiryTimeInDays)
-
-        for {
-          registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
-          invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
-          _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate, hc)
-          _ <- emailInviteToApplicants(candidatesToProcess)(hc, rh, invitationDate, expirationDate)
-        } yield {
-          candidatesToProcess
-        }
-    }
-  }
-  */
 
   private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule,
                                               expiresDate: Option[DateTime] = None)
