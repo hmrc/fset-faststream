@@ -49,26 +49,26 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
 
   val nextApplicationQuery = (currentPassmarkVersion: String) => phase == prevPhase match {
     case true =>
-    BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
-      BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
+        BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+        BSONDocument("$or" -> BSONArray(
+          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
+        ))
       ))
-    ))
     case false =>
-    BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
-      BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
-      BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
-        BSONDocument("$where" ->
-          s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
-      )
-    ))
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
+        BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+        BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
+        BSONDocument("$or" -> BSONArray(
+          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
+          BSONDocument("$where" ->
+            s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
+        )
+      ))
   }
 
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int)(implicit jsonFormat: Format[T]):
