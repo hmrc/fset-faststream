@@ -16,7 +16,7 @@ import play.api.test.Helpers
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
-import repositories.application.{ GeneralApplicationMongoRepository }
+import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase1TestMongoRepository, Phase2TestMongoRepository }
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
@@ -58,7 +58,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository()
 
   def phase1TestEvaluationService = new EvaluatePhase1ResultService {
-    val phase1EvaluationRepository = phase1EvaluationRepo
+    val evaluationRepository = phase1EvaluationRepo
     val gatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo = phase1PassMarkSettingRepo
     val phase1TestsConfigMock = mock[Phase1TestsConfig]

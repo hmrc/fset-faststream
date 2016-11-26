@@ -5,15 +5,15 @@ import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.SchemeType._
-import model.persisted.{ApplicationReadyForEvaluation, CubiksTest, Phase1TestProfile, _}
-import model.{ApplicationStatus, SchemeType, SelectedSchemes}
-import org.joda.time.{DateTime, DateTimeZone}
+import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest, Phase1TestProfile, _ }
+import model.{ ApplicationStatus, SchemeType }
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{GeneralApplicationMongoRepository}
+import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.{CommonRepository, schemepreferences}
+import repositories.{ CommonRepository, schemepreferences }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
@@ -61,6 +61,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         isGis = false,
         Phase1TestProfile(now, phase1TestsWithResult).activeTests,
         None,
+        None,
         selectedSchemes(List(Commercial)))
     }
 
@@ -75,6 +76,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE1_TESTS,
         isGis = true,
         Phase1TestProfile(now, phase1TestsWithResult).activeTests,
+        None,
         None,
         selectedSchemes(List(Commercial)))
     }

@@ -20,7 +20,7 @@ import config.{ Phase2Schedule, Phase2TestsConfig }
 
 import scala.util.Random
 
-trait ScheduleSelector {
+trait Phase2TestSelector {
   def testConfig: Phase2TestsConfig
 
   def getRandomScheduleWithName(currentScheduleIds: List[Int] = Nil): (String, Phase2Schedule) = {

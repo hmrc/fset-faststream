@@ -16,10 +16,9 @@
 
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest.LaunchpadQuestionIsUnscoredException
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class ReviewedCallbackRequest(
   received: DateTime,
@@ -56,6 +55,9 @@ object ReviewedCallbackRequest {
   import repositories.BSONDateTimeHandler
   import repositories.BSONLocalDateHandler
   implicit val bsonHandler: BSONHandler[BSONDocument, ReviewedCallbackRequest] = Macros.handler[ReviewedCallbackRequest]
+
+  def getLatestReviewed(reviewCallBacks: List[ReviewedCallbackRequest]): Option[ReviewedCallbackRequest] =
+    reviewCallBacks.sortWith { (r1, r2) => r1.received.isAfter(r2.received)}.headOption
 
   case class LaunchpadQuestionIsUnscoredException(message: String) extends Exception(message)
 }

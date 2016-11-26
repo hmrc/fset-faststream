@@ -25,6 +25,7 @@ import model.persisted._
 import model.{ ApplicationStatus, Phase1TestExamples, Phase1TestProfileExamples, SchemeType }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import play.api.libs.json.Format
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
@@ -46,7 +47,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(Some(PassmarkSettings)))
       when(mockPhase1EvaluationRepository
-        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int]))
+        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int])(any[Format[ApplicationReadyForEvaluation]]))
         .thenReturn(Future.successful(List(application)))
 
       val result = service.nextCandidatesReadyForEvaluation(1).futureValue
@@ -145,7 +146,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       .thenReturn(Future.successful(()))
 
     val service = new EvaluatePhase1ResultService with StubbedPhase1TestEvaluation {
-      val phase1EvaluationRepository = mockPhase1EvaluationRepository
+      val evaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockCubiksGatewayConfig
       val passMarkSettingsRepo = mockPhase1PMSRepository
 
@@ -155,7 +156,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     }
 
     val edipSkipEvaluationService = new EvaluatePhase1ResultService {
-      val phase1EvaluationRepository = mockPhase1EvaluationRepository
+      val evaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockCubiksGatewayConfig
       val passMarkSettingsRepo = mockPhase1PMSRepository
 
@@ -171,7 +172,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     def createAppWithTestGroup(tests: List[CubiksTest]) = {
       val phase1 = Phase1TestProfileExamples.profile.copy(tests = tests)
-      ApplicationPhase1EvaluationExamples.application.copy(activeTests = phase1.activeTests)
+      ApplicationPhase1EvaluationExamples.application.copy(activeCubiksTests = phase1.activeTests)
     }
 
     def createGisAppWithTestGroup(tests: List[CubiksTest]) = {

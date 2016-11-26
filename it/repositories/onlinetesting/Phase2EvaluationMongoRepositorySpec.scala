@@ -11,11 +11,12 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{ GeneralApplicationMongoRepository }
+import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.{ CommonRepository, schemepreferences }
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
+
 
 class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
 
@@ -61,6 +62,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE2_TESTS,
         isGis = false,
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
+        None,
         Some(phase1Evaluation),
         selectedSchemes(List(Commercial)))
     }
@@ -91,6 +93,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE2_TESTS,
         isGis = false,
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
+        None,
         Some(phase1Evaluation),
         selectedSchemes(List(Commercial)))
     }
@@ -109,6 +112,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE2_TESTS,
         isGis = false,
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
+        None,
         Some(phase1Evaluation),
         selectedSchemes(List(Commercial)))
     }

@@ -41,7 +41,7 @@ trait CommonRepository {
     val phase1Tests = if(isGis) List(sjqTest) else List(sjqTest, bqTest)
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, isGis, Phase1TestProfile(now, phase1Tests).activeTests,
-      None, selectedSchemes(schemes.toList))
+      None, None, selectedSchemes(schemes.toList))
   }
 
   def insertApplicationWithPhase2TestResults(appId: String, etray: Double,
@@ -55,7 +55,7 @@ trait CommonRepository {
     insertApplication(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(List(etrayTest)))
     phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None)
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE2_TESTS, isGis = false,
-      List(etrayTest), Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
+      List(etrayTest), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
   def insertApplication(appId: String, applicationStatus: ApplicationStatus, phase1Tests: Option[List[CubiksTest]] = None,

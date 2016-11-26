@@ -18,13 +18,29 @@ package scheduler.onlinetesting
 
 import model.exchange.passmarksettings.PassMarkSettings
 import model.persisted.ApplicationReadyForEvaluation
+import play.api.libs.json.Format
+import repositories.onlinetesting.OnlineTestEvaluationRepository
+import services.passmarksettings.PassMarkSettingsService
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
 
 trait EvaluateOnlineTestResultService[T <: PassMarkSettings] {
+  this: PassMarkSettingsService[T] =>
 
-  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationReadyForEvaluation], T)]]
+  val evaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
+
+  def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T]):
+  Future[Option[(List[ApplicationReadyForEvaluation], T)]] = {
+    getLatestPassMarkSettings flatMap {
+      case Some(passmark) =>
+        evaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
+          Some(candidates -> passmark)
+        }
+      case _ => Future.successful(None)
+    }
+  }
 
   def evaluate(application: ApplicationReadyForEvaluation, passmark: T): Future[Unit]
 }

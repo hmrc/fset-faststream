@@ -24,53 +24,39 @@ import model.exchange.passmarksettings.Phase2PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation }
 import play.api.Logger
 import repositories._
-import repositories.onlinetesting.OnlineTestEvaluationRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object EvaluatePhase2ResultService extends EvaluatePhase2ResultService {
-  val phase2EvaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
-    = repositories.faststreamPhase2EvaluationRepository
+  val evaluationRepository = repositories.faststreamPhase2EvaluationRepository
   val gatewayConfig = cubiksGatewayConfig
   val passMarkSettingsRepo = phase2PassMarkSettingsRepository
 }
 
 trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestEvaluation
   with PassMarkSettingsService[Phase2PassMarkSettings] with ApplicationStatusCalculator {
-  val phase2EvaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
-
-  def nextCandidatesReadyForEvaluation(batchSize: Int): Future[Option[(List[ApplicationReadyForEvaluation], Phase2PassMarkSettings)]] = {
-    getLatestPassMarkSettings flatMap {
-      case Some(passmark) =>
-        phase2EvaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
-          Some(candidates -> passmark)
-        }
-      case _ => Future.successful(None)
-    }
-  }
 
   def evaluate(application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
 
-    val activeTests = application.activeTests
+    val activeTests = application.activeCubiksTests
     require(activeTests.nonEmpty && activeTests.length == 1, "Allowed active number of tests is 1")
     require(application.prevPhaseEvaluation.isDefined, "Phase1 results required to evaluate phase2")
 
-    val prevPhaseEvaluation = application.prevPhaseEvaluation.get
+    val optEtrayResult = activeTests.headOption.flatMap(_.testResult)
 
-    val schemeResults = activeTests.head match {
-      case etrayTest if etrayTest.testResult.isDefined =>
-        evaluate(application.preferences.schemes, etrayTest.testResult.get, prevPhaseEvaluation.result, passmark)
+    val schemeResults = (optEtrayResult, application.prevPhaseEvaluation) match {
+      case (Some(etrayTest), Some(prevPhaseEvaluation)) =>
+        evaluate(application.preferences.schemes, etrayTest, prevPhaseEvaluation.result, passmark)
       case _ => throw new IllegalStateException(s"Illegal number of phase2 active tests with results " +
         s"for this application: ${application.applicationId}")
     }
 
     schemeResults.nonEmpty match {
-      case true => phase2EvaluationRepository.savePassmarkEvaluation(
+      case true => evaluationRepository.savePassmarkEvaluation(
         application.applicationId,
-        PassmarkEvaluation(passmark.version, Some(prevPhaseEvaluation.passmarkVersion), schemeResults),
+        PassmarkEvaluation(passmark.version, application.prevPhaseEvaluation.map(_.passmarkVersion), schemeResults),
         determineApplicationStatus(application.applicationStatus, schemeResults, Phase.PHASE2)
       )
       case false => Future.successful(())

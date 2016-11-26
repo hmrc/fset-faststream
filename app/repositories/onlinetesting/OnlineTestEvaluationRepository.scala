@@ -21,11 +21,14 @@ import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
 import repositories.{ BSONHelpers, BaseBSONReader, CommonBSONDocuments, RandomSelection }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import model.Phase._
+import model.ProgressStatuses.ProgressStatus
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import play.api.libs.json.Format
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -36,24 +39,40 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
 
   val phase: Phase
 
+  val prevPhase: Phase
+
   val evaluationApplicationStatuses: List[ApplicationStatus]
 
-  def applicationBSONReader(activeTests: List[CubiksTest], prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
-    val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
-    val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
-    ApplicationReadyForEvaluation(applicationId, applicationStatus, isGis, activeTests, prevPhaseEvaluation, preferences)
+  val evaluationProgressStatus: ProgressStatus
+
+  implicit val applicationBSONReader: BSONDocumentReader[T]
+
+  val nextApplicationQuery = (currentPassmarkVersion: String) => phase == prevPhase match {
+    case true =>
+    BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
+      BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
+      ))
+    ))
+    case false =>
+    BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
+      BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+      BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
+        BSONDocument("$where" ->
+          s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
+      )
+    ))
   }
 
-  def passMarkEvaluationReader(passMarkPhase: String, applicationId: String, optDoc: Option[BSONDocument]): PassmarkEvaluation =
-    optDoc.flatMap {_.getAs[BSONDocument]("testGroups")}
-      .flatMap {_.getAs[BSONDocument](passMarkPhase)}
-      .flatMap {_.getAs[PassmarkEvaluation]("evaluation")}
-        .getOrElse(throw PassMarkEvaluationNotFound(applicationId))
-
-
-  def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[T]]
+  def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int)(implicit jsonFormat: Format[T]):
+  Future[List[T]] = selectRandom[T](nextApplicationQuery(currentPassmarkVersion), batchSize)
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
                              newApplicationStatus: Option[ApplicationStatus]): Future[Unit] = {
@@ -73,6 +92,23 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
     }
   }
 
+  def applicationEvaluationBuilder(activeCubiksTests: List[CubiksTest],
+                                   activeLaunchPadTest: Option[LaunchpadTest],
+                                   prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
+    val applicationId = doc.getAs[String]("applicationId").get
+    val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
+    val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
+    val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
+    ApplicationReadyForEvaluation(applicationId, applicationStatus, isGis, activeCubiksTests,
+      activeLaunchPadTest, prevPhaseEvaluation, preferences)
+  }
+
+  def passMarkEvaluationReader(passMarkPhase: String, applicationId: String, optDoc: Option[BSONDocument]): PassmarkEvaluation =
+    optDoc.flatMap {_.getAs[BSONDocument]("testGroups")}
+      .flatMap {_.getAs[BSONDocument](passMarkPhase)}
+      .flatMap {_.getAs[PassmarkEvaluation]("evaluation")}
+      .getOrElse(throw PassMarkEvaluationNotFound(applicationId))
+
   private[repositories] def getPassMarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(s"testGroups.$phase.evaluation" -> 1, "_id" -> 0)
@@ -89,25 +125,17 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
 
   val phase = PHASE1
 
+  val prevPhase = PHASE1
+
   val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE2_TESTS)
 
-  def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
-      ))
-    ))
+  val evaluationProgressStatus = ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED
 
-    implicit val reader = bsonReader(doc => {
-      val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
-      val phase1 = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
-      applicationBSONReader(phase1.activeTests, None)(doc)
-    })
-    selectRandom[ApplicationReadyForEvaluation](query, batchSize)
-  }
+  implicit val applicationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation] = bsonReader(doc => {
+    val bsonPhase1: Option[BSONDocument] = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
+    val phase1: Phase1TestProfile = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
+    applicationEvaluationBuilder(phase1.activeTests, None, None)(doc)
+  })
 }
 
 class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
@@ -123,25 +151,33 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
 
   val evaluationProgressStatus = ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED
 
-  def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
-      BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> true),
-      BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
-        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
-        BSONDocument("$where" ->
-          s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
-      )
-    ))
-    implicit val reader = bsonReader(doc => {
-      val applicationId = doc.getAs[String]("applicationId").get
-      val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
-      val phase2 = bsonPhase2.map(Phase2TestGroup.bsonHandler.read).get
-      val phase1Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
-      applicationBSONReader(phase2.activeTests, Some(phase1Evaluation))(doc)
-    })
-    selectRandom[ApplicationReadyForEvaluation](query, batchSize)
-  }
+  implicit val applicationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation] = bsonReader(doc => {
+    val applicationId = doc.getAs[String]("applicationId").get
+    val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
+    val phase2 = bsonPhase2.map(Phase2TestGroup.bsonHandler.read).get
+    val phase1Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
+    applicationEvaluationBuilder(phase2.activeTests, None, Some(phase1Evaluation))(doc)
+  })
+}
+
+class Phase3EvaluationMongoRepository()(implicit mongo: () => DB)
+  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
+    ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
+    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] with BaseBSONReader {
+
+  val phase = PHASE3
+
+  val prevPhase = PHASE2
+
+  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE3_TESTS)
+
+  val evaluationProgressStatus = ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
+
+  implicit val applicationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation] = bsonReader(doc => {
+    val applicationId = doc.getAs[String]("applicationId").get
+    val bsonPhase3 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
+    val phase3 = bsonPhase3.map(Phase3TestGroup.bsonHandler.read).get
+    val phase2Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
+    applicationEvaluationBuilder(Nil, phase3.activeTests.headOption, Some(phase2Evaluation))(doc)
+  })
 }
