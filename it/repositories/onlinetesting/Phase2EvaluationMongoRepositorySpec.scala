@@ -1,7 +1,5 @@
 package repositories.onlinetesting
 
-import config.CubiksGatewayConfig
-import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.SchemeType._
@@ -11,10 +9,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.GeneralApplicationMongoRepository
-import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.{ CommonRepository, schemepreferences }
-import services.GBTimeZoneService
+import repositories.CommonRepository
 import testkit.MongoRepositorySpec
 
 
@@ -25,20 +20,6 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   import Phase2EvaluationMongoRepositorySpec._
 
   val collectionName: String = "application"
-
-  def phase2EvaluationRepo = new Phase2EvaluationMongoRepository
-
-  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository
-
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mock[CubiksGatewayConfig])
-
-  def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
-
-  def assistanceDetailsRepository = new AssistanceDetailsMongoRepository
-
-  def phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
-
-  def phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
 
   "next Application Ready For Evaluation" should {
 
@@ -51,9 +32,9 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
 
     "return application in PHASE2_TESTS with results" in {
-      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
       val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", phase1Evaluation, None).futureValue
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+        Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
 
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase1_version1", batchSize = 1).futureValue
 
@@ -68,9 +49,9 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
 
     "return nothing when PHASE2_TESTS are already evaluated" in {
-      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
       val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", phase1Evaluation, None).futureValue
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+        Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
 
       val phase2Evaluation = PassmarkEvaluation("phase2_version1", Some("phase1_version1"), resultToSave)
       phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, None).futureValue
@@ -80,9 +61,9 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
 
     "return evaluated application in PHASE2_TESTS_PASSED when phase2 pass mark settings changed" in {
-      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
       val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", phase1Evaluation, None).futureValue
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+        Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
 
       val phase2Evaluation = PassmarkEvaluation("phase2_version1", Some("phase1_version1"), resultToSave)
       phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, None).futureValue
@@ -99,9 +80,9 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
 
     "return evaluated application in PHASE2_TESTS status when phase1 results are re-evaluated" in {
-      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
       val phase1Evaluation = PassmarkEvaluation("phase1_version2", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", phase1Evaluation, None).futureValue
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+        Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
 
       val phase2Evaluation = PassmarkEvaluation("phase2_version1", Some("phase1_version1"), resultToSave)
       phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, None).futureValue
@@ -120,9 +101,9 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "limit number of next applications to the batch size limit" in {
       val batchSizeLimit = 5
       1 to 6 foreach { id =>
-        insertApplication(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult), isGis = false)
         val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave)
-        phase1EvaluationRepo.savePassmarkEvaluation(s"app$id", phase1Evaluation, None).futureValue
+        insertApplication(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+          Some(phase2TestWithResult), isGis = false, phase1Evaluation = Some(phase1Evaluation))
       }
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSizeLimit).futureValue
       result.size mustBe batchSizeLimit
@@ -131,9 +112,9 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "return less number of applications than batch size limit" in {
       val batchSizeLimit = 5
       1 to 2 foreach { id =>
-        insertApplication(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult), isGis = false)
         val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave)
-        phase1EvaluationRepo.savePassmarkEvaluation(s"app$id", phase1Evaluation, None).futureValue
+        insertApplication(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+          Some(phase2TestWithResult), isGis = false, phase1Evaluation = Some(phase1Evaluation))
       }
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSizeLimit).futureValue
       result.size mustBe 2

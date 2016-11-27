@@ -33,7 +33,6 @@ import scala.concurrent.Future
 object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
   val evaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
     = repositories.faststreamPhase3EvaluationRepository
-  val gatewayConfig = cubiksGatewayConfig
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
 }
 

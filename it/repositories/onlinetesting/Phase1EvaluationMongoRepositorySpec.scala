@@ -1,7 +1,5 @@
 package repositories.onlinetesting
 
-import config.CubiksGatewayConfig
-import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.SchemeType._
@@ -11,10 +9,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.GeneralApplicationMongoRepository
-import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.{ CommonRepository, schemepreferences }
-import services.GBTimeZoneService
+import repositories.CommonRepository
 import testkit.MongoRepositorySpec
 
 class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
@@ -23,18 +18,6 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   import Phase1EvaluationMongoRepositorySpec._
 
   val collectionName: String = "application"
-
-  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository
-
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mock[CubiksGatewayConfig])
-
-  def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
-
-  def assistanceDetailsRepository = new AssistanceDetailsMongoRepository
-
-  def phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
-
-  def phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
 
   "next Application Ready For Evaluation" should {
     "return nothing if there is no PHASE1_TESTS and PHASE2_TESTS applications" in {

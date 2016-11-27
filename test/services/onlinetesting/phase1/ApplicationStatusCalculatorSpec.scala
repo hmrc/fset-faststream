@@ -89,6 +89,42 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
     }
   }
 
+  "determine phase3 application status" should {
+    "promote the application when at least one Green and no ambers" in {
+      val newStatus = calc.determineApplicationStatus(PHASE3_TESTS, List(red, green), Phase.PHASE3)
+      newStatus mustBe Some(PHASE3_TESTS_PASSED)
+    }
+
+    "promote the application for all Greens" in {
+      val newStatus = calc.determineApplicationStatus(PHASE3_TESTS, List(green, green, green), Phase.PHASE3)
+      newStatus mustBe Some(PHASE3_TESTS_PASSED)
+    }
+
+    "fail application for all Reds" in {
+      val newStatus = calc.determineApplicationStatus(PHASE3_TESTS, List(red, red, red), Phase.PHASE3)
+      newStatus mustBe Some(PHASE3_TESTS_FAILED)
+    }
+
+    "do not update application status when at least one amber and no greens" in {
+      val newStatus = calc.determineApplicationStatus(PHASE3_TESTS, List(red, amber, red), Phase.PHASE3)
+      newStatus mustBe None
+    }
+
+    "do not update application status when there are greens and at least one amber" in {
+      val newStatus = calc.determineApplicationStatus(PHASE3_TESTS, List(red, amber, green), Phase.PHASE3)
+      newStatus mustBe None
+    }
+
+    "do not update application status when PHASE3_TESTS_PASSED" in {
+      val newStatus = calc.determineApplicationStatus(PHASE3_TESTS_PASSED, List(green, green, green), Phase.PHASE3)
+      newStatus mustBe None
+    }
+
+    "return exception when no results found" in {
+      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(PHASE3_TESTS, Nil, Phase.PHASE3)
+    }
+  }
+
   def red = SchemeEvaluationResult(Commercial, Red.toString)
 
   def amber = SchemeEvaluationResult(Commercial, Amber.toString)

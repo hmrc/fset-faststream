@@ -1,7 +1,6 @@
 package repositories
 
-import config.{ CubiksGatewayConfig, Phase2TestsConfig }
-import factories.DateTimeFactory
+import config.Phase2TestsConfig
 import model.ApplicationStatus
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
@@ -16,11 +15,6 @@ import play.api.test.Helpers
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
-import repositories.application.GeneralApplicationMongoRepository
-import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.onlinetesting._
-import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
-import services.GBTimeZoneService
 import services.onlinetesting.EvaluatePhase2ResultService
 import testkit.MongoRepositorySpec
 
@@ -41,24 +35,6 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       super.withFixture(test)
     }
   }
-
-  val mockGatewayConfig = mock[CubiksGatewayConfig]
-
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig)
-
-  def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
-
-  def assistanceDetailsRepository = new AssistanceDetailsMongoRepository
-
-  def phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
-
-  def phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
-
-  def phase2PassMarkSettingRepo = new Phase2PassMarkSettingsMongoRepository()
-
-  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository()
-
-  def phase2EvaluationRepo = new Phase2EvaluationMongoRepository()
 
   def phase2TestEvaluationService = new EvaluatePhase2ResultService {
     val evaluationRepository = phase2EvaluationRepo
