@@ -16,7 +16,6 @@
 
 package controllers
 
-import java.time.format.DateTimeFormatter
 import java.time.{ LocalDateTime, ZoneId }
 
 import config.{ ApplicationRouteFrontendConfig, CSRCache }
@@ -62,12 +61,6 @@ abstract class BaseController(applicationClient: ApplicationClient, val cacheCli
 
   implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
 
-  implicit def appRouteConfigMap = Map(
-    Faststream -> ApplicationRouteConfig(config.FrontendAppConfig.faststreamFrontendConfig),
-    Edip -> ApplicationRouteConfig(config.FrontendAppConfig.edipFrontendConfig),
-    Sdip -> ApplicationRouteConfig(config.FrontendAppConfig.sdipFrontendConfig)
-  )
-
   val redirectNoApplication = Future.successful {
     Redirect(routes.HomeController.present()).flashing(warning("info.create.application"))
   }
@@ -86,19 +79,4 @@ abstract class BaseController(applicationClient: ApplicationClient, val cacheCli
           onUpdate(cd)
         }
     }
-
-  def isNewAccountsStarted(implicit applicationRoute: ApplicationRoute = Faststream) =
-    appRouteConfigMap.get(applicationRoute).forall(_.newAccountsStarted)
-
-  def isNewAccountsEnabled(implicit applicationRoute: ApplicationRoute = Faststream) =
-    appRouteConfigMap.get(applicationRoute).forall(_.newAccountsEnabled)
-
-  def isSubmitApplicationsEnabled(implicit applicationRoute: ApplicationRoute = Faststream) =
-    appRouteConfigMap.get(applicationRoute).forall(_.applicationsSubmitEnabled)
-
-  def getApplicationStartDate(implicit applicationRoute: ApplicationRoute = Faststream) =
-    appRouteConfigMap.get(applicationRoute)
-      .flatMap(_.applicationsStartDate.map(_.format(DateTimeFormatter.ofPattern("dd MMM YYYY"))))
-      .getOrElse("")
-
 }

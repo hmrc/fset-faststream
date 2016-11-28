@@ -1,7 +1,7 @@
 @import models.ApplicationRoute._
 @import controllers.ApplicationRouteConfig
 
-@(form: Form[_root_.forms.SignUpForm.Data])(implicit lang: play.api.i18n.Lang, appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteConfig])
+@(form: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteConfig])(implicit lang: play.api.i18n.Lang)
 
 @import helpers.CSRFieldConstructor._
 @import models.ApplicationRoute

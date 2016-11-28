@@ -92,6 +92,7 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override protected def env = mockSecurityEnvironment
+      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteConfig]
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 

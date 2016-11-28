@@ -30,9 +30,12 @@ import security.Roles._
 
 import scala.concurrent.Future
 
-object HomeController extends HomeController(ApplicationClient, CSRCache)
+object HomeController extends HomeController(ApplicationClient, CSRCache) {
+  val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
+}
 
-class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache) extends BaseController(applicationClient, cacheClient) {
+abstract class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
   val Withdrawer = "Candidate"
 
   def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>

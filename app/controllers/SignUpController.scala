@@ -34,16 +34,17 @@ import scala.concurrent.Future
 
 object SignUpController extends SignUpController(ApplicationClient, CSRCache) {
   val http = CSRHttp
+  val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
 }
 
 abstract class SignUpController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) with SignInService {
+  extends BaseController(applicationClient, cacheClient) with SignInService with CampaignAwareController {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
       Future.successful(request.identity match {
         case Some(_) => Redirect(routes.HomeController.present()).flashing(warning("activation.already"))
-        case None => Ok(views.html.registration.signup(SignUpForm.form))
+        case None => Ok(views.html.registration.signup(SignUpForm.form, appRouteConfigMap))
       })
   }
 
@@ -63,7 +64,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
       SignUpForm.form.bindFromRequest.fold(
         invalidForm => {
           checkAppWindowBeforeProceeding(invalidForm.data, Future.successful(
-            Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize))))
+            Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize), appRouteConfigMap)))
           )
         },
         data => {
@@ -84,7 +85,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
                 }
               }.recover {
                 case e: EmailTakenException =>
-                  Ok(views.html.registration.signup(SignUpForm.form.fill(data), Some(danger("user.exists"))))
+                  Ok(views.html.registration.signup(SignUpForm.form.fill(data), appRouteConfigMap, Some(danger("user.exists"))))
               }
           })
         }

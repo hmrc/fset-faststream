@@ -147,6 +147,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override protected def env = securityEnvironment
+      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteConfig]
       when(securityEnvironment.userService).thenReturn(mockUserService)
     }
 

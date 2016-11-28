@@ -20,6 +20,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Base64
 
+import controllers.ApplicationRouteConfig
+import models.ApplicationRoute._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import play.api.Play
@@ -60,9 +62,7 @@ trait AppConfig {
   val emailConfig: EmailConfig
   val userManagementConfig: UserManagementConfig
   val faststreamConfig: FaststreamConfig
-  val faststreamFrontendConfig: ApplicationRouteFrontendConfig
-  val edipFrontendConfig: ApplicationRouteFrontendConfig
-  val sdipFrontendConfig: ApplicationRouteFrontendConfig
+  val applicationRoutesFrontend: Map[ApplicationRoute, ApplicationRouteConfig]
 }
 
 object FrontendAppConfig extends AppConfig with ServicesConfig {
@@ -83,23 +83,20 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
   override lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
   override lazy val faststreamConfig = configuration.underlying.as[FaststreamConfig]("microservice.services.faststream")
-  val faststreamFrontendConfig = ApplicationRouteFrontendConfig.read(
-    timeZone = configuration.getString("applicationRoute.timeZone"),
-    startNewAccountsDate = configuration.getString("applicationRoute.faststream.startNewAccountsDate"),
-    blockNewAccountsDate = configuration.getString("applicationRoute.faststream.blockNewAccountsDate"),
-    blockApplicationsDate = configuration.getString("applicationRoute.faststream.blockApplicationsDate")
+
+  override lazy val applicationRoutesFrontend = Map(
+    Faststream -> loadAppRouteConfig("faststream"),
+    Edip -> loadAppRouteConfig("edip"),
+    Sdip -> loadAppRouteConfig("sdip")
   )
-  val edipFrontendConfig = ApplicationRouteFrontendConfig.read(
-    timeZone = configuration.getString("applicationRoute.timeZone"),
-    startNewAccountsDate = configuration.getString("applicationRoute.edip.startNewAccountsDate"),
-    blockNewAccountsDate = configuration.getString("applicationRoute.edip.blockNewAccountsDate"),
-    blockApplicationsDate = configuration.getString("applicationRoute.edip.blockApplicationsDate")
-  )
-  val sdipFrontendConfig = ApplicationRouteFrontendConfig.read(
-    timeZone = configuration.getString("applicationRoute.timeZone"),
-    startNewAccountsDate = configuration.getString("applicationRoute.sdip.startNewAccountsDate"),
-    blockNewAccountsDate = configuration.getString("applicationRoute.sdip.blockNewAccountsDate"),
-    blockApplicationsDate = configuration.getString("applicationRoute.sdip.blockApplicationsDate")
+
+  def loadAppRouteConfig(routeKey: String) = ApplicationRouteConfig(
+    ApplicationRouteFrontendConfig.read(
+      timeZone = configuration.getString("applicationRoute.timeZone"),
+      startNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.startNewAccountsDate"),
+      blockNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.blockNewAccountsDate"),
+      blockApplicationsDate = configuration.getString(s"applicationRoute.$routeKey.blockApplicationsDate")
+    )
   )
 
   // Whitelist Configuration
