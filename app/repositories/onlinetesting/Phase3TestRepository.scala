@@ -19,7 +19,7 @@ package repositories.onlinetesting
 import common.Phase3TestConcern
 import config.MicroserviceAppConfig.sendPhase3InvitationJobConfig
 import factories.DateTimeFactory
-import model.{ ApplicationStatus, ReminderNotice }
+import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
@@ -120,15 +120,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   def removeTestGroup(applicationId: String): Future[Unit] = {
 
-    val phase3Progresses: List[ProgressStatus] = List(PHASE3_TESTS_INVITED,
-      PHASE3_TESTS_STARTED,
-      PHASE3_TESTS_FIRST_REMINDER,
-      PHASE3_TESTS_SECOND_REMINDER,
-      PHASE3_TESTS_COMPLETED,
-      PHASE3_TESTS_EXPIRED,
-      PHASE3_TESTS_RESULTS_RECEIVED,
-      PHASE3_TESTS_PASSED,
-      PHASE3_TESTS_FAILED)
+    val phase3Progresses = ProgressStatuses.allStatuses.filter(_.startsWith(phaseName))
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
