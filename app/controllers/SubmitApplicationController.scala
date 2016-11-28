@@ -25,10 +25,12 @@ import security.Roles.{ SubmitApplicationRole, WithdrawApplicationRole }
 
 import scala.concurrent.Future
 
-object SubmitApplicationController extends SubmitApplicationController(ApplicationClient, CSRCache)
+object SubmitApplicationController extends SubmitApplicationController(ApplicationClient, CSRCache) {
+  val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
+}
 
-class SubmitApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) {
+abstract class SubmitApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+  extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>

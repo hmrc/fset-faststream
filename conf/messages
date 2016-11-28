@@ -38,6 +38,12 @@ agree.sdipEligible = Confirm that you''re eligible to apply for the Summer Diver
 agree.hasAppliedToFaststream= You must tell us if you''ve applied to the Civil Service Fast Stream this year
 error.hasAppliedToFaststream= If you want to apply for the Summer Diversity Internship Programme and have an existing Fast Stream account, you need to sign in
 error.emailconfirm.notmatch = You must enter the same email address
+applicationRoute.Faststream.closed = Sorry, applications for the Civil Service Fast Stream are now closed
+applicationRoute.Faststream.notOpen = Sorry, applications for the Civil Service Fast Stream are opened from {0}
+applicationRoute.Sdip.closed = Sorry, applications for the Civil Service Summer Diversity Internship Programme are now closed
+applicationRoute.Sdip.notOpen = Sorry, applications for the Civil Service Summer Diversity Internship Programme are opened from {0}
+applicationRoute.Edip.closed = Sorry, applications for the Civil Service Early Diversity Internship Programme are now closed
+applicationRoute.Edip.notOpen = Sorry, applications for the Civil Service Early Diversity Internship Programme are opened from {0}
 
 # Reset password form
 reset.code.wrong-format = The password reset code must be 7 characters
