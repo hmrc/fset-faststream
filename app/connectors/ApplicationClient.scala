@@ -22,6 +22,7 @@ import config.CSRHttp
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.PartnerGraduateProgrammes._
 import connectors.exchange.Questionnaire._
+import connectors.exchange.PersonalDetails._
 import connectors.exchange._
 import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
@@ -86,11 +87,11 @@ trait ApplicationClient {
     }
   }
 
-  def updateGeneralDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, generalDetails: GeneralDetails)
-                          (implicit hc: HeaderCarrier) = {
+  def updatePersonalDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, personalDetails: PersonalDetails)
+                           (implicit hc: HeaderCarrier) = {
     http.POST(
       s"${url.host}${url.base}/personal-details/$userId/$applicationId",
-      generalDetails
+      personalDetails
     ).map {
       case x: HttpResponse if x.status == CREATED => ()
     } recover {
@@ -100,7 +101,7 @@ trait ApplicationClient {
 
   def getPersonalDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(s"${url.host}${url.base}/personal-details/$userId/$applicationId").map { response =>
-      response.json.as[GeneralDetails]
+      response.json.as[PersonalDetails]
     } recover {
       case e: NotFoundException => throw new PersonalDetailsNotFound()
     }

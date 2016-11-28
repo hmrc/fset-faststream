@@ -19,9 +19,9 @@ package controllers
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.exchange.{ CivilServiceExperienceDetailsExamples, GeneralDetailsExamples, SelectedSchemes }
+import connectors.exchange.{ CivilServiceExperienceDetailsExamples, PersonalDetailsExamples, SelectedSchemes }
 import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
-import forms.GeneralDetailsFormExamples._
+import forms.PersonalDetailsFormExamples._
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationRoute._
 import models._
@@ -56,8 +56,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     override val CandidateWithApp: CachedDataWithApp = candidateWithApp
   }
 
-  "present and continue" should {
-    "load general details page for the new user and generate submit link for continue the journey" in {
+  "present" should {
+    "load personal details page for the new user and generate return to dashboard link" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
@@ -66,22 +66,62 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content must include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
-      content must include(routes.PersonalDetailsController.submitGeneralDetailsAndContinue().url)
+      content must include(routes.PersonalDetailsController.submitPersonalDetails().url)
     }
 
-    "load general details page for the already created personal details" in {
+    "load edip personal details page for the new user and generate return to dashboard link" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
+        .thenReturn(Future.failed(new PersonalDetailsNotFound))
+
+      val result = controller(currentCandidateWithEdipApp).presentAndContinue()(fakeRequest)
+      assertPageTitle(result, "Personal details")
+      val content = contentAsString(result)
+      content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
+      content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
+      content must include(routes.PersonalDetailsController.submitPersonalDetails().url)
+    }
+
+    "load sdip personal details page for the new user and generate return to dashboard link" in {
+      when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new PersonalDetailsNotFound))
+
+      val result = controller(currentCandidateWithSdipApp).presentAndContinue()(fakeRequest)
+      assertPageTitle(result, "Personal details")
+      val content = contentAsString(result)
+      content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
+      content must include ("""<input name="edipCompleted" type="radio"""")
+      content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
+      content must include(routes.PersonalDetailsController.submitPersonalDetails().url)
+    }
+  }
+
+
+  "present and continue" should {
+    "load personal details page for the new user and generate submit link for continue the journey" in {
+      when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new PersonalDetailsNotFound))
+
+      val result = controller.presentAndContinue()(fakeRequest)
+      assertPageTitle(result, "Personal details")
+      val content = contentAsString(result)
+      content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
+      content must include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
+      content must include(routes.PersonalDetailsController.submitPersonalDetailsAndContinue().url)
+    }
+
+    "load personal details page for the already created personal details" in {
+      when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
 
       val result = controller.present()(fakeRequest)
 
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
-      content must include(s"""name="preferredName" value="${GeneralDetailsExamples.FullDetails.preferredName}"""")
+      content must include(s"""name="preferredName" value="${PersonalDetailsExamples.FullDetails.preferredName}"""")
       content must include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
     }
 
-    "load edip general details page for the new user and generate submit link for continue the journey" in {
+    "load edip personal details page for the new user and generate submit link for continue the journey" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
@@ -90,49 +130,49 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
-      content must include(routes.PersonalDetailsController.submitGeneralDetailsAndContinue().url)
+      content must include(routes.PersonalDetailsController.submitPersonalDetailsAndContinue().url)
     }
 
-    "load edip general details page for the already created personal details" in {
+    "load edip personal details page for the already created personal details" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
+        .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
 
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
 
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
-      content must include(s"""name="preferredName" value="${GeneralDetailsExamples.FullDetails.preferredName}"""")
+      content must include(s"""name="preferredName" value="${PersonalDetailsExamples.FullDetails.preferredName}"""")
       content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
     }
-  }
 
-  "present" should {
-    "load general details page for the new user and generate return to dashboard link" in {
+    "load sdip personal details page for the new user and generate submit link for continue the journey" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
-      val result = controller.presentAndContinue()(fakeRequest)
-      assertPageTitle(result, "Personal details")
-      val content = contentAsString(result)
-      content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
-      content must include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
-      content must include(routes.PersonalDetailsController.submitGeneralDetails().url)
-    }
-
-    "load edip general details page for the new user and generate return to dashboard link" in {
-      when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.failed(new PersonalDetailsNotFound))
-
-      val result = controller(currentCandidateWithEdipApp).presentAndContinue()(fakeRequest)
+      val result = controller(currentCandidateWithSdipApp).presentAndContinue()(fakeRequest)
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
-      content must include(routes.PersonalDetailsController.submitGeneralDetails().url)
+      content must include ("""<input name="edipCompleted" type="radio"""")
+      content must include(routes.PersonalDetailsController.submitPersonalDetailsAndContinue().url)
+    }
+
+    "load sdip personal details page for the already created personal details" in {
+      when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
+
+      val result = controller(currentCandidateWithSdipApp).present()(fakeRequest)
+
+      assertPageTitle(result, "Personal details")
+      val content = contentAsString(result)
+      content must include(s"""name="preferredName" value="${PersonalDetailsExamples.FullDetails.preferredName}"""")
+      content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
+      content must include ("""<input name="edipCompleted" type="radio"""")
     }
   }
 
-  "submit general details" should {
+  "submit personal details" should {
     when(mockUserManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
       eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
@@ -144,16 +184,16 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
           civilServiceExperienceDetails = Some(CivilServiceExperienceDetailsExamples.CivilServantExperience))
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+      when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
-      val result = controller.submitGeneralDetailsAndContinue()(Request)
+      val result = controller.submitPersonalDetailsAndContinue()(Request)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))
     }
 
-    "update edip candidate's details and return to scheme preferences" in {
+    "update edip candidate's details and return to assistance details" in {
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InProgress))
       val Application = currentCandidateWithEdipApp.application
@@ -165,11 +205,33 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
       when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier],
         any[Request[_]])).thenReturn(Future.successful(UpdatedCandidate))
-      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+      when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
-      val result = controller(currentCandidateWithEdipApp).submitGeneralDetailsAndContinue()(Request)
+      val result = controller(currentCandidateWithEdipApp).submitPersonalDetailsAndContinue()(Request)
+
+      status(result) must be(SEE_OTHER)
+      redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
+    }
+
+    "update sdip candidate's details and return to assistance details" in {
+      when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(ProgressResponseExamples.InProgress))
+      val Application = currentCandidateWithSdipApp.application
+        .copy(progress = ProgressResponseExamples.InProgress, applicationStatus = ApplicationStatus.IN_PROGRESS,
+          civilServiceExperienceDetails = None)
+      val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
+      when(mockSchemeClient.updateSchemePreferences(eqTo(SelectedSchemes(List(Edip), orderAgreed = true, eligible = true))
+      )(eqTo(Application.applicationId))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+      when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
+      when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier],
+        any[Request[_]])).thenReturn(Future.successful(UpdatedCandidate))
+      when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+        eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+
+      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
+      val result = controller(currentCandidateWithEdipApp).submitPersonalDetailsAndContinue()(Request)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
@@ -184,10 +246,10 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
         .copy(progress = ProgressResponseExamples.Submitted, applicationStatus = ApplicationStatus.SUBMITTED)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
-      when(mockApplicationClient.updateGeneralDetails(eqTo(currentApplicationId), eqTo(currentUserId),
+      when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(false))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
-      val result = controller.submitGeneralDetails()(Request)
+      val result = controller.submitPersonalDetails()(Request)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))

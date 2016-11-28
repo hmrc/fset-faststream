@@ -17,7 +17,7 @@
 package controllers
 
 import _root_.forms.FastPassForm._
-import _root_.forms.GeneralDetailsForm
+import _root_.forms.PersonalDetailsForm
 import config.CSRCache
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.CivilServiceExperienceDetails._
@@ -41,7 +41,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
                                 schemeClient: SchemeClient,
                                 cacheClient: CSRCache,
                                 userManagementClient: UserManagementClient)
-  extends BaseController(applicationClient, cacheClient) with GeneralDetailsToExchangeConverter {
+  extends BaseController(applicationClient, cacheClient) with PersonalDetailsToExchangeConverter {
 
   private sealed trait OnSuccess
   private case object ContinueToNextStepInJourney extends OnSuccess
@@ -63,7 +63,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
     val continueToTheNextStep = continuetoTheNextStep(afterSubmission)
 
     applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId).map { gd =>
-      val form = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
+      val form = PersonalDetailsForm.form.fill(PersonalDetailsForm.Data(
         gd.firstName,
         gd.lastName,
         gd.preferredName,
@@ -73,13 +73,14 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
         gd.postCode,
         gd.country,
         gd.phone,
-        gd.civilServiceExperienceDetails
+        gd.civilServiceExperienceDetails,
+        gd.edipCompleted.map(_.toString)
       ))
       Ok(views.html.application.generalDetails(form, continueToTheNextStep))
 
     }.recover {
       case e: PersonalDetailsNotFound =>
-        val formFromUser = GeneralDetailsForm.form.fill(GeneralDetailsForm.Data(
+        val formFromUser = PersonalDetailsForm.form.fill(PersonalDetailsForm.Data(
           user.user.firstName,
           user.user.lastName,
           user.user.firstName,
@@ -89,26 +90,29 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
           postCode = None,
           country = None,
           phone = None,
-          civilServiceExperienceDetails = EmptyCivilServiceExperienceDetails
+          civilServiceExperienceDetails = EmptyCivilServiceExperienceDetails,
+          edipCompleted = None
         ))
         Ok(views.html.application.generalDetails(formFromUser, continueToTheNextStep))
     }
   }
 
-  def submitGeneralDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
+  def submitPersonalDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
     implicit user =>
-      val redirect = if(user.application.applicationRoute == ApplicationRoute.Edip) {
-        Redirect(routes.AssistanceDetailsController.present())
-      } else {
+      val redirect = if(user.application.applicationRoute == ApplicationRoute.Faststream) {
         Redirect(routes.SchemePreferencesController.present())
+      } else {
+        Redirect(routes.AssistanceDetailsController.present())
       }
-      submit(GeneralDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, redirect)
+      submit(PersonalDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, redirect)
   }
 
-  def submitGeneralDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
+  def submitPersonalDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
-      submit(GeneralDetailsForm.form(LocalDate.now, ignoreFastPassValidations = true), RedirectToTheDashboard,
-        Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")), user.application.civilServiceExperienceDetails)
+      submit(PersonalDetailsForm.form(LocalDate.now, ignoreFastPassValidations = true), RedirectToTheDashboard,
+        Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")),
+        user.application.civilServiceExperienceDetails,
+        user.application.edipCompleted)
   }
 
   private def continuetoTheNextStep(onSuccess: OnSuccess) = onSuccess match {
@@ -116,26 +120,29 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
     case RedirectToTheDashboard => false
   }
 
-  private def submit(generalDetailsForm: Form[GeneralDetailsForm.Data], onSuccess: OnSuccess, redirectOnSuccess: Result,
-                     overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None)
+  private def submit(personalDetailsForm: Form[PersonalDetailsForm.Data], onSuccess: OnSuccess, redirectOnSuccess: Result,
+                     overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None,
+                     overrideEdipCompleted: Option[Boolean] = None)
                     (implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
 
-    val handleFormWithErrors = (errorForm:Form[GeneralDetailsForm.Data]) => {
+    val handleFormWithErrors = (errorForm:Form[PersonalDetailsForm.Data]) => {
       Future.successful(Ok(views.html.application.generalDetails(
-        generalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess)))
+        personalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess)))
       )
     }
 
-    val handleValidForm = (form: GeneralDetailsForm.Data) => {
+    val handleValidForm = (form: PersonalDetailsForm.Data) => {
       val civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] =
         overrideCivilServiceExperienceDetails.orElse(form.civilServiceExperienceDetails)
+      val edipCompleted = overrideEdipCompleted.orElse(form.edipCompleted.map(_.toBoolean))
       for {
-        _ <- applicationClient.updateGeneralDetails(cachedData.application.applicationId, cachedData.user.userID,
+        _ <- applicationClient.updatePersonalDetails(cachedData.application.applicationId, cachedData.user.userID,
           toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideCivilServiceExperienceDetails))
         _ <- createDefaultSchemes
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
         redirect <- updateProgress(data => {
-          val applicationCopy = data.application.map(_.copy(civilServiceExperienceDetails = civilServiceExperienceDetails))
+          val applicationCopy = data.application.map(
+            _.copy(civilServiceExperienceDetails = civilServiceExperienceDetails, edipCompleted = edipCompleted))
           data.copy(user = cachedData.user.copy(firstName = form.firstName, lastName = form.lastName,
             preferredName = Some(form.preferredName)), application =
             if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)
@@ -144,12 +151,12 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
         redirect
       }
     }
-    generalDetailsForm.bindFromRequest.fold(handleFormWithErrors, handleValidForm)
+    personalDetailsForm.bindFromRequest.fold(handleFormWithErrors, handleValidForm)
   }
 
   private def createDefaultSchemes(implicit cacheData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Unit] =
     cacheData.application.applicationRoute match {
-    case appRoute if appRoute == ApplicationRoute.Edip =>
+    case appRoute@(ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
       for {
         _ <- schemeClient.updateSchemePreferences(SelectedSchemes(List(appRoute), orderAgreed = true,
           eligible = true))(cacheData.application.applicationId)
@@ -160,14 +167,15 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
 
 }
 
-trait GeneralDetailsToExchangeConverter {
+trait PersonalDetailsToExchangeConverter {
 
-  def toExchange(generalDetails: GeneralDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean],
-                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None) = {
-    val gd = generalDetails.insideUk match {
-      case true => generalDetails.copy(country = None)
-      case false => generalDetails.copy(postCode = None)
+  def toExchange(personalDetails: PersonalDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean],
+                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None,
+                 edipCompleted: Option[Boolean] = None) = {
+    val pd = personalDetails.insideUk match {
+      case true => personalDetails.copy(country = None)
+      case false => personalDetails.copy(postCode = None)
     }
-    gd.toExchange(email, updateApplicationStatus, civilServiceExperienceDetails)
+    pd.toExchange(email, updateApplicationStatus, civilServiceExperienceDetails, edipCompleted)
   }
 }

@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.exchange.{ AssistanceDetailsExamples, GeneralDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
+import connectors.exchange.{ AssistanceDetailsExamples, PersonalDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
 import connectors.{ ApplicationClient, SchemeClient }
 import forms.AssistanceDetailsFormExamples
 import models.SecurityUserExamples._
@@ -62,6 +62,23 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content mustNot include("""<ul id="schemePreferenceList" class="list-text">""")
       content must include("Will you need any extra support for your phone interview?")
+    }
+
+    "load preview page for existing sdip application" in new TestFixture {
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.SdipAdjustments))
+      when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(PersonalDetailsExamples.SdipFullDetailsWithEdipCompleted))
+
+      val result = controller(currentCandidateWithSdipApp).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+      content must include("<title>Check your application")
+      content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
+      content mustNot include("""<ul id="schemePreferenceList" class="list-text">""")
+      content must include("Will you need any extra support for your phone interview?")
+      content must include("<p id=\"edipCompleted\">Yes</p>")
+      content must include("Have you completed the Early Diversity Internship Programme (EDIP)?")
     }
 
     "redirect to home page with error when personal details cannot be found" in new TestFixture {
@@ -123,7 +140,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     val mockUserService = mock[UserService]
 
     when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
+      .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
     when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(SchemePreferencesExamples.DefaultSelectedSchemes))
     when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))

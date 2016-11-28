@@ -1,13 +1,19 @@
 @(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit user: Option[CachedData], lang: play.api.i18n.Lang)
 
+@import security.RoleUtils._
 @import views.html.widgets.{ checkbox, selectValueDifferentFromDisplayedText }
 @import views.html.questionnaire.components.{ postcode, school, universityName, universityDegreeCategory }
 
-
 <h2 class="heading-medium">University</h2>
 <div class="panel-indent text">
-    <p>This data helps us compare the average performance of certain universities
-        to the national average.</p>
+    @if(isFaststream(user) || isEdip(user)) {
+        <p>This data helps us compare the average performance of certain universities
+            to the national average.</p>
+    } else {@if(isSdip(user)) {
+        <p>This data helps us monitor the application rates and performance of applicants from different universities and disciplines
+            enabling us to target maximum opportunity for all.</p>
+    }}
+
 </div>
 @universityName(questionnaireForm)
 @universityDegreeCategory(questionnaireForm)

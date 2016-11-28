@@ -17,14 +17,14 @@
 package forms
 
 import controllers.UnitSpec
-import forms.GeneralDetailsFormExamples._
+import forms.PersonalDetailsFormExamples._
 import org.joda.time.LocalDate
 import org.scalatestplus.play.PlaySpec
 
-class GeneralDetailsFormSpec extends UnitSpec {
+class PersonalDetailsFormSpec extends UnitSpec {
   implicit val now = LocalDate.now
 
-  import GeneralDetailsForm.{ form => personalDetailsForm }
+  import PersonalDetailsForm.{ form => personalDetailsForm }
 
   "Personal Details form" should {
     "be invalid for missing mandatory fields" in {
@@ -133,13 +133,31 @@ class GeneralDetailsFormSpec extends UnitSpec {
     "be invalid without any phone number" in {
       assertFormError("error.phone.required", ValidUKAddress + ("phone" -> ""))
     }
+
+    "be valid with all mandatory fields for an sdip candidate" in {
+      val form = personalDetailsForm.bind(SdipInProgressValidOutsideUKDetails)
+
+      form.hasErrors must be(false)
+      form.hasGlobalErrors must be(false)
+    }
+
+    "be valid with all mandatory fields except edip completed question for submitted sdip candidate" in {
+      val form = personalDetailsForm.bind(SdipSubmittedValidOutsideUKDetails - "edipCompleted")
+
+      form.hasErrors must be(false)
+      form.hasGlobalErrors must be(false)
+    }
+
+    "be invalid with all mandatory fields except edip completed question for in progress sdip candidate" in {
+      assertFormError("error.needsEdipCompleted.required", (SdipInProgressValidOutsideUKDetails - "edipCompleted"))
+    }
   }
 
   def assertFieldRequired(expectedError: String, fieldKey: String) =
     assertFormError(expectedError, ValidUKAddress + (fieldKey -> ""))
 
   def assertFormError(expectedError: String, invalidFormValues: Map[String, String]) = {
-    val invalidForm = GeneralDetailsForm.form.bind(invalidFormValues)
+    val invalidForm = PersonalDetailsForm.form.bind(invalidFormValues)
     invalidForm.hasErrors mustBe true
     invalidForm.errors.map(_.message) mustBe Seq(expectedError)
   }
@@ -148,7 +166,7 @@ class GeneralDetailsFormSpec extends UnitSpec {
     val day = validDate.getDayOfMonth.toString
     val month = validDate.getMonthOfYear.toString
     val year = validDate.getYear.toString
-    val validForm = GeneralDetailsForm.form.bind(ValidUKAddress +
+    val validForm = PersonalDetailsForm.form.bind(ValidUKAddress +
       ("dateOfBirth.day" -> day) +
       ("dateOfBirth.month" -> month) +
       ("dateOfBirth.year" -> year))

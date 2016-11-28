@@ -31,10 +31,10 @@
 @renderProgressElements = {
     <li><i class="fa fa-check the-icon"></i>Create your account</li>
     @renderProgressElement(showLink = EditPersonalDetailsAndContinueRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.presentAndContinue()) {Add personal details }
-    @if(!isEdip(usr)) {
+    @if(isFaststream(usr)) {
         @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = hasSchemes(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose your schemes }
     }
-    @if(!isEdip(usr) && !isCivilServant(usr)) {
+    @if(isFaststream(usr) && !isCivilServant(usr)) {
         @renderProgressElement(showLink = PartnerGraduateProgrammesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "partnerGraduateProgrammesStep")(routes.PartnerGraduateProgrammesController.present()) { Defer your place }
     }
     @renderProgressElement(showLink = (AssistanceDetailsRole.isAuthorized(usr) || hasAssistanceDetails(usr)), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Disability and health conditions }
@@ -141,8 +141,8 @@
                                 }
                                 <p><a href="https://www.faststream.gov.uk/faqs/"
                                 rel="external" target="_blank">Find out more about the assessment day</a></p>
-                            } else { @if(isEdip(usr)) {
-                                @home.edipExtraInfo(usr)
+                            } else { @if(isEdip(usr) || isSdip(usr)) {
+                                @home.diversityInternExtraInfo(usr)
                             }}
                         </div>
                     </div>
@@ -160,8 +160,8 @@
                                 <p><a href="https://www.faststream.gov.uk/faqs/"
                                 rel="external" target="_blank">
                                     Find out more about what happens after you've been accepted for the Fast Stream</a></p>
-                            } else { @if(isEdip(usr)) {
-                                @home.edipFinalStages(usr)
+                            } else { @if(isEdip(usr) || isSdip(usr)) {
+                                @home.diversityInternFinalStages(usr)
                             }}
                         </div>
                     </div>

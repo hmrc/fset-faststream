@@ -26,8 +26,10 @@ object AssistanceDetailsForm {
   val isFastStream = (requestParams: Map[String, String]) =>
     requestParams.getOrElse("applicationRoute", Faststream.toString) == Faststream.toString
 
-  val isEdip = (requestParams: Map[String, String]) =>
-    requestParams.getOrElse("applicationRoute", Faststream.toString) == Edip.toString
+  val isEdipOrSdip = (requestParams: Map[String, String]) => {
+    requestParams.getOrElse("applicationRoute", Faststream.toString) == Edip.toString ||
+      requestParams.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
+  }
 
   val form = Form(
     mapping(
@@ -40,7 +42,7 @@ object AssistanceDetailsForm {
       "needsSupportAtVenue" -> of(Mappings.mayBeOptionalString("error.needsSupportAtVenue.required", 31, isFastStream)),
       "needsSupportAtVenueDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportAtVenue", "needsSupportAtVenueDescription",
         Some(2048))),
-      "needsSupportForPhoneInterview" -> of(Mappings.mayBeOptionalString("error.needsSupportForPhoneInterview.required", 31, isEdip)),
+      "needsSupportForPhoneInterview" -> of(Mappings.mayBeOptionalString("error.needsSupportForPhoneInterview.required", 31, isEdipOrSdip)),
       "needsSupportForPhoneInterviewDescription" ->
         of(requiredFormatterWithMaxLengthCheck("needsSupportForPhoneInterview", "needsSupportForPhoneInterviewDescription", Some(2048)))
     )(Data.apply)(Data.unapply)

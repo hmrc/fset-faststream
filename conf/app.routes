@@ -36,9 +36,9 @@ POST        /application/withdraw                                   controllers.
 #POST        /application/confirm-allocation                         controllers.HomeController.confirmAlloc
 
 GET         /application/details                                    controllers.PersonalDetailsController.present
-POST        /application/details                                    controllers.PersonalDetailsController.submitGeneralDetails
+POST        /application/details                                    controllers.PersonalDetailsController.submitPersonalDetails
 GET         /application/details/continue                           controllers.PersonalDetailsController.presentAndContinue
-POST        /application/details/continue                           controllers.PersonalDetailsController.submitGeneralDetailsAndContinue
+POST        /application/details/continue                           controllers.PersonalDetailsController.submitPersonalDetailsAndContinue
 
 GET         /application/partner-graduate-programmes                controllers.PartnerGraduateProgrammesController.present
 POST        /application/partner-graduate-programmes                controllers.PartnerGraduateProgrammesController.submit

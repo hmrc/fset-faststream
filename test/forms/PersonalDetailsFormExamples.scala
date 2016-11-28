@@ -21,7 +21,7 @@ import connectors.exchange.CivilServiceExperienceDetails.toData
 import mappings.{ AddressExamples, DayMonthYear }
 import org.joda.time.{ DateTime, LocalDate }
 
-object GeneralDetailsFormExamples {
+object PersonalDetailsFormExamples {
   val ValidOutsideUKDetails = Map[String, String](
     "firstName" -> "John",
     "lastName" -> "Biggs",
@@ -55,13 +55,32 @@ object GeneralDetailsFormExamples {
     "civilServiceExperienceDetails.applicable"
   )
 
-  val ValidUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
-    outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), None, Some("1234567890"),
-    toData(Some(CivilServiceExperienceDetails(applicable = false))))
+  val SdipInProgressValidOutsideUKDetails = Map[String, String](
+    "applicationRoute" -> "Sdip",
+    "applicationStatus" -> "IN_PROGRESS",
+    "firstName" -> "John",
+    "lastName" -> "Biggs",
+    "preferredName" -> "john",
+    "dateOfBirth.day" -> "1",
+    "dateOfBirth.month" -> "2",
+    "dateOfBirth.year" -> "1990",
+    "address.line1" -> "Line 1",
+    "outsideUk" -> "true",
+    "country" -> "France",
+    "phone" -> "123456789",
+    "civilServiceExperienceDetails.applicable" -> "false",
+    "edipCompleted" -> "true"
+  )
 
-  val ValidNonUKAddressForm = GeneralDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
+  val SdipSubmittedValidOutsideUKDetails = SdipInProgressValidOutsideUKDetails + ("applicationStatus" -> "SUBMITTED")
+
+  val ValidUKAddressForm = PersonalDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
+    outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), None, Some("1234567890"),
+    toData(Some(CivilServiceExperienceDetails(applicable = false))), None)
+
+  val ValidNonUKAddressForm = PersonalDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
     outsideUk = Some(true), AddressExamples.FullAddress, None, Some("France"), Some("1234567890"),
-    toData(Some(CivilServiceExperienceDetails(applicable = false))))
+    toData(Some(CivilServiceExperienceDetails(applicable = false))), None)
 
   val ValidFormUrlEncodedBody = Seq(
     "firstName" -> ValidUKAddressForm.firstName,

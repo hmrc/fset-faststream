@@ -29,7 +29,8 @@ case class ApplicationData(applicationId: UniqueIdentifier,
                            applicationStatus: ApplicationStatus,
                            applicationRoute: ApplicationRoute,
                            progress: Progress,
-                           civilServiceExperienceDetails: Option[CivilServiceExperienceDetails]
+                           civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
+                           edipCompleted: Option[Boolean]
                           ) {
   import ApplicationData.ApplicationStatus._
   def isPhase1 = applicationStatus == PHASE1_TESTS || applicationStatus == PHASE1_TESTS_PASSED || applicationStatus == PHASE1_TESTS_FAILED
@@ -72,7 +73,7 @@ object ApplicationData {
 
   implicit def fromAppRespToAppData(resp: ApplicationResponse): ApplicationData =
     new ApplicationData(resp.applicationId, resp.userId, ApplicationStatus.withName(resp.applicationStatus),
-      resp.applicationRoute, resp.progressResponse, resp.civilServiceExperienceDetails)
+      resp.applicationRoute, resp.progressResponse, resp.civilServiceExperienceDetails, None)
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
 

@@ -1,0 +1,10 @@
+@import security.RoleUtils._
+@(cachedUserData: CachedData)
+
+@dateLabel = @{
+    if(isEdip(cachedUserData)) "February 2017"
+    else if(isSdip(cachedUserData)) "April 2017"
+}
+
+<h2 class="heading-medium ">4. Final stages</h2>
+<p>We aim to let you know the outcome of your phone interview by @dateLabel.</p>

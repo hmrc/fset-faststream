@@ -1,4 +1,4 @@
-@(field: play.api.data.Field, question: String, noMessage: String, description: Option[String] = None)
+@(field: play.api.data.Field, question: String, noMessage: Option[String], description: Option[String] = None)
 
 @import helpers.CSRSkinnyFieldConstructor._
 
@@ -17,16 +17,24 @@
             <label for="@id-yes" class="block-label">
                 <input name="@name" type="radio" id="@id-yes" value="true" @selectRadio(value, "yes")>Yes
             </label>
-            <label data-target="@name-panel" for="@id-no" class="block-label">
-                <input name="@name" type="radio" id="@id-no" aria-controls="@name-panel"
-                aria-expanded="false" value="false" @selectRadio(value, "no")>No
-            </label>
+            @if(noMessage.isDefined) {
+                <label data-target="@name-panel" for="@id-no" class="block-label">
+                    <input name="@name" type="radio" id="@id-no" aria-controls="@name-panel"
+                    aria-expanded="false" value="false" @selectRadio(value, "no")>No
+                </label>
+            } else {
+                <label for="@id-no" class="block-label">
+                    <input name="@name" type="radio" id="@id-no" aria-controls="@name-panel"
+                    aria-expanded="false" value="false" @selectRadio(value, "no")>No
+                </label>
+            }
         </div>
-
-        <div id="@name-panel" class="toggle-content">
-            <div class="panel-danger" role="alert">
-                <p>@noMessage</p>
+        @if(noMessage.isDefined) {
+            <div id="@name-panel" class="toggle-content">
+                <div class="panel-danger" role="alert">
+                    <p>@noMessage</p>
+                </div>
             </div>
-        </div>
+        }
     </fieldset>
 }
