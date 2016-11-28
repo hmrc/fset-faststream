@@ -16,6 +16,8 @@
 
 package repositories.onlinetesting
 
+import config.LaunchpadGatewayConfig
+import factories.DateTimeFactory
 import model.ApplicationStatus._
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
@@ -47,29 +49,7 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
 
   implicit val applicationBSONReader: BSONDocumentReader[T]
 
-  val nextApplicationQuery = (currentPassmarkVersion: String) => phase == prevPhase match {
-    case true =>
-      BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
-        BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
-        BSONDocument("$or" -> BSONArray(
-          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
-          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
-        ))
-      ))
-    case false =>
-      BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
-        BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
-        BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
-        BSONDocument("$or" -> BSONArray(
-          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
-          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
-          BSONDocument("$where" ->
-            s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
-        )
-      ))
-  }
+  val nextApplicationQuery: String => BSONDocument
 
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int)(implicit jsonFormat: Format[T]):
   Future[List[T]] = selectRandom[T](nextApplicationQuery(currentPassmarkVersion), batchSize)
@@ -136,6 +116,16 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     val phase1: Phase1TestProfile = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
     applicationEvaluationBuilder(phase1.activeTests, None, None)(doc)
   })
+
+  val nextApplicationQuery = (currentPassmarkVersion: String) =>
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
+        BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+        BSONDocument("$or" -> BSONArray(
+          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
+        ))
+      ))
 }
 
 class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
@@ -158,12 +148,29 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
     val phase1Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
     applicationEvaluationBuilder(phase2.activeTests, None, Some(phase1Evaluation))(doc)
   })
+
+  val nextApplicationQuery = (currentPassmarkVersion: String) =>
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
+        BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+        BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
+        BSONDocument("$or" -> BSONArray(
+          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
+          BSONDocument("$where" ->
+            s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
+        )
+      ))
 }
 
-class Phase3EvaluationMongoRepository()(implicit mongo: () => DB)
+class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayConfig)(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] with BaseBSONReader {
+
+  import repositories.BSONDateTimeHandler
+
+  val hoursToWaitAfterLastReviewed = 72
 
   val phase = PHASE3
 
@@ -180,4 +187,26 @@ class Phase3EvaluationMongoRepository()(implicit mongo: () => DB)
     val phase2Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
     applicationEvaluationBuilder(Nil, phase3.activeTests.headOption, Some(phase2Evaluation))(doc)
   })
+
+  val nextApplicationQuery = (currentPassmarkVersion: String) =>
+    BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
+      BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+      BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
+      BSONDocument(s"testGroups.$phase.tests" ->
+        BSONDocument("$elemMatch" -> BSONDocument(
+          "usedForResults" -> true, "callbacks.reviewed" -> BSONDocument("$exists" -> true),
+          "callbacks.reviewed" -> BSONDocument("$not" ->
+              BSONDocument("$elemMatch" -> BSONDocument("received" -> BSONDocument("$gt" ->
+                DateTimeFactory.nowLocalTimeZone.minusHours(launchpadGatewayConfig.phase3Tests.hrsToWaitAfterResultsReceived)))))
+          )
+        )
+      ),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
+        BSONDocument("$where" ->
+          s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
+      )
+    ))
 }

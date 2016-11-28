@@ -1,6 +1,6 @@
 package repositories
 
-import config.CubiksGatewayConfig
+import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig }
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Phase1TestExamples._
@@ -17,7 +17,7 @@ import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting._
-import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, Phase3PassMarkSettingsMongoRepository }
+import repositories.passmarksettings._
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
@@ -28,6 +28,8 @@ trait CommonRepository {
   import reactivemongo.json.ImplicitBSONHandlers._
 
   val mockGatewayConfig = mock[CubiksGatewayConfig]
+
+  val mockLaunchpadConfig = mock[LaunchpadGatewayConfig]
 
   def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig)
 
@@ -45,7 +47,7 @@ trait CommonRepository {
 
   def phase2EvaluationRepo = new Phase2EvaluationMongoRepository()
 
-  def phase3EvaluationRepo = new Phase3EvaluationMongoRepository()
+  def phase3EvaluationRepo = new Phase3EvaluationMongoRepository(mockLaunchpadConfig)
 
   def phase1PassMarkSettingRepo = new Phase1PassMarkSettingsMongoRepository()
 

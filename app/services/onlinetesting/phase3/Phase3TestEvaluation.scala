@@ -32,12 +32,12 @@ trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
       schemeToEvaluate <- schemes
       schemePassmarkOpt = passmark.schemes find (_.schemeName == schemeToEvaluate)
       schemePassmark <- schemePassmarkOpt
-      phase1SchemeEvaluation <- phase2SchemesEvaluation.find(_.scheme == schemeToEvaluate)
+      phase2SchemeEvaluation <- phase2SchemesEvaluation.find(_.scheme == schemeToEvaluate)
     } yield {
       val Phase3Result = evaluateTestResult(schemePassmark.schemeThresholds.videoInterview)(
         Some(launchpadTestResult.calculateTotalScore()))
-      val phase1Result = Result(phase1SchemeEvaluation.result)
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, Phase3Result).toString)
+      val phase2Result = Result(phase2SchemeEvaluation.result)
+      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase2Result, Phase3Result).toString)
     }
   }
 }

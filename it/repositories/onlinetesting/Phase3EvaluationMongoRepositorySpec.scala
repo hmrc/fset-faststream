@@ -1,5 +1,6 @@
 package repositories.onlinetesting
 
+import config.{ LaunchpadGatewayConfig, Phase3TestsConfig }
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.SchemeType._
@@ -18,6 +19,11 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   import ImplicitBSONHandlers._
   import Phase2EvaluationMongoRepositorySpec._
   import model.Phase3TestProfileExamples._
+
+  implicit val hrsBeforeLastReviewed = 72
+
+  override val mockLaunchpadConfig = LaunchpadGatewayConfig("", Phase3TestsConfig(0, 0, "",
+    Map.empty[String, Int], 72))
 
   val collectionName: String = "application"
 
@@ -64,6 +70,19 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version2", batchSize = 1).futureValue
 
       assertApplication(result.head, phase2Evaluation)
+    }
+
+    "return nothing when phase3 test results are not reviewed before 72 hours" in {
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave)
+      insertApplication("app1", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
+        Some(phase3TestWithResult(10)), phase2Evaluation = Some(phase2Evaluation))
+
+      val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave)
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
+
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version2", batchSize = 1).futureValue
+
+      result mustBe empty
     }
 
     "return evaluated application in PHASE3_TESTS status when phase2 results are re-evaluated" in {

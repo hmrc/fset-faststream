@@ -100,7 +100,8 @@ case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
 case class Phase3TestsConfig(timeToExpireInDays: Int,
                              invigilatedTimeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
-                             interviewsByAdjustmentPercentage: Map[String, Int])
+                             interviewsByAdjustmentPercentage: Map[String, Int],
+                             hrsToWaitAfterResultsReceived: Int)
 
 case class AssessmentCentresLocationsConfig(yamlFilePath: String)
 case class AssessmentCentresConfig(yamlFilePath: String)

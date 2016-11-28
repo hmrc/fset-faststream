@@ -65,25 +65,29 @@ object Phase3TestProfileExamples {
           "John Smith",
           "john.smith@mailinator.com",
           Some("This is a comment"),
-          generateReviewedQuestion(1, None, None),
-          generateReviewedQuestion(2, None, None),
-          generateReviewedQuestion(3, None, None),
-          generateReviewedQuestion(4, None, None),
-          generateReviewedQuestion(5, None, None),
-          generateReviewedQuestion(6, None, None),
-          generateReviewedQuestion(7, None, None),
-          generateReviewedQuestion(8, Some(score), None)
+          generateReviewedQuestion(1, Some(0.0), Some(0.0)),
+          generateReviewedQuestion(2, Some(0.0), Some(0.0)),
+          generateReviewedQuestion(3, Some(0.0), Some(0.0)),
+          generateReviewedQuestion(4, Some(0.0), Some(0.0)),
+          generateReviewedQuestion(5, Some(0.0), Some(0.0)),
+          generateReviewedQuestion(6, Some(0.0), Some(0.0)),
+          generateReviewedQuestion(7, Some(0.0), Some(0.0)),
+          generateReviewedQuestion(8, Some(score), Some(0.0))
         ), None, None
       )
     )
   )
 
   val phase3Test = Phase3TestGroup(expirationDate = DatePlus7Days, tests = List(launchPadTest))
-  val phase3TestWithResult = phase3TestWithResults(50.0).activeTests
 
-  def phase3TestWithResults(videoInterviewScore: Double) = {
+  def phase3TestWithResult(implicit hrsBeforeLastReviewed: Int = 0) = {
+    phase3TestWithResults(50.0, hrsBeforeLastReviewed).activeTests
+  }
+
+  def phase3TestWithResults(videoInterviewScore: Double, hrsBeforeLastReviewed: Int = 0) = {
     val launchPadTestWithResult = launchPadTest.copy(callbacks =
-      LaunchpadTestCallbacks(reviewed = List(sampleReviewedCallback(videoInterviewScore))))
+      LaunchpadTestCallbacks(reviewed = List(sampleReviewedCallback(videoInterviewScore).copy(
+        received = DateTime.now().minusHours(hrsBeforeLastReviewed)))))
     Phase3TestGroup(expirationDate = DatePlus7Days, tests = List(launchPadTestWithResult))
   }
 
