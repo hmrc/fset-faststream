@@ -17,24 +17,26 @@
 package controllers
 
 import model.Exceptions._
-import model.command.UpdateGeneralDetailsExamples._
+import model.command.PersonalDetails
+import model.command.UpdatePersonalDetailsExamples._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
 import services.AuditService
-import services.generaldetails.CandidateDetailsService
+import services.personaldetails.PersonalDetailsService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
+import play.api.libs.json.Json
 
 import scala.concurrent.Future
 
-class CandidateDetailsControllerSpec extends UnitWithAppSpec {
-  val mockCandidateDetailsService = mock[CandidateDetailsService]
+class PersonalDetailsControllerSpec extends UnitWithAppSpec {
+  val mockCandidateDetailsService = mock[PersonalDetailsService]
   val mockAuditService = mock[AuditService]
 
-  val controller = new CandidateDetailsController {
-    val candidateDetailsService = mockCandidateDetailsService
+  val controller = new PersonalDetailsController {
+    val personalDetailsService = mockCandidateDetailsService
     val auditService = mockAuditService
   }
 
@@ -45,7 +47,7 @@ class CandidateDetailsControllerSpec extends UnitWithAppSpec {
       when(mockCandidateDetailsService.update(AppId, UserId, CandidateContactDetailsUK)).thenReturn(emptyFuture)
       reset(mockAuditService)
 
-      val response = controller.updateDetails(UserId, AppId)(Request)
+      val response = controller.update(UserId, AppId)(Request)
 
       status(response) mustBe CREATED
       verify(mockAuditService).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
@@ -56,7 +58,7 @@ class CandidateDetailsControllerSpec extends UnitWithAppSpec {
         .thenReturn(Future.failed(CannotUpdateContactDetails(UserId)))
       reset(mockAuditService)
 
-      val response = controller.updateDetails(UserId, AppId)(Request)
+      val response = controller.update(UserId, AppId)(Request)
 
       status(response) mustBe BAD_REQUEST
       verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
@@ -67,7 +69,7 @@ class CandidateDetailsControllerSpec extends UnitWithAppSpec {
         .thenReturn(Future.failed(CannotUpdateCivilServiceExperienceDetails(AppId)))
       reset(mockAuditService)
 
-      val response = controller.updateDetails(UserId, AppId)(Request)
+      val response = controller.update(UserId, AppId)(Request)
 
       status(response) mustBe BAD_REQUEST
       verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
@@ -78,7 +80,7 @@ class CandidateDetailsControllerSpec extends UnitWithAppSpec {
         .thenReturn(Future.failed(CannotUpdateRecord(UserId)))
       reset(mockAuditService)
 
-      val response = controller.updateDetails(UserId, AppId)(Request)
+      val response = controller.update(UserId, AppId)(Request)
 
       status(response) mustBe BAD_REQUEST
       verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
@@ -90,6 +92,7 @@ class CandidateDetailsControllerSpec extends UnitWithAppSpec {
       when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.successful(CandidateContactDetailsUK))
       val response = controller.find(UserId, AppId)(fakeRequest)
       status(response) mustBe OK
+      contentAsJson(response) mustBe Json.toJson[PersonalDetails](CandidateContactDetailsUK)
     }
 
     "return Not Found when contact details cannot be found" in {

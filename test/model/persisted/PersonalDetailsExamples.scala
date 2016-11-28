@@ -20,5 +20,6 @@ import org.joda.time.LocalDate
 import org.scalatest.FunSuite
 
 object PersonalDetailsExamples extends FunSuite {
-  val JohnDoe = PersonalDetails("John", "Doe", "johnd", LocalDate.now().minusYears(20))
+  val JohnDoe = PersonalDetails("John", "Doe", "johnd", LocalDate.now().minusYears(20), None)
+  val SdipJohnDoe = PersonalDetails("John", "Doe", "johnd", LocalDate.now().minusYears(20), Some(true))
 }
