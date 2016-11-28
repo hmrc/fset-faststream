@@ -408,9 +408,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     val SuccessfulFindAllPostCodeResponse = Future.successful(
       Map(
-        "user1" -> "EH2 4AD",
-        "user2" -> "N1 8QP",
-        "user3" -> "N1 8QP"
+        "user1" -> "EH9 9ZZ",
+        "user2" -> "N82 8QP",
+        "user3" -> "N82 8QP"
       )
     )
 
