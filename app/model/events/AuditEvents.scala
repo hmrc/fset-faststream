@@ -33,6 +33,7 @@ object AuditEvents {
 
   case class ApplicationSubmitted(applicationId: String) extends AuditEventWithAppId(applicationId)
   case class ApplicationWithdrawn(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
+  case class ApplicationReadyForExport(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class ExpiredTestsExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class NonExpiredTestsExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class Phase1TestsReset(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
@@ -40,6 +41,7 @@ object AuditEvents {
   case class ApplicationExpiryReminder(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class ExpiredTestEmailSent(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class FailedTestEmailSent(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class SuccessTestEmailSent(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
 
   case class Phase2TestsReset(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class Phase2TestInvitationProcessComplete(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)

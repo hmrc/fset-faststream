@@ -119,7 +119,9 @@ trait GeneralApplicationRepository {
 
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
 
-  def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]]
+  def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationResultTest]]
+
+  def findSuccessfulTestForNotification(successTestType: SuccessTestType): Future[Option[NotificationResultTest]]
 
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
 
@@ -359,15 +361,25 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
     )))
 
-  override def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]] = {
+  override def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationResultTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> failedTestType.appStatus),
       BSONDocument(s"progress-status.${failedTestType.notificationProgress}" -> BSONDocument("$ne" -> true)),
       BSONDocument(s"progress-status.${failedTestType.receiveStatus}" -> true)
     ))
 
-    implicit val reader = bsonReader(NotificationFailedTest.fromBson)
-    selectOneRandom[NotificationFailedTest](query)
+    implicit val reader = bsonReader(NotificationResultTest.fromBson)
+    selectOneRandom[NotificationResultTest](query)
+  }
+
+  override def findSuccessfulTestForNotification(successTestType: SuccessTestType): Future[Option[NotificationResultTest]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> successTestType.appStatus),
+      BSONDocument(s"progress-status.${successTestType.notificationProgress}" -> BSONDocument("$ne" -> true))
+    ))
+
+    implicit val reader = bsonReader(NotificationResultTest.fromBson)
+    selectOneRandom[NotificationResultTest](query)
   }
 
   // scalastyle:off method.length
