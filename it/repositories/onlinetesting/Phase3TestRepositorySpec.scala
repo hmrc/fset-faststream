@@ -218,7 +218,6 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
       phase3TestRepo.insertOrUpdateTestGroup("appId", TestGroup).futureValue
       val result1 = phase3TestRepo.getTestGroup("appId").futureValue
-
       result1.isDefined mustBe true
 
       phase3TestRepo.removeTestGroup("appId").futureValue
