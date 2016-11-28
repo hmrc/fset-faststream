@@ -26,6 +26,7 @@ import connectors.exchange.Implicits._
 import connectors.exchange._
 import helpers.NotificationType._
 import models.{ ApplicationRoute, SecurityUser }
+import play.api.i18n.Messages
 import play.api.mvc.Result
 import security.SignInService
 
@@ -33,16 +34,17 @@ import scala.concurrent.Future
 
 object SignUpController extends SignUpController(ApplicationClient, CSRCache) {
   val http = CSRHttp
+  val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
 }
 
 abstract class SignUpController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
-  extends BaseController(applicationClient, cacheClient) with SignInService {
+  extends BaseController(applicationClient, cacheClient) with SignInService with CampaignAwareController {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
       Future.successful(request.identity match {
         case Some(_) => Redirect(routes.HomeController.present()).flashing(warning("activation.already"))
-        case None => Ok(views.html.registration.signup(SignUpForm.form))
+        case None => Ok(views.html.registration.signup(SignUpForm.form, appRouteConfigMap))
       })
   }
 
@@ -52,16 +54,17 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
       def checkAppWindowBeforeProceeding (data: Map[String, String], fn: => Future[Result]) =
         data.get("applicationRoute").map(ApplicationRoute.withName).map {
           case appRoute if !isNewAccountsStarted(appRoute) =>
-            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(s"$appRoute applications not opened yet")))
+            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(
+              Messages(s"applicationRoute.$appRoute.notOpen", getApplicationStartDate(appRoute)))))
           case appRoute if !isNewAccountsEnabled(appRoute) =>
-            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(s"$appRoute applications are now closed")))
+            Future.successful(Redirect(routes.SignUpController.present()).flashing(warning(Messages(s"applicationRoute.$appRoute.closed"))))
           case _ => fn
         } getOrElse fn
 
       SignUpForm.form.bindFromRequest.fold(
         invalidForm => {
           checkAppWindowBeforeProceeding(invalidForm.data, Future.successful(
-            Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize))))
+            Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize), appRouteConfigMap)))
           )
         },
         data => {
@@ -82,7 +85,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
                 }
               }.recover {
                 case e: EmailTakenException =>
-                  Ok(views.html.registration.signup(SignUpForm.form.fill(data), Some(danger("user.exists"))))
+                  Ok(views.html.registration.signup(SignUpForm.form.fill(data), appRouteConfigMap, Some(danger("user.exists"))))
               }
           })
         }
