@@ -309,7 +309,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val onlineTestApplicationForReset = onlineTestApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS)
       val progressResponse = ProgressResponse("appId", phase3ProgressResponse =
-        Phase3ProgressResponse(true, false, false, false, false, false, false, false, false))
+        Phase3ProgressResponse(phase3TestsInvited = true))
 
       when(appRepositoryMock.findProgress(any[String])).
         thenReturn(Future.successful(progressResponse))
