@@ -20,7 +20,7 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
-import controllers.{ ApplicationRouteConfig, BaseController, routes }
+import controllers.{ ApplicationRouteState, BaseController, routes }
 import models.ApplicationRoute.{ ApplicationRoute => _ }
 import models.SecurityUserExamples._
 import models._
@@ -63,8 +63,12 @@ abstract class BaseControllerSpec extends UnitWithAppSpec {
 
   def fakeRequest = FakeRequest().withSession(CSRF.TokenName -> CSRF.SignedTokenProvider.generateToken)
 
-  val defaultApplicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
-    newAccountsEnabled = true, applicationsSubmitEnabled = true)
+  val defaultApplicationRouteState = new ApplicationRouteState {
+    val newAccountsStarted = true
+    val newAccountsEnabled = true
+    val applicationsSubmitEnabled = true
+    val applicationsStartDate = None
+  }
 
   /**
     * Wrapper on SignInService class to allow mocking

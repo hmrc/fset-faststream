@@ -30,29 +30,6 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-case class ApplicationRouteConfig(newAccountsStarted: Boolean, newAccountsEnabled: Boolean,
-                                  applicationsSubmitEnabled: Boolean, applicationsStartDate: Option[LocalDateTime] = None)
-
-object ApplicationRouteConfig {
-  def apply(config: ApplicationRouteFrontendConfig) = {
-    require(
-      config.startNewAccountsDate.forall(startDate => config.blockNewAccountsDate.forall(_.isAfter(startDate))),
-      "start new accounts date must be before block new accounts date"
-    )
-
-    val zoneId = config.timeZone.map(ZoneId.of).getOrElse(ZoneId.systemDefault())
-
-    def now = LocalDateTime.now(zoneId)
-
-    def isAfterNow(date: Option[LocalDateTime]) = date forall (_.isAfter(now))
-
-    def isBeforeNow(date: Option[LocalDateTime]) = date forall (_.isBefore(now))
-
-    new ApplicationRouteConfig(isBeforeNow(config.startNewAccountsDate), isAfterNow(config.blockNewAccountsDate),
-      isAfterNow(config.blockApplicationsDate), config.startNewAccountsDate)
-  }
-}
-
 /**
  * should be extended by all controllers
  */

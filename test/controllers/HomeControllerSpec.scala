@@ -16,6 +16,8 @@
 
 package controllers
 
+import java.time.LocalDateTime
+
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
@@ -63,8 +65,11 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display home page with submit disabled" in new TestFixture {
-      val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
-        newAccountsEnabled = true, applicationsSubmitEnabled = false)
+      val applicationRouteConfig = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = false
+        val applicationsStartDate = None }
       val previewApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -147,15 +152,21 @@ class HomeControllerSpec extends BaseControllerSpec {
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override protected def env = securityEnvironment
-      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteConfig]
+      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
       when(securityEnvironment.userService).thenReturn(mockUserService)
     }
 
     def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp,
-                   appRouteConfig: ApplicationRouteConfig = defaultApplicationRouteConfig) = new TestableHomeController {
+                   appRouteState: ApplicationRouteState = defaultApplicationRouteState) = new TestableHomeController {
       override val CandidateWithApp: CachedDataWithApp = candidateWithApp
-      override implicit val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteConfig] =
-        Map(Faststream -> appRouteConfig, Edip -> appRouteConfig, Sdip -> appRouteConfig)
+      override val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
+    }
+
+    def defaultApplicationRouteState = new ApplicationRouteState {
+      val newAccountsStarted = true
+      val newAccountsEnabled = true
+      val applicationsSubmitEnabled = true
+      val applicationsStartDate = Some(LocalDateTime.now)
     }
   }
 }

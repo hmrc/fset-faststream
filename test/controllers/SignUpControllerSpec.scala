@@ -39,18 +39,26 @@ class SignUpControllerSpec extends BaseControllerSpec {
 
   "present" should {
     "display the sign up page" in new TestFixture {
-      val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
-        newAccountsEnabled = false, applicationsSubmitEnabled = false)
-      val result = controller(applicationRouteConfig).present()(fakeRequest)
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = false
+        val applicationsSubmitEnabled = false
+        val applicationsStartDate = None
+      }
+      val result = controller(applicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
       content must include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
     }
 
     "display the sign up page with fast stream applications closed message" in new TestFixture {
-      val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
-        newAccountsEnabled = true, applicationsSubmitEnabled = false)
-      val result = controller(applicationRouteConfig).present()(fakeRequest)
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = false
+        val applicationsStartDate = None
+      }
+      val result = controller(applicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
       content mustNot include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
@@ -59,22 +67,29 @@ class SignUpControllerSpec extends BaseControllerSpec {
 
   "sign up" should {
     "display fast stream applications closed message" in new TestFixture {
-      val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = true,
-        newAccountsEnabled = false, applicationsSubmitEnabled = false)
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = false
+        val applicationsSubmitEnabled = false
+        val applicationsStartDate = None
+      }
       val (data, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
-      val result = controller(applicationRouteConfig).signUp()(Request)
+      val result = controller(applicationRouteState).signUp()(Request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SignUpController.present().url))
       flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are now closed"))
     }
     "display fast stream applications not started message" in new TestFixture {
-      val applicationRouteConfig = ApplicationRouteConfig(newAccountsStarted = false,
-        newAccountsEnabled = false, applicationsSubmitEnabled = false,
-        Some(LocalDateTime.parse("2016-12-06T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+      val applicationRouteState =  new ApplicationRouteState {
+        val newAccountsStarted = false
+        val newAccountsEnabled = false
+        val applicationsSubmitEnabled = false
+        val applicationsStartDate = Some(LocalDateTime.parse("2016-12-06T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+      }
       val (data, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
-      val result = controller(applicationRouteConfig).signUp()(Request)
+      val result = controller(applicationRouteState).signUp()(Request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SignUpController.present().url))
       flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are opened from 06 Dec 2016"))
@@ -87,17 +102,14 @@ class SignUpControllerSpec extends BaseControllerSpec {
     val mockSecurityEnvironment = mock[security.SecurityEnvironment]
     val mockUserService = mock[UserService]
 
-    class TestableSignUpController extends SignUpController(mockApplicationClient, mockCacheClient)
-      with TestableSecureActions {
+    class TestableSignUpController(val applicationRouteState: ApplicationRouteState)
+      extends SignUpController(mockApplicationClient, mockCacheClient) with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override protected def env = mockSecurityEnvironment
-      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteConfig]
+      val appRouteConfigMap = Map(Faststream -> applicationRouteState, Edip -> applicationRouteState, Sdip -> applicationRouteState)
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller(implicit appRouteConfig: ApplicationRouteConfig = defaultApplicationRouteConfig) = new TestableSignUpController{
-      override implicit val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteConfig] =
-        Map(Faststream -> appRouteConfig, Edip -> appRouteConfig, Sdip -> appRouteConfig)
-    }
+    def controller(applicationRouteState: ApplicationRouteState) = new TestableSignUpController(applicationRouteState)
   }
 }

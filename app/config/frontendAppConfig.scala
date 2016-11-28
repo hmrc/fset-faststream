@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Base64
 
-import controllers.ApplicationRouteConfig
+import controllers.{ ApplicationRouteState, ApplicationRouteStateImpl }
 import models.ApplicationRoute._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -62,7 +62,7 @@ trait AppConfig {
   val emailConfig: EmailConfig
   val userManagementConfig: UserManagementConfig
   val faststreamConfig: FaststreamConfig
-  val applicationRoutesFrontend: Map[ApplicationRoute, ApplicationRouteConfig]
+  val applicationRoutesFrontend: Map[ApplicationRoute, ApplicationRouteState]
 }
 
 object FrontendAppConfig extends AppConfig with ServicesConfig {
@@ -90,7 +90,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
     Sdip -> loadAppRouteConfig("sdip")
   )
 
-  def loadAppRouteConfig(routeKey: String) = ApplicationRouteConfig(
+  def loadAppRouteConfig(routeKey: String) = ApplicationRouteStateImpl(
     ApplicationRouteFrontendConfig.read(
       timeZone = configuration.getString("applicationRoute.timeZone"),
       startNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.startNewAccountsDate"),
