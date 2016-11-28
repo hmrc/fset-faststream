@@ -26,7 +26,7 @@ import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenExc
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ toString => _, _ }
 import model._
-import model.command.{ Phase2ProgressResponse, ProgressResponse }
+import model.command.{ Phase2ProgressResponse, Phase3ProgressResponse, ProgressResponse }
 import model.events.AuditEvents.Phase2TestInvitationProcessComplete
 import model.events.DataStoreEvents
 import model.events.DataStoreEvents.OnlineExerciseResultSent
@@ -270,6 +270,8 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
       )
 
+      val onlineTestApplicationForReset = onlineTestApplication.copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED)
+
       val expectedRegistration = registrations.head
       val expectedInvite = invites.head
       val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
@@ -290,7 +292,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(expectedInvite)))
 
-      phase2TestService.resetTests(onlineTestApplication, "createdBy").futureValue
+      phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
 
       verify(otRepositoryMock).resetTestProfileProgresses("appId",
         List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
@@ -300,23 +302,49 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
     }
 
-    /*
-    "return reset limit exceeded exception" in new Phase2TestServiceFixture {
+    "remove phase 3 tests and reset phase 2 tests" in new Phase2TestServiceFixture {
+      override val phase2TestProfile = Phase2TestGroup(expirationDate,
+        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
+      )
+
+      val onlineTestApplicationForReset = onlineTestApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS)
+      val progressResponse = ProgressResponse("appId", phase3ProgressResponse =
+        Phase3ProgressResponse(true, false, false, false, false, false, false, false, false))
+
+      when(appRepositoryMock.findProgress(any[String])).
+        thenReturn(Future.successful(progressResponse))
+
+      when(phase3TestServiceMock.removeTestGroup("appId")).thenReturn(Future.successful(()))
+
       val expectedRegistration = registrations.head
       val expectedInvite = invites.head
       val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
-        .map(t => t.copy(startedDateTime = Some(startedDate))))
+        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
+      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
+        List(phase2Test.copy(usedForResults = false), phase2Test))
 
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+      // expectations for 3 invocations
+      when(otRepositoryMock.getTestGroup(any[String]))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
+
+      when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
       when(cubiksGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(expectedRegistration)))
       when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
         .thenReturn(Future.successful(List(expectedInvite)))
 
-      an[ResetLimitExceededException] must be thrownBy
-        Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
+      phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
+
+      verify(otRepositoryMock).resetTestProfileProgresses("appId",
+        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
+          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED))
+      verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
+      verify(otRepositoryMock).insertCubiksTests(any[String], any[Phase2TestGroup])
+      verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
     }
-    */
 
     "return cannot reset phase2 tests exception" in new Phase2TestServiceFixture {
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(None))
@@ -325,15 +353,6 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
     }
 
-    /*
-    "throw an eception when reset invigilated e-tray" in new Phase2TestServiceFixture {
-      override val phase2TestProfile = Phase2TestGroup(expirationDate, List(phase2Test))
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfile)))
-
-      an[CannotResetPhase2Tests] must be thrownBy
-        Await.result(phase2TestService.resetTests(invigilatedETrayApp, "createdBy"), 1 seconds)
-    }
-    */
   }
 
   "Extend time for expired test" should {
@@ -625,6 +644,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     var auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val eventServiceMock = mock[EventService]
+    val phase3TestServiceMock = mock[Phase3TestService]
 
     val tokens = UUIDFactory.generateUUID :: UUIDFactory.generateUUID :: Nil
     val registrations = Registration(123) :: Registration(456) :: Nil
@@ -748,6 +768,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val eventService = eventServiceMock
       val actor = ActorSystem()
       val authProvider = authProviderClientMock
+      val phase3TestService = phase3TestServiceMock
     }
   }
 }

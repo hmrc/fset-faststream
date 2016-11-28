@@ -3,9 +3,9 @@ package repositories.onlinetesting
 import java.util.UUID
 
 import connectors.launchpadgateway.exchangeobjects.in.{ SetupProcessCallbackRequest, ViewPracticeQuestionCallbackRequest }
-import model.ProgressStatuses.{ PHASE3_TESTS_COMPLETED, PHASE3_TESTS_EXPIRED, PHASE3_TESTS_SECOND_REMINDER }
+import model.ProgressStatuses.{ PHASE3_TESTS_COMPLETED, PHASE3_TESTS_EXPIRED, PHASE3_TESTS_SECOND_REMINDER, ProgressStatus }
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
-import model.{ ApplicationStatus, Phase3FirstReminder, Phase3SecondReminder }
+import model.{ ApplicationStatus, Phase3FirstReminder, Phase3SecondReminder, ProgressStatuses }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
@@ -205,6 +205,26 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       result.isDefined mustBe true
       result.get.expirationDate mustBe TestGroup.expirationDate
       result.get.tests mustBe TestGroup.tests
+    }
+  }
+
+  "Remove a phase 3 test" should {
+    "remove test when requested" in {
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE3", needsSupportForOnlineAssessment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
+        additionalProgressStatuses = List((ProgressStatuses.PHASE3_TESTS_INVITED,true)),
+        fastPassReceived = false
+      ).futureValue
+
+      phase3TestRepo.insertOrUpdateTestGroup("appId", TestGroup).futureValue
+      val result1 = phase3TestRepo.getTestGroup("appId").futureValue
+
+      result1.isDefined mustBe true
+
+      phase3TestRepo.removeTestGroup("appId").futureValue
+
+      val result2 = phase3TestRepo.getTestGroup("appId").futureValue
+      result2.isDefined mustBe false
     }
   }
 
