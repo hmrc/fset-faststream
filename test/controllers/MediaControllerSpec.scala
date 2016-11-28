@@ -18,7 +18,7 @@ package controllers
 
 import config.TestFixtureBase
 import mocks.MediaInMemoryRepository
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc._

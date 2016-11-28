@@ -16,12 +16,12 @@
 
 package repositories
 
-import model.exchange.passmarksettings._
-import testkit.{ ExtendedTimeout, MongoRepositorySpec }
 import model.SchemeType._
+import model.exchange.passmarksettings._
 import org.joda.time.DateTime
 import play.api.libs.json.Format
-import repositories.passmarksettings.{ PassMarkSettingsRepository, Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }
+import repositories.passmarksettings._
+import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
@@ -60,6 +60,24 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   }
 }
 
+class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
+  type T = Phase3PassMarkSettings
+  type U = Phase3PassMark
+  implicit val formatter = Phase3PassMarkSettings.phase3PassMarkSettingsFormat
+  val phase3PassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(20d, 80d))
+  val phase3PassMarks = List(Phase3PassMark(Finance, phase3PassMarkThresholds))
+  val passMarkSettings = Phase3PassMarkSettings(phase3PassMarks, version, createdDate, createdByUser)
+  val newPassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(30d, 80d))
+  val newPassMarks = List(Phase3PassMark(Finance, newPassMarkThresholds))
+  def passMarkSettingsRepo = new Phase3PassMarkSettingsMongoRepository()
+  val collectionName = "phase3-pass-mark-settings"
+
+  override def copyNewPassMarkSettings(o: Phase3PassMarkSettings, newPassMarks: List[Phase3PassMark], newVersion: String, newDate:
+  DateTime, newUser: String): Phase3PassMarkSettings = {
+    o.copy(schemes = newPassMarks, newVersion, DateTime.now().plusDays(1), createdByUser)
+  }
+}
+
 trait PassMarkRepositoryFixture extends MongoRepositorySpec {
   type T <: PassMarkSettings
   type U <: PassMark
@@ -75,7 +93,6 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
   val version = "version-1"
   val createdDate = DateTime.now()
   val createdByUser = "user-1"
-
 
   "Pass-mark-settings collection" should {
     "create indicies for the repository" in {

@@ -48,7 +48,6 @@ object Phase1TestService extends Phase1TestService {
   val appRepository = applicationRepository
   val cdRepository = faststreamContactDetailsRepository
   val phase1TestRepo = phase1TestRepository
-  val trRepository = testReportRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
   val dateTimeFactory = DateTimeFactory
@@ -62,7 +61,6 @@ object Phase1TestService extends Phase1TestService {
 trait Phase1TestService extends OnlineTestService with Phase1TestConcern with ResetPhase1Test {
   val actor: ActorSystem
   val phase1TestRepo: Phase1TestRepository
-  val trRepository: TestReportRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
   val delaySecsBetweenRegistrations = 1
@@ -189,7 +187,6 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     for {
       userId <- registerApplicant(application, authToken)
       invitation <- inviteApplicant(application, authToken, userId, scheduleId)
-      _ <- trRepository.remove(application.applicationId)
     } yield {
       CubiksTest(
         scheduleId = scheduleId,

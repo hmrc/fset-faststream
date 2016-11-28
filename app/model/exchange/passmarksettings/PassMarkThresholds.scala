@@ -30,6 +30,10 @@ trait Phase2Thresholds {
   def etray: PassMarkThreshold
 }
 
+trait Phase3Thresholds {
+  def videoInterview: PassMarkThreshold
+}
+
 case class Phase1PassMarkThresholds(
   situational: PassMarkThreshold,
   behavioural: PassMarkThreshold
@@ -45,6 +49,15 @@ case class Phase2PassMarkThresholds(
 ) extends PassMarkThresholds with Phase2Thresholds
 
 object Phase2PassMarkThresholds {
-  implicit val phase1PassMarkThresholds = Json.format[Phase2PassMarkThresholds]
-  implicit val phase1PassMarkThresholdsHandler = Macros.handler[Phase2PassMarkThresholds]
+  implicit val phase2PassMarkThresholds = Json.format[Phase2PassMarkThresholds]
+  implicit val phase2PassMarkThresholdsHandler = Macros.handler[Phase2PassMarkThresholds]
+}
+
+case class Phase3PassMarkThresholds(
+  videoInterview: PassMarkThreshold
+) extends PassMarkThresholds with Phase3Thresholds
+
+object Phase3PassMarkThresholds {
+  implicit val phase3PassMarkThresholds = Json.format[Phase3PassMarkThresholds]
+  implicit val phase3PassMarkThresholdsHandler = Macros.handler[Phase3PassMarkThresholds]
 }

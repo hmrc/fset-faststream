@@ -18,7 +18,7 @@ package services.partnergraduateprogrammes
 
 import model.command.PartnerGraduateProgrammesExchangeExamples
 import model.persisted.PartnerGraduateProgrammesExamples
-import org.mockito.Matchers.{ eq => eqTo }
+import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import repositories.partnergraduateprogrammes.PartnerGraduateProgrammesRepository
 import services.BaseServiceSpec

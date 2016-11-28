@@ -16,7 +16,6 @@
 
 import factories.DateTimeFactory
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
-import model.Commands._
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
@@ -30,15 +29,14 @@ import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
 import repositories.application._
-import repositories.event.EventMongoRepository
 import repositories.onlinetesting._
 import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
-import model.{ AdjustmentDetail, ApplicationRoute }
-import model.ApplicationRoute.ApplicationRoute
+import model.AdjustmentDetail
 import play.api.libs.json._
-import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
+import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -63,9 +61,8 @@ package object repositories {
   lazy val schoolsRepository = SchoolsCSVRepository
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService,
-    cubiksGatewayConfig,
-    GeneralApplicationRepoBSONToModelHelper)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)
+  lazy val reportingRepository = new ReportingMongoRepository(timeZoneService)
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
@@ -75,9 +72,9 @@ package object repositories {
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
-  lazy val testReportRepository = new TestReportMongoRepository()
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
+  lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val candidateAllocationMongoRepository = new CandidateAllocationMongoRepository(DateTimeFactory)
@@ -102,6 +99,8 @@ package object repositories {
     phase1PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
     phase2PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
+
+    phase3PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
 
     assessmentCentrePassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("info.createDate", Ascending)), unique = true)),
 
@@ -145,22 +144,6 @@ package object repositories {
       "preferredName" -> psDoc.preferredName,
       "dateOfBirth" -> psDoc.dateOfBirth
     )
-  }
-
-  def toCandidate(doc: BSONDocument): Candidate = {
-    val userId = doc.getAs[String]("userId").getOrElse("")
-    val applicationId = doc.getAs[String]("applicationId")
-    // If the application does not have applicationRoute, it is legacy data
-    // as it needs to be interpreted as Faststream
-    val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
-
-    val psRoot = doc.getAs[BSONDocument]("personal-details")
-    val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
-    val lastName = psRoot.flatMap(_.getAs[String]("lastName"))
-    val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
-    val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
-
-    Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None, Some(applicationRoute))
   }
 
   implicit object BSONMapHandler extends BSONHandler[BSONDocument, Map[String, Int]] {

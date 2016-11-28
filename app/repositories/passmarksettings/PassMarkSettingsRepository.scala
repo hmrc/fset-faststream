@@ -33,11 +33,15 @@ class Phase1PassMarkSettingsMongoRepository(implicit mongo: () => DB)
     Phase1PassMarkSettings.phase1PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
   ) with PassMarkSettingsRepository[Phase1PassMarkSettings]
 
-
 class Phase2PassMarkSettingsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Phase2PassMarkSettings, BSONObjectID]("phase2-pass-mark-settings", mongo,
     Phase2PassMarkSettings.phase2PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
   ) with PassMarkSettingsRepository[Phase2PassMarkSettings]
+
+class Phase3PassMarkSettingsMongoRepository(implicit mongo: () => DB)
+  extends ReactiveRepository[Phase3PassMarkSettings, BSONObjectID]("phase3-pass-mark-settings", mongo,
+    Phase3PassMarkSettings.phase3PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
+  ) with PassMarkSettingsRepository[Phase3PassMarkSettings]
 
 trait PassMarkSettingsRepository[T <: PassMarkSettings] {
   this: ReactiveRepository[T, _] =>

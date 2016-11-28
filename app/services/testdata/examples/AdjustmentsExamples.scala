@@ -22,4 +22,9 @@ object AdjustmentsExamples {
   val InvigilatedETrayAdjustments = Adjustments(
     Some(List("etrayInvigilated")), Some(true), Some(AdjustmentDetail(invigilatedInfo = Some("invigilated e-tray approved"))), None
   )
+  val ETrayTimeExtensionAdjustments = Adjustments(
+    Some(List("etrayTimeExtension")), Some(true), Some(AdjustmentDetail(invigilatedInfo = Some("time extension info"))), None
+  )
+  val EmptyAdjustments = Adjustments(None, adjustmentsConfirmed = Some(true), etray = None, video = None)
+
 }

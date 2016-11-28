@@ -30,4 +30,5 @@ object EmailEvents {
   case class ApplicationSubmitted(to: String, name: String) extends EmailEvent
   case class ApplicationWithdrawn(to: String, name: String) extends EmailEvent
   case class AdjustmentsConfirmed(to: String, name: String, etrayAdjustments: String, videoAdjustments: String) extends EmailEvent
+  case class AdjustmentsChanged(to: String, name: String, etrayAdjustments: String, videoAdjustments: String) extends EmailEvent
 }

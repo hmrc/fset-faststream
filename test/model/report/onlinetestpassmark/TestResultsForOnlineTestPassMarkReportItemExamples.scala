@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package model.report
+package model.report.onlinetestpassmark
 
 import model.OnlineTestCommands.TestResult
+import model.report.TestResultsForOnlineTestPassMarkReportItem
 
 import scala.util.Random
 
@@ -32,5 +33,9 @@ object TestResultsForOnlineTestPassMarkReportItemExamples {
   def maybe[A](value: => A) = if (Random.nextBoolean()) Some(value) else None
 
   def newTestResults =
-    TestResultsForOnlineTestPassMarkReportItem(maybe(newTestResult), maybe(newTestResult), maybe(newTestResult))
+    TestResultsForOnlineTestPassMarkReportItem(maybe(
+      newTestResult),
+      maybe(newTestResult),
+      maybe(newTestResult),
+      Some(VideoInterviewTestResultExamples.Example1))
 }

@@ -5,6 +5,7 @@ import model.Exceptions.{ CannotUpdateCivilServiceExperienceDetails, CivilServic
 import model.CivilServiceExperienceDetailsExamples._
 import reactivemongo.bson._
 import reactivemongo.json._
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import testkit.MongoRepositorySpec
 
 class CivilServiceExperienceDetailsSpec extends MongoRepositorySpec {

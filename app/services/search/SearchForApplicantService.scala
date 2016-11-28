@@ -22,7 +22,7 @@ import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalD
 import model.PersistedObjects.ContactDetailsWithId
 import org.joda.time.LocalDate
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }
+import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

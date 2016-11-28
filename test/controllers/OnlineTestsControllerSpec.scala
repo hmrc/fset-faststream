@@ -20,7 +20,7 @@ import model.ApplicationStatus
 import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ InvigilatedTestUrl, ResetOnlineTest, VerifyAccessCode }
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._

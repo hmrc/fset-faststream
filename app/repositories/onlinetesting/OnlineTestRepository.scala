@@ -27,13 +27,14 @@ import model.persisted._
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories._
+import repositories.{ BaseBSONReader, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments {
+trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments
+  with BaseBSONReader {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus

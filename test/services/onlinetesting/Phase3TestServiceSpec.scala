@@ -28,7 +28,7 @@ import model.persisted.{ ContactDetails, Phase3TestGroupWithAppId }
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -45,6 +45,7 @@ import scala.concurrent.Future
 class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "Register and Invite an applicant" should {
+
     "send audit events" in new Phase3TestServiceFixture {
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
 
@@ -63,12 +64,26 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )
     }
 
-    "supress the invitation email for invigilated applicants" in new Phase3TestServiceFixture {
-
+    "suppress the invitation email for invigilated applicants" in new Phase3TestServiceFixture {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
       val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
+      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
       verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+    }
+
+    "invite and immediately extend invigilated applicants" in new Phase3TestServiceFixture {
+      val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
+      val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
+      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
+      verify(phase3TestServiceNoTestGroupForInvigilated, times(1)).extendTestGroupExpiryTime(any(), any(),
+        any())(any[HeaderCarrier](), any[RequestHeader]())
+    }
+
+    "invite and not immediately extend when the applicant is not invigilated" in new Phase3TestServiceFixture {
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+
+      verify(phase3TestServiceNoTestGroupForInvigilated, times(0)).extendTestGroupExpiryTime(any(), any(),
+        any())(any[HeaderCarrier](), any[RequestHeader]())
     }
 
     "insert a valid test group" in new Phase3TestServiceFixture {
@@ -300,7 +315,9 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val gatewayConfigMock = LaunchpadGatewayConfig(
       "localhost",
-      Phase3TestsConfig(timeToExpireInDays = 7,
+      Phase3TestsConfig(
+        timeToExpireInDays = 7,
+        invigilatedTimeToExpireInDays = 90,
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
         Map(
           "0pc" -> zeroPCAdjustedInterviewId,
@@ -365,13 +382,41 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       Future.successful(())
     )
 
-    lazy val phase3TestServiceNoTestGroup = mockService {
+    def noTestGroupMocks = {
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
       when(p3TestRepositoryMock.insertOrUpdateTestGroup(any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
         ProgressResponse("appId")
       ))
+    }
+
+    lazy val phase3TestServiceNoTestGroup = mockService {
+      noTestGroupMocks
+    }
+
+    lazy val phase3TestServiceNoTestGroupForInvigilated = {
+      noTestGroupMocks
+      val service =
+        new Phase3TestService {
+          val appRepository = appRepositoryMock
+          val phase3TestRepo = p3TestRepositoryMock
+          val cdRepository = cdRepositoryMock
+          val launchpadGatewayClient = launchpadGatewayClientMock
+          val tokenFactory = tokenFactoryMock
+          val dateTimeFactory = dateTimeFactoryMock
+          val emailClient = emailClientMock
+          val auditService = auditServiceMock
+          val gatewayConfig = gatewayConfigMock
+          val eventService = eventServiceMock
+        }
+
+      val phase3TestServiceSpy = spy(service)
+
+      doReturn(Future.successful(()), Nil:_*).when(phase3TestServiceSpy).extendTestGroupExpiryTime(any(), any(),
+        any())(any[HeaderCarrier](), any[RequestHeader]())
+
+      phase3TestServiceSpy
     }
 
     lazy val phase3TestServiceWithUnexpiredTestGroup = mockService {

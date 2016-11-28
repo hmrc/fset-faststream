@@ -97,8 +97,8 @@ object Phase2TestData {
   def apply(o: model.exchange.testdata.Phase2TestDataRequest): Phase2TestData = {
     Phase2TestData(
       start = o.start.map(DateTime.parse),
-      expiry = o.start.map(DateTime.parse),
-      completion = o.start.map(DateTime.parse),
+      expiry = o.expiry.map(DateTime.parse),
+      completion = o.completion.map(DateTime.parse),
       tscore = o.tscore.map(_.toDouble)
     )
   }

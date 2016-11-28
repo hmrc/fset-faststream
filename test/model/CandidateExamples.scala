@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package fixture
+package model
 
-import model.PersistedObjects.CandidateTestReport
+import model.Commands.Candidate
 
-object TestReportFixture {
-  val FullTestReport = CandidateTestReport("appId", "MRA", None, None, None, None)
+object CandidateExamples {
+  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None)
 }

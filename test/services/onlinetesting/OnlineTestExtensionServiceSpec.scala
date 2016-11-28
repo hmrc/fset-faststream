@@ -21,7 +21,7 @@ import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDE
 import model.command.{ Phase1ProgressResponse, ProgressResponse }
 import model.persisted.Phase1TestProfile
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository

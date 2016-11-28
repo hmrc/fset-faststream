@@ -34,7 +34,7 @@ import model.persisted._
 import repositories.CommonBSONDocuments
 import repositories.onlinetesting.Phase1TestMongoRepository
 import scheduler.fixer.FixBatch
-import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
+import scheduler.fixer.RequiredFixes.{ PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import testkit.MongoRepositorySpec
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
@@ -43,84 +43,17 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   val collectionName = "application"
 
-  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig, GeneralApplicationRepoBSONToModelHelper)
+  def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
+  def testDataRepo = new TestDataMongoRepository()
 
   "General Application repository" should {
-    "Get overall report for an application with all fields" in {
-      val userId = generateUUID()
-      val appId = generateUUID()
-      createApplicationWithAllFields(userId, appId, "FastStream-2016")
-
-      val result = repository.candidateProgressReport("FastStream-2016").futureValue
-
-      result must not be empty
-      result.head mustBe CandidateProgressReportItem(appId, Some("submitted"),
-        List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-        Some("No"), Some("No"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))
-    }
-
-    "Get overall report for the minimum application" in {
-      val userId = generateUUID()
-      val appId = generateUUID()
-      createMinimumApplication(userId, appId, "FastStream-2016")
-
-      val result = repository.candidateProgressReport("FastStream-2016").futureValue
-
-      result must not be empty
-      result.head must be(CandidateProgressReportItem(appId, Some("registered"),
-        List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None)
-      )
-    }
-
-    "Get diversity report for the minimum application" in {
-      val userId = generateUUID()
-      val appId = generateUUID()
-      createMinimumApplication(userId, appId, "FastStream-2016")
-
-      val result = repository.diversityReport("FastStream-2016").futureValue
-
-      result must not be empty
-      result.head mustBe ApplicationForDiversityReport(appId, userId, Some("registered"),
-        List.empty, None, None, None, None, None)
-    }
-
-    "Get diversity report for an application with all fields" in {
-      val userId1 = generateUUID()
-      val userId2 = generateUUID()
-      val userId3 = generateUUID()
-      val appId1 = generateUUID()
-      val appId2 = generateUUID()
-      val appId3 = generateUUID()
-      createApplicationWithAllFields(userId1, appId1, "FastStream-2016", guaranteedInterview = true, needsSupportForOnlineAssessment = true)
-      createApplicationWithAllFields(userId2, appId2, "FastStream-2016", hasDisability = "No")
-      createApplicationWithAllFields(userId3, appId3, "FastStream-2016", needsSupportAtVenue = true)
-
-      val result = repository.diversityReport("FastStream-2016").futureValue
-
-      result must contain theSameElementsAs Seq(
-        ApplicationForDiversityReport(appId1, userId1, Some("submitted"),
-          List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-          Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
-        ApplicationForDiversityReport(
-            appId2, userId2, Some("submitted"),
-            List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-            Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-              Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
-        ApplicationForDiversityReport(
-            appId3, userId3, Some("submitted"),
-            List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
-            Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-              Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))
-        )
-    }
-
     "Find user by id" in {
       val userId = "fastPassUser"
       val appId = "fastPassApp"
       val frameworkId = "FastStream-2016"
-      createApplicationWithAllFields(userId, appId, frameworkId)
+
+      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId).futureValue
 
       val applicationResponse = repository.findByUserId(userId, frameworkId).futureValue
 
@@ -136,7 +69,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val userId = "fastPassUser"
       val appId = "fastPassApp"
       val frameworkId = "FastStream-2016"
-      createApplicationWithAllFields(userId, appId, frameworkId, appStatus = SUBMITTED)
+
+      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = SUBMITTED).futureValue
 
       val applicationStatusDetails = repository.findStatus(appId).futureValue
 
@@ -148,7 +82,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Find by criteria" should {
     "find by first name" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
         Some(testCandidate("firstName")), None, None
@@ -159,7 +93,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by preferred name" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
         Some(testCandidate("preferredName")), None, None
@@ -170,8 +104,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by first/preferred name with special regex character" in {
-      createApplicationWithAllFields(userId = "userId", appId = "appId123", frameworkId = "FastStream-2016",
-        firstName = Some("Char+lie.+x123"))
+      testDataRepo.createApplicationWithAllFields(userId = "userId", appId = "appId123", frameworkId = "FastStream-2016",
+        firstName = Some("Char+lie.+x123")).futureValue
 
       val applicationResponse = repository.findByCriteria(
         Some("Char+lie.+x123"), None, None
@@ -182,7 +116,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by lastname" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
         None, Some(testCandidate("lastName")), None
@@ -193,8 +127,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find by lastname with special regex character" in {
-      createApplicationWithAllFields(userId = "userId", appId = "appId123", frameworkId = "FastStream-2016",
-        lastName = Some("Barr+y.+x123"))
+      testDataRepo.createApplicationWithAllFields(userId = "userId", appId = "appId123", frameworkId = "FastStream-2016",
+        lastName = Some("Barr+y.+x123")).futureValue
 
       val applicationResponse = repository.findByCriteria(
         None, Some("Barr+y.+x123"), None
@@ -205,7 +139,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "find date of birth" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
 
       val dobParts = testCandidate("dateOfBirth").split("-").map(_.toInt)
       val (dobYear, dobMonth, dobDay) = (dobParts.head, dobParts(1), dobParts(2))
@@ -223,7 +157,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "Return an empty candidate list when there are no results" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
         Some("UnknownFirstName"), None, None
@@ -233,7 +167,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "filter by provided user Ids" in {
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016")
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016").futureValue
       val matchResponse = repository.findByCriteria(
         None, None, None, List("userId")
       ).futureValue
@@ -272,8 +206,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
         (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
 
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses.toList)
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.size mustBe 1
@@ -283,8 +217,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
         (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
 
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses.toList)
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.size mustBe 0
@@ -296,8 +230,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
         (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
 
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
-        additionalProgressStatuses = statuses.toList)
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
+        additionalProgressStatuses = statuses.toList).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.size mustBe 0
@@ -308,8 +242,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
         (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
 
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses.toList)
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList).futureValue
       val matchResponse = repository.getApplicationsToFix(FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.size mustBe 0
     }
@@ -320,8 +254,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val statuses = (ProgressStatuses.SUBMITTED, true) ::
         (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.SUBMITTED,
-        additionalProgressStatuses = statuses)
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.SUBMITTED,
+        additionalProgressStatuses = statuses).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
       matchResponse.size mustBe 1
@@ -332,8 +266,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val statuses = (ProgressStatuses.SUBMITTED, true) ::
         (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses)
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses).futureValue
 
       val matchResponse = repository.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
       matchResponse.size mustBe 0
@@ -348,8 +282,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         PHASE1_TESTS_RESULTS_READY, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_PASSED, PHASE2_TESTS_INVITED)
         .map(_ -> true)
 
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses)
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses).futureValue
 
       val matchResponse = repository.fix(candidate, FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.isDefined mustBe true
@@ -367,8 +301,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         PHASE1_TESTS_RESULTS_READY, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_PASSED)
         .map(_ -> true)
 
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses)
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses).futureValue
 
       val matchResponse = repository.fix(candidate, FixBatch(PassToPhase2, 1)).futureValue
       matchResponse.isDefined mustBe false
@@ -386,8 +320,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val statuses = (ProgressStatuses.SUBMITTED, true) :: (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
-      createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.SUBMITTED,
-        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup)
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.SUBMITTED,
+        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
 
       val matchResponse = repository.fix(candidate, FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
       matchResponse.isDefined mustBe true
@@ -407,6 +341,48 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "return None if assistance-details does not exist" in {
       val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
       repository.findAdjustments(result.applicationId).futureValue mustBe None
+    }
+  }
+
+  "fix PassToPhase1TestPassed" should {
+    "get None for PHASE1_TESTS_PASSED but with PHASE2_TESTS_INVITED" in {
+      val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
+      val candidates = repository.getApplicationsToFix(FixBatch(PassToPhase1TestPassed, 1)).futureValue
+      candidates mustBe empty
+    }
+
+    "get a candidate for PHASE1_TESTS_PASSED and without PHASE2_TESTS_INVITED" in {
+      val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
+      val candidates = repository.getApplicationsToFix(FixBatch(PassToPhase1TestPassed, 1)).futureValue
+      candidates.headOption.flatMap(_.applicationId) mustBe Some("appId123")
+    }
+
+    "move PHASE1_TESTS to PHASE1_TESTS_PASSED if PHASE1_TESTS_PASSED exists without PHASE2_TESTS_INVITED" in {
+      val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
+      val matchResponse = repository.fix(candidate, FixBatch(PassToPhase1TestPassed, 1)).futureValue
+      matchResponse mustBe defined
+
+      val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
+      applicationResponse.userId mustBe "userId"
+      applicationResponse.applicationId mustBe "appId123"
+      applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE1_TESTS_PASSED.toString
+    }
+
+    "do not change application status for non PHASE1_TESTS" in {
+      val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
+        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
+      val matchResponse = repository.fix(candidate, FixBatch(PassToPhase1TestPassed, 1)).futureValue
+      matchResponse mustNot be(defined)
+
+      val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
+      applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS.toString
     }
   }
 
@@ -452,75 +428,4 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     )
   )
 
-  // scalastyle:off parameter.number
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-    appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
-    needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
-    firstName: Option[String] = None, preferredName: Option[String] = None, additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
-    additionalDoc: BSONDocument = BSONDocument()
-  ) = {
-    import repositories.BSONLocalDateHandler
-    repository.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "applicationStatus" -> appStatus,
-      "userId" -> userId,
-      "frameworkId" -> frameworkId,
-      "scheme-preferences" -> BSONDocument(
-        "schemes" -> BSONArray(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService)
-      ),
-      "personal-details" -> BSONDocument(
-        "firstName" -> firstName.getOrElse(s"${testCandidate("firstName")}"),
-        "lastName" -> lastName.getOrElse(s"${testCandidate("lastName")}"),
-        "preferredName" -> preferredName.getOrElse(s"${testCandidate("preferredName")}"),
-        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"
-      ),
-      "civil-service-experience-details" -> BSONDocument(
-        "applicable" -> true,
-        "fastPassReceived" -> true,
-        "certificateNumber" -> "1234567",
-        "civilServiceExperienceType" -> CivilServiceExperienceType.CivilServant,
-        "internshipTypes" -> BSONArray(InternshipType.SDIPCurrentYear, InternshipType.EDIP)
-      ),
-      "assistance-details" -> BSONDocument(
-        "hasDisability" -> "Yes",
-        "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
-        "needsSupportAtVenue" -> needsSupportAtVenue,
-        "guaranteedInterview" -> guaranteedInterview
-      ),
-      "issue" -> "this candidate has changed the email",
-      "progress-status" -> progressStatus(additionalProgressStatuses),
-      "progress-status-dates" -> BSONDocument(
-        "submitted" -> LocalDate.now()
-      )
-    ) ++ additionalDoc).futureValue
-  }
-  // scalastyle:on parameter.number
-
-  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
-    val baseDoc = BSONDocument(
-      "personal-details" -> true,
-      "in_progress" -> true,
-      "scheme-preferences" -> true,
-      "partner-graduate-programmes" -> true,
-      "assistance-details" -> true,
-      "questionnaire" -> BSONDocument(
-        "start_questionnaire" -> true,
-        "diversity_questionnaire" -> true,
-        "education_questionnaire" -> true,
-        "occupation_questionnaire" -> true
-      ),
-      "preview" -> true,
-      "submitted" -> true
-    )
-
-    args.foldLeft(baseDoc)((acc, v) => acc ++ (v._1.toString -> v._2))
-  }
-
-  def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
-    repository.collection.insert(BSONDocument(
-      "applicationId" -> appId,
-      "userId" -> userId,
-      "frameworkId" -> frameworkId
-    )).futureValue
-  }
 }

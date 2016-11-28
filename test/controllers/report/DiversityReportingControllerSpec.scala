@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.report
 
 import config.TestFixtureBase
 import connectors.AuthProviderClient
+import controllers.ReportingController
 import model.persisted.MediaExamples
 import model.report.{ DiversityReportItem, DiversityReportItemExamples, QuestionnaireReportItemExamples }
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import persisted.ApplicationForDiversityReportExamples
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
-import repositories.application.GeneralApplicationRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository, TestReportRepository }
+import repositories.application.ReportingRepository
+import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -44,7 +45,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications with no questionnaries and no media when no questionnaires and no media" in new DiversityReportTestFixture {
-      when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
+      when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
 
       val response = controller.diversityReport(frameworkId)(request).run
       val result = contentAsJson(response).as[List[DiversityReportItem]]
@@ -54,7 +55,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications with questionnaires and no media when there are questionnaires but no media" in new DiversityReportTestFixture {
-      when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
+      when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
       when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(questionnaires)
 
       val response = controller.diversityReport(frameworkId)(request).run
@@ -68,7 +69,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
 
     "return applications with no questionnaires or no media when passing questionnaires" +
       " that dont belong to applications and no media" in new DiversityReportTestFixture {
-      when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
+      when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
       when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(notFoundQuestionnaires)
 
       val response = controller.diversityReport(frameworkId)(request).run
@@ -80,7 +81,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
 
     "return applications with questionnaires and no media when passing questionnaires" +
       " and media that dont belong to the applications"  in new DiversityReportTestFixture {
-      when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
+      when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
       when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(questionnaires)
       when(mockMediaRepository.findAll()).thenReturnAsync(notFoundMedias)
 
@@ -94,7 +95,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications with no questionnaires and with media when passing media but no questionnaires" in new DiversityReportTestFixture {
-      when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
+      when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
       when(mockMediaRepository.findAll()).thenReturnAsync(medias)
 
       val response = controller.diversityReport(frameworkId)(request).run
@@ -105,7 +106,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications with questionnaires and media when passing media and questionnaires" in new DiversityReportTestFixture {
-      when(mockAppRepository.diversityReport(any())).thenReturnAsync(applications)
+      when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
       when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(questionnaires)
       when(mockMediaRepository.findAll()).thenReturnAsync(medias)
 
@@ -120,16 +121,14 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
   trait DiversityReportTestFixture extends TestFixtureBase {
     val frameworkId = "FastStream-2016"
 
-    val mockAppRepository = mock[GeneralApplicationRepository]
+    val mockReportRepository = mock[ReportingRepository]
     val mockQuestionRepository = mock[QuestionnaireRepository]
-    val mockTestResultRepository = mock[TestReportRepository]
     val mockMediaRepository = mock[MediaRepository]
     val controller = new ReportingController {
-      val appRepository = mockAppRepository
+      val reportRepository = mockReportRepository
       val cdRepository = mock[ContactDetailsRepository]
       val authProviderClient = mock[AuthProviderClient]
       val questionnaireRepository = mockQuestionRepository
-      val testReportRepository = mockTestResultRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
       val medRepository: MediaRepository = mockMediaRepository
     }
@@ -155,7 +154,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
       "NotFoundUserId1" -> MediaExamples.Example1,
       "NotFoundUserId2" -> MediaExamples.Example2)
 
-    when(mockAppRepository.diversityReport(any())).thenReturnAsync(List.empty)
+    when(mockReportRepository.diversityReport(any())).thenReturnAsync(List.empty)
     when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(Map.empty)
     when(mockMediaRepository.findAll()).thenReturnAsync(Map.empty)
 

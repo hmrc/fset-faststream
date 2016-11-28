@@ -112,6 +112,12 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
+  private lazy val expirePhase3TestJob: Option[ScheduledJob] =
+    if (expirePhase3TestJobConfigValues.enabled) Some(ExpirePhase3TestJob) else {
+      Logger.warn("Expire Phase3 test job is disabled")
+      None
+    }
+
   private lazy val failedPhase1TestJob: Option[ScheduledJob] =
     if (failedPhase1TestJobConfigValues.enabled) Some(FailedPhase1TestJob) else {
       Logger.warn("Failed Phase1 online test job is disabled")
@@ -121,6 +127,12 @@ trait Scheduler extends RunningOfScheduledJobs {
   private lazy val failedPhase2TestJob: Option[ScheduledJob] =
     if (failedPhase2TestJobConfigValues.enabled) Some(FailedPhase2TestJob) else {
       Logger.warn("Failed Phase2 online test job is disabled")
+      None
+    }
+
+  private lazy val failedPhase3TestJob: Option[ScheduledJob] =
+    if (failedPhase3TestJobConfigValues.enabled) Some(FailedPhase3TestJob) else {
+      Logger.warn("Failed Phase3 online test job is disabled")
       None
     }
 
@@ -177,6 +189,7 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def sendPhase3InvitationJobConfigValues = sendPhase3InvitationJobConfig
   private[config] def expirePhase1TestJobConfigValues = expirePhase1TestJobConfig
   private[config] def expirePhase2TestJobConfigValues = expirePhase2TestJobConfig
+  private[config] def expirePhase3TestJobConfigValues = expirePhase3TestJobConfig
   private[config] def firstPhase1ReminderJobConfigValues = firstPhase1ReminderJobConfig
   private[config] def secondPhase1ReminderJobConfigValues = secondPhase1ReminderJobConfig
   private[config] def firstPhase2ReminderJobConfigValues = firstPhase2ReminderJobConfig
@@ -185,6 +198,7 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def secondPhase3ReminderJobConfigValues = secondPhase3ReminderJobConfig
   private[config] def failedPhase1TestJobConfigValues = failedPhase1TestJobConfig
   private[config] def failedPhase2TestJobConfigValues = failedPhase2TestJobConfig
+  private[config] def failedPhase3TestJobConfigValues = failedPhase3TestJobConfig
   private[config] def retrievePhase1ResultsJobConfigValues = retrievePhase1ResultsJobConfig
   private[config] def retrievePhase2ResultsJobConfigValues = retrievePhase2ResultsJobConfig
   private[config] def evaluatePhase1ResultJobConfigValues = evaluatePhase1ResultJobConfig
@@ -194,11 +208,15 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
   private[config] def fixerJobConfigValues = fixerJobConfig
 
-  lazy val scheduledJobs = List(sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob,
+  lazy val scheduledJobs = List(
+    sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob,
     firstPhase1ReminderExpiringTestJob, secondPhase1ReminderExpiringTestJob, firstPhase2ReminderExpiringTestJob,
     secondPhase2ReminderExpiringTestJob, firstPhase3ReminderExpiringTestJob, secondPhase3ReminderExpiringTestJob,
-    expirePhase1TestJob, expirePhase2TestJob, failedPhase1TestJob, failedPhase2TestJob, retrievePhase1ResultsJob,
-    retrievePhase2ResultsJob, evaluatePhase1ResultJob, evaluatePhase2ResultJob, fixerJob, confirmAttendanceReminderJob,
+    expirePhase1TestJob, expirePhase2TestJob, expirePhase3TestJob,
+    failedPhase1TestJob, failedPhase2TestJob, failedPhase3TestJob,
+    retrievePhase1ResultsJob, retrievePhase2ResultsJob,
+    evaluatePhase1ResultJob, evaluatePhase2ResultJob,
+    fixerJob, confirmAttendanceReminderJob,
     evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 
