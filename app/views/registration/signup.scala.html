@@ -1,8 +1,8 @@
 @import models.view.CampaignReferrers
 @import models.ApplicationRoute._
-@import controllers.ApplicationRouteConfig
+@import controllers.ApplicationRouteState
 
-@(signUpForm: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteConfig], notification: Option[(helpers.NotificationType, String)] = None)(
+@(signUpForm: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState], notification: Option[(helpers.NotificationType, String)] = None)(
         implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import helpers.CSRFieldConstructor._

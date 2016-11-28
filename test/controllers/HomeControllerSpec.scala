@@ -65,7 +65,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display home page with submit disabled" in new TestFixture {
-      val applicationRouteConfig = new ApplicationRouteState {
+      val applicationRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
         val applicationsSubmitEnabled = false
@@ -78,7 +78,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(None))
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
-      val result = controller(previewApp, applicationRouteConfig).present()(fakeRequest)
+      val result = controller(previewApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("Fast Stream applications are now closed")

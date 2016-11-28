@@ -38,25 +38,25 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
 
   "present" should {
     "display submit application page when application submission is enabled" in new TestFixture {
-      val applicationRouteConfig =  new ApplicationRouteState {
+      val applicationRouteState =  new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
         val applicationsSubmitEnabled = true
         val applicationsStartDate = None
       }
-      val result = controller(currentCandidateWithEdipApp, applicationRouteConfig).present()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
       content must include("Submit application")
     }
     "redirect to home page when application submission is disabled" in new TestFixture {
-      val applicationRouteConfig =  new ApplicationRouteState {
+      val applicationRouteState =  new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
         val applicationsSubmitEnabled = false
         val applicationsStartDate = None
       }
-      val result = controller(currentCandidateWithEdipApp, applicationRouteConfig).present()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteState).present()(fakeRequest)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
@@ -64,7 +64,7 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
 
   "submit" should {
     "redirect to submit success page" in new TestFixture {
-      val applicationRouteConfig =  new ApplicationRouteState {
+      val applicationRouteState =  new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
         val applicationsSubmitEnabled = true
@@ -77,7 +77,7 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(ProgressResponseExamples.InPreview))
       when(mockUserService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(currentCandidate))
 
-      val result = controller(currentCandidateWithEdipApp, applicationRouteConfig).submit()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteState).submit()(fakeRequest)
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SubmitApplicationController.success().url))
@@ -86,13 +86,13 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
       verify(mockUserService).save(any[CachedData])(any[HeaderCarrier])
     }
     "redirect to home page" in new TestFixture {
-      val applicationRouteConfig =  new ApplicationRouteState {
+      val applicationRouteState =  new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = false
         val applicationsSubmitEnabled = false
         val applicationsStartDate = None
       }
-      val result = controller(currentCandidateWithEdipApp, applicationRouteConfig).submit()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteState).submit()(fakeRequest)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }

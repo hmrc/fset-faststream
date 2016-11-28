@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter
 
 import config.ApplicationRouteFrontendConfig
 
-class ApplicationRouteConfigSpec extends UnitSpec {
+class ApplicationRouteStateSpec extends UnitSpec {
   "New Accounts creation and submit applications" should {
     "be enabled when there is no start date and disable date" in {
       val config = ApplicationRouteStateImpl(ApplicationRouteFrontendConfig(None, None, None, None))
