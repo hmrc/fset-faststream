@@ -51,17 +51,23 @@ object NorthSouthIndicatorCSVRepository extends NorthSouthIndicatorCSVRepository
     (postcode, outsideUk) match {
       case (None, false) => None
       case (None, true) => Some(DefaultIndicator)
-      case (Some(pc), _) => {
-        val key = pc.takeWhile(!_.isDigit).toUpperCase
-        fsacIndicators.get(key).fold(Some(DefaultIndicator))(indicator => Some(indicator.assessmentCentre))
-      }
+      case (postcode, false) => getFsacIndicator(postcode)
+      case _ => Some(DefaultIndicator)
     }
   }
 
   override def calculateFsacIndicatorForReports(postcode: Option[String], candidate: CandidateProgressReportItem): Option[String] = {
     if(candidate.applicationRoute.isDefined && !candidate.applicationRoute.contains(ApplicationRoute.Faststream.toString)) { None }
     else if (candidate.progress.contains("registered")) { None }
-    else { calculateFsacIndicator(postcode, true) }
+    else if (! postcode.isDefined) { Some(DefaultIndicator) }
+    else { getFsacIndicator(postcode) }
+  }
+
+  private def getFsacIndicator(postcode: Option[String]): Option[String] = {
+    postcode.flatMap(pc => {
+      val key = pc.takeWhile(!_.isDigit).toUpperCase
+      fsacIndicators.get(key).fold[Option[String]](Some(DefaultIndicator))(indicator => Some(indicator.assessmentCentre))
+    })
   }
 
 }
