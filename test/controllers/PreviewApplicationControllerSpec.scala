@@ -77,7 +77,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
       content mustNot include("""<ul id="schemePreferenceList" class="list-text">""")
       content must include("Will you need any extra support for your phone interview?")
-      content must include("<p id=\"editCompleted\">Yes</p>")
+      content must include("<p id=\"edipCompleted\">Yes</p>")
       content must include("Have you completed the Early Diversity Internship Programme (EDIP)?")
     }
 
