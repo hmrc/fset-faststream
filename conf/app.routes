@@ -1,8 +1,8 @@
 # microservice specific routes
 
 # Should it be PUT as calling this method twice does not create two users (idempotent operation)
-POST        /personal-details/:userId/:applicationId                     controllers.CandidateDetailsController.updateDetails(userId: String, applicationId: String)
-GET         /personal-details/:userId/:applicationId                     controllers.CandidateDetailsController.find(userId: String, applicationId: String)
+POST        /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.update(userId: String, applicationId: String)
+GET         /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.find(userId: String, applicationId: String)
 
 GET         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.find(applicationId: String)
 PUT         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.update(applicationId: String)

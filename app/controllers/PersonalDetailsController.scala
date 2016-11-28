@@ -17,29 +17,29 @@
 package controllers
 
 import model.Exceptions._
-import model.command.GeneralDetails
+import model.command.PersonalDetails
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
-import services.generaldetails.CandidateDetailsService
+import services.personaldetails.PersonalDetailsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object CandidateDetailsController extends CandidateDetailsController {
-  val candidateDetailsService = CandidateDetailsService
+object PersonalDetailsController extends PersonalDetailsController {
+  val personalDetailsService = PersonalDetailsService
   val auditService = AuditService
 }
 
-trait CandidateDetailsController extends BaseController {
+trait PersonalDetailsController extends BaseController {
   val PersonalDetailsSavedEvent = "PersonalDetailsSaved"
 
-  val candidateDetailsService: CandidateDetailsService
+  val personalDetailsService: PersonalDetailsService
   val auditService: AuditService
 
-  def updateDetails(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[GeneralDetails] { req =>
-      candidateDetailsService.update(applicationId, userId, req) map { _ =>
+  def update(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[PersonalDetails] { req =>
+      personalDetailsService.update(applicationId, userId, req) map { _ =>
         auditService.logEvent(PersonalDetailsSavedEvent)
         Created
       } recover {
@@ -52,7 +52,7 @@ trait CandidateDetailsController extends BaseController {
   }
 
   def find(userId: String, applicationId: String) = Action.async { implicit request =>
-    candidateDetailsService.find(applicationId, userId) map { candidateDetails =>
+    personalDetailsService.find(applicationId, userId) map { candidateDetails =>
       Ok(Json.toJson(candidateDetails))
     } recover {
       case e: ContactDetailsNotFound => NotFound(s"Cannot find contact details for userId: ${e.userId}")
