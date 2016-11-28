@@ -148,7 +148,6 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
           }
         }
       }
-
       case _ => throw CannotResetPhase2Tests()
     }
   }
