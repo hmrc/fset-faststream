@@ -110,7 +110,9 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
   def submitPersonalDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
       submit(PersonalDetailsForm.form(LocalDate.now, ignoreFastPassValidations = true), RedirectToTheDashboard,
-        Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")), user.application.civilServiceExperienceDetails)
+        Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")),
+        user.application.civilServiceExperienceDetails,
+        user.application.edipCompleted)
   }
 
   private def continuetoTheNextStep(onSuccess: OnSuccess) = onSuccess match {
@@ -118,26 +120,29 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
     case RedirectToTheDashboard => false
   }
 
-  private def submit(generalDetailsForm: Form[PersonalDetailsForm.Data], onSuccess: OnSuccess, redirectOnSuccess: Result,
-                     overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None)
+  private def submit(personalDetailsForm: Form[PersonalDetailsForm.Data], onSuccess: OnSuccess, redirectOnSuccess: Result,
+                     overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None,
+                     overrideEdipCompleted: Option[Boolean] = None)
                     (implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
 
     val handleFormWithErrors = (errorForm:Form[PersonalDetailsForm.Data]) => {
       Future.successful(Ok(views.html.application.generalDetails(
-        generalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess)))
+        personalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess)))
       )
     }
 
     val handleValidForm = (form: PersonalDetailsForm.Data) => {
       val civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] =
         overrideCivilServiceExperienceDetails.orElse(form.civilServiceExperienceDetails)
+      val edipCompleted = overrideEdipCompleted.orElse(form.edipCompleted.map(_.toBoolean))
       for {
         _ <- applicationClient.updatePersonalDetails(cachedData.application.applicationId, cachedData.user.userID,
           toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), overrideCivilServiceExperienceDetails))
         _ <- createDefaultSchemes
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
         redirect <- updateProgress(data => {
-          val applicationCopy = data.application.map(_.copy(civilServiceExperienceDetails = civilServiceExperienceDetails))
+          val applicationCopy = data.application.map(
+            _.copy(civilServiceExperienceDetails = civilServiceExperienceDetails, edipCompleted = edipCompleted))
           data.copy(user = cachedData.user.copy(firstName = form.firstName, lastName = form.lastName,
             preferredName = Some(form.preferredName)), application =
             if (continuetoTheNextStep(onSuccess)) applicationCopy.map(_.copy(applicationStatus = IN_PROGRESS)) else applicationCopy)
@@ -146,7 +151,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
         redirect
       }
     }
-    generalDetailsForm.bindFromRequest.fold(handleFormWithErrors, handleValidForm)
+    personalDetailsForm.bindFromRequest.fold(handleFormWithErrors, handleValidForm)
   }
 
   private def createDefaultSchemes(implicit cacheData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Unit] =
@@ -165,11 +170,12 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
 trait PersonalDetailsToExchangeConverter {
 
   def toExchange(personalDetails: PersonalDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean],
-                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None) = {
+                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None,
+                 edipCompleted: Option[Boolean] = None) = {
     val pd = personalDetails.insideUk match {
       case true => personalDetails.copy(country = None)
       case false => personalDetails.copy(postCode = None)
     }
-    pd.toExchange(email, updateApplicationStatus, civilServiceExperienceDetails)
+    pd.toExchange(email, updateApplicationStatus, civilServiceExperienceDetails, edipCompleted)
   }
 }

@@ -60,7 +60,7 @@ object PersonalDetailsForm {
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
         FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations)),
-        edipCompleted -> of(Mappings.mayBeOptionalString("error.needsEdipCompleted.required", 31, isSdipAndNotSubmitted))
+        edipCompleted -> of(Mappings.mayBeOptionalString("error.needsEdipCompleted.required", 31, isSdipAndCreatedOrInProgress))
       )(Data.apply)(Data.unapply)
     )
 
@@ -71,11 +71,11 @@ object PersonalDetailsForm {
   val isSdip = (requestParams: Map[String, String]) =>
     requestParams.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
 
-  val isSubmitted = (requestParams: Map[String, String]) =>
-    requestParams.getOrElse("applicationStatus", "") == "SUBMITTED"
+  val isCreatedOrInProgressSubmitted = (requestParams: Map[String, String]) =>
+    List("CREATED", "IN_PROGRESS").contains(requestParams.getOrElse("applicationStatus", ""))
 
-  val isSdipAndNotSubmitted = (requestParams: Map[String, String]) =>
-    isSdip(requestParams) && !isSubmitted(requestParams)
+  val isSdipAndCreatedOrInProgress = (requestParams: Map[String, String]) =>
+    isSdip(requestParams) && isCreatedOrInProgressSubmitted(requestParams)
 
   def fastPassFormFormatter(ignoreValidations: Boolean) = new Formatter[Option[FastPassForm.Data]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[FastPassForm.Data]] = {
@@ -152,7 +152,8 @@ object PersonalDetailsForm {
     }
 
     def toExchange(email: String, updateApplicationStatus: Option[Boolean],
-                   overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None) = {
+                   overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None,
+                   overrideEdipCompleted: Option[Boolean] = None) = {
       PersonalDetails(
         firstName,
         lastName,
@@ -165,11 +166,7 @@ object PersonalDetailsForm {
         country,
         phone,
         overrideCivilServiceExperienceDetails.orElse(civilServiceExperienceDetails),
-        edipCompleted match {
-          case Some("false") => Some(false)
-          case Some("true") => Some(true)
-          case _ => None
-        },
+        overrideEdipCompleted.orElse(edipCompleted.map(_.toBoolean)),
         updateApplicationStatus
       )
     }

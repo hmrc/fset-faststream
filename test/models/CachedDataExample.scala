@@ -35,7 +35,8 @@ object CachedDataExample {
     ApplicationStatus.CREATED,
     ApplicationRoute.Faststream,
     ProgressExamples.InitialProgress,
-    Some(CivilServiceExperienceDetails(applicable = false))
+    Some(CivilServiceExperienceDetails(applicable = false)),
+    None
   )
 
   val InProgressInPersonalDetailsApplication = CreatedApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,

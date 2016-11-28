@@ -135,14 +135,21 @@ class PersonalDetailsFormSpec extends UnitSpec {
     }
 
     "be valid with all mandatory fields for an sdip candidate" in {
-      val form = personalDetailsForm.bind(SdipValidOutsideUKDetails)
+      val form = personalDetailsForm.bind(SdipInProgressValidOutsideUKDetails)
 
       form.hasErrors must be(false)
       form.hasGlobalErrors must be(false)
     }
 
-    "be invalid with all mandatory fields but edip completed question for sdip candidate" in {
-      assertFormError("error.needsEdipCompleted.required", (SdipValidOutsideUKDetails - "edipCompleted"))
+    "be valid with all mandatory fields except edip completed question for submitted sdip candidate" in {
+      val form = personalDetailsForm.bind(SdipSubmittedValidOutsideUKDetails - "edipCompleted")
+
+      form.hasErrors must be(false)
+      form.hasGlobalErrors must be(false)
+    }
+
+    "be invalid with all mandatory fields except edip completed question for in progress sdip candidate" in {
+      assertFormError("error.needsEdipCompleted.required", (SdipInProgressValidOutsideUKDetails - "edipCompleted"))
     }
   }
 

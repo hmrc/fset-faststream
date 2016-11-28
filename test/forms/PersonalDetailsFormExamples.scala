@@ -55,8 +55,9 @@ object PersonalDetailsFormExamples {
     "civilServiceExperienceDetails.applicable"
   )
 
-  val SdipValidOutsideUKDetails = Map[String, String](
+  val SdipInProgressValidOutsideUKDetails = Map[String, String](
     "applicationRoute" -> "Sdip",
+    "applicationStatus" -> "IN_PROGRESS",
     "firstName" -> "John",
     "lastName" -> "Biggs",
     "preferredName" -> "john",
@@ -70,6 +71,8 @@ object PersonalDetailsFormExamples {
     "civilServiceExperienceDetails.applicable" -> "false",
     "edipCompleted" -> "true"
   )
+
+  val SdipSubmittedValidOutsideUKDetails = SdipInProgressValidOutsideUKDetails + ("applicationStatus" -> "SUBMITTED")
 
   val ValidUKAddressForm = PersonalDetailsForm.Data("firstName", "lastName", "preferredName", DayMonthYear("1", "2", birthYear),
     outsideUk = None, AddressExamples.FullAddress, Some("A1 2BC"), None, Some("1234567890"),
