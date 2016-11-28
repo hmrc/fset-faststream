@@ -42,7 +42,7 @@ object ApplicationRouteConfig {
 
     val zoneId = config.timeZone.map(ZoneId.of).getOrElse(ZoneId.systemDefault())
 
-    val now = LocalDateTime.now(zoneId)
+    def now = LocalDateTime.now(zoneId)
 
     def isAfterNow(date: Option[LocalDateTime]) = date forall (_.isAfter(now))
 
