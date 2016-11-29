@@ -76,7 +76,8 @@ trait PersonalDetailsService {
       contactDetails <- contactDetailsFut
       civilServiceExperienceDetails <- civilServiceExperienceDetailsFut
     } yield model.command.PersonalDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
-      contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode, calculateFsacIndicator(contactDetails.postCode, contactDetails.outsideUk)
+      contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
+      calculateFsacIndicator(contactDetails.postCode, contactDetails.outsideUk),
       contactDetails.country, contactDetails.phone, civilServiceExperienceDetails, personalDetails.edipCompleted)
   }
 
