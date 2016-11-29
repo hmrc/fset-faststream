@@ -65,14 +65,14 @@ trait ReactiveRepositoryHelpers {
   private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean = false,
                                               notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult) = {
     if (result.ok) {
-      if (result.nModified == 1) {
+      if (result.n == 1) {
         ()
-      } else if (result.nModified == 0 && ignoreNotFound) {
+      } else if (result.n == 0 && ignoreNotFound) {
         val msg = s"Failed to find record whilst $actionDesc for id: $id"
         Logger.warn(msg)
-      } else if (result.nModified == 0) {
+      } else if (result.n == 0) {
         throw notFound
-      } else if (result.nModified > 1) {
+      } else if (result.n > 1) {
         throw new TooManyEntries(s"Update successful, but too many documents updated whilst $actionDesc for id $id")
       }
     } else {
