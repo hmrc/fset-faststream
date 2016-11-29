@@ -58,7 +58,8 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
       )
     )
 
-    val validator = singleUpdateValidator(applicationId, actionDesc = "updating personal details", PersonalDetailsNotFound(applicationId))
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating personal details",
+      PersonalDetailsNotFound(applicationId))
 
     collection.update(query, personalDetailsBSON) map validator
   }

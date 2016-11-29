@@ -24,6 +24,8 @@ object Exceptions {
     def this(m: String) = this(Some(m))
   }
 
+  case class NotModifiedException(m: String) extends Exception(m)
+
   case class UnexpectedException(m: String) extends Exception(m)
 
   case class CannotUpdateRecord(applicationId: String) extends Exception(applicationId)

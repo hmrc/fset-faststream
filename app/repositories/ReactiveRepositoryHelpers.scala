@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.Exceptions.{ CannotUpdateRecord, NotFoundException, TooManyEntries }
+import model.Exceptions.{ CannotUpdateRecord, NotFoundException, NotModifiedException, TooManyEntries }
 import play.api.Logger
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.commands.{ UpdateWriteResult, WriteResult }
@@ -33,8 +33,7 @@ trait ReactiveRepositoryHelpers {
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = false, notFound, upsert = false) _
   }
 
-  def singleUpdateValidator(id: String,
-                            actionDesc: String, ignoreNotFound: Boolean = false): UpdateWriteResult => Unit = {
+  def singleUpdateValidator(id: String, actionDesc: String, ignoreNotFound: Boolean = false): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound,
       new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false) _
@@ -65,9 +64,6 @@ trait ReactiveRepositoryHelpers {
 
   private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean = false,
                                               notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult) = {
-
-    val docsAffected = if (upsert) result.n else result.nModified
-
     if (result.ok) {
       if (result.nModified == 1) {
         ()

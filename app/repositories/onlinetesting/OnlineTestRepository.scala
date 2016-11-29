@@ -90,8 +90,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
         )
       )
 
-    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName",
-      ApplicationNotFound(applicationId))
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
 
     collection.update(query, update) map validator
   }

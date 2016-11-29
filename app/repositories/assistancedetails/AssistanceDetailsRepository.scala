@@ -48,7 +48,9 @@ class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
       AssistanceDetailsCollection -> ad
     ))
 
-    val validator = singleUpdateValidator(applicationId, actionDesc = "updating assistance details", CannotUpdateAssistanceDetails(userId))
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating assistance details",
+      CannotUpdateAssistanceDetails(userId))
+
     collection.update(query, updateBSON) map validator
   }
 
