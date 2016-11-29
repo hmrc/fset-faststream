@@ -41,8 +41,6 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
 
   val phase: Phase
 
-  val prevPhase: Phase
-
   val evaluationApplicationStatuses: List[ApplicationStatus]
 
   val evaluationProgressStatus: ProgressStatus
@@ -104,8 +102,6 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] with BaseBSONReader{
 
   val phase = PHASE1
-
-  val prevPhase = PHASE1
 
   val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE2_TESTS)
 
