@@ -16,7 +16,8 @@
 
 package model.exchange.testdata
 
-import model.Adjustments
+import model.ApplicationRoute.ApplicationRoute
+import model.{ Adjustments, ApplicationRoute }
 import model.SchemeType.SchemeType
 import play.api.libs.json.Json
 
@@ -82,7 +83,8 @@ case class PersonalDataRequest(
   preferredName: Option[String] = None,
   dateOfBirth: Option[String] = None,
   postCode: Option[String] = None,
-  country: Option[String] = None
+  country: Option[String] = None,
+  edipCompleted: Option[Boolean] = None
 )
 
 object PersonalDataRequest {
