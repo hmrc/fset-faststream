@@ -80,6 +80,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
   private def candidateProgressReport(query: BSONDocument): Future[List[CandidateProgressReportItem]] = {
     val projection = BSONDocument(
       "userId" -> "1",
+      "applicationRoute" -> "1",
       "scheme-preferences.schemes" -> "1",
       "assistance-details" -> "1",
       "civil-service-experience-details" -> "1",
