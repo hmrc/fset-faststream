@@ -179,4 +179,7 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
 
   lazy val fixerJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.fixer-job")
+
+  lazy val parityExportJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.parity-export-job")
 }

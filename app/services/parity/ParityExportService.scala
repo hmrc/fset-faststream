@@ -16,17 +16,32 @@
 
 package services.parity
 
+import config.MicroserviceAppConfig
+import play.api.Logger
 import services.events.{ EventService, EventSink }
+import repositories._
+import repositories.parity.ParityExportRepository
 
 import scala.concurrent.Future
 
 object ParityExportService extends ParityExportService {
   val eventService = EventService
+  val parityExRepository = parityExportRepository
+
 }
 
 trait ParityExportService extends EventSink {
-  // Random apps in PHASE3_TESTS_PASSED
-  def nextApplicationsForExport: Future[List[Future[Unit]]] = ???
 
-  def exportApplication(applicationId: String) = ???
+  val parityExRepository: ParityExportRepository
+
+  // Random apps in PHASE3_TESTS_PASSED_NOTIFIED
+  def nextApplicationsForExport(batchSize: Int): Future[List[String]] = parityExRepository.nextApplicationsForExport(batchSize)
+
+  def exportApplication(applicationId: String): Future[Unit] = {
+    val applicationDoc = parityExRepository.getApplicationForExport(applicationId)
+
+    Logger.debug("============ App = " + applicationDoc)
+
+    Future.successful(())
+  }
 }

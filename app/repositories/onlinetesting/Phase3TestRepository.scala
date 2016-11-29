@@ -28,7 +28,6 @@ import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppI
 import org.joda.time.{ DateTime, DateTimeZone }
 import model.persisted.phase3tests.Phase3TestGroup
 import play.api.Logger
-import play.api.libs.json.Format
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._

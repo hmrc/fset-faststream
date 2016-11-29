@@ -25,7 +25,7 @@ import reactivemongo.bson.{ BSONArray, BSONDocument }
 
 trait CommonBSONDocuments {
 
-  def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
+  protected def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
     // require widespread changes, and using a default in here is better than the previous implementation
     // that just set the progress status to applicationStatus.toString, which produced invalid progress statuses
@@ -52,7 +52,7 @@ trait CommonBSONDocuments {
     }
   }
 
-  def applicationStatusBSON(progressStatus: ProgressStatus) = {
+  protected def applicationStatusBSON(progressStatus: ProgressStatus) = {
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
       s"progress-status.${progressStatus.key}" -> true,

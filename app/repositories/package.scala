@@ -36,6 +36,7 @@ import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
 import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
+import repositories.parity.ParityExportMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -63,25 +64,26 @@ package object repositories {
   lazy val mediaRepository = new MediaMongoRepository()
   lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)
   lazy val reportingRepository = new ReportingMongoRepository(timeZoneService)
-
-  // Below repositories will be deleted as they are valid only for Fasttrack
-  lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
-  lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
-  lazy val frameworkRepository = new FrameworkYamlRepository()
-  lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
   lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
+  lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
+  lazy val eventMongoRepository = new EventMongoRepository
+  lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
+
+  // Below repositories will be deleted as they are valid only for Fasttrack
+  lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
+  lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
+  lazy val frameworkRepository = new FrameworkYamlRepository()
+  lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val candidateAllocationMongoRepository = new CandidateAllocationMongoRepository(DateTimeFactory)
-  lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
-  lazy val eventMongoRepository = new EventMongoRepository
 
   /** Create indexes */
   Await.result(Future.sequence(List(
