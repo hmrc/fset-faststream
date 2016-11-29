@@ -51,6 +51,7 @@ sealed trait DataStoreEventWithCreatedBy extends DataStoreEvent {
   override lazy val createdBy = Some(createdByUser)
 }
 
+// scalastyle:off number.of.methods
 object DataStoreEvents {
   // NOTICE. The name for the case class is important and is used when the event is emitted.
   // In other words: Renaming the case class here, impacts in renaming the event name in database.
@@ -83,6 +84,7 @@ object DataStoreEvents {
   case class VideoInterviewReset(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewResultsReceived(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewExpiryReminder(appId: String) extends DataStoreEventWithAppId
+  case class VideoInterviewRemoved(appId: String) extends DataStoreEventWithAppId
 
   case class ManageAdjustmentsUpdated(appId: String) extends DataStoreEventWithAppId
   case class FastPassApproved(appId: String) extends DataStoreEventWithAppId
@@ -90,4 +92,5 @@ object DataStoreEvents {
   case class AdjustmentsCommentUpdated(appId: String) extends DataStoreEventWithAppId
   case class AdjustmentsCommentRemoved(appId: String) extends DataStoreEventWithAppId
 
+  // scalastyle:on number.of.methods
 }

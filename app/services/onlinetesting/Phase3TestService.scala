@@ -87,6 +87,15 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
+  def removeTestGroup(applicationId: String)(implicit hc: HeaderCarrier,
+                                              rh: RequestHeader): Future[Unit] = eventSink {
+    phase3TestRepo.removeTestGroup(applicationId).map { _ =>
+      AuditEvents.VideoInterviewRemoved(applicationId) ::
+        DataStoreEvents.VideoInterviewRemoved(applicationId) ::
+        Nil
+    }
+  }
+
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier,
                                              rh: RequestHeader): Future[Unit] =
