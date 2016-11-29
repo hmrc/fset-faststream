@@ -171,7 +171,7 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
 
   val prevPhase = PHASE2
 
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE3_TESTS)
+  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
 
   val evaluationProgressStatus = ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
 

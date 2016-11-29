@@ -107,7 +107,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HumanResources, Green.toString),
           SchemeEvaluationResult(ProjectDelivery, Green.toString)))
         applicationEvaluation("application-4", 50, HumanResources, ProjectDelivery) mustResultIn(
-          PHASE3_TESTS, HumanResources -> Green, ProjectDelivery -> Amber)
+          PHASE3_TESTS_PASSED_WITH_AMBER, HumanResources -> Green, ProjectDelivery -> Amber)
       }
     }
     "give pass results on re-evaluation when all schemes are green" in new TestFixture {

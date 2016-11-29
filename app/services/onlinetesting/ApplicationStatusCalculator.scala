@@ -33,8 +33,9 @@ trait ApplicationStatusCalculator {
     (phase, originalApplicationStatus) match {
       case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
       case (PHASE2, ApplicationStatus.PHASE2_TESTS) => processResults(results, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED)
-      case (PHASE3, ApplicationStatus.PHASE3_TESTS) if !results.contains(Amber) =>
-        processResults(results, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED)
+      case (PHASE3, ApplicationStatus.PHASE3_TESTS) if results.contains(Amber) && results.contains(Green) =>
+        Some(PHASE3_TESTS_PASSED_WITH_AMBER)
+      case (PHASE3, ApplicationStatus.PHASE3_TESTS) => processResults(results, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED)
       case _ => None
     }
   }

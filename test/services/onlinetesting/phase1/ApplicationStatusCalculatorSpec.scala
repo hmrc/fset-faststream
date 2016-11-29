@@ -112,7 +112,7 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
 
     "do not update application status when there are greens and at least one amber" in {
       val newStatus = calc.determineApplicationStatus(PHASE3_TESTS, List(red, amber, green), Phase.PHASE3)
-      newStatus mustBe None
+      newStatus mustBe Some(PHASE3_TESTS_PASSED_WITH_AMBER)
     }
 
     "do not update application status when PHASE3_TESTS_PASSED" in {
