@@ -123,13 +123,15 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   def removeTestGroup(applicationId: String): Future[Unit] = {
+    val appStatuses = List(ApplicationStatus.PHASE3_TESTS,
+      ApplicationStatus.PHASE3_TESTS_FAILED,
+      ApplicationStatus.PHASE3_TESTS_PASSED)
 
-    val phase3Progresses = ProgressStatuses.allStatuses.filter(_.startsWith(phaseName))
+    val phase3Progresses = ProgressStatuses.progressesByApplicationStatus(appStatuses: _*)
 
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
-      BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS)
-    ))
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))))
 
     val progressesToRemove = phase3Progresses map (p => s"progress-status.$p" -> BSONString(""))
 
