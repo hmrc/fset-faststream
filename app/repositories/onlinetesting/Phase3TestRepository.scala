@@ -130,13 +130,8 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       "$unset" -> BSONDocument(s"testGroups.$phaseName" -> "")
     )
 
-    collection.update(query, updateQuery, upsert = false) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        Logger.error(s"Failed to reset progress statuses for " +
-          s"application Id: $applicationId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}")
-        throw ApplicationNotFound(applicationId)
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId, "removing test group", ApplicationNotFound(applicationId))
+    collection.update(query, updateQuery, upsert = false) map validator
   }
 
   override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = {
