@@ -60,7 +60,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result mustBe empty
     }
 
-    "return evaluated application in PHASE2_TESTS_PASSED when phase2 pass mark settings changed" in {
+    "return evaluated application in PHASE2_TESTS when phase2 pass mark settings changed" in {
       val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave)
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))

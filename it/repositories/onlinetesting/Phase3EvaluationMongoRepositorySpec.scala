@@ -59,7 +59,20 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result mustBe empty
     }
 
-    "return evaluated application in PHASE3_TESTS_PASSED when phase3 pass mark settings changed" in {
+    "return evaluated application in PHASE3_TESTS_PASSED_WITH_AMBER when phase3 pass mark settings changed" in {
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave)
+      insertApplication("app1", ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER, None, Some(phase2TestWithResult),
+        Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
+
+      val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave)
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
+
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version2", batchSize = 1).futureValue
+
+      assertApplication(result.head, phase2Evaluation, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
+    }
+
+    "return evaluated application in PHASE3_TESTS when phase3 pass mark settings changed" in {
       val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave)
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
         Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
@@ -140,9 +153,10 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
   }
 
-  private def assertApplication(application: ApplicationReadyForEvaluation, phase2Evaluation: PassmarkEvaluation) = {
+  private def assertApplication(application: ApplicationReadyForEvaluation, phase2Evaluation: PassmarkEvaluation,
+                                expectedApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE3_TESTS) = {
     application.applicationId mustBe "app1"
-    application.applicationStatus mustBe ApplicationStatus.PHASE3_TESTS
+    application.applicationStatus mustBe expectedApplicationStatus
     application.isGis mustBe false
     application.activeCubiksTests mustBe Nil
     application.activeLaunchpadTest.isDefined mustBe true

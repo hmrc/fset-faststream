@@ -25,11 +25,12 @@ import org.mockito.Mockito._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.{ AuditService, BaseServiceSpec }
+import services.AuditService
+import testkit.{ ShortTimeout, UnitWithAppSpec }
 
 import scala.concurrent.Future
 
-class PersonalDetailsServiceSpec extends BaseServiceSpec {
+class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
   val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
   val mockContactDetailsRepository = mock[ContactDetailsRepository]
   val mockCivilServiceExperienceDetailsRepository = mock[CivilServiceExperienceDetailsRepository]

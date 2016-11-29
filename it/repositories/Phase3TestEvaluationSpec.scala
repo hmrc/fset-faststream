@@ -138,6 +138,16 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         ) mustResultIn(PHASE3_TESTS_PASSED, HumanResources -> Red, ProjectDelivery -> Green)
       }
     }
+    "move candidate from PHASE3_TESTS_PASSED_WITH_AMBER to PHASE3_TESTS_PASSED " in new TestFixture {
+      phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HumanResources, Green.toString),
+        SchemeEvaluationResult(ProjectDelivery, Green.toString)))
+      applicationEvaluation("application-4", 50, HumanResources, ProjectDelivery) mustResultIn(
+        PHASE3_TESTS_PASSED_WITH_AMBER, HumanResources -> Green, ProjectDelivery -> Amber)
+
+      applicationReEvaluationWithSettings(
+        (ProjectDelivery, 50, 50)
+      ) mustResultIn(PHASE3_TESTS_PASSED, HumanResources -> Green, ProjectDelivery -> Green)
+    }
   }
 
   trait TestFixture {

@@ -19,7 +19,7 @@ package repositories.onlinetesting
 import common.Phase2TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.UnexpectedException
+import model.Exceptions.{ ApplicationNotFound, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted._
@@ -54,6 +54,7 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
+
 }
 
 class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -63,7 +64,8 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override val phaseName = "PHASE2"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE2_TESTS
-  override val resetStatuses = List[String](ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED)
+  override val resetStatuses = List[String](ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED,
+    ApplicationStatus.PHASE2_TESTS_PASSED, ApplicationStatus.PHASE3_TESTS)
   override val dateTimeFactory = dateTime
   override val expiredTestQuery: BSONDocument = {
     BSONDocument("$and" -> BSONArray(

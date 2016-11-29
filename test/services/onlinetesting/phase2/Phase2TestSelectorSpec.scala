@@ -27,16 +27,34 @@ class Phase2TestSelectorSpec extends UnitSpec {
       val selector = createSelector(Map())
 
       intercept[IllegalArgumentException] {
-        selector.getRandomScheduleWithName()
+        selector.getNextSchedule()
       }
     }
 
     "return a schedule randomly" in {
       val schedules = Map("daro" -> DaroSchedule, "irad" -> IradSchedule, "ward" -> WardSchedule)
       val selector = createSelector(schedules)
-      val randomSchedules = 1 to 1000 map (_ => selector.getRandomScheduleWithName())
+      val randomSchedules = 1 to 1000 map (_ => selector.getNextSchedule())
 
       randomSchedules.distinct must contain theSameElementsAs schedules
+    }
+
+    "return a schedule randomly for the first n schedules defined and then repeat those schedules in subsequent calls" in {
+      val schedules = Map("daro" -> DaroSchedule, "irad" -> IradSchedule, "ward" -> WardSchedule)
+      val selector = createSelector(schedules)
+
+      def createSchedules(startingSchedule: List[(String, Phase2Schedule)]) = {
+        (1 to schedules.size).foldLeft(startingSchedule)((list, _) =>
+          list :+ selector.getNextSchedule(list.map{case(_, s) => s.scheduleId}))
+      }
+
+      val randomSchedules = createSchedules(List.empty[(String, Phase2Schedule)])
+
+      randomSchedules.distinct must contain theSameElementsAs schedules
+
+      val randomSchedulesCombined = createSchedules(randomSchedules)
+
+      randomSchedulesCombined must be(randomSchedules ::: randomSchedules)
     }
   }
 
