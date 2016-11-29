@@ -23,7 +23,7 @@ import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader }
 
 trait BaseBSONReader {
   // scalastyle:off method.length
-  implicit def toProgressResponse(applicationId: String) = bsonReader {
+  def toProgressResponse(applicationId: String) = bsonReader {
     (doc: BSONDocument) => {
       (doc.getAs[BSONDocument]("progress-status") map { root =>
 
