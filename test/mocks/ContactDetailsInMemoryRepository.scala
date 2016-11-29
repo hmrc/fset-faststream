@@ -37,5 +37,4 @@ class ContactDetailsInMemoryRepository extends ContactDetailsRepository with InM
 
   override def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]] = ???
 
-  override def findAll: Future[List[ContactDetailsWithId]] = Future.successful(List.empty[ContactDetailsWithId])
 }

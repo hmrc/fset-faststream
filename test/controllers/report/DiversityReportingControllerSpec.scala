@@ -27,7 +27,8 @@ import persisted.ApplicationForDiversityReportExamples
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository }
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, QuestionnaireRepository }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -125,12 +126,12 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
     val mockQuestionRepository = mock[QuestionnaireRepository]
     val mockMediaRepository = mock[MediaRepository]
     val controller = new ReportingController {
-      val reportRepository = mockReportRepository
-      val cdRepository = mock[ContactDetailsRepository]
+      val reportingRepository = mockReportRepository
+      val contactDetailsRepository = mock[ContactDetailsRepository]
       val authProviderClient = mock[AuthProviderClient]
       val questionnaireRepository = mockQuestionRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
-      val medRepository: MediaRepository = mockMediaRepository
+      val mediaRepository: MediaRepository = mockMediaRepository
     }
 
     val applications = List(ApplicationForDiversityReportExamples.Example1,

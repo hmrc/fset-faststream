@@ -31,7 +31,8 @@ import play.api.libs.json.JsArray
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository }
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, QuestionnaireRepository }
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -39,27 +40,24 @@ import scala.language.postfixOps
 
 class ReportingControllerSpec extends UnitWithAppSpec {
 
+  val mockContactDetailsRepository = mock[ContactDetailsRepository]
   class TestableReportingController extends ReportingController {
-    override val reportRepository: ReportingRepository = ReportingInMemoryRepository
-    override val cdRepository: ContactDetailsRepository = new ContactDetailsInMemoryRepository
+    override val reportingRepository: ReportingRepository = ReportingInMemoryRepository
+    override val contactDetailsRepository: ContactDetailsRepository = mockContactDetailsRepository
     override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
       override val questionnaireRepository: QuestionnaireRepository = QuestionnaireInMemoryRepository
     override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
-    override val medRepository: MediaRepository = MediaInMemoryRepository
+    override val mediaRepository: MediaRepository = MediaInMemoryRepository
   }
 
   "Reporting controller create adjustment report" should {
     "return the adjustment report when we execute adjustment reports" in new TestFixture {
-      val controller = new TestableReportingController {
-        override val cdRepository = new ContactDetailsInMemoryRepository {
-          override def findAll: Future[List[ContactDetailsWithId]] =
-            Future.successful(List(
-              ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None),
-              ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None),
-              ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None)
-            ))
-        }
-      }
+      when(mockContactDetailsRepository.findAll).thenReturn(Future.successful(List(
+        ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None),
+        ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None),
+        ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None)
+      )))
+      val controller = new TestableReportingController
       val result = controller.adjustmentReport(frameworkId)(createAdjustmentsReport(frameworkId)).run
 
       val finalResult = contentAsJson(result).as[JsArray].value
@@ -87,7 +85,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     "return no adjustments if there's no data on the server" in new TestFixture {
       val controller = new TestableReportingController {
-        override val reportRepository = new ReportingInMemoryRepository {
+        override val reportingRepository = new ReportingInMemoryRepository {
           override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]] = {
             Future.successful(List.empty[AdjustmentReportItem])
           }
@@ -328,6 +326,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         Candidate("firstName2", "lastName2", None, "email2@test.com", "user2") ::
         Nil
     ))
+
+    when(mockContactDetailsRepository.findAll).thenReturn(Future.successful(List.empty))
   }
 
   /*

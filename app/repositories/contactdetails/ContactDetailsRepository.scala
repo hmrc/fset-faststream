@@ -16,7 +16,11 @@
 
 package repositories.contactdetails
 
-import model.Exceptions.{ ContactDetailsNotFoundForEmail, CannotUpdateContactDetails, ContactDetailsNotFound }
+import config.MicroserviceAppConfig
+import model.Address
+import model.Commands._
+import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
+import model.PersistedObjects.ContactDetailsWithId
 import model.persisted.ContactDetails
 import play.api.Logger
 import reactivemongo.api.DB
@@ -33,6 +37,9 @@ trait ContactDetailsRepository {
   def find(userId: String): Future[ContactDetails]
 
   def findUserIdByEmail(email: String): Future[String]
+
+  def findAll: Future[List[ContactDetailsWithId]]
+
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -40,7 +47,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository {
   val ContactDetailsCollection = "contact-details"
 
-  def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
+  override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
     val contactDetailsBson = BSONDocument("$set" -> BSONDocument(ContactDetailsCollection -> contactDetails))
 
@@ -52,18 +59,18 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     }
   }
 
-  def find(userId: String): Future[ContactDetails] = {
+  override def find(userId: String): Future[ContactDetails] = {
     val query = BSONDocument("userId" -> userId)
     val projection = BSONDocument(ContactDetailsCollection -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(d) if d.getAs[BSONDocument]("contact-details").isDefined =>
-        d.getAs[ContactDetails]("contact-details").get
+      case Some(document) if document.getAs[BSONDocument]("contact-details").isDefined =>
+        document.getAs[ContactDetails]("contact-details").get
       case None => throw ContactDetailsNotFound(userId)
     }
   }
 
-  def findUserIdByEmail(email: String): Future[String] = {
+  override def findUserIdByEmail(email: String): Future[String] = {
     val query = BSONDocument("contact-details.email" -> email)
     val projection = BSONDocument("userId" -> 1, "_id" -> 0)
 
@@ -72,5 +79,20 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
         d.getAs[String]("userId").get
       case None => throw ContactDetailsNotFoundForEmail()
     }
+  }
+
+  override def findAll: Future[List[ContactDetailsWithId]] = {
+    val query = BSONDocument()
+
+    collection.find(query).cursor[BSONDocument]().collect[List](MicroserviceAppConfig.maxNumberOfDocuments).map(_.map { doc =>
+      val id = doc.getAs[String]("userId").get
+      val root = doc.getAs[BSONDocument]("contact-details").get
+      val address = root.getAs[Address]("address").get
+      val postCode = root.getAs[PostCode]("postCode")
+      val phone = root.getAs[PhoneNumber]("phone")
+      val email = root.getAs[String]("email").get
+
+      ContactDetailsWithId(id, address, postCode, email, phone)
+    })
   }
 }
