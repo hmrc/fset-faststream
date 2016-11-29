@@ -30,9 +30,9 @@ import model.report._
 import model.{ CivilServiceExperienceType, InternshipType, Phase }
 import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.{ BSONHelpers, BaseBSONReader }
+import repositories.{ BaseBSONReader, CommonBSONDocuments }
 
-trait ReportingRepoBSONReader extends BaseBSONReader {
+trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   implicit val toReportWithPersonalDetails = bsonReader {
     (doc: BSONDocument) => {
@@ -255,4 +255,5 @@ trait ReportingRepoBSONReader extends BaseBSONReader {
   }
 
   private def extract(key: String)(root: Option[BSONDocument]): Option[String] = root.flatMap(_.getAs[String](key))
+
 }

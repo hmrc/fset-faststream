@@ -51,7 +51,7 @@ trait ContactDetailsRepository {
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo,
     PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with
-    ContactDetailsRepository with BSONHelpers {
+    ContactDetailsRepository with ReactiveRepositoryHelpers {
 
   override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
 

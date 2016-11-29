@@ -44,7 +44,7 @@ trait PersonalDetailsRepository {
 class PersonalDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[PersonalDetails, BSONObjectID]("application", mongo,
     PersistedObjects.Implicits.persistedPersonalDetailsFormats, ReactiveMongoFormats.objectIdFormats) with
-    PersonalDetailsRepository with BSONHelpers {
+    PersonalDetailsRepository with ReactiveRepositoryHelpers {
 
   override def update(applicationId: String, userId: String, pd: PersonalDetails): Future[Unit] = {
 

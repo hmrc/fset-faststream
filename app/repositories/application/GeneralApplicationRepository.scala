@@ -136,7 +136,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
-    with GeneralApplicationRepoBSONReader with BSONHelpers {
+    with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers {
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString

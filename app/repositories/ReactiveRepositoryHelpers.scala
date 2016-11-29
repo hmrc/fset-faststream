@@ -22,7 +22,7 @@ import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.commands.{ UpdateWriteResult, WriteResult }
 import uk.gov.hmrc.mongo.ReactiveRepository
 
-trait BSONHelpers {
+trait ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
 
   protected lazy val bsonCollection = collection.db.collection[BSONCollection](collection.name)
@@ -86,5 +86,4 @@ trait BSONHelpers {
       throw CannotUpdateRecord(msg)
     }
   }
-
 }

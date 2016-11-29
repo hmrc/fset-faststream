@@ -22,7 +22,7 @@ import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.{ BSONHelpers, BaseBSONReader, CommonBSONDocuments, RandomSelection }
+import repositories.{ ReactiveRepositoryHelpers, CommonBSONDocuments, RandomSelection }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import model.Phase._
@@ -30,7 +30,7 @@ import model.Phase._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHelpers with RandomSelection {
+trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with ReactiveRepositoryHelpers with RandomSelection {
 
   this: ReactiveRepository[_, _] =>
 
@@ -85,7 +85,7 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] with BaseBSONReader{
+    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] with CommonBSONDocuments{
 
   val phase = PHASE1
 
@@ -113,7 +113,8 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
 class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] with BaseBSONReader {
+    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
+    with CommonBSONDocuments {
 
   val phase = PHASE2
 

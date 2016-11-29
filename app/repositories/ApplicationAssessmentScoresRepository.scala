@@ -39,7 +39,7 @@ trait ApplicationAssessmentScoresRepository {
 class ApplicationAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[CandidateScoresAndFeedback, BSONObjectID]("application-assessment-scores", mongo,
     CandidateScoresCommands.Implicits.CandidateScoresAndFeedbackFormats, ReactiveMongoFormats.objectIdFormats)
-  with ApplicationAssessmentScoresRepository with BSONHelpers {
+  with ApplicationAssessmentScoresRepository with ReactiveRepositoryHelpers {
 
   def tryFind(applicationId: String): Future[Option[CandidateScoresAndFeedback]] = {
     val query = BSONDocument("applicationId" -> applicationId)

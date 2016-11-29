@@ -21,7 +21,7 @@ import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import repositories.BSONHelpers
+import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -40,7 +40,7 @@ trait CivilServiceExperienceDetailsRepository {
 class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) extends
   ReactiveRepository[CivilServiceExperienceDetails, BSONObjectID]("application", mongo,
     CivilServiceExperienceDetails.civilServiceExperienceDetailsFormat, ReactiveMongoFormats.objectIdFormats)
-  with CivilServiceExperienceDetailsRepository with BSONHelpers {
+  with CivilServiceExperienceDetailsRepository with ReactiveRepositoryHelpers {
 
   override def update(applicationId: String, civilServiceExperienceDetails: CivilServiceExperienceDetails): Future[Unit] = {
 

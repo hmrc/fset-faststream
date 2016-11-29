@@ -21,7 +21,7 @@ import model.persisted.ContactDetails
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import repositories.BSONHelpers
+import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -38,7 +38,7 @@ trait ContactDetailsRepository {
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo, ContactDetails.contactDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with BSONHelpers {
+    ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with ReactiveRepositoryHelpers {
 
   val ContactDetailsCollection = "contact-details"
 

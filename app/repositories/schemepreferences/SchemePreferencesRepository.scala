@@ -21,7 +21,7 @@ import model.SelectedSchemes
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
-import repositories.BSONHelpers
+import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -36,7 +36,7 @@ trait SchemePreferencesRepository {
 
 class SchemePreferencesMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[SelectedSchemes, BSONObjectID]("application", mongo,
-    SelectedSchemes.selectedSchemesFormat, ReactiveMongoFormats.objectIdFormats) with SchemePreferencesRepository with BSONHelpers {
+    SelectedSchemes.selectedSchemesFormat, ReactiveMongoFormats.objectIdFormats) with SchemePreferencesRepository with ReactiveRepositoryHelpers {
 
   private val SchemePreferencesDocumentKey = "scheme-preferences"
 

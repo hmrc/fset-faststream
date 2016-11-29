@@ -43,7 +43,7 @@ trait QuestionnaireRepository {
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
   extends ReactiveRepository[PersistedAnswer, BSONObjectID]("questionnaire", mongo,
     PersistedObjects.Implicits.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
-    with BSONHelpers {
+    with ReactiveRepositoryHelpers with BaseBSONReader {
 
   override def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit] = {
 
@@ -106,12 +106,6 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     collection.find(query, projection).one[Questions].map {
       case Some(q) => q.questions.map((q: (String, PersistedAnswer)) => PersistedQuestion(q._1, q._2)).toList
       case None => List()
-    }
-  }
-
-  private def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
     }
   }
 

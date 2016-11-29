@@ -18,23 +18,21 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, UnexpectedException }
+import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.exchange.CubiksTestResultReady
 import model.persisted._
 import org.joda.time.{ DateTime, DateTimeZone }
-import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.{ BaseBSONReader, _ }
+import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OnlineTestRepository extends RandomSelection with BSONHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments
-  with BaseBSONReader {
+trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments {
   this: ReactiveRepository[_, _] =>
 
   val thisApplicationStatus: ApplicationStatus

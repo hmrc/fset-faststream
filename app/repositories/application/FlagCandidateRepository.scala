@@ -40,7 +40,7 @@ trait FlagCandidateRepository {
 class FlagCandidateMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[FlagCandidate, BSONObjectID]("application", mongo,
     FlagCandidate.FlagCandidateFormats, ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository
-    with BSONHelpers {
+    with ReactiveRepositoryHelpers {
 
   def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = {
     val query = BSONDocument("applicationId" -> appId)

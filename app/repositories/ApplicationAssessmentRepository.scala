@@ -42,7 +42,7 @@ trait ApplicationAssessmentRepository {
 class ApplicationAssessmentMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationAssessment, BSONObjectID]("application-assessment", mongo,
     Commands.Implicits.applicationAssessmentFormat, ReactiveMongoFormats.objectIdFormats) with
-    ApplicationAssessmentRepository with BSONHelpers {
+    ApplicationAssessmentRepository with ReactiveRepositoryHelpers {
 
   def find(applicationId: String): Future[ApplicationAssessment] = {
     val query = BSONDocument(
