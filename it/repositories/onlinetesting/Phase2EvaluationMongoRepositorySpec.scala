@@ -4,7 +4,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.SchemeType._
 import model.persisted.{ ApplicationReadyForEvaluation, _ }
-import model.{ ApplicationStatus, SchemeType }
+import model.{ ApplicationStatus, ProgressStatuses, SchemeType }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
@@ -128,7 +128,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
 
-      phase2EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE2_TESTS_PASSED)).futureValue
+      phase2EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE2_TESTS_PASSED)).futureValue
 
       val resultWithAppStatus = getOnePhase2Profile("app1")
       resultWithAppStatus mustBe defined

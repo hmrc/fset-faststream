@@ -17,12 +17,12 @@
 package services.onlinetesting
 
 import config.CubiksGatewayConfig
-import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
+import model.ProgressStatuses.ProgressStatus
 import model.SchemeType.SchemeType
+import model._
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted._
-import model._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Format
@@ -93,7 +93,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       service.evaluate(application, PassmarkSettings).futureValue
 
       verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(AppId, ExpectedPassmarkEvaluation,
-        Some(ApplicationStatus.PHASE1_TESTS_PASSED))
+        Some(ProgressStatuses.PHASE1_TESTS_PASSED))
     }
 
     "save evaluated result and do not update the application status for PHASE1_TESTS_PASSED" in new TestFixture {
@@ -125,7 +125,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       edipSkipEvaluationService.evaluate(application, PassmarkSettings).futureValue
 
       verify(mockPhase1EvaluationRepository, never()).savePassmarkEvaluation(AppId, ExpectedPassmarkEvaluation,
-        Some(ApplicationStatus.PHASE1_TESTS_PASSED))
+        Some(ProgressStatuses.PHASE1_TESTS_PASSED))
     }
   }
 
@@ -142,7 +142,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
     val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsMongoRepository]
 
-    when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ApplicationStatus]]))
+    when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
       .thenReturn(Future.successful(()))
 
     val service = new EvaluatePhase1ResultService with StubbedPhase1TestEvaluation {

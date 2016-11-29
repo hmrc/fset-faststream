@@ -17,30 +17,33 @@
 package services.onlinetesting
 
 import model.ApplicationStatus
-import model.ApplicationStatus._
+import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Result, _ }
 import model.Phase.Phase
 import model.Phase._
+import model.ProgressStatuses.ProgressStatus
+import model.ProgressStatuses._
 import model.persisted.SchemeEvaluationResult
 
 trait ApplicationStatusCalculator {
 
   def determineApplicationStatus(originalApplicationStatus: ApplicationStatus,
                                  evaluatedSchemes: List[SchemeEvaluationResult],
-                                 phase: Phase): Option[ApplicationStatus] = {
+                                 phase: Phase): Option[ProgressStatus] = {
     val results = evaluatedSchemes.map(s => Result(s.result))
     require(results.nonEmpty, "Results not found")
     (phase, originalApplicationStatus) match {
       case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
       case (PHASE2, ApplicationStatus.PHASE2_TESTS) => processResults(results, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED)
-      case (PHASE3, ApplicationStatus.PHASE3_TESTS) if results.contains(Amber) && results.contains(Green) =>
-        Some(PHASE3_TESTS_PASSED_WITH_AMBER)
-      case (PHASE3, ApplicationStatus.PHASE3_TESTS) => processResults(results, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED)
+      case (PHASE3, ApplicationStatus.PHASE3_TESTS | ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
+        if results.contains(Amber) && results.contains(Green) => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
+      case (PHASE3, ApplicationStatus.PHASE3_TESTS | ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER) =>
+        processResults(results, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED)
       case _ => None
     }
   }
 
-  def processResults(results: List[Result], pass: ApplicationStatus, fail: ApplicationStatus) = {
+  def processResults(results: List[Result], pass: ProgressStatus, fail: ProgressStatus) = {
     if (results.forall(_ == Red)) {
       Some(fail)
     } else if (results.contains(Green)) {

@@ -53,7 +53,7 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
   Future[List[T]] = selectRandom[T](nextApplicationQuery(currentPassmarkVersion), batchSize)
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
-                             newApplicationStatus: Option[ApplicationStatus]): Future[Unit] = {
+                             newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses))
@@ -62,7 +62,7 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
     val passMarkEvaluation = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phase.evaluation" -> evaluation
     ).add(
-      newApplicationStatus.map(applicationStatusBSON).getOrElse(BSONDocument.empty)
+      newProgressStatus.map(applicationStatusBSON).getOrElse(BSONDocument.empty)
     ))
 
     collection.update(query, passMarkEvaluation) map { r =>

@@ -4,7 +4,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.SchemeType._
 import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest, Phase1TestProfile, _ }
-import model.{ ApplicationStatus, SchemeType }
+import model.{ ApplicationStatus, ProgressStatuses, SchemeType }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
@@ -90,7 +90,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
 
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS_PASSED)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED)).futureValue
 
       val resultWithAppStatus = getOnePhase1Profile("app1")
       resultWithAppStatus mustBe defined
@@ -104,7 +104,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "return nothing when candidate has been already evaluated" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
@@ -114,7 +114,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "return the candidate in PHASE1_TESTS if the passmark has changed" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
@@ -124,7 +124,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "return the candidate to re-evaluation in PHASE1_TESTS_PASSED if the passmark has changed" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE1_TESTS_PASSED)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
@@ -134,7 +134,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "return the candidate to re-evaluation in PHASE2_TESTS if the passmark has changed" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE2_TESTS)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE2_TESTS_STARTED)).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
@@ -144,7 +144,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "do not change application status when it is not required" in {
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newApplicationStatus = None).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
       result must not be empty

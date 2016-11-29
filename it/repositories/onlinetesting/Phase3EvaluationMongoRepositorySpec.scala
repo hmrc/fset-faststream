@@ -6,7 +6,7 @@ import model.EvaluationResults.Green
 import model.SchemeType._
 import model.persisted._
 import model.persisted.phase3tests.Phase3TestGroup
-import model.{ ApplicationStatus, SchemeType }
+import model.{ ApplicationStatus, ProgressStatuses, SchemeType }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -128,7 +128,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult), Some(phase3TestWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
 
-      phase3EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ApplicationStatus.PHASE3_TESTS_PASSED)).futureValue
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE3_TESTS_PASSED)).futureValue
 
       val resultWithAppStatus = getOnePhase3Profile("app1")
       resultWithAppStatus mustBe defined
