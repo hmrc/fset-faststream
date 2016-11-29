@@ -16,20 +16,24 @@
 
 package scheduler.onlinetesting
 
+import model.Phase
 import model.exchange.passmarksettings.PassMarkSettings
-import model.persisted.ApplicationReadyForEvaluation
+import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import play.api.libs.json.Format
 import repositories.onlinetesting.OnlineTestEvaluationRepository
+import services.onlinetesting.ApplicationStatusCalculator
 import services.passmarksettings.PassMarkSettingsService
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-trait EvaluateOnlineTestResultService[T <: PassMarkSettings] {
+trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends ApplicationStatusCalculator {
   this: PassMarkSettingsService[T] =>
 
   val evaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
+
+  val phase: Phase.Phase
 
   def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T]):
   Future[Option[(List[ApplicationReadyForEvaluation], T)]] = {
@@ -39,6 +43,21 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] {
           Some(candidates -> passmark)
         }
       case _ => Future.successful(None)
+    }
+  }
+
+  def savePassMarkEvaluation(application: ApplicationReadyForEvaluation,
+                             schemeResults: List[SchemeEvaluationResult],
+                             passMarkSettings: T) = {
+    schemeResults.nonEmpty match {
+      case true =>
+        evaluationRepository.savePassmarkEvaluation(
+          application.applicationId,
+          PassmarkEvaluation(passMarkSettings.version, application.prevPhaseEvaluation.map(_.passmarkVersion),
+            schemeResults),
+          determineApplicationStatus(application.applicationStatus, schemeResults, phase)
+        )
+      case false => Future.successful(())
     }
   }
 

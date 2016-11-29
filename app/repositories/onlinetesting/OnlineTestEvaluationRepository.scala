@@ -170,8 +170,6 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
 
   import repositories.BSONDateTimeHandler
 
-  val hoursToWaitAfterLastReviewed = 72
-
   val phase = PHASE3
 
   val prevPhase = PHASE2
@@ -198,7 +196,9 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
           "usedForResults" -> true, "callbacks.reviewed" -> BSONDocument("$exists" -> true),
           "callbacks.reviewed" -> BSONDocument("$not" ->
               BSONDocument("$elemMatch" -> BSONDocument("received" -> BSONDocument("$gt" ->
-                DateTimeFactory.nowLocalTimeZone.minusHours(launchpadGatewayConfig.phase3Tests.hrsToWaitAfterResultsReceived)))))
+                DateTimeFactory.nowLocalTimeZone.minusHours(
+                  launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
+                )))))
           )
         )
       ),

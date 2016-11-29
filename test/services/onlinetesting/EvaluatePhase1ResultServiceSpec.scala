@@ -22,7 +22,7 @@ import model.EvaluationResults.Green
 import model.SchemeType.SchemeType
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted._
-import model.{ ApplicationStatus, Phase1TestExamples, Phase1TestProfileExamples, SchemeType }
+import model._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Format
@@ -149,6 +149,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       val evaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockCubiksGatewayConfig
       val passMarkSettingsRepo = mockPhase1PMSRepository
+      val phase = Phase.PHASE1
 
       override def sjq = SjqId
 
@@ -159,6 +160,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       val evaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockCubiksGatewayConfig
       val passMarkSettingsRepo = mockPhase1PMSRepository
+      val phase = Phase.PHASE1
 
       override def sjq = SjqId
 

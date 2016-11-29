@@ -18,12 +18,11 @@ package services.onlinetesting
 
 import _root_.services.onlinetesting.phase3.Phase3TestEvaluation
 import _root_.services.passmarksettings.PassMarkSettingsService
-import config.MicroserviceAppConfig._
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import model.Phase
 import model.exchange.passmarksettings.Phase3PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation }
 import play.api.Logger
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import repositories._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
@@ -34,6 +33,7 @@ object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
   val evaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
     = repositories.faststreamPhase3EvaluationRepository
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
+  val phase = Phase.PHASE3
 }
 
 trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
@@ -57,15 +57,7 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
       case _ => throw new IllegalStateException(s"Illegal number of phase3 active tests with results " +
         s"for this application: ${application.applicationId}")
     }
-
-    schemeResults.nonEmpty match {
-      case true => evaluationRepository.savePassmarkEvaluation(
-        application.applicationId,
-        PassmarkEvaluation(passmark.version, application.prevPhaseEvaluation.map(_.passmarkVersion), schemeResults),
-        determineApplicationStatus(application.applicationStatus, schemeResults, Phase.PHASE3)
-      )
-      case false => Future.successful(())
-    }
+    savePassMarkEvaluation(application, schemeResults, passmark)
   }
 }
 

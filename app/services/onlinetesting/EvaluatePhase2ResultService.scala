@@ -18,10 +18,9 @@ package services.onlinetesting
 
 import _root_.services.onlinetesting.phase2.Phase2TestEvaluation
 import _root_.services.passmarksettings.PassMarkSettingsService
-import config.MicroserviceAppConfig._
 import model.Phase
 import model.exchange.passmarksettings.Phase2PassMarkSettings
-import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation }
+import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
 import repositories._
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
@@ -31,10 +30,11 @@ import scala.concurrent.Future
 object EvaluatePhase2ResultService extends EvaluatePhase2ResultService {
   val evaluationRepository = repositories.faststreamPhase2EvaluationRepository
   val passMarkSettingsRepo = phase2PassMarkSettingsRepository
+  val phase = Phase.PHASE2
 }
 
 trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestEvaluation
-  with PassMarkSettingsService[Phase2PassMarkSettings] with ApplicationStatusCalculator {
+  with PassMarkSettingsService[Phase2PassMarkSettings] {
 
   def evaluate(application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
@@ -51,15 +51,7 @@ trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2
       case _ => throw new IllegalStateException(s"Illegal number of phase2 active tests with results " +
         s"for this application: ${application.applicationId}")
     }
-
-    schemeResults.nonEmpty match {
-      case true => evaluationRepository.savePassmarkEvaluation(
-        application.applicationId,
-        PassmarkEvaluation(passmark.version, application.prevPhaseEvaluation.map(_.passmarkVersion), schemeResults),
-        determineApplicationStatus(application.applicationStatus, schemeResults, Phase.PHASE2)
-      )
-      case false => Future.successful(())
-    }
+    savePassMarkEvaluation(application, schemeResults, passmark)
   }
 }
 

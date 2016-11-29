@@ -15,6 +15,7 @@ import play.api.test.Helpers
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
+import model.Phase
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.onlinetesting.EvaluatePhase1ResultService
 import testkit.MongoRepositorySpec
@@ -41,6 +42,7 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val gatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo = phase1PassMarkSettingRepo
     val phase1TestsConfigMock = mock[Phase1TestsConfig]
+    val phase = Phase.PHASE1
 
     when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
     when(phase1TestsConfigMock.scheduleIds).thenReturn(Map("sjq" -> 16196, "bq" -> 16194))

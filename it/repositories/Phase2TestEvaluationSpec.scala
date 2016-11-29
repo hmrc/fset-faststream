@@ -1,7 +1,7 @@
 package repositories
 
 import config.Phase2TestsConfig
-import model.ApplicationStatus
+import model.{ ApplicationStatus, Phase }
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
 import model.SchemeType._
@@ -41,6 +41,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val gatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo = phase2PassMarkSettingRepo
     val phase2TestsConfigMock = mock[Phase2TestsConfig]
+    val phase = Phase.PHASE2
     when(gatewayConfig.phase2Tests).thenReturn(phase2TestsConfigMock)
   }
 
