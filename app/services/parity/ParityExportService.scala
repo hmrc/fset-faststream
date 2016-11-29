@@ -16,32 +16,52 @@
 
 package services.parity
 
-import config.MicroserviceAppConfig
+import config.{ MicroserviceAppConfig, ParityGatewayConfig }
 import play.api.Logger
+import play.api.libs.json.JsObject
 import services.events.{ EventService, EventSink }
 import repositories._
 import repositories.parity.ParityExportRepository
+import repositories.parity.ParityExportRepository.ApplicationIdNotFoundException
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ParityExportService extends ParityExportService {
   val eventService = EventService
   val parityExRepository = parityExportRepository
-
+  val parityGatewayConfig = MicroserviceAppConfig.parityGatewayConfig
 }
 
 trait ParityExportService extends EventSink {
 
   val parityExRepository: ParityExportRepository
+  val parityGatewayConfig: ParityGatewayConfig
 
   // Random apps in PHASE3_TESTS_PASSED_NOTIFIED
   def nextApplicationsForExport(batchSize: Int): Future[List[String]] = parityExRepository.nextApplicationsForExport(batchSize)
 
   def exportApplication(applicationId: String): Future[Unit] = {
-    val applicationDoc = parityExRepository.getApplicationForExport(applicationId)
+    parityExRepository.getApplicationForExport(applicationId).map { applicationDoc =>
 
-    Logger.debug("============ App = " + applicationDoc)
+      Logger.debug("============ App = " + applicationDoc)
 
-    Future.successful(())
+      /*
+      Alternative style, not going to be used
+      val export = JsObject(
+        "application" -> JsObject(
+
+        )
+      )*/
+
+      val export2 =
+        s"""
+          | "application": {
+          |   "token": ${parityGatewayConfig.upstreamAuthToken},
+          |   "userId": ${applicationDoc \ "userId"}
+          | }
+        """.stripMargin
+
+    }
   }
 }

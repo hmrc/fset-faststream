@@ -29,6 +29,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ParityExportRepository {
   case class ApplicationIdNotFoundException(applicationId: String) extends Exception(applicationId)
@@ -50,7 +51,9 @@ class ParityExportMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () 
   override def nextApplicationsForExport(batchSize: Int): Future[List[String]] = {
     val query = BSONDocument("applicationStatus" -> PHASE3_TESTS_PASSED_NOTIFIED.toString)
 
-    selectRandom[String](query, batchSize)
+    selectRandom[BSONDocument](query, batchSize).map { futureList =>
+      futureList.map(item => item.elements.head._2.toString)
+    }
   }
 
   override def getApplicationForExport(applicationId: String): Future[JsValue] = {

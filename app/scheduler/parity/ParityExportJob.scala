@@ -28,8 +28,8 @@ import services.parity.ParityExportService
 import scala.concurrent.{ ExecutionContext, Future }
 
 object ParityExportJob extends ParityExportJob {
-  override val service = ApplicationService
-  override val parityExportJobConfig = MicroserviceAppConfig.parityExportJobConfig.batchSize
+  override val service = ParityExportService
+  override val parityExportJobConfig = MicroserviceAppConfig.parityExportJobConfig
 }
 
 trait ParityExportJob extends SingleInstanceScheduledJob with FixerJobConfig {
