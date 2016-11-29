@@ -47,7 +47,7 @@ trait CommonRepository {
 
   def phase2EvaluationRepo = new Phase2EvaluationMongoRepository()
 
-  def phase3EvaluationRepo = new Phase3EvaluationMongoRepository(mockLaunchpadConfig)
+  def phase3EvaluationRepo = new Phase3EvaluationMongoRepository(mockLaunchpadConfig, DateTimeFactory)
 
   def phase1PassMarkSettingRepo = new Phase1PassMarkSettingsMongoRepository()
 

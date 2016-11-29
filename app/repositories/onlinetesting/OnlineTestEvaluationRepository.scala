@@ -163,7 +163,8 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
       ))
 }
 
-class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayConfig)(implicit mongo: () => DB)
+class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayConfig,
+                                      dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository[ApplicationReadyForEvaluation] with BaseBSONReader {
@@ -196,7 +197,7 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
           "usedForResults" -> true, "callbacks.reviewed" -> BSONDocument("$exists" -> true),
           "callbacks.reviewed" -> BSONDocument("$not" ->
               BSONDocument("$elemMatch" -> BSONDocument("received" -> BSONDocument("$gt" ->
-                DateTimeFactory.nowLocalTimeZone.minusHours(
+                dateTimeFactory.nowLocalTimeZone.minusHours(
                   launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
                 )))))
           )
