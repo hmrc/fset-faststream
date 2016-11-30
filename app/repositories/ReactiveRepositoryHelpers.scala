@@ -16,7 +16,7 @@
 
 package repositories
 
-import model.Exceptions.{ CannotUpdateRecord, NotFoundException, NotModifiedException, TooManyEntries }
+import model.Exceptions.{ CannotUpdateRecord, NotFoundException, TooManyEntries }
 import play.api.Logger
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.commands.{ UpdateWriteResult, WriteResult }
@@ -30,19 +30,19 @@ trait ReactiveRepositoryHelpers {
   def singleUpdateValidator(id: String,
                             actionDesc: String,
                             notFound: => Exception): UpdateWriteResult => Unit = {
-    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = false, notFound, upsert = false) _
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = false, notFound, upsert = false)
   }
 
   def singleUpdateValidator(id: String, actionDesc: String, ignoreNotFound: Boolean = false): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound,
-      new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false) _
+      new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false)
   }
 
   def singleUpsertValidator(id: String,
                             actionDesc: String): UpdateWriteResult => Unit = {
 
-    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true) _
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true)
   }
 
   def singleRemovalValidator(id: String, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
@@ -52,7 +52,7 @@ trait ReactiveRepositoryHelpers {
       } else if (result.n == 0) {
         throw new NotFoundException(s"No document found whilst $actionDesc for id $id")
       } else if (result.n > 1) {
-        throw new TooManyEntries(s"Deletion successful, but too many documents deleted whilst $actionDesc for id $id")
+        throw TooManyEntries(s"Deletion successful, but too many documents deleted whilst $actionDesc for id $id")
       }
     } else {
       val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
@@ -73,7 +73,7 @@ trait ReactiveRepositoryHelpers {
       } else if (result.n == 0) {
         throw notFound
       } else if (result.n > 1) {
-        throw new TooManyEntries(s"Update successful, but too many documents updated whilst $actionDesc for id $id")
+        throw TooManyEntries(s"Update successful, but too many documents updated whilst $actionDesc for id $id")
       }
     } else {
       val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")

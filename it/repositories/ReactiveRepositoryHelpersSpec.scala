@@ -1,6 +1,6 @@
 package repositories
 
-import model.Exceptions.{ NotFoundException, NotModifiedException }
+import model.Exceptions.NotFoundException
 import play.api.libs.json.Json
 import reactivemongo.bson._
 import reactivemongo.api.DB
@@ -46,6 +46,18 @@ class ReactiveRepositoryHelpersSpec extends MongoRepositorySpec {
       repo.insert(testValue).futureValue
       val result = repo.update(testValue) map repo.singleUpsertValidator("id", "testing")
       result.futureValue mustBe unit
+    }
+  }
+  "Delete Validator" should {
+    "return Unit when successfully removing a document" in new TestFixture {
+      repo.insert(testValue).futureValue
+      val result = repo.remove("id.testValue" -> "testId") map repo.singleRemovalValidator("id", "testing")
+      result.futureValue mustBe unit
+    }
+    "throw NotFoundException when removing a non-existent document" in new TestFixture {
+      repo.insert(testValue).futureValue
+      val result = repo.remove("id.testValue" -> "wrong-id") map repo.singleRemovalValidator("id", "testing")
+      result.failed.futureValue mustBe a[NotFoundException]
     }
   }
 
