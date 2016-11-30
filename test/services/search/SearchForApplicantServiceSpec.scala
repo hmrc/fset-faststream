@@ -21,7 +21,7 @@ import model.Address
 import model.Commands.{ Candidate, SearchCandidate }
 import model.PersistedObjects.ContactDetailsWithId
 import org.joda.time.LocalDate
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import repositories.ContactDetailsRepository
 import repositories.application.{ GeneralApplicationRepository, PersonalDetailsRepository }

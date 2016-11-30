@@ -25,7 +25,7 @@ import model.exchange.CubiksTestResultReady
 import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest }
 import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
 import org.joda.time.DateTime
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository

@@ -17,7 +17,7 @@
 package scheduler.onlinetesting
 
 import model.Phase1ExpirationEvent
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import services.BaseServiceSpec

@@ -98,6 +98,7 @@ case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, 
 case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
 
 case class Phase3TestsConfig(timeToExpireInDays: Int,
+                             invigilatedTimeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
                              interviewsByAdjustmentPercentage: Map[String, Int])
 
@@ -149,6 +150,8 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-phase1-test-job")
   lazy val failedPhase2TestJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-phase2-test-job")
+  lazy val failedPhase3TestJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-phase3-test-job")
   lazy val retrievePhase1ResultsJobConfig =
     configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-phase1-results-job")
   lazy val retrievePhase2ResultsJobConfig =
