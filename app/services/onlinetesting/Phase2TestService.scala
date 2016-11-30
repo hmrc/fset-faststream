@@ -39,7 +39,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.events.EventService
 import services.onlinetesting.ResetPhase2Test._
-import services.onlinetesting.phase2.ScheduleSelector
+import services.onlinetesting.phase2.Phase2TestSelector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -66,7 +66,7 @@ object Phase2TestService extends Phase2TestService {
 }
 
 // scalastyle:off number.of.methods
-trait Phase2TestService extends OnlineTestService with Phase2TestConcern with ScheduleSelector {
+trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Phase2TestSelector {
   val actor: ActorSystem
   val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
@@ -157,7 +157,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Sc
       progressResponse <- appRepository.findProgress(applicationId)
     } yield {
       progressResponse.phase3ProgressResponse match {
-        case Phase3ProgressResponse(true, false, false, false, false, false, false, false, false, false) => true
+        case Phase3ProgressResponse(true, false, false, false, false, false, false, false, false, false, false) => true
         case _ => false
       }
     }

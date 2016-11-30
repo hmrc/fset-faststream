@@ -16,10 +16,9 @@
 
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest.LaunchpadQuestionIsUnscoredException
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class ReviewedCallbackRequest(
   received: DateTime,
@@ -48,6 +47,13 @@ case class ReviewedCallbackRequest(
     scoreForQuestion(latestReviewer.question7) +
     scoreForQuestion(latestReviewer.question8)
   }
+
+  def allQuestionsReviewed = {
+    val questions = List(latestReviewer.question1, latestReviewer.question2, latestReviewer.question3, latestReviewer.question4,
+      latestReviewer.question5, latestReviewer.question6, latestReviewer.question7, latestReviewer.question8)
+    questions.nonEmpty && questions.forall(ques => ques.reviewCriteria1.score.isDefined && ques.reviewCriteria2.score.isDefined)
+  }
+
 }
 
 object ReviewedCallbackRequest {
@@ -56,6 +62,9 @@ object ReviewedCallbackRequest {
   import repositories.BSONDateTimeHandler
   import repositories.BSONLocalDateHandler
   implicit val bsonHandler: BSONHandler[BSONDocument, ReviewedCallbackRequest] = Macros.handler[ReviewedCallbackRequest]
+
+  def getLatestReviewed(reviewCallBacks: List[ReviewedCallbackRequest]): Option[ReviewedCallbackRequest] =
+    reviewCallBacks.sortWith { (r1, r2) => r1.received.isAfter(r2.received)}.headOption
 
   case class LaunchpadQuestionIsUnscoredException(message: String) extends Exception(message)
 }

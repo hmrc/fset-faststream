@@ -17,6 +17,7 @@
 package repositories.application
 
 import config.MicroserviceAppConfig._
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewedCallbackRequest }
 import model.ApplicationStatus.{ apply => _ }
 import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _, _ }
@@ -30,7 +31,7 @@ import model.report._
 import model.{ CivilServiceExperienceType, InternshipType, Phase }
 import play.api.Logger
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.{ BSONHelpers, BaseBSONReader }
+import repositories.BaseBSONReader
 
 trait ReportingRepoBSONReader extends BaseBSONReader {
 
@@ -228,8 +229,8 @@ trait ReportingRepoBSONReader extends BaseBSONReader {
       .flatMap(_.getAs[BSONArray]("tests")).flatMap(_.getAs[BSONDocument](0))
       .flatMap(_.getAs[BSONDocument]("callbacks")).flatMap(_.getAs[List[BSONDocument]]("reviewed"))
 
-    val reviewed = reviewedDocOpt.map (_.map(ReviewedCallbackRequest.bsonHandler.read(_)))
-    val latestReviewedOpt = reviewed.map ( _.sortWith { (r1, r2) => r1.received.isAfter(r2.received)}).flatMap(_.headOption)
+    val reviewed = reviewedDocOpt.map (_.map(ReviewedCallbackRequest.bsonHandler.read))
+    val latestReviewedOpt = reviewed.flatMap(getLatestReviewed)
 
     latestReviewedOpt.map { latestReviewed =>
       VideoInterviewTestResult(
@@ -241,7 +242,7 @@ trait ReportingRepoBSONReader extends BaseBSONReader {
         toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question6),
         toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question7),
         toVideoInterviewQuestionTestResult(latestReviewed.latestReviewer.question8),
-        latestReviewed.calculateTotalScore
+        latestReviewed.calculateTotalScore()
       )
     }
   }
