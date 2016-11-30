@@ -86,7 +86,8 @@ trait BaseBSONReader {
             phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
             phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
             phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString),
-            phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key)
+            phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key),
+            phase3TestsSuccessNotified = getProgress(ProgressStatuses.PHASE3_TESTS_SUCCESS_NOTIFIED.key)
           ),
           failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
           assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),

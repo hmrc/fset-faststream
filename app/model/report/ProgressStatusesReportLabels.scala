@@ -66,6 +66,8 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsPassed, 370, Phase3TestsPassed),
     (progress.phase3ProgressResponse.phase3TestsFailed, 380, Phase3TestsFailed),
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 385, Phase3TestsFailedNotified),
+    (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 375, Phase3TestsSuccessNotified),
+
     (progress.assessmentScores.entered, 400, AssessmentScoresEnteredProgress),
     (progress.failedToAttend, 410, FailedToAttendProgress),
     (progress.assessmentScores.accepted, 420, AssessmentScoresAcceptedProgress),
@@ -146,6 +148,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsPassed = "phase3_tests_passed"
   val Phase3TestsFailed = "phase3_tests_failed"
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
+  val Phase3TestsSuccessNotified = "phase3_tests_success_notified"
 
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"
   val OnlineTestFailedProgress = "online_test_failed"
