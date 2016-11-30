@@ -20,8 +20,8 @@ import model.ApplicationStatus._
 import model.command.PersonalDetails
 import model.persisted.{ ContactDetails, PersonalDetails }
 import repositories._
-import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
+import repositories.NorthSouthIndicatorCSVRepository.calculateFsacIndicator
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.AuditService
@@ -77,6 +77,7 @@ trait PersonalDetailsService {
       civilServiceExperienceDetails <- civilServiceExperienceDetailsFut
     } yield model.command.PersonalDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
       contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
+      calculateFsacIndicator(contactDetails.postCode, contactDetails.outsideUk),
       contactDetails.country, contactDetails.phone, civilServiceExperienceDetails, personalDetails.edipCompleted)
   }
 

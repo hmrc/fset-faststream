@@ -42,7 +42,7 @@ import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
 import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
-import services.onlinetesting.phase2.ScheduleSelector
+import services.onlinetesting.phase2.Phase2TestSelector
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -755,7 +755,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     when(tokenFactoryMock.generateUUID()).thenReturn(token)
 
-    val phase2TestService = new Phase2TestService with EventServiceFixture with ScheduleSelector {
+    val phase2TestService = new Phase2TestService with EventServiceFixture with Phase2TestSelector {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
       val phase2TestRepo = otRepositoryMock

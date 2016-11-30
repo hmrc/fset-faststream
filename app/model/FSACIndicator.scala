@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package repositories
+package model
 
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+import play.api.libs.json.Json
 
-trait BaseBSONReader {
-  protected def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
-    }
-  }
+final case class FSACIndicator(area: String, assessmentCentre: String)
 
-  protected def booleanTranslator(bool: Boolean) = bool match {
-    case true => "Yes"
-    case false => "No"
-  }
+object FSACIndicator {
+  implicit val fsacIndicatorFormat = Json.format[FSACIndicator]
 }

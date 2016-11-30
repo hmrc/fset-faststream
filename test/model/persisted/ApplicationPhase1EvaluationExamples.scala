@@ -22,5 +22,5 @@ import org.joda.time.DateTime
 
 object ApplicationPhase1EvaluationExamples {
   def application(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
-    isGis = false, Phase1TestProfileExamples.profile.activeTests, None, SelectedSchemesExamples.TwoSchemes)
+    isGis = false, Phase1TestProfileExamples.profile.activeTests, None, None, SelectedSchemesExamples.TwoSchemes)
 }

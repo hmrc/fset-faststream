@@ -672,6 +672,8 @@ object DataFaker {
 
     def accessCode = randomAlphaString(7)
 
+    def getVideoInterviewScore() = randOne(List(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0))
+
     private def randomAlphaString(n: Int) = {
       val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       Stream.continually(util.Random.nextInt(alphabet.length)).map(alphabet).take(n).mkString

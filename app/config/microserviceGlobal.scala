@@ -160,6 +160,12 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
+  private lazy val evaluatePhase3ResultJob: Option[ScheduledJob] =
+    if (evaluatePhase3ResultJobConfigValues.enabled) Some(EvaluatePhase3ResultJob) else {
+      Logger.warn("evaluate phase3 result job is disabled")
+      None
+    }
+
   private lazy val confirmAttendanceReminderJob: Option[ScheduledJob] =
     if (confirmAttendanceReminderJobConfigValues.enabled) Some(ConfirmAttendanceReminderJob) else {
       Logger.warn("confirm attendance reminder job is disabled")
@@ -203,6 +209,7 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def retrievePhase2ResultsJobConfigValues = retrievePhase2ResultsJobConfig
   private[config] def evaluatePhase1ResultJobConfigValues = evaluatePhase1ResultJobConfig
   private[config] def evaluatePhase2ResultJobConfigValues = evaluatePhase2ResultJobConfig
+  private[config] def evaluatePhase3ResultJobConfigValues = evaluatePhase3ResultJobConfig
   private[config] def confirmAttendanceReminderJobConfigValues = confirmAttendanceReminderJobConfig
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
@@ -215,7 +222,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     expirePhase1TestJob, expirePhase2TestJob, expirePhase3TestJob,
     failedPhase1TestJob, failedPhase2TestJob, failedPhase3TestJob,
     retrievePhase1ResultsJob, retrievePhase2ResultsJob,
-    evaluatePhase1ResultJob, evaluatePhase2ResultJob,
+    evaluatePhase1ResultJob, evaluatePhase2ResultJob, evaluatePhase3ResultJob,
     fixerJob, confirmAttendanceReminderJob,
     evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }

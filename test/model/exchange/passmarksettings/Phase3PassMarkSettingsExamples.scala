@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package repositories
+package model.exchange.passmarksettings
 
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+import org.joda.time.DateTime
 
-trait BaseBSONReader {
-  protected def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
-    }
-  }
-
-  protected def booleanTranslator(bool: Boolean) = bool match {
-    case true => "Yes"
-    case false => "No"
-  }
+object Phase3PassMarkSettingsExamples {
+  def passmark(implicit now: DateTime) = Phase3PassMarkSettings(List(), "version", now, "userId")
 }
