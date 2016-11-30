@@ -95,8 +95,9 @@ object ProgressStatuses {
   case object PHASE3_TESTS_COMPLETED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_EXPIRED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+  case object PHASE3_TESTS_PASSED_WITH_AMBER extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
   case object PHASE3_TESTS_PASSED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED)
-  case object PHASE3_TESTS_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+  case object READY_FOR_EXPORT extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
   case object PHASE3_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
   case object PHASE3_TESTS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
 
@@ -152,6 +153,10 @@ object ProgressStatuses {
   def tryToGetDefaultProgressStatus(applicationStatus: ApplicationStatus): Option[ProgressStatus] = {
     val matching = allStatuses.filter(_.applicationStatus == applicationStatus)
     if (matching.size == 1) matching.headOption else None
+  }
+
+  def progressesByApplicationStatus(applicationStatuses: ApplicationStatus*) = {
+    allStatuses.filter(st => applicationStatuses.contains(st.applicationStatus))
   }
 }
 // scalastyle:on

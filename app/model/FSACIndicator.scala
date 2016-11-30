@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package model.persisted
+package model
 
-import model.AddressExamples._
+import play.api.libs.json.Json
 
-object ContactDetailsExamples {
-  val ContactDetailsUK = ContactDetails(outsideUk = false, FullAddress, Some("A1 B23"), None, "johndoe@test.com", "1234567890")
-  val ContactDetailsOutsideUK = ContactDetails(outsideUk = true, FullAddress, None, Some("Mongolia"), "wilfredo.gomez@test.com", "0987456123")
+final case class FSACIndicator(area: String, assessmentCentre: String)
+
+object FSACIndicator {
+  implicit val fsacIndicatorFormat = Json.format[FSACIndicator]
 }

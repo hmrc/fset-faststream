@@ -18,13 +18,15 @@ package model.persisted
 
 import model.ApplicationStatus._
 import model.SelectedSchemes
+import model.persisted.phase3tests.LaunchpadTest
 import play.api.libs.json._
 
 case class ApplicationReadyForEvaluation(
   applicationId: String,
   applicationStatus: ApplicationStatus,
   isGis: Boolean,
-  activeTests: List[CubiksTest],
+  activeCubiksTests: List[CubiksTest],
+  activeLaunchpadTest: Option[LaunchpadTest],
   prevPhaseEvaluation: Option[PassmarkEvaluation],
   preferences: SelectedSchemes
 ) {

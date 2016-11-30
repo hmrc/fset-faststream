@@ -20,27 +20,46 @@ import config.Phase2ScheduleExamples._
 import config.{ Phase2Schedule, Phase2TestsConfig }
 import testkit.UnitSpec
 
-class ScheduleSelectorSpec extends UnitSpec {
+class Phase2TestSelectorSpec extends UnitSpec {
 
   "get random schedule" should {
     "throw an exception when no schedules are configured" in {
       val selector = createSelector(Map())
 
       intercept[IllegalArgumentException] {
-        selector.getRandomScheduleWithName()
+        selector.getNextSchedule()
       }
     }
 
     "return a schedule randomly" in {
       val schedules = Map("daro" -> DaroSchedule, "irad" -> IradSchedule, "ward" -> WardSchedule)
       val selector = createSelector(schedules)
-      val randomSchedules = 1 to 1000 map (_ => selector.getRandomScheduleWithName())
+      val randomSchedules = 1 to 1000 map (_ => selector.getNextSchedule())
 
       randomSchedules.distinct must contain theSameElementsAs schedules
     }
+
+    "return a schedule randomly for the first n schedules defined and then repeat those schedules in subsequent calls" in {
+      val schedules = Map("daro" -> DaroSchedule, "irad" -> IradSchedule, "ward" -> WardSchedule)
+      val selector = createSelector(schedules)
+
+      def createSchedules(startingSchedule: List[(String, Phase2Schedule)]) = {
+        (1 to schedules.size).foldLeft(startingSchedule)((list, _) =>
+          list :+ selector.getNextSchedule(list.map{case(_, s) => s.scheduleId}))
+      }
+
+      val randomSchedules = createSchedules(List.empty[(String, Phase2Schedule)])
+
+      randomSchedules.distinct must contain theSameElementsAs schedules
+
+      val randomSchedulesCombined = createSchedules(randomSchedules)
+
+      randomSchedulesCombined must be(randomSchedules ::: randomSchedules)
+    }
   }
 
-  private def createSelector(schedules: Map[String, Phase2Schedule]): ScheduleSelector = new ScheduleSelector {
+
+  private def createSelector(schedules: Map[String, Phase2Schedule]): Phase2TestSelector = new Phase2TestSelector {
     def testConfig = Phase2TestsConfig(1, 90, schedules)
   }
 }
