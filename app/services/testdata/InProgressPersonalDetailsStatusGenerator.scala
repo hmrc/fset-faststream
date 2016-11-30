@@ -48,12 +48,20 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
   //scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getPersonalDetails(candidateInformation: DataGenerationResponse) = {
+      def getEdipCompleted = {
+        if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip) {
+          Some(generatorConfig.personalData.edipCompleted.getOrElse(Random.bool))}
+        else {
+          None
+        }
+      }
+
       PersonalDetails(
         candidateInformation.firstName,
         candidateInformation.lastName,
         generatorConfig.personalData.getPreferredName,
         generatorConfig.personalData.dob,
-        generatorConfig.personalData.edipCompleted
+        getEdipCompleted
       )
     }
 

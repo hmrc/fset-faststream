@@ -100,7 +100,8 @@ case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
 case class Phase3TestsConfig(timeToExpireInDays: Int,
                              invigilatedTimeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
-                             interviewsByAdjustmentPercentage: Map[String, Int])
+                             interviewsByAdjustmentPercentage: Map[String, Int],
+                             evaluationWaitTimeAfterResultsReceivedInHours: Int)
 
 case class AssessmentCentresLocationsConfig(yamlFilePath: String)
 case class AssessmentCentresConfig(yamlFilePath: String)
@@ -164,6 +165,8 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.evaluate-phase1-result-job")
   lazy val evaluatePhase2ResultJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.evaluate-phase2-result-job")
+  lazy val evaluatePhase3ResultJobConfig =
+    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.evaluate-phase3-result-job")
   lazy val confirmAttendanceReminderJobConfig =
     configuration.underlying.as[ScheduledJobConfig]("scheduling.confirm-attendance-reminder-job")
   lazy val evaluateAssessmentScoreJobConfig =

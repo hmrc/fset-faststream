@@ -26,7 +26,7 @@ import org.mockito.Mockito._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, QuestionnaireRepository }
+import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -102,10 +102,12 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     val controller = new ReportingController {
       val reportRepository = mockReportRepository
       val cdRepository = mock[ContactDetailsRepository]
+      val fsCdRepository = mock[contactdetails.ContactDetailsRepository]
       val authProviderClient = mock[AuthProviderClient]
       val questionnaireRepository = mockQuestionRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
       val medRepository: MediaRepository = mockMediaRepository
+      val indicatorRepository: NorthSouthIndicatorCSVRepository = mock[NorthSouthIndicatorCSVRepository]
     }
 
     lazy val testResults = Map(

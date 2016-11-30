@@ -1,7 +1,6 @@
 package repositories
 
-import config.{ CubiksGatewayConfig, Phase1TestsConfig }
-import factories.DateTimeFactory
+import config.Phase1TestsConfig
 import model.ApplicationStatus
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults._
@@ -16,11 +15,8 @@ import play.api.test.Helpers
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
-import repositories.application.{ GeneralApplicationMongoRepository }
-import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase1TestMongoRepository, Phase2TestMongoRepository }
+import model.Phase
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
-import services.GBTimeZoneService
 import services.onlinetesting.EvaluatePhase1ResultService
 import testkit.MongoRepositorySpec
 
@@ -41,27 +37,12 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
   }
 
-  val mockGatewayConfig = mock[CubiksGatewayConfig]
-
-  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig)
-
-  def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
-
-  def assistanceDetailsRepository = new AssistanceDetailsMongoRepository
-
-  def phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
-
-  def phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
-
-  def phase1PassMarkSettingRepo = new Phase1PassMarkSettingsMongoRepository()
-
-  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository()
-
   def phase1TestEvaluationService = new EvaluatePhase1ResultService {
-    val phase1EvaluationRepository = phase1EvaluationRepo
+    val evaluationRepository = phase1EvaluationRepo
     val gatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo = phase1PassMarkSettingRepo
     val phase1TestsConfigMock = mock[Phase1TestsConfig]
+    val phase = Phase.PHASE1
 
     when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
     when(phase1TestsConfigMock.scheduleIds).thenReturn(Map("sjq" -> 16196, "bq" -> 16194))
