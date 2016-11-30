@@ -17,7 +17,6 @@
 package model
 
 import model.ApplicationStatus._
-import play.api.Logger
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
@@ -151,7 +150,6 @@ object ProgressStatuses {
   }.toMap
 
   def tryToGetDefaultProgressStatus(applicationStatus: ApplicationStatus): Option[ProgressStatus] = {
-    Logger.info(allStatuses.mkString(","))
     val matching = allStatuses.filter(_.applicationStatus == applicationStatus)
     if (matching.size == 1) matching.headOption else None
   }

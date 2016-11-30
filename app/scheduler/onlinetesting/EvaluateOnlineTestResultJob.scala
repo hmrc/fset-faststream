@@ -44,7 +44,7 @@ object EvaluatePhase3ResultJob extends EvaluateOnlineTestResultJob[Phase3PassMar
   val evaluateService = EvaluatePhase3ResultService
   val phase = Phase.PHASE3
   override val errorLog = (app: ApplicationReadyForEvaluation) =>
-    s"${app.applicationId}, Launchpad interview Id: ${app.activeLaunchpadTest.map(_.interviewId)}"
+    s"${app.applicationId}, Launchpad test Id: ${app.activeLaunchpadTest.map(_.token)}"
 }
 
 abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonFormat: Format[T]) extends SingleInstanceScheduledJob {
@@ -84,7 +84,7 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
       if (errors.nonEmpty) {
         val errorMsg = apps.map(errorLog).mkString("\n")
 
-        Logger.error(s"There were ${errors.size} errors in batch Phase 1 evaluation:\n$errorMsg")
+        Logger.error(s"There were ${errors.size} errors in batch $phase evaluation:\n$errorMsg")
         Future.failed(errors.head)
       } else {
         Future.successful(())
