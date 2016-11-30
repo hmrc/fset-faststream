@@ -38,11 +38,16 @@ object StatusGeneratorFactory {
       case (appStatus, None) => appStatus match {
         case REGISTERED => RegisteredStatusGenerator
         case CREATED => CreatedStatusGenerator
+        // IN_PROGRESS_PERSONAL_DETAILS should be deprecated, look below
         case IN_PROGRESS_PERSONAL_DETAILS => InProgressPersonalDetailsStatusGenerator
+        // IN_PROGRESS_SCHEME_PREFERENCES should be deprecated, look below
         case IN_PROGRESS_SCHEME_PREFERENCES => InProgressSchemePreferencesStatusGenerator
+        // IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES should be deprecatedc
         case IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES => InProgressPartnerGraduateProgrammesStatusGenerator
-        case IN_PROGRESS_ASSISTANCE_DETAILS => InProgressAssistanceDetailsStatusGenerator
+        // IN_PROGRESS_SCHEME_PREFERENCES should be deprecated, look below, look below
+        case IN_PROGRESS_SCHEME_PREFERENCES => InProgressAssistanceDetailsStatusGenerator
         case IN_PROGRESS_QUESTIONNAIRE => InProgressQuestionnaireStatusGenerator
+        // IN_PROGRESS_PREVIEW should be deprecated, look below
         case IN_PROGRESS_PREVIEW => InProgressPreviewStatusGenerator
         case SUBMITTED => SubmittedStatusGenerator
         case AWAITING_ALLOCATION => AwaitingAllocationStatusGenerator
@@ -57,7 +62,18 @@ object StatusGeneratorFactory {
         case ASSESSMENT_CENTRE_PASSED_NOTIFIED => AssessmentCentrePassedNotifiedStatusGenerator
         case ASSESSMENT_CENTRE_FAILED_NOTIFIED => AssessmentCentreFailedNotifiedStatusGenerator
         case WITHDRAWN => WithdrawnStatusGenerator
+        case PHASE1_TESTS_PASSED => Phase1TestsPassedStatusGenerator
+        case PHASE1_TESTS_FAILED => Phase1TestsFailedStatusGenerator
+        case PHASE2_TESTS_PASSED => Phase2TestsPassedStatusGenerator
+        case PHASE2_TESTS_FAILED => Phase2TestsFailedStatusGenerator
+        case PHASE3_TESTS_PASSED => Phase3TestsPassedStatusGenerator
+        case PHASE3_TESTS_FAILED => Phase3TestsFailedStatusGenerator
       }
+      case (IN_PROGRESS, Some(ProgressStatuses.PERSONAL_DETAILS)) => InProgressPersonalDetailsStatusGenerator
+      case (IN_PROGRESS, Some(ProgressStatuses.SCHEME_PREFERENCES)) => InProgressSchemePreferencesStatusGenerator
+      case (IN_PROGRESS, Some(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES)) => InProgressPartnerGraduateProgrammesStatusGenerator
+      case (IN_PROGRESS, Some(ProgressStatuses.ASSISTANCE_DETAILS)) => InProgressAssistanceDetailsStatusGenerator
+      case (IN_PROGRESS, Some(ProgressStatuses.PREVIEW)) => InProgressPreviewStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_INVITED)) => Phase1TestsInvitedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_STARTED)) => Phase1TestsStartedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_EXPIRED)) =>
@@ -68,6 +84,7 @@ object StatusGeneratorFactory {
         }
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_COMPLETED)) => Phase1TestsCompletedStatusGenerator
       case (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)) => Phase1TestsResultsReceivedStatusGenerator
+      // The next two cases are deprecated: PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED
       case (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED)) => Phase1TestsPassedStatusGenerator
       case (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED)) => Phase1TestsFailedStatusGenerator
 
@@ -81,6 +98,7 @@ object StatusGeneratorFactory {
         }
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_COMPLETED)) => Phase2TestsCompletedStatusGenerator
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED)) => Phase2TestsResultsReceivedStatusGenerator
+      // The next two cases are deprecated: PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED
       case (PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED)) => Phase2TestsPassedStatusGenerator
       case (PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED)) => Phase2TestsFailedStatusGenerator
 
@@ -94,6 +112,7 @@ object StatusGeneratorFactory {
         }
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_COMPLETED)) => Phase3TestsCompletedStatusGenerator
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)) => Phase3TestsResultsReceivedStatusGenerator
+      // The next two cases are deprecated: PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED
       case (PHASE3_TESTS_PASSED, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => Phase3TestsPassedStatusGenerator
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
 
