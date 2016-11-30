@@ -39,7 +39,7 @@ trait SuccessTestJob extends SingleInstanceScheduledJob {
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val rh = EmptyRequestHeader
     implicit val hc = new HeaderCarrier()
-    service.processNextSuccessfulTestForNotification(successType)
+    service.processNextTestForNotification(successType)
   }
 }
 

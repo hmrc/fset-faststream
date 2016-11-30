@@ -20,19 +20,19 @@ import play.api.libs.json.Json
 import reactivemongo.bson.BSONDocument
 
 
-case class NotificationResultTest(
+case class TestResultNotification(
   applicationId: String,
   userId: String,
   preferredName: String)
 
-object NotificationResultTest {
+object TestResultNotification {
   def fromBson(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val userId = doc.getAs[String]("userId").get
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
-    NotificationResultTest(applicationId, userId, preferredName)
+    TestResultNotification(applicationId, userId, preferredName)
   }
 
-  implicit val notificationResultTestFormat = Json.format[NotificationResultTest]
+  implicit val testResultNotificationFormat = Json.format[TestResultNotification]
 }

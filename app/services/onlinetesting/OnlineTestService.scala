@@ -62,37 +62,20 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]
   def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit]
 
-  def processNextFailedTestForNotification(failedType: FailedTestType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def processNextTestForNotification(notificationType: NotificationTestType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    appRepository.findFailedTestForNotification(failedType).flatMap {
-      case Some(failedTest) => processFailedTest(failedTest, failedType)
+    appRepository.findTestForNotification(notificationType).flatMap {
+      case Some(test) => processTestForNotification(test, notificationType)
       case None => Future.successful(())
     }
   }
 
-  def processNextSuccessfulTestForNotification(successType: SuccessTestType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-
-    appRepository.findSuccessfulTestForNotification(successType).flatMap {
-      case Some(test) => processSuccessTest(test, successType)
-      case None => Future.successful(())
-    }
-  }
-
-  protected def processFailedTest(toNotify: NotificationResultTest, failedType: FailedTestType)
-                                  (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    for {
-      emailAddress <- candidateEmailAddress(toNotify.userId)
-      _ <- commitProgressStatus(toNotify.applicationId, failedType.notificationProgress)
-      _ <- emailCandidate(toNotify.applicationId, toNotify.preferredName, emailAddress, failedType.template, failedType.notificationProgress)
-    } yield ()
-  }
-
-  protected def processSuccessTest(toNotify: NotificationResultTest, successType: SuccessTestType)
+  protected def processTestForNotification(toNotify: TestResultNotification, notiType: NotificationTestType)
                                  (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       emailAddress <- candidateEmailAddress(toNotify.userId)
-      _ <- commitProgressStatus(toNotify.applicationId, successType.notificationProgress)
-      _ <- emailCandidate(toNotify.applicationId, toNotify.preferredName, emailAddress, successType.template, successType.notificationProgress)
+      _ <- commitProgressStatus(toNotify.applicationId, notiType.notificationProgress)
+      _ <- emailCandidate(toNotify.applicationId, toNotify.preferredName, emailAddress, notiType.template, notiType.notificationProgress)
     } yield ()
   }
 
@@ -169,7 +152,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
   private[onlinetesting] def generateStatusEvents(applicationId: String, status: ProgressStatuses.ProgressStatus): Events = {
 
-    val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE1_TESTS_EXPIRED :: Nil
+    val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
     val passedStates = PHASE3_TESTS_SUCCESS_NOTIFIED :: Nil
 
     if(expiredStates.contains(status)) {

@@ -47,6 +47,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 // TODO FAST STREAM
 // This is far too large an interface - we should look at splitting up based on
@@ -119,9 +120,7 @@ trait GeneralApplicationRepository {
 
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
 
-  def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationResultTest]]
-
-  def findSuccessfulTestForNotification(successTestType: SuccessTestType): Future[Option[NotificationResultTest]]
+  def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]]
 
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
 
@@ -361,25 +360,30 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> WITHDRAWN))
     )))
 
-  override def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationResultTest]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> failedTestType.appStatus),
-      BSONDocument(s"progress-status.${failedTestType.notificationProgress}" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"progress-status.${failedTestType.receiveStatus}" -> true)
-    ))
+  override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
+    val query = Try{ notificationType match {
+      case s: SuccessTestType => {
+        BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationStatus" -> s.appStatus),
+          BSONDocument(s"progress-status.${s.notificationProgress}" -> BSONDocument("$ne" -> true))
+        ))
+      }
+      case f: FailedTestType => {
+        BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationStatus" -> f.appStatus),
+          BSONDocument(s"progress-status.${f.notificationProgress}" -> BSONDocument("$ne" -> true)),
+          BSONDocument(s"progress-status.${f.receiveStatus}" -> true)
+        ))
+      }
+      case unknown => throw new RuntimeException(s"Unsupported NotificationTestType: $unknown")
+    }}
 
-    implicit val reader = bsonReader(NotificationResultTest.fromBson)
-    selectOneRandom[NotificationResultTest](query)
-  }
+    implicit val reader = bsonReader(TestResultNotification.fromBson)
+    for {
+      q <- Future.fromTry(query)
+      result <- selectOneRandom[TestResultNotification](q)
+    } yield result
 
-  override def findSuccessfulTestForNotification(successTestType: SuccessTestType): Future[Option[NotificationResultTest]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> successTestType.appStatus),
-      BSONDocument(s"progress-status.${successTestType.notificationProgress}" -> BSONDocument("$ne" -> true))
-    ))
-
-    implicit val reader = bsonReader(NotificationResultTest.fromBson)
-    selectOneRandom[NotificationResultTest](query)
   }
 
   // scalastyle:off method.length
