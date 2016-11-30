@@ -1,10 +1,14 @@
 package repositories
 
+import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig }
+import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.persisted._
 import model.Phase1TestExamples._
 import model.Phase2TestProfileExamples._
+import model.Phase3TestProfileExamples._
 import model.SchemeType._
+import model.persisted._
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.junit.Assert._
@@ -12,8 +16,9 @@ import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
-import repositories.onlinetesting.{ Phase1EvaluationMongoRepository, Phase1TestMongoRepository, Phase2TestMongoRepository }
-import repositories.schemepreferences.SchemePreferencesMongoRepository
+import repositories.onlinetesting._
+import repositories.passmarksettings._
+import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 
 
@@ -21,12 +26,34 @@ trait CommonRepository {
   this: MongoRepositorySpec with ScalaFutures =>
 
   import reactivemongo.json.ImplicitBSONHandlers._
-  def applicationRepository: GeneralApplicationMongoRepository
-  def schemePreferencesRepository: SchemePreferencesMongoRepository
-  def assistanceDetailsRepository: AssistanceDetailsMongoRepository
-  def phase1TestRepository: Phase1TestMongoRepository
-  def phase1EvaluationRepo: Phase1EvaluationMongoRepository
-  def phase2TestRepository: Phase2TestMongoRepository
+
+  val mockGatewayConfig = mock[CubiksGatewayConfig]
+
+  val mockLaunchpadConfig = mock[LaunchpadGatewayConfig]
+
+  def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, mockGatewayConfig)
+
+  def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
+
+  def assistanceDetailsRepository = new AssistanceDetailsMongoRepository
+
+  def phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
+
+  def phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
+
+  def phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
+
+  def phase1EvaluationRepo = new Phase1EvaluationMongoRepository()
+
+  def phase2EvaluationRepo = new Phase2EvaluationMongoRepository()
+
+  def phase3EvaluationRepo = new Phase3EvaluationMongoRepository(mockLaunchpadConfig, DateTimeFactory)
+
+  def phase1PassMarkSettingRepo = new Phase1PassMarkSettingsMongoRepository()
+
+  def phase2PassMarkSettingRepo = new Phase2PassMarkSettingsMongoRepository()
+
+  def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
 
 
   implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
@@ -41,7 +68,7 @@ trait CommonRepository {
     val phase1Tests = if(isGis) List(sjqTest) else List(sjqTest, bqTest)
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, isGis, Phase1TestProfile(now, phase1Tests).activeTests,
-      None, selectedSchemes(schemes.toList))
+      None, None, selectedSchemes(schemes.toList))
   }
 
   def insertApplicationWithPhase2TestResults(appId: String, etray: Double,
@@ -55,12 +82,26 @@ trait CommonRepository {
     insertApplication(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(List(etrayTest)))
     phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None)
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE2_TESTS, isGis = false,
-      List(etrayTest), Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
+      List(etrayTest), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
+  def insertApplicationWithPhase3TestResults(appId: String, videoInterviewScore: Double,
+                                             phase2PassMarkEvaluation: PassmarkEvaluation
+                                            )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
+    assertNotNull("Phase2 pass mark evaluation must be set", phase2PassMarkEvaluation)
+    val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
+    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
+    phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None)
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, isGis = false,
+      Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
+  }
+
+  // scalastyle:off
   def insertApplication(appId: String, applicationStatus: ApplicationStatus, phase1Tests: Option[List[CubiksTest]] = None,
-                        phase2Tests: Option[List[CubiksTest]] = None, isGis: Boolean = false,
-                        schemes: List[SchemeType] = List(Commercial)): Unit = {
+                        phase2Tests: Option[List[CubiksTest]] = None, phase3Tests: Option[List[LaunchpadTest]] = None,
+                        isGis: Boolean = false, schemes: List[SchemeType] = List(Commercial),
+                        phase1Evaluation: Option[PassmarkEvaluation] = None,
+                        phase2Evaluation: Option[PassmarkEvaluation] = None): Unit = {
     val gis = if (isGis) Some(true) else None
     applicationRepository.collection.insert(BSONDocument(
       "applicationId" -> appId,
@@ -73,20 +114,23 @@ trait CommonRepository {
     assistanceDetailsRepository.update(appId, appId, ad).futureValue
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
-
-    phase1Tests.foreach { t =>
-      phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t)).futureValue
-      t.foreach { oneTest =>
-        oneTest.testResult.foreach { result =>
-          phase1TestRepository.insertTestResult(appId, oneTest, result).futureValue
-        }
-      }
-      if (t.exists(_.testResult.isDefined)) {
-        phase1TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
+    insertPhase1Tests(appId, phase1Tests, phase1Evaluation)
+    insertPhase2Tests(appId, phase2Tests, phase2Evaluation)
+    phase3Tests.foreach { t =>
+      phase3TestRepository.insertOrUpdateTestGroup(appId, Phase3TestGroup(now, t)).futureValue
+      if(t.headOption.exists(_.callbacks.reviewed.nonEmpty)) {
+        phase3TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED).futureValue
       }
     }
+    applicationRepository.collection.update(
+      BSONDocument("applicationId" -> appId),
+      BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus))).futureValue
+  }
+  // scalastyle:on
+
+  def insertPhase2Tests(appId: String, phase2Tests: Option[List[CubiksTest]], phase2Evaluation: Option[PassmarkEvaluation]): Unit = {
     phase2Tests.foreach { t =>
-      phase2TestRepository.insertOrUpdateTestGroup(appId, Phase2TestGroup(now, t)).futureValue
+      phase2TestRepository.insertOrUpdateTestGroup(appId, Phase2TestGroup(now, t, phase2Evaluation)).futureValue
       t.foreach { oneTest =>
         oneTest.testResult.foreach { result =>
           phase2TestRepository.insertTestResult(appId, oneTest, result).futureValue
@@ -96,9 +140,20 @@ trait CommonRepository {
         phase2TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).futureValue
       }
     }
-    applicationRepository.collection.update(
-      BSONDocument("applicationId" -> appId),
-      BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus))).futureValue
+  }
+
+  def insertPhase1Tests(appId: String, phase1Tests: Option[List[CubiksTest]], phase1Evaluation: Option[PassmarkEvaluation]) = {
+    phase1Tests.foreach { t =>
+      phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t, phase1Evaluation)).futureValue
+      t.foreach { oneTest =>
+        oneTest.testResult.foreach { result =>
+          phase1TestRepository.insertTestResult(appId, oneTest, result).futureValue
+        }
+      }
+      if (t.exists(_.testResult.isDefined)) {
+        phase1TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
+      }
+    }
   }
 
 }

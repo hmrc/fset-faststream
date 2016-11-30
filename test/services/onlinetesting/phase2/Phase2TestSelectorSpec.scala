@@ -20,7 +20,7 @@ import config.Phase2ScheduleExamples._
 import config.{ Phase2Schedule, Phase2TestsConfig }
 import testkit.UnitSpec
 
-class ScheduleSelectorSpec extends UnitSpec {
+class Phase2TestSelectorSpec extends UnitSpec {
 
   "get random schedule" should {
     "throw an exception when no schedules are configured" in {
@@ -58,7 +58,8 @@ class ScheduleSelectorSpec extends UnitSpec {
     }
   }
 
-  private def createSelector(schedules: Map[String, Phase2Schedule]): ScheduleSelector = new ScheduleSelector {
+
+  private def createSelector(schedules: Map[String, Phase2Schedule]): Phase2TestSelector = new Phase2TestSelector {
     def testConfig = Phase2TestsConfig(1, 90, schedules)
   }
 }

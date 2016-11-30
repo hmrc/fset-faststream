@@ -17,14 +17,15 @@
 package services.onlinetesting
 
 import config.CubiksGatewayConfig
-import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
+import model.ProgressStatuses.ProgressStatus
 import model.SchemeType.SchemeType
+import model._
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted._
-import model.{ ApplicationStatus, Phase1TestExamples, Phase1TestProfileExamples, SchemeType }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import play.api.libs.json.Format
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
@@ -46,7 +47,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(Some(PassmarkSettings)))
       when(mockPhase1EvaluationRepository
-        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int]))
+        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int])(any[Format[ApplicationReadyForEvaluation]]))
         .thenReturn(Future.successful(List(application)))
 
       val result = service.nextCandidatesReadyForEvaluation(1).futureValue
@@ -92,7 +93,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       service.evaluate(application, PassmarkSettings).futureValue
 
       verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(AppId, ExpectedPassmarkEvaluation,
-        Some(ApplicationStatus.PHASE1_TESTS_PASSED))
+        Some(ProgressStatuses.PHASE1_TESTS_PASSED))
     }
 
     "save evaluated result and do not update the application status for PHASE1_TESTS_PASSED" in new TestFixture {
@@ -124,7 +125,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       edipSkipEvaluationService.evaluate(application, PassmarkSettings).futureValue
 
       verify(mockPhase1EvaluationRepository, never()).savePassmarkEvaluation(AppId, ExpectedPassmarkEvaluation,
-        Some(ApplicationStatus.PHASE1_TESTS_PASSED))
+        Some(ProgressStatuses.PHASE1_TESTS_PASSED))
     }
   }
 
@@ -141,13 +142,14 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
     val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsMongoRepository]
 
-    when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ApplicationStatus]]))
+    when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
       .thenReturn(Future.successful(()))
 
     val service = new EvaluatePhase1ResultService with StubbedPhase1TestEvaluation {
-      val phase1EvaluationRepository = mockPhase1EvaluationRepository
+      val evaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockCubiksGatewayConfig
       val passMarkSettingsRepo = mockPhase1PMSRepository
+      val phase = Phase.PHASE1
 
       override def sjq = SjqId
 
@@ -155,9 +157,10 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     }
 
     val edipSkipEvaluationService = new EvaluatePhase1ResultService {
-      val phase1EvaluationRepository = mockPhase1EvaluationRepository
+      val evaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockCubiksGatewayConfig
       val passMarkSettingsRepo = mockPhase1PMSRepository
+      val phase = Phase.PHASE1
 
       override def sjq = SjqId
 
@@ -171,7 +174,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     def createAppWithTestGroup(tests: List[CubiksTest]) = {
       val phase1 = Phase1TestProfileExamples.profile.copy(tests = tests)
-      ApplicationPhase1EvaluationExamples.application.copy(activeTests = phase1.activeTests)
+      ApplicationPhase1EvaluationExamples.application.copy(activeCubiksTests = phase1.activeTests)
     }
 
     def createGisAppWithTestGroup(tests: List[CubiksTest]) = {
