@@ -26,8 +26,7 @@ import org.mockito.Mockito._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
-import repositories.contactdetails.ContactDetailsRepository
-import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, QuestionnaireRepository }
+import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -102,11 +101,12 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     val mockMediaRepository = mock[MediaRepository]
     val controller = new ReportingController {
       val reportingRepository = mockReportRepository
-      val contactDetailsRepository = mock[ContactDetailsRepository]
-      val authProviderClient = mock[AuthProviderClient]
+      val contactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
       val questionnaireRepository = mockQuestionRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
       val mediaRepository: MediaRepository = mockMediaRepository
+      val indicatorRepository: NorthSouthIndicatorCSVRepository = mock[NorthSouthIndicatorCSVRepository]
+      val authProviderClient = mock[AuthProviderClient]
     }
 
     lazy val testResults = Map(
@@ -121,7 +121,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     lazy val applicationsWithNoTestResults = List(
       ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult1,
       ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult2)
-    
+
     lazy val questionnaires = Map(
       ApplicationForOnlineTestPassMarkReportExamples.application1.applicationId ->
         QuestionnaireReportItemExamples.questionnaire1,
@@ -138,4 +138,5 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
   }
+
 }

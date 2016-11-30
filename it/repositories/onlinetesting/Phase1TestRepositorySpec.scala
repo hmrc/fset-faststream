@@ -431,7 +431,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Red.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
 
-      phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ApplicationStatus.PHASE1_TESTS_FAILED)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ProgressStatuses.PHASE1_TESTS_FAILED)).futureValue
 
       phase1TestRepo.resetTestProfileProgresses("appId", List(
         ProgressStatuses.PHASE1_TESTS_INVITED,

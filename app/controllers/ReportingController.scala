@@ -29,6 +29,7 @@ import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object ReportingController extends ReportingController {
   val reportingRepository = repositories.reportingRepository
@@ -36,6 +37,7 @@ object ReportingController extends ReportingController {
   val questionnaireRepository = repositories.questionnaireRepository
   val assessmentScoresRepository = repositories.applicationAssessmentScoresRepository
   val mediaRepository = repositories.mediaRepository
+  val indicatorRepository = repositories.northSouthIndicatorRepository
   val authProviderClient = AuthProviderClient
 }
 
@@ -44,12 +46,12 @@ trait ReportingController extends BaseController {
   import Implicits._
 
   val reportingRepository: ReportingRepository
-  val contactDetailsRepository: ContactDetailsRepository
+  val contactDetailsRepository: contactdetails.ContactDetailsRepository
   val questionnaireRepository: QuestionnaireRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresRepository
   val mediaRepository: MediaRepository
+  val indicatorRepository: NorthSouthIndicatorCSVRepository
   val authProviderClient: AuthProviderClient
-
 
   def adjustmentReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
@@ -72,7 +74,13 @@ trait ReportingController extends BaseController {
   }
 
   def candidateProgressReport(frameworkId: String) = Action.async { implicit request =>
-    reportingRepository.candidateProgressReport(frameworkId).map(r => Ok(Json.toJson(r)))
+    val candidatesFut: Future[List[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
+    val postCodesFut: Future[Map[String, String]] = contactDetailsRepository.findAllPostcodes()
+
+    for{
+      (candidates, postCodes) <- candidatesFut.zip(postCodesFut)
+      report <- enrichReport(candidates, postCodes)
+    } yield Ok(Json.toJson(report))
   }
 
   def diversityReport(frameworkId: String) = Action.async { implicit request =>
@@ -122,6 +130,13 @@ trait ReportingController extends BaseController {
     reportingRepository.allApplicationAndUserIds(frameworkId).map { list =>
       Ok(Json.toJson(list))
     }
+  }
+
+  private def enrichReport(candidates: List[CandidateProgressReportItem], postcodes: Map[String, String]):
+    Future[List[CandidateProgressReportItem]] = {
+
+    Future.successful(candidates.map(candidate => candidate.copy(
+      fsacIndicator = indicatorRepository.calculateFsacIndicatorForReports(postcodes.get(candidate.userId), candidate))))
   }
 
   // This method is not used at this moment

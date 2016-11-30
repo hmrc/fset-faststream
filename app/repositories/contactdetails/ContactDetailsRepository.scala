@@ -21,12 +21,16 @@ import model.Address
 import model.Commands._
 import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
 import model.PersistedObjects.ContactDetailsWithId
+import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
 import model.persisted.ContactDetails
 import play.api.Logger
-import reactivemongo.api.DB
+import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import play.api.libs.json._
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -40,6 +44,7 @@ trait ContactDetailsRepository {
 
   def findAll: Future[List[ContactDetailsWithId]]
 
+  def findAllPostcodes(): Future[Map[String, String]]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -94,5 +99,16 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
       ContactDetailsWithId(id, address, postCode, email, phone)
     })
+  }
+
+  def findAllPostcodes(): Future[Map[String, String]] = {
+    val query = BSONDocument("contact-details.postCode" -> BSONDocument("$exists" -> true))
+    val projection = BSONDocument("userId" -> 1, "contact-details.postCode" -> 1)
+    implicit val tupleReads: Reads[(String, String)] = (
+      (JsPath \ "userId").read[String] and
+        (JsPath \ "contact-details" \ "postCode").read[String]
+      )((_, _))
+    val result = collection.find(query, projection).cursor[(String, String)](ReadPreference.nearest).collect[List]()
+    result.map(_.toMap)
   }
 }
