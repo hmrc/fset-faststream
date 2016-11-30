@@ -16,28 +16,74 @@
 
 package services.testdata.onlinetests.phase3
 
+import org.joda.time.LocalDate
+import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import model.ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
 import model.command.testdata.GeneratorConfig
+import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.Phase3TestRepository
 import services.onlinetesting.Phase3TestService
 import services.testdata.ConstructiveGenerator
+import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object Phase3TestsResultsReceivedStatusGenerator extends Phase3TestsResultsReceivedStatusGenerator {
   val previousStatusGenerator = Phase3TestsCompletedStatusGenerator
   val appRepository = applicationRepository
+  val phase3TestRepo = phase3TestRepository
 }
 
 trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
+  val phase3TestRepo: Phase3TestRepository
+
+  def getCallbackData(): ReviewedCallbackRequest = {
+    ReviewedCallbackRequest(DateTime.now, "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6", "FSCND-f9cf395d-df9d-4037-9fbf-9b3aa9d86c16",
+    46, None, "FSINV-28d52608-95e0-4d3a-93e7-0881cd2bc78b", LocalDate.now().plusDays(3), ReviewSectionRequest(
+        ReviewSectionTotalAverageRequest("videoInterview", "50%", 50.0), // TODO: 50.0 should be calculated
+        ReviewSectionReviewersRequest(
+          reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost"),
+          reviewer2 = Some(getReviewSectionReviewersRequest("John Doe2", "johnDoe2@localhost")),
+          reviewer3 = Some(getReviewSectionReviewersRequest("John Doe3", "johnDoe3@localhost")))
+      ))
+  }
+
+  def getReviewSectionReviewersRequest(name: String, email: String) = {
+    ReviewSectionReviewerRequest(name, email, None,
+      question1 = getReviewSectionQuestionRequest(100),
+      question2 = getReviewSectionQuestionRequest(101),
+      question3 = getReviewSectionQuestionRequest(102),
+      question4 = getReviewSectionQuestionRequest(103),
+      question5 = getReviewSectionQuestionRequest(104),
+      question6 = getReviewSectionQuestionRequest(105),
+      question7 = getReviewSectionQuestionRequest(106),
+      question8 = getReviewSectionQuestionRequest(107)
+    )
+  }
+
+  def getReviewSectionQuestionRequest(questionId: Int, criteria1Score: Option[Double] = None, criteria2Score: Option[Double] = None) = {
+    ReviewSectionQuestionRequest(questionId,
+      ReviewSectionCriteriaRequest("numeric", Some(criteria1Score.getOrElse(Random.getVideoInterviewScore))),
+      ReviewSectionCriteriaRequest("numeric", Some(criteria2Score.getOrElse(Random.getVideoInterviewScore)))
+    )
+  }
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    val callbackData1 = getCallbackData
+    val callbackData2 = getCallbackData
+    val callbackData3 = getCallbackData
     for {
         candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
+        token <- Future.successful(candidate.phase3TestGroup.get.tests.head.token)
+        _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData1)
+        _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData2)
+        _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData3)
         _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, PHASE3_TESTS_RESULTS_RECEIVED)
       } yield candidate
     }

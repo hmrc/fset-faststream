@@ -152,5 +152,9 @@ object ProgressStatuses {
     val matching = allStatuses.filter(_.applicationStatus == applicationStatus)
     if (matching.size == 1) matching.headOption else None
   }
+
+  def progressesByApplicationStatus(applicationStatuses: ApplicationStatus*) = {
+    allStatuses.filter(st => applicationStatuses.contains(st.applicationStatus))
+  }
 }
 // scalastyle:on

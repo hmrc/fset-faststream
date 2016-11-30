@@ -19,9 +19,9 @@ package repositories.onlinetesting
 import common.Phase3TestConcern
 import config.MicroserviceAppConfig.sendPhase3InvitationJobConfig
 import factories.DateTimeFactory
-import model.{ ReminderNotice, ApplicationStatus }
+import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ NotFoundException, UnexpectedException }
+import model.Exceptions.{ ApplicationNotFound, NotFoundException, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
@@ -58,6 +58,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
+
+  def removeTestGroup(applicationId: String): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -117,6 +119,33 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         throw UnexpectedException(msg)
       }
       ()
+    }
+  }
+
+  def removeTestGroup(applicationId: String): Future[Unit] = {
+    val appStatuses = List(ApplicationStatus.PHASE3_TESTS,
+      ApplicationStatus.PHASE3_TESTS_FAILED,
+      ApplicationStatus.PHASE3_TESTS_PASSED)
+
+    val phase3Progresses = ProgressStatuses.progressesByApplicationStatus(appStatuses: _*)
+
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))))
+
+    val progressesToRemove = phase3Progresses map (p => s"progress-status.$p" -> BSONString(""))
+
+    val updateQuery = BSONDocument(
+      "$unset" -> BSONDocument(progressesToRemove),
+      "$unset" -> BSONDocument(s"testGroups.$phaseName" -> "")
+    )
+
+    collection.update(query, updateQuery, upsert = false) map {
+      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
+        Logger.error(s"Failed to reset progress statuses for " +
+          s"application Id: $applicationId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}")
+        throw ApplicationNotFound(applicationId)
+      case _ => ()
     }
   }
 
