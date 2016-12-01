@@ -35,28 +35,5 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
       indexes must contain (List("userId"))
       indexes.size mustBe 2
     }
-
-    "return empty list for empty contact details" in {
-      repo.findAll.futureValue mustBe empty
-    }
-
-    "return list of contact details" in {
-      insert("1", ContactDetails(Address("line1a"), "123", "email1@email.com", Some("12345")))
-      insert("2", ContactDetails(Address("line1b"), "456", "email2@email.com", Some("67890")))
-
-      val result = repo.findAll.futureValue
-      result.size mustBe 2
-    }
-
-    "return only the first 10 documents if there is more than 10" in {
-      for (i <- 1 to 11) {
-        insert(i.toString, ContactDetails(Address(s"line$i"), s"123$i", s"email$i@email.com", Some(s"12345$i")))
-      }
-
-      val result = repo.findAll.futureValue
-      result.size mustBe 10
-    }
   }
-
-  private def insert(userId: String, cd: ContactDetails) = repo.update(userId, cd).futureValue
 }

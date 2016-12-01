@@ -27,7 +27,9 @@ case class AssistanceDetailsRequest(hasDisability: Option[String] = None,
   onlineAdjustments: Option[Boolean] = None,
   onlineAdjustmentsDescription: Option[String] = None,
   assessmentCentreAdjustments: Option[Boolean] = None,
-  assessmentCentreAdjustmentsDescription: Option[String] = None
+  assessmentCentreAdjustmentsDescription: Option[String] = None,
+  phoneAdjustments: Option[Boolean] = None,
+  phoneAdjustmentsDescription: Option[String] = None
 )
 
 object AssistanceDetailsRequest {
@@ -123,4 +125,26 @@ case class CreateCandidateInStatusRequest(
 
 object CreateCandidateInStatusRequest {
   implicit val createCandidateInStatusRequestFormat = Json.format[CreateCandidateInStatusRequest]
+
+  def create(status: String, progressStatus: Option[String], applicationRoute: Option[ApplicationRoute]): CreateCandidateInStatusRequest = {
+    CreateCandidateInStatusRequest(
+      statusData = StatusDataRequest(
+        applicationStatus = status,
+        progressStatus = progressStatus,
+        applicationRoute = applicationRoute.map(_.toString)),
+      assistanceDetails = None,
+      personalData = None,
+      schemeTypes = None,
+      isCivilServant = None,
+      hasDegree = None,
+      region = None,
+      loc1scheme1EvaluationResult = None,
+      loc1scheme2EvaluationResult = None,
+      confirmedAllocation = None,
+      phase1TestData = None,
+      phase2TestData = None,
+      phase3TestData = None,
+      adjustmentInformation = None
+    )
+  }
 }
