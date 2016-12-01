@@ -21,7 +21,7 @@ import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.CommonBSONDocuments
+import repositories.{ ReactiveRepositoryHelpers, CommonBSONDocuments }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -39,7 +39,7 @@ trait PersonalDetailsRepository {
 
 class PersonalDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[PersonalDetails, BSONObjectID]("application", mongo, PersonalDetails.personalDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments {
+    ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
   val PersonalDetailsCollection = "personal-details"
 
   def update(applicationId: String, userId: String, personalDetails: PersonalDetails,
@@ -58,12 +58,15 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
       )
     )
 
-    collection.update(query, personalDetailsBSON, upsert = false) map (_ => ())
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating personal details",
+      PersonalDetailsNotFound(applicationId))
+
+    collection.update(query, personalDetailsBSON) map validator
   }
 
-  def updateWithoutStatusChange(appid: String, userId: String, personalDetails: PersonalDetails): Future[Unit] = {
+  def updateWithoutStatusChange(appId: String, userId: String, personalDetails: PersonalDetails): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> appid, "userId" -> userId),
+      BSONDocument("applicationId" -> appId, "userId" -> userId),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN))
     ))
 
@@ -72,7 +75,9 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
       PersonalDetailsCollection -> personalDetails
     ))
 
-    collection.update(query, personalDetailsBSON, upsert = false) map (_ => ())
+    val validator = singleUpdateValidator(appId, actionDesc = "update personal details without status change")
+
+    collection.update(query, personalDetailsBSON) map validator
   }
 
   override def find(applicationId: String): Future[PersonalDetails] = {

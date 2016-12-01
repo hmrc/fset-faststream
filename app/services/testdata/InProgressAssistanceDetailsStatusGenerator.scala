@@ -51,7 +51,7 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       _ <- if (maybeAdjustments.exists(_.adjustmentsConfirmed.getOrElse(false))) {
         adjustmentsManagementService.confirmAdjustment(appId, maybeAdjustments.get)
       } else {
-        Future.successful()
+        Future.successful(())
       }
     } yield {
       candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails), adjustmentInformation = maybeAdjustments)

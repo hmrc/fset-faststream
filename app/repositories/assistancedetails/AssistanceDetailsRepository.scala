@@ -21,6 +21,7 @@ import model.persisted.AssistanceDetails
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
+import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -35,7 +36,9 @@ trait AssistanceDetailsRepository {
 
 class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[AssistanceDetails, BSONObjectID]("application", mongo,
-    AssistanceDetails.assistanceDetailsFormat, ReactiveMongoFormats.objectIdFormats) with AssistanceDetailsRepository {
+    AssistanceDetails.assistanceDetailsFormat, ReactiveMongoFormats.objectIdFormats) with AssistanceDetailsRepository
+    with ReactiveRepositoryHelpers {
+
   val AssistanceDetailsCollection = "assistance-details"
 
   override def update(applicationId: String, userId: String, ad: AssistanceDetails): Future[Unit] = {
@@ -45,12 +48,10 @@ class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
       AssistanceDetailsCollection -> ad
     ))
 
-    collection.update(query, updateBSON, upsert = true) map {
-      case result if result.nModified == 0 && result.n == 0 =>
-        Logger.error(s"""Failed to write assistance details for user: $userId -> ${result.writeConcernError.map(_.errmsg).mkString(",")}""")
-        throw CannotUpdateAssistanceDetails(userId)
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating assistance details",
+      CannotUpdateAssistanceDetails(userId))
+
+    collection.update(query, updateBSON) map validator
   }
 
   override def find(applicationId: String): Future[AssistanceDetails] = {
