@@ -20,7 +20,9 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackR
 import model.EvaluationResults.Result
 import model.SchemeType._
 import model.exchange.passmarksettings.Phase3PassMarkSettings
-import model.persisted.SchemeEvaluationResult
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import repositories.onlinetesting.Phase3EvaluationMongoRepository
+import scala.concurrent.Future
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase3TestEvaluation extends OnlineTestResultsCalculator {

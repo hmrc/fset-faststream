@@ -18,8 +18,10 @@ package controllers
 
 import config.TestFixtureBase
 import mocks.application.DocumentRootInMemoryRepository
-import model.ApplicationRoute
+import model.EvaluationResults.Green
+import model.{ ApplicationRoute, SchemeType }
 import model.command.WithdrawApplication
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -29,6 +31,7 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.application.ApplicationService
+import services.onlinetesting.EvaluatePhase3ResultService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -41,7 +44,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
   val aWithdrawApplicationRequest = WithdrawApplication("Something", Some("Else"), "Candidate")
   val auditDetails = Map("applicationId" -> ApplicationId, "withdrawRequest" -> aWithdrawApplicationRequest.toString)
 
-  "Create Application" should {
+  "Create Application" must {
 
     "create an application" in new TestFixture {
       val result = TestApplicationController.createApplication(createApplicationRequest(
@@ -76,7 +79,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Application Progress" should {
+  "Application Progress" must {
 
     "return the progress of an application" in new TestFixture {
       val result = TestApplicationController.applicationProgress(ApplicationId)(applicationProgressRequest(ApplicationId)).run
@@ -95,7 +98,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Find application" should {
+  "Find application" must {
 
     "return the application" in new TestFixture {
       val result = TestApplicationController.findApplication(
@@ -121,7 +124,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Withdraw application" should {
+  "Withdraw application" must {
     "withdraw the application" in new TestFixture {
       val result = TestApplicationController.withdrawApplication("1111-1111")(withdrawApplicationRequest("1111-1111")(
         s"""
@@ -136,7 +139,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Preview application" should {
+  "Preview application" must {
     "mark the application as previewed" in new TestFixture {
       val result = TestApplicationController.preview(ApplicationId)(previewApplicationRequest(ApplicationId)(
         s"""
@@ -150,8 +153,29 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
+  "Get Scheme Results" must {
+
+    "return the scheme results for an application" in new TestFixture {
+      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      when(mockPassmarkService.getPassmarkEvaluation(any[String])).thenReturn(Future.successful(evaluation))
+
+      val result = TestApplicationController.getSchemeResults(ApplicationId)(getSchemeResultsRequest(ApplicationId)).run
+      val jsonResponse = contentAsJson(result)
+
+      jsonResponse mustBe Json.toJson(resultToSave)
+      status(result) must be(200)
+    }
+
+    "Return a 404 if no results are found for the application Id" in new TestFixture {
+      val result = TestApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
+      status(result) must be(404)
+    }
+  }
+
   trait TestFixture extends TestFixtureBase {
     val mockApplicationService = mock[ApplicationService]
+    val mockPassmarkService = mock[EvaluatePhase3ResultService]
     when(mockApplicationService.withdraw(eqTo(ApplicationId), eqTo(aWithdrawApplicationRequest))(any[HeaderCarrier], any[RequestHeader]))
       .thenReturn(Future.successful(()))
 
@@ -159,6 +183,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       override val appRepository: GeneralApplicationRepository = DocumentRootInMemoryRepository
       override val auditService: AuditService = mockAuditService
       override val applicationService: ApplicationService = mockApplicationService
+      override val passmarkService: EvaluatePhase3ResultService = mockPassmarkService
     }
 
     def applicationProgressRequest(applicationId: String) = {
@@ -186,6 +211,11 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     def previewApplicationRequest(applicationId: String)(jsonString: String) = {
       val json = Json.parse(jsonString)
       FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.preview(applicationId).url, FakeHeaders(), json)
+        .withHeaders("Content-Type" -> "application/json")
+    }
+
+    def getSchemeResultsRequest(applicationId: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.getSchemeResults(applicationId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
   }
