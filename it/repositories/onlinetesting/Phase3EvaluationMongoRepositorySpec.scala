@@ -3,6 +3,7 @@ package repositories.onlinetesting
 import config.{ LaunchpadGatewayConfig, Phase3TestsConfig }
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
+import model.Exceptions.PassMarkEvaluationNotFound
 import model.SchemeType._
 import model.persisted._
 import model.persisted.phase3tests.Phase3TestGroup
@@ -27,7 +28,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   val collectionName: String = "application"
 
-  "next Application Ready For Evaluation" should {
+  "next Application Ready For Evaluation" must {
 
     val resultToSave = List(SchemeEvaluationResult(SchemeType.Commercial, Green.toString))
 
@@ -134,7 +135,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
   }
 
-  "save passmark evaluation" should {
+  "save passmark evaluation" must {
     val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
 
     "save result and update the status" in {
@@ -150,6 +151,29 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result.evaluation mustBe Some(PassmarkEvaluation("version1", None, List(
         SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString)
       )))
+    }
+  }
+
+  "retrieve passmark evaluation" must {
+    val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+
+    "return passmakrs from mongo" in {
+      insertApplication("app1", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult), Some(phase3TestWithResult))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE3_TESTS_PASSED)).futureValue
+
+      val results = phase3EvaluationRepo.getPassMarkEvaluation("app1").futureValue
+
+      results mustBe evaluation
+
+    }
+
+    "return an appropriate exception when no passmarks are found" in {
+
+      val results = phase3EvaluationRepo.getPassMarkEvaluation("app2").failed.futureValue
+
+      results mustBe an [PassMarkEvaluationNotFound]
     }
   }
 
@@ -173,7 +197,3 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }).futureValue
   }
 }
-
-
-
-

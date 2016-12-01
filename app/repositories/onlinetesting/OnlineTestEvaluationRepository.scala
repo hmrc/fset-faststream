@@ -87,7 +87,7 @@ trait OnlineTestEvaluationRepository[T] extends CommonBSONDocuments with BSONHel
       .flatMap {_.getAs[PassmarkEvaluation]("evaluation")}
       .getOrElse(throw PassMarkEvaluationNotFound(applicationId))
 
-  private[repositories] def getPassMarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
+  def getPassMarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(s"testGroups.$phase.evaluation" -> 1, "_id" -> 0)
     collection.find(query, projection).one[BSONDocument] map { optDoc =>

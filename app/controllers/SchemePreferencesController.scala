@@ -16,10 +16,11 @@
 
 package controllers
 
-import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.SelectedSchemes
 import play.api.libs.json.Json
 import play.api.mvc.Action
+import scala.concurrent.Future
 import services.AuditService
 import services.scheme.SchemePreferencesService
 import uk.gov.hmrc.play.microservice.controller.BaseController
