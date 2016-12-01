@@ -51,11 +51,13 @@
         <h1 class="heading-xlarge">Home</h1>
         <p class="subtitle">@dashboardPage.fullName</p>
     </div>
-    @if(dashboardPage.isApplicationWithdrawn) {
-        @withdrawInformation()
-    } else {@if(!submitApplicationsEnabled) {
+
+    @withdrawInformation(usr)
+
+    @if(!submitApplicationsEnabled) {
         @submit_disabled(usr)
-    }}
+    }
+
     <section class="section-border">
         <ol class="step-by-step-coloured @if(!submitApplicationsEnabled){disabled}" id="sixSteps">
             <li class="first-step @activateByStep(dashboardPage.firstStepVisibility)">

@@ -1,18 +1,102 @@
 @import connectors.exchange.SchemeEvaluationResult
 @import views.html.home.withdrawSection
+@import security.Roles._
 @import views.html.home.withdrawInformation
 
-@(usr: CachedData, finalResults: List[SchemeEvaluationResult],
-        dashboardPage: DashboardPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(cachedUsr: CachedData, finalSchemeResults: List[SchemeEvaluationResult])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@getOrder(pos: Int) = @{
+  pos match {
+    case 1 => "1st"
+    case 2 => "2nd"
+    case 3 => "3rd"
+    case _ => s"${pos}th"
+  }
+}
+
+@getSuccessfulSchemes = @{
+    finalSchemeResults.zipWithIndex.filter(_._1.result == "Green")
+}
+
+@getUnSuccessfulSchemes = @{
+    finalSchemeResults.zipWithIndex.filter(_._1.result == "Red")
+}
 
 @main_template(title = "Home") {
 
     <div class="hgroup">
         <h1 class="heading-xlarge">Home</h1>
-        <p class="subtitle">@dashboardPage.fullName</p>
+        <p class="subtitle">@{cachedUsr.user.firstName + " " + cachedUsr.user.lastName}</p>
     </div>
-    @if(dashboardPage.isApplicationWithdrawn) {
-        @withdrawInformation
-    }
-    @withdrawSection(usr)
+
+    @withdrawInformation(cachedUsr)
+
+    <section class="section-border" id="mainProgressPage">
+        <h2 class="heading-large"><i class="fa fa-check"></i>You've passed the video interview</h2>
+        <div class="text">
+            <section>
+                <p>Congratulations, you've been succcessful for at least one of your
+                    preferred schemes.</p>
+                @if(WithdrawApplicationRole.isAuthorized(cachedUsr)){
+                    <p><a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a></p>
+                    <p><a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a></p>
+                }
+            </section>
+            <h2 class="heading-medium">Check your scheme status</h2>
+            <h3 class="heading-small">Successful schemes</h3>
+            <table class="table-preference-status" data-schemetable-bestcase>
+                <colgroup>
+                    <col class="t30" />
+                    <col class="t70" />
+                    <col />
+                </colgroup>
+                @for((schemeResult, index) <- getSuccessfulSchemes) {
+                    <tr class="pref-successful">
+                        <td class="preference-status">
+                            <span class="pref-wrapper"><i class="fa fa-check"></i>Successful</span>
+                        </td>
+                        <td>
+                            <h3 class="bold-small">@getOrder(index + 1) preference</h3>
+                            <p>@Messages("scheme."+schemeResult.scheme+".description")</p>
+                        </td>
+                    </tr>
+                }
+            </table>
+            @if(getUnSuccessfulSchemes.nonEmpty) {
+                <h3 class="heading-small">Unsuccessful schemes</h3>
+                <p><i class="fa fa-exclamation-triangle"></i>You've got @getUnSuccessfulSchemes.size unsuccessful
+                    schemes</p>
+                <details>
+                    <summary>View your unsuccessful schemes</summary>
+                    <div class="detail-content">
+                        <table class="table-preference-status">
+                            <colgroup>
+                                <col class="t30" />
+                                <col class="t70" />
+                                <col />
+                            </colgroup>
+                            @for((schemeResult, index) <- getUnSuccessfulSchemes) {
+                                <tr class="pref-unsuccessful">
+                                    <td class="preference-status">
+                                        <span class="pref-wrapper"><i class="fa fa-exclamation-triangle"></i>Unsuccessful</span>
+                                    </td>
+                                    <td>
+                                        <h3 class="bold-small">@getOrder(index + 1) preference</h3>
+                                        <p>@Messages("scheme."+schemeResult.scheme+".description")</p>
+                                    </td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                </details>
+            }
+            <div class="panel-indent" data-hideifwithdrawn>
+                <p>You'll automatically be put forward for your successful schemes at
+                    the assessment centre unless you withdraw your application.</p>
+                <p>Unfortunately, you won't be considered for any unsuccessful schemes.</p>
+            </div>
+        </div>
+    </section>
+
+    @withdrawSection(cachedUsr)
 }

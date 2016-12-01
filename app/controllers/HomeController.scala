@@ -19,13 +19,13 @@ package controllers
 import _root_.forms.WithdrawApplicationForm
 import config.CSRCache
 import connectors.ApplicationClient
-import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, FinalResultsNotFound, OnlineTestNotFound }
+import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange._
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
 import models.{ ApplicationData, CachedData }
-import play.api.mvc.{ Request, RequestHeader, Result }
+import play.api.mvc.{ Request, Result }
 import security.Roles
 import security.Roles._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -42,12 +42,11 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
 
   def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
      cachedData.application.map { implicit application =>
-       displayFinalResultsPage
-         .recoverWith(dashboardWithOnlineTests)
-         .recoverWith(dashboardWithoutOnlineTests)
-     }.getOrElse {
-       dashboardWithoutApplication
-     }
+       application.applicationStatus match {
+         case ApplicationStatus.PHASE3_TESTS_PASSED => displayFinalResultsPage
+         case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
+       }
+     }.getOrElse { dashboardWithoutApplication }
   }
 
   def resume = CSRSecureAppAction(ActiveUserRole) { implicit request =>
@@ -102,34 +101,34 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
 
   def confirmAlloc = CSRSecureAction(UnconfirmedAllocatedCandidateRole) { implicit request =>
     implicit user =>
-
       applicationClient.confirmAllocation(user.application.get.applicationId).map { _ =>
         Redirect(controllers.routes.HomeController.present()).flashing(success("success.allocation.confirmed"))
       }
   }
 
-  private def displayFinalResultsPage(implicit application: ApplicationData, hc: HeaderCarrier) =
-      applicationClient.getFinalResults(application.applicationId).map { results => Ok("") }
-
+  private def displayFinalResultsPage(implicit application: ApplicationData, cachedData: CachedData,
+                                      request: Request[_], hc: HeaderCarrier) =
+    applicationClient.getFinalSchemeResults(application.applicationId).map { results =>
+      Ok(views.html.home.viewFinalResults(cachedData, results))
+    }
 
   private def dashboardWithOnlineTests(implicit application: ApplicationData,
-                                       cachedData: CachedData, request: Request[_]): PartialFunction[Throwable, Future[Result]]  = {
-    case e: FinalResultsNotFound =>
-      for {
-        adjustmentsOpt <- getAdjustments
-        assistanceDetailsOpt <- getAssistanceDetails
-        phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
-        phase2TestsWithNames <- getPhase2Test
-        phase3Tests <- getPhase3Test
-        updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
-      } yield {
-        val dashboardPage = DashboardPage(updatedData, Some(Phase1TestsPage(phase1TestsWithNames)),
-          phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
-          phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
-        )
-        Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt,
-          submitApplicationsEnabled = true))
-      }
+                                       cachedData: CachedData, request: Request[_]) = {
+    for {
+      adjustmentsOpt <- getAdjustments
+      assistanceDetailsOpt <- getAssistanceDetails
+      phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
+      phase2TestsWithNames <- getPhase2Test
+      phase3Tests <- getPhase3Test
+      updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
+    } yield {
+      val dashboardPage = DashboardPage(updatedData, Some(Phase1TestsPage(phase1TestsWithNames)),
+        phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
+        phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
+      )
+      Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt,
+        submitApplicationsEnabled = true))
+    }
   }
 
   private def dashboardWithoutOnlineTests(implicit application: ApplicationData,

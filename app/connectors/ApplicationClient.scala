@@ -21,8 +21,8 @@ import java.net.URLEncoder
 import config.CSRHttp
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.PartnerGraduateProgrammes._
-import connectors.exchange.Questionnaire._
 import connectors.exchange.PersonalDetails._
+import connectors.exchange.Questionnaire._
 import connectors.exchange._
 import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
@@ -198,8 +198,8 @@ trait ApplicationClient {
     }
   }
 
-  def getFinalResults(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[List[SchemeEvaluationResult]] = {
-    http.GET(s"${url.host}${url.base}/final-result/$appId").map { response =>
+  def getFinalSchemeResults(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[List[SchemeEvaluationResult]] = {
+    http.GET(s"${url.host}${url.base}/application/schemeresults/$appId").map { response =>
       response.json.as[List[SchemeEvaluationResult]]
     } recover {
       case _: NotFoundException => throw new FinalResultsNotFound()
