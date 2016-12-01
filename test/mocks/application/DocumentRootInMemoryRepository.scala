@@ -145,4 +145,6 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
 
   def fixDataByRemovingETray(appId: String): Future[Unit] = ???
+
+  def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = ???
 }

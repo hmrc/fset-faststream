@@ -38,4 +38,12 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
+  def removeProgressStatus(appId: String, progressStatus: String) = Action.async { implicit request =>
+    applicationService.fixDataByRemovingProgressStatus(appId, progressStatus).map { _ =>
+      NoContent
+    } recover {
+      case _: NotFoundException => NotFound
+    }
+  }
+
 }

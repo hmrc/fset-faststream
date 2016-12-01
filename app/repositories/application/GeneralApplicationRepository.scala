@@ -127,6 +127,8 @@ trait GeneralApplicationRepository {
   def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
 
   def fixDataByRemovingETray(appId: String): Future[Unit]
+
+  def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -555,6 +557,19 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         "$unset" -> BSONDocument(s"testGroups.PHASE2" -> "")
       )
     )
+
+    bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
+  }
+
+  def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = {
+    val query = BSONDocument(
+      "applicationId" -> appId,
+      s"progress-status.$progressStatus" -> true
+    )
+    val updateOp = bsonCollection.updateModifier(BSONDocument(
+      "$unset" -> BSONDocument(s"progress-status.$progressStatus" -> ""),
+      "$unset" -> BSONDocument(s"progress-status-timestamp.$progressStatus" -> "")
+    ))
 
     bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
   }
