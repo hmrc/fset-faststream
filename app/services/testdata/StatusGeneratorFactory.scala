@@ -17,7 +17,7 @@
 package services.testdata
 
 import model.ApplicationStatus._
-import model.Exceptions.InvalidStatusAndProgressStatusException
+import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
 import model.ProgressStatuses
 import model.ProgressStatuses.ProgressStatus
 import model.command.testdata.GeneratorConfig
@@ -116,7 +116,7 @@ object StatusGeneratorFactory {
       case (PHASE3_TESTS_PASSED, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => Phase3TestsPassedStatusGenerator
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
 
-      case _ => throw InvalidStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
+      case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")
     }
   }
