@@ -27,10 +27,11 @@ import repositories.contactdetails.ContactDetailsRepository
 import services.BaseServiceSpec
 import services.events.EventServiceFixture
 import services.testdata.examples.AdjustmentsExamples._
+import testkit.ShortTimeout
 
 import scala.concurrent.Future
 
-class AdjustmentsManagementServiceSpec extends BaseServiceSpec {
+class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ShortTimeout {
 
   "confirm adjustment" should {
     "throw an exception when there is no application" in new TestFixture {

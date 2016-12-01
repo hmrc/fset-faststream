@@ -21,6 +21,7 @@ import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -39,7 +40,7 @@ trait CivilServiceExperienceDetailsRepository {
 class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) extends
   ReactiveRepository[CivilServiceExperienceDetails, BSONObjectID]("application", mongo,
     CivilServiceExperienceDetails.civilServiceExperienceDetailsFormat, ReactiveMongoFormats.objectIdFormats)
-  with CivilServiceExperienceDetailsRepository {
+  with CivilServiceExperienceDetailsRepository with ReactiveRepositoryHelpers {
 
   override def update(applicationId: String, civilServiceExperienceDetails: CivilServiceExperienceDetails): Future[Unit] = {
 
@@ -48,14 +49,10 @@ class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) ext
       CivilServiceExperienceDetailsDocumentKey -> civilServiceExperienceDetails
     ))
 
-    collection.update(query, updateBSON, upsert = false) map {
-      case result if result.nModified == 0 && result.n == 0 =>
-        Logger.error(
-          s"""Failed to write fast pass details for application Id: $applicationId ->
-              |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
-        throw CannotUpdateCivilServiceExperienceDetails(applicationId)
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating civil service details",
+      CannotUpdateCivilServiceExperienceDetails(applicationId))
+
+    collection.update(query, updateBSON) map validator
   }
 
   override def find(applicationId: String): Future[Option[CivilServiceExperienceDetails]] = {

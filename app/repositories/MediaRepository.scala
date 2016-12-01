@@ -37,10 +37,7 @@ trait MediaRepository {
 
 class MediaMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Media, BSONObjectID]("media", mongo,
-    mediaFormat, ReactiveMongoFormats.objectIdFormats) with MediaRepository {
-
-  // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
-  lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
+    mediaFormat, ReactiveMongoFormats.objectIdFormats) with MediaRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
   override def create(addMedia: Media): Future[Unit] = insert(addMedia).map { _ => ()
   } recover {
@@ -48,7 +45,7 @@ class MediaMongoRepository(implicit mongo: () => DB)
   }
 
   override def findAll(): Future[Map[String, Media]] = {
-    val query = BSONDocument()
+    val query = BSONDocument.empty
     implicit val reader = bsonReader(docToMedia)
     val queryResult = bsonCollection.find(query)
       .cursor[(String, Media)](ReadPreference.nearest).collect[List]()
@@ -62,9 +59,4 @@ class MediaMongoRepository(implicit mongo: () => DB)
     (userId, Media(userId, media))
   }
 
-  private def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
-    }
-  }
 }

@@ -50,7 +50,8 @@ trait ContactDetailsRepository {
 @deprecated("fasttrack version", "July 2016")
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo,
-    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository {
+    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with
+    ContactDetailsRepository with ReactiveRepositoryHelpers {
 
   override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
 
@@ -58,12 +59,9 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       "contact-details" -> contactDetails
     ))
 
-    collection.update(BSONDocument("userId" -> userId), contactDetailsBson, upsert = true) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        Logger.error(s"""Failed to write contact details for user: $userId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}""")
-        throw CannotUpdateContactDetails(userId)
-      case _ => ()
-    }
+    val validator = singleUpsertValidator(userId, actionDesc = s"updating user userId")
+
+    collection.update(BSONDocument("userId" -> userId), contactDetailsBson, upsert = true) map validator
   }
 
   override def find(userId: String): Future[ContactDetails] = {
@@ -116,7 +114,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
   }
 
   override def findAll: Future[List[ContactDetailsWithId]] = {
-    val query = BSONDocument()
+    val query = BSONDocument.empty
 
     collection.find(query).cursor[BSONDocument]().collect[List](MicroserviceAppConfig.maxNumberOfDocuments).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
