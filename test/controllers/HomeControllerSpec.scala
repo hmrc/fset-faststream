@@ -22,7 +22,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.{ AssistanceDetailsExamples, WithdrawApplicationExamples }
+import connectors.exchange.{ AssistanceDetailsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
 import forms.WithdrawApplicationFormExamples
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationRoute._
@@ -83,6 +83,46 @@ class HomeControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include("Fast Stream applications are now closed")
       content must include("""<ol class="step-by-step-coloured disabled" id="sixSteps">""")
+    }
+
+    "display scheme results page" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      val phase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.Phase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
+
+      val result = controller(phase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+
+      content must include("Congratulations, you've been successful for at least one of your")
+      content mustNot include("Your application has been withdrawn.")
+    }
+
+    "display scheme results page for withdrawn application" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      val withdrawnPhase3TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.WithdrawnPhase3TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
+
+      val result = controller(withdrawnPhase3TestsPassedApp, applicationRouteState).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+
+      content must include("Your application has been withdrawn.")
+      content must include("Congratulations, you've been successful for at least one of your")
     }
   }
 
@@ -158,6 +198,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
     def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp,
                    appRouteState: ApplicationRouteState = defaultApplicationRouteState) = new TestableHomeController {
+      override val Candidate: CachedData = CachedData(candidateWithApp.user, Some(candidateWithApp.application))
       override val CandidateWithApp: CachedDataWithApp = candidateWithApp
       override val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
     }

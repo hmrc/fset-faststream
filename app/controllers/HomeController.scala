@@ -27,6 +27,7 @@ import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3Test
 import models.{ ApplicationData, CachedData }
 import play.api.mvc.{ Request, Result }
 import security.Roles
+import security.RoleUtils._
 import security.Roles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -42,8 +43,8 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
 
   def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
      cachedData.application.map { implicit application =>
-       application.applicationStatus match {
-         case ApplicationStatus.PHASE3_TESTS_PASSED => displayFinalResultsPage
+       isPhase3TestsPassed match {
+         case true => displayFinalResultsPage
          case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
        }
      }.getOrElse { dashboardWithoutApplication }
@@ -109,7 +110,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
   private def displayFinalResultsPage(implicit application: ApplicationData, cachedData: CachedData,
                                       request: Request[_], hc: HeaderCarrier) =
     applicationClient.getFinalSchemeResults(application.applicationId).map { results =>
-      Ok(views.html.home.viewFinalResults(cachedData, results))
+      Ok(views.html.home.viewFinalResults(cachedData, results.getOrElse(Nil)))
     }
 
   private def dashboardWithOnlineTests(implicit application: ApplicationData,

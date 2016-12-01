@@ -31,11 +31,11 @@
 
     @withdrawInformation(cachedUsr)
 
-    <section class="section-border" id="mainProgressPage">
+    <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(cachedUsr)){disabled}" id="mainProgressPage">
         <h2 class="heading-large"><i class="fa fa-check"></i>You've passed the video interview</h2>
         <div class="text">
             <section>
-                <p>Congratulations, you've been succcessful for at least one of your
+                <p>Congratulations, you've been successful for at least one of your
                     preferred schemes.</p>
                 @if(WithdrawApplicationRole.isAuthorized(cachedUsr)){
                     <p><a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a></p>

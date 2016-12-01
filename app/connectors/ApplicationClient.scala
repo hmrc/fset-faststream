@@ -198,11 +198,11 @@ trait ApplicationClient {
     }
   }
 
-  def getFinalSchemeResults(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[List[SchemeEvaluationResult]] = {
+  def getFinalSchemeResults(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[List[SchemeEvaluationResult]]] = {
     http.GET(s"${url.host}${url.base}/application/schemeresults/$appId").map { response =>
-      response.json.as[List[SchemeEvaluationResult]]
+      Some(response.json.as[List[SchemeEvaluationResult]])
     } recover {
-      case _: NotFoundException => throw new FinalResultsNotFound()
+      case _: NotFoundException => None
     }
   }
 
@@ -277,8 +277,6 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class CannotWithdraw extends Exception
 
   sealed class OnlineTestNotFound extends Exception
-
-  sealed class FinalResultsNotFound extends Exception
 
   sealed class PdfReportNotFoundException extends Exception
 

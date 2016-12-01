@@ -53,6 +53,9 @@ object CachedDataExample {
     progress = ProgressExamples.SubmitProgress)
   val WithdrawApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
     progress = ProgressExamples.WithdrawnAfterSubmitProgress)
-
+  val Phase3TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
+    progress = ProgressExamples.Phase3TestsPassed)
+  val WithdrawnPhase3TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
+    progress = ProgressExamples.Phase3TestsPassed)
   val ActiveCandidate = CachedData(ActiveCandidateUser, Some(CreatedApplication))
 }
