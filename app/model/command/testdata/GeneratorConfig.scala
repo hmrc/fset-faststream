@@ -107,7 +107,9 @@ object Phase2TestData {
 case class Phase3TestData(
   start: Option[DateTime] = None,
   expiry: Option[DateTime] = None,
-  completion: Option[DateTime] = None
+  completion: Option[DateTime] = None,
+  score: Option[Double] = None,
+  receivedBeforeInHours: Option[Int] = None
 )
 
 object Phase3TestData {
@@ -115,7 +117,9 @@ object Phase3TestData {
     Phase3TestData(
       start = o.start.map(DateTime.parse),
       expiry = o.expiry.map(DateTime.parse),
-      completion = o.completion.map(DateTime.parse)
+      completion = o.completion.map(DateTime.parse),
+      score = o.score,
+      receivedBeforeInHours = o.receivedBeforeInHours
     )
   }
 }

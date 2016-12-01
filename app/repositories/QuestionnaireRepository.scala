@@ -20,7 +20,6 @@ import model.PersistedObjects
 import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
-import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
@@ -41,22 +40,20 @@ trait QuestionnaireRepository {
 
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
   extends ReactiveRepository[PersistedAnswer, BSONObjectID]("questionnaire", mongo,
-    PersistedObjects.Implicits.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository {
-
-  // Use the BSON collection instead of in the inbuilt JSONCollection when performance matters
-  lazy val bsonCollection = mongo().collection[BSONCollection](this.collection.name)
+    PersistedObjects.Implicits.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
+    with ReactiveRepositoryHelpers with BaseBSONReader {
 
   override def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit] = {
 
     val appId = "applicationId" -> applicationId
 
+    val validator = singleUpsertValidator(applicationId, actionDesc = "adding questions")
+
     collection.update(
       BSONDocument(appId),
       BSONDocument("$set" -> questions.map(q => s"questions.${q.question}" -> q.answer).foldLeft(document ++ appId)((d, v) => d ++ v)),
       upsert = true
-    ) map {
-        case _ => ()
-      }
+    ) map validator
   }
 
   override def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]] = {
@@ -80,7 +77,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
   }
 
   override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] = {
-    findAllAsReportItem(BSONDocument())
+    findAllAsReportItem(BSONDocument.empty)
   }
 
   protected def findAllAsReportItem(query: BSONDocument): Future[Map[String, QuestionnaireReportItem]] = {
@@ -107,12 +104,6 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     collection.find(query, projection).one[Questions].map {
       case Some(q) => q.questions.map((q: (String, PersistedAnswer)) => PersistedQuestion(q._1, q._2)).toList
       case None => List()
-    }
-  }
-
-  private def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
     }
   }
 

@@ -20,12 +20,12 @@ import model.ApplicationRoute.{ apply => _ }
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
 import model.report.{ VideoInterviewQuestionTestResult, VideoInterviewTestResult }
 import reactivemongo.bson.{ BSONArray, BSONDateTime, BSONDocument }
-import repositories.BSONHelpers
+import repositories.ReactiveRepositoryHelpers
 import testkit.UnitWithAppSpec
 
 class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
 
-  def bsonToModelHelper = new ReportingRepoBSONReader{}
+  def bsonToModelHelper = new ReportingRepoBSONReader {}
 
   "toPhase3TestResults" should {
     "return corresponding VideoInterviewTestResult when only one reviewer and one reviewed callback" in new Fixture {

@@ -42,7 +42,7 @@ class AssessmentCentrePassMarkSettingsMongoRepository(implicit mongo: () => DB)
   //scalastyle:on
 
   def tryGetLatestVersion: Future[Option[AssessmentCentrePassMarkSettings]] = {
-    val query = BSONDocument()
+    val query = BSONDocument.empty
     val sort = new JsObject(Seq("info.createDate" -> JsNumber(-1)))
 
     collection.find(query).sort(sort).one[BSONDocument].map { docOpt =>

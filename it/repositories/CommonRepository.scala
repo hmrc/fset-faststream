@@ -131,11 +131,6 @@ trait CommonRepository {
   def insertPhase2Tests(appId: String, phase2Tests: Option[List[CubiksTest]], phase2Evaluation: Option[PassmarkEvaluation]): Unit = {
     phase2Tests.foreach { t =>
       phase2TestRepository.insertOrUpdateTestGroup(appId, Phase2TestGroup(now, t, phase2Evaluation)).futureValue
-      t.foreach { oneTest =>
-        oneTest.testResult.foreach { result =>
-          phase2TestRepository.insertTestResult(appId, oneTest, result).futureValue
-        }
-      }
       if (t.exists(_.testResult.isDefined)) {
         phase2TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).futureValue
       }
@@ -145,11 +140,6 @@ trait CommonRepository {
   def insertPhase1Tests(appId: String, phase1Tests: Option[List[CubiksTest]], phase1Evaluation: Option[PassmarkEvaluation]) = {
     phase1Tests.foreach { t =>
       phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t, phase1Evaluation)).futureValue
-      t.foreach { oneTest =>
-        oneTest.testResult.foreach { result =>
-          phase1TestRepository.insertTestResult(appId, oneTest, result).futureValue
-        }
-      }
       if (t.exists(_.testResult.isDefined)) {
         phase1TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
       }

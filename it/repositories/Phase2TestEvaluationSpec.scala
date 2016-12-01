@@ -144,6 +144,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   trait TestFixture {
 
+
     // format: OFF
     val phase2PassMarkSettingsTable = Table[SchemeType, Double, Double](
       ("Scheme Name", "Etray Fail Threshold", "Etray Pass threshold"),
@@ -224,6 +225,15 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       phase2PassMarkSettingRepo.getLatestVersion.futureValue.get
     }
 
+    val appCollection = mongo().collection[JSONCollection](collectionName)
+
+    def createUser(userId: String, appId: String) = {
+      appCollection.insert(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED)).futureValue
+    }
+
+    createUser("user-1", "application-1")
+    createUser("user-2", "application-2")
+    createUser("user-3", "application-3")
   }
 
 }

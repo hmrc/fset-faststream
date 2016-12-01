@@ -16,6 +16,7 @@
 
 package repositories
 
+import model.Exceptions.CannotUpdateContactDetails
 import model.Preferences
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
@@ -34,7 +35,7 @@ class FrameworkPreferenceMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Preferences, BSONObjectID](
     "application", mongo, Preferences.jsonFormat, ReactiveMongoFormats.objectIdFormats
   )
-  with FrameworkPreferenceRepository {
+  with FrameworkPreferenceRepository with ReactiveRepositoryHelpers {
 
   override def savePreferences(applicationId: String, preferences: Preferences): Future[Unit] = {
     require(preferences.isValid, "Preferences must be valid when saving to repository")
@@ -45,9 +46,10 @@ class FrameworkPreferenceMongoRepository(implicit mongo: () => DB)
       "progress-status.frameworks-location" -> preferences.alternatives.isDefined,
       "framework-preferences" -> preferences
     ))
-    collection.update(query, preferencesBSON, upsert = false) map {
-      case _ => ()
-    }
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "deleting allocation")
+
+    collection.update(query, preferencesBSON) map validator
   }
 
   override def tryGetPreferences(applicationId: String): Future[Option[Preferences]] = {

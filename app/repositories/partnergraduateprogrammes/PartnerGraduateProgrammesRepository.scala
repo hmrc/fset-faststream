@@ -18,9 +18,9 @@ package repositories.partnergraduateprogrammes
 
 import model.Exceptions._
 import model.persisted.PartnerGraduateProgrammes
-import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
+import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -35,7 +35,9 @@ trait PartnerGraduateProgrammesRepository {
 
 class PartnerGraduateProgrammesMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[PartnerGraduateProgrammes, BSONObjectID]("application", mongo,
-    PartnerGraduateProgrammes.partnerGraduateProgrammesFormat, ReactiveMongoFormats.objectIdFormats) with PartnerGraduateProgrammesRepository {
+    PartnerGraduateProgrammes.partnerGraduateProgrammesFormat, ReactiveMongoFormats.objectIdFormats) with PartnerGraduateProgrammesRepository
+    with ReactiveRepositoryHelpers {
+
   val PartnerGraduateProgrammesCollection = "partner-graduate-programmes"
 
   override def update(applicationId: String, pgp: PartnerGraduateProgrammes): Future[Unit] = {
@@ -45,14 +47,10 @@ class PartnerGraduateProgrammesMongoRepository(implicit mongo: () => DB)
       PartnerGraduateProgrammesCollection -> pgp
     ))
 
-    collection.update(query, updateBSON, upsert = true) map {
-      case result if result.nModified == 0 && result.n == 0 =>
-        Logger.error(
-          s"""Failed to write partner graduate programmes for application: $applicationId ->
-             |${result.writeConcernError.map(_.errmsg).mkString(",")}""".stripMargin)
-        throw CannotUpdatePartnerGraduateProgrammes(applicationId)
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating partner programmes",
+      CannotUpdatePartnerGraduateProgrammes(applicationId))
+
+    collection.update(query, updateBSON) map validator
   }
 
   override def find(applicationId: String): Future[PartnerGraduateProgrammes] = {

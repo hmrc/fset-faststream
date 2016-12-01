@@ -43,7 +43,8 @@ trait PersonalDetailsRepository {
 @deprecated("fasttrack version", "July 2016")
 class PersonalDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[PersonalDetails, BSONObjectID]("application", mongo,
-    PersistedObjects.Implicits.persistedPersonalDetailsFormats, ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository {
+    PersistedObjects.Implicits.persistedPersonalDetailsFormats, ReactiveMongoFormats.objectIdFormats) with
+    PersonalDetailsRepository with ReactiveRepositoryHelpers {
 
   override def update(applicationId: String, userId: String, pd: PersonalDetails): Future[Unit] = {
 
@@ -57,9 +58,9 @@ class PersonalDetailsMongoRepository(implicit mongo: () => DB)
       "personal-details" -> persistedPersonalDetails
     ))
 
-    collection.update(query, personalDetailsBSON, upsert = false) map {
-      case _ => ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating personal details")
+
+    collection.update(query, personalDetailsBSON) map validator
   }
 
   override def find(applicationId: String): Future[PersonalDetails] = {
