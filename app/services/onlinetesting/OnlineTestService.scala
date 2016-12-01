@@ -70,12 +70,12 @@ trait OnlineTestService extends TimeExtension with EventSink {
     }
   }
 
-  protected def processTestForNotification(toNotify: TestResultNotification, notiType: NotificationTestType)
+  protected def processTestForNotification(toNotify: TestResultNotification, `type`: NotificationTestType)
                                  (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       emailAddress <- candidateEmailAddress(toNotify.userId)
-      _ <- commitProgressStatus(toNotify.applicationId, notiType.notificationProgress)
-      _ <- emailCandidate(toNotify.applicationId, toNotify.preferredName, emailAddress, notiType.template, notiType.notificationProgress)
+      _ <- commitProgressStatus(toNotify.applicationId, `type`.notificationProgress)
+      _ <- emailCandidate(toNotify.applicationId, toNotify.preferredName, emailAddress, `type`.template, `type`.notificationProgress)
     } yield ()
   }
 
