@@ -289,7 +289,11 @@ object RoleUtils {
 
   def isSdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Sdip
 
-  def isFaststream(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Faststream)
+  def isFaststream(implicit user: CachedData): Boolean = user.application exists { app =>
+    // The second part of the condition means that "Faststream becomes SDIP" applications need still be treated
+    // as faststream in the frontend. The only difference is in backend.
+    app.applicationRoute == ApplicationRoute.Faststream || app.applicationRoute == ApplicationRoute.SdipFaststream
+  }
 
   def isEdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Edip)
 

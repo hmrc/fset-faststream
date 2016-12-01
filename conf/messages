@@ -35,6 +35,7 @@ agree.accept = Accept the terms and conditions
 agree.faststreamEligible = Confirm that you''re eligible to apply for the Civil Service Fast Stream
 agree.edipEligible = Confirm that you''re eligible to apply for the Early Diversity Internship Programme
 agree.sdipEligible = Confirm that you''re eligible to apply for the Summer Diversity Internship Programme
+sdipFaststream.acceptTerms.required = Confirm that you agree and want to be considered for the Summer Diversity Internship Programme
 agree.hasAppliedToFaststream= You must tell us if you''ve applied to the Civil Service Fast Stream this year
 error.hasAppliedToFaststream= If you want to apply for the Summer Diversity Internship Programme and have an existing Fast Stream account, you need to sign in
 error.emailconfirm.notmatch = You must enter the same email address
@@ -44,6 +45,10 @@ applicationRoute.Sdip.closed = Sorry, applications for the Civil Service Summer 
 applicationRoute.Sdip.notOpen = Sorry, applications for the Civil Service Summer Diversity Internship Programme are opened from {0}
 applicationRoute.Edip.closed = Sorry, applications for the Civil Service Early Diversity Internship Programme are now closed
 applicationRoute.Edip.notOpen = Sorry, applications for the Civil Service Early Diversity Internship Programme are opened from {0}
+faststream.becomes.sdip.success = You''ll now be considered for the Summer Diversity Internship Programme. <p class="text">If you haven''t finished your online exercises, please make sure you do so before they expire.</p> <p class="text">We''ve sent you an email confirming your submission, make sure you check your junk inbox.</p>
+error.faststream.becomes.sdip.not.submitted = Unfortunately, we can''t use your Civil Service Fast Stream application to be considered for SDIP because you didn''t submit your application before the deadline.
+error.faststream.becomes.sdip.test.expired = Unfortunately, we can''t use your Civil Service Fast Stream application to be considered for SDIP because you didn''t complete your online exercises before the deadline.
+error.faststream.becomes.sdip.withdrew = Unfortunately, we can''t use your Civil Service Fast Stream application to be considered for SDIP because you withdrew your application.
 
 # Reset password form
 reset.code.wrong-format = The password reset code must be 7 characters

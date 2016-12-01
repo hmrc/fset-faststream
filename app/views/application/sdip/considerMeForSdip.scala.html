@@ -1,0 +1,37 @@
+@(form: Form[_root_.forms.SdipForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@import views.html.widgets.checkbox
+
+@main_template(title = "Consider me for SDIP", pageForms = Seq(form)) {
+    <div class="hgroup">
+        <h1 class="heading-xlarge">Consider me for SDIP</h1>
+        <p class="subtitle">For existing Civil Service Fast Stream applicants</p>
+    </div>
+    @helper.form(action = routes.SdipController.submit(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+
+        <section class="text">
+            <p>To be considered for the Summer Diversity Internship Programme, you must:</p>
+            <ul class="list-bullet">
+                <li>be either from a BAME or socially/economically disadvantaged background,
+                    or disabled</li>
+                <li>be in your final 2 years at university</li>
+                <li>accept that the existing terms and conditions apply</li>
+            </ul>
+            <p>Find out more about the <a href="http://www.faststream.gov.uk/summer-diversity-internship-programme/" rel="external" target="_blank">
+                Summer Diversity Internship Programme</a>.</p>
+            <div class="panel-indent text">
+                <p>You won't need to do the online exercises again — we'll use the scores
+                    from your existing application for the Civil Service Fast Stream.</p>
+            </div>
+        </section>
+        <div class="form-group">
+        @checkbox(form("acceptTerms")) {
+            I agree and want to be considered for SDIP
+        }
+        </div>
+        <div class="form-group small-btm-margin">
+            <button id="applyBtn" type="submit" value="submit" class="button">Submit</button>
+        </div>
+    }
+}

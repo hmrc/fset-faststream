@@ -87,7 +87,8 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   override lazy val applicationRoutesFrontend = Map(
     Faststream -> loadAppRouteConfig("faststream"),
     Edip -> loadAppRouteConfig("edip"),
-    Sdip -> loadAppRouteConfig("sdip")
+    Sdip -> loadAppRouteConfig("sdip"),
+    SdipFaststream -> loadAppRouteConfig("faststream")
   )
 
   def loadAppRouteConfig(routeKey: String) = ApplicationRouteStateImpl(

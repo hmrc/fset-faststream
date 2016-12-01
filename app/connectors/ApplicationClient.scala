@@ -227,6 +227,10 @@ trait ApplicationClient {
       case _: NotFoundException => None
     }
   }
+
+  def convertToSdip(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/application/sdip/$applicationId", "").map(_ => ())
+  }
 }
 
 trait TestDataClient {
