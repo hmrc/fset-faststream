@@ -162,24 +162,26 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
         BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.CREATED)),
         BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.IN_PROGRESS)),
         BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN)),
-        BSONDocument("$or" ->
+        BSONDocument("$and" ->
           BSONArray(
-            BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
-            BSONDocument("assistance-details.needsSupportAtVenue" -> true),
-            BSONDocument("assistance-details.guaranteedInterview" -> true),
-            BSONDocument("$and" ->
+            BSONDocument("$or" ->
               BSONArray(
-                BSONDocument("assistance-details.adjustmentsConfirmed" -> true),
-                BSONDocument("$or" ->
-                  BSONArray(
-                    BSONDocument("applicationRoute" -> "Faststream"),
-                    BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
-                  )
-                )
+                BSONDocument("applicationRoute" -> "Faststream"),
+                BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
+              )
+            ),
+            BSONDocument("$or" ->
+              BSONArray(
+                BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> true),
+                BSONDocument("assistance-details.needsSupportAtVenue" -> true),
+                BSONDocument("assistance-details.guaranteedInterview" -> true),
+                BSONDocument("assistance-details.adjustmentsConfirmed" -> true)
               )
             )
-          ))
-      ))
+          )
+        )
+      )
+    )
 
     val projection = BSONDocument(
       "userId" -> "1",
@@ -246,6 +248,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       }
     }
   }
+
   //scalastyle:on method.length
 
   override def candidatesAwaitingAllocation(frameworkId: String): Future[List[CandidateAwaitingAllocation]] = {
