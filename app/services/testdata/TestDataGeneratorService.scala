@@ -39,7 +39,7 @@ object TestDataGeneratorService extends TestDataGeneratorService {
 
 trait TestDataGeneratorService {
 
-  def clearDatabase()(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def clearDatabase()(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       dropMainDatabase <- ReactiveMongoPlugin.mongoConnector.db().drop()
       removeAllUsers <- AuthProviderClient.removeAllUsers()
@@ -74,9 +74,9 @@ trait TestDataGeneratorService {
   }
 
   def createCandidatesInSpecificStatus(numberToGenerate: Int,
-    generatorForStatus: (GeneratorConfig) => BaseGenerator,
-    configGenerator: (Int) => GeneratorConfig
-  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
+                                       generatorForStatus: (GeneratorConfig) => BaseGenerator,
+                                       configGenerator: (Int) => GeneratorConfig
+                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
     Future.successful {
 
       val parNumbers = (1 to numberToGenerate).par
