@@ -90,11 +90,13 @@
                     </div>
                 </details>
             }
-            <div class="panel-indent" data-hideifwithdrawn>
-                <p>You'll automatically be put forward for your successful schemes at
-                    the assessment centre unless you withdraw your application.</p>
-                <p>Unfortunately, you won't be considered for any unsuccessful schemes.</p>
-            </div>
+            @if(WithdrawApplicationRole.isAuthorized(cachedUsr)){
+                <div class="panel-indent" data-hideifwithdrawn>
+                    <p>You'll automatically be put forward for your successful schemes at
+                        the assessment centre unless you withdraw your application.</p>
+                    <p>Unfortunately, you won't be considered for any unsuccessful schemes.</p>
+                </div>
+            }
         </div>
     </section>
 
