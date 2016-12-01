@@ -16,6 +16,8 @@
 
 package services.reporting
 
+import model.PersistedObjects.PersistedAnswer
+
 trait AnswerProcessorTrait {
   this: Calculable with Collector =>
 
@@ -41,7 +43,8 @@ trait AnswerProcessorTrait {
 }
 
 trait Calculable {
-  def calculate(answer: Map[String, String]): String
+  def calculateAsInt(answers: Map[String, PersistedAnswer]): Int
+  def calculate(answers: Map[String, String]): String
 }
 
 trait Collector {

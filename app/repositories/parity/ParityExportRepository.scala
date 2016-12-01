@@ -35,7 +35,7 @@ object ParityExportRepository {
   case class ApplicationIdNotFoundException(applicationId: String) extends Exception(applicationId)
 }
 
-trait ParityExportRepository extends RandomSelection with CommonBSONDocuments with BSONHelpers {
+trait ParityExportRepository extends RandomSelection with CommonBSONDocuments with ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
 
   def nextApplicationsForExport(batchSize: Int): Future[List[String]]

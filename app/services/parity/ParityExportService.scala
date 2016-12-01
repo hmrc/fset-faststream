@@ -25,6 +25,8 @@ import services.events.{ EventService, EventSink }
 import repositories._
 import repositories.parity.ParityExportRepository
 import repositories.parity.ParityExportRepository.ApplicationIdNotFoundException
+import services.onlinetesting.EvaluatePhase3ResultService
+import services.reporting.{ SocioEconomicCalculator, SocioEconomicScoreCalculator }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -37,7 +39,8 @@ object ParityExportService extends ParityExportService {
   val cdRepository = faststreamContactDetailsRepository
   val qRepository = questionnaireRepository
   val northSouthRepository = northSouthIndicatorRepository
-
+  val evaluateP3ResultService = EvaluatePhase3ResultService
+  val socioEconomicCalculator = SocioEconomicCalculator
 }
 
 trait ParityExportService extends EventSink {
@@ -48,6 +51,8 @@ trait ParityExportService extends EventSink {
   val cdRepository: contactdetails.ContactDetailsRepository
   val qRepository: QuestionnaireRepository
   val northSouthRepository: NorthSouthIndicatorCSVRepository
+  val evaluateP3ResultService: EvaluatePhase3ResultService
+  val socioEconomicCalculator: SocioEconomicScoreCalculator
 
   // Random apps in READY_FOR_EXPORT
   def nextApplicationsForExport(batchSize: Int): Future[List[String]] = parityExRepository.nextApplicationsForExport(batchSize)
@@ -64,6 +69,8 @@ trait ParityExportService extends EventSink {
       mediaOpt <- mRepository.find(userId)
       diversityQuestions <- qRepository.findQuestions(applicationId)
       northSouthIndicator = northSouthRepository.calculateFsacIndicator(contactDetails.postCode, contactDetails.outsideUk).get
+      sesScore = socioEconomicCalculator.calculateAsInt(diversityQuestions)
+      schemePassFail <- evaluateP3ResultService.getPassmarkEvaluation(applicationId)
     } yield {
       Logger.debug("============ App = " + applicationDoc)
 
@@ -81,9 +88,11 @@ trait ParityExportService extends EventSink {
             o ++
               mediaObj ++
               Json.obj("contact-details" -> contactDetails) ++
-              Json.obj("diversity-questionnaire" -> Json.obj("questions" -> diversityQuestionsObj, "scoring" -> Json.obj("ses" -> 5))) ++
+              Json.obj("diversity-questionnaire" -> Json.obj("questions" -> diversityQuestionsObj, "scoring" -> Json.obj("ses" -> sesScore))) ++
               Json.obj("assessment-location" -> northSouthIndicator) ++
-              Json.obj("results" -> Json.obj("passed-schemes" -> Json.arr("Generalist"))) // <--- PLACEHOLDER, integrate with BS
+              Json.obj("results" -> Json.obj("passed-schemes" -> Json.arr(
+                schemePassFail.result.filter(result => result.result == "GREEN").map(_.scheme))
+              ))
         }
       )
 

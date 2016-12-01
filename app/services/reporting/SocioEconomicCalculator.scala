@@ -16,6 +16,8 @@
 
 package services.reporting
 
+import model.PersistedObjects.PersistedAnswer
+
 object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
   val NotApplicable = 0
   val EmployersLargeOrganisations = 1
@@ -30,6 +32,17 @@ object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
 
 trait SocioEconomicScoreCalculator extends Calculable {
   import services.reporting.SocioEconomicCalculator._
+
+  def calculateAsInt(answers: Map[String, PersistedAnswer]): Int = {
+    val flattenedAnswers = answers.map { case (question, answer) => question -> answer.answer.getOrElse("") }
+
+    val employmentStatusSize = calculateEmploymentStatusSize(flattenedAnswers)
+    if (employmentStatusSize != NotApplicable) {
+      calculateSocioEconomicScoreAsInt(employmentStatusSize, getTypeOfOccupation(flattenedAnswers))
+    } else {
+      0
+    }
+  }
 
   def calculate(answers: Map[String, String]): String = {
     //    Logger.debug("## SocioEconomicScoreCalculatorTrait: " + answer)
@@ -86,18 +99,25 @@ trait SocioEconomicScoreCalculator extends Calculable {
     TypeOfOccupation(answers("When you were 14, what kind of work did your highest-earning parent or guardian do?"))
   }
 
-  private[reporting] def calculateSocioEconomicScore(employmentStatusSizeValue: Int, typeOfOccupation: Int): String = {
-    val socioEconomicScoreMatrix: Array[Array[Int]] = Array(
-      Array(1, 1, 1, 1, 1, 1, 1),
-      Array(1, 3, 3, 1, 1, 1, 2),
-      Array(1, 3, 3, 1, 1, 1, 1),
-      Array(1, 3, 3, 1, 1, 4, 4),
-      Array(1, 3, 3, 1, 1, 4, 5),
-      Array(1, 3, 3, 1, 1, 4, 5),
-      Array(1, 3, 3, 1, 1, 1, 1),
-      Array(1, 1, 1, 1, 1, 1, 1)
-    )
+  private val socioEconomicScoreMatrix: Array[Array[Int]] = Array(
+    Array(1, 1, 1, 1, 1, 1, 1),
+    Array(1, 3, 3, 1, 1, 1, 2),
+    Array(1, 3, 3, 1, 1, 1, 1),
+    Array(1, 3, 3, 1, 1, 4, 4),
+    Array(1, 3, 3, 1, 1, 4, 5),
+    Array(1, 3, 3, 1, 1, 4, 5),
+    Array(1, 3, 3, 1, 1, 1, 1),
+    Array(1, 1, 1, 1, 1, 1, 1)
+  )
 
+  private[reporting] def calculateSocioEconomicScoreAsInt(employmentStatusSizeValue: Int, typeOfOccupation: Int): Int = {
+    employmentStatusSizeValue match {
+      case 0 => 0
+      case _ => socioEconomicScoreMatrix(typeOfOccupation - 1)(employmentStatusSizeValue - 1)
+    }
+  }
+
+  private[reporting] def calculateSocioEconomicScore(employmentStatusSizeValue: Int, typeOfOccupation: Int): String = {
     employmentStatusSizeValue match {
       case 0 => "N/A"
       case _ => s"SE-${socioEconomicScoreMatrix(typeOfOccupation - 1)(employmentStatusSizeValue - 1)}"
