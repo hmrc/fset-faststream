@@ -19,14 +19,16 @@ package controllers
 import _root_.forms.WithdrawApplicationForm
 import config.CSRCache
 import connectors.ApplicationClient
-import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
+import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, FinalResultsNotFound, OnlineTestNotFound }
 import connectors.exchange._
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
-import models.{ Adjustments, CachedData }
+import models.{ ApplicationData, CachedData }
+import play.api.mvc.{ Request, RequestHeader, Result }
 import security.Roles
 import security.Roles._
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -39,55 +41,13 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
   val Withdrawer = "Candidate"
 
   def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
-    cachedData.application.map { application =>
-
-      def getPhase2Test: Future[Option[Phase2TestGroupWithActiveTest]] = if (application.isPhase2) {
-        applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
-      } else { Future.successful(None) }
-
-      def getPhase3Test: Future[Option[Phase3TestGroup]] = if (application.isPhase3) {
-        applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))
-      } else { Future.successful(None) }
-
-      def getAdjustments: Future[Option[Adjustments]] = if (application.progress.assistanceDetails) {
-        applicationClient.findAdjustments(application.applicationId)
-      } else { Future.successful(None) }
-
-      def getAssistanceDetails: Future[Option[AssistanceDetails]] = if (application.progress.assistanceDetails) {
-        applicationClient.getAssistanceDetails(cachedData.user.userID, application.applicationId).map(a => Some(a))
-      } else { Future.successful(None) }
-
-      val dashboard = for {
-        adjustmentsOpt <- getAdjustments
-        assistanceDetailsOpt <- getAssistanceDetails
-        phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
-        phase2TestsWithNames <- getPhase2Test
-        phase3Tests <- getPhase3Test
-        updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
-      } yield {
-        val dashboardPage = DashboardPage(updatedData, Some(Phase1TestsPage(phase1TestsWithNames)),
-          phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
-          phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
-        )
-        Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt,
-          submitApplicationsEnabled = true))
-      }
-
-      dashboard recover {
-        case e: OnlineTestNotFound =>
-          val applicationSubmitted = !cachedData.application.forall { app =>
-            app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
-          }
-          val isDashboardEnabled = isSubmitApplicationsEnabled(application.applicationRoute) || applicationSubmitted
-          val dashboardPage = DashboardPage(cachedData, None, None, None)
-          Ok(views.html.home.dashboard(cachedData, dashboardPage, submitApplicationsEnabled = isDashboardEnabled))
-      }
-    }.getOrElse {
-      val dashboardPage = DashboardPage(cachedData, None, None, None)
-      Future.successful(
-        Ok(views.html.home.dashboard(cachedData, dashboardPage, submitApplicationsEnabled = isSubmitApplicationsEnabled))
-      )
-    }
+     cachedData.application.map { implicit application =>
+       displayFinalResultsPage
+         .recoverWith(dashboardWithOnlineTests)
+         .recoverWith(dashboardWithoutOnlineTests)
+     }.getOrElse {
+       dashboardWithoutApplication
+     }
   }
 
   def resume = CSRSecureAppAction(ActiveUserRole) { implicit request =>
@@ -147,4 +107,71 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
         Redirect(controllers.routes.HomeController.present()).flashing(success("success.allocation.confirmed"))
       }
   }
+
+  private def displayFinalResultsPage(implicit application: ApplicationData, hc: HeaderCarrier) =
+      applicationClient.getFinalResults(application.applicationId).map { results => Ok("") }
+
+
+  private def dashboardWithOnlineTests(implicit application: ApplicationData,
+                                       cachedData: CachedData, request: Request[_]): PartialFunction[Throwable, Future[Result]]  = {
+    case e: FinalResultsNotFound =>
+      for {
+        adjustmentsOpt <- getAdjustments
+        assistanceDetailsOpt <- getAssistanceDetails
+        phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
+        phase2TestsWithNames <- getPhase2Test
+        phase3Tests <- getPhase3Test
+        updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
+      } yield {
+        val dashboardPage = DashboardPage(updatedData, Some(Phase1TestsPage(phase1TestsWithNames)),
+          phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
+          phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
+        )
+        Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt,
+          submitApplicationsEnabled = true))
+      }
+  }
+
+  private def dashboardWithoutOnlineTests(implicit application: ApplicationData,
+                                          cachedData: CachedData,
+                                          request: Request[_]):PartialFunction[Throwable, Future[Result]] = {
+    case e: OnlineTestNotFound =>
+      val applicationSubmitted = !cachedData.application.forall { app =>
+        app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
+      }
+      val isDashboardEnabled = isSubmitApplicationsEnabled(application.applicationRoute) || applicationSubmitted
+      val dashboardPage = DashboardPage(cachedData, None, None, None)
+      Future.successful(Ok(views.html.home.dashboard(cachedData, dashboardPage, submitApplicationsEnabled = isDashboardEnabled)))
+  }
+
+  private def dashboardWithoutApplication(implicit cachedData: CachedData, request: Request[_]) = {
+      val dashboardPage = DashboardPage(cachedData, None, None, None)
+      Future.successful(
+        Ok(views.html.home.dashboard(cachedData, dashboardPage, submitApplicationsEnabled = isSubmitApplicationsEnabled))
+      )
+  }
+
+  private def getPhase2Test(implicit application: ApplicationData, hc: HeaderCarrier) = application.isPhase2 match {
+    case true => applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
+    case false => Future.successful(None)
+  }
+
+  private def getPhase3Test(implicit application: ApplicationData, hc: HeaderCarrier) = application.isPhase3 match {
+    case true => applicationClient.getPhase3TestGroup(application.applicationId).map(Some(_))
+    case false => Future.successful(None)
+  }
+
+  private def getAdjustments(implicit application: ApplicationData, hc: HeaderCarrier) =
+  application.progress.assistanceDetails match {
+    case true => applicationClient.findAdjustments(application.applicationId)
+    case false => Future.successful(None)
+  }
+
+  private def getAssistanceDetails(implicit application: ApplicationData,
+                                   hc: HeaderCarrier, cachedData: CachedData) =
+  application.progress.assistanceDetails match {
+    case true => applicationClient.getAssistanceDetails(cachedData.user.userID, application.applicationId).map(a => Some(a))
+    case false => Future.successful(None)
+  }
+
 }

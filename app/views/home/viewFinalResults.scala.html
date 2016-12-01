@@ -1,0 +1,18 @@
+@import connectors.exchange.SchemeEvaluationResult
+@import views.html.home.withdrawSection
+@import views.html.home.withdrawInformation
+
+@(usr: CachedData, finalResults: List[SchemeEvaluationResult],
+        dashboardPage: DashboardPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Home") {
+
+    <div class="hgroup">
+        <h1 class="heading-xlarge">Home</h1>
+        <p class="subtitle">@dashboardPage.fullName</p>
+    </div>
+    @if(dashboardPage.isApplicationWithdrawn) {
+        @withdrawInformation
+    }
+    @withdrawSection(usr)
+}

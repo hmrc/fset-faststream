@@ -198,6 +198,14 @@ trait ApplicationClient {
     }
   }
 
+  def getFinalResults(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[List[SchemeEvaluationResult]] = {
+    http.GET(s"${url.host}${url.base}/final-result/$appId").map { response =>
+      response.json.as[List[SchemeEvaluationResult]]
+    } recover {
+      case _: NotFoundException => throw new FinalResultsNotFound()
+    }
+  }
+
   private def encodeUrlParam(str: String) = URLEncoder.encode(str, "UTF-8")
 
   def startPhase3TestByToken(launchpadInviteId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -269,6 +277,8 @@ object ApplicationClient extends ApplicationClient with TestDataClient {
   sealed class CannotWithdraw extends Exception
 
   sealed class OnlineTestNotFound extends Exception
+
+  sealed class FinalResultsNotFound extends Exception
 
   sealed class PdfReportNotFoundException extends Exception
 

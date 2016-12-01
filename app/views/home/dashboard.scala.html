@@ -13,6 +13,8 @@
 @import security.RoleUtils._
 @import views.html.widgets.onlineTestProgress
 @import views.html.home.submit_disabled
+@import views.html.home.withdrawSection
+@import views.html.home.withdrawInformation
 
 @(usr: CachedData, dashboardPage: DashboardPage,
         assistanceDetails: Option[connectors.exchange.AssistanceDetails] = None,
@@ -50,11 +52,7 @@
         <p class="subtitle">@dashboardPage.fullName</p>
     </div>
     @if(dashboardPage.isApplicationWithdrawn) {
-        <div class="lede">
-            <p>Your application has been withdrawn.</p>
-            <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()" id="contactUsWithdrawn">
-                contact us</a>.</p>
-        </div>
+        @withdrawInformation()
     } else {@if(!submitApplicationsEnabled) {
         @submit_disabled(usr)
     }}
@@ -172,15 +170,5 @@
         </ol>
     </section>
 
-    @if(WithdrawComponent.isAuthorized(usr)) {
-        <section>
-            <h2 class="heading-medium">Withdraw application</h2>
-            <div class="text">
-                <p>If you no longer wish to proceed with your application you can withdraw
-                    at any time.</p>
-                <a id="withdraw-app" href="@routes.HomeController.presentWithdrawApplication()">Withdraw application</a>
-            </div>
-        </section>
-    }
-
+    @withdrawSection(usr)
 }
