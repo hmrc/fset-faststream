@@ -29,8 +29,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
 
-trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
-  this: BSONHelpers =>
+trait GeneralApplicationRepoBSONReader extends CommonBSONDocuments {
 
   implicit val toApplicationsForAssessmentAllocation = bsonReader {
     (doc: BSONDocument) => {

@@ -60,7 +60,7 @@ trait ReportingRepository {
 class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats, ReactiveMongoFormats.objectIdFormats) with ReportingRepository with RandomSelection with
-    CommonBSONDocuments with ReportingRepoBSONReader with BSONHelpers {
+    CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
     candidateProgressReport(BSONDocument("$and" -> BSONArray(

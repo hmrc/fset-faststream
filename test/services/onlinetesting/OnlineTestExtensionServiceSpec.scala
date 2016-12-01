@@ -30,12 +30,12 @@ import services.AuditService
 import services.events.EventServiceFixture
 import services.onlinetesting.Exceptions.TestExtensionException
 import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
-import testkit.UnitSpec
+import testkit.{ ShortTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class OnlineTestExtensionServiceSpec extends UnitSpec {
+class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
   "extendTestGroupExpiryTime" should {
     "return a successful Future" when {

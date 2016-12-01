@@ -119,14 +119,9 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       BSONDocument("$set" -> BSONDocument(s"testGroups.$phaseName" -> phase1TestProfile)
     )
 
-    collection.update(query, update, upsert = false) map { status =>
-      if (status.n != 1) {
-        val msg = s"${status.n} rows affected when inserting or updating instead of 1! (App Id: $applicationId)"
-        Logger.warn(msg)
-        throw UnexpectedException(msg)
-      }
-      ()
-    }
+    val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
+
+    collection.update(query, update) map validator
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {

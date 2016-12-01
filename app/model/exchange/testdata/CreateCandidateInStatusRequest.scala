@@ -71,7 +71,9 @@ object Phase2TestDataRequest {
 case class Phase3TestDataRequest(
   start: Option[String] = None,
   expiry: Option[String] = None,
-  completion: Option[String] = None
+  completion: Option[String] = None,
+  score: Option[Double] = None,
+  receivedBeforeInHours: Option[Int] = None
 ) extends TestDatesRequest
 
 object Phase3TestDataRequest {

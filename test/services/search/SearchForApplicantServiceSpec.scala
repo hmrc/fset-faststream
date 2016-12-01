@@ -26,11 +26,12 @@ import org.mockito.Mockito._
 import repositories.{ ContactDetailsRepository, PersonalDetailsRepository }
 import repositories.application.GeneralApplicationRepository
 import services.BaseServiceSpec
+import testkit.ShortTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class SearchForApplicantServiceSpec extends BaseServiceSpec {
+class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
 
   val appRepositoryMock = mock[GeneralApplicationRepository]
   val psRepositoryMock = mock[PersonalDetailsRepository]

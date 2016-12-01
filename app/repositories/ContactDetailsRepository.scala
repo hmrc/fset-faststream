@@ -45,7 +45,7 @@ trait ContactDetailsRepository {
 @deprecated("fasttrack version", "July 2016")
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo,
-    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository {
+    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with ReactiveRepositoryHelpers {
   val ContactDetailsCollection = "contact-details"
 
   override def find(userId: String): Future[ContactDetails] = {
@@ -89,4 +89,5 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       ContactDetailsWithId(id, address, postCode, email, phone)
     })
   }
+
 }

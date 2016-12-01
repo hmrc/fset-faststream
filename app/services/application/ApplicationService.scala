@@ -78,7 +78,12 @@ trait ApplicationService extends EventSink {
   def fixDataByRemovingETray(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     appRepository.fixDataByRemovingETray(appId)
   }
-  
+
+  def fixDataByRemovingProgressStatus(appId: String, progressStatusToRemove: String)(implicit hc: HeaderCarrier,
+                                                                                     rh: RequestHeader): Future[Unit] = {
+    appRepository.fixDataByRemovingProgressStatus(appId, progressStatusToRemove)
+  }
+
   def fix(toBeFixed: Seq[FixBatch])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     FutureEx.traverseSerial(toBeFixed)(fixData).map(_ => ())
   }

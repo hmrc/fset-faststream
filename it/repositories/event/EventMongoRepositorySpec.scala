@@ -20,7 +20,7 @@ class EventMongoRepositorySpec extends MongoRepositorySpec {
     "insert new event" in {
       val event = Event("ExampleEvent", DateTime.now(DateTimeZone.UTC), Some("appId"), Some("userId"))
       repository.create(event).futureValue
-      val result = getEvent(repository.collection.find(BSONDocument()).one[BSONDocument])
+      val result = getEvent(repository.collection.find(BSONDocument.empty).one[BSONDocument])
 
       result mustBe event
     }

@@ -26,6 +26,7 @@ import model.persisted.ContactDetails
 import play.api.Logger
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import play.api.libs.json._
@@ -49,19 +50,17 @@ trait ContactDetailsRepository {
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo, ContactDetails.contactDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository {
+    ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with ReactiveRepositoryHelpers {
+
   val ContactDetailsCollection = "contact-details"
 
   override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
     val contactDetailsBson = BSONDocument("$set" -> BSONDocument(ContactDetailsCollection -> contactDetails))
 
-    collection.update(query, contactDetailsBson, upsert = true) map {
-      case lastError if lastError.nModified == 0 && lastError.n == 0 =>
-        Logger.error(s"""Failed to write contact details for user: $userId -> ${lastError.writeConcernError.map(_.errmsg).mkString(",")}""")
-        throw CannotUpdateContactDetails(userId)
-      case _ => ()
-    }
+    val validator = singleUpsertValidator(userId, actionDesc = s"updating contact details for $userId")
+
+    collection.update(query, contactDetailsBson, upsert = true) map validator
   }
 
   override def find(userId: String): Future[ContactDetails] = {
