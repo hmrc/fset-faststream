@@ -32,7 +32,6 @@ class SdipController(applicationClient: ApplicationClient, cacheClient: CSRCache
     implicit user =>
       applicationClient.getApplicationProgress(user.application.applicationId).flatMap {
         case progress if !progress.submitted =>
-          // TODO LT currently we don't check if the application is closed
           Future.successful(Redirect(routes.HomeController.present()).flashing(warning("error.faststream.becomes.sdip.not.submitted")))
         case progress if progress.withdrawn =>
           Future.successful(Redirect(routes.HomeController.present()).flashing(warning("error.faststream.becomes.sdip.withdrew")))
