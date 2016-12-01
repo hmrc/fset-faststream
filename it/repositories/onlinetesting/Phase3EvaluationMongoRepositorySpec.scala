@@ -157,7 +157,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   "retrieve passmark evaluation" must {
     val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
 
-    "return passmakrs from mongo" in {
+    "return passmarks from mongo" in {
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult), Some(phase3TestWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
 

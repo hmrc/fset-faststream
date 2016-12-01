@@ -44,7 +44,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
   val aWithdrawApplicationRequest = WithdrawApplication("Something", Some("Else"), "Candidate")
   val auditDetails = Map("applicationId" -> ApplicationId, "withdrawRequest" -> aWithdrawApplicationRequest.toString)
 
-  "Create Application" should {
+  "Create Application" must {
 
     "create an application" in new TestFixture {
       val result = TestApplicationController.createApplication(createApplicationRequest(
@@ -79,7 +79,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Application Progress" should {
+  "Application Progress" must {
 
     "return the progress of an application" in new TestFixture {
       val result = TestApplicationController.applicationProgress(ApplicationId)(applicationProgressRequest(ApplicationId)).run
@@ -98,7 +98,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Find application" should {
+  "Find application" must {
 
     "return the application" in new TestFixture {
       val result = TestApplicationController.findApplication(
@@ -124,7 +124,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Withdraw application" should {
+  "Withdraw application" must {
     "withdraw the application" in new TestFixture {
       val result = TestApplicationController.withdrawApplication("1111-1111")(withdrawApplicationRequest("1111-1111")(
         s"""
@@ -139,7 +139,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Preview application" should {
+  "Preview application" must {
     "mark the application as previewed" in new TestFixture {
       val result = TestApplicationController.preview(ApplicationId)(previewApplicationRequest(ApplicationId)(
         s"""
@@ -153,7 +153,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Get Scheme Results" should {
+  "Get Scheme Results" must {
 
     "return the scheme results for an application" in new TestFixture {
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))

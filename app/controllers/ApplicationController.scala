@@ -102,7 +102,7 @@ trait ApplicationController extends BaseController {
     passmarkService.getPassmarkEvaluation(applicationId).map { passmarks =>
       Ok(Json.toJson(passmarks.result))
     } recover {
-      case e: PassMarkEvaluationNotFound => NotFound(s"No evaluation resultspassmarks found for applicationId: $applicationId")
+      case e: PassMarkEvaluationNotFound => NotFound(s"No evaluation results found for applicationId: $applicationId")
     }
   }
 
