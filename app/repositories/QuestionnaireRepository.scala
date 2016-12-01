@@ -34,7 +34,7 @@ import scala.language.postfixOps
 
 trait QuestionnaireRepository {
   def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit]
-  def findQuestions(applicationId: String): Future[Map[String, String]]
+  def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]]
   def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]]
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
 }
@@ -59,14 +59,14 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
       }
   }
 
-  override def findQuestions(applicationId: String): Future[Map[String, String]] = {
+  override def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]] = {
     find(applicationId).map { questions =>
       (for {
         q <- questions
       } yield {
-        val answer = q.answer.answer.getOrElse("")
+        val answer = q.answer
         q.question -> answer
-      }).toMap[String, String]
+      }).toMap[String, PersistedAnswer]
     }
   }
 

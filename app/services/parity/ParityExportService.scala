@@ -16,9 +16,11 @@
 
 package services.parity
 
+import java.util.UUID
+
 import config.{ MicroserviceAppConfig, ParityGatewayConfig }
 import play.api.Logger
-import play.api.libs.json.{ JsObject, JsValue }
+import play.api.libs.json._
 import services.events.{ EventService, EventSink }
 import repositories._
 import repositories.parity.ParityExportRepository
@@ -30,17 +32,24 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object ParityExportService extends ParityExportService {
   val eventService = EventService
   val parityExRepository = parityExportRepository
-  val cdRepository = faststreamContactDetailsRepository
   val parityGatewayConfig = MicroserviceAppConfig.parityGatewayConfig
+  val mRepository = mediaRepository
+  val cdRepository = faststreamContactDetailsRepository
+  val qRepository = questionnaireRepository
+  val northSouthRepository = northSouthIndicatorRepository
+
 }
 
 trait ParityExportService extends EventSink {
 
   val parityExRepository: ParityExportRepository
   val parityGatewayConfig: ParityGatewayConfig
+  val mRepository: MediaRepository
   val cdRepository: contactdetails.ContactDetailsRepository
+  val qRepository: QuestionnaireRepository
+  val northSouthRepository: NorthSouthIndicatorCSVRepository
 
-  // Random apps in PHASE3_TESTS_PASSED_NOTIFIED
+  // Random apps in READY_FOR_EXPORT
   def nextApplicationsForExport(batchSize: Int): Future[List[String]] = parityExRepository.nextApplicationsForExport(batchSize)
 
   // scalastyle:off method.length
@@ -51,66 +60,45 @@ trait ParityExportService extends EventSink {
       applicationDoc <- parityExRepository.getApplicationForExport(applicationId)
       userId = (applicationDoc \ "userId").as[String]
       _ = print("User ID = " + userId + "\n")
-      contactDetailsDoc <- cdRepository.find(userId)
-      // _ = print("Contact Details = " + contactDetailsDoc + "\n")
+      contactDetails <- cdRepository.find(userId)
+      mediaOpt <- mRepository.find(userId)
+      diversityQuestions <- qRepository.findQuestions(applicationId)
+      northSouthIndicator = northSouthRepository.calculateFsacIndicator(contactDetails.postCode, contactDetails.outsideUk).get
     } yield {
       Logger.debug("============ App = " + applicationDoc)
 
-      /*
-      Alternative style, not going to be used
-      val export = JsObject(
-        "application" -> JsObject(
+      val mediaObj = mediaOpt.map(media => Json.obj("media" -> media.media)).getOrElse(Json.obj())
+      val diversityQuestionsObj = diversityQuestions.foldLeft(Json.obj()){ (builder, qAndA) =>
+        val (question, answer) = (qAndA._1, qAndA._2)
+        builder ++ Json.obj(question -> Json.obj("answer" -> JsString(answer.answer.getOrElse("")),
+          "otherDetails" -> JsString(answer.otherDetails.getOrElse("")),
+          "unknown" -> JsBoolean(answer.unknown.getOrElse(false))))
+      }
 
-        )
-      )*/
+      val applicationTransformer = __.json.update(
+        __.read[JsObject].map {
+          o =>
+            o ++
+              mediaObj ++
+              Json.obj("contact-details" -> contactDetails) ++
+              Json.obj("diversity-questionnaire" -> Json.obj("questions" -> diversityQuestionsObj, "scoring" -> Json.obj("ses" -> 5))) ++
+              Json.obj("assessment-location" -> northSouthIndicator) ++
+              Json.obj("results" -> Json.obj("passed-schemes" -> Json.arr("Generalist"))) // <--- PLACEHOLDER, integrate with BS
+        }
+      )
 
-      def optionalItem(key: String, valueOpt: Option[JsValue]): String = valueOpt.map { value =>
-        s""""$key": $value,"""
-      }.getOrElse("")
+      val appDoc = applicationDoc.transform(applicationTransformer).get
 
-      val personalDetails = applicationDoc \ "personal-details"
-      val civilServiceExperienceDetails = applicationDoc \ "civil-service-experience-details"
+      val rootTransformer = (__ \ "application").json.put(appDoc) andThen
+        __.json.update(__.read[JsObject].map { o => o ++ Json.obj("token" -> UUID.randomUUID().toString) })
 
-      val export2 =
-        s"""
-          | "token": ${parityGatewayConfig.upstreamAuthToken},
-          | "application": {
-          |
-          |   "userId": "$userId",
-          |   "applicationId": ${applicationDoc \ "applicationId"},
-          |   "contact-details": {
-          |     "outsideUk": ${contactDetailsDoc.outsideUk},
-          |     "country": "${contactDetailsDoc.country}",
-          |     "address": {
-          |       "line1": "${contactDetailsDoc.address.line1}",
-          |       "line2": "${contactDetailsDoc.address.line2}",
-          |       "line3": "${contactDetailsDoc.address.line3}",
-          |       "line4": "${contactDetailsDoc.address.line4}"
-          |     },
-          |     "email": "${contactDetailsDoc.email}",
-          |     "phone": "${contactDetailsDoc.phone}",
-          |     "postCode": "${contactDetailsDoc.postCode}",
-          |     "frameworkId": ${applicationDoc \ "frameworkId"},
-          |     "personal-details": {
-          |       "firstName": ${personalDetails \ "firstName"},
-          |       "lastName": ${personalDetails \ "lastName"},
-          |       "preferredName": ${personalDetails \ "preferredName"},
-          |       "dateOfBirth": ${personalDetails \ "dateOfBirth"}
-          |     },
-          |     "civil-service-experience-details": {
-          |       "applicable": ${civilServiceExperienceDetails \ "applicable"},
-          |       ${optionalItem("civilServiceExperienceType", (civilServiceExperienceDetails \ "civilServiceExperienceType").asOpt)}
-          |       "internshipTypes": ${civilServiceExperienceDetails \ "internshipTypes"},
-          |       "fastPassReceived": ${civilServiceExperienceDetails \ "fastPassReceived"}
-          |     }
-          |
-          |   }
-          | }
-        """.stripMargin
+      val finalDoc = Json.toJson("{}").transform(rootTransformer)
 
-      Logger.debug("=========== Exp = " + export2)
+      // finalDoc.get.validate()
+
+      Logger.debug("=========== Exp = " + finalDoc.get)
     }).recover {
-      case _ => print("Error!!!!\n")
+      case ex => print(s"Error!!!! => $ex\n")
     }
     } catch {
       case _: Throwable => print("Exception!!!!\n"); Future.successful(())
@@ -119,3 +107,4 @@ trait ParityExportService extends EventSink {
     // scalastyle:on method.length
   }
 }
+

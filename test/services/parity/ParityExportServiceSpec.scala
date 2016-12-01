@@ -26,7 +26,7 @@ class ParityExportServiceSpec extends UnitSpec with OneAppPerSuite {
     "Display some things" in new TestFixture {
       sut.exportApplication("e4ed2087-20ad-4e4c-890b-7267196a62aa").recover {
         case _ => print("There was an error\n")
-      }
+      }.futureValue
     }
   }
 

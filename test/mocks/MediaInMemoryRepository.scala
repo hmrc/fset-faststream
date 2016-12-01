@@ -29,6 +29,8 @@ object MediaInMemoryRepository extends MediaRepository {
     Future.successful(Unit)
   }
 
+  override def find(userId: String): Future[Option[Media]] = ???
+
   override def findAll(): Future[Map[String, Media]] = {
     Future.successful(inMemoryRepo.toMap)
   }

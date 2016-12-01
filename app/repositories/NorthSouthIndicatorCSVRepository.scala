@@ -51,7 +51,7 @@ object NorthSouthIndicatorCSVRepository extends NorthSouthIndicatorCSVRepository
     (postcode, outsideUk) match {
       case (None, false) => None
       case (None, true) => Some(DefaultIndicator)
-      case (postcode, false) => getFsacIndicator(postcode)
+      case (aPostcode, false) => getFsacIndicator(aPostcode)
       case _ => Some(DefaultIndicator)
     }
   }
@@ -59,7 +59,7 @@ object NorthSouthIndicatorCSVRepository extends NorthSouthIndicatorCSVRepository
   override def calculateFsacIndicatorForReports(postcode: Option[String], candidate: CandidateProgressReportItem): Option[String] = {
     if(candidate.applicationRoute.isDefined && !candidate.applicationRoute.contains(ApplicationRoute.Faststream.toString)) { None }
     else if (candidate.progress.contains("registered")) { None }
-    else if (! postcode.isDefined) { Some(DefaultIndicator) }
+    else if (postcode.isEmpty) { Some(DefaultIndicator) }
     else { getFsacIndicator(postcode) }
   }
 

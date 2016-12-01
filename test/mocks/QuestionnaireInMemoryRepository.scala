@@ -16,7 +16,7 @@
 
 package mocks
 
-import model.PersistedObjects.PersistedQuestion
+import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import model.report.QuestionnaireReportItem
 import repositories.QuestionnaireRepository
 
@@ -31,7 +31,8 @@ object QuestionnaireInMemoryRepository extends QuestionnaireRepository with InMe
 
   override def notFound(applicationId: String) = throw new QuestionnaireNotFound(applicationId)
 
-  override def findQuestions(applicationId: String): Future[Map[String, String]] = Future.successful(Map.empty[String, String])
+  override def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]] =
+    Future.successful(Map.empty[String, PersistedAnswer])
 
   override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] =
     Future.successful(Map.empty[String, QuestionnaireReportItem])
