@@ -17,11 +17,20 @@
 package model
 
 import model.ApplicationStatus.ApplicationStatus
-import model.ApplicationStatus.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED, PHASE3_TESTS_FAILED}
+import model.ApplicationStatus.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED, PHASE3_TESTS_FAILED, READY_FOR_EXPORT }
 import model.ProgressStatuses._
 
+sealed trait NotificationTestType {
+  val appStatus: ApplicationStatus
+  val notificationProgress: ProgressStatus
+  val template: String
+}
+
 sealed case class FailedTestType(appStatus: ApplicationStatus, notificationProgress: ProgressStatus,
-                                 receiveStatus: ProgressStatus, template: String)
+                                 receiveStatus: ProgressStatus, template: String) extends NotificationTestType
+
+sealed case class SuccessTestType(appStatus: ApplicationStatus, notificationProgress: ProgressStatus,
+                                  newApplicationStatus: ApplicationStatus, template: String) extends NotificationTestType
 
 object Phase1FailedTestType
   extends FailedTestType(PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED, PHASE1_TESTS_RESULTS_RECEIVED,
@@ -34,3 +43,7 @@ object Phase2FailedTestType
 object Phase3FailedTestType
   extends FailedTestType(PHASE3_TESTS_FAILED, PHASE3_TESTS_FAILED_NOTIFIED, PHASE3_TESTS_RESULTS_RECEIVED,
       "fset_faststream_app_online_phase3_test_failed")
+
+object Phase3SuccessTestType
+  extends SuccessTestType(ApplicationStatus.PHASE3_TESTS_PASSED, PHASE3_TESTS_SUCCESS_NOTIFIED,
+    READY_FOR_EXPORT, "fset_faststream_app_online_phase3_test_success")

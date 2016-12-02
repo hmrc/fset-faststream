@@ -113,8 +113,8 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def rejectAdjustment(applicationId: String): Future[Unit] = Future.successful(Unit)
 
-  override def findFailedTestForNotification(failedTestType: FailedTestType): Future[Option[NotificationFailedTest]] = {
-    Future.successful(Some(NotificationFailedTest("31009ccc-1ac3-4d55-9c53-1908a13dc5e1", "fbb466a3-13a3-4dd0-93d6-9dfa764a5555", "George")))
+  override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
+    Future.successful(Some(TestResultNotification("31009ccc-1ac3-4d55-9c53-1908a13dc5e1", "fbb466a3-13a3-4dd0-93d6-9dfa764a5555", "George")))
   }
 
   override def gisByApplication(applicationId: String): Future[Boolean] = ???

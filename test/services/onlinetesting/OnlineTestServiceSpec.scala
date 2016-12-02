@@ -20,10 +20,11 @@ import common.Phase1TestConcern
 import connectors.OnlineTestEmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.PHASE1_TESTS_EXPIRED
+import model.ProgressStatuses._
 import model.exchange.CubiksTestResultReady
-import model.persisted.{ CubiksTest, NotificationExpiringOnlineTest }
-import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
+import model.persisted.{ ContactDetails, CubiksTest, NotificationExpiringOnlineTest, TestResultNotification }
+import model._
+import model.events.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
@@ -50,6 +51,104 @@ class OnlineTestServiceSpec extends UnitSpec {
       verifyZeroInteractions(cdRepositoryMock, emailClientMock, auditServiceMock, tokenFactoryMock)
     }
   }
+
+  "processNextTestForNotification" should {
+    "return a successful unit future if no test to notify is found" in new OnlineTest {
+      when(appRepositoryMock.findTestForNotification(Phase1FailedTestType)).thenReturn(Future.successful(None))
+
+      val result = underTest.processNextTestForNotification(Phase1FailedTestType).futureValue
+      result mustBe ()
+
+      verify(appRepositoryMock).findTestForNotification(Phase1FailedTestType)
+      verifyNoMoreInteractions(appRepositoryMock)
+      verifyZeroInteractions(cdRepositoryMock, emailClientMock)
+    }
+
+    "return a successful unit future if a test to notify is found" in new OnlineTest {
+      when(appRepositoryMock.findTestForNotification(any[NotificationTestType])).thenReturn(successNotification)
+      when(cdRepositoryMock.find(any[String])).thenReturn(successContactDetails)
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val result = underTest.processNextTestForNotification(Phase1FailedTestType).futureValue
+      result mustBe ()
+
+      verify(appRepositoryMock).findTestForNotification(Phase1FailedTestType)
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, Phase1FailedTestType.notificationProgress)
+      verify(emailClientMock).sendEmailWithName(email, preferredName, Phase1FailedTestType.template)(hc)
+      verifyNoMoreInteractions(appRepositoryMock, cdRepositoryMock, emailClientMock)
+    }
+  }
+
+  "generateStatusEvents" should {
+    "return empty list of event if no event is associated to the given progress status" in new OnlineTest {
+      val result = underTest.generateStatusEvents(applicationId, PHASE1_TESTS_STARTED)
+      result mustBe Nil
+    }
+
+    "return list of event if some is associated to the given expired progress status" in new OnlineTest {
+      val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
+      expiredStates.foreach(status => {
+        underTest.generateStatusEvents(applicationId, status) mustBe
+          AuditEvents.ApplicationExpired(Map("applicationId" -> applicationId, "status" -> status)) ::
+          DataStoreEvents.ApplicationExpired(applicationId) :: Nil
+      })
+    }
+
+    "return list of event if some is associated to the given success progress status" in new OnlineTest {
+      val passedStates = PHASE3_TESTS_SUCCESS_NOTIFIED :: Nil
+      passedStates.foreach(status => {
+        underTest.generateStatusEvents(applicationId, status) mustBe
+          AuditEvents.ApplicationReadyForExport(Map("applicationId" -> applicationId, "status" -> status )) ::
+            DataStoreEvents.ApplicationReadyForExport(applicationId) :: Nil
+      })
+    }
+  }
+
+  "generateEmailEvents" should {
+    "return empty list of event if no event is associated to the given progress status" in new OnlineTest {
+      val result = underTest.generateEmailEvents(applicationId, PHASE1_TESTS_STARTED, email, preferredName, template)
+      result mustBe Nil
+    }
+
+    "return list of event if some is associated to the given expired progress status" in new OnlineTest {
+      val expected = AuditEvents.ExpiredTestEmailSent(Map(
+        "applicationId" -> applicationId,
+        "emailAddress" -> email,
+        "to" -> preferredName,
+        "template" -> template)) :: Nil
+      val expiredStates = PHASE1_TESTS_EXPIRED :: PHASE2_TESTS_EXPIRED :: PHASE3_TESTS_EXPIRED :: Nil
+      expiredStates.foreach(status => {
+        underTest.generateEmailEvents(applicationId, status, email, preferredName, template) mustBe expected
+      })
+    }
+
+    "return list of event if some is associated to the given failed progress status" in new OnlineTest {
+      val expected = AuditEvents.FailedTestEmailSent(Map(
+        "applicationId" -> applicationId,
+        "emailAddress" -> email,
+        "to" -> preferredName,
+        "template" -> template)) :: Nil
+      val failedStates = PHASE1_TESTS_FAILED_NOTIFIED :: PHASE2_TESTS_FAILED_NOTIFIED :: PHASE3_TESTS_FAILED_NOTIFIED :: Nil
+      failedStates.foreach(status => {
+        underTest.generateEmailEvents(applicationId, status, email, preferredName, template) mustBe expected
+      })
+    }
+
+    "return list of event if some is associated to the given success progress status" in new OnlineTest {
+      val expected = AuditEvents.SuccessTestEmailSent(Map(
+        "applicationId" -> applicationId,
+        "emailAddress" -> email,
+        "to" -> preferredName,
+        "template" -> template)) :: Nil
+      val passedStates = PHASE3_TESTS_SUCCESS_NOTIFIED :: Nil
+      passedStates.foreach(status => {
+        underTest.generateEmailEvents(applicationId, status, email, preferredName, template) mustBe expected
+      })
+    }
+  }
+
 
   "updateTestReportReady" should {
     "create an updated copy of the cubiksTest when the report is ready" in new OnlineTest {
@@ -106,9 +205,12 @@ class OnlineTestServiceSpec extends UnitSpec {
     val tokenFactoryMock = mock[UUIDFactory]
     val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
     val eventServiceMock = mock[EventService]
-    val success = Future.successful(())
 
     val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
+    val userId = "353bffd0-447e-47f6-b581-6e37ab2906af"
+    val preferredName = "George"
+    val template = "email_template_for_event"
+    val email = "wilfredo.gomez@zzzzzzzzzzzz.vv"
     val invitationDate = DateTime.parse("2016-05-11")
     val cubiksUserId = 98765
     val cubiksScheduleId = 1686854
@@ -123,6 +225,9 @@ class OnlineTestServiceSpec extends UnitSpec {
       participantScheduleId = 235
     )
     val reportReady = CubiksTestResultReady(reportId = Some(198), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
+    val successContactDetails = Future.successful(ContactDetails(false, Address("London"), Some("N32 6GH"), None, email, "0989836387432"))
+    val successNotification = Future.successful(Some(TestResultNotification(applicationId, userId, preferredName)))
+    val success = Future.successful(())
 
     def updateFn(cTest: CubiksTest): CubiksTest = cTest.copy(testUrl = "www.bogustest.test")
     val underTest = new TestableOnlineTestService

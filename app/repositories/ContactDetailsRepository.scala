@@ -22,7 +22,6 @@ import model.Address
 import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound }
 import model.PersistedObjects
 import model.PersistedObjects._
-import play.api.Logger
 import reactivemongo.api._
 import reactivemongo.bson.{ BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -36,48 +35,26 @@ trait ContactDetailsRepository {
 
   val errorCode = 500
 
-  def update(userId: String, contactDetails: ContactDetails): Future[Unit]
-
   def find(userId: String): Future[ContactDetails]
 
   def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]]
 
   def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]]
-
-  def findAll: Future[List[ContactDetailsWithId]]
 }
 
 @deprecated("fasttrack version", "July 2016")
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo,
-    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with
-    ContactDetailsRepository with ReactiveRepositoryHelpers {
-
-  override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
-
-    val contactDetailsBson = BSONDocument("$set" -> BSONDocument(
-      "contact-details" -> contactDetails
-    ))
-
-    val validator = singleUpsertValidator(userId, actionDesc = s"updating user userId")
-
-    collection.update(BSONDocument("userId" -> userId), contactDetailsBson, upsert = true) map validator
-  }
+    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with ReactiveRepositoryHelpers {
+  val ContactDetailsCollection = "contact-details"
 
   override def find(userId: String): Future[ContactDetails] = {
-
     val query = BSONDocument("userId" -> userId)
-    val projection = BSONDocument("contact-details" -> 1, "_id" -> 0)
+    val projection = BSONDocument(ContactDetailsCollection -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument]("contact-details").isDefined => {
-        val root = document.getAs[BSONDocument]("contact-details").get
-        val address = root.getAs[Address]("address").get
-        val postCode = root.getAs[PostCode]("postCode").getOrElse("")
-        val phone = root.getAs[PhoneNumber]("phone")
-        val email = root.getAs[String]("email").getOrElse("")
-        ContactDetails(address, postCode, email, phone)
-      }
+      case Some(document) if document.getAs[BSONDocument]("contact-details").isDefined =>
+        document.getAs[ContactDetails]("contact-details").get
       case None => throw ContactDetailsNotFound(userId)
     }
   }
@@ -113,18 +90,4 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     })
   }
 
-  override def findAll: Future[List[ContactDetailsWithId]] = {
-    val query = BSONDocument.empty
-
-    collection.find(query).cursor[BSONDocument]().collect[List](MicroserviceAppConfig.maxNumberOfDocuments).map(_.map { doc =>
-      val id = doc.getAs[String]("userId").get
-      val root = doc.getAs[BSONDocument]("contact-details").get
-      val address = root.getAs[Address]("address").get
-      val postCode = root.getAs[PostCode]("postCode")
-      val phone = root.getAs[PhoneNumber]("phone")
-      val email = root.getAs[String]("email").get
-
-      ContactDetailsWithId(id, address, postCode, email, phone)
-    })
-  }
 }
