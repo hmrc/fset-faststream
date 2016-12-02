@@ -16,9 +16,10 @@
 
 package model.exchange.testdata
 
+import model.Adjustments
 import model.ApplicationRoute.ApplicationRoute
-import model.{ Adjustments, ApplicationRoute }
 import model.SchemeType.SchemeType
+import model.persisted.PassmarkEvaluation
 import play.api.libs.json.Json
 
 case class AssistanceDetailsRequest(hasDisability: Option[String] = None,
@@ -50,7 +51,8 @@ case class Phase1TestDataRequest(
   start: Option[String] = None,
   expiry: Option[String] = None,
   completion: Option[String] = None,
-  tscore: Option[String] = None
+  tscore: Option[String] = None,
+  passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends TestDatesRequest with TestResultRequest
 
 object Phase1TestDataRequest {
@@ -61,7 +63,8 @@ case class Phase2TestDataRequest(
   start: Option[String] = None,
   expiry: Option[String] = None,
   completion: Option[String] = None,
-  tscore: Option[String] = None
+  tscore: Option[String] = None,
+  passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends TestDatesRequest with TestResultRequest
 
 object Phase2TestDataRequest {
@@ -73,7 +76,8 @@ case class Phase3TestDataRequest(
   expiry: Option[String] = None,
   completion: Option[String] = None,
   score: Option[Double] = None,
-  receivedBeforeInHours: Option[Int] = None
+  receivedBeforeInHours: Option[Int] = None,
+  passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends TestDatesRequest
 
 object Phase3TestDataRequest {
@@ -99,7 +103,7 @@ case class StatusDataRequest(
   applicationStatus: String = "registered",
   previousApplicationStatus: Option[String] = None,
   progressStatus: Option[String] = Some("registered"),
-  applicationRoute: Option[String] = Some("faststream")
+  applicationRoute: Option[String] = Some("Faststream")
 )
 
 object StatusDataRequest{

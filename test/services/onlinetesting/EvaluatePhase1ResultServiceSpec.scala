@@ -25,7 +25,6 @@ import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkS
 import model.persisted._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import play.api.libs.json.Format
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
@@ -47,7 +46,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(Some(PassmarkSettings)))
       when(mockPhase1EvaluationRepository
-        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int])(any[Format[ApplicationReadyForEvaluation]]))
+        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int]))
         .thenReturn(Future.successful(List(application)))
 
       val result = service.nextCandidatesReadyForEvaluation(1).futureValue
@@ -138,7 +137,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
     val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis)
 
-    val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]]
+    val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository]
     val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
     val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsMongoRepository]
 

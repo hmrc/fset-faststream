@@ -20,6 +20,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
 import model.SchemeType.SchemeType
+import model.persisted.PassmarkEvaluation
 import model.{ Adjustments, ApplicationRoute, ApplicationStatus, ProgressStatuses }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
@@ -72,7 +73,8 @@ case class Phase1TestData(
   start: Option[DateTime] = None,
   expiry: Option[DateTime] = None,
   completion: Option[DateTime] = None,
-  tscore: Option[Double] = None
+  tscore: Option[Double] = None,
+  passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends TestDates with TestResult
 
 object Phase1TestData {
@@ -81,7 +83,8 @@ object Phase1TestData {
       start = o.start.map(DateTime.parse),
       expiry = o.expiry.map(DateTime.parse),
       completion = o.completion.map(DateTime.parse),
-      tscore = o.tscore.map(_.toDouble)
+      tscore = o.tscore.map(_.toDouble),
+      passmarkEvaluation = o.passmarkEvaluation
     )
   }
 }
@@ -90,7 +93,8 @@ case class Phase2TestData(
   start: Option[DateTime] = None,
   expiry: Option[DateTime] = None,
   completion: Option[DateTime] = None,
-  tscore: Option[Double] = None
+  tscore: Option[Double] = None,
+  passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends TestDates with TestResult
 
 object Phase2TestData {
@@ -99,7 +103,8 @@ object Phase2TestData {
       start = o.start.map(DateTime.parse),
       expiry = o.expiry.map(DateTime.parse),
       completion = o.completion.map(DateTime.parse),
-      tscore = o.tscore.map(_.toDouble)
+      tscore = o.tscore.map(_.toDouble),
+      passmarkEvaluation = o.passmarkEvaluation
     )
   }
 }
@@ -109,7 +114,8 @@ case class Phase3TestData(
   expiry: Option[DateTime] = None,
   completion: Option[DateTime] = None,
   score: Option[Double] = None,
-  receivedBeforeInHours: Option[Int] = None
+  receivedBeforeInHours: Option[Int] = None,
+  passmarkEvaluation: Option[PassmarkEvaluation] = None
 )
 
 object Phase3TestData {
@@ -119,7 +125,8 @@ object Phase3TestData {
       expiry = o.expiry.map(DateTime.parse),
       completion = o.completion.map(DateTime.parse),
       score = o.score,
-      receivedBeforeInHours = o.receivedBeforeInHours
+      receivedBeforeInHours = o.receivedBeforeInHours,
+      passmarkEvaluation = o.passmarkEvaluation
     )
   }
 }

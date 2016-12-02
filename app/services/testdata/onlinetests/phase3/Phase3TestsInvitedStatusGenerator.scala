@@ -20,7 +20,6 @@ import java.util.UUID
 
 import _root_.services.onlinetesting.Phase3TestService
 import _root_.services.testdata.ConstructiveGenerator
-import _root_.services.testdata.onlinetests.phase2.Phase2TestsResultsReceivedStatusGenerator
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig._
 import connectors.testdata.ExchangeObjects.{ DataGenerationResponse, TestGroupResponse, TestResponse }
@@ -32,13 +31,14 @@ import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
+import _root_.services.testdata.onlinetests.Phase2TestsPassedStatusGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object Phase3TestsInvitedStatusGenerator extends Phase3TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsResultsReceivedStatusGenerator
+  override val previousStatusGenerator = Phase2TestsPassedStatusGenerator
   override val p3Repository = phase3TestRepository
   override val p3TestService = Phase3TestService
   override val gatewayConfig = launchpadGatewayConfig
