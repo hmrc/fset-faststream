@@ -40,7 +40,7 @@ object Roles {
     def isEnabled(user: CachedData)(implicit request: RequestHeader, lang: Lang): Boolean
 
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && isEnabled(user)
+      activeUserWithApp(user) && isEnabled(user) && !user.application.map(_.applicationRoute).contains(ApplicationRoute.SdipFaststream)
   }
 
   // All the roles
