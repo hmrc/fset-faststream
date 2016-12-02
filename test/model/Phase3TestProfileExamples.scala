@@ -87,7 +87,9 @@ object Phase3TestProfileExamples {
   def phase3TestWithResults(videoInterviewScore: Double, hrsBeforeLastReviewed: Int = 0) = {
     val launchPadTestWithResult = launchPadTest.copy(callbacks =
       LaunchpadTestCallbacks(reviewed = List(sampleReviewedCallback(videoInterviewScore).copy(
-        received = DateTime.now().minusHours(hrsBeforeLastReviewed)))))
+        received = DateTime.now().minusHours(hrsBeforeLastReviewed)),
+        sampleReviewedCallback(videoInterviewScore).copy(
+          received = DateTime.now()))))
     Phase3TestGroup(expirationDate = DatePlus7Days, tests = List(launchPadTestWithResult))
   }
 
