@@ -17,10 +17,11 @@
 package controllers
 
 import config.CSRCache
-import connectors.ApplicationClient
+import connectors.{ ApplicationClient, exchange }
 import forms.SdipForm
 import helpers.NotificationType._
-import security.Roles.{ ActiveUserRole, EditPersonalDetailsRole }
+import models.ApplicationRoute
+import security.Roles.ActiveUserRole
 
 import scala.concurrent.Future
 
@@ -30,14 +31,17 @@ class SdipController(applicationClient: ApplicationClient, cacheClient: CSRCache
 
   def present = CSRSecureAppAction(ActiveUserRole) { implicit request =>
     implicit user =>
-      applicationClient.getApplicationProgress(user.application.applicationId).flatMap {
-        case progress if !progress.submitted =>
+      applicationClient.findApplication(user.user.userID, exchange.FrameworkId).flatMap {
+        case response if response.applicationRoute != ApplicationRoute.Faststream =>
+          Future.successful(Redirect(routes.HomeController.present()))
+        case response if !response.progressResponse.submitted =>
           Future.successful(Redirect(routes.HomeController.present()).flashing(warning("error.faststream.becomes.sdip.not.submitted")))
-        case progress if progress.withdrawn =>
+        case response if response.progressResponse.withdrawn =>
           Future.successful(Redirect(routes.HomeController.present()).flashing(warning("error.faststream.becomes.sdip.withdrew")))
-        case progress if progress.phase1ProgressResponse.phase1TestsExpired =>
+        case response if response.progressResponse.phase1ProgressResponse.phase1TestsExpired =>
           Future.successful(Redirect(routes.HomeController.present()).flashing(warning("error.faststream.becomes.sdip.test.expired")))
-        case _ =>
+        case response =>
+          throw new Exception(response.applicationRoute)
           Future.successful(Ok(views.html.application.sdip.considerMeForSdip(SdipForm.form)))
       }
   }
