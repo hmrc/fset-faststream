@@ -19,10 +19,14 @@ package services.parity
 import java.util.UUID
 
 import config.{ MicroserviceAppConfig, ParityGatewayConfig }
+import connectors.paritygateway.ParityGatewayClient
+import model.EvaluationResults.Green
+import model.ProgressStatuses.EXPORTED
 import play.api.Logger
 import play.api.libs.json._
 import services.events.{ EventService, EventSink }
 import repositories._
+import repositories.application.GeneralApplicationRepository
 import repositories.parity.ParityExportRepository
 import repositories.parity.ParityExportRepository.ApplicationIdNotFoundException
 import services.onlinetesting.EvaluatePhase3ResultService
@@ -35,33 +39,44 @@ object ParityExportService extends ParityExportService {
   val eventService = EventService
   val parityExRepository = parityExportRepository
   val parityGatewayConfig = MicroserviceAppConfig.parityGatewayConfig
+  val parityGatewayClient = ParityGatewayClient
   val mRepository = mediaRepository
   val cdRepository = faststreamContactDetailsRepository
   val qRepository = questionnaireRepository
   val northSouthRepository = northSouthIndicatorRepository
   val evaluateP3ResultService = EvaluatePhase3ResultService
   val socioEconomicCalculator = SocioEconomicCalculator
+  val appRepository = applicationRepository
 }
 
 trait ParityExportService extends EventSink {
 
   val parityExRepository: ParityExportRepository
   val parityGatewayConfig: ParityGatewayConfig
+  val parityGatewayClient: ParityGatewayClient
   val mRepository: MediaRepository
   val cdRepository: contactdetails.ContactDetailsRepository
   val qRepository: QuestionnaireRepository
   val northSouthRepository: NorthSouthIndicatorCSVRepository
   val evaluateP3ResultService: EvaluatePhase3ResultService
   val socioEconomicCalculator: SocioEconomicScoreCalculator
+  val appRepository: GeneralApplicationRepository
 
   // Random apps in READY_FOR_EXPORT
   def nextApplicationsForExport(batchSize: Int): Future[List[String]] = parityExRepository.nextApplicationsForExport(batchSize)
 
-  // scalastyle:off method.length
   def exportApplication(applicationId: String): Future[Unit] = {
+    for {
+      exportJson <- generateExportJson(applicationId)
+      _ <- parityGatewayClient.createExport(exportJson)
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, EXPORTED)
+    } yield ()
+  }
 
-    try {
-    (for {
+  // scalastyle:off method.length
+  private def generateExportJson(applicationId: String): Future[JsObject] = {
+
+    for {
       applicationDoc <- parityExRepository.getApplicationForExport(applicationId)
       userId = (applicationDoc \ "userId").as[String]
       _ = print("User ID = " + userId + "\n")
@@ -90,11 +105,11 @@ trait ParityExportService extends EventSink {
               Json.obj("contact-details" -> contactDetails) ++
               Json.obj("diversity-questionnaire" -> Json.obj("questions" -> diversityQuestionsObj, "scoring" -> Json.obj("ses" -> sesScore))) ++
               Json.obj("assessment-location" -> northSouthIndicator) ++
-              Json.obj("results" -> Json.obj("passed-schemes" -> Json.arr(
-                schemePassFail.result.filter(result => result.result == "GREEN").map(_.scheme))
+              Json.obj("results" -> Json.obj("passed-schemes" ->
+                schemePassFail.result.filter(result => result.result == Green.toString).map(_.scheme)
               ))
         }
-      )
+      ) andThen (__ \ "testGroups").json.prune
 
       val appDoc = applicationDoc.transform(applicationTransformer).get
 
@@ -106,13 +121,9 @@ trait ParityExportService extends EventSink {
       // finalDoc.get.validate()
 
       Logger.debug("=========== Exp = " + finalDoc.get)
-    }).recover {
-      case ex => print(s"Error!!!! => $ex\n")
-    }
-    } catch {
-      case _: Throwable => print("Exception!!!!\n"); Future.successful(())
-    }
 
+      finalDoc.get
+    }
     // scalastyle:on method.length
   }
 }

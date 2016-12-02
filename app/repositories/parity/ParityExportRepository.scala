@@ -20,7 +20,7 @@ import factories.DateTimeFactory
 import model.Commands
 import model.Commands.CreateApplicationRequest
 import model.ProgressStatuses.READY_FOR_EXPORT
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ JsValue, Json }
 import reactivemongo.api.DB
 import reactivemongo.bson._
 import repositories._
@@ -33,6 +33,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ParityExportRepository {
   case class ApplicationIdNotFoundException(applicationId: String) extends Exception(applicationId)
+}
+
+case class ApplicationReadyForExport(applicationId: String)
+
+object ApplicationReadyForExport {
+  implicit val applicationReadyForExportFormat = Json.format[ApplicationReadyForExport]
+  implicit val applicationReadyForExportBsonFormat = Macros.handler[ApplicationReadyForExport]
 }
 
 trait ParityExportRepository extends RandomSelection with CommonBSONDocuments with ReactiveRepositoryHelpers {
@@ -48,11 +55,15 @@ class ParityExportMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () 
     Commands.Implicits.createApplicationRequestFormats, ReactiveMongoFormats.objectIdFormats
   ) with ParityExportRepository with CommonBSONDocuments {
 
-  override def nextApplicationsForExport(batchSize: Int): Future[List[String]] = {
+  override def nextApplicationsForExport(batchSize: Int): Future[List[ApplicationReadyForExport]] = {
     val query = BSONDocument("applicationStatus" -> READY_FOR_EXPORT.toString)
 
     selectRandom[BSONDocument](query, batchSize).map { futureList =>
-      futureList.map(item => item.elements.head._2.toString)
+      futureList.map {
+        item =>
+          val items = item.elements.toMap[String, BSONValue]
+          items("applicationId").as[String]
+      }
     }
   }
 

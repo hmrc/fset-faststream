@@ -32,7 +32,7 @@ object ParityExportJob extends ParityExportJob {
   override val parityExportJobConfig = MicroserviceAppConfig.parityExportJobConfig
 }
 
-trait ParityExportJob extends SingleInstanceScheduledJob with FixerJobConfig {
+trait ParityExportJob extends SingleInstanceScheduledJob with ParityExportJobConfig {
   val service: ParityExportService
   val parityExportJobConfig: ScheduledJobConfig
 
@@ -46,9 +46,9 @@ trait ParityExportJob extends SingleInstanceScheduledJob with FixerJobConfig {
   }
 }
 
-trait FixerJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+trait ParityExportJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.fixerJobConfig
+  override val conf = config.MicroserviceAppConfig.parityExportJobConfig
   val configPrefix = "scheduling.parity-export-job."
   val name = "ParityExportJob"
   val jobBatchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))

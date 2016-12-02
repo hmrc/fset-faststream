@@ -24,8 +24,8 @@ class ParityExportServiceSpec extends UnitSpec with OneAppPerSuite {
 
   "Export Application" should {
     "Display some things" in new TestFixture {
-      sut.exportApplication("e4ed2087-20ad-4e4c-890b-7267196a62aa").recover {
-        case _ => print("There was an error\n")
+      sut.exportApplication("ddcb9d48-d93e-4c85-9f44-00d9a0d4b64c").recover {
+        case ex => print(s"There was an error => $ex\n")
       }.futureValue
     }
   }

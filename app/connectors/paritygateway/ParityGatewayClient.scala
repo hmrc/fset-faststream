@@ -20,7 +20,7 @@ import config.MicroserviceAppConfig._
 import _root_.config.WSHttp
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ JsObject, JsValue }
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,10 +39,10 @@ trait ParityGatewayClient {
 
   lazy val urlWithPathPrefix = s"$url/fset-parity-gateway/faststream"
 
-  def createExport(json: JsValue): Future[Unit] =
+  def createExport(json: JsObject): Future[Unit] =
     http.POST(s"$urlWithPathPrefix/create", json).map(validResponseOrThrow)
 
-  def updateExport(json: JsValue): Future[Unit] =
+  def updateExport(json: JsObject): Future[Unit] =
     http.POST(s"$urlWithPathPrefix/update", json).map(validResponseOrThrow)
 
   private def validResponseOrThrow(response: HttpResponse) = {

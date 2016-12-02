@@ -539,7 +539,7 @@
                     }
                   }
                 },
-                "During your school years, were you at any time eligible for free school meals?": {
+                "Were you at any time eligible for free school meals?": {
                   "type": "object",
                   "properties": {
                     "answer": {
