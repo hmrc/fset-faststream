@@ -88,6 +88,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val disability = adDoc.flatMap(_.getAs[String]("hasDisability"))
       val onlineAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForOnlineAssessment")).map(booleanTranslator)
       val assessmentCentreAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportAtVenue")).map(booleanTranslator)
+      val phoneAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForPhoneInterview")).map(booleanTranslator)
       val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview")).map(booleanTranslator)
 
       val fpDoc = doc.getAs[BSONDocument]("civil-service-experience-details")
@@ -104,14 +105,25 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val sdip = internshipTypes(InternshipType.SDIPCurrentYear).map(booleanTranslator)
       val fastPassCertificate = fpDoc.map(_.getAs[String]("certificateNumber").getOrElse("No"))
 
+      val pdDoc = doc.getAs[BSONDocument]("personal-details")
+      val edipCompleted = pdDoc.flatMap(_.getAs[Boolean]("edipCompleted"))
+
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationRoute = doc.getAs[String]("applicationRoute")
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
+      val edipReportColumn = applicationRoute match {
+        case Some("Faststream") => edip
+        case Some("SdipFaststream") => edip
+        case Some("Edip") => None
+        case Some("Sdip") => edipCompleted.map(eC => if (eC) "Yes" else "No")
+        case _ => None
+      }
+
       CandidateProgressReportItem(userId, applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
-        schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, gis, civilServant,
-        fastTrack, edip, sdipPrevious, sdip, fastPassCertificate, None, applicationRoute)
+        schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, phoneAdjustments, gis, civilServant,
+        fastTrack, edipReportColumn, sdipPrevious, sdip, fastPassCertificate, None, applicationRoute)
     }
   }
 

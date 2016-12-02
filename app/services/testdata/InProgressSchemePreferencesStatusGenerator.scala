@@ -40,11 +40,17 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
     def getSchemePreferences: Future[SelectedSchemes] = {
        Future.successful(
          generatorConfig.schemeTypes.map { schemeTypesList =>
-           SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
+           generatorConfig.statusData.applicationRoute match {
+             case ApplicationRoute.SdipFaststream => SelectedSchemes(model.SchemeType.Sdip :: schemeTypesList,
+               orderAgreed = true, eligible = true)
+             case _ => SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
+           }
+
          }.getOrElse {
            generatorConfig.statusData.applicationRoute match {
              case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeType.Edip), orderAgreed = true, eligible = true)
              case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeType.Sdip), orderAgreed = true, eligible = true)
+             case ApplicationRoute.SdipFaststream => SelectedSchemes(List(model.SchemeType.Sdip), orderAgreed = true, eligible = true)
              case _ => SelectedSchemes(Random.schemeTypes, orderAgreed = true, eligible = true)
            }
          }

@@ -85,15 +85,14 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       } else {
         None
       }
+    val phoneAdjustmentsFinalValue = config.assistanceDetails.phoneAdjustments
+    val phoneAdjustmentsDescriptionFinalValue =
+      if (phoneAdjustmentsFinalValue) {
+        Some(config.assistanceDetails.phoneAdjustmentsDescription)
+      } else {
+        None
+      }
 
-    val phoneInterviewAdjustmentsFinalValue = config.statusData.applicationRoute match {
-      case ApplicationRoute.Edip | ApplicationRoute.Sdip => Some(Random.bool)
-      case _ => None
-    }
-    val phoneInterviewAdjustmentsDescriptionFinalValue: Option[String] = config.statusData.applicationRoute match {
-      case ApplicationRoute.Edip | ApplicationRoute.Sdip => phoneInterviewAdjustmentsFinalValue.map(_ => "phone interview adjustments")
-      case _ => None
-    }
 
     AssistanceDetails(
       hasDisabilityFinalValue,
@@ -103,8 +102,8 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       onlineAdjustmentsDescriptionFinalValue,
       Some(assessmentCentreAdjustmentsFinalValue),
       assessmentCentreAdjustmentsDescriptionFinalValue,
-      phoneInterviewAdjustmentsFinalValue,
-      phoneInterviewAdjustmentsDescriptionFinalValue
+      Some(phoneAdjustmentsFinalValue),
+      phoneAdjustmentsDescriptionFinalValue
     )
   }
 }

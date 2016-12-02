@@ -33,7 +33,9 @@ case class AssistanceDetails(
   onlineAdjustments: Boolean = Random.bool,
   onlineAdjustmentsDescription: String = Random.onlineAdjustmentsDescription,
   assessmentCentreAdjustments: Boolean = Random.bool,
-  assessmentCentreAdjustmentsDescription: String = Random.assessmentCentreAdjustmentDescription
+  assessmentCentreAdjustmentsDescription: String = Random.assessmentCentreAdjustmentDescription,
+  phoneAdjustments: Boolean = Random.bool,
+  phoneAdjustmentsDescription: String = Random.phoneAdjustmentsDescription
 )
 
 object AssistanceDetails {
@@ -46,7 +48,10 @@ object AssistanceDetails {
       onlineAdjustments = o.onlineAdjustments.getOrElse(default.onlineAdjustments),
       onlineAdjustmentsDescription = o.onlineAdjustmentsDescription.getOrElse(default.onlineAdjustmentsDescription),
       assessmentCentreAdjustments = o.assessmentCentreAdjustments.getOrElse(default.assessmentCentreAdjustments),
-      assessmentCentreAdjustmentsDescription = o.assessmentCentreAdjustmentsDescription.getOrElse(default.assessmentCentreAdjustmentsDescription)
+      assessmentCentreAdjustmentsDescription =
+        o.assessmentCentreAdjustmentsDescription.getOrElse(default.assessmentCentreAdjustmentsDescription),
+      phoneAdjustments = o.phoneAdjustments.getOrElse(default.phoneAdjustments),
+      phoneAdjustmentsDescription = o.phoneAdjustmentsDescription.getOrElse(default.phoneAdjustmentsDescription)
     )
   }
 }
