@@ -132,6 +132,8 @@ trait GeneralApplicationRepository {
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit]
 
   def updateApplicationRoute(appId: String, newApplicationRoute: ApplicationRoute): Future[Unit]
+
+  def archiveApplicationWithDifferentUserId(appId: String, userId: String): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -912,6 +914,24 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     val validator = singleUpdateValidator(appId, actionDesc = "updating application route")
     collection.update(query, unsetDoc) map validator
+  }
+
+  override def archiveApplicationWithDifferentUserId(appId: String, userId: String): Future[Unit] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> appId),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument("applicationRoute" -> ApplicationRoute.Faststream),
+        BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
+      ))
+    ))
+    val projection = BSONDocument("_id" -> 0, "userId" -> 0)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      case Some(doc) =>
+        val archivedDocumentWithNewUserId = doc ++ BSONDocument("userId" -> userId)
+        collection.insert(archivedDocumentWithNewUserId).map(_ => ())
+      case _ => throw ApplicationNotFound(appId)
+    }
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

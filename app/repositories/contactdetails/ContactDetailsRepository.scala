@@ -17,15 +17,15 @@
 package repositories.contactdetails
 
 import config.MicroserviceAppConfig
-import model.Address
+import model.{ Address, ApplicationRoute }
 import model.Commands._
+import model.Exceptions.{ ApplicationNotFound, CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
 import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
 import model.PersistedObjects.ContactDetailsWithId
-import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
 import model.persisted.ContactDetails
 import play.api.Logger
 import reactivemongo.api.{ DB, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -46,6 +46,8 @@ trait ContactDetailsRepository {
   def findAll: Future[List[ContactDetailsWithId]]
 
   def findAllPostcodes(): Future[Map[String, String]]
+
+  def archiveContactDetailsWithDifferentUserId(originalUserId: String, newUserId: String): Future[Unit]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -109,5 +111,19 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       )((_, _))
     val result = collection.find(query, projection).cursor[(String, String)](ReadPreference.nearest).collect[List]()
     result.map(_.toMap)
+  }
+
+  override def archiveContactDetailsWithDifferentUserId(originalUserId: String, newUserId: String): Future[Unit] = {
+    // TODO LT: Consider leaving the original user Id under a new key e.g. originalUserId
+    // This may be useful in order to locate all documents which were duplicated
+    val query = BSONDocument("userId" -> originalUserId)
+    val projection = BSONDocument("_id" -> 0, "userId" -> 0)
+
+    collection.find(query, projection).one[BSONDocument].map {
+      case Some(doc) =>
+        val archivedDocumentWithNewUserId = doc ++ BSONDocument("userId" -> newUserId)
+        collection.insert(archivedDocumentWithNewUserId).map(_ => ())
+      case _ => Future.successful() // Contact details may not exist
+    }
   }
 }
