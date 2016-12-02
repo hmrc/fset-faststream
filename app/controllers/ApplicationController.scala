@@ -95,4 +95,12 @@ trait ApplicationController extends BaseController {
     }
   }
 
+  def convertToSdip(applicationId: String) = Action.async { implicit request =>
+    applicationService.convertToSdip(applicationId).map { _ =>
+      Ok
+    }.recover {
+      case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
+    }
+  }
+
 }

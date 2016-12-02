@@ -1,13 +1,15 @@
 package repositories.schemepreferences
 
 import model.ApplicationStatus._
-import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.SelectedSchemesExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{GeneralApplicationMongoRepository}
+import repositories.application.{ GeneralApplicationMongoRepository, TestDataMongoRepository }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
+import model.SchemeType.SchemeType
+import model.{ SchemeType, SelectedSchemes }
 import testkit.MongoRepositorySpec
 
 class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
@@ -50,6 +52,34 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
 
       exception mustBe SchemePreferencesNotFound(AppId)
     }
+  }
+
+  "add scheme" should {
+    "add a new scheme to the application" in {
+      val actualSchemes = createTwoSchemes()
+      repository.add(AppId, SchemeType.Sdip).futureValue
+
+      val schemes = repository.find(AppId).futureValue
+      schemes.schemes.size mustBe (actualSchemes.size + 1)
+      schemes.schemes must contain theSameElementsAs (SchemeType.Sdip :: actualSchemes)
+    }
+
+    "do not add duplications" in {
+      val actualSchemes = createTwoSchemes()
+      repository.add(AppId, SchemeType.Sdip).futureValue
+      repository.add(AppId, SchemeType.Sdip).futureValue
+
+      val schemes = repository.find(AppId).futureValue
+      schemes.schemes.size mustBe (actualSchemes.size + 1)
+      schemes.schemes must contain theSameElementsAs (SchemeType.Sdip :: actualSchemes)
+    }
+  }
+
+  private def createTwoSchemes(): List[SchemeType] = {
+    insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId,
+      "applicationStatus" -> CREATED, "frameworkId" -> FrameworkId)).futureValue
+    repository.save(AppId, TwoSchemes).futureValue
+    TwoSchemes.schemes
   }
 
   def insert(doc: BSONDocument) = repository.collection.insert(doc)

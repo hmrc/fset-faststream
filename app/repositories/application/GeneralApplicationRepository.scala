@@ -129,6 +129,8 @@ trait GeneralApplicationRepository {
   def fixDataByRemovingETray(appId: String): Future[Unit]
 
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit]
+
+  def updateApplicationRoute(appId: String, newApplicationRoute: ApplicationRoute): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -876,6 +878,23 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "removing progress and app status")
 
+    collection.update(query, unsetDoc) map validator
+  }
+
+  override def updateApplicationRoute(appId: String, newApplicationRoute: ApplicationRoute): Future[Unit] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> appId),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument("applicationRoute" -> ApplicationRoute.Faststream),
+        BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
+      ))
+    ))
+
+    val unsetDoc = BSONDocument("$set" -> BSONDocument(
+      "applicationRoute" -> newApplicationRoute.toString
+    ))
+
+    val validator = singleUpdateValidator(appId, actionDesc = "updating application route")
     collection.update(query, unsetDoc) map validator
   }
 

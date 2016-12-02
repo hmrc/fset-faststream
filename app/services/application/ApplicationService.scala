@@ -25,10 +25,11 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import contactdetails.ContactDetailsRepository
-import model.{ AdjustmentDetail, Adjustments }
+import model.{ AdjustmentDetail, Adjustments, ApplicationRoute, SchemeType }
 import model.Commands.Candidate
 import model.Exceptions.ApplicationNotFound
 import play.api.Logger
+import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
 import services.events.{ EventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -41,6 +42,7 @@ object ApplicationService extends ApplicationService {
   val eventService = EventService
   val pdRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
+  val schemeRepository = schemePreferencesRepository
 }
 
 trait ApplicationService extends EventSink {
@@ -48,6 +50,7 @@ trait ApplicationService extends EventSink {
   val appRepository: GeneralApplicationRepository
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
+  val schemeRepository: SchemePreferencesRepository
 
   val Candidate_Role = "Candidate"
 
@@ -73,6 +76,17 @@ trait ApplicationService extends EventSink {
         }
       case None => throw ApplicationNotFound(applicationId)
     }.map(_ => ())
+  }
+
+  def convertToSdip(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
+      contactDetails <- cdRepository.find(candidate.userId)
+      _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream)
+      _ <- schemeRepository.add(applicationId, SchemeType.Sdip)
+    } yield {
+      List(EmailEvents.ApplicationExtendedToSdip(contactDetails.email, candidate.name))
+    }
   }
 
   def fixDataByRemovingETray(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {

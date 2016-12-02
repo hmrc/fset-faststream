@@ -17,6 +17,7 @@
 package repositories.application
 
 import connectors.ExchangeObjects
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.{ ApplicationStatus => _, _ }
 import model.PersistedObjects.ContactDetails
@@ -104,10 +105,13 @@ class TestDataMongoRepository(implicit mongo: () => DB)
 
   // scalastyle:off parameter.number
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-                                     appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes", needsSupportForOnlineAssessment: Boolean = false,
+                                     appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes",
+                                     needsSupportForOnlineAssessment: Boolean = false,
                                      needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
-                                     firstName: Option[String] = None, preferredName: Option[String] = None, additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
-                                     additionalDoc: BSONDocument = BSONDocument.empty
+                                     firstName: Option[String] = None, preferredName: Option[String] = None,
+                                     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
+                                     additionalDoc: BSONDocument = BSONDocument.empty,
+                                     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                     ) = {
     import repositories.BSONLocalDateHandler
     collection.insert(BSONDocument(
