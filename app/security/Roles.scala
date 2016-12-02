@@ -280,6 +280,10 @@ object RoleUtils {
     user.application.isDefined && progress.phase2TestProgress.phase2TestsPassed
   }
 
+  def isPhase3TestsPassed(implicit user: CachedData) = {
+    user.application.isDefined && progress.phase3TestProgress.phase3TestsPassed
+  }
+
   def isPhase2TestExpired(implicit user: CachedData) = progress.phase2TestProgress.phase2TestsExpired
 
   def isPhase3TestExpired(implicit user: CachedData) = progress.phase3TestProgress.phase3TestsExpired

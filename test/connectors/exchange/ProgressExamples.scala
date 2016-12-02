@@ -49,6 +49,22 @@ object ProgressExamples {
     AssessmentScores(true, true),
     AssessmentCentre(true, true, true)
   )
+  val Phase3TestsPassed = Progress(true, true, true, true, true, true, true, true, true, true, true,
+    phase1TestProgress = Phase1TestProgress(true, true, true, true, true, true,
+      true, true, true, true),
+    phase2TestProgress = Phase2TestProgress(true, true, true, true, true, true,
+      true, true, true, true),
+    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = true,
+      phase3TestsStarted = true,
+      phase3TestsCompleted = true,
+      phase3TestsExpired = true,
+      phase3TestsResultsReceived = true,
+      phase3TestsPassed = true
+    ),
+    true,
+    AssessmentScores(true, true),
+    AssessmentCentre(true, true, true)
+  )
   val PersonalDetailsProgress = InitialProgress.copy(personalDetails = true)
   val SchemePreferencesProgress = PersonalDetailsProgress.copy(schemePreferences = true)
   val PartnerGraduateProgrammesProgress = SchemePreferencesProgress.copy(partnerGraduateProgrammes = true)

@@ -1,0 +1,14 @@
+@import security.Roles._
+
+@(usr: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@if(WithdrawComponent.isAuthorized(usr)) {
+    <section>
+        <h2 class="heading-medium">Withdraw application</h2>
+        <div class="text">
+            <p>If you no longer wish to proceed with your application you can withdraw
+                at any time.</p>
+            <a id="withdraw-app" href="@routes.HomeController.presentWithdrawApplication()">Withdraw application</a>
+        </div>
+    </section>
+}
