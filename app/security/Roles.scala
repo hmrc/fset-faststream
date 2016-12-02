@@ -40,7 +40,7 @@ object Roles {
     def isEnabled(user: CachedData)(implicit request: RequestHeader, lang: Lang): Boolean
 
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && isEnabled(user) && !user.application.map(_.applicationRoute).contains(ApplicationRoute.SdipFaststream)
+      activeUserWithApp(user) && isEnabled(user)
   }
 
   // All the roles
@@ -208,7 +208,8 @@ object Roles {
 
   object WithdrawComponent extends AuthorisedUser {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
+      !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED) &&
+        !user.application.map(_.applicationRoute).contains(ApplicationRoute.SdipFaststream)
   }
 
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
