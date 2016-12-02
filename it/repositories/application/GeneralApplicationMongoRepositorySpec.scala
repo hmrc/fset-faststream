@@ -470,7 +470,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   }
 
   "Update application route" should {
-    "return not found if the application does not match required statuses" in {
+    "return not found if the application route is not Faststream" in {
       testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
         additionalDoc = BSONDocument("applicationRoute" -> ApplicationRoute.Edip.toString)
       ).futureValue
@@ -480,7 +480,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       result mustBe a[Exceptions.NotFoundException]
     }
 
-    "update the Faststream application" in {
+    "update the Faststream application when application route is Faststream" in {
       testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
         applicationRoute = ApplicationRoute.Faststream,
         additionalDoc = BSONDocument("applicationRoute" -> ApplicationRoute.Faststream.toString)

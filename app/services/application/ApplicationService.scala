@@ -85,7 +85,7 @@ trait ApplicationService extends EventSink {
       _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream)
       _ <- schemeRepository.add(applicationId, SchemeType.Sdip)
     } yield {
-      List(EmailEvents.ApplicationExtendedToSdip(contactDetails.email, candidate.name))
+      List(EmailEvents.ApplicationConvertedToSdip(contactDetails.email, candidate.name))
     }
   }
 
