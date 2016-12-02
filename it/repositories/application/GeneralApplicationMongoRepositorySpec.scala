@@ -469,6 +469,41 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "Update application route" should {
+    "return not found if the application route is not Faststream" in {
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
+        additionalDoc = BSONDocument("applicationRoute" -> ApplicationRoute.Edip.toString)
+      ).futureValue
+
+      val result = repository.updateApplicationRoute(AppId, ApplicationRoute.SdipFaststream).failed.futureValue
+
+      result mustBe a[Exceptions.NotFoundException]
+    }
+
+    "update the Faststream application when application route is Faststream" in {
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
+        applicationRoute = ApplicationRoute.Faststream,
+        additionalDoc = BSONDocument("applicationRoute" -> ApplicationRoute.Faststream.toString)
+      ).futureValue
+
+      repository.updateApplicationRoute(AppId, ApplicationRoute.SdipFaststream).futureValue
+
+      val applicationResponse = repository.findByUserId(UserId, "FastStream-2016").futureValue
+      applicationResponse.applicationRoute mustBe ApplicationRoute.SdipFaststream
+    }
+
+    "update the application without application route" in {
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
+        applicationRoute = ApplicationRoute.Faststream
+      ).futureValue
+
+      repository.updateApplicationRoute(AppId, ApplicationRoute.SdipFaststream).futureValue
+
+      val applicationResponse = repository.findByUserId(UserId, "FastStream-2016").futureValue
+      applicationResponse.applicationRoute mustBe ApplicationRoute.SdipFaststream
+    }
+  }
+
   val candidate = Candidate("userId", Some("appId123"), Some("test@test123.com"), None, None, None, None, None, None, None, None)
 
   val testCandidate = Map(

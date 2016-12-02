@@ -17,8 +17,8 @@
 package repositories.schemepreferences
 
 import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
+import model.SchemeType.SchemeType
 import model.SelectedSchemes
-import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import repositories.ReactiveRepositoryHelpers
@@ -32,6 +32,8 @@ trait SchemePreferencesRepository {
   def find(applicationId: String): Future[SelectedSchemes]
 
   def save(applicationId: String, schemePreferences: SelectedSchemes): Future[Unit]
+
+  def add(applicationId: String, newScheme: SchemeType): Future[Unit]
 }
 
 class SchemePreferencesMongoRepository(implicit mongo: () => DB)
@@ -62,5 +64,18 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
       CannotUpdateSchemePreferences(applicationId))
 
     collection.update(query, preferencesBSON) map validator
+  }
+
+  def add(applicationId: String, newScheme: SchemeType): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val update = BSONDocument(
+      "$addToSet" -> BSONDocument(
+        s"scheme-preferences.schemes" -> newScheme
+      )
+    )
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting sdip scheme")
+
+    collection.update(query, update) map validator
   }
 }

@@ -24,6 +24,7 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
+import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.application.ApplicationService
@@ -81,12 +82,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val appRepositoryMock: GeneralApplicationRepository = mock[GeneralApplicationRepository]
     val pdRepositoryMock: PersonalDetailsRepository = mock[PersonalDetailsRepository]
     val cdRepositoryMock: ContactDetailsRepository = mock[ContactDetailsRepository]
+    val schemeRepositoryMock: SchemePreferencesRepository = mock[SchemePreferencesRepository]
 
     val underTest = new ApplicationService with EventServiceFixture {
       val appRepository = appRepositoryMock
       val pdRepository = pdRepositoryMock
       val cdRepository = cdRepositoryMock
       val eventService = eventServiceMock
+      val schemeRepository = schemeRepositoryMock
     }
 
     implicit val hc = HeaderCarrier()

@@ -198,6 +198,9 @@ trait EmailClient extends WSHttp {
     sendEmail(to, "fset_faststream_adjustments_changed",
       Map("name" -> name, "etrayAdjustments" -> etrayAdjustments, "videoAdjustments" -> videoAdjustments))
 
+  def sendApplicationExtendedToSdip(to: String, name: String)(implicit hc: HeaderCarrier) =
+    sendEmail(to, "fset_faststream_app_converted_to_sdip_confirmation", Map("name" -> name))
+
 }
 
 object EmailDateFormatter {
