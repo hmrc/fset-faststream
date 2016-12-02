@@ -41,7 +41,6 @@ class SdipController(applicationClient: ApplicationClient, cacheClient: CSRCache
         case response if response.progressResponse.phase1ProgressResponse.phase1TestsExpired =>
           Future.successful(Redirect(routes.HomeController.present()).flashing(warning("error.faststream.becomes.sdip.test.expired")))
         case response =>
-          throw new Exception(response.applicationRoute)
           Future.successful(Ok(views.html.application.sdip.considerMeForSdip(SdipForm.form)))
       }
   }
