@@ -66,7 +66,7 @@ trait SignInService {
 
   def showErrorLogin(data: Data, errorMsg: String = "signIn.invalid")(implicit user: Option[CachedData], request: Request[_]): Result =
     Ok(views.html.index.signin(
-      SignInForm.form.fill(SignInForm.Data(signIn = data.signIn, signInPassword = "")), Some(danger(errorMsg))
+      SignInForm.form.fill(SignInForm.Data(signIn = data.signIn, signInPassword = "", route = data.route)), Some(danger(errorMsg))
     ))
 
   def logOutAndRedirectUserAware(successAction: Future[Result], failAction: Future[Result])(implicit request: UserAwareRequest[_]) = {

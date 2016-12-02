@@ -21,6 +21,7 @@ import com.mohiva.play.silhouette.api.util.Credentials
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import helpers.NotificationType._
+import models.ApplicationRoute
 import security.{ SignInService, _ }
 
 import scala.concurrent.Future
@@ -42,6 +43,17 @@ abstract class SignInController(val applicationClient: ApplicationClient, cacheC
       }
   }
 
+  def sdipPresent = CSRUserAwareAction { implicit request =>
+    implicit user =>
+      request.identity match {
+        case None =>
+          Future.successful(Ok(views.html.index.signin(SignInForm.form.fill(SignInForm.Data("", "", Some(ApplicationRoute.SdipFaststream))))))
+        case Some(u) =>
+          Future.successful(Redirect(routes.HomeController.present()))
+      }
+  }
+
+  // scalastyle:off cyclomatic.complexity
   def signIn = CSRUserAwareAction { implicit request =>
     implicit user =>
       SignInForm.form.bindFromRequest.fold(
@@ -50,7 +62,12 @@ abstract class SignInController(val applicationClient: ApplicationClient, cacheC
         data => env.credentialsProvider.authenticate(Credentials(data.signIn, data.signInPassword)).flatMap {
           case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(
             Redirect(routes.LockAccountController.present()).addingToSession("email" -> usr.email))
-          case Right(usr) if usr.isActive => signInUser(usr, env)
+          case Right(usr) if usr.isActive =>
+            if (data.route.contains(ApplicationRoute.SdipFaststream.toString)) {
+              signInUser(usr, env, Redirect(routes.SdipController.present()))
+            } else {
+              signInUser(usr, env)
+            }
           case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()), env = env)
           case Left(InvalidRole) => Future.successful(showErrorLogin(data, errorMsg = "error.invalidRole"))
           case Left(InvalidCredentials) => Future.successful(showErrorLogin(data))
@@ -60,6 +77,7 @@ abstract class SignInController(val applicationClient: ApplicationClient, cacheC
         }
       )
   }
+  // scalastyle:on cyclomatic.complexity
 
   def signOut = CSRUserAwareAction { implicit request =>
     implicit user =>

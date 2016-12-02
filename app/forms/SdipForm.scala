@@ -16,20 +16,16 @@
 
 package forms
 
-import forms.Mappings._
 import play.api.data.Form
+import play.api.data.Forms.checked
+import play.api.i18n.Messages
 import play.api.data.Forms._
 
-object SignInForm {
-  val passwordField = "signInPassword"
-
+object SdipForm {
   val form = Form(
     mapping(
-      "signIn" -> nonEmptyTrimmedText("error.required.signIn", 128),
-      passwordField -> nonEmptyTrimmedText("error.required.password", 128),
-      "route" -> optional(text)
-    )(Data.apply)(Data.unapply)
-  )
+      "acceptTerms" -> checked(Messages("sdipFaststream.acceptTerms.required"))
+    )(Data.apply)(Data.unapply))
 
-  case class Data(signIn: String, signInPassword: String, route: Option[String] = None)
+  case class Data(acceptTerms: Boolean)
 }

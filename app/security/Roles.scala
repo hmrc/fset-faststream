@@ -208,7 +208,8 @@ object Roles {
 
   object WithdrawComponent extends AuthorisedUser {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
+      !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED) &&
+        !user.application.map(_.applicationRoute).contains(ApplicationRoute.SdipFaststream)
   }
 
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
@@ -289,7 +290,11 @@ object RoleUtils {
 
   def isSdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Sdip
 
-  def isFaststream(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Faststream)
+  def isFaststream(implicit user: CachedData): Boolean = user.application exists { app =>
+    // The second part of the condition means that "Faststream becomes SDIP" applications need still be treated
+    // as faststream in the frontend. The only difference is in backend.
+    app.applicationRoute == ApplicationRoute.Faststream || app.applicationRoute == ApplicationRoute.SdipFaststream
+  }
 
   def isEdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Edip)
 

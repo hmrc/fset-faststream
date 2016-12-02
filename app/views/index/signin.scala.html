@@ -3,15 +3,22 @@
 
 @import helpers.CSRFieldConstructor._
 
+@isFaststreamBecomesSdipRoute = @{
+    signInForm("route").value.getOrElse("") == ApplicationRoute.SdipFaststream.toString
+}
+
 @main_template(title = "Sign in", pageForms = Seq(signInForm), notification = notification) {
 
     <h1 class="heading-xlarge">Sign in</h1>
     <section class="panel-indent text">
         <p>To sign in you must have already created an account.</p>
         <p>If you don't have an account you can <a href="@routes.SignUpController.present()" id="createAccount">create your account</a>.</p>
+        @if(isFaststreamBecomesSdipRoute) {
+            <p>After you sign in you'll be able to ask to be considered for the Summer Diversity Internship Programme.</p>
+        }
     </section>
 
-    @helper.form(action = routes.SignInController.signIn(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.SignInController.signIn, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
 
         @helper.inputText(signInForm("signIn"),
@@ -25,6 +32,8 @@
             'class -> "form-control",
             '_hasLink -> true,
             '_showConstraints -> false)
+
+        <input type="hidden" id="route" name="route" value='@signInForm("route").value.getOrElse("")' />
 
         <p><a href="@routes.PasswordResetController.presentCode()">I can't access my account</a></p>
 

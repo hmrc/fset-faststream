@@ -20,6 +20,7 @@ POST        /activation                                             controllers.
 
 # User sign in
 GET         /signin                                                 controllers.SignInController.present
+GET         /sdip/signin                                            controllers.SignInController.sdipPresent
 POST        /signin                                                 controllers.SignInController.signIn
 GET         /signout                                                controllers.SignInController.signOut
 GET         /password/forgot                                        controllers.PasswordResetController.presentCode
@@ -81,6 +82,9 @@ GET         /online-tests/complete/:token                           controllers.
 # Invigilated e-tray
 GET         /invigilated-etray                                      controllers.InvigilatedController.present
 POST        /invigilated-etray                                      controllers.InvigilatedController.verifyToken
+
+GET         /sdip                                                   controllers.SdipController.present
+POST        /sdip                                                   controllers.SdipController.submit
 
 # Assets controller
 GET         /assets/*file                                           controllers.Assets.versioned(path="/public", file: Asset)
