@@ -17,6 +17,7 @@
 package model.exchange.testdata
 
 import model.Adjustments
+import model.ApplicationRoute.ApplicationRoute
 import model.SchemeType.SchemeType
 import model.persisted.PassmarkEvaluation
 import play.api.libs.json.Json
@@ -102,7 +103,7 @@ case class StatusDataRequest(
   applicationStatus: String = "registered",
   previousApplicationStatus: Option[String] = None,
   progressStatus: Option[String] = Some("registered"),
-  applicationRoute: Option[String] = Some("faststream")
+  applicationRoute: Option[String] = Some("Faststream")
 )
 
 object StatusDataRequest{

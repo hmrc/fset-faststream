@@ -74,7 +74,7 @@ case class Phase1TestData(
   expiry: Option[DateTime] = None,
   completion: Option[DateTime] = None,
   tscore: Option[Double] = None,
-  passmarkEvaluation: Option[PassmarkEvaluation]
+  passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends TestDates with TestResult
 
 object Phase1TestData {
@@ -94,7 +94,7 @@ case class Phase2TestData(
   expiry: Option[DateTime] = None,
   completion: Option[DateTime] = None,
   tscore: Option[Double] = None,
-  passmarkEvaluation: Option[PassmarkEvaluation]
+  passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends TestDates with TestResult
 
 object Phase2TestData {
@@ -115,7 +115,7 @@ case class Phase3TestData(
   completion: Option[DateTime] = None,
   score: Option[Double] = None,
   receivedBeforeInHours: Option[Int] = None,
-  passmarkEvaluation: Option[PassmarkEvaluation]
+  passmarkEvaluation: Option[PassmarkEvaluation] = None
 )
 
 object Phase3TestData {
