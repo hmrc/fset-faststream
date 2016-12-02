@@ -80,7 +80,6 @@ trait ParityExportService extends EventSink {
     for {
       applicationDoc <- parityExRepository.getApplicationForExport(applicationId)
       userId = (applicationDoc \ "userId").as[String]
-      _ = print("User ID = " + userId + "\n")
       contactDetails <- cdRepository.find(userId)
       mediaOpt <- mRepository.find(userId)
       diversityQuestions <- qRepository.findQuestions(applicationId)
