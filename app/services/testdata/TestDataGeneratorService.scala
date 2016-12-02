@@ -19,20 +19,18 @@ package services.testdata
 import connectors.AuthProviderClient
 import connectors.AuthProviderClient.UserRole
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.command.testdata.GeneratorConfig
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.ReactiveMongoPlugin
+import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
-import services.testdata.faker.DataFaker._
-
-import scala.collection.parallel.immutable.ParRange
 
 object TestDataGeneratorService extends TestDataGeneratorService {
 }

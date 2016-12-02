@@ -31,7 +31,7 @@ import scala.concurrent.Future
 trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends ApplicationStatusCalculator {
   this: PassMarkSettingsService[T] =>
 
-  val evaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
+  val evaluationRepository: OnlineTestEvaluationRepository
 
   val phase: Phase.Phase
 
