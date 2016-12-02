@@ -27,7 +27,7 @@ import play.api.libs.json._
 import services.events.{ EventService, EventSink }
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.parity.ParityExportRepository
+import repositories.parity.{ ApplicationReadyForExport, ParityExportRepository }
 import repositories.parity.ParityExportRepository.ApplicationIdNotFoundException
 import services.onlinetesting.EvaluatePhase3ResultService
 import services.reporting.{ SocioEconomicCalculator, SocioEconomicScoreCalculator }
@@ -63,7 +63,8 @@ trait ParityExportService extends EventSink {
   val appRepository: GeneralApplicationRepository
 
   // Random apps in READY_FOR_EXPORT
-  def nextApplicationsForExport(batchSize: Int): Future[List[String]] = parityExRepository.nextApplicationsForExport(batchSize)
+  def nextApplicationsForExport(batchSize: Int): Future[List[ApplicationReadyForExport]] =
+  parityExRepository.nextApplicationsForExport(batchSize)
 
   def exportApplication(applicationId: String): Future[Unit] = {
     for {
@@ -87,8 +88,6 @@ trait ParityExportService extends EventSink {
       sesScore = socioEconomicCalculator.calculateAsInt(diversityQuestions)
       schemePassFail <- evaluateP3ResultService.getPassmarkEvaluation(applicationId)
     } yield {
-      Logger.debug("============ App = " + applicationDoc)
-
       val mediaObj = mediaOpt.map(media => Json.obj("media" -> media.media)).getOrElse(Json.obj())
       val diversityQuestionsObj = diversityQuestions.foldLeft(Json.obj()){ (builder, qAndA) =>
         val (question, answer) = (qAndA._1, qAndA._2)
@@ -114,13 +113,12 @@ trait ParityExportService extends EventSink {
       val appDoc = applicationDoc.transform(applicationTransformer).get
 
       val rootTransformer = (__ \ "application").json.put(appDoc) andThen
-        __.json.update(__.read[JsObject].map { o => o ++ Json.obj("token" -> UUID.randomUUID().toString) })
+        __.json.update(__.read[JsObject].map { o => o ++ Json.obj("token" -> parityGatewayConfig.upstreamAuthToken) })
 
       val finalDoc = Json.toJson("{}").transform(rootTransformer)
 
+      // TODO: Validate against json schema
       // finalDoc.get.validate()
-
-      Logger.debug("=========== Exp = " + finalDoc.get)
 
       finalDoc.get
     }

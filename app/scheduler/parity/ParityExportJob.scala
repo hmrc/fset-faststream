@@ -40,7 +40,7 @@ trait ParityExportJob extends SingleInstanceScheduledJob with ParityExportJobCon
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     service.nextApplicationsForExport(parityExportJobConfig.batchSize.getOrElse(1)).flatMap { applicationList =>
-      val exportFuts = applicationList.map(applicationId => service.exportApplication(applicationId))
+      val exportFuts = applicationList.map(applicationReadyForExport => service.exportApplication(applicationReadyForExport.applicationId))
       Future.sequence(exportFuts).map(_ => ())
     }
   }

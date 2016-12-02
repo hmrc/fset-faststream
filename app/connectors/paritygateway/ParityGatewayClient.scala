@@ -28,7 +28,7 @@ import scala.concurrent.Future
 
 object ParityGatewayClient extends ParityGatewayClient {
   val http: WSHttp = WSHttp
-  val url = launchpadGatewayConfig.url
+  val url = parityGatewayConfig.url
 }
 
 trait ParityGatewayClient {

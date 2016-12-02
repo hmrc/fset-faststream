@@ -166,7 +166,7 @@
         },
         "media": {
           "type": "string",
-          "minLength": 1,
+          "minLength": 0,
           "maxLength": 100
         },
         "partner-graduate-programmes": {
@@ -750,7 +750,6 @@
         "frameworkId",
         "personal-details",
         "civil-service-experience-details",
-        "media",
         "scheme-preferences",
         "assistance-details",
         "diversity-questionnaire",
