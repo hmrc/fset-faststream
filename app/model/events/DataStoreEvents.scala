@@ -56,8 +56,10 @@ object DataStoreEvents {
   // NOTICE. The name for the case class is important and is used when the event is emitted.
   // In other words: Renaming the case class here, impacts in renaming the event name in database.
 
+  // scalastyle:off
   case class ApplicationSubmitted(appId: String) extends DataStoreEventWithAppId
   case class ApplicationExpired(appId: String) extends DataStoreEventWithAppId
+  case class ApplicationReadyForExport(appId: String) extends DataStoreEventWithAppId
   case class ApplicationExpiryReminder(appId: String) extends DataStoreEventWithAppId
   case class ApplicationWithdrawn(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
 
@@ -67,6 +69,8 @@ object DataStoreEvents {
   case class OnlineExerciseExtended(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class OnlineExerciseReset(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class OnlineExerciseResultSent(appId: String) extends DataStoreEventWithAppId
+  case class FailedTestEmailSent(appId: String) extends DataStoreEventWithAppId
+  case class SuccessTestEmailSent(appId: String) extends DataStoreEventWithAppId
 
   case class ETrayStarted(appId: String) extends DataStoreEventWithAppId
   case class ETrayCompleted(appId: String) extends DataStoreEventWithAppId
@@ -91,6 +95,8 @@ object DataStoreEvents {
   case class FastPassRejected(appId: String) extends DataStoreEventWithAppId
   case class AdjustmentsCommentUpdated(appId: String) extends DataStoreEventWithAppId
   case class AdjustmentsCommentRemoved(appId: String) extends DataStoreEventWithAppId
+  // scalastyle:on
+
 
   // scalastyle:on number.of.methods
 }

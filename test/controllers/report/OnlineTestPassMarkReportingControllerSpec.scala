@@ -26,7 +26,7 @@ import org.mockito.Mockito._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
+import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -100,14 +100,13 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     val mockQuestionRepository = mock[QuestionnaireRepository]
     val mockMediaRepository = mock[MediaRepository]
     val controller = new ReportingController {
-      val reportRepository = mockReportRepository
-      val cdRepository = mock[ContactDetailsRepository]
-      val fsCdRepository = mock[contactdetails.ContactDetailsRepository]
-      val authProviderClient = mock[AuthProviderClient]
+      val reportingRepository = mockReportRepository
+      val contactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
       val questionnaireRepository = mockQuestionRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
-      val medRepository: MediaRepository = mockMediaRepository
+      val mediaRepository: MediaRepository = mockMediaRepository
       val indicatorRepository: NorthSouthIndicatorCSVRepository = mock[NorthSouthIndicatorCSVRepository]
+      val authProviderClient = mock[AuthProviderClient]
     }
 
     lazy val testResults = Map(
@@ -122,7 +121,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
     lazy val applicationsWithNoTestResults = List(
       ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult1,
       ApplicationForOnlineTestPassMarkReportExamples.applicationWithNoTestResult2)
-    
+
     lazy val questionnaires = Map(
       ApplicationForOnlineTestPassMarkReportExamples.application1.applicationId ->
         QuestionnaireReportItemExamples.questionnaire1,
@@ -139,4 +138,5 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
   }
+
 }

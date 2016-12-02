@@ -1,6 +1,8 @@
 package repositories.contactdetails
 
-import model.Exceptions.{ ContactDetailsNotFoundForEmail, ContactDetailsNotFound }
+import model.Address
+import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
+import model.persisted.ContactDetails
 import model.persisted.ContactDetailsExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -58,6 +60,29 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  "find all" should {
+    "return empty list for empty contact details" in {
+      repository.findAll.futureValue mustBe empty
+    }
+
+    "return list of contact details" in {
+      insert("1", ContactDetails(false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345"))
+      insert("2", ContactDetails(false, Address("line1b"), Some("456"), Some("UK"), "email2@email.com", "67890"))
+
+      val result = repository.findAll.futureValue
+      result.size mustBe 2
+    }
+
+    "return only the first 10 documents if there is more than 10" in {
+      for (i <- 1 to 11) {
+        insert(i.toString, ContactDetails(false, Address(s"line$i"), Some(s"123$i"), Some("UK"), s"email$i@email.com", s"12345$i"))
+      }
+
+      val result = repository.findAll.futureValue
+      result.size mustBe 10
+    }
+  }
+
   "find all PostCode" should {
     "return an empty map if no record is present" in {
       val result = repository.findAllPostcodes.futureValue
@@ -84,4 +109,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
   }
 
   def insert(doc: BSONDocument) = repository.collection.insert(doc)
+
+  def insert(userId: String, cd: ContactDetails) = repository.update(userId, cd).futureValue
+
 }

@@ -27,7 +27,7 @@ import persisted.ApplicationForDiversityReportExamples
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
-import repositories.{ ApplicationAssessmentScoresRepository, ContactDetailsRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
+import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
 import testkit.MockitoImplicits.OngoingStubbingExtension
 import testkit.UnitWithAppSpec
 
@@ -80,7 +80,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return applications with questionnaires and no media when passing questionnaires" +
-      " and media that dont belong to the applications"  in new DiversityReportTestFixture {
+      " and media that dont belong to the applications" in new DiversityReportTestFixture {
       when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
       when(mockQuestionRepository.findAllForDiversityReport).thenReturnAsync(questionnaires)
       when(mockMediaRepository.findAll()).thenReturnAsync(notFoundMedias)
@@ -125,14 +125,13 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
     val mockQuestionRepository = mock[QuestionnaireRepository]
     val mockMediaRepository = mock[MediaRepository]
     val controller = new ReportingController {
-      val reportRepository = mockReportRepository
-      val cdRepository = mock[ContactDetailsRepository]
-      val fsCdRepository = mock[contactdetails.ContactDetailsRepository]
-      val authProviderClient = mock[AuthProviderClient]
+      val reportingRepository = mockReportRepository
+      val contactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
       val questionnaireRepository = mockQuestionRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
-      val medRepository: MediaRepository = mockMediaRepository
+      val mediaRepository: MediaRepository = mockMediaRepository
       val indicatorRepository: NorthSouthIndicatorCSVRepository = mock[NorthSouthIndicatorCSVRepository]
+      val authProviderClient = mock[AuthProviderClient]
     }
 
     val applications = List(ApplicationForDiversityReportExamples.Example1,
@@ -165,4 +164,5 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
   }
+
 }
