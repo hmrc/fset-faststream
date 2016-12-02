@@ -16,11 +16,12 @@
 
 package model
 
-import model.Commands.{PhoneNumber, PostCode}
+import model.Commands.{ PhoneNumber, PostCode }
 import model.OnlineTestCommands.TestResult
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 import model.ApplicationStatus._
 import play.api.libs.json._
+import reactivemongo.bson.Macros
 
 @deprecated("fasttrack version. Create one case class in one file. All persisted case classes are in model.persisted package", "July 2016")
 object PersistedObjects {
@@ -108,5 +109,7 @@ object PersistedObjects {
     implicit val applicationUserFormats = Json.format[ApplicationUser]
 
     implicit val onlineTestPdfReportFormats = Json.format[OnlineTestPDFReport]
+
+    implicit val contactDetailsHandler = Macros.handler[ContactDetails]
   }
 }

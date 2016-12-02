@@ -30,7 +30,7 @@ import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import scala.concurrent.Future
 
 object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
-  val evaluationRepository: OnlineTestEvaluationRepository[ApplicationReadyForEvaluation]
+  val evaluationRepository: OnlineTestEvaluationRepository
     = repositories.faststreamPhase3EvaluationRepository
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
   val phase = Phase.PHASE3
@@ -59,7 +59,8 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
     }
     savePassMarkEvaluation(application, schemeResults, passmark)
   }
+
+  def getPassmarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
+    evaluationRepository.getPassMarkEvaluation(applicationId)
+  }
 }
-
-
-

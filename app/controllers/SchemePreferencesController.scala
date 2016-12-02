@@ -16,7 +16,7 @@
 
 package controllers
 
-import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.SelectedSchemes
 import play.api.libs.json.Json
 import play.api.mvc.Action

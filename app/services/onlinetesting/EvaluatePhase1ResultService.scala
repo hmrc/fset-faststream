@@ -21,7 +21,7 @@ import services.onlinetesting.phase1.{ Phase1TestEvaluation, Phase1TestSelector 
 import config.MicroserviceAppConfig._
 import model.Phase
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation }
+import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
 import repositories._
 import scheduler.onlinetesting.EvaluateOnlineTestResultService

@@ -43,27 +43,27 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
   val phase3TestRepo: Phase3TestRepository
 
-  def getCallbackData(): ReviewedCallbackRequest = {
-    ReviewedCallbackRequest(DateTime.now, "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6", "FSCND-f9cf395d-df9d-4037-9fbf-9b3aa9d86c16",
+  def getCallbackData(receivedBeforeInHours: Int, score: Option[Double]): ReviewedCallbackRequest = {
+    ReviewedCallbackRequest(DateTime.now.minusHours(receivedBeforeInHours), "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6", "FSCND-f9cf395d-df9d-4037-9fbf-9b3aa9d86c16",
     46, None, "FSINV-28d52608-95e0-4d3a-93e7-0881cd2bc78b", LocalDate.now().plusDays(3), ReviewSectionRequest(
         ReviewSectionTotalAverageRequest("videoInterview", "50%", 50.0), // TODO: 50.0 should be calculated
         ReviewSectionReviewersRequest(
-          reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost"),
-          reviewer2 = Some(getReviewSectionReviewersRequest("John Doe2", "johnDoe2@localhost")),
-          reviewer3 = Some(getReviewSectionReviewersRequest("John Doe3", "johnDoe3@localhost")))
+          reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost", score, score),
+          reviewer2 = Some(getReviewSectionReviewersRequest("John Doe2", "johnDoe2@localhost", score, score)),
+          reviewer3 = Some(getReviewSectionReviewersRequest("John Doe3", "johnDoe3@localhost", score, score)))
       ))
   }
 
-  def getReviewSectionReviewersRequest(name: String, email: String) = {
+  def getReviewSectionReviewersRequest(name: String, email: String, criteria1Score: Option[Double] = None, criteria2Score: Option[Double] = None) = {
     ReviewSectionReviewerRequest(name, email, None,
-      question1 = getReviewSectionQuestionRequest(100),
-      question2 = getReviewSectionQuestionRequest(101),
-      question3 = getReviewSectionQuestionRequest(102),
-      question4 = getReviewSectionQuestionRequest(103),
-      question5 = getReviewSectionQuestionRequest(104),
-      question6 = getReviewSectionQuestionRequest(105),
-      question7 = getReviewSectionQuestionRequest(106),
-      question8 = getReviewSectionQuestionRequest(107)
+      question1 = getReviewSectionQuestionRequest(100, criteria1Score, criteria2Score),
+      question2 = getReviewSectionQuestionRequest(101, criteria1Score, criteria2Score),
+      question3 = getReviewSectionQuestionRequest(102, criteria1Score, criteria2Score),
+      question4 = getReviewSectionQuestionRequest(103, criteria1Score, criteria2Score),
+      question5 = getReviewSectionQuestionRequest(104, criteria1Score, criteria2Score),
+      question6 = getReviewSectionQuestionRequest(105, criteria1Score, criteria2Score),
+      question7 = getReviewSectionQuestionRequest(106, criteria1Score, criteria2Score),
+      question8 = getReviewSectionQuestionRequest(107, criteria1Score, criteria2Score)
     )
   }
 
@@ -75,9 +75,12 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   }
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
-    val callbackData1 = getCallbackData
-    val callbackData2 = getCallbackData
-    val callbackData3 = getCallbackData
+    val receivedBeforeInHours = generatorConfig.phase3TestData.flatMap(_.receivedBeforeInHours).getOrElse(0)
+    val score = generatorConfig.phase3TestData.flatMap(_.score)
+
+    val callbackData1 = getCallbackData(receivedBeforeInHours, score)
+    val callbackData2 = getCallbackData(receivedBeforeInHours, score)
+    val callbackData3 = getCallbackData(receivedBeforeInHours, score)
     for {
         candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
         token <- Future.successful(candidate.phase3TestGroup.get.tests.head.token)

@@ -17,7 +17,7 @@
 package controllers
 
 import model.Commands._
-import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview }
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, PassMarkEvaluationNotFound }
 import model.command.WithdrawApplication
 import play.api.libs.json.Json
 import play.api.mvc.Action
@@ -25,6 +25,7 @@ import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.application.ApplicationService
+import services.onlinetesting.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,6 +34,7 @@ object ApplicationController extends ApplicationController {
   val appRepository = applicationRepository
   val auditService = AuditService
   val applicationService = ApplicationService
+  val passmarkService = EvaluatePhase3ResultService
 }
 
 trait ApplicationController extends BaseController {
@@ -41,6 +43,7 @@ trait ApplicationController extends BaseController {
   val appRepository: GeneralApplicationRepository
   val auditService: AuditService
   val applicationService: ApplicationService
+  val passmarkService: EvaluatePhase3ResultService
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
@@ -92,6 +95,14 @@ trait ApplicationController extends BaseController {
       }.recover {
         case e: CannotUpdatePreview => NotFound(s"cannot update application with id: ${e.applicationId}")
       }
+    }
+  }
+
+  def getSchemeResults(applicationId: String) = Action.async { implicit request =>
+    passmarkService.getPassmarkEvaluation(applicationId).map { passmarks =>
+      Ok(Json.toJson(passmarks.result))
+    } recover {
+      case e: PassMarkEvaluationNotFound => NotFound(s"No evaluation results found for applicationId: $applicationId")
     }
   }
 

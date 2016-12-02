@@ -19,27 +19,25 @@ package services.testdata
 import connectors.AuthProviderClient
 import connectors.AuthProviderClient.UserRole
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import model.command.testdata.GeneratorConfig
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.ReactiveMongoPlugin
+import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
-import services.testdata.faker.DataFaker._
-
-import scala.collection.parallel.immutable.ParRange
 
 object TestDataGeneratorService extends TestDataGeneratorService {
 }
 
 trait TestDataGeneratorService {
 
-  def clearDatabase()(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def clearDatabase()(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       dropMainDatabase <- ReactiveMongoPlugin.mongoConnector.db().drop()
       removeAllUsers <- AuthProviderClient.removeAllUsers()
@@ -74,9 +72,9 @@ trait TestDataGeneratorService {
   }
 
   def createCandidatesInSpecificStatus(numberToGenerate: Int,
-    generatorForStatus: (GeneratorConfig) => BaseGenerator,
-    configGenerator: (Int) => GeneratorConfig
-  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
+                                       generatorForStatus: (GeneratorConfig) => BaseGenerator,
+                                       configGenerator: (Int) => GeneratorConfig
+                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[DataGenerationResponse]] = {
     Future.successful {
 
       val parNumbers = (1 to numberToGenerate).par

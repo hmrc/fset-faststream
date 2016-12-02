@@ -157,7 +157,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
       progressResponse <- appRepository.findProgress(applicationId)
     } yield {
       progressResponse.phase3ProgressResponse match {
-        case Phase3ProgressResponse(true, false, false, false, false, false, false, false, false, false, false) => true
+        case response: Phase3ProgressResponse if (response.phase3TestsInvited) => true
         case _ => false
       }
     }

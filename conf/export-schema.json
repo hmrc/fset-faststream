@@ -3,15 +3,16 @@
   "description": "Fast Stream Data Export",
   "type": "object",
   "properties": {
+    "token": {
+      "type": "string",
+      "format": "uuid",
+      "minLength": 36,
+      "maxLength": 36
+    },
     "application": {
       "type": "object",
       "properties": {
-        "token": {
-          "type": "string",
-          "format": "uuid",
-          "minLength": 36,
-          "maxLength": 36
-        },
+
         "userId": {
           "type": "string",
           "format": "uuid",
@@ -275,37 +276,43 @@
             },
             "hasDisabilityDescription": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 0,
               "maxLength": 200
             },
             "etray": {
-              "timeNeeded": {
-                "type": "integer"
-              },
-              "invigilatedInfo": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 256
-              },
-              "otherInfo": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 256
+              "type": "object",
+              "properties": {
+                "timeNeeded": {
+                  "type": "integer"
+                },
+                "invigilatedInfo": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "otherInfo": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
               }
             },
             "video": {
-              "timeNeeded": {
-                "type": "integer"
-              },
-              "invigilatedInfo": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 256
-              },
-              "otherInfo": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 256
+              "type": "object",
+              "properties": {
+                "timeNeeded": {
+                  "type": "integer"
+                },
+                "invigilatedInfo": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "otherInfo": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
               }
             }
 
@@ -314,8 +321,6 @@
             "hasDisability",
             "needsSupportForOnlineAssessment",
             "needsSupportAtVenue",
-            "needsSupportAtVenueDescription",
-            "needsSupportForOnlineAssessmentDescription",
             "guaranteedInterview",
             "hasDisabilityDescription"
           ]
@@ -395,7 +400,24 @@
                     }
                   }
                 },
-                "Did you live in the UK between the ages of 14 and 18?": {},
+                "Did you live in the UK between the ages of 14 and 18?": {
+                  "type": "object",
+                  "properties": {
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    },
+                    "otherDetails": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    },
+                    "unknown": {
+                      "type": "boolean"
+                    }
+                  }
+                },
                 "What was your home postcode when you were 14?": {
                   "type": "object",
                   "properties": {
@@ -639,7 +661,6 @@
                 "Between the ages of 16 to 18, in which school did you spend most of your education?",
                 "Which category best describes your degree?",
                 "During your school years, were you at any time eligible for free school meals?",
-                "Did any of your parent(s) or guardian(s) complete a university degree course or equivalent?",
                 "Do you have a parent or guardian that has completed a university degree course or equivalent?",
                 "When you were 14, what kind of work did your highest-earning parent or guardian do?",
                 "Did they work as an employee or were they self-employed?",
@@ -744,11 +765,13 @@
         "scheme-preferences",
         "assistance-details",
         "diversity-questionnaire",
+        "assessment-location",
         "results"
       ]
     }
   },
   "required": [
-    "application"
+    "application",
+    "token"
   ]
 }
