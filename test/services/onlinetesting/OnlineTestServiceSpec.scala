@@ -57,7 +57,7 @@ class OnlineTestServiceSpec extends UnitSpec {
       when(appRepositoryMock.findTestForNotification(Phase1FailedTestType)).thenReturn(Future.successful(None))
 
       val result = underTest.processNextTestForNotification(Phase1FailedTestType).futureValue
-      result mustBe ()
+      result mustBe (())
 
       verify(appRepositoryMock).findTestForNotification(Phase1FailedTestType)
       verifyNoMoreInteractions(appRepositoryMock)
@@ -71,7 +71,7 @@ class OnlineTestServiceSpec extends UnitSpec {
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
       val result = underTest.processNextTestForNotification(Phase1FailedTestType).futureValue
-      result mustBe ()
+      result mustBe (())
 
       verify(appRepositoryMock).findTestForNotification(Phase1FailedTestType)
       verify(cdRepositoryMock).find(userId)

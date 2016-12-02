@@ -32,6 +32,8 @@ import scala.concurrent.Future
 trait MediaRepository {
   def create(addMedia: Media): Future[Unit]
 
+  def find(userId: String): Future[Option[Media]]
+
   def findAll(): Future[Map[String, Media]]
 }
 
@@ -42,6 +44,12 @@ class MediaMongoRepository(implicit mongo: () => DB)
   override def create(addMedia: Media): Future[Unit] = insert(addMedia).map { _ => ()
   } recover {
     case e: WriteResult => throw new CannotAddMedia(addMedia.userId)
+  }
+
+  override def find(userId: String): Future[Option[Media]] = {
+    val query = BSONDocument("userId" -> userId)
+
+    bsonCollection.find(query).one[Media]
   }
 
   override def findAll(): Future[Map[String, Media]] = {

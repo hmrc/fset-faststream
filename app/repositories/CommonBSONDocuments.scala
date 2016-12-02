@@ -27,7 +27,7 @@ import scala.language.implicitConversions
 
 trait CommonBSONDocuments extends BaseBSONReader {
 
-  def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
+  protected def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
     // require widespread changes, and using a default in here is better than the previous implementation
     // that just set the progress status to applicationStatus.toString, which produced invalid progress statuses
@@ -54,7 +54,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
     }
   }
 
-  def applicationStatusBSON(progressStatus: ProgressStatus) = {
+  protected def applicationStatusBSON(progressStatus: ProgressStatus) = {
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
       s"progress-status.${progressStatus.key}" -> true,
@@ -137,6 +137,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString),
             phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key)
           ),
+          exported = getProgress(EXPORTED.toString),
           failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
           assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
           assessmentCentre = AssessmentCentre(

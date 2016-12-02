@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package mocks
+package services.parity
 
-import model.persisted.Media
-import repositories.MediaRepository
+import org.scalatestplus.play.OneAppPerSuite
+import testkit.UnitSpec
+import scala.concurrent.ExecutionContext.Implicits.global
 
-import scala.collection.mutable
-import scala.concurrent.Future
+class ParityExportServiceSpec extends UnitSpec with OneAppPerSuite {
 
-object MediaInMemoryRepository extends MediaRepository {
-
-  override def create(addMedia: Media): Future[Unit] = {
-    inMemoryRepo += addMedia.userId -> addMedia
-    Future.successful(Unit)
+  "Export Application" should {
+    "Display some things" in new TestFixture {
+      /*
+      sut.exportApplication("ddcb9d48-d93e-4c85-9f44-00d9a0d4b64c").recover {
+        case ex => print(s"There was an error => $ex\n")
+      }.futureValue
+      */
+    }
   }
 
-  override def find(userId: String): Future[Option[Media]] = ???
-
-  override def findAll(): Future[Map[String, Media]] = {
-    Future.successful(inMemoryRepo.toMap)
+  trait TestFixture {
+    val sut = ParityExportService
   }
-
-  val inMemoryRepo = new mutable.HashMap[String, Media]
 }

@@ -96,7 +96,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
     def getUniversityDegreeCategoryAnswer = {
       if (generatorConfig.hasDegree) {
         Some(PersistedQuestion("Which category best describes your degree?",
-          PersistedAnswer(Some(Random.degreeCategory._1), None, None)))
+          PersistedAnswer(Some(Random.degreeCategory._2), None, None)))
       } else {
         None
       }

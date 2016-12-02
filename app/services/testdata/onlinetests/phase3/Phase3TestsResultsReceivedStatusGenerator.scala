@@ -44,8 +44,9 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   val phase3TestRepo: Phase3TestRepository
 
   def getCallbackData(receivedBeforeInHours: Int, score: Option[Double]): ReviewedCallbackRequest = {
-    ReviewedCallbackRequest(DateTime.now.minusHours(receivedBeforeInHours), "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6", "FSCND-f9cf395d-df9d-4037-9fbf-9b3aa9d86c16",
-    46, None, "FSINV-28d52608-95e0-4d3a-93e7-0881cd2bc78b", LocalDate.now().plusDays(3), ReviewSectionRequest(
+    ReviewedCallbackRequest(DateTime.now.minusHours(receivedBeforeInHours), "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6",
+      "FSCND-f9cf395d-df9d-4037-9fbf-9b3aa9d86c16", 46, None, "FSINV-28d52608-95e0-4d3a-93e7-0881cd2bc78b",
+      LocalDate.now().plusDays(3), ReviewSectionRequest(
         ReviewSectionTotalAverageRequest("videoInterview", "50%", 50.0), // TODO: 50.0 should be calculated
         ReviewSectionReviewersRequest(
           reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost", score, score),
@@ -54,7 +55,8 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
       ))
   }
 
-  def getReviewSectionReviewersRequest(name: String, email: String, criteria1Score: Option[Double] = None, criteria2Score: Option[Double] = None) = {
+  def getReviewSectionReviewersRequest(name: String, email: String, criteria1Score: Option[Double] = None,
+                                       criteria2Score: Option[Double] = None) = {
     ReviewSectionReviewerRequest(name, email, None,
       question1 = getReviewSectionQuestionRequest(100, criteria1Score, criteria2Score),
       question2 = getReviewSectionQuestionRequest(101, criteria1Score, criteria2Score),
@@ -69,8 +71,8 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
 
   def getReviewSectionQuestionRequest(questionId: Int, criteria1Score: Option[Double] = None, criteria2Score: Option[Double] = None) = {
     ReviewSectionQuestionRequest(questionId,
-      ReviewSectionCriteriaRequest("numeric", Some(criteria1Score.getOrElse(Random.getVideoInterviewScore))),
-      ReviewSectionCriteriaRequest("numeric", Some(criteria2Score.getOrElse(Random.getVideoInterviewScore)))
+      ReviewSectionCriteriaRequest("numeric", Some(criteria1Score.getOrElse(Random.getVideoInterviewScore()))),
+      ReviewSectionCriteriaRequest("numeric", Some(criteria2Score.getOrElse(Random.getVideoInterviewScore())))
     )
   }
 

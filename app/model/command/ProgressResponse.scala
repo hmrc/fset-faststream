@@ -88,6 +88,7 @@ case class ProgressResponse(
                              phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
                              phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
                              phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
+                             exported: Boolean = false,
                              failedToAttend: Boolean = false,
                              assessmentScores: AssessmentScores = AssessmentScores(),
                              assessmentCentre: AssessmentCentre = AssessmentCentre()

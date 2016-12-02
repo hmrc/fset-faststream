@@ -115,6 +115,7 @@ object StatusGeneratorFactory {
       // The next two cases are deprecated: PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED
       case (PHASE3_TESTS_PASSED, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => Phase3TestsPassedStatusGenerator
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
+      case (READY_FOR_EXPORT, _) => ReadyForExportStatusGenerator
 
       case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")
