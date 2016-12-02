@@ -17,7 +17,7 @@
 package services.testdata
 
 import model.ApplicationRoute
-import model.ProgressStatuses.READY_FOR_EXPORT
+import model.ProgressStatuses.PHASE3_TESTS_SUCCESS_NOTIFIED
 import model.command.testdata.GeneratorConfig
 import model.persisted.AssistanceDetails
 import play.api.mvc.RequestHeader
@@ -45,7 +45,7 @@ trait ReadyForExportStatusGenerator extends ConstructiveGenerator {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidateInPreviousStatus.applicationId.get, READY_FOR_EXPORT)
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidateInPreviousStatus.applicationId.get, PHASE3_TESTS_SUCCESS_NOTIFIED)
     } yield {
       candidateInPreviousStatus
     }

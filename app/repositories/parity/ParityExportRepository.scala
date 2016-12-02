@@ -17,9 +17,8 @@
 package repositories.parity
 
 import factories.DateTimeFactory
-import model.Commands
+import model.{ ApplicationStatus, Commands }
 import model.Commands.CreateApplicationRequest
-import model.ProgressStatuses.READY_FOR_EXPORT
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.libs.json.{ JsValue, Json }
 import reactivemongo.api.DB
@@ -57,7 +56,7 @@ class ParityExportMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () 
   ) with ParityExportRepository with CommonBSONDocuments {
 
   override def nextApplicationsForExport(batchSize: Int): Future[List[ApplicationReadyForExport]] = {
-    val query = BSONDocument("applicationStatus" -> READY_FOR_EXPORT.toString)
+    val query = BSONDocument("applicationStatus" -> ApplicationStatus.READY_FOR_EXPORT.toString)
 
     selectRandom[ApplicationReadyForExport](query, batchSize)
   }
