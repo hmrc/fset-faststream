@@ -121,6 +121,7 @@ trait AuthProviderClient {
     }
   }
 
+  
   def generateAccessCode(implicit hc: HeaderCarrier): Future[SimpleTokenResponse] = {
     WSHttp.GET(s"$url/user-friendly-access-token").map { response =>
       response.json.as[SimpleTokenResponse]

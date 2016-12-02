@@ -191,11 +191,10 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
       BSONDocument(s"testGroups.$phase.tests" ->
         BSONDocument("$elemMatch" -> BSONDocument(
           "usedForResults" -> true, "callbacks.reviewed" -> BSONDocument("$exists" -> true),
-          "callbacks.reviewed" -> BSONDocument("$not" ->
-              BSONDocument("$elemMatch" -> BSONDocument("received" -> BSONDocument("$gt" ->
+          "callbacks.reviewed" -> BSONDocument("$elemMatch" -> BSONDocument("received" -> BSONDocument("$lte" ->
                 dateTimeFactory.nowLocalTimeZone.minusHours(
                   launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
-                )))))
+                ))))
           )
         )
       ),
