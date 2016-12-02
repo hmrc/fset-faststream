@@ -25,7 +25,7 @@ object SchemeType extends Enumeration {
   DiplomaticServiceEuropean, European, Finance, Generalist,
   GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService,
   GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
-  ProjectDelivery, ScienceAndEngineering, Edip, Sdip = Value
+  ProjectDelivery, ScienceAndEngineering, Edip, Sdip, SdipFaststream = Value
 
   implicit val schemeFormat = new Format[SchemeType] {
     def reads(json: JsValue) = JsSuccess(SchemeType.withName(json.as[String]))
