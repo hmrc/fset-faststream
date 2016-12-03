@@ -38,7 +38,8 @@ trait SchemePreferencesRepository {
 
 class SchemePreferencesMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[SelectedSchemes, BSONObjectID]("application", mongo,
-    SelectedSchemes.selectedSchemesFormat, ReactiveMongoFormats.objectIdFormats) with SchemePreferencesRepository with ReactiveRepositoryHelpers {
+    SelectedSchemes.selectedSchemesFormat, ReactiveMongoFormats.objectIdFormats)
+    with SchemePreferencesRepository with ReactiveRepositoryHelpers {
 
   private val SchemePreferencesDocumentKey = "scheme-preferences"
 
