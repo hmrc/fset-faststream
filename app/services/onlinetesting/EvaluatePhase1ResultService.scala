@@ -54,10 +54,6 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
       case _ =>
         throw new IllegalStateException(s"Illegal number of active tests with results for this application: ${application.applicationId}")
     }
-
-    require(schemeResults.map(_.scheme) != application.preferences.schemes,
-      s"Some of the scheme preferences for appId ${application.applicationId} are not evaluated for $phase")
-
     savePassMarkEvaluation(application, schemeResults, passmark)
   }
 }

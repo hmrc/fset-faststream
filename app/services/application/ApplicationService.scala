@@ -17,18 +17,19 @@
 package services.application
 
 import common.FutureEx
+import connectors.ExchangeObjects
+import model.Commands.Candidate
+import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
 import model.events.EventTypes._
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
+import model.{ ApplicationRoute, SchemeType }
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import contactdetails.ContactDetailsRepository
-import model.{ AdjustmentDetail, Adjustments, ApplicationRoute, SchemeType }
-import model.Commands.Candidate
-import model.Exceptions.ApplicationNotFound
-import play.api.Logger
 import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
 import services.events.{ EventService, EventSink }
@@ -42,6 +43,7 @@ object ApplicationService extends ApplicationService {
   val eventService = EventService
   val pdRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
+  val mediaRepo = mediaRepository
   val schemeRepository = schemePreferencesRepository
 }
 
@@ -51,6 +53,7 @@ trait ApplicationService extends EventSink {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
   val schemeRepository: SchemePreferencesRepository
+  val mediaRepo: MediaRepository
 
   val Candidate_Role = "Candidate"
 
@@ -78,7 +81,7 @@ trait ApplicationService extends EventSink {
     }.map(_ => ())
   }
 
-  def convertToSdip(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  def considerForSdip(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
       contactDetails <- cdRepository.find(candidate.userId)
@@ -89,11 +92,13 @@ trait ApplicationService extends EventSink {
     }
   }
 
-  def continueAsSdip(appId: String, originalUserId: String,
-                     newUserId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def cloneFastStreamAsSdip(userId: String, userIdToArchiveWith: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
-      _ <- appRepository.archiveApplicationWithDifferentUserId(appId, newUserId)
-      _ <- cdRepository.archiveContactDetailsWithDifferentUserId(originalUserId, newUserId)
+      application <- appRepository.findByUserId(userId, ExchangeObjects.frameworkId)
+      _ <- appRepository.clone(application.applicationId, userId, userIdToArchiveWith, ExchangeObjects.frameworkId,
+            ApplicationRoute.Faststream, ApplicationRoute.Sdip)
+      _ <- mediaRepo.clone(userId, userIdToArchiveWith)
+      _ <- cdRepository.archive(userId, userIdToArchiveWith)
     } yield {}
   }
 

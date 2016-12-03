@@ -17,21 +17,19 @@
 package repositories.contactdetails
 
 import config.MicroserviceAppConfig
-import model.{ Address, ApplicationRoute }
+import model.Address
 import model.Commands._
-import model.Exceptions.{ ApplicationNotFound, CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
-import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
+import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
 import model.PersistedObjects.ContactDetailsWithId
 import model.persisted.ContactDetails
-import play.api.Logger
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json._
 import reactivemongo.api.{ DB, ReadPreference }
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-import play.api.libs.json._
-import play.api.libs.json.Reads._
-import play.api.libs.functional.syntax._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -47,7 +45,7 @@ trait ContactDetailsRepository {
 
   def findAllPostcodes(): Future[Map[String, String]]
 
-  def archiveContactDetailsWithDifferentUserId(originalUserId: String, newUserId: String): Future[Unit]
+  def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -113,17 +111,15 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     result.map(_.toMap)
   }
 
-  override def archiveContactDetailsWithDifferentUserId(originalUserId: String, newUserId: String): Future[Unit] = {
-    // TODO LT: Consider leaving the original user Id under a new key e.g. originalUserId
-    // This may be useful in order to locate all documents which were duplicated
+  override def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
     val query = BSONDocument("userId" -> originalUserId)
-    val projection = BSONDocument("_id" -> 0, "userId" -> 0)
 
-    collection.find(query, projection).one[BSONDocument].map {
-      case Some(doc) =>
-        val archivedDocumentWithNewUserId = doc ++ BSONDocument("userId" -> newUserId)
-        collection.insert(archivedDocumentWithNewUserId).map(_ => ())
-      case _ => Future.successful() // Contact details may not exist
-    }
+    val updateWithArchiveUserId = BSONDocument("$set" -> BSONDocument(
+      "originalUserId" -> originalUserId,
+      "userId" -> userIdToArchiveWith
+    ))
+
+    val validator = singleUpdateValidator(originalUserId, actionDesc = "archiving contact details")
+    collection.update(query, updateWithArchiveUserId) map validator
   }
 }

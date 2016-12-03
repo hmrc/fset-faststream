@@ -106,20 +106,18 @@ trait ApplicationController extends BaseController {
     }
   }
 
-  def convertToSdip(applicationId: String) = Action.async { implicit request =>
-    applicationService.convertToSdip(applicationId).map { _ =>
-      Ok
+  def considerForSdip(applicationId: String) = Action.async { implicit request =>
+    applicationService.considerForSdip(applicationId).map { _ => Ok
     }.recover {
       case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
     }
   }
 
-  // TODO LT: (Maybe) Replace query param into PUT body
-  def continueAsSdip(applicationId: String, originalUserId: String, newUserId: String) = Action.async { implicit request =>
-    applicationService.continueAsSdip(applicationId, originalUserId, newUserId).map { _ =>
+  def continueAsSdip(userId: String, userIdToArchiveWith: String) = Action.async { implicit request =>
+    applicationService.cloneFastStreamAsSdip(userId, userIdToArchiveWith).map { _ =>
       Ok
     }.recover {
-      case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
+      case e: ApplicationNotFound => NotFound(s"cannot find application for userId: ${e.id}")
     }
   }
 
