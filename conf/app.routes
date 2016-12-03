@@ -29,7 +29,7 @@ GET         /password/reset                                         controllers.
 POST        /password/reset                                         controllers.PasswordResetController.submitReset
 
 # Application pages
-GET         /dashboard                                              controllers.HomeController.present
+GET         /dashboard                                              controllers.HomeController.present(displaySdipEligibilityInfo: Boolean ?= false)
 GET         /application/create                                     controllers.HomeController.create
 GET         /application/resume                                     controllers.HomeController.resume
 GET         /application/withdraw                                   controllers.HomeController.presentWithdrawApplication

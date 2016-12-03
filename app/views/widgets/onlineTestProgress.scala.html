@@ -71,7 +71,7 @@
     <p>Before you take the e-tray we need to contact you to confirm your requested extra support.</p>
 }
 
-<div>
+<section>
 
     @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
         case (true, _, _) => {
@@ -211,7 +211,8 @@
                         </div>
                     </li>
                 }
-            }
+            </ul>
+        }
     }
 
     @if(isFaststream(cachedUserData)) {
@@ -360,11 +361,9 @@
             case _ => {}
         }
     }
-    </ul>
-
     @if(!dashboardPage.isTestGroupExpired && !dashboardPage.isPhase2TestGroupExpired && !dashboardPage.isPhase3TestGroupExpired) {
         <p id="testsFindOutMore"><a href="https://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
             Find out more about the online tests</a></p>
     }
-</div>
+</section>
 

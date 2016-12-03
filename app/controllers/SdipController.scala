@@ -17,10 +17,11 @@
 package controllers
 
 import config.CSRCache
-import connectors.{ ApplicationClient, exchange }
+import connectors.ApplicationClient
 import forms.SdipForm
 import helpers.NotificationType._
-import models.ApplicationRoute
+import models.ConsiderMeForSdipHelper._
+import security.RoleUtils._
 import security.Roles.ActiveUserRole
 
 import scala.concurrent.Future
@@ -29,29 +30,28 @@ object SdipController extends SdipController(ApplicationClient, CSRCache)
 
 class SdipController(applicationClient: ApplicationClient, cacheClient: CSRCache) extends BaseController(applicationClient, cacheClient) {
 
-  def present = CSRSecureAppAction(ActiveUserRole) { implicit request =>
-    implicit user =>
-      applicationClient.findApplication(user.user.userID, exchange.FrameworkId).flatMap {
-        case response if response.applicationRoute != ApplicationRoute.Faststream =>
-          Future.successful(Redirect(routes.HomeController.present()))
-        case response if !response.progressResponse.submitted =>
-          Future.successful(Redirect(routes.HomeController.present()).flashing(warning("error.faststream.becomes.sdip.not.submitted")))
-        case response if response.progressResponse.withdrawn =>
-          Future.successful(Redirect(routes.HomeController.present()).flashing(warning("error.faststream.becomes.sdip.withdrew")))
-        case response if response.progressResponse.phase1ProgressResponse.phase1TestsExpired =>
-          Future.successful(Redirect(routes.HomeController.present()).flashing(warning("error.faststream.becomes.sdip.test.expired")))
-        case response =>
-          Future.successful(Ok(views.html.application.sdip.considerMeForSdip(SdipForm.form)))
+  def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
+    Future.successful {
+      cachedData.application match {
+        case Some(app) if !isFaststream(cachedData) =>
+          Redirect(routes.HomeController.present()).flashing(warning("error.notfaststream"))
+        case optApp if faststreamerNotEligibleForSdip(cachedData).isDefinedAt(optApp) =>
+          Redirect(routes.HomeController.present(true))
+        case _ => Ok(views.html.application.sdip.considerMeForSdip(SdipForm.form))
       }
+    }
   }
 
   def submit = CSRSecureAppAction(ActiveUserRole) { implicit request =>
-    implicit user =>
+    implicit cachedData =>
       SdipForm.form.bindFromRequest.fold(
         invalidForm =>
           Future.successful(Ok(views.html.application.sdip.considerMeForSdip(invalidForm))),
         data =>
-          applicationClient.convertToSdip(user.application.applicationId).map { _ =>
+          for {
+            _ <- applicationClient.convertToSdip(cachedData.application.applicationId)
+            _ <- env.userService.refreshCachedUser(cachedData.user.userID)
+          } yield {
             Redirect(routes.HomeController.present()).flashing(success("faststream.becomes.sdip.success"))
           }
       )

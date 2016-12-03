@@ -41,7 +41,8 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
   val Withdrawer = "Candidate"
 
-  def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
+  def present(implicit displaySdipEligibilityInfo: Boolean = false) = CSRSecureAction(ActiveUserRole) {
+    implicit request => implicit cachedData =>
      cachedData.application.map { implicit application =>
        isPhase3TestsPassed match {
          case true => displayFinalResultsPage
@@ -114,6 +115,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
     }
 
   private def dashboardWithOnlineTests(implicit application: ApplicationData,
+                                       displaySdipEligibilityInfo: Boolean,
                                        cachedData: CachedData, request: Request[_]) = {
     for {
       adjustmentsOpt <- getAdjustments
@@ -128,11 +130,12 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
         phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
       )
       Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt,
-        submitApplicationsEnabled = true))
+        submitApplicationsEnabled = true, displaySdipEligibilityInfo))
     }
   }
 
   private def dashboardWithoutOnlineTests(implicit application: ApplicationData,
+                                          displaySdipEligibilityInfo: Boolean,
                                           cachedData: CachedData,
                                           request: Request[_]):PartialFunction[Throwable, Future[Result]] = {
     case e: OnlineTestNotFound =>
@@ -141,13 +144,19 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       }
       val isDashboardEnabled = isSubmitApplicationsEnabled(application.applicationRoute) || applicationSubmitted
       val dashboardPage = DashboardPage(cachedData, None, None, None)
-      Future.successful(Ok(views.html.home.dashboard(cachedData, dashboardPage, submitApplicationsEnabled = isDashboardEnabled)))
+      Future.successful(Ok(views.html.home.dashboard(cachedData, dashboardPage,
+        submitApplicationsEnabled = isDashboardEnabled,
+        displaySdipEligibilityInfo = displaySdipEligibilityInfo)))
   }
 
-  private def dashboardWithoutApplication(implicit cachedData: CachedData, request: Request[_]) = {
+  private def dashboardWithoutApplication(implicit cachedData: CachedData,
+                                          displaySdipEligibilityInfo: Boolean,
+                                          request: Request[_]) = {
       val dashboardPage = DashboardPage(cachedData, None, None, None)
       Future.successful(
-        Ok(views.html.home.dashboard(cachedData, dashboardPage, submitApplicationsEnabled = isSubmitApplicationsEnabled))
+        Ok(views.html.home.dashboard(cachedData, dashboardPage,
+          submitApplicationsEnabled = isSubmitApplicationsEnabled,
+          displaySdipEligibilityInfo = displaySdipEligibilityInfo))
       )
   }
 
