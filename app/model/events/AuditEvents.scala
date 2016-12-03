@@ -34,6 +34,7 @@ object AuditEvents {
   case class ApplicationSubmitted(applicationId: String) extends AuditEventWithAppId(applicationId)
   case class ApplicationWithdrawn(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class ApplicationReadyForExport(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
+  case class ApplicationExported(seqDetails: (String, String)*) extends AuditEvent(seqDetails.toMap)
   case class ExpiredTestsExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class NonExpiredTestsExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class Phase1TestsReset(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)

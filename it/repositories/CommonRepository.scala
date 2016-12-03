@@ -17,6 +17,7 @@ import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting._
+import repositories.parity.ParityExportMongoRepository
 import repositories.passmarksettings._
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
@@ -55,6 +56,7 @@ trait CommonRepository {
 
   def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
 
+  def parityExportMongoRepo = new ParityExportMongoRepository(DateTimeFactory)
 
   implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
 
