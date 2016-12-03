@@ -89,6 +89,14 @@ trait ApplicationService extends EventSink {
     }
   }
 
+  def continueAsSdip(appId: String, originalUserId: String,
+                     newUserId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    for {
+      _ <- appRepository.archiveApplicationWithDifferentUserId(appId, newUserId)
+      _ <- cdRepository.archiveContactDetailsWithDifferentUserId(originalUserId, newUserId)
+    } yield {}
+  }
+
   def fixDataByRemovingETray(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     appRepository.fixDataByRemovingETray(appId)
   }

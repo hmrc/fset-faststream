@@ -114,4 +114,13 @@ trait ApplicationController extends BaseController {
     }
   }
 
+  // TODO LT: (Maybe) Replace query param into PUT body
+  def continueAsSdip(applicationId: String, originalUserId: String, newUserId: String) = Action.async { implicit request =>
+    applicationService.continueAsSdip(applicationId, originalUserId, newUserId).map { _ =>
+      Ok
+    }.recover {
+      case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
+    }
+  }
+
 }
