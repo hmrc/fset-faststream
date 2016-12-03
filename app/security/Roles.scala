@@ -88,6 +88,11 @@ object Roles {
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && (hasSchemes(user) && !isCivilServant(user))
   }
 
+  object ContinueAsSdipRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      activeUserWithApp(user) && isFaststreamOnly(user) && (statusIn(user)(WITHDRAWN) || !isSubmitted(user) || isTestExpired(user))
+  }
+
   object AssistanceDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
@@ -258,6 +263,8 @@ object RoleUtils {
 
   def hasPreview(implicit user: CachedData) = progress.preview
 
+  def isSubmitted(implicit user: CachedData) = progress.submitted
+
   def isCivilServant(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     user.application
       .flatMap(_.civilServiceExperienceDetails)
@@ -295,14 +302,18 @@ object RoleUtils {
   def isSdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Sdip
 
   def isFaststream(implicit user: CachedData): Boolean = user.application exists { app =>
-    // The second part of the condition means that "Faststream becomes SDIP" applications need still be treated
-    // as faststream in the frontend. The only difference is in backend.
     app.applicationRoute == ApplicationRoute.Faststream || app.applicationRoute == ApplicationRoute.SdipFaststream
+  }
+
+  def isFaststreamOnly(implicit user: CachedData): Boolean = user.application exists { app =>
+    app.applicationRoute == ApplicationRoute.Faststream
   }
 
   def isEdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Edip)
 
   def isSdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Sdip)
+
+  def isSdipFaststream(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.SdipFaststream)
 
   def isFaststream(implicit user: Option[CachedData]): Boolean = user.forall(u => isFaststream(u))
 

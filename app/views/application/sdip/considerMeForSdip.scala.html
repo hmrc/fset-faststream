@@ -1,4 +1,4 @@
-@(form: Form[_root_.forms.SdipForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(form: Form[_root_.forms.ConsiderForSdipForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @import views.html.widgets.checkbox
 
@@ -7,7 +7,7 @@
         <h1 class="heading-xlarge">Consider me for SDIP</h1>
         <p class="subtitle">For existing Civil Service Fast Stream applicants</p>
     </div>
-    @helper.form(action = routes.SdipController.submit(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.ConsiderForSdipController.submit(), 'novalidate -> "novalidate") {
         @helper.CSRF.formField
 
         <section class="text">

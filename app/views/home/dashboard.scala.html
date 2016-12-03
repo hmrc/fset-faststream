@@ -34,11 +34,11 @@
 }
 
 @disableDashboardMayBe = @{
-    if(!submitApplicationsEnabled || displaySdipEligibilityInfo) {"disabled"}
+    if(!submitApplicationsEnabled || (displaySdipEligibilityInfo && isFaststreamOnly(usr))) "disabled"
 }
 
 @displayLeadInformation = @{(displaySdipEligibilityInfo, submitApplicationsEnabled) match {
-    case (true, _) => sdipEligibilityInfo(usr)
+    case (true, _) if (isFaststreamOnly(usr)) => sdipEligibilityInfo(usr)
     case (_, false) => submit_disabled(usr)
     case _ => withdrawInformation(usr)
 }}

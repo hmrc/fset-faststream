@@ -46,6 +46,7 @@ applicationRoute.Sdip.notOpen = Sorry, applications for the Civil Service Summer
 applicationRoute.Edip.closed = Sorry, applications for the Civil Service Early Diversity Internship Programme are now closed
 applicationRoute.Edip.notOpen = Sorry, applications for the Civil Service Early Diversity Internship Programme are opened from {0}
 faststream.becomes.sdip.success = You''ll now be considered for the Summer Diversity Internship Programme. <p class="text">If you haven''t finished your online exercises, please make sure you do so before they expire.</p> <p class="text">We''ve sent you an email confirming your submission, make sure you check your junk inbox.</p>
+faststream.continueAsSdip.success = You''ll now be considered for the Summer Diversity Internship Programme only.
 error.faststream.becomes.sdip.not.submitted = Unfortunately, you didn''t submit your application for the Civil Service \
 Fast Stream before the deadline.
 error.faststream.becomes.sdip.test.expired = Unfortunately, you didn''t complete your online exercises for the Civil Service \

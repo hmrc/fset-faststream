@@ -21,7 +21,7 @@ import play.api.data.Forms.checked
 import play.api.i18n.Messages
 import play.api.data.Forms._
 
-object SdipForm {
+object ConsiderForSdipForm {
   val form = Form(
     mapping(
       "acceptTerms" -> checked(Messages("sdipFaststream.acceptTerms.required"))

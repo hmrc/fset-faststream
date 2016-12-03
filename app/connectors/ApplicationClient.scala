@@ -236,8 +236,12 @@ trait ApplicationClient {
     }
   }
 
-  def convertToSdip(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT(s"${url.host}${url.base}/application/sdip/$applicationId", "").map(_ => ())
+  def considerForSdip(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/application/consider-for-sdip/$applicationId", "").map(_ => ())
+  }
+
+  def continueAsSdip(userId: UniqueIdentifier, userIdToArchiveWith: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"${url.host}${url.base}/application/continue-as-sdip/$userId/$userIdToArchiveWith", "").map(_ => ())
   }
 }
 
