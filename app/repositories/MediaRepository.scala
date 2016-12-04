@@ -36,7 +36,7 @@ trait MediaRepository {
 
   def findAll(): Future[Map[String, Media]]
 
-  def clone(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
+  def cloneMediaItem(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
 }
 
 class MediaMongoRepository(implicit mongo: () => DB)
@@ -62,7 +62,7 @@ class MediaMongoRepository(implicit mongo: () => DB)
     queryResult.map(_.toMap)
   }
 
-  override def clone(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
+  override def cloneMediaItem(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
     find(originalUserId).flatMap {
       case Some(media) => create(media.copy(userId = userIdToArchiveWith, originalUserId = Some(originalUserId)))
       case None => Future.successful(())

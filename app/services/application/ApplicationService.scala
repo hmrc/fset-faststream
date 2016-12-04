@@ -95,10 +95,10 @@ trait ApplicationService extends EventSink {
   def cloneFastStreamAsSdip(userId: String, userIdToArchiveWith: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       application <- appRepository.findByUserId(userId, ExchangeObjects.frameworkId)
-      _ <- appRepository.clone(application.applicationId, userId, userIdToArchiveWith, ExchangeObjects.frameworkId,
+      _ <- appRepository.cloneApp(application.applicationId, userId, userIdToArchiveWith, ExchangeObjects.frameworkId,
             ApplicationRoute.Faststream, ApplicationRoute.Sdip)
-      _ <- mediaRepo.clone(userId, userIdToArchiveWith)
-      _ <- cdRepository.archive(userId, userIdToArchiveWith)
+      _ <- mediaRepo.cloneMediaItem(userId, userIdToArchiveWith)
+      _ <- cdRepository.archiveContactDetails(userId, userIdToArchiveWith)
     } yield {}
   }
 

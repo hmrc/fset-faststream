@@ -18,13 +18,10 @@ package repositories.application
 
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.ApplicationStatus._
-import model.ProgressStatuses.{ PHASE3_TESTS_PASSED, PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
-import model.SchemeType.SchemeType
-import model.report.CandidateProgressReportItem
+import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
 import model.{ ApplicationStatus, _ }
 import org.joda.time.LocalDate
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
@@ -38,8 +35,6 @@ import scheduler.fixer.RequiredFixes.{ PassToPhase1TestPassed, PassToPhase2, Res
 import testkit.MongoRepositorySpec
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
-
-  import ImplicitBSONHandlers._
 
   val collectionName = "application"
 
@@ -501,6 +496,27 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val applicationResponse = repository.findByUserId(UserId, "FastStream-2016").futureValue
       applicationResponse.applicationRoute mustBe ApplicationRoute.SdipFaststream
+    }
+  }
+
+  "Clone application" should {
+    "archive the existing application and create new application" in {
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId,
+        applicationRoute = ApplicationRoute.Faststream
+      ).futureValue
+
+      val userIdToArchiveWith = "newUserId"
+      repository.cloneApp(AppId, UserId, userIdToArchiveWith, FrameworkId,
+        ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).futureValue
+
+      val newApplication = repository.findByUserId(UserId, FrameworkId).futureValue
+      newApplication.applicationRoute mustBe ApplicationRoute.SdipFaststream
+      newApplication.applicationId mustNot be(AppId)
+
+      val archivedApplication = repository.findByUserId(userIdToArchiveWith, FrameworkId).futureValue
+      archivedApplication.applicationRoute mustBe ApplicationRoute.Faststream
+      archivedApplication.applicationId mustBe AppId
+      archivedApplication.userId mustBe userIdToArchiveWith
     }
   }
 

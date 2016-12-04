@@ -8,6 +8,8 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import testkit.MongoRepositorySpec
 
+import scala.concurrent.Await
+
 class ContactDetailsRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
@@ -66,8 +68,8 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
 
     "return list of contact details" in {
-      insert("1", ContactDetails(false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345"))
-      insert("2", ContactDetails(false, Address("line1b"), Some("456"), Some("UK"), "email2@email.com", "67890"))
+      insert("1", ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345"))
+      insert("2", ContactDetails(outsideUk = false, Address("line1b"), Some("456"), Some("UK"), "email2@email.com", "67890"))
 
       val result = repository.findAll.futureValue
       result.size mustBe 2
@@ -75,7 +77,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
     "return only the first 10 documents if there is more than 10" in {
       for (i <- 1 to 11) {
-        insert(i.toString, ContactDetails(false, Address(s"line$i"), Some(s"123$i"), Some("UK"), s"email$i@email.com", s"12345$i"))
+        insert(i.toString, ContactDetails(outsideUk = false, Address(s"line$i"), Some(s"123$i"), Some("UK"), s"email$i@email.com", s"12345$i"))
       }
 
       val result = repository.findAll.futureValue
@@ -85,14 +87,14 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
   "find all PostCode" should {
     "return an empty map if no record is present" in {
-      val result = repository.findAllPostcodes.futureValue
+      val result = repository.findAllPostcodes().futureValue
       result mustBe Map.empty
     }
 
     "return an empty map if the present records have no post code" in {
       val result = (for {
         _ <- insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsOutsideUK))
-        res <- repository.findAllPostcodes
+        res <- repository.findAllPostcodes()
       } yield res).futureValue
 
       result.isEmpty mustBe true
@@ -101,10 +103,24 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     "return the postcode for a given user Id if present" in {
       val result: Map[String, String] = (for {
         _ <- insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsUK))
-        res <- repository.findAllPostcodes
+        res <- repository.findAllPostcodes()
       } yield res).futureValue
 
       result.get(UserId) mustBe Some("A1 B23")
+    }
+  }
+
+  "Archive" should {
+    "archive the existing contact details" in {
+      insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsUK)).futureValue
+
+      val userIdToArchiveWith = "newUserId"
+
+      repository.archiveContactDetails(UserId, userIdToArchiveWith).futureValue
+
+      an[ContactDetailsNotFound] must be thrownBy Await.result(repository.find(UserId), timeout)
+
+      repository.find(userIdToArchiveWith).futureValue mustBe ContactDetailsUK
     }
   }
 

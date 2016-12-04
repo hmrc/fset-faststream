@@ -131,8 +131,8 @@ trait GeneralApplicationRepository {
 
   def updateApplicationRoute(appId: String, newApplicationRoute: ApplicationRoute): Future[Unit]
 
-  def clone(appId: String, originalUserId: String, userIdToArchiveWith: String, frameworkId: String,
-            appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit]
+  def cloneApp(appId: String, originalUserId: String, userIdToArchiveWith: String, frameworkId: String,
+               appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -916,8 +916,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     collection.update(query, unsetDoc) map validator
   }
 
-  override def clone(appId: String, originalUserId: String, userIdToArchiveWith: String, frameworkId: String,
-                       appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
+  override def cloneApp(appId: String, originalUserId: String, userIdToArchiveWith: String, frameworkId: String,
+                        appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> appId),
       BSONDocument("$or" -> BSONArray(
