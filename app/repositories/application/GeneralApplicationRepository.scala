@@ -129,7 +129,7 @@ trait GeneralApplicationRepository {
 
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit]
 
-  def updateApplicationRoute(appId: String, newApplicationRoute: ApplicationRoute): Future[Unit]
+  def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit]
 
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
               frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
@@ -899,17 +899,14 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     collection.update(query, unsetDoc) map validator
   }
 
-  override def updateApplicationRoute(appId: String, newApplicationRoute: ApplicationRoute): Future[Unit] = {
+  override def updateApplicationRoute(appId: String, appRoute:ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> appId),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument("applicationRoute" -> ApplicationRoute.Faststream),
-        BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
-      ))
+      applicationRouteCriteria(appRoute)
     ))
 
     val unsetDoc = BSONDocument("$set" -> BSONDocument(
-      "applicationRoute" -> newApplicationRoute
+      "applicationRoute" -> newAppRoute
     ))
 
     val validator = singleUpdateValidator(appId, actionDesc = "updating application route")
@@ -920,10 +917,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
                        frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> appId),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument("applicationRoute" -> appRoute),
-        BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
-      ))
+      applicationRouteCriteria(appRoute)
     ))
 
     val updateWithArchiveUserId = BSONDocument("$set" -> BSONDocument(
@@ -933,6 +927,15 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     val validator = singleUpdateValidator(appId, actionDesc = "archiving application")
     collection.update(query, updateWithArchiveUserId) map validator
+  }
+
+  private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
+    case ApplicationRoute.Faststream =>
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument("applicationRoute" -> appRoute),
+        BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
+      ))
+    case _ => BSONDocument("applicationRoute" -> appRoute)
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

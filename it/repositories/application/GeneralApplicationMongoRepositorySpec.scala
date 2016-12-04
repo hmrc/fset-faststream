@@ -26,7 +26,7 @@ import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
 import model.Commands.Candidate
-import model.Exceptions.ApplicationNotFound
+import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.command.ProgressResponse
 import model.persisted._
 import repositories.CommonBSONDocuments
@@ -469,43 +469,36 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Update application route" should {
     "return not found if the application route is not Faststream" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
-        additionalDoc = BSONDocument("applicationRoute" -> ApplicationRoute.Edip.toString)
-      ).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
 
-      val result = repository.updateApplicationRoute(AppId, ApplicationRoute.SdipFaststream).failed.futureValue
+      val result = repository.updateApplicationRoute(AppId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).failed.futureValue
 
       result mustBe a[Exceptions.NotFoundException]
     }
 
     "update the Faststream application when application route is Faststream" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
-        applicationRoute = ApplicationRoute.Faststream,
-        additionalDoc = BSONDocument("applicationRoute" -> ApplicationRoute.Faststream.toString)
-      ).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, applicationRoute = Some(ApplicationRoute.Faststream)).futureValue
 
-      repository.updateApplicationRoute(AppId, ApplicationRoute.SdipFaststream).futureValue
+      repository.updateApplicationRoute(AppId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).futureValue
 
-      val applicationResponse = repository.findByUserId(UserId, "FastStream-2016").futureValue
+      val applicationResponse = repository.findByUserId(UserId, FrameworkId).futureValue
       applicationResponse.applicationRoute mustBe ApplicationRoute.SdipFaststream
     }
 
     "update the application without application route" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
-        applicationRoute = ApplicationRoute.Faststream
-      ).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId).futureValue
 
-      repository.updateApplicationRoute(AppId, ApplicationRoute.SdipFaststream).futureValue
+      repository.updateApplicationRoute(AppId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).futureValue
 
-      val applicationResponse = repository.findByUserId(UserId, "FastStream-2016").futureValue
+      val applicationResponse = repository.findByUserId(UserId, FrameworkId).futureValue
       applicationResponse.applicationRoute mustBe ApplicationRoute.SdipFaststream
     }
   }
 
-  "Clone application" should {
-    "archive the existing application and create new application" in {
+  "Archive" should {
+    "archive the existing application" in {
       testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId,
-        applicationRoute = ApplicationRoute.Faststream
+        applicationRoute = Some(ApplicationRoute.Faststream)
       ).futureValue
 
       val userIdToArchiveWith = "newUserId"
@@ -517,6 +510,29 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       archivedApplication.userId mustBe userIdToArchiveWith
 
       an[ApplicationNotFound] must be thrownBy Await.result(repository.findByUserId(UserId, FrameworkId), timeout)
+    }
+
+    "archive the existing application when application route is absent" in {
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId).futureValue
+
+      val userIdToArchiveWith = "newUserId"
+      repository.archive(AppId, UserId, userIdToArchiveWith, FrameworkId, ApplicationRoute.Faststream).futureValue
+
+      val archivedApplication = repository.findByUserId(userIdToArchiveWith, FrameworkId).futureValue
+      archivedApplication.applicationRoute mustBe ApplicationRoute.Faststream
+      archivedApplication.applicationId mustBe AppId
+      archivedApplication.userId mustBe userIdToArchiveWith
+
+      an[ApplicationNotFound] must be thrownBy Await.result(repository.findByUserId(UserId, FrameworkId), timeout)
+    }
+
+    "return not found when application route is not faststream" in {
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
+
+      val userIdToArchiveWith = "newUserId"
+
+      an[NotFoundException] must be thrownBy Await.result(repository.archive(AppId, UserId, userIdToArchiveWith,
+        FrameworkId, ApplicationRoute.Faststream), timeout)
     }
   }
 

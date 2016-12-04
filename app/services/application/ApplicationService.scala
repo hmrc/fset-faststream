@@ -85,7 +85,7 @@ trait ApplicationService extends EventSink {
     for {
       candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
       contactDetails <- cdRepository.find(candidate.userId)
-      _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream)
+      _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream)
       _ <- schemeRepository.add(applicationId, SchemeType.Sdip)
     } yield {
       List(EmailEvents.ApplicationConvertedToSdip(contactDetails.email, candidate.name))
