@@ -905,12 +905,12 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       applicationRouteCriteria(appRoute)
     ))
 
-    val unsetDoc = BSONDocument("$set" -> BSONDocument(
+    val updateAppRoute = BSONDocument("$set" -> BSONDocument(
       "applicationRoute" -> newAppRoute
     ))
 
     val validator = singleUpdateValidator(appId, actionDesc = "updating application route")
-    collection.update(query, unsetDoc) map validator
+    collection.update(query, updateAppRoute) map validator
   }
 
   override def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
