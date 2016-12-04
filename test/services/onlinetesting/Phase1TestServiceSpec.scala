@@ -128,7 +128,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
   val candidate = Commands.Candidate(userId = "user123", firstName = Some("Cid"),
     lastName = Some("Highwind"), preferredName = None, applicationId = Some("appId123"),
     email = Some("test@test.com"), dateOfBirth = None, address = None, postCode = None, country = None,
-    applicationRoute = None
+    applicationRoute = None, applicationStatus = None
   )
 
   val postcode : Option[PostCode]= Some("WC2B 4")

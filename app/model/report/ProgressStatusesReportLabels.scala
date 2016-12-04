@@ -78,7 +78,8 @@ trait ProgressStatusesReportLabels {
     (progress.assessmentCentre.passed, 460, AssessmentCentrePassedProgress),
     (progress.assessmentCentre.passedNotified, 470, AssessmentCentrePassedNotifiedProgress),
     (progress.assessmentScores.entered, 475, AssessmentScoresEnteredProgress),
-    (progress.withdrawn, 999, WithdrawnProgress)
+    (progress.withdrawn, 999, WithdrawnProgress),
+    (progress.applicationArchived, 1000, ApplicationArchived)
   )
   // scalastyle:on
 
@@ -151,6 +152,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailed = "phase3_tests_failed"
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsSuccessNotified = "phase3_tests_success_notified"
+  val ApplicationArchived = "application_archived"
   val Exported = "exported"
 
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"

@@ -99,13 +99,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     implicit val rh = mock[RequestHeader]
 
     val candidate1 = Candidate(userId = "user123", applicationId = Some("appId234"), email = Some("test1@localhost"),
-      None, None, None, None, None, None, None, None)
+      None, None, None, None, None, None, None, None, None)
 
     val candidate2 = Candidate(userId = "user456", applicationId = Some("appId4567"), email = Some("test2@localhost"),
-      None, None, None, None, None, None, None, None)
+      None, None, None, None, None, None, None, None, None)
 
     val candidate3 = Candidate(userId = "user569", applicationId = Some("appId84512"), email = Some("test3@localhost"),
-      None, None, None, None, None, None, None, None)
+      None, None, None, None, None, None, None, None, None)
 
     val generalException = new RuntimeException("something went wrong")
     val failure = Future.failed(generalException)
