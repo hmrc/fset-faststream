@@ -16,6 +16,7 @@
 @import views.html.home.submit_disabled
 @import views.html.home.withdrawSection
 @import views.html.home.withdrawInformation
+@import models.ConsiderMeForSdipHelper._
 
 @(usr: CachedData, dashboardPage: DashboardPage,
         assistanceDetails: Option[connectors.exchange.AssistanceDetails] = None,
@@ -33,12 +34,17 @@
     </li>
 }
 
-@disableDashboardMayBe = @{
-    if(!submitApplicationsEnabled || (displaySdipEligibilityInfo && isFaststreamOnly(usr))) "disabled"
+@cannotBeConsideredForSdip = @{
+    displaySdipEligibilityInfo && isFaststreamOnly(usr) &&
+        faststreamerNotEligibleForSdip(usr).isDefinedAt(usr.application)
 }
 
-@displayLeadInformation = @{(displaySdipEligibilityInfo, submitApplicationsEnabled) match {
-    case (true, _) if (isFaststreamOnly(usr)) => sdipEligibilityInfo(usr)
+@disableDashboardMayBe = @{
+    if(!submitApplicationsEnabled || cannotBeConsideredForSdip) "disabled"
+}
+
+@displayLeadInformation = @{(cannotBeConsideredForSdip, submitApplicationsEnabled) match {
+    case (true, _) => sdipEligibilityInfo(usr)
     case (_, false) => submit_disabled(usr)
     case _ => withdrawInformation(usr)
 }}
