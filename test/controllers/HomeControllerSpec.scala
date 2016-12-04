@@ -30,6 +30,7 @@ import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import play.api.i18n.Messages
 import play.api.test.Helpers._
 import security.UserService
 import testkit.BaseControllerSpec
@@ -123,6 +124,95 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       content must include("Your application has been withdrawn.")
       content must include("Congratulations, you've been successful for at least one of your")
+    }
+  }
+
+  "present with sdip eligibility info" should {
+    "display eligibility information when faststream application is withdrawn" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new OnlineTestNotFound))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
+
+      val withdrawnApplication = currentCandidateWithApp.copy(application = CachedDataExample.WithdrawApplication)
+      val result = controller(withdrawnApplication, applicationRouteState).present(true)(fakeRequest)
+
+      val content = contentAsString(result)
+
+      content must include("Unfortunately, you withdrew your Civil Service Fast Stream application.")
+    }
+
+    "display eligibility information when faststream application is not submitted" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new OnlineTestNotFound))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
+
+      val inProgressApp = currentCandidateWithApp.copy(application = CachedDataExample.InProgressInAssistanceDetailsApplication)
+      val result = controller(inProgressApp, applicationRouteState).present(true)(fakeRequest)
+
+      val content = contentAsString(result)
+
+      content must include("submit your application for the Civil Service Fast Stream before the deadline")
+    }
+
+    "display eligibility information when faststream application is phase1 tests expired" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new OnlineTestNotFound))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
+
+      val phase1TestsExpiredCandidate = currentCandidateWithApp.copy(application = CachedDataExample.Phase1TestsExpiredApplication)
+      val result = controller(phase1TestsExpiredCandidate, applicationRouteState).present(true)(fakeRequest)
+
+      val content = contentAsString(result)
+
+      content must include("complete your online exercises for the Civil Service Fast Stream before the deadline")
+    }
+
+    "not display eligibility information when application route is not faststream" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new OnlineTestNotFound))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
+
+      val result = controller(currentCandidateWithEdipApp, applicationRouteState).present(true)(fakeRequest)
+
+      val content = contentAsString(result)
+
+      content mustNot include("Continue as SDIP")
     }
   }
 
