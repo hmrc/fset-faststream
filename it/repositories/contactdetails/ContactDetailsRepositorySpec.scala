@@ -116,7 +116,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
       val userIdToArchiveWith = "newUserId"
 
-      repository.archiveContactDetails(UserId, userIdToArchiveWith).futureValue
+      repository.archive(UserId, userIdToArchiveWith).futureValue
 
       an[ContactDetailsNotFound] must be thrownBy Await.result(repository.find(UserId), timeout)
 

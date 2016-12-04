@@ -26,6 +26,7 @@ import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
 import model.Commands.Candidate
+import model.Exceptions.ApplicationNotFound
 import model.command.ProgressResponse
 import model.persisted._
 import repositories.CommonBSONDocuments
@@ -33,6 +34,8 @@ import repositories.onlinetesting.Phase1TestMongoRepository
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import testkit.MongoRepositorySpec
+
+import scala.concurrent.Await
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
 
@@ -506,17 +509,14 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       ).futureValue
 
       val userIdToArchiveWith = "newUserId"
-      repository.cloneApp(AppId, UserId, userIdToArchiveWith, FrameworkId,
-        ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).futureValue
-
-      val newApplication = repository.findByUserId(UserId, FrameworkId).futureValue
-      newApplication.applicationRoute mustBe ApplicationRoute.SdipFaststream
-      newApplication.applicationId mustNot be(AppId)
+      repository.archive(AppId, UserId, userIdToArchiveWith, FrameworkId, ApplicationRoute.Faststream).futureValue
 
       val archivedApplication = repository.findByUserId(userIdToArchiveWith, FrameworkId).futureValue
       archivedApplication.applicationRoute mustBe ApplicationRoute.Faststream
       archivedApplication.applicationId mustBe AppId
       archivedApplication.userId mustBe userIdToArchiveWith
+
+      an[ApplicationNotFound] must be thrownBy Await.result(repository.findByUserId(UserId, FrameworkId), timeout)
     }
   }
 

@@ -31,7 +31,7 @@ object MediaInMemoryRepository extends MediaRepository {
 
   override def find(userId: String): Future[Option[Media]] = ???
 
-  override def cloneMediaItem(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = ???
+  override def cloneAndArchive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = ???
 
   override def findAll(): Future[Map[String, Media]] = {
     Future.successful(inMemoryRepo.toMap)

@@ -45,7 +45,7 @@ trait ContactDetailsRepository {
 
   def findAllPostcodes(): Future[Map[String, String]]
 
-  def archiveContactDetails(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
+  def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -111,7 +111,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     result.map(_.toMap)
   }
 
-  override def archiveContactDetails(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
+  override def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
     val query = BSONDocument("userId" -> originalUserId)
 
     val updateWithArchiveUserId = BSONDocument("$set" -> BSONDocument(

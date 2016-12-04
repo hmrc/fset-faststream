@@ -15,7 +15,7 @@ class MediaRepositorySpec extends MongoRepositorySpec {
       repo.create(mediaItem).futureValue
 
       val userIdToArchiveWith = "newUserId"
-      repo.cloneMediaItem(UserId, userIdToArchiveWith).futureValue
+      repo.cloneAndArchive(UserId, userIdToArchiveWith).futureValue
 
       val newMediaItem = repo.find(UserId).futureValue.get
       newMediaItem.userId mustBe UserId

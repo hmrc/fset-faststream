@@ -93,13 +93,22 @@ trait ApplicationService extends EventSink {
   }
 
   def cloneFastStreamAsSdip(userId: String, userIdToArchiveWith: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    for {
-      application <- appRepository.findByUserId(userId, ExchangeObjects.frameworkId)
-      _ <- appRepository.cloneApp(application.applicationId, userId, userIdToArchiveWith, ExchangeObjects.frameworkId,
-            ApplicationRoute.Faststream, ApplicationRoute.Sdip)
-      _ <- mediaRepo.cloneMediaItem(userId, userIdToArchiveWith)
-      _ <- cdRepository.archiveContactDetails(userId, userIdToArchiveWith)
+
+    val  mediaCloningAndSdipAppCreation = for {
+      _ <- mediaRepo.cloneAndArchive(userId, userIdToArchiveWith)
+      _ <- appRepository.create(userId, ExchangeObjects.frameworkId, ApplicationRoute.Sdip)
     } yield {}
+
+    (for {
+      application <- appRepository.findByUserId(userId, ExchangeObjects.frameworkId)
+      _ <- appRepository.archive(application.applicationId, userId, userIdToArchiveWith,
+            ExchangeObjects.frameworkId, ApplicationRoute.Faststream)
+      _ <- cdRepository.archive(userId, userIdToArchiveWith)
+      _ <- mediaCloningAndSdipAppCreation
+    } yield {
+    }).recoverWith {
+      case e: ApplicationNotFound => mediaCloningAndSdipAppCreation
+    }
   }
 
   def fixDataByRemovingETray(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
