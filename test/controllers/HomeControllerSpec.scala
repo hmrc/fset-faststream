@@ -214,6 +214,28 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       content mustNot include("Continue as SDIP")
     }
+
+    "not display eligibility information when faststream application is submitted" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.failed(new OnlineTestNotFound))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
+
+      val submittedCandidate = currentCandidateWithApp.copy(application = CachedDataExample.SubmittedApplication)
+      val result = controller(submittedCandidate, applicationRouteState).present(true)(fakeRequest)
+
+      val content = contentAsString(result)
+
+      content mustNot include("Continue as SDIP")
+    }
   }
 
   "presentWithdrawApplication" should {
