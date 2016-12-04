@@ -29,7 +29,7 @@ GET         /password/reset                                         controllers.
 POST        /password/reset                                         controllers.PasswordResetController.submitReset
 
 # Application pages
-GET         /dashboard                                              controllers.HomeController.present
+GET         /dashboard                                              controllers.HomeController.present(displaySdipEligibilityInfo: Boolean ?= false)
 GET         /application/create                                     controllers.HomeController.create
 GET         /application/resume                                     controllers.HomeController.resume
 GET         /application/withdraw                                   controllers.HomeController.presentWithdrawApplication
@@ -83,8 +83,9 @@ GET         /online-tests/complete/:token                           controllers.
 GET         /invigilated-etray                                      controllers.InvigilatedController.present
 POST        /invigilated-etray                                      controllers.InvigilatedController.verifyToken
 
-GET         /sdip                                                   controllers.SdipController.present
-POST        /sdip                                                   controllers.SdipController.submit
+GET         /consider-for-sdip                                      controllers.ConsiderForSdipController.present
+POST        /consider-for-sdip                                      controllers.ConsiderForSdipController.submit
+POST        /continue-as-sdip                                       controllers.ConsiderForSdipController.continueAsSdip
 
 # Assets controller
 GET         /assets/*file                                           controllers.Assets.versioned(path="/public", file: Asset)

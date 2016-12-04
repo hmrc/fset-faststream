@@ -13,7 +13,7 @@
                     the outcome. Make sure you check your junk inbox.</p>
                 <p><a href="@feedbackUrl" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>
                 @if(user.isDefined){
-                    <p><a href="@routes.HomeController.present">Return to home</a>. Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a>.</p>
+                    <p><a href="@routes.HomeController.present()">Return to home</a>. Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a>.</p>
                 } else {
                     <p>You've been signed out. <a href="@routes.SignInController.signIn">Sign in</a> to return to your home page.</p>
                 }

@@ -46,9 +46,13 @@ applicationRoute.Sdip.notOpen = Sorry, applications for the Civil Service Summer
 applicationRoute.Edip.closed = Sorry, applications for the Civil Service Early Diversity Internship Programme are now closed
 applicationRoute.Edip.notOpen = Sorry, applications for the Civil Service Early Diversity Internship Programme are opened from {0}
 faststream.becomes.sdip.success = You''ll now be considered for the Summer Diversity Internship Programme. <p class="text">If you haven''t finished your online exercises, please make sure you do so before they expire.</p> <p class="text">We''ve sent you an email confirming your submission, make sure you check your junk inbox.</p>
-error.faststream.becomes.sdip.not.submitted = Unfortunately, we can''t use your Civil Service Fast Stream application to be considered for SDIP because you didn''t submit your application before the deadline.
-error.faststream.becomes.sdip.test.expired = Unfortunately, we can''t use your Civil Service Fast Stream application to be considered for SDIP because you didn''t complete your online exercises before the deadline.
-error.faststream.becomes.sdip.withdrew = Unfortunately, we can''t use your Civil Service Fast Stream application to be considered for SDIP because you withdrew your application.
+faststream.continueAsSdip.success = You''ll now be considered for the Summer Diversity Internship Programme only.
+error.faststream.becomes.sdip.not.submitted = Unfortunately, you didn''t submit your application for the Civil Service \
+Fast Stream before the deadline.
+error.faststream.becomes.sdip.test.expired = Unfortunately, you didn''t complete your online exercises for the Civil Service \
+Fast Stream before the deadline.
+error.faststream.becomes.sdip.withdrew = Unfortunately, you withdrew your Civil Service Fast Stream application.
+error.notfaststream = Sorry, you don''t have a Civil Service Fast Stream application
 
 # Reset password form
 reset.code.wrong-format = The password reset code must be 7 characters

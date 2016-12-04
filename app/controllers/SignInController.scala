@@ -64,7 +64,7 @@ abstract class SignInController(val applicationClient: ApplicationClient, cacheC
             Redirect(routes.LockAccountController.present()).addingToSession("email" -> usr.email))
           case Right(usr) if usr.isActive =>
             if (data.route.contains(ApplicationRoute.SdipFaststream.toString)) {
-              signInUser(usr, env, Redirect(routes.SdipController.present()))
+              signInUser(usr, env, Redirect(routes.ConsiderForSdipController.present()))
             } else {
               signInUser(usr, env)
             }

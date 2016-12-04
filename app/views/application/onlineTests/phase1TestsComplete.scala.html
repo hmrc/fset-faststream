@@ -16,7 +16,7 @@
             </div>
         </div>
     @if(user.isDefined){
-        <a href="@routes.HomeController.present" class="button">Continue</a>
+        <a href="@routes.HomeController.present()" class="button">Continue</a>
     } else {
         <a href="@routes.SignInController.signIn" class="button">Continue</a>
     }
