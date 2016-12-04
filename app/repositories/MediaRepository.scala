@@ -16,13 +16,13 @@
 
 package repositories
 
+import model.ApplicationRoute.{ apply => _ }
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
 import model.persisted.Media._
-import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.api.{DB, ReadPreference}
-import reactivemongo.bson.{BSONDocument, BSONDocumentReader, BSONObjectID}
+import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -35,6 +35,8 @@ trait MediaRepository {
   def find(userId: String): Future[Option[Media]]
 
   def findAll(): Future[Map[String, Media]]
+
+  def cloneAndArchive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
 }
 
 class MediaMongoRepository(implicit mongo: () => DB)
@@ -43,7 +45,7 @@ class MediaMongoRepository(implicit mongo: () => DB)
 
   override def create(addMedia: Media): Future[Unit] = insert(addMedia).map { _ => ()
   } recover {
-    case e: WriteResult => throw new CannotAddMedia(addMedia.userId)
+    case e: WriteResult => throw CannotAddMedia(addMedia.userId)
   }
 
   override def find(userId: String): Future[Option[Media]] = {
@@ -58,6 +60,13 @@ class MediaMongoRepository(implicit mongo: () => DB)
     val queryResult = bsonCollection.find(query)
       .cursor[(String, Media)](ReadPreference.nearest).collect[List]()
     queryResult.map(_.toMap)
+  }
+
+  override def cloneAndArchive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
+    find(originalUserId).flatMap {
+      case Some(media) => create(media.copy(userId = userIdToArchiveWith, originalUserId = Some(originalUserId)))
+      case None => Future.successful(())
+    }
   }
 
   private def docToMedia(document: BSONDocument): (String, Media) = {
