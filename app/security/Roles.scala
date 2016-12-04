@@ -90,7 +90,7 @@ object Roles {
 
   object ContinueAsSdipRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && isFaststreamOnly(user) && (statusIn(user)(WITHDRAWN) || !isSubmitted(user) || isTestExpired(user))
+      isFaststreamOnly(user) && (user.application.isEmpty || statusIn(user)(WITHDRAWN) || !isSubmitted(user) || isTestExpired(user))
   }
 
   object AssistanceDetailsRole extends CsrAuthorization {
@@ -214,7 +214,7 @@ object Roles {
   object WithdrawComponent extends AuthorisedUser {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED) &&
-        !user.application.map(_.applicationRoute).contains(ApplicationRoute.SdipFaststream)
+        !isSdipFaststream(user)
   }
 
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
@@ -301,11 +301,11 @@ object RoleUtils {
 
   def isSdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Sdip
 
-  def isFaststream(implicit user: CachedData): Boolean = user.application exists { app =>
+  def isFaststream(implicit user: CachedData): Boolean = user.application.forall { app =>
     app.applicationRoute == ApplicationRoute.Faststream || app.applicationRoute == ApplicationRoute.SdipFaststream
   }
 
-  def isFaststreamOnly(implicit user: CachedData): Boolean = user.application exists { app =>
+  def isFaststreamOnly(implicit user: CachedData): Boolean = user.application.forall { app =>
     app.applicationRoute == ApplicationRoute.Faststream
   }
 

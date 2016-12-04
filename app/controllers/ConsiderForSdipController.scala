@@ -36,7 +36,7 @@ class ConsiderForSdipController(applicationClient: ApplicationClient, cacheClien
   def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     Future.successful {
       cachedData.application match {
-        case Some(app) if !isFaststream(cachedData) =>
+        case Some(app) if !isFaststreamOnly(cachedData) =>
           Redirect(routes.HomeController.present()).flashing(warning("error.notfaststream"))
         case optApp if faststreamerNotEligibleForSdip(cachedData).isDefinedAt(optApp) =>
           Redirect(routes.HomeController.present(true))
@@ -59,7 +59,7 @@ class ConsiderForSdipController(applicationClient: ApplicationClient, cacheClien
       )
   }
 
-  def continueAsSdip = CSRSecureAppAction(ContinueAsSdipRole) { implicit request => implicit cachedData =>
+  def continueAsSdip = CSRSecureAction(ContinueAsSdipRole) { implicit request => implicit cachedData =>
       for {
         userToArchiveWith <- userManagementClient.register(s"${cachedData.user.email}-old", UUID.randomUUID().toString,
           cachedData.user.firstName, cachedData.user.lastName)
