@@ -96,9 +96,8 @@ private object TestPhases {
     tests map {
       test => Group(test.name, Seq(test), SubProcess(ForkOptions(runJVMOptions =
         Seq("-Dtest.name=" + test.name,
-          "-Dmongodb.uri=mongodb://localhost:27017/test-fset-faststream",
+          "-Dmongodb.uri=mongodb://localhost:27017/test-fset-faststream?rm.nbChannelsPerNode=2&writeConcernJ=false",
           "-Dmongodb.failoverStrategy.retries=10",
-          "-Dmongodb.channels=5",
           "-Dmongodb.failoverStrategy.delay.function=fibonacci",
           "-Dmongodb.failoverStrategy.delay.factor=1")
       )))
