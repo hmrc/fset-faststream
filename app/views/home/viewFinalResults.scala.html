@@ -23,10 +23,25 @@
 }
 
 @main_template(title = "Home") {
-
+    <div class="grid-wrapper">
+        <div class="grid grid-1-2">
+            <div class="inner-block-padr">
+                <div class="hgroup">
+                    <h1 class="heading-xlarge">Home</h1>
+                    <p class="subtitle">@{cachedUser.user.firstName + " " + cachedUser.user.lastName}</p>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-1-2">
+            <div class="page-link">
+                <p data-hideifwithdrawn class="small-btm-margin"><a class="" href="apply-submitted.html">View your submitted application</a></p>
+                @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
+                <p data-hideifwithdrawn data-hideafterparity><a class="" href="edit-details.html">Edit your personal details</a></p>
+                }
+            </div>
+        </div>
+    </div>
     <div class="hgroup">
-        <h1 class="heading-xlarge">Home</h1>
-        <p class="subtitle">@{cachedUser.user.firstName + " " + cachedUser.user.lastName}</p>
     </div>
 
     @withdrawInformation(cachedUser)
@@ -37,10 +52,6 @@
             <section>
                 <p>Congratulations, you've been successful for at least one of your
                     preferred schemes.</p>
-                @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
-                    <p><a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a></p>
-                    <p><a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a></p>
-                }
             </section>
             <h2 class="heading-medium">Check your scheme status</h2>
             <h3 class="heading-small">Successful schemes</h3>
