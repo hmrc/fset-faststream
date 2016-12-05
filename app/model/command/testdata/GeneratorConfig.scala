@@ -114,6 +114,7 @@ case class Phase3TestData(
   expiry: Option[DateTime] = None,
   completion: Option[DateTime] = None,
   score: Option[Double] = None,
+  generateNullScoresForFewQuestions: Option[Boolean] = None,
   receivedBeforeInHours: Option[Int] = None,
   passmarkEvaluation: Option[PassmarkEvaluation] = None
 )
@@ -125,6 +126,7 @@ object Phase3TestData {
       expiry = o.expiry.map(DateTime.parse),
       completion = o.completion.map(DateTime.parse),
       score = o.score,
+      generateNullScoresForFewQuestions = o.generateNullScoresForFewQuestions,
       receivedBeforeInHours = o.receivedBeforeInHours,
       passmarkEvaluation = o.passmarkEvaluation
     )
