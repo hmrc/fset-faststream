@@ -25,7 +25,7 @@ import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _
 import model.Commands._
 import model.InternshipType.{ InternshipType, apply => _ }
 import model.OnlineTestCommands.TestResult
-import model.SchemeType._
+import model.SchemeType.{ BSONEnumHandler => _, apply => _, toString => _, _ }
 import model.command._
 import model.persisted._
 import model.report._
@@ -107,7 +107,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val userId = doc.getAs[String]("userId").getOrElse("")
-      val applicationRoute = doc.getAs[String]("applicationRoute")
+      val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
       CandidateProgressReportItem(userId, applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
@@ -120,7 +120,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     (doc: BSONDocument) => {
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
       val onlineAdjustmentsKey = if(applicationRoute == ApplicationRoute.Edip) { "needsSupportForPhoneInterview" }
-      else if (applicationRoute == ApplicationRoute.Sdip) { "needsSupportForPhoneInterview" }
+        else if (applicationRoute == ApplicationRoute.Sdip) { "needsSupportForPhoneInterview" }
         else { "needsSupportForOnlineAssessment" }
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
       val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
@@ -138,7 +138,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val userId = doc.getAs[String]("userId").getOrElse("")
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
-      ApplicationForDiversityReport(applicationId, userId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
+      ApplicationForDiversityReport(applicationId, userId, applicationRoute,
+        Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
         schemes.getOrElse(List.empty), disability, gis, onlineAdjustments,
         assessmentCentreAdjustments, civilServiceExperience)
     }
@@ -147,7 +148,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   implicit val toApplicationForOnlineTestPassMarkReport = bsonReader {
     (doc: BSONDocument) => {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
-
+      val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
       val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
 
@@ -162,6 +163,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       ApplicationForOnlineTestPassMarkReport(
         applicationId,
         ProgressStatusesReportLabels.progressStatusNameInReports(progress),
+        applicationRoute,
         schemes.getOrElse(Nil),
         disability,
         gis,

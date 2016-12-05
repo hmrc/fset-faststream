@@ -16,12 +16,14 @@
 
 package model.report
 
+import model.ApplicationRoute._
 import model.SchemeType.SchemeType
-import model.persisted.{ApplicationForOnlineTestPassMarkReport }
+import model.persisted.ApplicationForOnlineTestPassMarkReport
 import play.api.libs.json.Json
 
 case class ApplicationForOnlineTestPassMarkReportItem(
                                                        progress: String,
+                                                       applicationRoute: ApplicationRoute,
                                                        schemes: List[SchemeType],
                                                        disability: Option[String],
                                                        gis: Option[Boolean],
@@ -37,6 +39,7 @@ object ApplicationForOnlineTestPassMarkReportItem {
   def create(a: ApplicationForOnlineTestPassMarkReport): ApplicationForOnlineTestPassMarkReportItem = {
     ApplicationForOnlineTestPassMarkReportItem(
       progress = a.progress,
+      applicationRoute = a.applicationRoute,
       schemes = a.schemes,
       disability = a.disability,
       gis = a.gis,

@@ -16,16 +16,14 @@
 
 package model.report
 
-import model.Commands.{PhoneAndEmail, ReportWithPersonalDetails}
-import model.OnlineTestCommands.TestResult
+import model.ApplicationRoute._
 import play.api.libs.json.Json
-import model.Commands.Implicits._
-import model.OnlineTestCommands.Implicits._
 import model.SchemeType._
-import model.persisted.{ApplicationForDiversityReport, Media}
+import model.persisted.ApplicationForDiversityReport
 
 case class ApplicationForDiversityReportItem(
                                               progress: Option[String],
+                                              applicationRoute: ApplicationRoute,
                                               schemes: List[SchemeType],
                                               disability: Option[String],
                                               gis: Option[Boolean],
@@ -46,6 +44,7 @@ object ApplicationForDiversityReportItem {
 
   def create(a: ApplicationForDiversityReport): ApplicationForDiversityReportItem = {
     ApplicationForDiversityReportItem(progress = a.progress,
+      applicationRoute = a.applicationRoute,
       schemes = a.schemes,
       disability = a.disability,
       gis = a.gis,
