@@ -485,29 +485,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         result.testGroup.tests.head.completedDateTime mustBe Some(now)
       }
 
-      "not complete tests if the profile has expired" in {
-        val now = DateTime.now(DateTimeZone.UTC)
-        val input = Phase1TestProfile(expirationDate = now,
-          tests = List(CubiksTest(scheduleId = 1,
-            usedForResults = true,
-            token = "token",
-            cubiksUserId = 111,
-            testUrl = "testUrl",
-            invitationDate = now,
-            participantScheduleId = 222
-          ))
-        )
-
-        createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE1_TESTS", needsSupportForOnlineAssessment = false,
-          adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-          fastPassReceived = false, phase1TestProfile = Some(input)
-        ).futureValue
-
-        phase1TestRepo.updateTestCompletionTime(111, now).futureValue
-        val result = phase1TestRepo.getTestProfileByCubiksId(111).futureValue
-        result.testGroup.tests.head.completedDateTime mustBe None
-      }
-
       "mark the cubiks test as inactive" in {
         insertApplication("appId", "userId")
         phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue

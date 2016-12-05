@@ -30,7 +30,7 @@ import reactivemongo.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext }
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
 abstract class MongoRepositorySpec extends UnitWithAppSpec with Inside with Inspectors with IndexesReader {
@@ -38,6 +38,7 @@ abstract class MongoRepositorySpec extends UnitWithAppSpec with Inside with Insp
 
   val timeout = 10 seconds
   val collectionName: String
+  val additionalCollections: List[String] = Nil
 
   val FrameworkId = "FrameworkId"
 
@@ -60,12 +61,15 @@ abstract class MongoRepositorySpec extends UnitWithAppSpec with Inside with Insp
 
   override def withFixture(test: NoArgTest) = {
     Helpers.running(app) {
-      val collection = mongo().collection[JSONCollection](collectionName)
-      Await.ready(collection.remove(BSONDocument.empty), timeout)
+      Future.traverse(collectionName :: additionalCollections)(clearCollection).futureValue
       super.withFixture(test)
     }
   }
 
+  private def clearCollection(name: String) = {
+    val collection = mongo().collection[JSONCollection](name)
+    collection.remove(BSONDocument.empty)
+  }
 }
 
 trait IndexesReader {
