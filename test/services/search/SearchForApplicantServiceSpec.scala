@@ -72,13 +72,13 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
 
       when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
         any[Option[LocalDate]], any[List[String]])
-      ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None, None, None, None, None))))
+      ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None, None, None, None, None, None))))
 
       val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = Some("Leia"),
         lastName = Some("Amadala"), dateOfBirth = None, postCode = Some("QQ1 1QQ"))).futureValue
 
       val expected = Candidate("123", None, Some(testEmail), Some("Leia"), Some("Amadala"),
-        None, None, Some(testAddress), Some("QQ1 1QQ"), None, None
+        None, None, Some(testAddress), Some("QQ1 1QQ"), None, None, None
       )
 
       actual mustBe List(expected)

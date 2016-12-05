@@ -508,6 +508,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       archivedApplication.applicationRoute mustBe ApplicationRoute.Faststream
       archivedApplication.applicationId mustBe AppId
       archivedApplication.userId mustBe userIdToArchiveWith
+      archivedApplication.progressResponse.applicationArchived mustBe true
+      archivedApplication.applicationStatus mustBe ApplicationStatus.ARCHIVED.toString
 
       an[ApplicationNotFound] must be thrownBy Await.result(repository.findByUserId(UserId, FrameworkId), timeout)
     }
@@ -522,6 +524,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       archivedApplication.applicationRoute mustBe ApplicationRoute.Faststream
       archivedApplication.applicationId mustBe AppId
       archivedApplication.userId mustBe userIdToArchiveWith
+      archivedApplication.progressResponse.applicationArchived mustBe true
+      archivedApplication.applicationStatus mustBe ApplicationStatus.ARCHIVED.toString
 
       an[ApplicationNotFound] must be thrownBy Await.result(repository.findByUserId(UserId, FrameworkId), timeout)
     }
@@ -536,7 +540,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-  val candidate = Candidate("userId", Some("appId123"), Some("test@test123.com"), None, None, None, None, None, None, None, None)
+  val candidate = Candidate("userId", Some("appId123"), Some("test@test123.com"), None, None, None, None, None, None, None, None, None)
 
   val testCandidate = Map(
     "firstName" -> "George",

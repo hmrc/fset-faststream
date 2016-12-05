@@ -54,20 +54,21 @@ trait SearchForApplicantsController extends BaseController {
         cdRepository.find(userId).map { cd =>
           Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
             Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), Some(cd.postCode), None,
-            Some(application.applicationRoute))))
+            Some(application.applicationRoute), Some(application.applicationStatus))))
         }.recover {
           case e: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), None, None, None, Some(application.applicationRoute))))
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), None, None, None,
+            Some(application.applicationRoute), Some(application.applicationStatus))))
         }
       }.recover {
         case e: PersonalDetailsNotFound =>
           Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, None, None, None, None, None, None, None,
-            Some(application.applicationRoute))))
+            Some(application.applicationRoute), Some(application.applicationStatus))))
       }
     }.recover {
       // when application is not found, the application route is set to Faststream for backward compatibility
       case e: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None, None,
-        Some(ApplicationRoute.Faststream))))
+        Some(ApplicationRoute.Faststream), None)))
     }
   }
 

@@ -64,6 +64,7 @@ trait GeneralApplicationRepoBSONReader extends CommonBSONDocuments {
       // If the application does not have applicationRoute, it is legacy data
       // as it needs to be interpreted as Faststream
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
+      val applicationStatus = doc.getAs[String]("applicationStatus")
 
       val psRoot = doc.getAs[BSONDocument]("personal-details")
       val firstName = psRoot.flatMap(_.getAs[String]("firstName"))
@@ -71,7 +72,8 @@ trait GeneralApplicationRepoBSONReader extends CommonBSONDocuments {
       val preferredName = psRoot.flatMap(_.getAs[String]("preferredName"))
       val dateOfBirth = psRoot.flatMap(_.getAs[LocalDate]("dateOfBirth"))
 
-      Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None, Some(applicationRoute))
+      Candidate(userId, applicationId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None,
+        Some(applicationRoute), applicationStatus)
     }
   }
 

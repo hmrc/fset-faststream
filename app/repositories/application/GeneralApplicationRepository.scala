@@ -253,7 +253,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val query = BSONDocument("$and" -> fullQuery)
 
     val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
-    "personal-details" -> true)
+    "applicationStatus" -> true, "personal-details" -> true)
 
     bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
   }
@@ -920,10 +920,14 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       applicationRouteCriteria(appRoute)
     ))
 
-    val updateWithArchiveUserId = BSONDocument("$set" -> BSONDocument(
-      "originalUserId" -> originalUserId,
-      "userId" -> userIdToArchiveWith
-    ))
+    val updateWithArchiveUserId = BSONDocument("$set" ->
+      BSONDocument(
+        "originalUserId" -> originalUserId,
+        "userId" -> userIdToArchiveWith
+      ).add(
+        applicationStatusBSON(ProgressStatuses.APPLICATION_ARCHIVED)
+      )
+    )
 
     val validator = singleUpdateValidator(appId, actionDesc = "archiving application")
     collection.update(query, updateWithArchiveUserId) map validator
