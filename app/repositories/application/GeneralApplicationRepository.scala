@@ -578,7 +578,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       )
     )
 
-    bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
+    bsonCollection.findAndModify(query, updateOp).map(_ => ())
   }
 
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = {
@@ -591,7 +591,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "$unset" -> BSONDocument(s"progress-status-timestamp.$progressStatus" -> "")
     ))
 
-    bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
+    bsonCollection.findAndModify(query, updateOp).map(_ => ())
   }
 
   private def applicationPreferencesWithTestResults(query: BSONDocument): Future[List[ApplicationPreferencesWithTestResults]] = {

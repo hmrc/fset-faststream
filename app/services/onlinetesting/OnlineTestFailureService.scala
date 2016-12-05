@@ -48,7 +48,7 @@ class OnlineTestFailureServiceImpl(
 
   override def processNextFailedTest(): Future[Unit] = {
     //TODO FAST STREAM FIX ME
-    Future.successful(Unit)
+    Future.successful(())
     //otRepository.nextApplicationPendingFailure.flatMap {
     //  case Some(failedTest) => processFailedTest(failedTest)
     //  case None => Future.successful(())
