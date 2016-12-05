@@ -35,11 +35,11 @@
         </div>
         <div class="grid grid-1-2">
             <div class="page-link">
-                <p data-hideifwithdrawn class="small-btm-margin">
+                <p class="small-btm-margin">
                     <a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a>
                 </p>
                 @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
-                <p data-hideifwithdrawn data-hideafterparity>
+                <p class="small-btm-margin">
                     <a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a>
                 </p>
                 }
