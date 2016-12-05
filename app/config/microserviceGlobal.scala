@@ -23,6 +23,7 @@ import scheduler.allocation.ConfirmAttendanceReminderJob
 import scheduler.assessment._
 import scheduler.fixer.FixerJob
 import scheduler.onlinetesting._
+import scheduler.parity.ParityExportJob
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.config.{ AppName, ControllerConfig }
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
@@ -196,6 +197,12 @@ trait Scheduler extends RunningOfScheduledJobs {
       None
     }
 
+  private lazy val parityExportJob: Option[ScheduledJob] =
+    if (parityExportJobConfigValues.enabled) Some(ParityExportJob) else {
+      Logger.warn("parity export job is disabled")
+      None
+    }
+
   private[config] def sendPhase1InvitationJobConfigValues = sendPhase1InvitationJobConfig
   private[config] def sendPhase2InvitationJobConfigValues = sendPhase2InvitationJobConfig
   private[config] def sendPhase3InvitationJobConfigValues = sendPhase3InvitationJobConfig
@@ -221,6 +228,8 @@ trait Scheduler extends RunningOfScheduledJobs {
   private[config] def evaluateAssessmentScoreJobConfigValues = evaluateAssessmentScoreJobConfig
   private[config] def notifyAssessmentCentrePassedOrFailedJobConfigValues = notifyAssessmentCentrePassedOrFailedJobConfig
   private[config] def fixerJobConfigValues = fixerJobConfig
+  private[config] def parityExportJobConfigValues = parityExportJobConfig
+
 
   lazy val scheduledJobs = List(
     sendPhase1InvitationJob, sendPhase2InvitationJob, sendPhase3InvitationJob,
@@ -230,7 +239,8 @@ trait Scheduler extends RunningOfScheduledJobs {
     failedPhase1TestJob, failedPhase2TestJob, failedPhase3TestJob, successPhase3TestJob,
     retrievePhase1ResultsJob, retrievePhase2ResultsJob,
     evaluatePhase1ResultJob, evaluatePhase2ResultJob, evaluatePhase3ResultJob,
-    fixerJob, confirmAttendanceReminderJob,
+    fixerJob, parityExportJob,
+    confirmAttendanceReminderJob,
     evaluateAssessmentScoreJob, notifyAssessmentCentrePassedOrFailedJob).flatten
 }
 

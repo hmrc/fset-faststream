@@ -72,7 +72,7 @@ object Exceptions {
 
   case class IncorrectStatusInApplicationException(reason: String) extends Exception(reason)
 
-  case class InvalidStatusAndProgressStatusException(reason: String) extends Exception(reason)
+  case class InvalidApplicationStatusAndProgressStatusException(reason: String) extends Exception(reason)
 
   case class EmailTakenException() extends Exception()
 

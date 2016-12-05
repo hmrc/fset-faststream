@@ -48,12 +48,14 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     "find questions should return a map of questions/answers ignoring the non answered ones" in new TestFixture {
       val applicationId = System.currentTimeMillis() + ""
 
+      val emptyAnswer = PersistedAnswer(None, None, Some(true))
+
       questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("what?", PersistedAnswer(Some("nada"), None, None)))).futureValue
-      questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("where?", PersistedAnswer(None, None, Some(true))))).futureValue
+      questionnaireRepo.addQuestions(applicationId, List(PersistedQuestion("where?", emptyAnswer))).futureValue
       val result2 = questionnaireRepo.findQuestions(applicationId).futureValue
 
       result2.keys.size mustBe 2
-      result2("where?") mustBe ""
+      result2("where?") mustBe emptyAnswer
     }
 
     "return data relevant to the pass mark report" in new TestFixture {

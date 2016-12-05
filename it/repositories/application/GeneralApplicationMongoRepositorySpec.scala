@@ -18,17 +18,15 @@ package repositories.application
 
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.ApplicationStatus._
-import model.ProgressStatuses.{ PHASE3_TESTS_PASSED, PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
-import model.SchemeType.SchemeType
-import model.report.CandidateProgressReportItem
+import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
 import model.{ ApplicationStatus, _ }
 import org.joda.time.LocalDate
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-import reactivemongo.json.ImplicitBSONHandlers
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
 import model.Commands.Candidate
+import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.command.ProgressResponse
 import model.persisted._
 import repositories.CommonBSONDocuments
@@ -37,9 +35,9 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import testkit.MongoRepositorySpec
 
-class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
+import scala.concurrent.Await
 
-  import ImplicitBSONHandlers._
+class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
 
   val collectionName = "application"
 
@@ -471,36 +469,70 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Update application route" should {
     "return not found if the application route is not Faststream" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
-        additionalDoc = BSONDocument("applicationRoute" -> ApplicationRoute.Edip.toString)
-      ).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
 
-      val result = repository.updateApplicationRoute(AppId, ApplicationRoute.SdipFaststream).failed.futureValue
+      val result = repository.updateApplicationRoute(AppId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).failed.futureValue
 
       result mustBe a[Exceptions.NotFoundException]
     }
 
     "update the Faststream application when application route is Faststream" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
-        applicationRoute = ApplicationRoute.Faststream,
-        additionalDoc = BSONDocument("applicationRoute" -> ApplicationRoute.Faststream.toString)
-      ).futureValue
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, applicationRoute = Some(ApplicationRoute.Faststream)).futureValue
 
-      repository.updateApplicationRoute(AppId, ApplicationRoute.SdipFaststream).futureValue
+      repository.updateApplicationRoute(AppId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).futureValue
 
-      val applicationResponse = repository.findByUserId(UserId, "FastStream-2016").futureValue
+      val applicationResponse = repository.findByUserId(UserId, FrameworkId).futureValue
       applicationResponse.applicationRoute mustBe ApplicationRoute.SdipFaststream
     }
 
     "update the application without application route" in {
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, "FastStream-2016",
-        applicationRoute = ApplicationRoute.Faststream
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId).futureValue
+
+      repository.updateApplicationRoute(AppId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream).futureValue
+
+      val applicationResponse = repository.findByUserId(UserId, FrameworkId).futureValue
+      applicationResponse.applicationRoute mustBe ApplicationRoute.SdipFaststream
+    }
+  }
+
+  "Archive" should {
+    "archive the existing application" in {
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId,
+        applicationRoute = Some(ApplicationRoute.Faststream)
       ).futureValue
 
-      repository.updateApplicationRoute(AppId, ApplicationRoute.SdipFaststream).futureValue
+      val userIdToArchiveWith = "newUserId"
+      repository.archive(AppId, UserId, userIdToArchiveWith, FrameworkId, ApplicationRoute.Faststream).futureValue
 
-      val applicationResponse = repository.findByUserId(UserId, "FastStream-2016").futureValue
-      applicationResponse.applicationRoute mustBe ApplicationRoute.SdipFaststream
+      val archivedApplication = repository.findByUserId(userIdToArchiveWith, FrameworkId).futureValue
+      archivedApplication.applicationRoute mustBe ApplicationRoute.Faststream
+      archivedApplication.applicationId mustBe AppId
+      archivedApplication.userId mustBe userIdToArchiveWith
+
+      an[ApplicationNotFound] must be thrownBy Await.result(repository.findByUserId(UserId, FrameworkId), timeout)
+    }
+
+    "archive the existing application when application route is absent" in {
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId).futureValue
+
+      val userIdToArchiveWith = "newUserId"
+      repository.archive(AppId, UserId, userIdToArchiveWith, FrameworkId, ApplicationRoute.Faststream).futureValue
+
+      val archivedApplication = repository.findByUserId(userIdToArchiveWith, FrameworkId).futureValue
+      archivedApplication.applicationRoute mustBe ApplicationRoute.Faststream
+      archivedApplication.applicationId mustBe AppId
+      archivedApplication.userId mustBe userIdToArchiveWith
+
+      an[ApplicationNotFound] must be thrownBy Await.result(repository.findByUserId(UserId, FrameworkId), timeout)
+    }
+
+    "return not found when application route is not faststream" in {
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
+
+      val userIdToArchiveWith = "newUserId"
+
+      an[NotFoundException] must be thrownBy Await.result(repository.archive(AppId, UserId, userIdToArchiveWith,
+        FrameworkId, ApplicationRoute.Faststream), timeout)
     }
   }
 

@@ -33,9 +33,7 @@ import model.persisted._
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject }
-import reactivemongo.api.commands._
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
@@ -47,7 +45,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import scala.util.Try
 
 // TODO FAST STREAM
@@ -131,7 +129,10 @@ trait GeneralApplicationRepository {
 
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit]
 
-  def updateApplicationRoute(appId: String, newApplicationRoute: ApplicationRoute): Future[Unit]
+  def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit]
+
+  def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
+              frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
 }
 
 // scalastyle:off number.of.methods
@@ -523,7 +524,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> BSONDocument("$ne" -> true))
         ))
-        val updateOp = bsonCollection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED)))
+        val updateOp = bsonCollection.updateModifier(BSONDocument("$set" ->
+          BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED)))
         bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
       case ResetPhase1TestInvitedSubmitted => {
         val query = BSONDocument("$and" -> BSONArray(
@@ -897,21 +899,43 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     collection.update(query, unsetDoc) map validator
   }
 
-  override def updateApplicationRoute(appId: String, newApplicationRoute: ApplicationRoute): Future[Unit] = {
+  override def updateApplicationRoute(appId: String, appRoute:ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> appId),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument("applicationRoute" -> ApplicationRoute.Faststream),
-        BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
-      ))
+      applicationRouteCriteria(appRoute)
     ))
 
-    val unsetDoc = BSONDocument("$set" -> BSONDocument(
-      "applicationRoute" -> newApplicationRoute.toString
+    val updateAppRoute = BSONDocument("$set" -> BSONDocument(
+      "applicationRoute" -> newAppRoute
     ))
 
     val validator = singleUpdateValidator(appId, actionDesc = "updating application route")
-    collection.update(query, unsetDoc) map validator
+    collection.update(query, updateAppRoute) map validator
+  }
+
+  override def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
+                       frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> appId),
+      applicationRouteCriteria(appRoute)
+    ))
+
+    val updateWithArchiveUserId = BSONDocument("$set" -> BSONDocument(
+      "originalUserId" -> originalUserId,
+      "userId" -> userIdToArchiveWith
+    ))
+
+    val validator = singleUpdateValidator(appId, actionDesc = "archiving application")
+    collection.update(query, updateWithArchiveUserId) map validator
+  }
+
+  private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
+    case ApplicationRoute.Faststream =>
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument("applicationRoute" -> appRoute),
+        BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
+      ))
+    case _ => BSONDocument("applicationRoute" -> appRoute)
   }
 
   private def resultToBSON(schemeName: String, result: Option[EvaluationResults.Result]): BSONDocument = result match {

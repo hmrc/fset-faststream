@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-package model.persisted
+package services.parity
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import org.scalatestplus.play.OneAppPerSuite
+import testkit.UnitSpec
+import scala.concurrent.ExecutionContext.Implicits.global
 
-case class Media(userId: String, media: String, originalUserId: Option[String] = None)
+class ParityExportServiceSpec extends UnitSpec with OneAppPerSuite {
 
-object Media {
-  implicit val mediaFormat = Json.format[Media]
-  implicit val mediaHandler = Macros.handler[Media]
+  "Export Application" should {
+    "Display some things" in new TestFixture {
+      /*
+      sut.exportApplication("ddcb9d48-d93e-4c85-9f44-00d9a0d4b64c").recover {
+        case ex => print(s"There was an error => $ex\n")
+      }.futureValue
+      */
+    }
+  }
+
+  trait TestFixture {
+    val sut = ParityExportService
+  }
 }

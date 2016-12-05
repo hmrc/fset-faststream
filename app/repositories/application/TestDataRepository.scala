@@ -19,9 +19,9 @@ package repositories.application
 import connectors.ExchangeObjects
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.{ ApplicationStatus => _, _ }
 import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
+import model.{ ApplicationStatus => _, _ }
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
@@ -111,12 +111,13 @@ class TestDataMongoRepository(implicit mongo: () => DB)
                                      firstName: Option[String] = None, preferredName: Option[String] = None,
                                      additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
                                      additionalDoc: BSONDocument = BSONDocument.empty,
-                                     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+                                     applicationRoute: Option[ApplicationRoute] = None
                                     ) = {
     import repositories.BSONLocalDateHandler
     collection.insert(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
+      "applicationRoute" -> applicationRoute,
       "userId" -> userId,
       "frameworkId" -> frameworkId,
       "scheme-preferences" -> BSONDocument(
