@@ -40,7 +40,7 @@ object Roles {
     def isEnabled(user: CachedData)(implicit request: RequestHeader, lang: Lang): Boolean
 
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && isEnabled(user)
+      activeUserWithActiveApp(user) && isEnabled(user)
   }
 
   // All the roles
@@ -65,27 +65,27 @@ object Roles {
 
   object EditPersonalDetailsAndContinueRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
+      activeUserWithActiveApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
   }
 
   object CreatedOrInProgressRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
+      activeUserWithActiveApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
   }
 
   object EditPersonalDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && !statusIn(user)(WITHDRAWN)
+      activeUserWithActiveApp(user) && !statusIn(user)(WITHDRAWN)
   }
 
   object SchemesRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasPersonalDetails(user)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasPersonalDetails(user)
   }
 
   object PartnerGraduateProgrammesRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && (hasSchemes(user) && !isCivilServant(user))
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && (hasSchemes(user) && !isCivilServant(user))
   }
 
   object ContinueAsSdipRole extends CsrAuthorization {
@@ -95,7 +95,7 @@ object Roles {
 
   object AssistanceDetailsRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) &&
         (
           hasPartnerGraduateProgrammes(user) ||
             (hasSchemes(user) && isCivilServant(user)) ||
@@ -105,79 +105,79 @@ object Roles {
 
   object PreviewApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    activeUserWithApp(user) && !statusIn(user)(CREATED) &&
+    activeUserWithActiveApp(user) && !statusIn(user)(CREATED) &&
         hasDiversity(user) && hasEducation(user) && hasOccupation(user)
   }
 
   object SubmitApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasPreview(user)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasPreview(user)
   }
 
   object InProgressRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS)
   }
 
   object WithdrawApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED)
+      activeUserWithActiveApp(user) && !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED)
   }
 
   object WithdrawnApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(WITHDRAWN)
+      activeUserWithActiveApp(user) && statusIn(user)(WITHDRAWN)
   }
 
   object OnlineTestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE1_TESTS)
   }
 
   object OnlineTestExpiredRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS) && isTestExpired(user)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE1_TESTS) && isTestExpired(user)
   }
 
   object Phase1TestFailedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS_FAILED)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE1_TESTS_FAILED)
   }
 
   object Phase2TestFailedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS_FAILED)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE2_TESTS_FAILED)
   }
 
   object Phase2TestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE2_TESTS)
   }
 
   object Phase2TestExpiredRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE2_TESTS) && isPhase2TestExpired(user)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE2_TESTS) && isPhase2TestExpired(user)
   }
 
   object Phase3TestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE3_TESTS)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE3_TESTS)
   }
 
   object Phase3TestExpiredRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE3_TESTS) && isPhase3TestExpired(user)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE3_TESTS) && isPhase3TestExpired(user)
   }
 
   object Phase3TestFailedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE3_TESTS_FAILED)
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE3_TESTS_FAILED)
   }
 
   object DisplayOnlineTestSectionRole extends CsrAuthorization {
     // format: OFF
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(PHASE1_TESTS,
+      activeUserWithActiveApp(user) && statusIn(user)(PHASE1_TESTS,
         ALLOCATION_CONFIRMED, ALLOCATION_UNCONFIRMED, AWAITING_ALLOCATION, FAILED_TO_ATTEND,
         ASSESSMENT_SCORES_ENTERED, ASSESSMENT_SCORES_ACCEPTED, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION, ASSESSMENT_CENTRE_PASSED,
         ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED_NOTIFIED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
@@ -187,23 +187,23 @@ object Roles {
 
   object ConfirmedAllocatedCandidateRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(ALLOCATION_CONFIRMED, ASSESSMENT_SCORES_ACCEPTED,
+      activeUserWithActiveApp(user) && statusIn(user)(ALLOCATION_CONFIRMED, ASSESSMENT_SCORES_ACCEPTED,
         ASSESSMENT_SCORES_ENTERED, AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
   }
 
   object UnconfirmedAllocatedCandidateRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(ALLOCATION_UNCONFIRMED)
+      activeUserWithActiveApp(user) && statusIn(user)(ALLOCATION_UNCONFIRMED)
   }
 
   object AssessmentCentreFailedNotifiedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(ASSESSMENT_CENTRE_FAILED_NOTIFIED)
+      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE_FAILED_NOTIFIED)
   }
 
   object AssessmentCentrePassedNotifiedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(ASSESSMENT_CENTRE_PASSED_NOTIFIED)
+      activeUserWithActiveApp(user) && statusIn(user)(ASSESSMENT_CENTRE_PASSED_NOTIFIED)
   }
 
   object AssessmentCentreFailedToAttendRole extends AuthorisedUser {
@@ -214,7 +214,7 @@ object Roles {
   object WithdrawComponent extends AuthorisedUser {
     override def isEnabled(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED) &&
-        !isSdipFaststream(user)
+        !isSdipFaststream(user) && !isExported(user)
   }
 
   val userJourneySequence: List[(CsrAuthorization, Call)] = List(
@@ -237,8 +237,8 @@ object RoleUtils {
 
   implicit def hc(implicit request: RequestHeader): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
 
-  def activeUserWithApp(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    user.user.isActive && user.application.isDefined
+  def activeUserWithActiveApp(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    user.user.isActive && user.application.isDefined && user.application.forall(_.applicationStatus != EXPORTED)
 
   def statusIn(user: CachedData)(status: ApplicationStatus*)(implicit request: RequestHeader, lang: Lang) =
     user.application.isDefined && status.contains(user.application.get.applicationStatus)
@@ -271,7 +271,7 @@ object RoleUtils {
       .exists(_.isCivilServant)
 
   def hasReceivedFastPass(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    activeUserWithApp(user) && statusIn(user)(SUBMITTED) &&
+    activeUserWithActiveApp(user) && statusIn(user)(SUBMITTED) &&
       user.application
         .flatMap(_.civilServiceExperienceDetails)
         .flatMap(_.fastPassReceived)
@@ -320,6 +320,8 @@ object RoleUtils {
   def isEdip(implicit user: Option[CachedData]): Boolean = user.exists(isEdip(_))
 
   def isSdip(implicit user: Option[CachedData]): Boolean = user.exists(isSdip(_))
+
+  def isExported(implicit user: CachedData) = user.application.exists(_.applicationStatus == EXPORTED)
 }
 
 // scalastyle:on

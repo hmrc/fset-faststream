@@ -3,7 +3,7 @@
 @import security.Roles._
 @import views.html.home.withdrawInformation
 
-@(cachedUsr: CachedData, finalSchemeResults: List[SchemeEvaluationResult])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(cachedUser: CachedData, finalSchemeResults: List[SchemeEvaluationResult])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @getOrder(pos: Int) = @{
   pos match {
@@ -29,27 +29,29 @@
             <div class="inner-block-padr">
                 <div class="hgroup">
                     <h1 class="heading-xlarge">Home</h1>
-                    <p class="subtitle">@{cachedUsr.user.firstName + " " + cachedUsr.user.lastName}</p>
+                    <p class="subtitle">@{cachedUser.user.firstName + " " + cachedUser.user.lastName}</p>
                 </div>
             </div>
         </div>
-        @if(WithdrawApplicationRole.isAuthorized(cachedUsr)){
         <div class="grid grid-1-2">
             <div class="page-link">
+                @if(!WithdrawnApplicationRole.isAuthorized(cachedUser)) {
                 <p class="small-btm-margin">
                     <a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a>
                 </p>
+                @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
                 <p class="small-btm-margin">
                     <a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a>
                 </p>
+                }
+                }
             </div>
         </div>
-        }
     </div>
 
-    @withdrawInformation(cachedUsr)
+    @withdrawInformation(cachedUser)
 
-    <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(cachedUsr)){disabled}" id="mainProgressPage">
+    <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(cachedUser)){disabled}" id="mainProgressPage">
         <h2 class="heading-large"><i class="fa fa-check"></i>You've passed the video interview</h2>
         <div class="text">
             <section>
@@ -115,7 +117,7 @@
                     <p>You need to complete this step within 7 days of receiving the email.</p>
                 </div>
             </div>
-            @if(WithdrawApplicationRole.isAuthorized(cachedUsr)){
+            @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
                 <h2 class="heading-medium">3. Attend the assessment centre</h2>
                 <div class="text">
                     <div class="">
@@ -128,5 +130,5 @@
         </div>
     </section>
 
-    @withdrawSection(cachedUsr)
+    @withdrawSection(cachedUser)
 }

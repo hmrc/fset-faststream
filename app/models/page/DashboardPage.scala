@@ -213,7 +213,7 @@ object DashboardPage {
       //val isStatusOnlineTestFailedNotified = user.application.exists(_.applicationStatus == ApplicationStatus.PHASE1_TESTS)
       val isStatusOnlineTestFailedNotified = false
 
-      val firstStep = if (RoleUtils.activeUserWithApp(user)) { ProgressActive } else { ProgressInactive }
+      val firstStep = if (RoleUtils.activeUserWithActiveApp(user)) { ProgressActive } else { ProgressInactive }
       val secondStep = if (DisplayOnlineTestSectionRole.isAuthorized(user) || RoleUtils.hasReceivedFastPass(user)) {
         ProgressActive
       } else {

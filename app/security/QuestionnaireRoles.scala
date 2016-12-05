@@ -28,48 +28,48 @@ object QuestionnaireRoles {
 
   object StartOrContinueQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS)
   }
 
   object QuestionnaireNotStartedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) &&
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) &&
         !hasDiversity(user) && !hasEducation(user) && !hasOccupation(user)
   }
 
   object QuestionnaireInProgressRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasAssistanceDetails(user) &&
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasAssistanceDetails(user) &&
         (!hasDiversity(user) || !hasEducation(user) || !hasOccupation(user))
   }
 
   object DiversityQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasStartedQuest(user)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasStartedQuest(user)
   }
 
   object EducationQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasDiversity(user)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasDiversity(user)
   }
 
   object ParentalOccupationQuestionnaireRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasEducation(user)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasEducation(user)
   }
 
   object DiversityQuestionnaireCompletedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasDiversity(user)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasDiversity(user)
   }
 
   object EducationQuestionnaireCompletedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasEducation(user)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasEducation(user)
   }
 
   object ParentalOccupationQuestionnaireCompletedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithApp(user) && statusIn(user)(IN_PROGRESS) && hasOccupation(user)
+      activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) && hasOccupation(user)
   }
 }

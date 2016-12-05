@@ -31,6 +31,7 @@ object ProgressExamples {
       phase3TestsResultsReceived = false
     ),
     false,
+    false,
     AssessmentScores(false, false),
     AssessmentCentre(false, false, false)
   )
@@ -45,6 +46,7 @@ object ProgressExamples {
       phase3TestsExpired = true,
       phase3TestsResultsReceived = true
     ),
+    true,
     true,
     AssessmentScores(true, true),
     AssessmentCentre(true, true, true)
@@ -61,6 +63,7 @@ object ProgressExamples {
       phase3TestsResultsReceived = true,
       phase3TestsPassed = true
     ),
+    false,
     true,
     AssessmentScores(true, true),
     AssessmentCentre(true, true, true)
@@ -74,4 +77,5 @@ object ProgressExamples {
   val PreviewProgress = QuestionnaireProgress.copy(preview = true)
   val SubmitProgress = PreviewProgress.copy(submitted = true)
   val WithdrawnAfterSubmitProgress = SubmitProgress.copy(withdrawn = true)
+  val ExportedToParityProgress = Phase3TestsPassed.copy(exported = true)
 }
