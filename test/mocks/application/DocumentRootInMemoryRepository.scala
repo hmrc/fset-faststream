@@ -44,6 +44,9 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def find(applicationIds: List[String]): Future[List[Candidate]] = ???
 
+  def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
+              frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = ???
+
   override def find(applicationId: String): Future[Option[Candidate]] = ???
 
   override def create(userId: String, frameworkId: String, applicationRoute:ApplicationRoute): Future[ApplicationResponse] = {
@@ -148,5 +151,5 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = ???
 
-  def updateApplicationRoute(appId: String, newApplicationRoute: ApplicationRoute): Future[Unit] = ???
+  def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = ???
 }

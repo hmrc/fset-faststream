@@ -19,19 +19,17 @@ package repositories.contactdetails
 import config.MicroserviceAppConfig
 import model.Address
 import model.Commands._
-import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
+import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
 import model.PersistedObjects.ContactDetailsWithId
-import model.Exceptions.{ CannotUpdateContactDetails, ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
 import model.persisted.ContactDetails
-import play.api.Logger
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json._
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-import play.api.libs.json._
-import play.api.libs.json.Reads._
-import play.api.libs.functional.syntax._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -46,6 +44,8 @@ trait ContactDetailsRepository {
   def findAll: Future[List[ContactDetailsWithId]]
 
   def findAllPostcodes(): Future[Map[String, String]]
+
+  def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -109,5 +109,17 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       )((_, _))
     val result = collection.find(query, projection).cursor[(String, String)](ReadPreference.nearest).collect[List]()
     result.map(_.toMap)
+  }
+
+  override def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
+    val query = BSONDocument("userId" -> originalUserId)
+
+    val updateWithArchiveUserId = BSONDocument("$set" -> BSONDocument(
+      "originalUserId" -> originalUserId,
+      "userId" -> userIdToArchiveWith
+    ))
+
+    val validator = singleUpdateValidator(originalUserId, actionDesc = "archiving contact details")
+    collection.update(query, updateWithArchiveUserId) map validator
   }
 }
