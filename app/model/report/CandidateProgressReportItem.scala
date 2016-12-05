@@ -21,8 +21,8 @@ import play.api.libs.json.Json
 
 case class CandidateProgressReportItem(userId: String, applicationId: String, progress: Option[String], schemes: List[SchemeType],
                                        disability: Option[String], onlineAdjustments: Option[String],
-                                       assessmentCentreAdjustments: Option[String], gis: Option[String],
-                                       civilServant: Option[String], fastTrack: Option[String], edip: Option[String],
+                                       assessmentCentreAdjustments: Option[String], phoneAdjustments: Option[String],
+                                       gis: Option[String], civilServant: Option[String], fastTrack: Option[String], edip: Option[String],
                                        sdipPrevious: Option[String], sdip: Option[String],
                                        fastPassCertificate: Option[String], fsacIndicator: Option[String], applicationRoute: Option[String])
 
