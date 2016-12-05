@@ -58,7 +58,8 @@ case class Phase3TestProgress(phase3TestsInvited: Boolean = false,
                               phase3TestsFailed: Boolean = false
                              )
 
-case class Progress(personalDetails: Boolean,
+case class Progress(
+  personalDetails: Boolean,
   schemePreferences: Boolean,
   partnerGraduateProgrammes: Boolean,
   assistanceDetails: Boolean,
@@ -74,6 +75,7 @@ case class Progress(personalDetails: Boolean,
   phase2TestProgress: Phase2TestProgress = Phase2TestProgress(false, false, false, false,
     false, false, false, false, false, false),
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
+  exported: Boolean = false,
   failedToAttend: Boolean = false,
   assessmentScores: AssessmentScores,
   assessmentCentre: AssessmentCentre
@@ -87,6 +89,7 @@ object Progress {
   implicit val phase3TestProgressFormat = Json.format[Phase3TestProgress]
   implicit val progressFormat: Format[Progress] = Json.format[Progress]
 
+  // scalastyle:off method.length
   implicit def fromProgressRespToAppProgress(progressResponse: ProgressResponse): Progress =
     Progress(
       personalDetails = progressResponse.personalDetails,
@@ -134,8 +137,10 @@ object Progress {
         phase3TestsPassed = progressResponse.phase3ProgressResponse.phase3TestsPassed,
         phase3TestsFailed = progressResponse.phase3ProgressResponse.phase3TestsFailed
       ),
+      exported = progressResponse.exported,
       failedToAttend = progressResponse.failedToAttend,
       assessmentScores = progressResponse.assessmentScores,
       assessmentCentre = progressResponse.assessmentCentre
     )
+  // scalastyle:on method.length
 }

@@ -3,7 +3,7 @@
 @import security.Roles._
 @import views.html.home.withdrawInformation
 
-@(cachedUsr: CachedData, finalSchemeResults: List[SchemeEvaluationResult])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(cachedUser: CachedData, finalSchemeResults: List[SchemeEvaluationResult])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
 @getOrder(pos: Int) = @{
   pos match {
@@ -26,18 +26,18 @@
 
     <div class="hgroup">
         <h1 class="heading-xlarge">Home</h1>
-        <p class="subtitle">@{cachedUsr.user.firstName + " " + cachedUsr.user.lastName}</p>
+        <p class="subtitle">@{cachedUser.user.firstName + " " + cachedUser.user.lastName}</p>
     </div>
 
-    @withdrawInformation(cachedUsr)
+    @withdrawInformation(cachedUser)
 
-    <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(cachedUsr)){disabled}" id="mainProgressPage">
+    <section class="section-border" id="mainProgressPage">
         <h2 class="heading-large"><i class="fa fa-check"></i>You've passed the video interview</h2>
         <div class="text">
             <section>
                 <p>Congratulations, you've been successful for at least one of your
                     preferred schemes.</p>
-                @if(WithdrawApplicationRole.isAuthorized(cachedUsr)){
+                @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
                     <p><a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a></p>
                     <p><a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a></p>
                 }
@@ -90,7 +90,7 @@
                     </div>
                 </details>
             }
-            @if(WithdrawApplicationRole.isAuthorized(cachedUsr)){
+            @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
                 <div class="panel-indent" data-hideifwithdrawn>
                     <p>You'll automatically be put forward for your successful schemes at
                         the assessment centre unless you withdraw your application.</p>
@@ -100,5 +100,5 @@
         </div>
     </section>
 
-    @withdrawSection(cachedUsr)
+    @withdrawSection(cachedUser)
 }

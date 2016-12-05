@@ -24,6 +24,7 @@ import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus.{ CREATED, _ }
 import models._
 import play.api.i18n.Lang
+import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import security.Roles.{ AssessmentCentreFailedToAttendRole, CsrAuthorization, WithdrawComponent }
@@ -33,17 +34,31 @@ class RolesSpec extends UnitSpec {
 
   val request = FakeRequest(GET, "")
 
-  "Withdraw Component" should {
+  "Active user" must {
+    "Not contain exported users" in {
+      val user = activeUser(ApplicationStatus.EXPORTED)
+      implicit val rh = mock[RequestHeader]
+      RoleUtils.activeUserWithActiveApp(user)(rh, Lang("en-GB")) mustBe false
+    }
+
+    "Contain non-exported users" in {
+      val user = activeUser(ApplicationStatus.PHASE3_TESTS, ProgressExamples.Phase3TestsPassed)
+      implicit val rh = mock[RequestHeader]
+      RoleUtils.activeUserWithActiveApp(user)(rh, Lang("en-GB")) mustBe true
+    }
+  }
+
+  "Withdraw Component" must {
     "be enable only for specific roles" in {
       val disabledStatuses = List(IN_PROGRESS, WITHDRAWN, CREATED,
-        ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED)
+        ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED, EXPORTED)
       val enabledStatuses = ApplicationStatus.values.toList.diff(disabledStatuses)
 
       assertValidAndInvalidStatuses(WithdrawComponent, enabledStatuses, disabledStatuses)
     }
   }
 
-  "Assessment Centre Failed to attend role" should {
+  "Assessment Centre Failed to attend role" must {
     "be authorised only for specific roles" in {
       val enabledStatuses = List(FAILED_TO_ATTEND)
       val disabledStatuses = ApplicationStatus.values.toList.diff(enabledStatuses)
@@ -73,10 +88,10 @@ class RolesSpec extends UnitSpec {
 object RolesSpec {
   val id = UniqueIdentifier(UUID.randomUUID().toString)
 
-  def activeUser(applicationStatus: ApplicationStatus) = CachedData(CachedUser(
+  def activeUser(applicationStatus: ApplicationStatus, progress: Progress = ProgressExamples.FullProgress) = CachedData(CachedUser(
     id,
     "John", "Biggs", None, "aaa@bbb.com", isActive = true, "locked"
-  ), Some(ApplicationData(id, id, applicationStatus, ApplicationRoute.Faststream, ProgressExamples.FullProgress, None, None)))
+  ), Some(ApplicationData(id, id, applicationStatus, ApplicationRoute.Faststream, progress, None, None)))
 
   def registeredUser(applicationStatus: ApplicationStatus) = CachedData(CachedUser(
     id,

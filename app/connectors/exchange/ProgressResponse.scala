@@ -65,21 +65,24 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
                                  )
 
 
-case class ProgressResponse(applicationId: String,
-                            personalDetails: Boolean = false,
-                            schemePreferences: Boolean = false,
-                            partnerGraduateProgrammes: Boolean = false,
-                            assistanceDetails: Boolean = false,
-                            preview: Boolean = false,
-                            questionnaire: List[String] = Nil,
-                            submitted: Boolean = false,
-                            withdrawn: Boolean = false,
-                            phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
-                            phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
-                            phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
-                            failedToAttend: Boolean = false,
-                            assessmentScores: AssessmentScores = AssessmentScores(),
-                            assessmentCentre: AssessmentCentre = AssessmentCentre())
+case class ProgressResponse(
+  applicationId: String,
+  personalDetails: Boolean = false,
+  schemePreferences: Boolean = false,
+  partnerGraduateProgrammes: Boolean = false,
+  assistanceDetails: Boolean = false,
+  preview: Boolean = false,
+  questionnaire: List[String] = Nil,
+  submitted: Boolean = false,
+  withdrawn: Boolean = false,
+  phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
+  phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
+  phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
+  exported: Boolean = false,
+  failedToAttend: Boolean = false,
+  assessmentScores: AssessmentScores = AssessmentScores(),
+  assessmentCentre: AssessmentCentre = AssessmentCentre()
+)
 
 object ProgressResponse {
   implicit val assessmentScoresFormat = Json.format[AssessmentScores]
