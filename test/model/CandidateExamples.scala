@@ -19,5 +19,5 @@ package model
 import model.Commands.Candidate
 
 object CandidateExamples {
-  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None)
+  def minCandidate(userId: String) = Candidate(userId, None, None, None, None, None, None, None, None, None, None, None)
 }

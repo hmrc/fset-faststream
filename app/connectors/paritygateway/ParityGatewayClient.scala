@@ -20,7 +20,7 @@ import config.MicroserviceAppConfig._
 import _root_.config.WSHttp
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
-import play.api.libs.json.{ JsObject, JsValue }
+import play.api.libs.json.JsObject
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.ExecutionContext.Implicits.global

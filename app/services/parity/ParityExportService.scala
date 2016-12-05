@@ -22,8 +22,10 @@ import config.{ MicroserviceAppConfig, ParityGatewayConfig }
 import connectors.paritygateway.ParityGatewayClient
 import model.EvaluationResults.Green
 import model.ProgressStatuses.EXPORTED
+import model.events.{ AuditEvents, DataStoreEvents }
 import play.api.Logger
 import play.api.libs.json._
+import play.api.mvc.RequestHeader
 import services.events.{ EventService, EventSink }
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -31,6 +33,7 @@ import repositories.parity.{ ApplicationReadyForExport, ParityExportRepository }
 import repositories.parity.ParityExportRepository.ApplicationIdNotFoundException
 import services.onlinetesting.EvaluatePhase3ResultService
 import services.reporting.{ SocioEconomicCalculator, SocioEconomicScoreCalculator }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -66,12 +69,15 @@ trait ParityExportService extends EventSink {
   def nextApplicationsForExport(batchSize: Int): Future[List[ApplicationReadyForExport]] =
   parityExRepository.nextApplicationsForExport(batchSize)
 
-  def exportApplication(applicationId: String): Future[Unit] = {
+  def exportApplication(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       exportJson <- generateExportJson(applicationId)
       _ <- parityGatewayClient.createExport(exportJson)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, EXPORTED)
-    } yield ()
+    } yield {
+      AuditEvents.ApplicationExported("applicationId" -> applicationId) ::
+      DataStoreEvents.ApplicationReadyForExport(applicationId) :: Nil
+    }
   }
 
   // scalastyle:off method.length
@@ -87,7 +93,12 @@ trait ParityExportService extends EventSink {
       sesScore = socioEconomicCalculator.calculateAsInt(diversityQuestions)
       schemePassFail <- evaluateP3ResultService.getPassmarkEvaluation(applicationId)
     } yield {
-      val mediaObj = mediaOpt.map(media => Json.obj("media" -> media.media)).getOrElse(Json.obj())
+
+      val mediaObj = mediaOpt match {
+        case Some(media) if media.media.nonEmpty => Json.obj("media" -> media.media)
+        case _ => Json.obj()
+      }
+
       val diversityQuestionsObj = diversityQuestions.foldLeft(Json.obj()){ (builder, qAndA) =>
         val (question, answer) = (qAndA._1, qAndA._2)
         builder ++ Json.obj(question -> Json.obj("answer" -> JsString(answer.answer.getOrElse("")),

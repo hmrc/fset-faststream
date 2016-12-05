@@ -627,7 +627,7 @@ object DataFaker {
 
     def yesNo = randOne(List("Yes", "No"))
 
-    def yesNoPreferNotToSay = randOne(List("Yes", "No", "I don't know/prefer not say"))
+    def yesNoPreferNotToSay = randOne(List("Yes", "No", "I don't know/prefer not to say"))
 
     def employeeOrSelf = randOne(List(
       "Employee",

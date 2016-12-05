@@ -18,40 +18,7 @@ package services.reporting
 
 import model.PersistedObjects.PersistedAnswer
 
-trait AnswerProcessorTrait {
-  this: Calculable with Collector =>
-
-  def process(answers: List[Map[String, String]]): Unit = {
-    processAnswers(answers)
-  }
-
-  def processAnswers(answers: List[Map[String, String]]): Unit = {
-    for {
-      answer <- answers
-    } yield {
-      val score = calculate(answer)
-      updateTotals(score)
-    }
-  }
-
-  def updateTotals(score: String) = {
-    collectorMap.get(score) match {
-      case Some(_) => collectorMap(score) += 1
-      case _ =>
-    }
-  }
-}
-
 trait Calculable {
   def calculateAsInt(answers: Map[String, PersistedAnswer]): Int
   def calculate(answers: Map[String, String]): String
-}
-
-trait Collector {
-
-  type Message
-
-  def collectorMap: collection.mutable.Map[String, Int]
-
-  def createMessage: Message
 }

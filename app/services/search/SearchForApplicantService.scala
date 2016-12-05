@@ -111,6 +111,7 @@ trait SearchForApplicantService {
           Some(exchangeCandidate.email),
           Some(exchangeCandidate.firstName),
           Some(exchangeCandidate.lastName),
+
           exchangeCandidate.preferredName,
           None,
           None,
@@ -119,6 +120,7 @@ trait SearchForApplicantService {
           // In this level we cannot say if the candidate's application exist, so it set to None
           // If the application does not exist, the candidate is Faststream
           // otherwise applicationRoute is saved in application
+          None,
           None
         )
       )

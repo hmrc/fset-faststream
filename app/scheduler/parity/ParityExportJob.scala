@@ -19,11 +19,12 @@ package scheduler.parity
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
 import config.{ MicroserviceAppConfig, ScheduledJobConfig }
+import model.EmptyRequestHeader
 import play.api.Logger
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.BasicJobConfig
-import services.application.ApplicationService
 import services.parity.ParityExportService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -37,6 +38,9 @@ trait ParityExportJob extends SingleInstanceScheduledJob with ParityExportJobCon
   val parityExportJobConfig: ScheduledJobConfig
 
   override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+
+  implicit val blankHeaderCarrier = HeaderCarrier()
+  implicit val requestHeader = EmptyRequestHeader
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     service.nextApplicationsForExport(parityExportJobConfig.batchSize.getOrElse(1)).flatMap { applicationList =>
