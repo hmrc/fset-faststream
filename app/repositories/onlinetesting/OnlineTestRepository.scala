@@ -97,12 +97,11 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
   def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime) = {
     import repositories.BSONDateTimeHandler
-    val query = BSONDocument(s"testGroups.$phaseName.expirationDate" -> BSONDocument("$gt" -> DateTime.now(DateTimeZone.UTC)))
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
     ))
 
-    findAndUpdateCubiksTest(cubiksUserId, update, query, ignoreNotFound = true)
+    findAndUpdateCubiksTest(cubiksUserId, update, ignoreNotFound = true)
   }
 
   def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady) = {
@@ -197,9 +196,8 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     selectOneRandom[TestGroup](query)
   }
 
-  private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument, query: BSONDocument = BSONDocument.empty,
-                                      ignoreNotFound: Boolean = false): Future[Unit] = {
-        val find = query ++ BSONDocument(
+  private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit] = {
+        val find = BSONDocument(
       s"testGroups.$phaseName.tests" -> BSONDocument(
         "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
       )

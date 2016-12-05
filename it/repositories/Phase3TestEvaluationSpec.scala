@@ -10,30 +10,18 @@ import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, Sche
 import org.joda.time.DateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop._
-import play.api.test.Helpers
-import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import reactivemongo.json.collection.JSONCollection
 import services.onlinetesting.EvaluatePhase3ResultService
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.Await
 
-
-class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository with MockitoSugar
+class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
 
   import ImplicitBSONHandlers._
 
   val collectionName = "application"
-
-  override def withFixture(test: NoArgTest) = {
-    Helpers.running(app) {
-      val collection = mongo().collection[JSONCollection]("phase3-pass-mark-settings")
-      Await.ready(collection.remove(BSONDocument.empty), timeout)
-      super.withFixture(test)
-    }
-  }
+  override val additionalCollections = List("phase3-pass-mark-settings")
 
   def phase3TestEvaluationService = new EvaluatePhase3ResultService {
     val evaluationRepository = phase3EvaluationRepo

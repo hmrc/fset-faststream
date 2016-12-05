@@ -39,10 +39,9 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   this: ReactiveRepository[ApplicationReadyForEvaluation, _] =>
 
   val phase: Phase
-
   val evaluationApplicationStatuses: List[ApplicationStatus]
-
   val evaluationProgressStatus: ProgressStatus
+  val expiredProgressStatus: ProgressStatus
 
   implicit val applicationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation]
 
@@ -101,10 +100,9 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments{
 
   val phase = PHASE1
-
   val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE2_TESTS)
-
   val evaluationProgressStatus = ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED
+  val expiredProgressStatus = ProgressStatuses.PHASE1_TESTS_EXPIRED
 
   implicit val applicationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation] = bsonReader(doc => {
     val bsonPhase1: Option[BSONDocument] = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
@@ -116,6 +114,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
         BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+        BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
         BSONDocument("$or" -> BSONArray(
           BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
           BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
@@ -130,12 +129,10 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
     with CommonBSONDocuments {
 
   val phase = PHASE2
-
   val prevPhase = PHASE1
-
   val evaluationApplicationStatuses = List(ApplicationStatus.PHASE2_TESTS)
-
   val evaluationProgressStatus = ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED
+  val expiredProgressStatus = ProgressStatuses.PHASE2_TESTS_EXPIRED
 
   implicit val applicationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation] = bsonReader(doc => {
     val applicationId = doc.getAs[String]("applicationId").get
@@ -149,6 +146,7 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
       BSONDocument("$and" -> BSONArray(
         BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
         BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+        BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
         BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
         BSONDocument("$or" -> BSONArray(
           BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
@@ -168,12 +166,10 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
   import repositories.BSONDateTimeHandler
 
   val phase = PHASE3
-
   val prevPhase = PHASE2
-
   val evaluationApplicationStatuses = List(ApplicationStatus.PHASE3_TESTS, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
-
   val evaluationProgressStatus = ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
+  val expiredProgressStatus = ProgressStatuses.PHASE3_TESTS_EXPIRED
 
   implicit val applicationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation] = bsonReader(doc => {
     val applicationId = doc.getAs[String]("applicationId").get
@@ -187,6 +183,7 @@ class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayCo
     BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
       BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+      BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
       BSONDocument(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
       BSONDocument(s"testGroups.$phase.tests" ->
         BSONDocument("$elemMatch" -> BSONDocument(

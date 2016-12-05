@@ -11,30 +11,22 @@ import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop._
-import play.api.test.Helpers
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
 import services.onlinetesting.EvaluatePhase2ResultService
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.Await
+import scala.concurrent.Future
 
 
-class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository with MockitoSugar
+class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
 
   import ImplicitBSONHandlers._
 
   val collectionName = "application"
-
-  override def withFixture(test: NoArgTest) = {
-    Helpers.running(app) {
-      val collection = mongo().collection[JSONCollection]("phase2-pass-mark-settings")
-      Await.ready(collection.remove(BSONDocument.empty), timeout)
-      super.withFixture(test)
-    }
-  }
+  override val additionalCollections = List("phase2-pass-mark-settings")
 
   def phase2TestEvaluationService = new EvaluatePhase2ResultService {
     val evaluationRepository = phase2EvaluationRepo
@@ -168,7 +160,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     )
     // format: ON
 
-    var phase2PassMarkSettings = createPhase2PassMarkSettings(phase2PassMarkSettingsTable)
+    var phase2PassMarkSettings: Phase2PassMarkSettings = _
 
     var applicationReadyForEvaluation: ApplicationReadyForEvaluation = _
 
@@ -203,13 +195,13 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     def applicationReEvaluationWithSettings(newSchemeSettings: (SchemeType, Double, Double)*): TestFixture = {
       val schemePassMarkSettings = phase2PassMarkSettingsTable.filterNot(schemeSetting =>
         newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
-      phase2PassMarkSettings = createPhase2PassMarkSettings(schemePassMarkSettings)
+      phase2PassMarkSettings = createPhase2PassMarkSettings(schemePassMarkSettings).futureValue
       phase2TestEvaluationService.evaluate(applicationReadyForEvaluation, phase2PassMarkSettings).futureValue
       this
     }
 
     private def createPhase2PassMarkSettings(phase2PassMarkSettingsTable:
-                                             TableFor3[SchemeType, Double, Double]): Phase2PassMarkSettings = {
+                                             TableFor3[SchemeType, Double, Double]): Future[Phase2PassMarkSettings] = {
       val schemeThresholds = phase2PassMarkSettingsTable.map {
         fields => Phase2PassMark(fields._1,
           Phase2PassMarkThresholds(PassMarkThreshold(fields._2, fields._3)))
@@ -221,19 +213,23 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         DateTime.now,
         "user-1"
       )
-      phase2PassMarkSettingRepo.create(phase2PassMarkSettings).futureValue
-      phase2PassMarkSettingRepo.getLatestVersion.futureValue.get
+      phase2PassMarkSettingRepo.create(phase2PassMarkSettings).flatMap { _ =>
+        phase2PassMarkSettingRepo.getLatestVersion.map(_.get)
+      }
     }
 
     val appCollection = mongo().collection[JSONCollection](collectionName)
 
     def createUser(userId: String, appId: String) = {
-      appCollection.insert(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED)).futureValue
+      appCollection.insert(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED))
     }
 
-    createUser("user-1", "application-1")
-    createUser("user-2", "application-2")
-    createUser("user-3", "application-3")
+    Future.sequence(List(
+      createUser("user-1", "application-1"),
+      createUser("user-2", "application-2"),
+      createUser("user-3", "application-3"),
+      createPhase2PassMarkSettings(phase2PassMarkSettingsTable).map(phase2PassMarkSettings = _)
+    )).futureValue
   }
 
 }
