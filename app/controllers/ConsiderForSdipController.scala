@@ -60,8 +60,9 @@ class ConsiderForSdipController(applicationClient: ApplicationClient, cacheClien
   }
 
   def continueAsSdip = CSRSecureAction(ContinueAsSdipRole) { implicit request => implicit cachedData =>
+      val archivedEmail = convertToArchiveEmail(cachedData.user.email)
       for {
-        userToArchiveWith <- userManagementClient.register(s"${cachedData.user.email}-old", UUID.randomUUID().toString,
+        userToArchiveWith <- userManagementClient.register(archivedEmail, UUID.randomUUID().toString,
           cachedData.user.firstName, cachedData.user.lastName)
         _ <- applicationClient.continueAsSdip(cachedData.user.userID, userToArchiveWith.userId)
         _ <- env.userService.refreshCachedUser(cachedData.user.userID)

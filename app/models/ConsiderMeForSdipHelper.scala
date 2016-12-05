@@ -32,4 +32,8 @@ object ConsiderMeForSdipHelper {
     case None => Messages("error.faststream.becomes.sdip.not.submitted")
   }
 
+  def convertToArchiveEmail(email: String) = {
+    val emailParts = email.split("@").toList
+    s"${emailParts.head}-old@${emailParts(1)}"
+  }
 }
