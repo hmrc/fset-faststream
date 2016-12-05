@@ -58,7 +58,9 @@ trait MicroService {
       fork in Test := true,
       javaOptions in Test += "-Dmicroservice.services.user-management.url.host=http://localhost:11111",
       retrieveManaged := true,
-      scalacOptions += "-feature"
+      scalacOptions += "-feature",
+      // Currently don't enable warning in value discard in tests until ScalaTest 3
+      scalacOptions in (Compile, compile) += "-Ywarn-value-discard"
     )
     .settings(sources in (Compile, doc) := Seq.empty)
     .configs(IntegrationTest)
