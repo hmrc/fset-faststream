@@ -115,10 +115,10 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
       val edipReportColumn = applicationRoute match {
-        case Some("Faststream") => edip
-        case Some("SdipFaststream") => edip
-        case Some("Edip") => None
-        case Some("Sdip") => edipCompleted.map(eC => if (eC) "Yes" else "No")
+        case ApplicationRoute.Faststream => edip
+        case ApplicationRoute.SdipFaststream => edip
+        case ApplicationRoute.Edip => None
+        case ApplicationRoute.Sdip => edipCompleted.map(eC => if (eC) "Yes" else "No")
         case _ => None
       }
 
