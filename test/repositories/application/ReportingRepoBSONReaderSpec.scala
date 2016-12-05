@@ -19,9 +19,8 @@ package repositories.application
 import model.ApplicationRoute.{ apply => _ }
 import model.BSONExamples
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
-import model.report.{ CandidateProgressReportItem, CandidateProgressReportItemExamples, VideoInterviewQuestionTestResult, VideoInterviewTestResult }
+import model.report.{ CandidateProgressReportItemExamples, VideoInterviewQuestionTestResult, VideoInterviewTestResult }
 import reactivemongo.bson.{ BSONArray, BSONDateTime, BSONDocument }
-import repositories.ReactiveRepositoryHelpers
 import testkit.UnitWithAppSpec
 
 class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
@@ -309,4 +308,5 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
 
   trait CandidateProgressReportFixture {
   }
+
 }
