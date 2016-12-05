@@ -8,14 +8,13 @@ import model.SchemeType._
 import model.persisted._
 import model.persisted.phase3tests.Phase3TestGroup
 import model.{ ApplicationStatus, ProgressStatuses, SchemeType }
-import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories.CommonRepository
 import testkit.MongoRepositorySpec
 
 
-class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
+class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository {
 
   import ImplicitBSONHandlers._
   import Phase2EvaluationMongoRepositorySpec._
@@ -112,6 +111,17 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       assertApplication(result.head, phase2Evaluation)
     }
 
+    "return nothing when phase3 test results are expired" in {
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave)
+      insertApplication("app1", ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
+        Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation),
+        additionalProgressStatuses = List(ProgressStatuses.PHASE3_TESTS_EXPIRED -> true))
+
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSize = 1).futureValue
+
+      result mustBe empty
+    }
+
     "limit number of next applications to the batch size limit" in {
       val batchSizeLimit = 5
       1 to 6 foreach { id =>
@@ -173,7 +183,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
       val results = phase3EvaluationRepo.getPassMarkEvaluation("app2").failed.futureValue
 
-      results mustBe an [PassMarkEvaluationNotFound]
+      results mustBe a[PassMarkEvaluationNotFound]
     }
   }
 
