@@ -76,7 +76,7 @@ trait ParityExportService extends EventSink {
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, EXPORTED)
     } yield {
       AuditEvents.ApplicationExported("applicationId" -> applicationId) ::
-      DataStoreEvents.ApplicationReadyForExport(applicationId) :: Nil
+      DataStoreEvents.ApplicationExported(applicationId) :: Nil
     }
   }
 
