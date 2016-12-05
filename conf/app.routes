@@ -21,7 +21,8 @@ PUT         /application/preview/:applicationId                          control
 PUT         /application/submit/:userId/:applicationId                   controllers.SubmitApplicationController.submitApplication(userId: String, applicationId: String)
 PUT         /application/withdraw/:applicationId                         controllers.ApplicationController.withdrawApplication(applicationId: String)
 GET         /application/schemeresults/:applicationId                    controllers.ApplicationController.getSchemeResults(applicationId: String)
-PUT         /application/sdip/:applicationId                             controllers.ApplicationController.convertToSdip(applicationId: String)
+PUT         /application/consider-for-sdip/:applicationId                controllers.ApplicationController.considerForSdip(applicationId: String)
+PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
 
 PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
 GET         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)

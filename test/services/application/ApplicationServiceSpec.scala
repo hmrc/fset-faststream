@@ -18,9 +18,10 @@ package services
 
 import model.Commands.Candidate
 import model.events.AuditEvents
-import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
+import repositories.MediaRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
@@ -83,12 +84,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val pdRepositoryMock: PersonalDetailsRepository = mock[PersonalDetailsRepository]
     val cdRepositoryMock: ContactDetailsRepository = mock[ContactDetailsRepository]
     val schemeRepositoryMock: SchemePreferencesRepository = mock[SchemePreferencesRepository]
+    val mediaRepoMock: MediaRepository = mock[MediaRepository]
 
     val underTest = new ApplicationService with EventServiceFixture {
       val appRepository = appRepositoryMock
       val pdRepository = pdRepositoryMock
       val cdRepository = cdRepositoryMock
       val eventService = eventServiceMock
+      val mediaRepo = mediaRepoMock
       val schemeRepository = schemeRepositoryMock
     }
 

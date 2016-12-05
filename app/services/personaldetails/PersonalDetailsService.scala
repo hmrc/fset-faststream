@@ -43,8 +43,8 @@ trait PersonalDetailsService {
   val auditService: AuditService
 
   def update(applicationId: String, userId: String, personalDetails: model.command.PersonalDetails): Future[Unit] = {
-    val personalDetailsToPersist = model.persisted.PersonalDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
-      personalDetails.dateOfBirth, personalDetails.edipCompleted)
+    val personalDetailsToPersist = model.persisted.PersonalDetails(personalDetails.firstName,
+      personalDetails.lastName, personalDetails.preferredName, personalDetails.dateOfBirth, personalDetails.edipCompleted)
     val contactDetails = ContactDetails(personalDetails.outsideUk, personalDetails.address, personalDetails.postCode,
       personalDetails.country, personalDetails.email, personalDetails.phone)
 
