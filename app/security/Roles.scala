@@ -238,7 +238,7 @@ object RoleUtils {
   implicit def hc(implicit request: RequestHeader): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
 
   def activeUserWithActiveApp(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    user.user.isActive && user.application.isDefined && user.application.fold(true)(_.applicationStatus != EXPORTED)
+    user.user.isActive && user.application.isDefined && user.application.forall(_.applicationStatus != EXPORTED)
 
   def statusIn(user: CachedData)(status: ApplicationStatus*)(implicit request: RequestHeader, lang: Lang) =
     user.application.isDefined && status.contains(user.application.get.applicationStatus)
@@ -321,7 +321,7 @@ object RoleUtils {
 
   def isSdip(implicit user: Option[CachedData]): Boolean = user.exists(isSdip(_))
 
-  def isExported(implicit user: CachedData) = user.application.fold(false)(_.applicationStatus == EXPORTED)
+  def isExported(implicit user: CachedData) = user.application.exists(_.applicationStatus == EXPORTED)
 }
 
 // scalastyle:on
