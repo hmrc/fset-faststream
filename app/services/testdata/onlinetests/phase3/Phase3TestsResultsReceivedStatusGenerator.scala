@@ -16,16 +16,14 @@
 
 package services.testdata.onlinetests.phase3
 
-import org.joda.time.LocalDate
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import model.ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
 import model.command.testdata.GeneratorConfig
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
-import services.onlinetesting.Phase3TestService
 import services.testdata.ConstructiveGenerator
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -43,24 +41,28 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
   val phase3TestRepo: Phase3TestRepository
 
-  def getCallbackData(receivedBeforeInHours: Int, score: Option[Double]): ReviewedCallbackRequest = {
+  def getCallbackData(receivedBeforeInHours: Int, score: Option[Double],
+                      generateNullScoresForFewQuestions: Boolean = false): ReviewedCallbackRequest = {
     ReviewedCallbackRequest(DateTime.now.minusHours(receivedBeforeInHours), "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6",
       "FSCND-f9cf395d-df9d-4037-9fbf-9b3aa9d86c16", 46, None, "FSINV-28d52608-95e0-4d3a-93e7-0881cd2bc78b",
       LocalDate.now().plusDays(3), ReviewSectionRequest(
         ReviewSectionTotalAverageRequest("videoInterview", "50%", 50.0), // TODO: 50.0 should be calculated
         ReviewSectionReviewersRequest(
-          reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost", score, score),
-          reviewer2 = Some(getReviewSectionReviewersRequest("John Doe2", "johnDoe2@localhost", score, score)),
-          reviewer3 = Some(getReviewSectionReviewersRequest("John Doe3", "johnDoe3@localhost", score, score)))
+          reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost", score,
+            score,  generateNullScoresForFewQuestions),
+          reviewer2 = Some(getReviewSectionReviewersRequest("John Doe2", "johnDoe2@localhost", score,
+            score, generateNullScoresForFewQuestions)),
+          reviewer3 = Some(getReviewSectionReviewersRequest("John Doe3", "johnDoe3@localhost", score,
+            score, generateNullScoresForFewQuestions)))
       ))
   }
 
   def getReviewSectionReviewersRequest(name: String, email: String, criteria1Score: Option[Double] = None,
-                                       criteria2Score: Option[Double] = None) = {
+                                       criteria2Score: Option[Double] = None, generateNullScoresForFewQuestions: Boolean) = {
     ReviewSectionReviewerRequest(name, email, None,
-      question1 = getReviewSectionQuestionRequest(100, criteria1Score, criteria2Score),
-      question2 = getReviewSectionQuestionRequest(101, criteria1Score, criteria2Score),
-      question3 = getReviewSectionQuestionRequest(102, criteria1Score, criteria2Score),
+      question1 = getReviewSectionQuestionRequest(100, criteria1Score, criteria2Score, generateNullScoresForFewQuestions),
+      question2 = getReviewSectionQuestionRequest(101, criteria1Score, criteria2Score, generateNullScoresForFewQuestions),
+      question3 = getReviewSectionQuestionRequest(102, criteria1Score, criteria2Score, generateNullScoresForFewQuestions),
       question4 = getReviewSectionQuestionRequest(103, criteria1Score, criteria2Score),
       question5 = getReviewSectionQuestionRequest(104, criteria1Score, criteria2Score),
       question6 = getReviewSectionQuestionRequest(105, criteria1Score, criteria2Score),
@@ -69,20 +71,27 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
     )
   }
 
-  def getReviewSectionQuestionRequest(questionId: Int, criteria1Score: Option[Double] = None, criteria2Score: Option[Double] = None) = {
+  def getReviewSectionQuestionRequest(questionId: Int, criteria1Score: Option[Double] = None, criteria2Score: Option[Double] = None,
+                                      setNullScores: Boolean = false) = {
+    val (score1, score2) = setNullScores match {
+      case true => (None, None)
+      case false => (Some(criteria1Score.getOrElse(Random.getVideoInterviewScore())),
+        Some(criteria2Score.getOrElse(Random.getVideoInterviewScore())))
+    }
     ReviewSectionQuestionRequest(questionId,
-      ReviewSectionCriteriaRequest("numeric", Some(criteria1Score.getOrElse(Random.getVideoInterviewScore()))),
-      ReviewSectionCriteriaRequest("numeric", Some(criteria2Score.getOrElse(Random.getVideoInterviewScore())))
+      ReviewSectionCriteriaRequest("numeric", score1),
+      ReviewSectionCriteriaRequest("numeric", score2)
     )
   }
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val receivedBeforeInHours = generatorConfig.phase3TestData.flatMap(_.receivedBeforeInHours).getOrElse(0)
     val score = generatorConfig.phase3TestData.flatMap(_.score)
+    val generateNullScoresForFewQuestions = generatorConfig.phase3TestData.flatMap(_.generateNullScoresForFewQuestions).getOrElse(false)
 
-    val callbackData1 = getCallbackData(receivedBeforeInHours, score)
-    val callbackData2 = getCallbackData(receivedBeforeInHours, score)
-    val callbackData3 = getCallbackData(receivedBeforeInHours, score)
+    val callbackData1 = getCallbackData(receivedBeforeInHours, score, generateNullScoresForFewQuestions)
+    val callbackData2 = getCallbackData(receivedBeforeInHours, score, generateNullScoresForFewQuestions)
+    val callbackData3 = getCallbackData(receivedBeforeInHours, score, generateNullScoresForFewQuestions)
     for {
         candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
         token <- Future.successful(candidate.phase3TestGroup.get.tests.head.token)

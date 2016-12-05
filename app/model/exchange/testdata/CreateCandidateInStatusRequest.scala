@@ -77,6 +77,7 @@ case class Phase3TestDataRequest(
   completion: Option[String] = None,
   score: Option[Double] = None,
   receivedBeforeInHours: Option[Int] = None,
+  generateNullScoresForFewQuestions: Option[Boolean] = None,
   passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends TestDatesRequest
 
