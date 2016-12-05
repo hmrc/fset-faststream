@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import de.heikoseeberger.sbtheader.{AutomateHeaderPlugin, HeaderPlugin}
+import de.heikoseeberger.sbtheader.{ AutomateHeaderPlugin, HeaderPlugin }
 import sbt.Keys._
-import sbt.Tests.{Group, SubProcess}
+import sbt.Tests.{ Group, SubProcess }
 import sbt._
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
@@ -53,7 +53,9 @@ trait MicroService {
       parallelExecution in Test := false,
       fork in Test := false,
       retrieveManaged := true,
-      scalacOptions += "-feature")
+      scalacOptions += "-feature",
+      // Currently don't enable warning in value discard in tests until ScalaTest 3
+      scalacOptions in (Compile, compile) += "-Ywarn-value-discard")
     .settings(sources in (Compile, doc) := Seq.empty)
     .settings(HeaderPlugin.settingsFor(IntegrationTest))
     .configs(IntegrationTest)
@@ -73,9 +75,9 @@ trait MicroService {
 //      (compile in Compile) <<= (compile in Compile) dependsOn compileScalastyle)
     .settings(
       Keys.fork in IntegrationTest := false,
-      unmanagedSourceDirectories in IntegrationTest <<= (baseDirectory in IntegrationTest)(base => Seq(
+      unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(
         base / "it", base / "test/model", base / "test/testkit"
-      )),
+      )).value,
       addTestReportOption(IntegrationTest, "int-test-reports"),
       testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
       parallelExecution in IntegrationTest := false)
