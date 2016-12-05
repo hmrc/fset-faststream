@@ -34,6 +34,6 @@ object ConsiderMeForSdipHelper {
 
   def convertToArchiveEmail(email: String) = {
     val emailParts = email.split("@").toList
-    s"${emailParts.head}-old@${emailParts(1)}"
+    s"${emailParts.head}-old-${emailParts(1)}@localhost"
   }
 }
