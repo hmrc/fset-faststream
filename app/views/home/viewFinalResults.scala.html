@@ -23,6 +23,7 @@
 }
 
 @main_template(title = "Home") {
+
     <div class="grid-wrapper">
         <div class="grid grid-1-2">
             <div class="inner-block-padr">
@@ -34,14 +35,16 @@
         </div>
         <div class="grid grid-1-2">
             <div class="page-link">
-                <p data-hideifwithdrawn class="small-btm-margin"><a class="" href="apply-submitted.html">View your submitted application</a></p>
+                <p data-hideifwithdrawn class="small-btm-margin">
+                    <a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a>
+                </p>
                 @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
-                <p data-hideifwithdrawn data-hideafterparity><a class="" href="edit-details.html">Edit your personal details</a></p>
+                <p data-hideifwithdrawn data-hideafterparity>
+                    <a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a>
+                </p>
                 }
             </div>
         </div>
-    </div>
-    <div class="hgroup">
     </div>
 
     @withdrawInformation(cachedUser)
@@ -53,7 +56,8 @@
                 <p>Congratulations, you've been successful for at least one of your
                     preferred schemes.</p>
             </section>
-            <h2 class="heading-medium">Check your scheme status</h2>
+            <h2 class="heading-large">What you need to do now</h2>
+            <h2 class="heading-medium">1. Check your scheme status</h2>
             <h3 class="heading-small">Successful schemes</h3>
             <table class="table-preference-status" data-schemetable-bestcase>
                 <colgroup>
@@ -101,11 +105,24 @@
                     </div>
                 </details>
             }
+            <h2 class="heading-medium">2. Access your assessment centre account</h2>
+            <div class="text">
+                <p>To continue onto the assessment centre, you need to visit this page
+                    <a href="https://candidate.faststream.gov.uk/faststream" target="_blank">https://candidate.faststream.gov.uk/faststream</a>.</p>
+                <p>You'll be sent an email containing the details you'll need to sign
+                    in and fill in your information.</p>
+                <div class="panel-info standard-panel">
+                    <p>You need to complete this step within 7 days of receiving the email.</p>
+                </div>
+            </div>
             @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
-                <div class="panel-indent" data-hideifwithdrawn>
-                    <p>You'll automatically be put forward for your successful schemes at
-                        the assessment centre unless you withdraw your application.</p>
-                    <p>Unfortunately, you won't be considered for any unsuccessful schemes.</p>
+                <h2 class="heading-medium">3. Attend the assessment centre</h2>
+                <div class="text">
+                    <div class="">
+                        <p>You'll automatically be put forward for your successful schemes at
+                            the assessment centre unless you withdraw your application.</p>
+                        <p>Unfortunately, you won't be considered for any unsuccessful schemes.</p>
+                    </div>
                 </div>
             }
         </div>

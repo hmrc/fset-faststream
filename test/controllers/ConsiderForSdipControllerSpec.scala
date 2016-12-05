@@ -93,7 +93,8 @@ class ConsiderForSdipControllerSpec extends BaseControllerSpec {
 
   "continue as sdip" should {
     "display sdip dashboard with success message" in new TestFixture {
-      when(mockUserManagementClient.register(eqTo(s"${currentCandidateWithApp.user.email}-old"), any[String],
+      val archiveEmail = ConsiderMeForSdipHelper.convertToArchiveEmail(currentCandidateWithApp.user.email)
+      when(mockUserManagementClient.register(eqTo(archiveEmail), any[String],
         eqTo(currentCandidateWithApp.user.firstName), eqTo(currentCandidateWithApp.user.lastName))(any[HeaderCarrier]))
         .thenReturn(Future.successful(UserResponse("", "", None, isActive = false, UniqueIdentifier(UUID.randomUUID()), "", "", "", "")))
       when(mockApplicationClient.continueAsSdip(any[UniqueIdentifier], any[UniqueIdentifier])(any[HeaderCarrier]))
