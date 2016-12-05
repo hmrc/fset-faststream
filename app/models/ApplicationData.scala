@@ -35,7 +35,8 @@ case class ApplicationData(applicationId: UniqueIdentifier,
   import ApplicationData.ApplicationStatus._
   def isPhase1 = applicationStatus == PHASE1_TESTS || applicationStatus == PHASE1_TESTS_PASSED || applicationStatus == PHASE1_TESTS_FAILED
   def isPhase2 = applicationStatus == PHASE2_TESTS || applicationStatus == PHASE2_TESTS_PASSED || applicationStatus == PHASE2_TESTS_FAILED
-  def isPhase3 = applicationStatus == PHASE3_TESTS || applicationStatus == PHASE3_TESTS_PASSED || applicationStatus == PHASE3_TESTS_FAILED
+  def isPhase3 = (applicationStatus == PHASE3_TESTS || applicationStatus == PHASE3_TESTS_PASSED
+                    || applicationStatus == PHASE3_TESTS_FAILED || applicationStatus == PHASE3_TESTS_PASSED_WITH_AMBER)
 }
 
 object ApplicationData {
