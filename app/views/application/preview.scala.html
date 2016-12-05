@@ -11,7 +11,7 @@
 @import security.RoleUtils._
 
 @appNotReadOnly(body: Html)= {
-    @if(!WithdrawApplicationRole.isAuthorized(user.get) && !WithdrawnApplicationRole.isAuthorized(user.get)) {@body}
+    @if(!AbleToWithdrawApplicationRole.isAuthorized(user.get) && !WithdrawnApplicationRole.isAuthorized(user.get)) {@body}
 }
 
 

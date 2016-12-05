@@ -39,7 +39,7 @@
                 <p class="small-btm-margin">
                     <a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a>
                 </p>
-                @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
+                @if(AbleToWithdrawApplicationRole.isAuthorized(cachedUser)){
                 <p class="small-btm-margin">
                     <a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a>
                 </p>
@@ -117,7 +117,7 @@
                     <p>You need to complete this step within 7 days of receiving the email.</p>
                 </div>
             </div>
-            @if(WithdrawApplicationRole.isAuthorized(cachedUser)){
+            @if(AbleToWithdrawApplicationRole.isAuthorized(cachedUser)){
                 <h2 class="heading-medium">3. Attend the assessment centre</h2>
                 <div class="text">
                     <div class="">
