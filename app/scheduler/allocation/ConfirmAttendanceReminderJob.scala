@@ -41,7 +41,7 @@ trait ConfirmAttendanceReminderJob extends SingleInstanceScheduledJob with Confi
       case Some(candidate) =>
         candidateAllocationService.sendEmailConfirmationReminder(candidate)
       case None =>
-        Future.successful(Unit)
+        Future.successful(())
     }
   }
 }

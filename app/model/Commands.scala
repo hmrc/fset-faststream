@@ -171,7 +171,7 @@ object Commands {
 
   case class Candidate(userId: String, applicationId: Option[String], email: Option[String], firstName: Option[String], lastName: Option[String],
                        preferredName: Option[String], dateOfBirth: Option[LocalDate], address: Option[Address], postCode: Option[PostCode],
-                       country: Option[String], applicationRoute: Option[ApplicationRoute]) {
+                       country: Option[String], applicationRoute: Option[ApplicationRoute], applicationStatus: Option[String]) {
 
     def name = preferredName.getOrElse(firstName.getOrElse(""))
   }

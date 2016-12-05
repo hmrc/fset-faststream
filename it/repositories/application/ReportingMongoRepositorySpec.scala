@@ -62,7 +62,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId, appId, Some("submitted"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-        Some("No"), Some("No"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"), None, ApplicationRoute.Faststream)
+        Some("No"), Some("No"), None, Some("No"), Some("Yes"), Some("No"), None, Some("No"), Some("Yes"), Some("1234567"), None, ApplicationRoute.Faststream)
     }
 
     "for the minimum application" in {
@@ -74,7 +74,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head must be(CandidateProgressReportItem(userId, appId, Some("registered"),
-        List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None, None, ApplicationRoute.Faststream)
+        List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None, None, None, ApplicationRoute.Faststream)
       )
     }
   }

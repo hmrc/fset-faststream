@@ -79,9 +79,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   "Finding an application by User Id" should {
     "throw a NotFound exception when application doesn't exists" in {
-      applicationRepo.findByUserId("invalidUser", "invalidFramework")
-      an[ApplicationNotFound] must be thrownBy Await.result(applicationRepo
-        .findByUserId("invalidUser", "invalidFramework"), timeout)
+      val result = applicationRepo.findByUserId("invalidUser", "invalidFramework")
+      result.failed.futureValue mustBe an[ApplicationNotFound]
     }
 
     "throw an exception not of the type ApplicationNotFound when application is corrupt" in {

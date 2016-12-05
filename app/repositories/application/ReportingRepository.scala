@@ -81,13 +81,13 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     val projection = BSONDocument(
       "userId" -> "1",
       "applicationRoute" -> "1",
+      "personal-details.edipCompleted" -> "1",
       "scheme-preferences.schemes" -> "1",
       "assistance-details" -> "1",
       "civil-service-experience-details" -> "1",
       "applicationId" -> "1",
       "progress-status" -> "2"
     )
-
     reportQueryWithProjectionsBSON[CandidateProgressReportItem](query, projection)
   }
 

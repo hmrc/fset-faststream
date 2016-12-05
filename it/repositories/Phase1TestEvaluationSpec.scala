@@ -9,33 +9,23 @@ import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phas
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import org.joda.time.DateTime
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop._
-import play.api.test.Helpers
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
 import model.Phase
-import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.onlinetesting.EvaluatePhase1ResultService
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.Await
+import scala.concurrent.Future
 
 
-class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository with MockitoSugar
+class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
   import ImplicitBSONHandlers._
 
   val collectionName = "application"
-
-  override def withFixture(test: NoArgTest) = {
-    Helpers.running(app) {
-      val collection = mongo().collection[JSONCollection]("phase1-pass-mark-settings")
-      Await.ready(collection.remove(BSONDocument.empty), timeout)
-      super.withFixture(test)
-    }
-  }
+  override val additionalCollections = List("phase1-pass-mark-settings")
 
   def phase1TestEvaluationService = new EvaluatePhase1ResultService {
     val evaluationRepository = phase1EvaluationRepo
@@ -147,9 +137,9 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     )
     // format: ON
 
-    var phase1PassMarkSettings = createPhase1PassMarkSettings(phase1PassMarkSettingsTable)
+    var phase1PassMarkSettings: Phase1PassMarkSettings = _
 
-    var applicationReadyForEvaluation:ApplicationReadyForEvaluation = _
+    var applicationReadyForEvaluation: ApplicationReadyForEvaluation = _
 
     var passMarkEvaluation: PassmarkEvaluation = _
 
@@ -185,13 +175,13 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     def applicationReEvaluationWithSettings(newSchemeSettings: (SchemeType, Double, Double, Double, Double)*): TestFixture = {
       val schemePassMarkSettings = phase1PassMarkSettingsTable.filterNot(schemeSetting =>
         newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
-      phase1PassMarkSettings = createPhase1PassMarkSettings(schemePassMarkSettings)
+      phase1PassMarkSettings = createPhase1PassMarkSettings(schemePassMarkSettings).futureValue
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
       this
     }
 
     private def createPhase1PassMarkSettings(phase1PassMarkSettingsTable:
-                                             TableFor5[SchemeType, Double, Double, Double, Double]): Phase1PassMarkSettings = {
+                                             TableFor5[SchemeType, Double, Double, Double, Double]): Future[Phase1PassMarkSettings] = {
       val schemeThresholds = phase1PassMarkSettingsTable.map {
         fields => Phase1PassMark(fields._1,
           Phase1PassMarkThresholds(PassMarkThreshold(fields._2, fields._3), PassMarkThreshold(fields._4, fields._5)))
@@ -203,19 +193,23 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         DateTime.now,
         "user-1"
       )
-      phase1PassMarkSettingRepo.create(phase1PassMarkSettings).futureValue
-      phase1PassMarkSettingRepo.getLatestVersion.futureValue.get
+      phase1PassMarkSettingRepo.create(phase1PassMarkSettings).flatMap { _ =>
+        phase1PassMarkSettingRepo.getLatestVersion.map(_.get)
+      }
     }
 
     val appCollection = mongo().collection[JSONCollection](collectionName)
 
     def createUser(userId: String, appId: String) = {
-      appCollection.insert(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED)).futureValue
+      appCollection.insert(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED))
     }
 
-    createUser("user-1", "application-1")
-    createUser("user-2", "application-2")
-    createUser("user-3", "application-3")
+    Future.sequence(List(
+      createUser("user-1", "application-1"),
+      createUser("user-2", "application-2"),
+      createUser("user-3", "application-3"),
+      createPhase1PassMarkSettings(phase1PassMarkSettingsTable).map(phase1PassMarkSettings = _)
+    )).futureValue
   }
 
 }

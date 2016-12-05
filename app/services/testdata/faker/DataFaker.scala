@@ -100,6 +100,11 @@ object DataFaker {
       "I need a comfortable chair because of my back problem",
       "I need to take a rest every 10 minutes"))
 
+    def phoneAdjustmentsDescription: String = randOne(List(
+      "I need a very loud speaker",
+      "I need good headphones"
+    ))
+
     def passmark: Result = randOne(List(EvaluationResults.Green, EvaluationResults.Amber, EvaluationResults.Red))
 
     def availableAssessmentVenueAndDate: Future[AvailableAssessmentSlot] = {
@@ -622,7 +627,7 @@ object DataFaker {
 
     def yesNo = randOne(List("Yes", "No"))
 
-    def yesNoPreferNotToSay = randOne(List("Yes", "No", "I don't know/prefer not say"))
+    def yesNoPreferNotToSay = randOne(List("Yes", "No", "I don't know/prefer not to say"))
 
     def employeeOrSelf = randOne(List(
       "Employee",

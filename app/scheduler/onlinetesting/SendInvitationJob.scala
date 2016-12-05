@@ -47,7 +47,7 @@ trait SendInvitationJob extends SingleInstanceScheduledJob {
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationReadyForOnlineTesting.flatMap {
       case Nil =>
-        Future.successful(Unit)
+        Future.successful(())
       case applications =>
         implicit val hc = new HeaderCarrier()
         implicit val rh = EmptyRequestHeader

@@ -2,6 +2,7 @@ package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
+import model.Phase3TestProfileExamples._
 import model.SchemeType._
 import model.persisted.{ ApplicationReadyForEvaluation, _ }
 import model.{ ApplicationStatus, ProgressStatuses, SchemeType }
@@ -57,6 +58,17 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, None).futureValue
 
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSize = 1).futureValue
+      result mustBe empty
+    }
+
+    "return nothing when PHASE2_TESTS have expired" in {
+      val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave)
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+        Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation),
+        additionalProgressStatuses = List(ProgressStatuses.PHASE2_TESTS_EXPIRED -> true))
+
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase1_version1", batchSize = 1).futureValue
+
       result mustBe empty
     }
 

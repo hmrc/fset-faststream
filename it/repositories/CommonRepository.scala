@@ -6,6 +6,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.Phase1TestExamples._
 import model.Phase2TestProfileExamples._
 import model.Phase3TestProfileExamples._
+import model.ProgressStatuses.ProgressStatus
 import model.SchemeType._
 import model.persisted._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
@@ -17,6 +18,7 @@ import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.onlinetesting._
+import repositories.parity.ParityExportMongoRepository
 import repositories.passmarksettings._
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
@@ -55,6 +57,7 @@ trait CommonRepository {
 
   def phase3PassMarkSettingRepo = new Phase3PassMarkSettingsMongoRepository()
 
+  def parityExportMongoRepo = new ParityExportMongoRepository(DateTimeFactory)
 
   implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
 
@@ -101,12 +104,14 @@ trait CommonRepository {
                         phase2Tests: Option[List[CubiksTest]] = None, phase3Tests: Option[List[LaunchpadTest]] = None,
                         isGis: Boolean = false, schemes: List[SchemeType] = List(Commercial),
                         phase1Evaluation: Option[PassmarkEvaluation] = None,
-                        phase2Evaluation: Option[PassmarkEvaluation] = None): Unit = {
+                        phase2Evaluation: Option[PassmarkEvaluation] = None,
+                        additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty): Unit = {
     val gis = if (isGis) Some(true) else None
     applicationRepository.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "userId" -> appId,
-      "applicationStatus" -> applicationStatus
+      "applicationStatus" -> applicationStatus,
+      "progress-status" -> progressStatus(additionalProgressStatuses)
     )).futureValue
 
     val ad = AssistanceDetails("No", None, gis, needsSupportForOnlineAssessment = Some(false), None,
@@ -146,4 +151,27 @@ trait CommonRepository {
     }
   }
 
+  private def questionnaire() = {
+    BSONDocument(
+      "start_questionnaire" -> true,
+      "diversity_questionnaire" -> true,
+      "education_questionnaire" -> true,
+      "occupation_questionnaire" -> true
+    )
+  }
+  
+  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
+    val baseDoc = BSONDocument(
+      "personal-details" -> true,
+      "in_progress" -> true,
+      "scheme-preferences" -> true,
+      "partner-graduate-programmes" -> true,
+      "assistance-details" -> true,
+      "questionnaire" -> questionnaire(),
+      "preview" -> true,
+      "submitted" -> true
+    )
+
+    args.foldLeft(baseDoc)((acc, v) => acc.++(v._1.toString -> v._2))
+  }
 }

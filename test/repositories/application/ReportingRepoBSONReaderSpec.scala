@@ -17,41 +17,48 @@
 package repositories.application
 
 import model.ApplicationRoute.{ apply => _ }
+import model.BSONExamples
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
-import model.report.{ VideoInterviewQuestionTestResult, VideoInterviewTestResult }
+import model.report.{ CandidateProgressReportItemExamples, VideoInterviewQuestionTestResult, VideoInterviewTestResult }
 import reactivemongo.bson.{ BSONArray, BSONDateTime, BSONDocument }
-import repositories.ReactiveRepositoryHelpers
 import testkit.UnitWithAppSpec
 
 class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
 
-  def bsonToModelHelper = new ReportingRepoBSONReader {}
+  def bsonReader = new ReportingRepoBSONReader {}
+
+  "toCandidateProgressReport" should {
+    "return sdip candidate correctly" in new CandidateProgressReportFixture {
+      val candidateProgressReportItem = bsonReader.toCandidateProgressReportItem.read(BSONExamples.SubmittedSdipCandidateWithEdipCompleted)
+      candidateProgressReportItem mustBe CandidateProgressReportItemExamples.SdipCandidate
+    }
+  }
 
   "toPhase3TestResults" should {
-    "return corresponding VideoInterviewTestResult when only one reviewer and one reviewed callback" in new Fixture {
-      val videoInterviewTestResult = bsonToModelHelper.toPhase3TestResults(Some(oneReviewedOneReviewerReviewedPhase3BSONDoc(1.5)))
+    "return corresponding VideoInterviewTestResult when only one reviewer and one reviewed callback" in new OnlineTestPassMarkReportFixture {
+      val videoInterviewTestResult = bsonReader.toPhase3TestResults(Some(oneReviewedOneReviewerReviewedPhase3BSONDoc(1.5)))
       videoInterviewTestResult mustBe
         Some(expectedBaseResult.copy(question1 = VideoInterviewQuestionTestResult(Some(1.5), Some(2.5)), overallTotal = 39.5)
-      )
+        )
     }
 
-    "return corresponding VideoInterviewTestResult when only two reviewer and one reviewed callback" in new Fixture {
-      val videoInterviewTestResult = bsonToModelHelper.toPhase3TestResults(Some(oneReviewedTwoReviewerReviewedPhase3BSONDoc(2.5, 2.5)))
+    "return corresponding VideoInterviewTestResult when only two reviewer and one reviewed callback" in new OnlineTestPassMarkReportFixture {
+      val videoInterviewTestResult = bsonReader.toPhase3TestResults(Some(oneReviewedTwoReviewerReviewedPhase3BSONDoc(2.5, 2.5)))
       videoInterviewTestResult mustBe
         Some(expectedBaseResult.copy(question1 = VideoInterviewQuestionTestResult(Some(2.5), Some(2.5)), overallTotal = 40.5)
-      )
+        )
     }
 
-    "return corresponding VideoInterviewTestResult when two reviewer and three reviewed callback" in new Fixture {
+    "return corresponding VideoInterviewTestResult when two reviewer and three reviewed callback" in new OnlineTestPassMarkReportFixture {
       val videoInterviewTestResult =
-        bsonToModelHelper.toPhase3TestResults(Some(threeReviewedTwoReviewerReviewedPhase3BSONDoc(2.5, 2.5, 3.5, 1.0, 1.0, 4.0)))
+        bsonReader.toPhase3TestResults(Some(threeReviewedTwoReviewerReviewedPhase3BSONDoc(2.5, 2.5, 3.5, 1.0, 1.0, 4.0)))
       videoInterviewTestResult mustBe
         Some(expectedBaseResult.copy(question1 = VideoInterviewQuestionTestResult(Some(1.0), Some(2.5)), overallTotal = 39.0)
         )
     }
   }
 
-  trait Fixture {
+  trait OnlineTestPassMarkReportFixture {
     val baseTotalOverall = 38.0
     val expectedBaseResult = VideoInterviewTestResult(
       VideoInterviewQuestionTestResult(None, Some(2.5)),
@@ -159,6 +166,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
           "score" -> 1.5
         )
       ))
+
     //scalastyle:on method.length
 
     def oneReviewedOneReviewerReviewedBSONDoc(score: Double) = BSONArray(
@@ -269,6 +277,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
         )
       )
     )
+
     //scalastyle:off method.length
 
     def testsBSONDoc(reviewed: BSONArray) = BSONDocument("tests" ->
@@ -296,4 +305,8 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
                                                       score4: Double, score5: Double, score6: Double) = BSONDocument("PHASE3" ->
       testsBSONDoc(threeReviewedTwoReviewerReviewedBSONDoc(score1, score2, score3, score4, score5, score6)))
   }
+
+  trait CandidateProgressReportFixture {
+  }
+
 }
