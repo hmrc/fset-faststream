@@ -43,7 +43,7 @@ class ParityExportMongoRepositorySpec extends MongoRepositorySpec with CommonRep
       result.head.applicationId mustBe "app1"
     }
 
-    "return nothing when EXPORTED" in {
+    "return nothing when no applications are in READY_FOR_EXPORT" in {
       val result = parityExportMongoRepo.nextApplicationsForExport(batchSize = 1).futureValue
       result mustBe empty
     }
