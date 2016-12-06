@@ -21,7 +21,7 @@ import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus.SUBMITTED
-import security.Roles.{ SubmitApplicationRole, WithdrawApplicationRole }
+import security.Roles.{ SubmitApplicationRole, AbleToWithdrawApplicationRole }
 
 import scala.concurrent.Future
 
@@ -41,7 +41,7 @@ abstract class SubmitApplicationController(applicationClient: ApplicationClient,
       }
   }
 
-  def success = CSRSecureAppAction(WithdrawApplicationRole) { implicit request =>
+  def success = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.application.success()))
   }

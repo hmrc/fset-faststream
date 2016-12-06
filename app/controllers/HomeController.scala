@@ -69,12 +69,12 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       }
   }
 
-  def presentWithdrawApplication = CSRSecureAppAction(WithdrawApplicationRole) { implicit request =>
+  def presentWithdrawApplication = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.application.withdraw(WithdrawApplicationForm.form)))
   }
 
-  def withdrawApplication = CSRSecureAppAction(WithdrawApplicationRole) { implicit request =>
+  def withdrawApplication = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
 
       def updateApplicationStatus(data: CachedData): CachedData = {

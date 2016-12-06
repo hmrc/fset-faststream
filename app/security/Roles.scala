@@ -119,7 +119,7 @@ object Roles {
       activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS)
   }
 
-  object WithdrawApplicationRole extends CsrAuthorization {
+  object AbleToWithdrawApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithActiveApp(user) && !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED)
   }
@@ -229,7 +229,7 @@ object Roles {
     DisplayOnlineTestSectionRole -> routes.HomeController.present(),
     ConfirmedAllocatedCandidateRole -> routes.HomeController.present(),
     UnconfirmedAllocatedCandidateRole -> routes.HomeController.present(),
-    WithdrawApplicationRole -> routes.HomeController.present()
+    AbleToWithdrawApplicationRole -> routes.HomeController.present()
   ).reverse
 }
 

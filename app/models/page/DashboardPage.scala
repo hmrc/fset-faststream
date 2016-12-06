@@ -153,7 +153,7 @@ object DashboardPage {
   }
 
   private def isApplicationSubmittedAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    WithdrawApplicationRole.isAuthorized(user)
+    AbleToWithdrawApplicationRole.isAuthorized(user)
 
   private def isApplicationWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     WithdrawnApplicationRole.isAuthorized(user)
