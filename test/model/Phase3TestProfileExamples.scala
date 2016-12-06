@@ -78,6 +78,38 @@ object Phase3TestProfileExamples {
     )
   )
 
+  def buildReviewCallBack(criteriaScore: Double) = ReviewedCallbackRequest(
+    DateTime.now(),
+    sampleCandidateId,
+    sampleCustomCandidateId,
+    sampleInterviewId,
+    None,
+    sampleInviteId,
+    sampleDeadline,
+    ReviewSectionRequest(
+      ReviewSectionTotalAverageRequest(
+        "video_interview",
+        "46%",
+        46.0
+      ),
+      ReviewSectionReviewersRequest(
+        ReviewSectionReviewerRequest(
+          "John Smith",
+          "john.smith@mailinator.com",
+          Some("This is a comment"),
+          generateReviewedQuestion(1, Some(criteriaScore), Some(criteriaScore)),
+          generateReviewedQuestion(2, Some(criteriaScore), Some(criteriaScore)),
+          generateReviewedQuestion(3, Some(criteriaScore), Some(criteriaScore)),
+          generateReviewedQuestion(4, Some(criteriaScore), Some(criteriaScore)),
+          generateReviewedQuestion(5, Some(criteriaScore), Some(criteriaScore)),
+          generateReviewedQuestion(6, Some(criteriaScore), Some(criteriaScore)),
+          generateReviewedQuestion(7, Some(criteriaScore), Some(criteriaScore)),
+          generateReviewedQuestion(8, Some(criteriaScore), Some(criteriaScore))
+        ), None, None
+      )
+    )
+  )
+
   val phase3Test = Phase3TestGroup(expirationDate = DatePlus7Days, tests = List(launchPadTest))
 
   def phase3TestWithResult(implicit hrsBeforeLastReviewed: Int = 0) = {
