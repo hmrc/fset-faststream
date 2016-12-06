@@ -16,16 +16,16 @@
 
 package model.report
 
-import model.SchemeType
+import model.{ ApplicationRoute, SchemeType }
 
 object ApplicationForDiversityReportItemExamples {
 
-  val Example1 = ApplicationForDiversityReportItem(Some("phase1_tests_completed"),
+  val Example1 = ApplicationForDiversityReportItem(Some("phase1_tests_completed"), ApplicationRoute.Faststream,
       List(SchemeType.DiplomaticService, SchemeType.Commercial), Some("No"), Some(false), Some("No"), Some("No"),
       Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("No"), Some("No"), Some(""))))
 
   val Example2 =
-    ApplicationForDiversityReportItem(Some("submitted"),
+    ApplicationForDiversityReportItem(Some("submitted"), ApplicationRoute.Faststream,
       List(SchemeType.DiplomaticServiceEconomics, SchemeType.Commercial, SchemeType.GovernmentCommunicationService,
         SchemeType.European), Some("Yes"), Some(true), Some("Yes"), Some("No"),
       Some(CivilServiceExperienceDetailsReportItem(Some("Yes"), Some("Yes"), Some("No"), Some("Yes"), Some("No"),
