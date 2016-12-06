@@ -57,7 +57,7 @@ object NorthSouthIndicatorCSVRepository extends NorthSouthIndicatorCSVRepository
   }
 
   override def calculateFsacIndicatorForReports(postcode: Option[String], candidate: CandidateProgressReportItem): Option[String] = {
-    if(candidate.applicationRoute.isDefined && !candidate.applicationRoute.contains(ApplicationRoute.Faststream.toString)) { None }
+    if(candidate.applicationRoute != ApplicationRoute.Faststream) { None }
     else if (candidate.progress.contains("registered")) { None }
     else if (postcode.isEmpty) { Some(DefaultIndicator) }
     else { getFsacIndicator(postcode) }

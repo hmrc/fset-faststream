@@ -19,7 +19,7 @@ package services.application
 import common.FutureEx
 import connectors.ExchangeObjects
 import model.Commands.Candidate
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
+import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, NotFoundException }
 import model.command.WithdrawApplication
 import model.events.EventTypes._
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
@@ -107,7 +107,7 @@ trait ApplicationService extends EventSink {
       _ <- mediaCloningAndSdipAppCreation()
     } yield {
     }).recoverWith {
-      case e: ApplicationNotFound => mediaCloningAndSdipAppCreation()
+      case (_: ApplicationNotFound | _: NotFoundException) => mediaCloningAndSdipAppCreation()
     }
   }
 

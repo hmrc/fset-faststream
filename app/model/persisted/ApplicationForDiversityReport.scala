@@ -16,11 +16,13 @@
 
 package model.persisted
 
+import model.ApplicationRoute._
 import model.SchemeType._
 import play.api.libs.json.Json
 
 case class ApplicationForDiversityReport(applicationId: String,
                                              userId: String,
+                                             applicationRoute: ApplicationRoute,
                                              progress: Option[String],
                                              schemes: List[SchemeType],
                                              disability: Option[String],
