@@ -60,25 +60,15 @@
             </section>
             <h2 class="heading-large">What you need to do now</h2>
             <h2 class="heading-medium">1. Check your scheme status</h2>
-            <h3 class="heading-small">Successful schemes</h3>
-            <table class="table-preference-status" data-schemetable-bestcase>
-                <colgroup>
-                    <col class="t30" />
-                    <col class="t70" />
-                    <col />
-                </colgroup>
-                @for((schemeResult, index) <- getSuccessfulSchemes) {
-                    <tr class="pref-successful">
-                        <td class="preference-status">
-                            <span class="pref-wrapper"><i class="fa fa-check"></i>Successful</span>
-                        </td>
-                        <td>
-                            <h3 class="bold-small">@getOrder(index + 1) preference</h3>
-                            <p>@Messages("scheme."+schemeResult.scheme+".description")</p>
-                        </td>
-                    </tr>
-                }
-            </table>
+               <div class="panel-success standard-panel">
+                    <h3 class="heading-medium">Successful schemes</h3>
+                    @for((schemeResult, index) <- getSuccessfulSchemes) {
+                       <section>
+                           <h3 class="bold-small">@getOrder(index + 1) preference</h3>
+                           <p>@Messages("scheme."+schemeResult.scheme+".description")</p>
+                       </section>
+                   }
+                </div>
             @if(getUnSuccessfulSchemes.nonEmpty) {
                 <h3 class="heading-small">Unsuccessful schemes</h3>
                 <p><i class="fa fa-exclamation-triangle"></i>You've got @getUnSuccessfulSchemes.size unsuccessful
@@ -86,24 +76,14 @@
                 <details>
                     <summary>View your unsuccessful schemes</summary>
                     <div class="detail-content">
-                        <table class="table-preference-status">
-                            <colgroup>
-                                <col class="t30" />
-                                <col class="t70" />
-                                <col />
-                            </colgroup>
+                        <div class="panel-warning standard-panel">
                             @for((schemeResult, index) <- getUnSuccessfulSchemes) {
-                                <tr class="pref-unsuccessful">
-                                    <td class="preference-status">
-                                        <span class="pref-wrapper"><i class="fa fa-exclamation-triangle"></i>Unsuccessful</span>
-                                    </td>
-                                    <td>
-                                        <h3 class="bold-small">@getOrder(index + 1) preference</h3>
-                                        <p>@Messages("scheme."+schemeResult.scheme+".description")</p>
-                                    </td>
-                                </tr>
+                                <section>
+                                    <h3 class="bold-small">@getOrder(index + 1) preference</h3>
+                                    <p>@Messages("scheme."+schemeResult.scheme+".description")</p>
+                                </section>
                             }
-                        </table>
+                        </div>
                     </div>
                 </details>
             }
