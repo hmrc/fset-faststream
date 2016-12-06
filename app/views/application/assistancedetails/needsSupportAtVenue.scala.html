@@ -5,7 +5,8 @@
 
 <section>
     <fieldset class="form-group">
-        <legend class="form-label">When you visit any of our venues will you need any extra support?</legend>
+        <h2 class="form-label">When you visit any of our venues will you need any extra support?</h2>
+        <legend class="visuallyhidden">When you visit any of our venues will you need any extra support?</legend>
         <p class="form-hint">This includes the assessment centre and any other additional face to face interviews</p>
         @radioBoxHorizontal(form("needsSupportAtVenue"), options = List(("yes", "Yes", true), ("no", "No", false)),
             optionTrigger = "needsSupportAtVenue-describe")

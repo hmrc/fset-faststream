@@ -56,14 +56,16 @@
         @helper.CSRF.formField
         <section>
             <fieldset class="form-group">
-                <legend class="form-label">Are you interested in a partner programme?</legend>
+                <h2 class="form-label">Are you interested in a partner programme?</h2>
+                <legend class="visuallyhidden">Are you interested in a partner programme?</legend>
                 @radioBoxHorizontal(form("interested"), options = List(("yes", "Yes", true), ("no", "No", false)),
                     optionTrigger = "interested-describe")
                 <div id="interested-describe" class="toggle-content" aria-hidden="true">
                     <fieldset class="form-group">
 
 
-                        <legend class="form-label">Choose any programmes you're interested in</legend>
+                        <h2 class="form-label">Choose any programmes you're interested in</h2>
+                        <legend class="visuallyhidden">Choose any programmes you're interested in</legend>
                         <p class="text">We'll let them know your details so they can contact you</p>
                         @inputCheckboxGroup(form("partnerGraduateProgrammes"), models.view.PartnerGraduateProgrammes.seq)
                     </fieldset>

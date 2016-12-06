@@ -19,7 +19,8 @@
         @helper.form(action = routes.HomeController.withdrawApplication(), 'novalidate -> "novalidate") {
             <fieldset>
                 @helper.CSRF.formField
-                <legend class="form-label">Do you still want to withdraw?</legend>
+                <h2 class="form-label">Do you still want to withdraw?</h2>
+                <legend class="visuallyhidden">Do you still want to withdraw?</legend>
                 @radioBoxHorizontal(withdrawForm("wantToWithdraw"), options = List(("yes", "Yes", true), ("no", "No", false)),
                     optionTrigger = "wantToWithdraw-describe")
                 <div id="wantToWithdraw-describe" class="toggle-content" aria-hidden="true">
@@ -29,7 +30,8 @@
                     }
 
                     <div class="toggle-content form-group form-group-compound" id="moreInfo">
-                        <legend class="form-label">More information about your withdrawal</legend>
+                        <h2 class="form-label">More information about your withdrawal</h2>
+                        <legend class="visuallyhidden">More information about your withdrawal</legend>
                         @helper.textarea(withdrawForm("otherReason"),
                         '_label -> "",
                         'class -> "form-control",

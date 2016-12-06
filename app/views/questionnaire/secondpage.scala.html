@@ -23,7 +23,8 @@
         @helper.CSRF.formField
 
         <fieldset class="form-group">
-            <legend class="form-label text">@Messages("liveInUKBetween14and18.question")</legend>
+            <h2 class="form-label text">@Messages("liveInUKBetween14and18.question")</h2>
+            <legend class="visuallyhidden">@Messages("liveInUKBetween14and18.question")</legend>
             @radioBoxHorizontal(questionnaireForm("liveInUKBetween14and18"), options = List(("yes", "Yes", true), ("no", "No", false)),
                 optionTrigger = "liveInUKBetween14and18-panel")
             <div id="liveInUKBetween14and18-panel" class="toggle-content" aria-hidden="true">
@@ -35,7 +36,8 @@
 
         @if(isCandidateCivilServant=="Yes") {
             <fieldset>
-                <legend class="form-label text">@Messages("haveDegree.question")</legend>
+                <h2 class="form-label text">@Messages("haveDegree.question")</h2>
+                <legend class="visuallyhidden">@Messages("haveDegree.question")</legend>
                 @radioBoxHorizontal(questionnaireForm("haveDegree"), options = List(("yes", "Yes", true), ("no", "No", false)),
                     optionTrigger = "haveDegree-panel")
                 <div id="haveDegree-panel" class="toggle-content" aria-hidden="true">
