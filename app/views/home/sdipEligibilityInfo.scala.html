@@ -11,7 +11,7 @@
 <div class="panel-info standard-panel">
     <div class="text">
         <h2 class="heading-medium">Continue your application as SDIP</h2>
-        <p>@displayInformation</p>
+        <p id="sdipEligibilityInfo">@displayInformation</p>
         <p>Do you want to remove your Fast Stream application and apply for the Summer
             Diversity Internship Programme instead?</p>
         @helper.form(action = routes.ConsiderForSdipController.continueAsSdip(), 'novalidate -> "novalidate") {
