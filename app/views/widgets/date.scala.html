@@ -3,7 +3,8 @@
 @defining(form.errors.filter(f => f.key.startsWith(s"$fieldNamespace.") || f.key == fieldNamespace)) { errors =>
 
     <fieldset id="@{fieldNamespace}_field" class="form-group inline-fixed @if(errors.nonEmpty) {has-an-error input-validation-error}">
-        <legend class="form-label" id="dobMainLabel">@labelContent</legend>
+        <h2 class="form-label" id="dobMainLabel">@labelContent</h2>
+        <legend class="visuallyhidden">@labelContent</legend>
         <span class="form-hint">For example,
             <span class="small-right-margin">21</span>
             <span class="small-right-margin">6</span>

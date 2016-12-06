@@ -12,7 +12,8 @@
         <h2 class="heading-large">Choose your route</h2>
     </div>
     <fieldset class="form-group">
-        <legend class="form-label">Which route do you want to choose?</legend>
+        <h2 class="form-label">Which route do you want to choose?</h2>
+        <legend class="visuallyhidden">Which route do you want to choose?</legend>
         @radioBoxVerticalMultiToggle(form("applicationRoute"),
                                  options = List((ApplicationRoute.Faststream.toString, "Civil Service Fast Stream", "faststream-elig-describe"),
                                                 (ApplicationRoute.Edip.toString, "Early Diversity Internship Programme (EDIP)", "edip-elig-describe"),

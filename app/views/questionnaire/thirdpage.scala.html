@@ -22,7 +22,8 @@
         <section>
             <div class="text">
                 <fieldset>
-                    <legend class="form-label">@Messages("parentsDegree.question")</legend>
+                    <h2 class="form-label">@Messages("parentsDegree.question")</h2>
+                    <legend class="visuallyhidden">@Messages("parentsDegree.question")</legend>
                     @radioBoxHorizontal(questionnaireForm("parentsDegree"), options = SimpleAnswerOptions.list)
                 </fieldset>
             </div>
@@ -30,12 +31,14 @@
 
         <section>
                 <fieldset>
-                    <legend class="form-label">@Messages("employedParent.question")</legend>
+                    <h2 class="form-label">@Messages("employedParent.question")</h2>
+                    <legend class="visuallyhidden">@Messages("employedParent.question")</legend>
                     @radioBoxOccupationFirst(questionnaireForm("employedParent"))
                 </fieldset>
 
                 <fieldset class="hidingOccupations initiallyHidden" data-requiredifshown data-optional>
-                    <legend class="form-label">@Messages("parentsOccupation.question")</legend>
+                    <h2 class="form-label">@Messages("parentsOccupation.question")</h2>
+                    <legend class="visuallyhidden">@Messages("parentsOccupation.question")</legend>
 
                     @radioBoxOccupation(questionnaireForm("parentsOccupation"), models.view.questionnaire.Occupations.seq)
                 </fieldset>
@@ -44,7 +47,8 @@
         <section class="hidingContent initiallyHidden" id="employedContent" data-requiredifshown data-optional>
             <section>
                 <fieldset>
-                    <legend class="form-label">@Messages("employee.question")</legend>
+                    <h2 class="form-label">@Messages("employee.question")</h2>
+                    <legend class="visuallyhidden">@Messages("employee.question")</legend>
                     <div class="form-group inline">
                         @radioBoxVertical(questionnaireForm("employee"), options = models.view.questionnaire.Employees.list)
                     </div>
@@ -53,7 +57,8 @@
 
             <section>
                 <fieldset>
-                    <legend class="form-label">@Messages("organizationSize.question")</legend>
+                    <h2 class="form-label">@Messages("organizationSize.question")</h2>
+                    <legend class="visuallyhidden">@Messages("organizationSize.question")</legend>
                     <div class="form-group inline">
                         @radioBoxVertical(questionnaireForm("organizationSize"), options = models.view.questionnaire.OrganizationSizes.list)
                     </div>
@@ -62,7 +67,8 @@
 
             <section>
                 <fieldset>
-                    <legend class="form-label">@Messages("supervise.question")</legend>
+                    <h2 class="form-label">@Messages("supervise.question")</h2>
+                    <legend class="visuallyhidden">@Messages("supervise.question")</legend>
                     @radioBoxHorizontal(questionnaireForm("supervise"), options = SimpleAnswerOptions.list)
                 </fieldset>
             </section>

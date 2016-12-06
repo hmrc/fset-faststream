@@ -1,7 +1,8 @@
 @(field: play.api.data.Field, label: String, labelHint: (String, String), options: String*)(subForm: PartialFunction[String, Html])
 
 <fieldset>
-  <legend class="form-label" id="@field.id-question">@label</legend>
+  <h2 class="form-label" id="@field.id-question">@label</h2>
+  <legend class="visuallyhidden">@label</legend>
   <p class="form-hint text">@labelHint._1</p>
   <p class="form-hint text">@labelHint._2</p>
   @toId(option:String) = @{
