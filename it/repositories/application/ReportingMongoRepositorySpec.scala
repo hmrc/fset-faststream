@@ -62,7 +62,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId, appId, Some("submitted"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-        Some("No"), Some("No"), None, Some("No"), Some("Yes"), Some("No"), None, Some("No"), Some("Yes"), Some("1234567"), None, None)
+        Some("No"), Some("No"), None, Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"), None, ApplicationRoute.Faststream)
     }
 
     "for the minimum application" in {
@@ -74,7 +74,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head must be(CandidateProgressReportItem(userId, appId, Some("registered"),
-        List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None, None, None, None)
+        List.empty[SchemeType], None, None, None, None, None, None, None, None, None, None, None, None, ApplicationRoute.Faststream)
       )
     }
   }
@@ -88,7 +88,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val result = repository.diversityReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head mustBe ApplicationForDiversityReport(appId, userId, Some("registered"),
+      result.head mustBe ApplicationForDiversityReport(appId, userId, ApplicationRoute.Faststream, Some("registered"),
         List.empty, None, None, None, None, None)
     }
 
@@ -108,17 +108,17 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val result = repository.diversityReport("FastStream-2016").futureValue
 
       result must contain theSameElementsAs Seq(
-        ApplicationForDiversityReport(appId1, userId1, Some("submitted"),
+        ApplicationForDiversityReport(appId1, userId1, ApplicationRoute.Faststream, Some("submitted"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
           Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
         ApplicationForDiversityReport(
-          appId2, userId2, Some("submitted"),
+          appId2, userId2, ApplicationRoute.Faststream, Some("submitted"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
           Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567")))),
         ApplicationForDiversityReport(
-          appId3, userId3, Some("submitted"),
+          appId3, userId3, ApplicationRoute.Faststream, Some("submitted"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService),
           Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
             Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))))

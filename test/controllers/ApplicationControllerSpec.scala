@@ -19,6 +19,7 @@ package controllers
 import config.TestFixtureBase
 import mocks.application.DocumentRootInMemoryRepository
 import model.EvaluationResults.Green
+import model.Exceptions.NotFoundException
 import model.{ ApplicationRoute, SchemeType }
 import model.command.WithdrawApplication
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
@@ -170,6 +171,15 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     "Return a 404 if no results are found for the application Id" in new TestFixture {
       val result = TestApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
       status(result) must be(404)
+    }
+  }
+
+  "Mark as ready for export" must {
+    "return a 404 if the application can't be found" in new TestFixture {
+      when(mockApplicationService.markForExportToParity(any[String])(any[HeaderCarrier])).thenReturn(Future.failed(new NotFoundException()))
+      val result = TestApplicationController.markForExportToParity("appId").apply(FakeRequest())
+      status(result) mustBe 404
+
     }
   }
 

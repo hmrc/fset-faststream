@@ -25,7 +25,6 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.ReportingRepository
 import repositories.{ QuestionnaireRepository, _ }
-import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global

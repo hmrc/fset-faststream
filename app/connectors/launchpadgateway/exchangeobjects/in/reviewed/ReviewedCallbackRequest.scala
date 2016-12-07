@@ -35,17 +35,20 @@ case class ReviewedCallbackRequest(
 
   def calculateTotalScore(): Double = {
 
-    def scoreForQuestion(question: ReviewSectionQuestionRequest) =
-      question.reviewCriteria1.score.getOrElse(0.0) + question.reviewCriteria2.score.getOrElse(0.0)
+    def scoreForQuestion(question: ReviewSectionQuestionRequest) = {
+      BigDecimal(question.reviewCriteria1.score.getOrElse(0.0)) + BigDecimal(question.reviewCriteria2.score.getOrElse(0.0))
+    }
+    (
+      scoreForQuestion(latestReviewer.question1) +
+      scoreForQuestion(latestReviewer.question2) +
+      scoreForQuestion(latestReviewer.question3) +
+      scoreForQuestion(latestReviewer.question4) +
+      scoreForQuestion(latestReviewer.question5) +
+      scoreForQuestion(latestReviewer.question6) +
+      scoreForQuestion(latestReviewer.question7) +
+      scoreForQuestion(latestReviewer.question8)
+    ).toDouble
 
-    scoreForQuestion(latestReviewer.question1) +
-    scoreForQuestion(latestReviewer.question2) +
-    scoreForQuestion(latestReviewer.question3) +
-    scoreForQuestion(latestReviewer.question4) +
-    scoreForQuestion(latestReviewer.question5) +
-    scoreForQuestion(latestReviewer.question6) +
-    scoreForQuestion(latestReviewer.question7) +
-    scoreForQuestion(latestReviewer.question8)
   }
 
   def allQuestionsReviewed = {

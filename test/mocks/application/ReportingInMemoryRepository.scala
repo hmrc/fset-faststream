@@ -48,7 +48,7 @@ class ReportingInMemoryRepository extends ReportingRepository {
   override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReportItem]] = Future.successful(List(
     CandidateProgressReportItem("","", Some("registered"),
       List(SchemeType.DigitalAndTechnology, SchemeType.Commercial), None, None, None, None, None, None, None, None, None, None,
-      None, None, None))
+      None, None, ApplicationRoute.Faststream))
   )
 
   override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = ???
