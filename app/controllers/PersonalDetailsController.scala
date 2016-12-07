@@ -168,7 +168,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
 trait PersonalDetailsToExchangeConverter {
 
   def toExchange(personalDetails: PersonalDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean],
-                 edipCompleted: Option[Boolean]) = {
+                 edipCompleted: Option[Boolean] = None) = {
     val pd = personalDetails.insideUk match {
       case true => personalDetails.copy(country = None)
       case false => personalDetails.copy(postCode = None)
