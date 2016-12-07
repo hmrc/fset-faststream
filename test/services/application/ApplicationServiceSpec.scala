@@ -38,7 +38,7 @@ import scala.concurrent.Future
 
 class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
-  "fix" should {
+  "fix" must {
     "process all issues we have examples of" in new ApplicationServiceTest {
       when(appRepositoryMock.getApplicationsToFix(FixBatch(PassToPhase2, 1))).thenReturn(getApplicationsToFixSuccess2)
       when(appRepositoryMock.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1))).thenReturn(getApplicationsToFixSuccess1)

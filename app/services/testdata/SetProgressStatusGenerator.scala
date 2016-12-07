@@ -16,36 +16,37 @@
 
 package services.testdata
 
-import model.ApplicationRoute
-import model.ProgressStatuses.PHASE3_TESTS_SUCCESS_NOTIFIED
+import model.ProgressStatuses._
 import model.command.testdata.GeneratorConfig
-import model.persisted.AssistanceDetails
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.assistancedetails.AssistanceDetailsRepository
-import services.adjustmentsmanagement.AdjustmentsManagementService
-import services.testdata.faker.DataFaker._
 import services.testdata.onlinetests.Phase3TestsPassedStatusGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
-object ReadyForExportStatusGenerator extends ReadyForExportStatusGenerator {
-  override val previousStatusGenerator = Phase3TestsPassedStatusGenerator
-  override val appRepository = applicationRepository
+object ReadyForExportStatusGenerator extends SetProgressStatusGenerator {
+  val previousStatusGenerator = Phase3TestsPassedStatusGenerator
+  val appRepository = applicationRepository
+  val progressStatus = PHASE3_TESTS_SUCCESS_NOTIFIED
 }
 
-// scalastyle:off method.length
-trait ReadyForExportStatusGenerator extends ConstructiveGenerator {
+object ExportedStatusGenerator extends SetProgressStatusGenerator {
+  val previousStatusGenerator = ReadyForExportStatusGenerator
+  val appRepository = applicationRepository
+  val progressStatus = EXPORTED
+}
+
+trait SetProgressStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
+  val progressStatus: ProgressStatus
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidateInPreviousStatus.applicationId.get, PHASE3_TESTS_SUCCESS_NOTIFIED)
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidateInPreviousStatus.applicationId.get, progressStatus)
     } yield {
       candidateInPreviousStatus
     }
