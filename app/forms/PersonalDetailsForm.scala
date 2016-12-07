@@ -152,7 +152,6 @@ object PersonalDetailsForm {
     }
 
     def toExchange(email: String, updateApplicationStatus: Option[Boolean],
-                   overrideCivilServiceExperienceDetails: Option[CivilServiceExperienceDetails] = None,
                    overrideEdipCompleted: Option[Boolean] = None) = {
       PersonalDetails(
         firstName,
@@ -165,7 +164,7 @@ object PersonalDetailsForm {
         postCode.map(p => PostCodeMapping.formatPostcode(p)),
         country,
         phone,
-        overrideCivilServiceExperienceDetails.orElse(civilServiceExperienceDetails),
+        civilServiceExperienceDetails,
         overrideEdipCompleted.orElse(edipCompleted.map(_.toBoolean)),
         updateApplicationStatus
       )

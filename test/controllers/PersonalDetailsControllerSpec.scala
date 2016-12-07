@@ -238,16 +238,22 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "update candidate's details and return to dashboard page" in {
-      when(mockUserManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
-        eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
-      when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(ProgressResponseExamples.Submitted))
       val Application = currentCandidateWithApp.application
         .copy(progress = ProgressResponseExamples.Submitted, applicationStatus = ApplicationStatus.SUBMITTED)
       val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
+
+      when(mockUserManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
+        eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+
+      when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(ProgressResponseExamples.Submitted))
+
       when(userService.save(any[CachedData])(any[HeaderCarrier])).thenReturn(Future.successful(UpdatedCandidate))
+
       when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
-        eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(false))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
+        eqTo(ValidUKAddressWithoutCivilServiceDetailsForm.toExchange(currentEmail, Some(false)))
+      )(any[HeaderCarrier])).thenReturn(Future.successful(()))
+
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitPersonalDetails()(Request)
 
