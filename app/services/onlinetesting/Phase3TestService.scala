@@ -225,9 +225,9 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
           for {
             _ <- phase3TestRepo.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
             updated <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
-            _ <- phase3TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
             // Launchpad only: If a user has completed unexpire them
             _ <- removeExpiryStatus(updated.applicationId)
+            _ <- phase3TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
           } yield {
             AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
               DataStoreEvents.VideoInterviewCompleted(updated.applicationId) ::
@@ -269,9 +269,9 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
       for {
         testGroup <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
-        _ <- phase3TestRepo.updateProgressStatus(testGroup.applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
         // Launchpad only: If results have been sent for a user, unexpire them
         _ <- removeExpiryStatus(testGroup.applicationId)
+        _ <- phase3TestRepo.updateProgressStatus(testGroup.applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
       } yield {
         AuditEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
           DataStoreEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
