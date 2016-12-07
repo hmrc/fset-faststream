@@ -135,7 +135,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
       val edipCompleted = overrideEdipCompleted.orElse(form.edipCompleted.map(_.toBoolean))
       for {
         _ <- applicationClient.updatePersonalDetails(cachedData.application.applicationId, cachedData.user.userID,
-          toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess))))
+          toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), edipCompleted))
         _ <- createDefaultSchemes
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
         redirect <- updateProgress(data => {
@@ -168,7 +168,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
 trait PersonalDetailsToExchangeConverter {
 
   def toExchange(personalDetails: PersonalDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean],
-                 edipCompleted: Option[Boolean] = None) = {
+                 edipCompleted: Option[Boolean]) = {
     val pd = personalDetails.insideUk match {
       case true => personalDetails.copy(country = None)
       case false => personalDetails.copy(postCode = None)
