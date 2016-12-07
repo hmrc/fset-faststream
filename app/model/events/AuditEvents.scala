@@ -46,6 +46,7 @@ object AuditEvents {
 
   case class Phase2TestsReset(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class Phase2TestInvitationProcessComplete(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
+  case class Phase3TestsRescheduled(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
 
   case class AdjustmentsConfirmed(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class AdjustmentsCommentUpdated(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)

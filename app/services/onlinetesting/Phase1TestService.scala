@@ -94,7 +94,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
     phase1TestRepo.nextTestGroupWithReportReady
   }
 
-  def getTestProfile(applicationId: String): Future[Option[Phase1TestGroupWithNames]] = {
+  def getTestGroup(applicationId: String): Future[Option[Phase1TestGroupWithNames]] = {
     for {
       phase1Opt <- phase1TestRepo.getTestGroup(applicationId)
     } yield {

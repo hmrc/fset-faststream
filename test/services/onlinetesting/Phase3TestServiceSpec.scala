@@ -47,7 +47,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
   "Register and Invite an applicant" should {
 
     "send audit events" in new Phase3TestServiceFixture {
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
       verifyDataStoreEvents(4,
         List("VideoInterviewCandidateRegistered",
@@ -67,27 +67,27 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "suppress the invitation email for invigilated applicants" in new Phase3TestServiceFixture {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
       val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
-      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
+      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId, None).futureValue
       verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
     }
 
     "invite and immediately extend invigilated applicants" in new Phase3TestServiceFixture {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
       val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
-      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
+      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId, None).futureValue
       verify(phase3TestServiceNoTestGroupForInvigilated, times(1)).extendTestGroupExpiryTime(any(), any(),
         any())(any[HeaderCarrier](), any[RequestHeader]())
     }
 
     "invite and not immediately extend when the applicant is not invigilated" in new Phase3TestServiceFixture {
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
       verify(phase3TestServiceNoTestGroupForInvigilated, times(0)).extendTestGroupExpiryTime(any(), any(),
         any())(any[HeaderCarrier](), any[RequestHeader]())
     }
 
     "insert a valid test group" in new Phase3TestServiceFixture {
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
       verify(p3TestRepositoryMock).insertOrUpdateTestGroup(eqTo(onlineTestApplication.applicationId), eqTo(Phase3TestGroup(
         expectedFromNowExpiryTime,
@@ -99,7 +99,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "call the register and invite methods of the launchpad gateway only once and with the correct arguments" in new Phase3TestServiceFixture {
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
       verify(launchpadGatewayClientMock).registerApplicant(eqTo(
         RegisterApplicantRequest(

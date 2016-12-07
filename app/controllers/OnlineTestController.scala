@@ -70,8 +70,8 @@ trait OnlineTestController extends BaseController {
 
   import Commands.Implicits._
 
-  def getOnlineTest(applicationId: String) = Action.async { implicit request =>
-    phase1TestService.getTestProfile(applicationId) map {
+  def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
+    phase1TestService.getTestGroup(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
       case None => Logger.warn(s"No phase 1 tests found for applicationId '$applicationId'")
         NotFound
@@ -79,7 +79,7 @@ trait OnlineTestController extends BaseController {
   }
 
   def getPhase2OnlineTest(applicationId: String) = Action.async { implicit request =>
-    phase2TestService.getTestProfile(applicationId) map {
+    phase2TestService.getTestGroup(applicationId) map {
       case Some(phase2TestGroupWithNames) => Ok(Json.toJson(phase2TestGroupWithNames))
       case None => Logger.warn(s"No phase 2 tests found for applicationId '$applicationId'")
         NotFound
@@ -100,17 +100,20 @@ trait OnlineTestController extends BaseController {
     }
   }
 
-  def resetOnlineTests(appId: String) = Action.async(parse.json) { implicit request =>
+  def resetPhase1OnlineTests(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
-      appRepository.getOnlineTestApplication(appId).flatMap {
-        case Some(onlineTestApp) => phase1TestService.resetTests(onlineTestApp, resetOnlineTest.tests,
-          resetOnlineTest.actionTriggeredBy).map ( _ => Ok )
+      def reset(onlineTestApp: OnlineTestApplication, actionTriggeredBy: String) =
+        phase1TestService.resetTests(onlineTestApp, resetOnlineTest.tests, resetOnlineTest.actionTriggeredBy)
+          .map ( _ => Ok )
+
+      appRepository.getOnlineTestApplication(applicationId).flatMap {
+        case Some(onlineTestApp) => reset(onlineTestApp, resetOnlineTest.actionTriggeredBy)
         case _ => Future.successful(NotFound)
       }
     }
   }
 
-  def resetPhase2OnlineTest(appId: String) = Action.async(parse.json) { implicit request =>
+  def resetPhase2OnlineTest(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[ResetOnlineTest] { resetOnlineTest =>
 
       def reset(onlineTestApp: OnlineTestApplication, actionTriggeredBy: String) =
@@ -123,7 +126,21 @@ trait OnlineTestController extends BaseController {
               NotFound
           }
 
-      appRepository.getOnlineTestApplication(appId).flatMap {
+      appRepository.getOnlineTestApplication(applicationId).flatMap {
+        case Some(onlineTestApp) => reset(onlineTestApp, resetOnlineTest.actionTriggeredBy)
+        case _ => Future.successful(NotFound)
+      }
+    }
+  }
+
+  def resetPhase3OnlineTest(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
+
+      def reset(onlineTestApp: OnlineTestApplication, actionTriggeredBy: String) =
+        phase3TestService.resetTests(onlineTestApp, actionTriggeredBy)
+          .map(_ => Ok)
+
+      appRepository.getOnlineTestApplication(applicationId).flatMap {
         case Some(onlineTestApp) => reset(onlineTestApp, resetOnlineTest.actionTriggeredBy)
         case _ => Future.successful(NotFound)
       }
