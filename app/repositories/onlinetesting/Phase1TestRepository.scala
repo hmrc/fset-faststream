@@ -19,13 +19,11 @@ package repositories.onlinetesting
 import common.Phase1TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
 import model.{ ApplicationStatus, ReminderNotice }
 import org.joda.time.DateTime
-import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
