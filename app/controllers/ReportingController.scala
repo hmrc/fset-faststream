@@ -82,6 +82,10 @@ trait ReportingController extends BaseController {
     } yield Ok(Json.toJson(report))
   }
 
+  //def candidateDeferralReport(frameworkId: String) = Action.async { implicit request =>
+  //  val candidateFut = reportingRepository.candidateDeferralReport(frameworkId)
+  //}
+
   def diversityReport(frameworkId: String) = Action.async { implicit request =>
     val reports = for {
       applications <- reportingRepository.diversityReport(frameworkId)
