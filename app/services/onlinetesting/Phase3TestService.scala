@@ -217,20 +217,31 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       }
     }
 
-  def markAsCompleted(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
-      if (test.testGroup.tests.find(_.token == launchpadInviteId).get.completedDateTime.isEmpty) {
-        for {
-          _ <- phase3TestRepo.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
-          updated <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
-          _ <- phase3TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
-        } yield {
-          AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
-            DataStoreEvents.VideoInterviewCompleted(updated.applicationId) ::
-            Nil
+  def markAsCompleted(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    // Launchpad only: If a user has completed unexpire them
+    def removeExpiryIfSet(applicationId: String, expired: Boolean) = expired match {
+      case true => appRepository.removeProgressStatuses(applicationId, ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
+      case _ => Future.successful(())
+    }
+
+    eventSink {
+      phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
+        if (test.testGroup.tests.find(_.token == launchpadInviteId).get.completedDateTime.isEmpty) {
+          for {
+            _ <- phase3TestRepo.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
+            updated <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+            _ <- phase3TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
+            progress <- appRepository.findProgress(updated.applicationId)
+            _ <- removeExpiryIfSet(updated.applicationId, progress.phase3ProgressResponse.phase3TestsExpired)
+          } yield {
+            AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
+              DataStoreEvents.VideoInterviewCompleted(updated.applicationId) ::
+              Nil
+          }
+        } else {
+          Future.successful(List[EventType]())
         }
-      } else {
-        Future.successful(List[EventType]())
       }
     }
   }
