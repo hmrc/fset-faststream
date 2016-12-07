@@ -110,8 +110,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
   def submitPersonalDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
       submit(PersonalDetailsForm.form(LocalDate.now, ignoreFastPassValidations = true), RedirectToTheDashboard,
-        Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")),
-        user.application.edipCompleted)
+        Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")))
   }
 
   private def continuetoTheNextStep(onSuccess: OnSuccess) = onSuccess match {
@@ -119,8 +118,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
     case RedirectToTheDashboard => false
   }
 
-  private def submit(personalDetailsForm: Form[PersonalDetailsForm.Data], onSuccess: OnSuccess, redirectOnSuccess: Result,
-                     overrideEdipCompleted: Option[Boolean] = None)
+  private def submit(personalDetailsForm: Form[PersonalDetailsForm.Data], onSuccess: OnSuccess, redirectOnSuccess: Result)
                     (implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
 
     val handleFormWithErrors = (errorForm:Form[PersonalDetailsForm.Data]) => {
@@ -132,7 +130,7 @@ class PersonalDetailsController(applicationClient: ApplicationClient,
     val handleValidForm = (form: PersonalDetailsForm.Data) => {
       val civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] =
         cachedData.application.civilServiceExperienceDetails.orElse(form.civilServiceExperienceDetails)
-      val edipCompleted = overrideEdipCompleted.orElse(form.edipCompleted.map(_.toBoolean))
+      val edipCompleted = cachedData.application.edipCompleted.orElse(form.edipCompleted.map(_.toBoolean))
       for {
         _ <- applicationClient.updatePersonalDetails(cachedData.application.applicationId, cachedData.user.userID,
           toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), edipCompleted))
