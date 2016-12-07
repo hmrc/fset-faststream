@@ -85,5 +85,5 @@ class ReportingInMemoryRepository extends ReportingRepository {
 
   override def overallReportNotWithdrawnWithPersonalDetails(frameworkId: String): Future[List[ReportWithPersonalDetails]] = ???
 
-  override def candidateDeferralReport(frameworkId: String): Future[List[(String, String)]] = ???
+  override def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]] = ???
 }

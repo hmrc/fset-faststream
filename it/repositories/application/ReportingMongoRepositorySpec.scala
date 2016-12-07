@@ -21,7 +21,7 @@ import factories.UUIDFactory
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
 import model.SchemeType.SchemeType
 import model._
-import model.report.{ AdjustmentReportItem, CandidateDeferralReportItem, CandidateProgressReportItem }
+import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem$, CandidateProgressReportItem }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
@@ -97,7 +97,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val result = repository.candidateDeferralReport("frameworkId").futureValue
 
       result.size mustBe 1
-      result.head mustBe CandidateDeferralReportItem("userId", "Bob", "Bobson", "prefBob", programmes)
+      result.head mustBe ApplicationDeferralPartialItem("userId", "Bob", "Bobson", "prefBob", programmes)
     }
   }
 

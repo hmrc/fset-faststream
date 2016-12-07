@@ -16,7 +16,23 @@
 
 package model.report
 
+import model.Address
+
 case class CandidateDeferralReportItem(
+  candidateName: String,
+  preferredName: String,
+  email: String,
+  address: Address,
+  postCode: Option[String] = None,
+  telephone: Option[String] = None,
+  programmes: List[String] = Nil
+)
+
+object CandidateDeferralReportItem {
+  implicit val format = play.api.libs.json.Json.format[CandidateDeferralReportItem]
+}
+
+case class ApplicationDeferralPartialItem(
   userId: String,
   firstName: String,
   lastName: String,
@@ -24,8 +40,8 @@ case class CandidateDeferralReportItem(
   partnerProgrammes: List[String] = Nil
 )
 
-object CandidateDeferralReportItem {
-  implicit val format: play.api.libs.json.Format[CandidateDeferralReportItem] = play.api.libs.json.Json.format[CandidateDeferralReportItem]
+object ApplicationDeferralPartialItem {
+  implicit val format = play.api.libs.json.Json.format[ApplicationDeferralPartialItem]
 }
 
 

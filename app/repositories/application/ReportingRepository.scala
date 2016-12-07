@@ -20,7 +20,7 @@ import model.ApplicationStatus._
 import model.Commands._
 import model.command._
 import model.persisted._
-import model.report.{ AdjustmentReportItem, CandidateDeferralReportItem, CandidateProgressReportItem, ProgressStatusesReportLabels }
+import model.report._
 import model.{ ApplicationStatus, _ }
 import org.joda.time.LocalDate
 import play.api.libs.json.Format
@@ -55,7 +55,7 @@ trait ReportingRepository {
 
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]]
 
-  def candidateDeferralReport(frameworkId: String): Future[List[CandidateDeferralReportItem]]
+  def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]]
 
 }
 
@@ -93,7 +93,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     reportQueryWithProjectionsBSON[CandidateProgressReportItem](query, projection)
   }
 
-  override def candidateDeferralReport(frameworkId: String): Future[List[CandidateDeferralReportItem]] = {
+  override def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]] = {
     val query = BSONDocument(
       "$and" -> BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
@@ -111,7 +111,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
             p.getAs[List[String]]("partnerGraduateProgrammes").getOrElse(Nil)
           }
         } yield {
-          CandidateDeferralReportItem(
+          ApplicationDeferralPartialItem(
             userId,
             personalDetails.firstName,
             personalDetails.lastName,
