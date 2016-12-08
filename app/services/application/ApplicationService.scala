@@ -28,6 +28,7 @@ import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
@@ -45,6 +46,7 @@ object ApplicationService extends ApplicationService {
   val cdRepository = faststreamContactDetailsRepository
   val mediaRepo = mediaRepository
   val schemeRepository = schemePreferencesRepository
+  val csedRepository = civilServiceExperienceDetailsRepository
 }
 
 trait ApplicationService extends EventSink {
@@ -54,6 +56,7 @@ trait ApplicationService extends EventSink {
   val cdRepository: ContactDetailsRepository
   val schemeRepository: SchemePreferencesRepository
   val mediaRepo: MediaRepository
+  val csedRepository: CivilServiceExperienceDetailsRepository
 
   val Candidate_Role = "Candidate"
 

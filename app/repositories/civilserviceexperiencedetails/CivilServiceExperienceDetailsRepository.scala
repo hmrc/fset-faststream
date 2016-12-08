@@ -35,6 +35,8 @@ trait CivilServiceExperienceDetailsRepository {
   def update(applicationId: String, civilServiceExperienceDetails: CivilServiceExperienceDetails): Future[Unit]
 
   def find(applicationId: String): Future[Option[CivilServiceExperienceDetails]]
+
+  def evaluateFastPassCandidate(applicationId: String, accepted: Boolean): Future[Unit]
 }
 
 class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) extends
@@ -64,5 +66,18 @@ class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) ext
         document.getAs[CivilServiceExperienceDetails](CivilServiceExperienceDetailsDocumentKey)
       case _ => None
     }
+  }
+
+  override def evaluateFastPassCandidate(applicationId: String, accepted: Boolean): Future[Unit] = {
+
+    val query = BSONDocument("applicationId" -> applicationId)
+    val updateBSON = BSONDocument("$set" -> BSONDocument(
+      s"$CivilServiceExperienceDetailsDocumentKey.fastPassAccepted" -> accepted
+    ))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating civil service details",
+      CannotUpdateCivilServiceExperienceDetails(applicationId))
+
+    collection.update(query, updateBSON) map validator
   }
 }
