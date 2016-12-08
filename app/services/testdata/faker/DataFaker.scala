@@ -684,7 +684,7 @@ object DataFaker {
       Stream.continually(util.Random.nextInt(alphabet.length)).map(alphabet).take(n).mkString
     }
 
-    val videInterviewFeedback: String = "Collaborating and Partnering/In the interview you:\n" +
+    val videoInterviewFeedback: String = "Collaborating and Partnering/In the interview you:\n" +
       "1. Provided limited specific, but some evidence of engagement.\n" +
       "2. Provided some limited evidence of focus on learning but none on personal development."
 
