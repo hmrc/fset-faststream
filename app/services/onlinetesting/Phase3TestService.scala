@@ -219,21 +219,15 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
   def markAsCompleted(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    // Launchpad only: If a user has completed unexpire them
-    def removeExpiryIfSet(applicationId: String, expired: Boolean) = expired match {
-      case true => appRepository.removeProgressStatuses(applicationId, ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
-      case _ => Future.successful(())
-    }
-
     eventSink {
       phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
         if (test.testGroup.tests.find(_.token == launchpadInviteId).get.completedDateTime.isEmpty) {
           for {
             _ <- phase3TestRepo.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
             updated <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+            // Launchpad only: If a user has completed unexpire them
+            _ <- removeExpiryStatus(updated.applicationId)
             _ <- phase3TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
-            progress <- appRepository.findProgress(updated.applicationId)
-            _ <- removeExpiryIfSet(updated.applicationId, progress.phase3ProgressResponse.phase3TestsExpired)
           } yield {
             AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
               DataStoreEvents.VideoInterviewCompleted(updated.applicationId) ::
@@ -244,6 +238,15 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
         }
       }
     }
+  }
+
+  private def removeExpiryStatus(applicationId: String): Future[Unit] = {
+    for {
+      progress <- appRepository.findProgress(applicationId)
+      actionFut <- if (progress.phase3ProgressResponse.phase3TestsExpired) {
+        appRepository.removeProgressStatuses(applicationId, ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
+      } else { Future.successful(()) }
+    } yield actionFut
   }
 
   def addResetEventMayBe(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
@@ -266,6 +269,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
       for {
         testGroup <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
+        // Launchpad only: If results have been sent for a user, unexpire them
+        _ <- removeExpiryStatus(testGroup.applicationId)
         _ <- phase3TestRepo.updateProgressStatus(testGroup.applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
       } yield {
         AuditEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
