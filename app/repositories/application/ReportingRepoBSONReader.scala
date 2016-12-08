@@ -21,7 +21,7 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackR
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewedCallbackRequest }
 import model.ApplicationRoute.{ BSONEnumHandler => _, apply => _, toString => _, _ }
 import model.ApplicationStatus.{ apply => _ }
-import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _, _ }
+import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _ }
 import model.Commands._
 import model.InternshipType.{ InternshipType, apply => _ }
 import model.OnlineTestCommands.TestResult

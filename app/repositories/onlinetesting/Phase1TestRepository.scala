@@ -19,13 +19,11 @@ package repositories.onlinetesting
 import common.Phase1TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
 import model.{ ApplicationStatus, ReminderNotice }
 import org.joda.time.DateTime
-import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -83,9 +81,12 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val submittedStatuses = List[String](ApplicationStatus.SUBMITTED, ApplicationStatus.SUBMITTED.toLowerCase)
 
     val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> submittedStatuses)),
-      BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true))
-    ))
+        BSONDocument("applicationStatus" -> BSONDocument("$in" -> submittedStatuses)),
+        BSONDocument("$or" -> BSONArray(
+          BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true)),
+          BSONDocument("civil-service-experience-details.fastPassAccepted" -> false)
+        ))
+      ))
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, 1)
