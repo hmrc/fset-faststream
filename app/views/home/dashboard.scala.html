@@ -43,6 +43,11 @@
     if(!submitApplicationsEnabled || cannotBeConsideredForSdip) "disabled"
 }
 
+@disabledIfWithdrawn = @{
+ if(dashboardPage.isApplicationWithdrawn) "disabled"
+}
+
+
 @displayLeadInformation = @{(cannotBeConsideredForSdip, submitApplicationsEnabled) match {
     case (true, _) => sdipEligibilityInfo(usr)
     case (_, false) => submit_disabled(usr)
@@ -70,6 +75,8 @@
         <h1 class="heading-xlarge">Home</h1>
         <p class="subtitle">@dashboardPage.fullName</p>
     </div>
+
+    @if(!dashboardPage.isFastPassApproved) {
 
     @displayLeadInformation
 
@@ -185,6 +192,20 @@
             </li>
         </ol>
     </section>
+    } else {
+        <section class="section-border @disabledIfWithdrawn" id="mainProgressPage">
+            <h2 class="heading-large"><i class="fa fa-check"></i>You're going to the assessment centre</h2>
+            <div class="text">
+                <section>
+                    <p>Congratulations, we've accepted your Fast Pass.</p>
+                    <p>You'll now be invited to the assessment centre where you'll be assessed
+                        against your preferred schemes.</p>
+                    <p><a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a></p>
+                    <p><a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a></p>
+                </section>
+            </div>
+        </section>
 
+    }
     @withdrawSection(usr)
 }

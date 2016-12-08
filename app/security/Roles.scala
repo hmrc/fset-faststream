@@ -129,6 +129,11 @@ object Roles {
       activeUserWithActiveApp(user) && statusIn(user)(WITHDRAWN)
   }
 
+  object FastPassApplicationRole extends CsrAuthorization {
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+      hasFastPassBeenApproved(user)
+  }
+
   object OnlineTestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithActiveApp(user) && statusIn(user)(PHASE1_TESTS)
@@ -264,6 +269,16 @@ object RoleUtils {
   def hasPreview(implicit user: CachedData) = progress.preview
 
   def isSubmitted(implicit user: CachedData) = progress.submitted
+
+  def hasFastPassBeenApproved(user: CachedData)(implicit request: RequestHeader, lang: Lang) = {
+    val isApproved = for {
+      app <- user.application
+      csed <- app.civilServiceExperienceDetails
+      accepted <- csed.fastPassAccepted
+    } yield accepted
+
+    isApproved.getOrElse(false)
+  }
 
   def isCivilServant(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     user.application
