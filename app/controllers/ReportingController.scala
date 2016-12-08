@@ -91,7 +91,7 @@ trait ReportingController extends BaseController {
       val data = eventualCandidates.map { candidate =>
         contactDetailsByUserId.get(candidate.userId).map { cd =>
           CandidateDeferralReportItem(
-            candidateName = s"${candidate.firstName} ${candidate.lastName}}",
+            candidateName = s"${candidate.firstName} ${candidate.lastName}",
             preferredName = candidate.preferredName,
             email = cd.email,
             address = cd.address,
