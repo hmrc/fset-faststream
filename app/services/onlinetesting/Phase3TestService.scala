@@ -243,10 +243,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   private def removeExpiryStatus(applicationId: String): Future[Unit] = {
     for {
       progress <- appRepository.findProgress(applicationId)
-      _ <- if (progress.phase3ProgressResponse.phase3TestsExpired) {
+      actionFut <- if (progress.phase3ProgressResponse.phase3TestsExpired) {
         appRepository.removeProgressStatuses(applicationId, ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
       } else { Future.successful(()) }
-    } yield ()
+    } yield actionFut
   }
 
   def addResetEventMayBe(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
