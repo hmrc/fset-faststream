@@ -19,10 +19,12 @@ package security
 import java.util.UUID
 
 import connectors.exchange.ProgressExamples
+import connectors.exchange.CivilServiceExperienceDetailsExamples._
 import controllers.UnitSpec
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus.{ CREATED, _ }
 import models._
+import models.CachedDataExample._
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
@@ -45,6 +47,30 @@ class RolesSpec extends UnitSpec {
       val user = activeUser(ApplicationStatus.PHASE3_TESTS, ProgressExamples.Phase3TestsPassed)
       implicit val rh = mock[RequestHeader]
       RoleUtils.activeUserWithActiveApp(user)(rh, Lang("en-GB")) mustBe true
+    }
+  }
+
+  "hasFastPassBeenApproved" must {
+    val user = activeUser(ApplicationStatus.SUBMITTED)
+    "return true if the candidate fastPass has been accepted" in {
+      val appData = CreatedApplication.copy(civilServiceExperienceDetails = Some(CivilServantExperienceFastPassApproved))
+      implicit val rh = mock[RequestHeader]
+      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh, Lang("en-GB")) mustBe true
+    }
+    "return false if the candidate fastPass has not been accepted" in {
+      val appData = CreatedApplication.copy(civilServiceExperienceDetails = Some(CivilServantExperienceFastPassRejectd))
+      implicit val rh = mock[RequestHeader]
+      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh, Lang("en-GB")) mustBe false
+    }
+    "return false if the acceptance flag is not present" in {
+      val appData = CreatedApplication.copy(civilServiceExperienceDetails = Some(CivilServantExperience))
+      implicit val rh = mock[RequestHeader]
+      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh, Lang("en-GB")) mustBe false
+    }
+    "return false if the are no civil servant details" in {
+      val appData = CreatedApplication.copy(civilServiceExperienceDetails = None)
+      implicit val rh = mock[RequestHeader]
+      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh, Lang("en-GB")) mustBe false
     }
   }
 
