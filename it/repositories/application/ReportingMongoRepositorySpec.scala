@@ -21,7 +21,7 @@ import factories.UUIDFactory
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
 import model.SchemeType.SchemeType
 import model._
-import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem$, CandidateProgressReportItem }
+import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
