@@ -22,15 +22,18 @@ import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
 import mocks._
 import mocks.application.ReportingInMemoryRepository
+import model.Commands.PhoneNumber
 import model.PersistedObjects.ContactDetailsWithId
 import model._
+import model.persisted.ContactDetails
 import model.report.{ CandidateProgressReportItem, _ }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.JsArray
+import play.api.libs.json.{ JsArray, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
 import testkit.UnitWithAppSpec
 
@@ -53,7 +56,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
   }
 
-  "Reporting controller create adjustment report" should {
+  "Reporting controller create adjustment report" must {
     "return the adjustment report when we execute adjustment reports" in new TestFixture {
       when(mockContactDetailsRepository.findAll).thenReturn(Future.successful(List(
         ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None),
@@ -105,7 +108,44 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Reporting controller create progress report" should {
+  "Reporting controller candidate deferral report" must {
+    "return the report in a happy path" in new TestFixture {
+
+      when(reportingRepositoryMock.candidateDeferralReport(any[String])).thenReturn(
+        Future.successful(List(
+        ApplicationDeferralPartialItem("userId1", "Bob", "Bobson", "prefBob", List("Police Now")),
+        ApplicationDeferralPartialItem("userId2", "Dave", "Daveson", "prefDave", List("Teach First"))
+      )))
+
+      when(mockContactDetailsRepository.findAll).thenReturn(
+        Future.successful(List(
+          ContactDetailsWithId(userId = "userId1", address = Address("1 Test Street"), postCode = Some("QQ1 1QQ"),
+            email = "blah@blah.com", phone = Some("07707717711")
+          ),
+            ContactDetailsWithId(userId = "userId2", address = Address("1 Fake Street"), postCode = Some("QQ1 1QQ"),
+              email = "blah@blah.com", phone = Some("07707727722")
+          )
+      )))
+
+      val controller = new TestableReportingController
+      val result = controller.candidateDeferralReport("frameworkId")(candidateDeferralRequest("frameworkId")).run
+
+      val expectedJson = Json.toJson(List(
+        CandidateDeferralReportItem(
+          "Bob Bobson", "prefBob", "blah@blah.com", Address("1 Test Street"), Some("QQ1 1QQ"), Some("07707717711"), List("Police Now")
+        ),
+        CandidateDeferralReportItem(
+          "Dave Daveson", "prefDave", "blah@blah.com", Address("1 Fake Street"), Some("QQ1 1QQ"), Some("07707727722"), List("Teach First")
+        )
+      ))
+
+      val json = contentAsJson(result)
+
+      json mustBe expectedJson
+    }
+  }
+
+  "Reporting controller create progress report" must {
     "return the progress report in an happy path scenario" in new TestFixture {
       val underTest = new TestableReportingController
       when(reportingRepositoryMock.candidateProgressReport(frameworkId)).thenReturn(SuccessfulProgressReportResponse)
@@ -159,7 +199,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   }
 
   /*
-  "Reporting controller create non-submitted applications report" should {
+  "Reporting controller create non-submitted applications report" must {
     "return a list of non submitted applications with phone number if contact details exist" in new TestFixture {
       val controller = new ReportingController {
         override val appRepository = new DocumentRootInMemoryRepository
@@ -221,7 +261,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   }
 */
   /*
-  "Assessment centre allocation report" should {
+  "Assessment centre allocation report" must {
     "return nothing if no applications exist" in new AssessmentCentreAllocationReportTestFixture {
       when(appRepo.candidatesAwaitingAllocation(any())).thenReturnAsync(Nil)
       when(cdRepo.findAll).thenReturnAsync(Nil)
@@ -268,7 +308,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   }*/
 
   /*
-  "Assessment results report" should {
+  "Assessment results report" must {
     "return results report" in new AssessmentResultsReportTestFixture {
       when(appRepo.applicationsWithAssessmentScoresAccepted(any())).thenReturnAsync(appPreferences)
       when(questionRepo.onlineTestPassMarkReport).thenReturnAsync(passMarks)
@@ -324,7 +364,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   */
 
   /*
-  "Successful candidates report" should {
+  "Successful candidates report" must {
     "return results report" in new SuccessfulCandidatesReportTestFixture {
       when(appRepo.applicationsPassedInAssessmentCentre(any())).thenReturnAsync(appPreferences)
       when(cdRepo.findAll).thenReturnAsync(contactDetails)
@@ -365,6 +405,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val frameworkId = "FastStream-2016"
+
 
     val SuccessfulAdjustmentReportResponse = Future.successful(
       List(
@@ -413,6 +454,11 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     val Error = new RuntimeException("something bad happened")
     val GenericFailureResponse = Future.failed(Error)
+
+    def candidateDeferralRequest(frameworkId: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.ReportingController.candidateDeferralReport(frameworkId).url, FakeHeaders(), "")
+        .withHeaders("Content-Type" -> "application/json")
+    }
 
     def createAdjustmentsRequest(frameworkId: String) = {
       FakeRequest(Helpers.GET, controllers.routes.ReportingController.adjustmentReport(frameworkId).url, FakeHeaders(), "")

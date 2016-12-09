@@ -21,7 +21,7 @@ import factories.UUIDFactory
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
 import model.SchemeType.SchemeType
 import model._
-import model.report.{ AdjustmentReportItem, CandidateProgressReportItem }
+import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ apply => _ }
@@ -51,7 +51,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   implicit def blankedHeaderCarrier = new HeaderCarrier()
 
-  "Candidate Progress Report" should {
+  "Candidate Progress Report" must {
     "for an application with all fields" in {
       val userId = generateUUID()
       val appId = generateUUID()
@@ -62,7 +62,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId, appId, Some("submitted"),
         List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-        Some("No"), Some("No"), None, Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"), None, ApplicationRoute.Faststream)
+        Some("No"), Some("No"), None, Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"),
+        Some("1234567"), None, ApplicationRoute.Faststream)
     }
 
     "for the minimum application" in {
@@ -79,7 +80,28 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
   }
 
-  "Diversity Report" should {
+  "Candidate deferral report" must {
+    "not return candidates who have not deferred" in {
+      testDataRepo.createApplicationWithAllFields("userId", "appId", "frameworkId").futureValue
+
+      val result = repository.candidateDeferralReport("frameworkId").futureValue
+
+      result mustBe Nil
+    }
+
+    "extract the correct information for candidates" in {
+      val programmes = List("TeachFirst", "Police Now")
+      testDataRepo.createApplicationWithAllFields("userId", "appId", "frameworkId", firstName = Some("Bob"),
+        lastName = Some("Bobson"), preferredName = Some("prefBob"), partnerProgrammes = programmes).futureValue
+
+      val result = repository.candidateDeferralReport("frameworkId").futureValue
+
+      result.size mustBe 1
+      result.head mustBe ApplicationDeferralPartialItem("userId", "Bob", "Bobson", "prefBob", programmes)
+    }
+  }
+
+  "Diversity Report" must {
     "for the minimum application" in {
       val userId = generateUUID()
       val appId = generateUUID()
@@ -126,7 +148,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
   }
 
-  "non-submitted status" should {
+  "non-submitted status" must {
     val emptyProgressResponse = ProgressResponse("1")
 
     "be true for non submitted progress" in {
@@ -144,7 +166,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
   }
 
 
-  "Applications report" should {
+  "Applications report" must {
     "return an empty list when there are no applications" in {
       repository.applicationsReport(frameworkId).futureValue mustBe empty
     }
@@ -228,7 +250,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
   }
 
-  "Adjustments report" should {
+  "Adjustments report" must {
     "return a list of AdjustmentReports" in {
       val frameworkId = "FastStream-2016"
 
@@ -351,7 +373,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
   }
 
-  "manual assessment centre allocation report" should {
+  "manual assessment centre allocation report" must {
     "return all candidates that are in awaiting allocation state" in {
       val testData = new TestDataMongoRepository()
       testData.createApplications(10, onlyAwaitingAllocation = true).futureValue
