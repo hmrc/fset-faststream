@@ -125,6 +125,7 @@ trait ApplicationDataFixture {
                                      timeExtensionAdjustments: Boolean = false,
                                      fastPassApplicable: Boolean = false,
                                      fastPassReceived: Boolean = false,
+                                     fastPassAccepted: Option[Boolean] = None,
                                      isGis: Boolean = false,
                                      additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
                                      phase1TestProfile: Option[Phase1TestProfile] = None,
@@ -164,7 +165,8 @@ trait ApplicationDataFixture {
       ),
       "civil-service-experience-details" -> BSONDocument(
         "applicable" -> fastPassApplicable,
-        "fastPassReceived" -> fastPassReceived
+        "fastPassReceived" -> fastPassReceived,
+        "fastPassAccepted" -> fastPassAccepted
       ),
       "assistance-details" -> createAssistanceDetails(needsSupportForOnlineAssessment, adjustmentsConfirmed, timeExtensionAdjustments,
         needsSupportAtVenue, isGis, typeOfEtrayOnlineAdjustments),

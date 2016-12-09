@@ -22,12 +22,14 @@ import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 
-case class CivilServiceExperienceDetails(applicable:Boolean,
-                                         civilServiceExperienceType:Option[CivilServiceExperienceType] = None,
-                                         internshipTypes:Option[Seq[InternshipType]] = None,
-                                         fastPassReceived:Option[Boolean] = None,
-                                         fastPassAccepted: Option[Boolean] = None,
-                                         certificateNumber:Option[String] = None)
+case class CivilServiceExperienceDetails(
+  applicable:Boolean,
+  civilServiceExperienceType: Option[CivilServiceExperienceType] = None,
+  internshipTypes: Option[Seq[InternshipType]] = None,
+  fastPassReceived: Option[Boolean] = None,
+  fastPassAccepted: Option[Boolean] = None,
+  certificateNumber: Option[String] = None
+)
 
 object CivilServiceExperienceDetails {
   implicit val civilServiceExperienceDetailsFormat = Json.format[CivilServiceExperienceDetails]

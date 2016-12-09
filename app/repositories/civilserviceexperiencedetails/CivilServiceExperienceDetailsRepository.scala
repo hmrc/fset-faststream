@@ -18,7 +18,6 @@ package repositories.civilserviceexperiencedetails
 
 import model.CivilServiceExperienceDetails
 import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
-import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.ReactiveRepositoryHelpers

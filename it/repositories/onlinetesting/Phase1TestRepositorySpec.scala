@@ -122,6 +122,30 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       result mustBe Nil
     }
 
+    "return no application if there is one fast pass approved candidate" in {
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true,
+        fastPassReceived = true, fastPassAccepted = Some(true)
+      ).futureValue
+
+      val result = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      result mustBe Nil
+    }
+
+    "return no application if there is one fast pass rejected candidate" in {
+      createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
+        adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = true,
+        fastPassReceived = true, fastPassAccepted = Some(false)
+      ).futureValue
+
+      val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 1
+      results.head.applicationId mustBe "appId"
+      results.head.userId mustBe "userId"
+    }
+
     "return one application if there is only one and it is not a fast pass candidate" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,

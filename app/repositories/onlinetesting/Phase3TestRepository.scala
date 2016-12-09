@@ -163,12 +163,11 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
   override def updateTestCompletionTime(launchpadInviteId: String, completedTime: DateTime) = {
     import repositories.BSONDateTimeHandler
-    val query = BSONDocument(s"testGroups.$phaseName.expirationDate" -> BSONDocument("$gt" -> DateTime.now(DateTimeZone.UTC)))
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
     ))
 
-    findAndUpdateLaunchpadTest(launchpadInviteId, update, query, ignoreNotFound = true)
+    findAndUpdateLaunchpadTest(launchpadInviteId, update, ignoreNotFound = false)
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
