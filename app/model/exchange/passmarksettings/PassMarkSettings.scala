@@ -38,6 +38,17 @@ object Phase1PassMarkSettings {
   import repositories.BSONDateTimeHandler
   implicit val phase1PassMarkSettingsFormat = Json.format[Phase1PassMarkSettings]
   implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase1PassMarkSettings]
+
+  def merge(latestPassMarkSettings: Option[Phase1PassMarkSettings],
+            newestPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = latestPassMarkSettings match {
+    case Some(latest) =>
+      val currentPassMarkSettingsMap = latest.schemes.groupBy(_.schemeName).mapValues(_.head)
+      val newestPassMarkSettingsMap = newestPassMarkSettings.schemes.groupBy(_.schemeName).mapValues(_.head)
+      val mergedSchemes = (currentPassMarkSettingsMap ++ newestPassMarkSettingsMap).values.toList
+      newestPassMarkSettings.copy(schemes = mergedSchemes)
+    case None =>
+      newestPassMarkSettings
+  }
 }
 
 case class Phase2PassMarkSettings(

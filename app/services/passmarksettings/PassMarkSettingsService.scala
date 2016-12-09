@@ -32,20 +32,9 @@ object Phase1PassMarkSettingsService extends PassMarkSettingsService[Phase1PassM
     implicit jsonFormat: Format[Phase1PassMarkSettings]): Future[PassMarkSettingsCreateResponse] = {
     for {
       latestPassMarkSettingsOpt <- getLatestPassMarkSettings
-      merged = merge(latestPassMarkSettingsOpt, passMarkSettings)
+      merged = Phase1PassMarkSettings.merge(latestPassMarkSettingsOpt, passMarkSettings)
       response <- super.createPassMarkSettings(merged)
     } yield response
-  }
-
-  private def merge(latestPassMarkSettings: Option[Phase1PassMarkSettings],
-            newestPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = latestPassMarkSettings match {
-    case Some(latest) =>
-      val currentPassMarkSettingsMap = latest.schemes.groupBy(_.schemeName).mapValues(_.head)
-      val newestPassMarkSettingsMap = newestPassMarkSettings.schemes.groupBy(_.schemeName).mapValues(_.head)
-      val mergedSchemes = (currentPassMarkSettingsMap ++ newestPassMarkSettingsMap).values.toList
-      newestPassMarkSettings.copy(schemes = mergedSchemes)
-    case None =>
-      newestPassMarkSettings
   }
 }
 
