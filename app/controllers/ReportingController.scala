@@ -82,6 +82,30 @@ trait ReportingController extends BaseController {
     } yield Ok(Json.toJson(report))
   }
 
+  def candidateDeferralReport(frameworkId: String) = Action.async { implicit request =>
+    for {
+      eventualCandidates <- reportingRepository.candidateDeferralReport(frameworkId)
+      eventualContactDetails <- contactDetailsRepository.findAll
+      contactDetailsByUserId = eventualContactDetails.groupBy(_.userId).mapValues(_.head)
+    } yield {
+      val data = eventualCandidates.map { candidate =>
+        contactDetailsByUserId.get(candidate.userId).map { cd =>
+          CandidateDeferralReportItem(
+            candidateName = s"${candidate.firstName} ${candidate.lastName}",
+            preferredName = candidate.preferredName,
+            email = cd.email,
+            address = cd.address,
+            postCode = cd.postCode,
+            telephone = cd.phone,
+            programmes = candidate.partnerProgrammes
+          )
+        }
+      }
+
+      Ok(Json.toJson(data))
+    }
+  }
+
   def diversityReport(frameworkId: String) = Action.async { implicit request =>
     val reports = for {
       applications <- reportingRepository.diversityReport(frameworkId)
