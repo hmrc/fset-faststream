@@ -34,6 +34,7 @@ trait ProgressStatusesReportLabels {
     (progress.questionnaire.contains("occupation_questionnaire"), 70, OccupationQuestionsCompletedProgress),
     (progress.preview, 80, PreviewCompletedProgress),
     (progress.submitted, 90, SubmittedProgress),
+    (progress.fastPassAccepted, 91, FastPassAccepted),
     (progress.phase1ProgressResponse.phase1TestsInvited, 100, Phase1TestsInvited),
     (progress.phase1ProgressResponse.phase1TestsFirstReminder, 110, Phase1TestsFirstReminder),
     (progress.phase1ProgressResponse.phase1TestsSecondReminder, 120, Phase1TestsSecondReminder),
@@ -153,6 +154,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsSuccessNotified = "phase3_tests_success_notified"
   val ApplicationArchived = "application_archived"
+  val FastPassAccepted = "fast_pass_accepted"
   val Exported = "exported"
 
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"

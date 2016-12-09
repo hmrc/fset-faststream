@@ -84,6 +84,7 @@ case class ProgressResponse(
                              preview: Boolean = false,
                              questionnaire: List[String] = Nil,
                              submitted: Boolean = false,
+                             fastPassAccepted: Boolean = false,
                              withdrawn: Boolean = false,
                              phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
                              phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),

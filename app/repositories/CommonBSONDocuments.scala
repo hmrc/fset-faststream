@@ -96,6 +96,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
           preview = getProgress(ProgressStatuses.PREVIEW.key),
           questionnaire = questionnaire,
           submitted = getProgress(ProgressStatuses.SUBMITTED.key),
+          fastPassAccepted = getProgress(ProgressStatuses.FAST_PASS_ACCEPTED.key),
           withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
           applicationArchived = getProgress(ProgressStatuses.APPLICATION_ARCHIVED.key),
           phase1ProgressResponse = Phase1ProgressResponse(

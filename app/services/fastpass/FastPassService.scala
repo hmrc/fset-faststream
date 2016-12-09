@@ -17,13 +17,14 @@
 package services.fastpass
 
 import connectors.{ CSREmailClient, OnlineTestEmailClient }
+import model.ProgressStatuses
 import model.events.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
 import model.events.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
 import play.api.mvc.RequestHeader
 import repositories._
+import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.application.ApplicationService
 import services.events.{ EventService, EventSink }
 import services.personaldetails.PersonalDetailsService
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -32,7 +33,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object FastPassService extends FastPassService {
-  val applicationService = ApplicationService
+  val appRepo = applicationRepository
   val personalDetailsService = PersonalDetailsService
   val eventService: EventService = EventService
   val emailClient = CSREmailClient
@@ -43,7 +44,7 @@ object FastPassService extends FastPassService {
 
 trait FastPassService extends EventSink {
 
-  val applicationService: ApplicationService
+  val appRepo: GeneralApplicationRepository
   val personalDetailsService: PersonalDetailsService
   val eventService: EventService
   val emailClient: OnlineTestEmailClient
@@ -66,9 +67,9 @@ trait FastPassService extends EventSink {
     val personalDetailsFut = personalDetailsService.find(applicationId, userId)
     val eventMap = Map("createdBy" -> actionTriggeredBy, "candidate" -> userId)
     for{
-      _ <- csedRepository.evaluateFastPassCandidate(applicationId, true)
+      _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = true)
       _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
-      _ <- applicationService.markForExportToParity(applicationId)
+      _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
       _ <- eventSink(model.events.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
       personalDetail <- personalDetailsFut
       email <- emailFut
@@ -84,7 +85,7 @@ trait FastPassService extends EventSink {
     val personalDetailsFut = personalDetailsService.find(applicationId, userId)
     val eventMap = Map("createdBy" -> actionTriggeredBy, "candidate" -> userId)
     for{
-      _ <- csedRepository.evaluateFastPassCandidate(applicationId, false)
+      _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = false)
       _ <- eventSink(FastPassUserRejected(eventMap) :: FastPassRejected(applicationId, actionTriggeredBy) :: Nil)
       personalDetail <- personalDetailsFut
     } yield (personalDetail.firstName, personalDetail.lastName)
