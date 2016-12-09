@@ -59,7 +59,7 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
 
   def getReviewSectionReviewersRequest(name: String, email: String, criteria1Score: Option[Double] = None,
                                        criteria2Score: Option[Double] = None, generateNullScoresForFewQuestions: Boolean) = {
-    ReviewSectionReviewerRequest(name, email, None,
+    ReviewSectionReviewerRequest(name, email, Some(Random.videoInterviewFeedback),
       question1 = getReviewSectionQuestionRequest(100, criteria1Score, criteria2Score, generateNullScoresForFewQuestions),
       question2 = getReviewSectionQuestionRequest(101, criteria1Score, criteria2Score, generateNullScoresForFewQuestions),
       question3 = getReviewSectionQuestionRequest(102, criteria1Score, criteria2Score, generateNullScoresForFewQuestions),
