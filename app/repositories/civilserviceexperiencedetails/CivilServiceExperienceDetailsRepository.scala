@@ -19,7 +19,7 @@ package repositories.civilserviceexperiencedetails
 import model.CivilServiceExperienceDetails
 import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import repositories.ReactiveRepositoryHelpers
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -69,12 +69,15 @@ class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) ext
 
   override def evaluateFastPassCandidate(applicationId: String, accepted: Boolean): Future[Unit] = {
 
-    val query = BSONDocument("applicationId" -> applicationId)
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(s"$CivilServiceExperienceDetailsDocumentKey.fastPassReceived" -> true)
+    ))
     val updateBSON = BSONDocument("$set" -> BSONDocument(
       s"$CivilServiceExperienceDetailsDocumentKey.fastPassAccepted" -> accepted
     ))
 
-    val validator = singleUpdateValidator(applicationId, actionDesc = "updating civil service details",
+    val validator = singleUpdateValidator(applicationId, actionDesc = "evaluating fast pass candidate",
       CannotUpdateCivilServiceExperienceDetails(applicationId))
 
     collection.update(query, updateBSON) map validator

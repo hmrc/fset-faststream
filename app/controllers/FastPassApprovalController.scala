@@ -35,7 +35,7 @@ trait FastPassApprovalController extends BaseController {
   def processFastPassCandidate(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FastPassEvaluation] { req =>
       fastPassService.processFastPassCandidate(userId, applicationId, req.accepted, req.triggeredBy).map {
-        nameSurname => Ok(Json.toJson(ProcessedFastPassCandidate(nameSurname._1, nameSurname._2)))
+        fullName => Ok(Json.toJson(ProcessedFastPassCandidate(fullName._1, fullName._2)))
       }
     }
   }
