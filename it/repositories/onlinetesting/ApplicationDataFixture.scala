@@ -116,27 +116,29 @@ trait ApplicationDataFixture {
   // scalastyle:off parameter.number
   // scalastyle:off method.length
   def createApplicationWithAllFields(userId: String,
-                                     appId: String,
-                                     frameworkId: String = "frameworkId",
-                                     appStatus: String,
-                                     needsSupportForOnlineAssessment: Boolean = false,
-                                     needsSupportAtVenue: Boolean = false,
-                                     adjustmentsConfirmed: Boolean = false,
-                                     timeExtensionAdjustments: Boolean = false,
-                                     fastPassApplicable: Boolean = false,
-                                     fastPassReceived: Boolean = false,
-                                     fastPassAccepted: Option[Boolean] = None,
-                                     isGis: Boolean = false,
-                                     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
-                                     phase1TestProfile: Option[Phase1TestProfile] = None,
-                                     phase2TestGroup: Option[Phase2TestGroup] = None,
-                                     phase3TestGroup: Option[Phase3TestGroup] = None,
-                                     typeOfEtrayOnlineAdjustments: List[String] = List("etrayTimeExtension", "etrayOther")
-                                    ): Future[WriteResult] = {
+    appId: String,
+    frameworkId: String = "frameworkId",
+    appStatus: String,
+    needsSupportForOnlineAssessment: Boolean = false,
+    needsSupportAtVenue: Boolean = false,
+    adjustmentsConfirmed: Boolean = false,
+    timeExtensionAdjustments: Boolean = false,
+    fastPassApplicable: Boolean = false,
+    fastPassReceived: Boolean = false,
+    fastPassAccepted: Option[Boolean] = None,
+    isGis: Boolean = false,
+    additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
+    phase1TestProfile: Option[Phase1TestProfile] = None,
+    phase2TestGroup: Option[Phase2TestGroup] = None,
+    phase3TestGroup: Option[Phase3TestGroup] = None,
+    typeOfEtrayOnlineAdjustments: List[String] = List("etrayTimeExtension", "etrayOther"),
+    applicationRoute: String = "Faststream"
+  ): Future[WriteResult] = {
     val doc = BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
       "userId" -> userId,
+      "applicationRoute" -> applicationRoute,
       "frameworkId" -> frameworkId,
       "framework-preferences" -> BSONDocument(
         "firstLocation" -> BSONDocument(
