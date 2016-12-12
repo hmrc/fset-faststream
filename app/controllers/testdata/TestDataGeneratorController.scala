@@ -21,7 +21,6 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
-import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
 import model.Exceptions.EmailTakenException
 import model.command.testdata.GeneratorConfig
 import model.exchange.testdata._
@@ -38,10 +37,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object TestDataGeneratorController extends TestDataGeneratorController {
-
-  case class InvalidPostCodeFormatException(message: String) extends Exception(message)
-}
+object TestDataGeneratorController extends TestDataGeneratorController
 
 trait TestDataGeneratorController extends BaseController {
 
@@ -163,20 +159,6 @@ trait TestDataGeneratorController extends BaseController {
     } catch {
       case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
-    }
-  }
-
-  private def validatePostcode(postcode: String) = {
-    // putting this on multiple lines won't make this regex any clearer
-    // scalastyle:off line.size.limit
-    val postcodePattern =
-      """^(?i)(GIR 0AA)|((([A-Z][0-9][0-9]?)|(([A-Z][A-HJ-Y][0-9][0-9]?)|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) ?[0-9][A-Z]{2})$""".r
-    // scalastyle:on line.size.limit
-
-    postcodePattern.pattern.matcher(postcode).matches match {
-      case true => postcode
-      case false if postcode.isEmpty => throw InvalidPostCodeFormatException(s"Postcode $postcode is empty")
-      case false => throw InvalidPostCodeFormatException(s"Postcode $postcode is in an invalid format")
     }
   }
 }
