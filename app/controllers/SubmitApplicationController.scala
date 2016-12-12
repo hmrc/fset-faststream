@@ -33,7 +33,7 @@ import scala.concurrent.Future
 object SubmitApplicationController extends SubmitApplicationController {
   override val pdRepository: PersonalDetailsRepository = personalDetailsRepository
   override val adRepository: AssistanceDetailsRepository = faststreamAssistanceDetailsRepository
-  override val cdRepository = contactDetailsRepository
+  override val cdRepository = faststreamContactDetailsRepository
   override val frameworkPrefRepository: FrameworkPreferenceMongoRepository = frameworkPreferenceRepository
   override val frameworkRegionsRepository: FrameworkRepository = frameworkRepository
   override val appRepository: GeneralApplicationRepository = applicationRepository
@@ -44,7 +44,7 @@ trait SubmitApplicationController extends BaseController with EventSink {
 
   val pdRepository: PersonalDetailsRepository
   val adRepository: AssistanceDetailsRepository
-  val cdRepository: ContactDetailsRepository
+  val cdRepository: contactdetails.ContactDetailsRepository
   val frameworkPrefRepository: FrameworkPreferenceRepository
   val frameworkRegionsRepository: FrameworkRepository
   val appRepository: GeneralApplicationRepository

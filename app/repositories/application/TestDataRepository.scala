@@ -105,16 +105,17 @@ class TestDataMongoRepository(implicit mongo: () => DB)
 
   // scalastyle:off parameter.number
   def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
-                                     appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes",
-                                     needsSupportForOnlineAssessment: Boolean = false,
-                                     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
-                                     firstName: Option[String] = None, preferredName: Option[String] = None,
-                                     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
-                                     additionalDoc: BSONDocument = BSONDocument.empty,
-                                     applicationRoute: Option[ApplicationRoute] = None
-                                    ) = {
+    appStatus: ApplicationStatus = IN_PROGRESS, hasDisability: String = "Yes",
+    needsSupportForOnlineAssessment: Boolean = false,
+    needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
+    firstName: Option[String] = None, preferredName: Option[String] = None,
+    additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
+    additionalDoc: BSONDocument = BSONDocument.empty,
+    applicationRoute: Option[ApplicationRoute] = None,
+    partnerProgrammes: List[String] = Nil
+  ) = {
     import repositories.BSONLocalDateHandler
-    collection.insert(BSONDocument(
+    val document = BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
       "applicationRoute" -> applicationRoute,
@@ -142,14 +143,25 @@ class TestDataMongoRepository(implicit mongo: () => DB)
         "needsSupportAtVenue" -> needsSupportAtVenue,
         "guaranteedInterview" -> guaranteedInterview
       ),
+      "partner-graduate-programmes" -> deferral(partnerProgrammes),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
       "progress-status-dates" -> BSONDocument(
         "submitted" -> LocalDate.now()
       )
-    ) ++ additionalDoc) //.futureValue
+    ) ++ additionalDoc //.futureValue
+    collection.insert(document)
   }
   // scalastyle:on parameter.number
+
+  def deferral(args: List[String] = Nil): BSONDocument = args match {
+    case Nil => BSONDocument()
+
+    case head :: tail => BSONDocument(
+      "interested" -> true,
+      "partnerGraduateProgrammes" -> args
+    )
+  }
 
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(

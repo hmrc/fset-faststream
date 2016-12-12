@@ -17,7 +17,7 @@
 package controllers
 
 import model.Commands._
-import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, PassMarkEvaluationNotFound }
+import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.command.WithdrawApplication
 import play.api.libs.json.Json
 import play.api.mvc.Action
@@ -119,6 +119,13 @@ trait ApplicationController extends BaseController {
     }.recover {
       case e: ApplicationNotFound => NotFound(s"cannot find application for userId: ${e.id}")
     }
+  }
+
+  def markForExportToParity(applicationId: String) = Action.async { implicit request =>
+    applicationService.markForExportToParity(applicationId).map ( _ => Ok )
+      .recover {
+        case e: NotFoundException => NotFound(s"cannot find application with id $applicationId")
+      }
   }
 
 }
