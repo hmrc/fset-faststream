@@ -66,13 +66,13 @@ trait FastPassService extends EventSink {
     val emailFut = cdRepository.find(userId).map(_.email)
     val personalDetailsFut = personalDetailsService.find(applicationId, userId)
     val eventMap = Map("createdBy" -> actionTriggeredBy, "candidate" -> userId)
-    for{
-      _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = true)
-      _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
+    for {
+      email <- emailFut
+      personalDetail <- personalDetailsFut
       _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
       _ <- eventSink(model.events.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
-      personalDetail <- personalDetailsFut
-      email <- emailFut
+      _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = true)
+      _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
       _ <- emailClient.sendEmailWithName(email, personalDetail.preferredName, acceptedTemplate)
       _ <- eventSink(FastPassUserAcceptedEmailSent(
         Map("email" -> email, "name" -> personalDetail.preferredName, "template" -> acceptedTemplate)) :: Nil)
@@ -82,12 +82,11 @@ trait FastPassService extends EventSink {
   private def rejectFastPassCandidate(userId: String, applicationId: String, actionTriggeredBy: String)
                                      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
 
-    val personalDetailsFut = personalDetailsService.find(applicationId, userId)
     val eventMap = Map("createdBy" -> actionTriggeredBy, "candidate" -> userId)
-    for{
+    for {
+      personalDetail <- personalDetailsService.find(applicationId, userId)
       _ <- csedRepository.evaluateFastPassCandidate(applicationId, accepted = false)
       _ <- eventSink(FastPassUserRejected(eventMap) :: FastPassRejected(applicationId, actionTriggeredBy) :: Nil)
-      personalDetail <- personalDetailsFut
     } yield (personalDetail.firstName, personalDetail.lastName)
   }
 

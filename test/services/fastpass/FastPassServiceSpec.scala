@@ -85,21 +85,22 @@ class FastPassServiceSpec extends UnitSpec {
     }
 
     "fail to complete the process if a service fails" in new TestFixture {
-      when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceFutureResponse)
-      when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceError)
       when(personalDetailsServiceMock.find(any[String], any[String])).thenReturn(personalDetailsResponse)
       when(cdRepositoryMock.find(any[String])).thenReturn(contactDetailsResponse)
+      when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
+      when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceError)
+
 
       val result = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).failed.futureValue
 
       result mustBe error
 
       verifyDataStoreEvents(1,
-        List("FastPassApproved")
+        List("ApplicationReadyForExport")
       )
 
       verifyAuditEvents(1,
-        List("FastPassUserAccepted")
+        List("ApplicationReadyForExport")
       )
     }
   }
