@@ -42,7 +42,10 @@ object Phase1PassMarkSettings {
   def merge(latestPassMarkSettings: Option[Phase1PassMarkSettings],
             newestPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = latestPassMarkSettings match {
     case Some(latest) =>
-      val currentPassMarkSettingsMap = latest.schemes.groupBy(_.schemeName).mapValues(_.head)
+      val currentPassMarkSettingsMap = latest.schemes.groupBy(_.schemeName).mapValues { v =>
+        require(v.size == 1, s"Scheme name must be non empty and must be unique: ${v.mkString(",")}")
+        v.head
+      }
       val newestPassMarkSettingsMap = newestPassMarkSettings.schemes.groupBy(_.schemeName).mapValues(_.head)
       val mergedSchemes = (currentPassMarkSettingsMap ++ newestPassMarkSettingsMap).values.toList
       newestPassMarkSettings.copy(schemes = mergedSchemes)
