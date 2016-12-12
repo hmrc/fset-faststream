@@ -45,8 +45,8 @@ object TestDataGeneratorController extends TestDataGeneratorController {
 
 trait TestDataGeneratorController extends BaseController {
 
-  def ping = Action.async { implicit request =>
-    Future.successful(Ok("OK"))
+  def ping = Action { implicit request =>
+    Ok("OK")
   }
 
   def clearDatabase() = Action.async { implicit request =>
@@ -56,69 +56,67 @@ trait TestDataGeneratorController extends BaseController {
   }
 
   // scalastyle:off method.length
-  def requestExample = Action.async { implicit request =>
-    Future {
-      val example = CreateCandidateInStatusRequest(
-       statusData = StatusDataRequest(
-         applicationStatus = ApplicationStatus.SUBMITTED.toString,
-         previousApplicationStatus = Some(ApplicationStatus.REGISTERED.toString),
-         progressStatus = Some(ProgressStatuses.SUBMITTED.toString),
-         applicationRoute = Some(ApplicationRoute.Faststream.toString)
-       ),
-        personalData = Some(PersonalDataRequest(
-          emailPrefix = Some(s"testf${Random.number()}"),
-          firstName = Some("Kathryn"),
-          lastName = Some("Janeway"),
-          preferredName = Some("Captain"),
-          dateOfBirth = Some("2328-05-20"),
-          postCode = Some("QQ1 1QQ"),
-          country = Some("America")
-        )),
-        assistanceDetails = Some(AssistanceDetailsRequest(
-          hasDisability = Some("false"),
-          hasDisabilityDescription = Some(Random.hasDisabilityDescription),
-          setGis = Some(false),
-          onlineAdjustments = Some(false),
-          onlineAdjustmentsDescription = Some(Random.onlineAdjustmentsDescription),
-          assessmentCentreAdjustments = Some(false),
-          assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
-        )),
-        schemeTypes = Some(List(SchemeType.Commercial, SchemeType.European, SchemeType.DigitalAndTechnology)),
-        isCivilServant = Some(Random.bool),
-        hasDegree = Some(Random.bool),
-        region = Some("region"),
-        loc1scheme1EvaluationResult = Some("loc1 scheme1 result1"),
-        loc1scheme2EvaluationResult = Some("loc1 scheme2 result2"),
-        confirmedAllocation = Some(Random.bool),
-        phase1TestData = Some(Phase1TestDataRequest(
-          start = Some("2340-01-01"),
-          expiry = Some("2340-01-29"),
-          completion = Some("2340-01-16"),
-          tscore = Some("80")
-        )),
-        phase2TestData = Some(Phase2TestDataRequest(
-          start = Some("2340-01-01"),
-          expiry = Some("2340-01-29"),
-          completion = Some("2340-01-16"),
-          tscore = Some("80")
-        )),
-        phase3TestData = Some(Phase3TestDataRequest(
-          start = Some("2340-01-01"),
-          expiry = Some("2340-01-29"),
-          completion = Some("2340-01-16")
-        )),
-        adjustmentInformation = Some(Adjustments(
-          adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
-          adjustmentsConfirmed = Some(true),
-          etray = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
-            , otherInfo = Some("Some other comments here"))),
-          video = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
-            , otherInfo = Some("Some other comments here")))
-        ))
-      )
+  def requestExample = Action { implicit request =>
+    val example = CreateCandidateInStatusRequest(
+     statusData = StatusDataRequest(
+       applicationStatus = ApplicationStatus.SUBMITTED.toString,
+       previousApplicationStatus = Some(ApplicationStatus.REGISTERED.toString),
+       progressStatus = Some(ProgressStatuses.SUBMITTED.toString),
+       applicationRoute = Some(ApplicationRoute.Faststream.toString)
+     ),
+      personalData = Some(PersonalDataRequest(
+        emailPrefix = Some(s"testf${Random.number()}"),
+        firstName = Some("Kathryn"),
+        lastName = Some("Janeway"),
+        preferredName = Some("Captain"),
+        dateOfBirth = Some("2328-05-20"),
+        postCode = Some("QQ1 1QQ"),
+        country = Some("America")
+      )),
+      assistanceDetails = Some(AssistanceDetailsRequest(
+        hasDisability = Some("false"),
+        hasDisabilityDescription = Some(Random.hasDisabilityDescription),
+        setGis = Some(false),
+        onlineAdjustments = Some(false),
+        onlineAdjustmentsDescription = Some(Random.onlineAdjustmentsDescription),
+        assessmentCentreAdjustments = Some(false),
+        assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
+      )),
+      schemeTypes = Some(List(SchemeType.Commercial, SchemeType.European, SchemeType.DigitalAndTechnology)),
+      isCivilServant = Some(Random.bool),
+      hasDegree = Some(Random.bool),
+      region = Some("region"),
+      loc1scheme1EvaluationResult = Some("loc1 scheme1 result1"),
+      loc1scheme2EvaluationResult = Some("loc1 scheme2 result2"),
+      confirmedAllocation = Some(Random.bool),
+      phase1TestData = Some(Phase1TestDataRequest(
+        start = Some("2340-01-01"),
+        expiry = Some("2340-01-29"),
+        completion = Some("2340-01-16"),
+        tscore = Some("80")
+      )),
+      phase2TestData = Some(Phase2TestDataRequest(
+        start = Some("2340-01-01"),
+        expiry = Some("2340-01-29"),
+        completion = Some("2340-01-16"),
+        tscore = Some("80")
+      )),
+      phase3TestData = Some(Phase3TestDataRequest(
+        start = Some("2340-01-01"),
+        expiry = Some("2340-01-29"),
+        completion = Some("2340-01-16")
+      )),
+      adjustmentInformation = Some(Adjustments(
+        adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
+        adjustmentsConfirmed = Some(true),
+        etray = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
+          , otherInfo = Some("Some other comments here"))),
+        video = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
+          , otherInfo = Some("Some other comments here")))
+      ))
+    )
 
-      Ok(Json.toJson(example))
-    }
+    Ok(Json.toJson(example))
   }
   // scalastyle:on method.length
 
