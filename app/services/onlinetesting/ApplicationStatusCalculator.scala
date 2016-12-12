@@ -16,7 +16,8 @@
 
 package services.onlinetesting
 
-import model.ApplicationStatus
+import model.ApplicationRoute._
+import model.{ ApplicationRoute, ApplicationStatus }
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Result, _ }
 import model.Phase.Phase
@@ -27,13 +28,14 @@ import model.persisted.SchemeEvaluationResult
 
 trait ApplicationStatusCalculator {
 
-  def determineApplicationStatus(originalApplicationStatus: ApplicationStatus,
-                                 evaluatedSchemes: List[SchemeEvaluationResult],
-                                 phase: Phase): Option[ProgressStatus] = {
+  def determineApplicationStatus(applicationRoute: ApplicationRoute,
+    originalApplicationStatus: ApplicationStatus,
+    evaluatedSchemes: List[SchemeEvaluationResult],
+    phase: Phase): Option[ProgressStatus] = {
     val results = evaluatedSchemes.map(s => Result(s.result))
     require(results.nonEmpty, "Results not found")
 
-    (phase, originalApplicationStatus) match {
+    def faststreamStatusCalculator = (phase, originalApplicationStatus) match {
       case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
 
       case (PHASE2, ApplicationStatus.PHASE2_TESTS) => processResults(results, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED)
@@ -43,7 +45,25 @@ trait ApplicationStatusCalculator {
 
       case (PHASE3, ApplicationStatus.PHASE3_TESTS | ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER) =>
         processResults(results, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED)
+
       case _ => None
+    }
+
+    def edipStatusCalculator = (phase, originalApplicationStatus) match {
+      case (PHASE1, ApplicationStatus.PHASE1_TESTS | ApplicationStatus.PHASE1_TESTS_PASSED_WITH_AMBER)
+        if results.contains(Amber) && results.contains(Green) => Some(PHASE1_TESTS_PASSED_WITH_AMBER)
+
+      case (PHASE1, ApplicationStatus.PHASE1_TESTS | ApplicationStatus.PHASE1_TESTS_PASSED_WITH_AMBER) =>
+        processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
+
+      case _ => None
+    }
+
+
+    applicationRoute match {
+      case ApplicationRoute.Faststream => faststreamStatusCalculator
+
+      case ApplicationRoute.Edip => edipStatusCalculator
     }
   }
 

@@ -18,7 +18,7 @@ package scheduler.onlinetesting
 
 import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
 import model.persisted.ApplicationReadyForEvaluation
-import model.{ ApplicationStatus, Phase, Phase1TestProfileExamples, SelectedSchemesExamples }
+import model._
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
@@ -63,15 +63,20 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
     }
   }
 
+
   trait TestFixture {
     val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase1PassMarkSettings]]
     val profile = Phase1TestProfileExamples.profile
     val schemes = SelectedSchemesExamples.TwoSchemes
     val passmark = Phase1PassMarkSettingsExamples.passmark
 
-    val apps = 1 to 10 map { id =>
-      ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE1_TESTS, isGis = false, profile.activeTests, None, None, schemes)
-    }
+    val apps = (1 to 10 map { id =>
+      ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE1_TESTS, ApplicationRoute.Faststream, isGis = false,
+        profile.activeTests, None, None, schemes)
+    }) ++ (1 to 10 map { id =>
+      ApplicationReadyForEvaluation(s"edipAppId$id", ApplicationStatus.PHASE1_TESTS, ApplicationRoute.Edip, isGis = false,
+        profile.activeTests, None, None, schemes)
+    })
 
     apps.foreach { app =>
       when(mockEvaluateService.evaluate(app, passmark)).thenReturn(Future.successful(()))
