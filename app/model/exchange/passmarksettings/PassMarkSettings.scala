@@ -16,6 +16,7 @@
 
 package model.exchange.passmarksettings
 
+import model.SchemeType.SchemeType
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
@@ -40,19 +41,31 @@ object Phase1PassMarkSettings {
   implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase1PassMarkSettings]
 
   def merge(latestPassMarkSettings: Option[Phase1PassMarkSettings],
-            newestPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = latestPassMarkSettings match {
-    case Some(latest) =>
-      def toMapBySchemeName(passmark: Phase1PassMarkSettings) = latest.schemes.groupBy(_.schemeName).mapValues { v =>
-        require(v.size == 1, s"Scheme name must be non empty and must be unique: ${v.mkString(",")}")
-        v.head
-      }
+            newestPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = {
+    def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeName).mapValues { v =>
+      require(v.size == 1, s"Scheme name must be non empty and must be unique: ${v.mkString(",")}")
+      v.head
+    }
+    def toSchemeNames(passmark: Phase1PassMarkSettings) = passmark.schemes.map(_.schemeName)
 
-      val currentPassMarkSettingsMap = toMapBySchemeName(latest)
-      val newestPassMarkSettingsMap = toMapBySchemeName(newestPassMarkSettings)
-      val mergedSchemes = (currentPassMarkSettingsMap ++ newestPassMarkSettingsMap).values.toList
-      newestPassMarkSettings.copy(schemes = mergedSchemes)
-    case None =>
-      newestPassMarkSettings
+    latestPassMarkSettings match {
+      case Some(latest) =>
+        val currentPassMarkSettingsMap = toMap(latest)
+        val newestPassMarkSettingsMap = toMap(newestPassMarkSettings)
+        val uniqueSchemesInOrder = (latestPassMarkSettings.map(toSchemeNames)
+          .getOrElse(Nil) ++ toSchemeNames(newestPassMarkSettings)).distinct
+        val mergedPassMarkSettings = mergeToListInOrder(currentPassMarkSettingsMap, newestPassMarkSettingsMap,
+          uniqueSchemesInOrder)
+        newestPassMarkSettings.copy(schemes = mergedPassMarkSettings)
+      case None =>
+        newestPassMarkSettings
+    }
+  }
+
+  private def mergeToListInOrder[T](originalMap: Map[SchemeType, T], toUpdateMap: Map[SchemeType, T],
+                                               order: List[SchemeType]): List[T] = {
+    val mergedMaps = originalMap ++ toUpdateMap
+    order.map(schemeName => mergedMaps(schemeName))
   }
 }
 

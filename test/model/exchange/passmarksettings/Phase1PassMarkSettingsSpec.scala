@@ -17,6 +17,7 @@
 package model.exchange.passmarksettings
 
 import model.SchemeType
+import model.SchemeType._
 import model.exchange.passmarksettings.Phase1PassMarkSettingsExamples._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -25,13 +26,12 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
   val pastDate: DateTime = DateTime.now().minusDays(1)
   implicit val now: DateTime = DateTime.now()
 
-  private val faststreamPassMarkToSave = passMarkSettings(List((SchemeType.Commercial, 20.0, 80.0)))(pastDate)
-  private val edipPassMarkToSave = passMarkSettings(List((SchemeType.Edip, 20.0, 80.0)))
-  private val sdipPassMarkToSave = passMarkSettings(List((SchemeType.Sdip, 20.0, 80.0)))
+  private val faststreamPassMarkToSave = passMarkSettings(List((Commercial, 20.0, 80.0)))(pastDate)
+  private val edipPassMarkToSave = passMarkSettings(List((Edip, 20.0, 80.0)))
   private val allPassmarks = passMarkSettings(List(
-    (SchemeType.Commercial, 30.0, 70.0),
-    (SchemeType.Edip, 30.0, 70.0),
-    (SchemeType.Sdip, 40.0, 60.0))
+    (Commercial, 30.0, 70.0),
+    (Edip, 30.0, 70.0),
+    (Sdip, 40.0, 60.0))
   )
 
   "phase1 pass mark settings merge" should {
@@ -41,7 +41,6 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
         newestPassMarkSettings = faststreamPassMarkToSave
       )
       merged mustBe faststreamPassMarkToSave
-      merged.version mustBe faststreamPassMarkToSave.version
     }
 
     "merge two disjoint passmarks" in {
@@ -50,8 +49,8 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
         newestPassMarkSettings = edipPassMarkToSave
       )
       merged.schemes mustBe List(
-        createPhase1PassMark(SchemeType.Commercial, 20.0, 80.0),
-        createPhase1PassMark(SchemeType.Edip, 20.0, 80.0)
+        createPhase1PassMark(Commercial, 20.0, 80.0),
+        createPhase1PassMark(Edip, 20.0, 80.0)
       )
       merged.createDate mustBe now
       merged.version mustBe edipPassMarkToSave.version
@@ -63,12 +62,32 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
         newestPassMarkSettings = allPassmarks
       )
       merged.schemes mustBe List(
-        createPhase1PassMark(SchemeType.Commercial, 30.0, 70.0),
-        createPhase1PassMark(SchemeType.Edip, 30.0, 70.0),
-        createPhase1PassMark(SchemeType.Sdip, 40.0, 60.0)
+        createPhase1PassMark(Commercial, 30.0, 70.0),
+        createPhase1PassMark(Edip, 30.0, 70.0),
+        createPhase1PassMark(Sdip, 40.0, 60.0)
       )
       merged.createDate mustBe now
       merged.version mustBe allPassmarks.version
+    }
+
+    "merge preserves the list order from the latest and then from newest passmark settings" in {
+      val merged = Phase1PassMarkSettings.merge(
+        latestPassMarkSettings = Some(passMarkSettings(List(
+          (Commercial, 20.0, 80.0),
+          (DigitalAndTechnology, 20.0, 80.0),
+          (DiplomaticService, 20.0, 80.0)))),
+        newestPassMarkSettings = passMarkSettings(List(
+          (DiplomaticServiceEconomics, 20.0, 80.0),
+          (DiplomaticServiceEuropean, 20.0, 80.0),
+          (DiplomaticService, 20.0, 80.0)))
+      )
+      merged.schemes.map(_.schemeName) mustBe List(
+        Commercial,
+        DigitalAndTechnology,
+        DiplomaticService,
+        DiplomaticServiceEconomics,
+        DiplomaticServiceEuropean
+      )
     }
 
   }
