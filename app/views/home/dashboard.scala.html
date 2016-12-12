@@ -16,6 +16,7 @@
 @import views.html.home.submit_disabled
 @import views.html.home.withdrawSection
 @import views.html.home.withdrawInformation
+@import views.html.template.fastPassAccepted
 @import models.ConsiderMeForSdipHelper._
 
 @(usr: CachedData, dashboardPage: DashboardPage,
@@ -42,11 +43,6 @@
 @disableDashboardMayBe = @{
     if(!submitApplicationsEnabled || cannotBeConsideredForSdip) "disabled"
 }
-
-@disabledIfWithdrawn = @{
- if(dashboardPage.isApplicationWithdrawn) "disabled"
-}
-
 
 @displayLeadInformation = @{(cannotBeConsideredForSdip, submitApplicationsEnabled) match {
     case (true, _) => sdipEligibilityInfo(usr)
@@ -193,19 +189,7 @@
         </ol>
     </section>
     } else {
-        <section class="section-border @disabledIfWithdrawn" id="mainProgressPage">
-            <h2 class="heading-large"><i class="fa fa-check"></i>You're going to the assessment centre</h2>
-            <div class="text">
-                <section>
-                    <p>Congratulations, we've accepted your Fast Pass.</p>
-                    <p>You'll now be invited to the assessment centre where you'll be assessed
-                        against your preferred schemes.</p>
-                    <p><a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a></p>
-                    <p><a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a></p>
-                </section>
-            </div>
-        </section>
-
+        @fastPassAccepted(dashboardPage)
     }
     @withdrawSection(usr)
 }

@@ -129,11 +129,6 @@ object Roles {
       activeUserWithActiveApp(user) && statusIn(user)(WITHDRAWN)
   }
 
-  object FastPassApplicationRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      hasFastPassBeenApproved(user)
-  }
-
   object OnlineTestInvitedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
       activeUserWithActiveApp(user) && statusIn(user)(PHASE1_TESTS)

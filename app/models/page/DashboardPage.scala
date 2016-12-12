@@ -69,7 +69,7 @@ object DashboardPage {
       fourthStepVisibility,
       isApplicationSubmittedAndNotWithdrawn(user),
       isApplicationWithdrawn(user),
-      isFastPassApproved(user),
+      RoleUtils.hasFastPassBeenApproved(user),
       isApplicationInProgress(user),
       isUserWithNoApplication(user),
       RoleUtils.isPhase1TestsPassed(user),
@@ -159,9 +159,6 @@ object DashboardPage {
 
   private def isApplicationWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     WithdrawnApplicationRole.isAuthorized(user)
-
-  private def isFastPassApproved(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    FastPassApplicationRole.isAuthorized(user)
 
   private def isApplicationInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     InProgressRole.isAuthorized(user)
