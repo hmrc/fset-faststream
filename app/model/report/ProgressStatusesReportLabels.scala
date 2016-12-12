@@ -42,6 +42,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase1ProgressResponse.phase1TestsExpired, 150, Phase1TestsExpired),
     (progress.phase1ProgressResponse.phase1TestsResultsReady, 160, Phase1TestsResultsReady),
     (progress.phase1ProgressResponse.phase1TestsResultsReceived, 170, Phase1TestsResultsReceived),
+    (progress.phase1ProgressResponse.phase1TestsPassedWithAmber, 175, Phase1TestsPassedWithAmber),
     (progress.phase1ProgressResponse.phase1TestsPassed, 180, Phase1TestsPassed),
     (progress.phase1ProgressResponse.phase1TestsFailed, 190, Phase1TestsFailed),
     (progress.phase1ProgressResponse.phase1TestsFailedNotified, 195, Phase1TestsFailedNotified),
@@ -126,6 +127,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase1TestsExpired = "phase1_tests_expired"
   val Phase1TestsResultsReady = "phase1_tests_results_ready"
   val Phase1TestsResultsReceived = "phase1_tests_results_received"
+  val Phase1TestsPassedWithAmber = "phase1_tests_passed_with_amber"
   val Phase1TestsPassed = "phase1_tests_passed"
   val Phase1TestsFailed = "phase1_tests_failed"
   val Phase1TestsFailedNotified = "phase1_tests_failed_notified"

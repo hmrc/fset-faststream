@@ -41,6 +41,7 @@ case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   phase1TestsExpired: Boolean = false,
   phase1TestsResultsReady: Boolean = false,
   phase1TestsResultsReceived: Boolean = false,
+  phase1TestsPassedWithAmber: Boolean = false,
   phase1TestsPassed: Boolean = false,
   phase1TestsFailed: Boolean = false,
   phase1TestsFailedNotified: Boolean = false
@@ -62,38 +63,38 @@ case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
 )
 
 case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
-                                  phase3TestsFirstReminder: Boolean = false,
-                                  phase3TestsSecondReminder: Boolean = false,
-                                  phase3TestsStarted: Boolean = false,
-                                  phase3TestsCompleted: Boolean = false,
-                                  phase3TestsExpired: Boolean = false,
-                                  phase3TestsResultsReceived: Boolean = false,
-                                  phase3TestsPassedWithAmber: Boolean = false,
-                                  phase3TestsPassed: Boolean = false,
-                                  phase3TestsFailed: Boolean = false,
-                                  phase3TestsFailedNotified: Boolean = false,
-                                  phase3TestsSuccessNotified: Boolean = false
-                                 )
+  phase3TestsFirstReminder: Boolean = false,
+  phase3TestsSecondReminder: Boolean = false,
+  phase3TestsStarted: Boolean = false,
+  phase3TestsCompleted: Boolean = false,
+  phase3TestsExpired: Boolean = false,
+  phase3TestsResultsReceived: Boolean = false,
+  phase3TestsPassedWithAmber: Boolean = false,
+  phase3TestsPassed: Boolean = false,
+  phase3TestsFailed: Boolean = false,
+  phase3TestsFailedNotified: Boolean = false,
+  phase3TestsSuccessNotified: Boolean = false
+)
 
 case class ProgressResponse(
-                             applicationId: String,
-                             personalDetails: Boolean = false,
-                             schemePreferences: Boolean = false,
-                             partnerGraduateProgrammes: Boolean = false,
-                             assistanceDetails: Boolean = false,
-                             preview: Boolean = false,
-                             questionnaire: List[String] = Nil,
-                             submitted: Boolean = false,
-                             withdrawn: Boolean = false,
-                             phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
-                             phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
-                             phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
-                             exported: Boolean = false,
-                             applicationArchived: Boolean = false,
-                             failedToAttend: Boolean = false,
-                             assessmentScores: AssessmentScores = AssessmentScores(),
-                             assessmentCentre: AssessmentCentre = AssessmentCentre()
-                           )
+  applicationId: String,
+  personalDetails: Boolean = false,
+  schemePreferences: Boolean = false,
+  partnerGraduateProgrammes: Boolean = false,
+  assistanceDetails: Boolean = false,
+  preview: Boolean = false,
+  questionnaire: List[String] = Nil,
+  submitted: Boolean = false,
+  withdrawn: Boolean = false,
+  phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
+  phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
+  phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
+  exported: Boolean = false,
+  applicationArchived: Boolean = false,
+  failedToAttend: Boolean = false,
+  assessmentScores: AssessmentScores = AssessmentScores(),
+  assessmentCentre: AssessmentCentre = AssessmentCentre()
+)
 
 
 object ProgressResponse {

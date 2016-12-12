@@ -104,6 +104,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase1TestsSecondReminder = getProgress(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER.key),
             phase1TestsResultsReady = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_READY.key),
             phase1TestsResultsReceived = getProgress(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED.key),
+            phase1TestsPassedWithAmber = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED_WITH_AMBER.toString),
             phase1TestsStarted = getProgress(ProgressStatuses.PHASE1_TESTS_STARTED.key),
             phase1TestsCompleted = getProgress(ProgressStatuses.PHASE1_TESTS_COMPLETED.key),
             phase1TestsExpired = getProgress(ProgressStatuses.PHASE1_TESTS_EXPIRED.key),

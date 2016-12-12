@@ -26,6 +26,7 @@ import model.Exceptions.EmailTakenException
 import model.command.testdata.GeneratorConfig
 import model.exchange.testdata._
 import model._
+import model.persisted.PassmarkEvaluation
 import play.api.Play
 import play.api.libs.json.{ JsObject, JsString, Json }
 import play.api.mvc.{ Action, RequestHeader }
@@ -92,12 +93,14 @@ trait TestDataGeneratorController extends BaseController {
         phase1TestData = Some(Phase1TestDataRequest(
           start = Some("2340-01-01"),
           expiry = Some("2340-01-29"),
-          completion = Some("2340-01-16")
+          completion = Some("2340-01-16"),
+          tscore = Some("80")
         )),
         phase2TestData = Some(Phase2TestDataRequest(
           start = Some("2340-01-01"),
           expiry = Some("2340-01-29"),
-          completion = Some("2340-01-16")
+          completion = Some("2340-01-16"),
+          tscore = Some("80")
         )),
         phase3TestData = Some(Phase3TestDataRequest(
           start = Some("2340-01-01"),

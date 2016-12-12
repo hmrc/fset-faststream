@@ -26,7 +26,10 @@ import model.ProgressStatuses.ProgressStatus
 import model.ProgressStatuses._
 import model.persisted.SchemeEvaluationResult
 
+
 trait ApplicationStatusCalculator {
+
+  case class UnimplementedApplicationRouteException(m: String) extends Exception(m)
 
   def determineApplicationStatus(applicationRoute: ApplicationRoute,
     originalApplicationStatus: ApplicationStatus,
@@ -51,7 +54,7 @@ trait ApplicationStatusCalculator {
 
     def edipStatusCalculator = (phase, originalApplicationStatus) match {
       case (PHASE1, ApplicationStatus.PHASE1_TESTS | ApplicationStatus.PHASE1_TESTS_PASSED_WITH_AMBER)
-        if results.contains(Amber) && results.contains(Green) => Some(PHASE1_TESTS_PASSED_WITH_AMBER)
+        if results.contains(Amber) => Some(PHASE1_TESTS_PASSED_WITH_AMBER)
 
       case (PHASE1, ApplicationStatus.PHASE1_TESTS | ApplicationStatus.PHASE1_TESTS_PASSED_WITH_AMBER) =>
         processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
@@ -62,8 +65,8 @@ trait ApplicationStatusCalculator {
 
     applicationRoute match {
       case ApplicationRoute.Faststream => faststreamStatusCalculator
-
       case ApplicationRoute.Edip => edipStatusCalculator
+      case _ => throw UnimplementedApplicationRouteException(s"Score evaluation for application route $applicationRoute is not implemented yet.")
     }
   }
 

@@ -27,34 +27,34 @@ import services.onlinetesting.ApplicationStatusCalculator
 class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   val calc = new ApplicationStatusCalculator {}
 
-  "determine EDIP phase 1 application status" must {
-    "promote the application when at least one Green and no ambers" in {
-      val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS,
-        List(red, green), Phase.PHASE1)
-      newStatus mustBe Some(PHASE1_TESTS_PASSED)
+  "Unimplemented application routes" must {
+    "throw an exception" in {
+      an[calc.UnimplementedApplicationRouteException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.Sdip,
+        ApplicationStatus.PHASE1_TESTS, Nil, Phase.PHASE1)
+
+
+      an[calc.UnimplementedApplicationRouteException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.SdipFaststream,
+        ApplicationStatus.PHASE1_TESTS, Nil, Phase.PHASE1)
     }
+  }
+
+  "determine EDIP phase 1 application status" must {
 
     "promote the application for all Greens" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS,
-        List(green, green, green), Phase.PHASE1)
+        List(green), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_PASSED)
     }
 
     "fail application for all Reds" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS,
-        List(red, red, red), Phase.PHASE1)
+        List(red), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_FAILED)
     }
 
-    "do not update application status when at least one amber and no greens" in {
+    "update application status when amber" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS,
-        List(red, amber, red), Phase.PHASE1)
-      newStatus mustBe None
-    }
-
-    "do not update application status when there are greens and at least one amber" in {
-      val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS,
-        List(red, amber, green), Phase.PHASE1)
+        List(amber), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_PASSED_WITH_AMBER)
     }
 
