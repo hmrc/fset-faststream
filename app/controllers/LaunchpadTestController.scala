@@ -34,7 +34,7 @@ abstract class LaunchpadTestController(applicationClient: ApplicationClient, cac
   def startPhase3Tests = CSRSecureAppAction(Phase3TestInvitedRole) { implicit request =>
     implicit cachedUserData =>
       applicationClient.getPhase3TestGroup(cachedUserData.application.applicationId).flatMap { testProfile =>
-        testProfile.tests.find(!_.completed).map { testToStart =>
+        testProfile.activeTests.find(!_.completed).map { testToStart =>
           // Mark the test as started, if this is the first time they've clicked the button
           if (testToStart.startedDateTime.isEmpty) {
             applicationClient.startPhase3TestByToken(testToStart.token).map { _ =>
