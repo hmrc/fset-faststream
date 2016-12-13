@@ -16,27 +16,23 @@
 
 package services.parity
 
-import java.util.UUID
-
 import config.{ MicroserviceAppConfig, ParityGatewayConfig }
+import connectors.ExchangeObjects
 import connectors.paritygateway.ParityGatewayClient
-import model.EvaluationResults.Green
 import model.ProgressStatuses.EXPORTED
 import model.events.{ AuditEvents, DataStoreEvents }
-import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
-import services.events.{ EventService, EventSink }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.parity.{ ApplicationReadyForExport, ParityExportRepository }
-import repositories.parity.ParityExportRepository.ApplicationIdNotFoundException
-import services.onlinetesting.EvaluatePhase3ResultService
+import services.application.ApplicationService
+import services.events.{ EventService, EventSink }
 import services.reporting.{ SocioEconomicCalculator, SocioEconomicScoreCalculator }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object ParityExportService extends ParityExportService {
   val eventService = EventService
@@ -47,9 +43,9 @@ object ParityExportService extends ParityExportService {
   val cdRepository = faststreamContactDetailsRepository
   val qRepository = questionnaireRepository
   val northSouthRepository = northSouthIndicatorRepository
-  val evaluateP3ResultService = EvaluatePhase3ResultService
   val socioEconomicCalculator = SocioEconomicCalculator
   val appRepository = applicationRepository
+  val applicationService = ApplicationService
 }
 
 trait ParityExportService extends EventSink {
@@ -61,7 +57,7 @@ trait ParityExportService extends EventSink {
   val cdRepository: contactdetails.ContactDetailsRepository
   val qRepository: QuestionnaireRepository
   val northSouthRepository: NorthSouthIndicatorCSVRepository
-  val evaluateP3ResultService: EvaluatePhase3ResultService
+  val applicationService: ApplicationService
   val socioEconomicCalculator: SocioEconomicScoreCalculator
   val appRepository: GeneralApplicationRepository
 
@@ -91,7 +87,7 @@ trait ParityExportService extends EventSink {
       diversityQuestions <- qRepository.findQuestions(applicationId)
       northSouthIndicator = northSouthRepository.calculateFsacIndicator(contactDetails.postCode, contactDetails.outsideUk).get
       sesScore = socioEconomicCalculator.calculateAsInt(diversityQuestions)
-      schemePassFail <- evaluateP3ResultService.getPassmarkEvaluation(applicationId)
+      passedSchemes <- applicationService.getPassedSchemes(userId, ExchangeObjects.frameworkId)
     } yield {
 
       val mediaObj = mediaOpt match {
@@ -114,9 +110,7 @@ trait ParityExportService extends EventSink {
               Json.obj("contact-details" -> contactDetails) ++
               Json.obj("diversity-questionnaire" -> Json.obj("questions" -> diversityQuestionsObj, "scoring" -> Json.obj("ses" -> sesScore))) ++
               Json.obj("assessment-location" -> northSouthIndicator) ++
-              Json.obj("results" -> Json.obj("passed-schemes" ->
-                schemePassFail.result.filter(result => result.result == Green.toString).map(_.scheme)
-              ))
+              Json.obj("results" -> Json.obj("passed-schemes" -> passedSchemes))
         }
       ) andThen (__ \ "testGroups").json.prune
 

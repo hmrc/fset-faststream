@@ -19,10 +19,14 @@ package services.application
 import common.FutureEx
 import connectors.ExchangeObjects
 import model.Commands.Candidate
+import model.EvaluationResults.Green
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
+import model.SchemeType.SchemeType
 import model.command.WithdrawApplication
 import model.events.EventTypes._
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
+import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase3PassMarkSettings }
+import model.persisted.PassmarkEvaluation
 import model.{ ApplicationRoute, ApplicationStatus, SchemeType }
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -32,7 +36,9 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
+import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.events.{ EventService, EventSink }
+import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase3ResultService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -45,6 +51,8 @@ object ApplicationService extends ApplicationService {
   val cdRepository = faststreamContactDetailsRepository
   val mediaRepo = mediaRepository
   val schemeRepository = schemePreferencesRepository
+  val evaluateP1ResultService = EvaluatePhase1ResultService
+  val evaluateP3ResultService = EvaluatePhase3ResultService
 }
 
 trait ApplicationService extends EventSink {
@@ -54,6 +62,8 @@ trait ApplicationService extends EventSink {
   val cdRepository: ContactDetailsRepository
   val schemeRepository: SchemePreferencesRepository
   val mediaRepo: MediaRepository
+  val evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings]
+  val evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
 
   val Candidate_Role = "Candidate"
 
@@ -126,6 +136,20 @@ trait ApplicationService extends EventSink {
 
   def markForExportToParity(appId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     appRepository.updateStatus(appId, ApplicationStatus.READY_FOR_EXPORT)
+  }
+
+  def getPassedSchemes(userId: String, frameworkId: String): Future[List[SchemeType]] = {
+
+      val passedSchemes = (_:PassmarkEvaluation).result.filter(result => result.result == Green.toString).map(_.scheme)
+
+      appRepository.findByUserId(userId, frameworkId).flatMap { appResponse =>
+        (appResponse.progressResponse.fastPassAccepted, appResponse.applicationRoute) match {
+          case (true, _) => schemeRepository.find(appResponse.applicationId).map(_.schemes)
+          case (_, ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
+            evaluateP1ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
+          case _ => evaluateP3ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
+        }
+      }
   }
 
   private def fixData(fixType: FixBatch)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {

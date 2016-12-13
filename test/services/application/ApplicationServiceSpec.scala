@@ -16,9 +16,12 @@
 
 package services
 
-import model.Commands.Candidate
+import model.Commands.{ ApplicationResponse, Candidate }
+import model.command.ProgressResponse
 import model.events.AuditEvents
-import org.mockito.ArgumentMatchers.any
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.{ ApplicationRoute, SchemeType, SelectedSchemes }
+import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.MediaRepository
@@ -30,6 +33,7 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.application.ApplicationService
 import services.events.EventServiceFixture
+import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase3ResultService }
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -76,6 +80,85 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(underTest.auditEventHandlerMock).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
       verifyZeroInteractions(underTest.auditEventHandlerMock)
     }
+
+    "retrieve passed schemes for Faststream application" in new ApplicationServiceTest {
+
+      val userId = "userId"
+      val applicationId = "appId"
+      val frameworkId = ""
+
+      val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
+        userId,ProgressResponse(applicationId), None)
+      val passmarkEvaluation = PassmarkEvaluation("", None,
+        List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
+          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red")))
+
+      when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
+      when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(passmarkEvaluation))
+
+      val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
+
+      passedSchemes mustBe List(SchemeType.Commercial)
+
+    }
+
+    "retrieve passed schemes for Faststream application with fast pass approved" in new ApplicationServiceTest {
+
+      val userId = "userId"
+      val applicationId = "appId"
+      val frameworkId = ""
+
+      val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
+        userId,ProgressResponse(applicationId, fastPassAccepted = true), None)
+      val passmarkEvaluation = PassmarkEvaluation("", None,
+        List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
+          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red")))
+
+      when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
+      when(schemeRepositoryMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(List(SchemeType.Commercial),
+        orderAgreed = true, eligible = true)))
+
+      val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
+
+      passedSchemes mustBe List(SchemeType.Commercial)
+
+    }
+
+    "retrieve passed schemes for Edip application" in new ApplicationServiceTest {
+
+      val userId = "userId"
+      val applicationId = "appId"
+      val frameworkId = ""
+
+      val edipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Edip, userId, ProgressResponse(applicationId), None)
+      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Edip, "Green")))
+
+      when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(edipApplication))
+      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(passmarkEvaluation))
+
+      val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
+
+      passedSchemes mustBe List(SchemeType.Edip)
+
+    }
+
+    "retrieve passed schemes for Sdip application" in new ApplicationServiceTest {
+
+      val userId = "userId"
+      val applicationId = "appId"
+      val frameworkId = ""
+
+      val sdipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Sdip, userId, ProgressResponse(applicationId), None)
+      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green")))
+
+      when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(sdipApplication))
+      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(passmarkEvaluation))
+
+      val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
+
+      passedSchemes mustBe List(SchemeType.Sdip)
+
+    }
   }
 
   trait ApplicationServiceTest {
@@ -85,6 +168,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val cdRepositoryMock: ContactDetailsRepository = mock[ContactDetailsRepository]
     val schemeRepositoryMock: SchemePreferencesRepository = mock[SchemePreferencesRepository]
     val mediaRepoMock: MediaRepository = mock[MediaRepository]
+    val evalPhase1ResultMock: EvaluatePhase1ResultService = mock[EvaluatePhase1ResultService]
+    val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
 
     val underTest = new ApplicationService with EventServiceFixture {
       val appRepository = appRepositoryMock
@@ -93,6 +178,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val eventService = eventServiceMock
       val mediaRepo = mediaRepoMock
       val schemeRepository = schemeRepositoryMock
+      val evaluateP1ResultService = evalPhase1ResultMock
+      val evaluateP3ResultService = evalPhase3ResultMock
     }
 
     implicit val hc = HeaderCarrier()
