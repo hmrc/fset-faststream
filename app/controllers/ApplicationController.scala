@@ -19,6 +19,7 @@ package controllers
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.command.WithdrawApplication
+import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories._
@@ -128,4 +129,12 @@ trait ApplicationController extends BaseController {
       }
   }
 
+  def overrideSubmissionDeadline(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[OverrideSubmissionDeadlineRequest] { overrideRequest =>
+      applicationService.overrideSubmissionDeadline(applicationId, overrideRequest.submissionDeadline).map(_ => Ok)
+        .recover {
+          case e: NotFoundException => NotFound(s"cannot find application with id $applicationId")
+        }
+    }
+  }
 }

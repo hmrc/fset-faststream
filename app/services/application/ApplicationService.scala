@@ -24,6 +24,7 @@ import model.command.WithdrawApplication
 import model.events.EventTypes._
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.{ ApplicationRoute, ApplicationStatus, SchemeType }
+import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
@@ -122,6 +123,10 @@ trait ApplicationService extends EventSink {
 
   def fix(toBeFixed: Seq[FixBatch])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     FutureEx.traverseSerial(toBeFixed)(fixData).map(_ => ())
+  }
+
+  def overrideSubmissionDeadline(applicationId: String, newDeadline: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+    appRepository.updateSubmissionDeadline(applicationId, newDeadline)
   }
 
   def markForExportToParity(appId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
