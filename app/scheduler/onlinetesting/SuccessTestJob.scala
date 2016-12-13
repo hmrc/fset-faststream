@@ -21,10 +21,16 @@ import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 import config.ScheduledJobConfig
 import model._
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.{ OnlineTestService, Phase3TestService }
+import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase3TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+
+object SuccessPhase1TestJob extends SuccessTestJob with SuccessPhase3TestJobConfig {
+  override val service = Phase1TestService
+  override val successType: SuccessTestType = Phase1SuccessTestType
+  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+}
 
 object SuccessPhase3TestJob extends SuccessTestJob with SuccessPhase3TestJobConfig {
   override val service = Phase3TestService
@@ -43,9 +49,15 @@ trait SuccessTestJob extends SingleInstanceScheduledJob {
   }
 }
 
-trait SuccessPhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+trait SuccessPhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
   this: SingleInstanceScheduledJob =>
   override val conf = config.MicroserviceAppConfig.successPhase3TestJobConfig
-  val configPrefix = "scheduling.online-testing.success-phase3-test-job."
-  val name = "SuccessPhase3TestJob"
+  val configPrefix = "scheduling.online-testing.success-phase1-test-job."
+  val name = "SuccessPhase1TestJob"
+}
+trait SuccessPhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
+  this: SingleInstanceScheduledJob =>
+  override val conf = config.MicroserviceAppConfig.successPhase1TestJobConfig
+  val configPrefix = "scheduling.online-testing.success-phase1-test-job."
+  val name = "SuccessPhase1TestJob"
 }

@@ -19,7 +19,7 @@ package services.application
 import common.FutureEx
 import connectors.ExchangeObjects
 import model.Commands.Candidate
-import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, NotFoundException }
+import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.command.WithdrawApplication
 import model.events.EventTypes._
 import model.events.{ AuditEvents, DataStoreEvents, EmailEvents }

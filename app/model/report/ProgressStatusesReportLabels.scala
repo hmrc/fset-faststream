@@ -34,6 +34,7 @@ trait ProgressStatusesReportLabels {
     (progress.questionnaire.contains("occupation_questionnaire"), 70, OccupationQuestionsCompletedProgress),
     (progress.preview, 80, PreviewCompletedProgress),
     (progress.submitted, 90, SubmittedProgress),
+    (progress.fastPassAccepted, 91, FastPassAccepted),
     (progress.phase1ProgressResponse.phase1TestsInvited, 100, Phase1TestsInvited),
     (progress.phase1ProgressResponse.phase1TestsFirstReminder, 110, Phase1TestsFirstReminder),
     (progress.phase1ProgressResponse.phase1TestsSecondReminder, 120, Phase1TestsSecondReminder),
@@ -43,6 +44,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase1ProgressResponse.phase1TestsResultsReady, 160, Phase1TestsResultsReady),
     (progress.phase1ProgressResponse.phase1TestsResultsReceived, 170, Phase1TestsResultsReceived),
     (progress.phase1ProgressResponse.phase1TestsPassed, 180, Phase1TestsPassed),
+    (progress.phase1ProgressResponse.phase1TestsSuccessNotified, 185, Phase1TestsSuccessNotified),
     (progress.phase1ProgressResponse.phase1TestsFailed, 190, Phase1TestsFailed),
     (progress.phase1ProgressResponse.phase1TestsFailedNotified, 195, Phase1TestsFailedNotified),
     (progress.phase2ProgressResponse.phase2TestsInvited, 200, Phase2TestsInvited),
@@ -129,6 +131,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase1TestsPassed = "phase1_tests_passed"
   val Phase1TestsFailed = "phase1_tests_failed"
   val Phase1TestsFailedNotified = "phase1_tests_failed_notified"
+  val Phase1TestsSuccessNotified = "phase1_tests_success_notified"
   val Phase2TestsInvited = "phase2_tests_invited"
   val Phase2TestsFirstReminder = "phase2_tests_first_reminder"
   val Phase2TestsSecondReminder = "phase2_tests_second_reminder"
@@ -153,6 +156,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val Phase3TestsFailedNotified = "phase3_tests_failed_notified"
   val Phase3TestsSuccessNotified = "phase3_tests_success_notified"
   val ApplicationArchived = "application_archived"
+  val FastPassAccepted = "fast_pass_accepted"
   val Exported = "exported"
 
   val AwaitingOnlineTestReevaluationProgress = "awaiting_online_test_re_evaluation"

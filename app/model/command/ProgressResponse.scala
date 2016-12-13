@@ -43,7 +43,8 @@ case class Phase1ProgressResponse(phase1TestsInvited: Boolean = false,
   phase1TestsResultsReceived: Boolean = false,
   phase1TestsPassed: Boolean = false,
   phase1TestsFailed: Boolean = false,
-  phase1TestsFailedNotified: Boolean = false
+  phase1TestsFailedNotified: Boolean = false,
+  phase1TestsSuccessNotified: Boolean = false
 )
 
 case class Phase2ProgressResponse(phase2TestsInvited: Boolean = false,
@@ -84,6 +85,7 @@ case class ProgressResponse(
                              preview: Boolean = false,
                              questionnaire: List[String] = Nil,
                              submitted: Boolean = false,
+                             fastPassAccepted: Boolean = false,
                              withdrawn: Boolean = false,
                              phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
                              phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
