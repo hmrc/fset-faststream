@@ -109,6 +109,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application), None)
   }
 
+  def registerAndInviteForTestGroup(application: OnlineTestApplication, phase3TestGroup: Option[Phase3TestGroup] = None)
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    registerAndInviteForTestGroup(application, getInterviewIdForApplication(application), phase3TestGroup)
+  }
+
   override def nextTestGroupWithReportReady: Future[Option[Phase3TestGroupWithAppId]] =
     Future.successful(None)
 
@@ -123,14 +128,52 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  def registerAndInviteForTestGroup(application: OnlineTestApplication, phase3TestGroup: Option[Phase3TestGroup] = None)
-                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    registerAndInviteForTestGroup(application, getInterviewIdForApplication(application), phase3TestGroup)
+  override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+    phase3TestRepo.nextTestForReminder(reminder).flatMap {
+      case Some(expiringTest) => processReminder(expiringTest, reminder)
+      case None => Future.successful(())
+    }
+
+  override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
+                                                     emailAddress: String,
+                                                     reminder: ReminderNotice)
+                                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      _ <- emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
+        reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate)
+    } yield {
+      AuditEvents.VideoInterviewTestExpiryReminder(
+        Map(
+          "EmailReminderType" -> s"ReminderPhase3VideoInterviewExpiring${reminder.hoursBeforeReminder}HoursEmailed",
+          "User" -> expiringTest.userId,
+          "Email" -> emailAddress
+        )
+      ) ::
+        DataStoreEvents.VideoInterviewExpiryReminder(expiringTest.applicationId) ::
+        Nil
+    }
   }
 
-  def registerAndInviteForTestGroup(application: OnlineTestApplication, interviewId: Int, phase3TestGroup: Option[Phase3TestGroup])
-                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
+                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    import ApplicationStatus._
 
+    ApplicationStatus.withName(application.applicationStatus) match {
+      case PHASE3_TESTS | PHASE3_TESTS_PASSED | PHASE3_TESTS_FAILED | PHASE3_TESTS_PASSED_WITH_AMBER =>
+        phase3TestRepo.getTestGroup(application.applicationId).flatMap { phase3TestGroup =>
+          registerAndInviteForTestGroup(application, phase3TestGroup).map { _ =>
+            AuditEvents.Phase3TestsRescheduled(Map("userId" -> application.userId, "tests" -> "video-interview")) ::
+              DataStoreEvents.VideoInterviewRescheduled(application.applicationId, actionTriggeredBy) :: Nil
+          }
+        }
+      case _ => throw CannotResetPhase3Tests()
+    }
+  }
+
+  private[onlinetesting] def registerAndInviteForTestGroup(application: OnlineTestApplication,
+                                                           interviewId: Int,
+                                                           phase3TestGroup: Option[Phase3TestGroup])
+                                                          (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val daysUntilExpiry = gatewayConfig.phase3Tests.timeToExpireInDays
 
     val expirationDate = phase3TestGroup.map { phase3TG =>
@@ -171,36 +214,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     } yield {}
   }
 
-  override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
-    phase3TestRepo.nextTestForReminder(reminder).flatMap {
-      case Some(expiringTest) => processReminder(expiringTest, reminder)
-      case None => Future.successful(())
-    }
-
-  override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
-                                                     emailAddress: String,
-                                                     reminder: ReminderNotice)
-                                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    for {
-      _ <- emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
-        reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate)
-    } yield {
-      AuditEvents.VideoInterviewTestExpiryReminder(
-        Map(
-          "EmailReminderType" -> s"ReminderPhase3VideoInterviewExpiring${reminder.hoursBeforeReminder}HoursEmailed",
-          "User" -> expiringTest.userId,
-          "Email" -> emailAddress
-        )
-      ) ::
-        DataStoreEvents.VideoInterviewExpiryReminder(expiringTest.applicationId) ::
-        Nil
-    }
-  }
-
   //scalastyle:off method.length
-  private def registerAndInviteOrInviteOrResetOrRetake(phase3TestGroup: Option[Phase3TestGroup], application: OnlineTestApplication,
-                                         emailAddress: String, interviewId: Int, invitationDate: DateTime,
-                                         expirationDate: DateTime
+  private[onlinetesting] def registerAndInviteOrInviteOrResetOrRetake(phase3TestGroup: Option[Phase3TestGroup],
+                                                                      application: OnlineTestApplication, emailAddress: String,
+                                                                      interviewId: Int, invitationDate: DateTime,
+                                                                      expirationDate: DateTime
                                         )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
 
 
@@ -388,22 +406,6 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
           DataStoreEvents.VideoInterviewExtended(applicationId, actionTriggeredBy) :: Nil
       }
     } yield {}
-  }
-
-  def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
-                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    import ApplicationStatus._
-
-    ApplicationStatus.withName(application.applicationStatus) match {
-      case PHASE3_TESTS | PHASE3_TESTS_PASSED | PHASE3_TESTS_FAILED | PHASE3_TESTS_PASSED_WITH_AMBER =>
-        phase3TestRepo.getTestGroup(application.applicationId).flatMap { phase3TestGroup =>
-          registerAndInviteForTestGroup(application, phase3TestGroup).map { _ =>
-            AuditEvents.Phase3TestsRescheduled(Map("userId" -> application.userId, "tests" -> "video-interview")) ::
-              DataStoreEvents.VideoInterviewRescheduled(application.applicationId, actionTriggeredBy) :: Nil
-          }
-        }
-      case _ => throw CannotResetPhase3Tests()
-    }
   }
 
   private def registerApplicant(application: OnlineTestApplication, emailAddress: String,
