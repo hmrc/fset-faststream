@@ -59,8 +59,4 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
     }
     savePassMarkEvaluation(application, schemeResults, passmark)
   }
-
-  def getPassmarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
-    evaluationRepository.getPassMarkEvaluation(applicationId)
-  }
 }
