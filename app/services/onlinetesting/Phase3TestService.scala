@@ -162,7 +162,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       case PHASE3_TESTS | PHASE3_TESTS_PASSED | PHASE3_TESTS_FAILED | PHASE3_TESTS_PASSED_WITH_AMBER =>
         phase3TestRepo.getTestGroup(application.applicationId).flatMap { phase3TestGroup =>
           registerAndInviteForTestGroup(application, phase3TestGroup).map { _ =>
-            AuditEvents.Phase3TestsRescheduled(Map("userId" -> application.userId, "tests" -> "video-interview")) ::
+            AuditEvents.VideoInterviewRescheduled(Map("userId" -> application.userId, "tests" -> "video-interview")) ::
               DataStoreEvents.VideoInterviewRescheduled(application.applicationId, actionTriggeredBy) :: Nil
           }
         }
