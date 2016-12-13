@@ -2,6 +2,7 @@ package repositories
 
 import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig }
 import factories.DateTimeFactory
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.Phase1TestExamples._
 import model.Phase2TestProfileExamples._
@@ -10,7 +11,7 @@ import model.ProgressStatuses.ProgressStatus
 import model.SchemeType._
 import model.persisted._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
+import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SelectedSchemes }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.junit.Assert._
 import org.scalatest.concurrent.ScalaFutures
@@ -64,19 +65,22 @@ trait CommonRepository {
   def selectedSchemes(schemeTypes: List[SchemeType]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
 
 
-  def insertApplicationWithPhase1TestResults(appId: String, sjq: Double, bq: Option[Double] = None, isGis: Boolean = false
-                                            )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
+  def insertApplicationWithPhase1TestResults(appId: String, sjq: Double, bq: Option[Double] = None, isGis: Boolean = false,
+    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+  )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
     val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(sjq), None, None, None)))
     val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", bq, None, None, None)))
     val phase1Tests = if(isGis) List(sjqTest) else List(sjqTest, bqTest)
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
-    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, isGis, Phase1TestProfile(now, phase1Tests).activeTests,
-      None, None, selectedSchemes(schemes.toList))
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
+      Phase1TestProfile(now, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
+    )
   }
 
   def insertApplicationWithPhase2TestResults(appId: String, etray: Double,
-                                             phase1PassMarkEvaluation: PassmarkEvaluation
-                                            )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
+    phase1PassMarkEvaluation: PassmarkEvaluation,
+    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+  )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
     assertNotNull("Phase1 pass mark evaluation must be set", phase1PassMarkEvaluation)
     val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
     val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
@@ -84,18 +88,19 @@ trait CommonRepository {
     val phase1Tests = List(sjqTest, bqTest)
     insertApplication(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(List(etrayTest)))
     phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None)
-    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE2_TESTS, isGis = false,
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE2_TESTS, applicationRoute, isGis = false,
       List(etrayTest), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
   def insertApplicationWithPhase3TestResults(appId: String, videoInterviewScore: Double,
-                                             phase2PassMarkEvaluation: PassmarkEvaluation
-                                            )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
+    phase2PassMarkEvaluation: PassmarkEvaluation,
+    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+  )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
     assertNotNull("Phase2 pass mark evaluation must be set", phase2PassMarkEvaluation)
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
     phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None)
-    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, isGis = false,
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, applicationRoute, isGis = false,
       Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
@@ -105,12 +110,15 @@ trait CommonRepository {
                         isGis: Boolean = false, schemes: List[SchemeType] = List(Commercial),
                         phase1Evaluation: Option[PassmarkEvaluation] = None,
                         phase2Evaluation: Option[PassmarkEvaluation] = None,
-                        additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty): Unit = {
+                        additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
+    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+  ): Unit = {
     val gis = if (isGis) Some(true) else None
     applicationRepository.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "userId" -> appId,
       "applicationStatus" -> applicationStatus,
+      "applicationRoute" -> applicationRoute,
       "progress-status" -> progressStatus(additionalProgressStatuses)
     )).futureValue
 

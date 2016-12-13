@@ -65,6 +65,22 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "Next application ready for online testing" must {
+
+    "exclude applications with SDIP or EDIP application routes" in {
+      createApplicationWithAllFields("userId0", "appId0", "frameworkId", "PHASE1_TESTS_PASSED",
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), applicationRoute = "Sdip").futureValue
+      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE1_TESTS_PASSED",
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), applicationRoute = "Edip").futureValue
+      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS_PASSED",
+       additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), applicationRoute = "Faststream").futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 1
+      results.head.applicationId mustBe "appId2"
+      results.head.userId mustBe "userId2"
+    }
+
     "return application when does not need adjustments and is no gis and its status is PHASE1_TESTS_PASSED" in {
       createApplicationWithAllFields("userId0", "appId0", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = false,
         needsSupportAtVenue = false, adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,

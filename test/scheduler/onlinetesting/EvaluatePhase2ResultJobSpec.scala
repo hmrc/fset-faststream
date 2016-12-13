@@ -18,7 +18,7 @@ package scheduler.onlinetesting
 
 import model.exchange.passmarksettings.{ Phase2PassMarkSettings, Phase2PassMarkSettingsExamples }
 import model.persisted.ApplicationReadyForEvaluation
-import model.{ ApplicationStatus, Phase, Phase2TestProfileExamples, SelectedSchemesExamples }
+import model._
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
@@ -70,7 +70,8 @@ class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
     val passmark = Phase2PassMarkSettingsExamples.passmark
 
     val apps = 1 to 10 map { id =>
-      ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE2_TESTS, isGis = false, profile.activeTests, None, None, schemes)
+      ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE2_TESTS, ApplicationRoute.Faststream, isGis = false,
+        profile.activeTests, None, None, schemes)
     }
 
     apps.foreach { app =>
