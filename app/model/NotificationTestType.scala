@@ -16,6 +16,7 @@
 
 package model
 
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.ApplicationStatus.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED, PHASE3_TESTS_FAILED, READY_FOR_EXPORT }
 import model.ProgressStatuses._
@@ -24,6 +25,7 @@ sealed trait NotificationTestType {
   val appStatus: ApplicationStatus
   val notificationProgress: ProgressStatus
   val template: String
+  val applicationRoutes = List.empty[ApplicationRoute]
 }
 
 sealed case class FailedTestType(appStatus: ApplicationStatus, notificationProgress: ProgressStatus,
@@ -43,6 +45,12 @@ object Phase2FailedTestType
 object Phase3FailedTestType
   extends FailedTestType(PHASE3_TESTS_FAILED, PHASE3_TESTS_FAILED_NOTIFIED, PHASE3_TESTS_RESULTS_RECEIVED,
       "fset_faststream_app_online_phase3_test_failed")
+
+object Phase1SuccessTestType
+  extends SuccessTestType(ApplicationStatus.PHASE1_TESTS_PASSED, PHASE1_TESTS_SUCCESS_NOTIFIED,
+    READY_FOR_EXPORT, "fset_faststream_app_online_phase1_test_success") {
+  override val applicationRoutes = List(ApplicationRoute.Edip)
+}
 
 object Phase3SuccessTestType
   extends SuccessTestType(ApplicationStatus.PHASE3_TESTS_PASSED, PHASE3_TESTS_SUCCESS_NOTIFIED,

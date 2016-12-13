@@ -372,10 +372,17 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
     val query = Try{ notificationType match {
-      case s: SuccessTestType => {
+      case s: SuccessTestType if s.applicationRoutes.isEmpty => {
         BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationStatus" -> s.appStatus),
           BSONDocument(s"progress-status.${s.notificationProgress}" -> BSONDocument("$ne" -> true))
+        ))
+      }
+      case s: SuccessTestType if s.applicationRoutes.nonEmpty => {
+        BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationStatus" -> s.appStatus),
+          BSONDocument(s"progress-status.${s.notificationProgress}" -> BSONDocument("$ne" -> true)),
+          BSONDocument("applicationRoute" -> BSONDocument("$in" -> s.applicationRoutes))
         ))
       }
       case f: FailedTestType => {
