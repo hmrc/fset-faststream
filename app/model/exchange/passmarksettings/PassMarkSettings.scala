@@ -16,6 +16,7 @@
 
 package model.exchange.passmarksettings
 
+import model.SchemeType.SchemeType
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
@@ -38,6 +39,34 @@ object Phase1PassMarkSettings {
   import repositories.BSONDateTimeHandler
   implicit val phase1PassMarkSettingsFormat = Json.format[Phase1PassMarkSettings]
   implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase1PassMarkSettings]
+
+  def merge(oldPassMarkSettings: Option[Phase1PassMarkSettings],
+            newPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = {
+    def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeName).mapValues { v =>
+      require(v.size == 1, s"Scheme name must be non empty and must be unique: ${v.mkString(",")}")
+      v.head
+    }
+    def toSchemeNames(passmark: Phase1PassMarkSettings) = passmark.schemes.map(_.schemeName)
+
+    oldPassMarkSettings match {
+      case Some(latest) =>
+        val currentPassMarkSettingsMap = toMap(latest)
+        val newestPassMarkSettingsMap = toMap(newPassMarkSettings)
+        val uniqueSchemesInOrder = (oldPassMarkSettings.map(toSchemeNames)
+          .getOrElse(Nil) ++ toSchemeNames(newPassMarkSettings)).distinct
+        val mergedPassMarkSettings = mergeToListInOrder(currentPassMarkSettingsMap, newestPassMarkSettingsMap,
+          uniqueSchemesInOrder)
+        newPassMarkSettings.copy(schemes = mergedPassMarkSettings)
+      case None =>
+        newPassMarkSettings
+    }
+  }
+
+  private def mergeToListInOrder[T](originalMap: Map[SchemeType, T], toUpdateMap: Map[SchemeType, T],
+                                               order: List[SchemeType]): List[T] = {
+    val mergedMaps = originalMap ++ toUpdateMap
+    order.map(schemeName => mergedMaps(schemeName))
+  }
 }
 
 case class Phase2PassMarkSettings(

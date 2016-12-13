@@ -38,8 +38,22 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
     Commands.Implicits.createApplicationRequestFormats, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
 
+  private val defaultExclusions = Json.obj(
+    "_id" -> 0,
+    "personal-details" -> 0)  // these reports should not export personally identifiable data
+
+  private val largeFields = Json.obj(
+    "progress-status-timestamp" -> 0, // this is quite a bit of data, that is not really used for queries as progress-status is easier
+    "testGroups.PHASE1.tests.reportLinkURL" -> 0,
+    "testGroups.PHASE1.tests.testUrl" -> 0,
+    "testGroups.PHASE2.tests.reportLinkURL" -> 0,
+    "testGroups.PHASE2.tests.testUrl" -> 0,
+    "testGroups.PHASE3.tests.callbacks" -> 0
+  )
+
   def findByUserId(userId: String): Future[List[JsObject]] = {
-    val projection = Json.obj("personal-details" -> 0)
+    val projection = defaultExclusions
+
     val results = collection.find(Json.obj("userId" -> userId), projection)
       .cursor[JsObject](ReadPreference.primaryPreferred)
       .collect[List]()
@@ -51,7 +65,7 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
   }
 
   def findAll(): Enumerator[JsValue] = {
-    val projection = Json.obj("personal-details" -> 0, "_id" -> 0)
+    val projection = defaultExclusions ++ largeFields
     collection.find(Json.obj(), projection)
       .cursor[JsValue](ReadPreference.primaryPreferred)
       .enumerate()
