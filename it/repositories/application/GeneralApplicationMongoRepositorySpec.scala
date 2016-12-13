@@ -387,6 +387,15 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   "findTestForNotification" should {
     val frameworkId = "FastStream-2016"
 
+    "find an edip candidate that needs to be notified of successful phase1 test results" in {
+      val userId = "fastPassUser"
+      val appId = "fastPassApp"
+
+      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
+        applicationRoute = Some(ApplicationRoute.Edip)).futureValue
+      val applicationResponse = repository.findTestForNotification(Phase1SuccessTestType).futureValue
+      applicationResponse mustBe Some(TestResultNotification(appId, userId, testDataRepo.testCandidate("preferredName")))
+    }
     "find a candidate that needs to be notified of successful phase3 test results" in {
       val userId = "fastPassUser3"
       val appId = "fastPassApp3"
@@ -424,6 +433,16 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase3FailedTestType).futureValue
       applicationResponse mustBe Some(TestResultNotification(appId, userId, testDataRepo.testCandidate("preferredName")))
+    }
+    "do NOT find a edip candidate that has already been notified of successful phase1 test results" in {
+      val userId = "fastPassUser"
+      val appId = "fastPassApp"
+      val progressStatuses = (PHASE1_TESTS_SUCCESS_NOTIFIED, true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
+        additionalProgressStatuses = progressStatuses, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
+      val applicationResponse = repository.findTestForNotification(Phase1SuccessTestType).futureValue
+      applicationResponse mustBe None
     }
     "do NOT find a candidate that has already been notified of successful phase3 test results" in {
       val userId = "fastPassUser3"

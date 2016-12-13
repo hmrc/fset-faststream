@@ -1,9 +1,9 @@
 package repositories
 
 import config.Phase1TestsConfig
-import model.ApplicationStatus
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults._
+import model.{ ApplicationStatus, Phase }
 import model.SchemeType._
 import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds }
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
@@ -13,7 +13,6 @@ import org.scalatest.prop._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
-import model.Phase
 import services.onlinetesting.EvaluatePhase1ResultService
 import testkit.MongoRepositorySpec
 
