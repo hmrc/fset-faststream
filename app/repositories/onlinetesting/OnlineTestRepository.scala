@@ -178,7 +178,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     )
 
     val update = BSONDocument("$set" -> applicationStatusBSON(progressStatus))
-    val validator = singleUpdateValidator(appId, actionDesc = "updating progress status")
+    val validator = singleUpdateValidator(appId, actionDesc = "updating progress status", ignoreNotFound = true)
 
     collection.update(query, update) map validator
   }
