@@ -5,7 +5,7 @@ import model.EvaluationResults.Green
 import model.Phase3TestProfileExamples._
 import model.SchemeType._
 import model.persisted.{ ApplicationReadyForEvaluation, _ }
-import model.{ ApplicationStatus, ProgressStatuses, SchemeType }
+import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
@@ -42,6 +42,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result.head mustBe ApplicationReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE2_TESTS,
+        ApplicationRoute.Faststream,
         isGis = false,
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
@@ -84,6 +85,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result.head mustBe ApplicationReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE2_TESTS,
+        ApplicationRoute.Faststream,
         isGis = false,
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
@@ -103,6 +105,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result.head mustBe ApplicationReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE2_TESTS,
+        ApplicationRoute.Faststream,
         isGis = false,
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,

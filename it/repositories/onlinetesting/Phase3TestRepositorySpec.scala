@@ -5,6 +5,8 @@ import java.util.UUID
 import connectors.launchpadgateway.exchangeobjects.in.{ SetupProcessCallbackRequest, ViewPracticeQuestionCallbackRequest }
 import model.Commands.ApplicationResponse
 import model.ProgressStatuses.{ PHASE3_TESTS_PASSED_WITH_AMBER, _ }
+
+import model.ProgressStatuses._
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model.{ ApplicationStatus, Phase3FirstReminder, Phase3SecondReminder, ProgressStatuses }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
@@ -185,6 +187,22 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "Next application ready for online testing" should {
+
+    "exclude applications with SDIP or EDIP application routes" in {
+      createApplicationWithAllFields("userId0", "appId0", "frameworkId", "PHASE2_TESTS_PASSED",
+        additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Sdip").futureValue
+      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE2_TESTS_PASSED",
+        additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Edip").futureValue
+      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE2_TESTS_PASSED",
+       additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Faststream").futureValue
+
+      val results = phase3TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+
+      results.length mustBe 1
+      results.head.applicationId mustBe "appId2"
+      results.head.userId mustBe "userId2"
+    }
+
     "return one application if there is only one" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,

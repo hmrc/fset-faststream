@@ -18,6 +18,7 @@ package repositories.onlinetesting
 
 import config.LaunchpadGatewayConfig
 import factories.DateTimeFactory
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
@@ -73,9 +74,10 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
                                    prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
+    val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").get
     val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
     val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
-    ApplicationReadyForEvaluation(applicationId, applicationStatus, isGis, activeCubiksTests,
+    ApplicationReadyForEvaluation(applicationId, applicationStatus, applicationRoute, isGis, activeCubiksTests,
       activeLaunchPadTest, prevPhaseEvaluation, preferences)
   }
 

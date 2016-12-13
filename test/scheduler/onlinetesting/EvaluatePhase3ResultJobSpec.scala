@@ -70,7 +70,7 @@ class EvaluatePhase3ResultJobSpec extends UnitWithAppSpec {
     val passmark = Phase3PassMarkSettingsExamples.passmark
 
     val apps = 1 to 10 map { id =>
-      ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE3_TESTS, isGis = false,
+      ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE3_TESTS, ApplicationRoute.Faststream, isGis = false,
         Nil, profile.activeTests.headOption, None, schemes)
     }
 
