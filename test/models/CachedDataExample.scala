@@ -36,6 +36,7 @@ object CachedDataExample {
     ApplicationRoute.Faststream,
     ProgressExamples.InitialProgress,
     Some(CivilServiceExperienceDetails(applicable = false)),
+    None,
     None
   )
 
