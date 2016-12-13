@@ -50,7 +50,8 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
            generatorConfig.statusData.applicationRoute match {
              case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeType.Edip), orderAgreed = true, eligible = true)
              case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeType.Sdip), orderAgreed = true, eligible = true)
-             case ApplicationRoute.SdipFaststream => SelectedSchemes(List(model.SchemeType.Sdip), orderAgreed = true, eligible = true)
+             case ApplicationRoute.SdipFaststream => SelectedSchemes(List(model.SchemeType.Sdip, model.SchemeType.Commercial,
+               model.SchemeType.DigitalAndTechnology, model.SchemeType.Finance), orderAgreed = true, eligible = true)
              case _ => SelectedSchemes(Random.schemeTypes, orderAgreed = true, eligible = true)
            }
          }

@@ -16,6 +16,7 @@
 
 package model.persisted
 
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.SelectedSchemes
 import model.persisted.phase3tests.LaunchpadTest
@@ -24,6 +25,7 @@ import play.api.libs.json._
 case class ApplicationReadyForEvaluation(
   applicationId: String,
   applicationStatus: ApplicationStatus,
+  applicationRoute: ApplicationRoute,
   isGis: Boolean,
   activeCubiksTests: List[CubiksTest],
   activeLaunchpadTest: Option[LaunchpadTest],
