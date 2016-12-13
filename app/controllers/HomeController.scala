@@ -44,8 +44,9 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
   def present(implicit displaySdipEligibilityInfo: Boolean = false) = CSRSecureAction(ActiveUserRole) {
     implicit request => implicit cachedData =>
      cachedData.application.map { implicit application =>
-       isPhase3TestsPassed match {
-         case true => displayFinalResultsPage
+       cachedData match {
+         case _ if isPhase1TestsPassed && isEdip(cachedData) => displayEdipResultsPage
+         case _ if isPhase3TestsPassed => displayFaststreamResultsPage
          case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
        }
      }.getOrElse { dashboardWithoutApplication }
@@ -108,11 +109,15 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       }
   }
 
-  private def displayFinalResultsPage(implicit application: ApplicationData, cachedData: CachedData,
+  private def displayFaststreamResultsPage(implicit application: ApplicationData, cachedData: CachedData,
                                       request: Request[_], hc: HeaderCarrier) =
     applicationClient.getFinalSchemeResults(application.applicationId).map { results =>
-      Ok(views.html.home.viewFinalResults(cachedData, results.getOrElse(Nil)))
+      Ok(views.html.home.faststreamFinalResults(cachedData, results.getOrElse(Nil)))
     }
+
+  private def displayEdipResultsPage(implicit application: ApplicationData, cachedData: CachedData,
+                                      request: Request[_], hc: HeaderCarrier) =
+      Future.successful(Ok(views.html.home.edipFinalResults(cachedData)))
 
   private def dashboardWithOnlineTests(implicit application: ApplicationData,
                                        displaySdipEligibilityInfo: Boolean,
