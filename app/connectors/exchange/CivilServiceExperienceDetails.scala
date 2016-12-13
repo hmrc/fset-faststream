@@ -26,6 +26,7 @@ case class CivilServiceExperienceDetails(applicable: Boolean,
                                          civilServiceExperienceType: Option[String] = None,
                                          internshipTypes: Option[Seq[String]] = None,
                                          fastPassReceived: Option[Boolean] = None,
+                                         fastPassAccepted: Option[Boolean] = None,
                                          certificateNumber: Option[String] = None) {
   def isCivilServant = civilServiceExperienceType.exists {
     fpt => fpt == FastPassForm.CivilServant || fpt == FastPassForm.CivilServantViaFastTrack
@@ -51,6 +52,7 @@ object CivilServiceExperienceDetails {
         data.civilServiceExperienceType,
         data.internshipTypes,
         data.fastPassReceived,
+        None,
         data.certificateNumber
       )
     )

@@ -16,6 +16,7 @@
 @import views.html.home.submit_disabled
 @import views.html.home.withdrawSection
 @import views.html.home.withdrawInformation
+@import views.html.template.fastPassAccepted
 @import models.ConsiderMeForSdipHelper._
 
 @(usr: CachedData, dashboardPage: DashboardPage,
@@ -70,6 +71,8 @@
         <h1 class="heading-xlarge">Home</h1>
         <p class="subtitle">@dashboardPage.fullName</p>
     </div>
+
+    @if(!dashboardPage.isFastPassApproved) {
 
     @displayLeadInformation
 
@@ -185,6 +188,8 @@
             </li>
         </ol>
     </section>
-
+    } else {
+        @fastPassAccepted(dashboardPage)
+    }
     @withdrawSection(usr)
 }
