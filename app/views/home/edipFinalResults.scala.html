@@ -1,0 +1,56 @@
+@import connectors.exchange.SchemeEvaluationResult
+@import views.html.home.commonSectionFinalResults
+@import views.html.home.withdrawSection
+@import security.Roles._
+@import views.html.home.withdrawInformation
+
+@(cachedUser: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@main_template(title = "Home") {
+
+    @commonSectionFinalResults(cachedUser)
+
+    <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(cachedUser)){disabled}" id="mainProgressPage">
+        <section>
+            <h2 class="heading-large"><i class="fa fa-check"></i>You've passed the online tests</h2>
+            <div class="text">
+                <section>
+                    <p>Congratulations, you've been succcessful for the Early Diversity
+                        Internship Programme (EDIP).</p>
+                </section>
+                <h2 class="heading-large">What you need to do now</h2>
+            </div>
+            <h2 class="heading-medium">1. Access your interview account</h2>
+            <div class="text">
+                <p>To continue, you need to visit this page <a href="https://candidate.faststream.gov.uk/faststream" target="_blank">https://candidate.faststream.gov.uk/faststream</a>.</p>
+                <p>You'll be sent an email containing the details you'll need to sign
+                    in and fill in your information.</p>
+                <div class="panel-info standard-panel">
+                    <p>You need to complete this step within 7 days of receiving the email.</p>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h2 class="heading-medium">2. Fill in additional questions</h2>
+            <div class="text">
+                <div class="">
+                    <p>Once you've created your interview account you'll need to fill
+                        in some additional questions, including a motivational statement.
+                    </p>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h2 class="heading-medium">3. Have a phone interview</h2>
+            <div class="text">
+                <div class="">
+                    <p>The last step is for us to schedule a phone interview with you.
+                        This will last about an hour and we'll ask you questions about
+                        how you would handle typical workplace situations.</p>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    @withdrawSection(cachedUser)
+}
