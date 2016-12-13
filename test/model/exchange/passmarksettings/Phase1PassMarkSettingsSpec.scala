@@ -37,16 +37,16 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
   "phase1 pass mark settings merge" should {
     "merge None with the new passmark" in {
       val merged = Phase1PassMarkSettings.merge(
-        latestPassMarkSettings = None,
-        newestPassMarkSettings = faststreamPassMarkToSave
+        oldPassMarkSettings = None,
+        newPassMarkSettings = faststreamPassMarkToSave
       )
       merged mustBe faststreamPassMarkToSave
     }
 
     "merge two disjoint passmarks" in {
       val merged = Phase1PassMarkSettings.merge(
-        latestPassMarkSettings = Some(faststreamPassMarkToSave),
-        newestPassMarkSettings = edipPassMarkToSave
+        oldPassMarkSettings = Some(faststreamPassMarkToSave),
+        newPassMarkSettings = edipPassMarkToSave
       )
       merged.schemes mustBe List(
         createPhase1PassMark(Commercial, 20.0, 80.0),
@@ -58,8 +58,8 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
 
     "merge two passmarks and update already saved settings" in {
       val merged = Phase1PassMarkSettings.merge(
-        latestPassMarkSettings = Some(faststreamPassMarkToSave),
-        newestPassMarkSettings = allPassmarks
+        oldPassMarkSettings = Some(faststreamPassMarkToSave),
+        newPassMarkSettings = allPassmarks
       )
       merged.schemes mustBe List(
         createPhase1PassMark(Commercial, 30.0, 70.0),
@@ -72,11 +72,11 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
 
     "merge preserves the list order from the latest and then from newest passmark settings" in {
       val merged = Phase1PassMarkSettings.merge(
-        latestPassMarkSettings = Some(passMarkSettings(List(
+        oldPassMarkSettings = Some(passMarkSettings(List(
           (Commercial, 20.0, 80.0),
           (DigitalAndTechnology, 20.0, 80.0),
           (DiplomaticService, 20.0, 80.0)))),
-        newestPassMarkSettings = passMarkSettings(List(
+        newPassMarkSettings = passMarkSettings(List(
           (DiplomaticServiceEconomics, 20.0, 80.0),
           (DiplomaticServiceEuropean, 20.0, 80.0),
           (DiplomaticService, 20.0, 80.0)))

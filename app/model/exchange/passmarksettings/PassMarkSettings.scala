@@ -40,25 +40,25 @@ object Phase1PassMarkSettings {
   implicit val phase1PassMarkSettingsFormat = Json.format[Phase1PassMarkSettings]
   implicit val phase1PassMarkSettingsHandler = Macros.handler[Phase1PassMarkSettings]
 
-  def merge(latestPassMarkSettings: Option[Phase1PassMarkSettings],
-            newestPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = {
+  def merge(oldPassMarkSettings: Option[Phase1PassMarkSettings],
+            newPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = {
     def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeName).mapValues { v =>
       require(v.size == 1, s"Scheme name must be non empty and must be unique: ${v.mkString(",")}")
       v.head
     }
     def toSchemeNames(passmark: Phase1PassMarkSettings) = passmark.schemes.map(_.schemeName)
 
-    latestPassMarkSettings match {
+    oldPassMarkSettings match {
       case Some(latest) =>
         val currentPassMarkSettingsMap = toMap(latest)
-        val newestPassMarkSettingsMap = toMap(newestPassMarkSettings)
-        val uniqueSchemesInOrder = (latestPassMarkSettings.map(toSchemeNames)
-          .getOrElse(Nil) ++ toSchemeNames(newestPassMarkSettings)).distinct
+        val newestPassMarkSettingsMap = toMap(newPassMarkSettings)
+        val uniqueSchemesInOrder = (oldPassMarkSettings.map(toSchemeNames)
+          .getOrElse(Nil) ++ toSchemeNames(newPassMarkSettings)).distinct
         val mergedPassMarkSettings = mergeToListInOrder(currentPassMarkSettingsMap, newestPassMarkSettingsMap,
           uniqueSchemesInOrder)
-        newestPassMarkSettings.copy(schemes = mergedPassMarkSettings)
+        newPassMarkSettings.copy(schemes = mergedPassMarkSettings)
       case None =>
-        newestPassMarkSettings
+        newPassMarkSettings
     }
   }
 
