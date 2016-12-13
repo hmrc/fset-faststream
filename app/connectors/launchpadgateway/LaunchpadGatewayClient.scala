@@ -48,6 +48,12 @@ trait LaunchpadGatewayClient {
   def inviteApplicant(inviteApplicant: InviteApplicantRequest): Future[InviteApplicantResponse] =
     http.POST(s"$urlWithPathPrefix/invite", inviteApplicant).map(responseAsOrThrow[InviteApplicantResponse])
 
+  def resetApplicant(resetApplicant: ResetApplicantRequest): Future[ResetApplicantResponse] =
+    http.POST(s"$urlWithPathPrefix/reset", resetApplicant).map(responseAsOrThrow[ResetApplicantResponse])
+
+  def retakeApplicant(retakeApplicant: RetakeApplicantRequest): Future[RetakeApplicantResponse] =
+    http.POST(s"$urlWithPathPrefix/retake", retakeApplicant).map(responseAsOrThrow[RetakeApplicantResponse])
+
   def extendDeadline(extendDeadline: ExtendDeadlineRequest): Future[Unit] =
     http.POST(s"$urlWithPathPrefix/extend", extendDeadline).map { response =>
       if (response.status != OK) {
