@@ -265,6 +265,16 @@ object RoleUtils {
 
   def isSubmitted(implicit user: CachedData) = progress.submitted
 
+  def hasFastPassBeenApproved(user: CachedData)(implicit request: RequestHeader, lang: Lang) = {
+    val isApproved = for {
+      app <- user.application
+      csed <- app.civilServiceExperienceDetails
+      accepted <- csed.fastPassAccepted
+    } yield accepted
+
+    isApproved.getOrElse(false)
+  }
+
   def isCivilServant(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     user.application
       .flatMap(_.civilServiceExperienceDetails)

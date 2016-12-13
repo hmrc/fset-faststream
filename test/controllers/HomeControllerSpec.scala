@@ -86,7 +86,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       content must include("""<ol class="step-by-step-coloured disabled" id="sixSteps">""")
     }
 
-    "display scheme results page" in new TestFixture {
+    "display faststream final scheme results page" in new TestFixture {
       val applicationRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
@@ -106,7 +106,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       content mustNot include("Your application has been withdrawn.")
     }
 
-    "display scheme results page for withdrawn application" in new TestFixture {
+    "display faststream final results page for withdrawn application" in new TestFixture {
       val applicationRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
@@ -124,6 +124,44 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       content must include("Your application has been withdrawn.")
       content must include("Congratulations, you've been successful for at least one of your")
+    }
+
+    "display edip final results page" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      val edipPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.EdipPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
+
+      val result = controller(edipPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+
+      content must include("Congratulations, you've been succcessful for the Early Diversity")
+      content mustNot include("Your application has been withdrawn.")
+    }
+
+    "display edip final results page for withdrawn application" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      val edipWithdrawnPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.EdipWithdrawnPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+
+      val result = controller(edipWithdrawnPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+
+      content must include("Your application has been withdrawn.")
+      content must include("Congratulations, you've been succcessful for the Early Diversity")
     }
   }
 

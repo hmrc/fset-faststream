@@ -1,4 +1,5 @@
 @import connectors.exchange.SchemeEvaluationResult
+@import views.html.home.commonSectionFinalResults
 @import views.html.home.withdrawSection
 @import security.Roles._
 @import views.html.home.withdrawInformation
@@ -24,32 +25,7 @@
 
 @main_template(title = "Home") {
 
-    <div class="grid-wrapper">
-        <div class="grid grid-1-2">
-            <div class="inner-block-padr">
-                <div class="hgroup">
-                    <h1 class="heading-xlarge">Home</h1>
-                    <p class="subtitle">@{cachedUser.user.firstName + " " + cachedUser.user.lastName}</p>
-                </div>
-            </div>
-        </div>
-        <div class="grid grid-1-2">
-            <div class="page-link">
-                @if(!WithdrawnApplicationRole.isAuthorized(cachedUser)) {
-                <p class="small-btm-margin">
-                    <a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a>
-                </p>
-                @if(AbleToWithdrawApplicationRole.isAuthorized(cachedUser)){
-                <p class="small-btm-margin">
-                    <a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a>
-                </p>
-                }
-                }
-            </div>
-        </div>
-    </div>
-
-    @withdrawInformation(cachedUser)
+    @commonSectionFinalResults(cachedUser)
 
     <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(cachedUser)){disabled}" id="mainProgressPage">
         <h2 class="heading-large"><i class="fa fa-check"></i>You've passed the video interview</h2>
