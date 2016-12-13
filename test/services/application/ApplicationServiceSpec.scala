@@ -110,9 +110,6 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
         userId,ProgressResponse(applicationId, fastPassAccepted = true), None)
-      val passmarkEvaluation = PassmarkEvaluation("", None,
-        List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
-          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red")))
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
       when(schemeRepositoryMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(List(SchemeType.Commercial),
