@@ -20,7 +20,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.ApplicationStatus._
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _, _ }
 import model.{ ApplicationStatus, _ }
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
@@ -30,9 +30,9 @@ import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.command.ProgressResponse
 import model.persisted._
 import repositories.CommonBSONDocuments
-import repositories.onlinetesting.Phase1TestMongoRepository
+import repositories.onlinetesting.{ Phase1TestMongoRepository, Phase2TestMongoRepository }
 import scheduler.fixer.FixBatch
-import scheduler.fixer.RequiredFixes.{ PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
+import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Await
@@ -43,6 +43,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)
+  def phase2TestRepo = new Phase2TestMongoRepository(DateTimeFactory)
   def testDataRepo = new TestDataMongoRepository()
 
   "General Application repository" should {
@@ -557,6 +558,49 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       an[NotFoundException] must be thrownBy Await.result(repository.archive(AppId, UserId, userIdToArchiveWith,
         FrameworkId, ApplicationRoute.Faststream), timeout)
     }
+  }
+
+  "AddMissingPhase2ResultReceived" should {
+    val testResult = TestResult("Ready", "norm", Some(10.0), Some(20.0), Some(30.0), Some(40.0))
+
+    "get an application with missing result received status and with a phase 2 result" in {
+      createAppWithTestResult(List((ProgressStatuses.PHASE2_TESTS_RESULTS_READY, true)), Some(testResult))
+      val result = repository.getApplicationsToFix(FixBatch(AddMissingPhase2ResultReceived, 1)).futureValue
+      result.flatMap(_.applicationId) mustBe List(AppId)
+    }
+
+    "get nothing when the result received status is already there" in {
+      createAppWithTestResult(List(
+        (ProgressStatuses.PHASE2_TESTS_RESULTS_READY, true),
+        (ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED, true)
+      ), Some(testResult))
+      val result = repository.getApplicationsToFix(FixBatch(AddMissingPhase2ResultReceived, 1)).futureValue
+      result mustBe empty
+    }
+
+    "get nothing when the status is missing, but the result is not there yet" in {
+      createAppWithTestResult(List((ProgressStatuses.PHASE2_TESTS_RESULTS_READY, true)), testResult = None)
+      val result = repository.getApplicationsToFix(FixBatch(AddMissingPhase2ResultReceived, 1)).futureValue
+      result mustBe empty
+    }
+
+    "add the missing result received status" in {
+      createAppWithTestResult(List((ProgressStatuses.PHASE2_TESTS_RESULTS_READY, true)), Some(testResult))
+      val application = candidate.copy(applicationId = Some(AppId))
+      val matchResponse = repository.fix(application, FixBatch(AddMissingPhase2ResultReceived, 1)).futureValue
+      matchResponse mustBe defined
+
+      val applicationResponse = repository.findByUserId(UserId, FrameworkId).futureValue
+      applicationResponse.progressResponse.phase2ProgressResponse.phase2TestsResultsReceived mustBe true
+    }
+  }
+
+  private def createAppWithTestResult(progressStatuses: List[(ProgressStatus, Boolean)], testResult: Option[TestResult]) = {
+    testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, ApplicationStatus.PHASE2_TESTS,
+      additionalProgressStatuses = progressStatuses).futureValue
+    val test = CubiksTest(1, true, 1, "cubiks", "token", "testUrl", DateTime.now, 1, testResult = testResult)
+    val phase2TestGroup = Phase2TestGroup(DateTime.now, List(test))
+    phase2TestRepo.insertOrUpdateTestGroup(AppId, phase2TestGroup).futureValue
   }
 
   val candidate = Candidate("userId", Some("appId123"), Some("test@test123.com"), None, None, None, None, None, None, None, None, None)
