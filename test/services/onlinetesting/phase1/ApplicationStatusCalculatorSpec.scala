@@ -29,11 +29,39 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
 
   "Unimplemented application routes" must {
     "throw an exception" in {
-      an[calc.UnimplementedApplicationRouteException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.Sdip,
-        ApplicationStatus.PHASE1_TESTS, Nil, Phase.PHASE1)
-
-
       an[calc.UnimplementedApplicationRouteException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.SdipFaststream,
+        ApplicationStatus.PHASE1_TESTS, List(green), Phase.PHASE1)
+    }
+  }
+
+  "determine SDIP phase 1 application status" must {
+
+    "promote the application for all Greens" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.Sdip, ApplicationStatus.PHASE1_TESTS,
+        List(green), Phase.PHASE1)
+      newStatus mustBe Some(PHASE1_TESTS_PASSED)
+    }
+
+    "fail application for all Reds" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.Sdip, ApplicationStatus.PHASE1_TESTS,
+        List(red), Phase.PHASE1)
+      newStatus mustBe Some(PHASE1_TESTS_FAILED)
+    }
+
+    "not update application status when amber" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.Sdip, ApplicationStatus.PHASE1_TESTS,
+        List(amber), Phase.PHASE1)
+      newStatus mustBe None
+    }
+
+    "not update application status when PHASE1_TESTS_PASSED" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.Sdip, ApplicationStatus.PHASE1_TESTS_PASSED,
+        List(green, green, green), Phase.PHASE1)
+      newStatus mustBe None
+    }
+
+    "return exception when no results found" in {
+      an[IllegalArgumentException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.Sdip,
         ApplicationStatus.PHASE1_TESTS, Nil, Phase.PHASE1)
     }
   }
