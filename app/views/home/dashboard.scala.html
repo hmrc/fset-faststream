@@ -14,6 +14,7 @@
 @import views.html.widgets.onlineTestProgress
 @import views.html.home.sdipEligibilityInfo
 @import views.html.home.submit_disabled
+@import views.html.home.fastPassRejectedInfo
 @import views.html.home.withdrawSection
 @import views.html.home.withdrawInformation
 @import views.html.template.fastPassAccepted
@@ -47,7 +48,8 @@
 @displayLeadInformation = @{(cannotBeConsideredForSdip, submitApplicationsEnabled) match {
     case (true, _) => sdipEligibilityInfo(usr)
     case (_, false) => submit_disabled(usr)
-    case _ => withdrawInformation(usr)
+    case _ if(WithdrawnApplicationRole.isAuthorized(usr)) => withdrawInformation(usr)
+    case _ => fastPassRejectedInfo(usr)
 }}
 
 @renderProgressElements = {
