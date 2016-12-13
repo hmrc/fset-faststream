@@ -491,7 +491,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       currentPhase3TestGroup <- phase3TestRepo.getTestGroup(application.applicationId)
       updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
       _ <- phase3TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
-      _ <- phase3TestRepo.resetTestProfileProgresses(application.applicationId, ResetPhase3Test.determineStatusesToRemove)
+      _ <- phase3TestRepo.resetTestProfileProgresses(application.applicationId, ResetPhase3Test.determineProgressStatusesToRemove)
       _ <- eventSink {
         AuditEvents.VideoInterviewInvited("userId" -> application.userId) ::
           DataStoreEvents.VideoInterviewInvited(application.applicationId) :: Nil
@@ -538,7 +538,7 @@ object ResetPhase3Test {
 
   case class CannotResetPhase3Tests() extends NotFoundException
 
-  def determineStatusesToRemove: List[ProgressStatus] = {
+  def determineProgressStatusesToRemove: List[ProgressStatus] = {
     List(PHASE3_TESTS_EXPIRED, PHASE3_TESTS_STARTED, PHASE3_TESTS_FIRST_REMINDER, PHASE3_TESTS_SECOND_REMINDER,
       PHASE3_TESTS_COMPLETED, PHASE3_TESTS_RESULTS_RECEIVED, PHASE3_TESTS_FAILED, PHASE3_TESTS_FAILED_NOTIFIED, PHASE3_TESTS_PASSED,
       PHASE3_TESTS_PASSED_WITH_AMBER)
