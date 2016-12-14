@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import model.ApplicationRoute._
-import model.{ ApplicationRoute, ApplicationStatus }
+import model.{ ApplicationRoute, ApplicationStatus, SchemeType }
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Result, _ }
 import model.Phase.Phase
@@ -41,6 +41,12 @@ trait ApplicationStatusCalculator {
     case _ => None
   }
 
+  def sdipFaststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+    evaluatedSchemes: List[SchemeEvaluationResult]): Option[ProgressStatus] = {
+    val results = evaluatedSchemes.filterNot(_.scheme == SchemeType.Sdip).map(s => Result(s.result))
+    faststreamCalc(phase, originalAppStatus, results)
+  }
+
   def edipSdipCalc(phase: Phase, originalAppStatus: ApplicationStatus,
     results: List[Result]): Option[ProgressStatus] = (phase, originalAppStatus) match {
     case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
@@ -58,6 +64,7 @@ trait ApplicationStatusCalculator {
 
     applicationRoute match {
       case ApplicationRoute.Edip | ApplicationRoute.Sdip => edipSdipCalc(phase, originalApplicationStatus, results)
+      case ApplicationRoute.SdipFaststream => sdipFaststreamCalc(phase, originalApplicationStatus, evaluatedSchemes)
       case _ => faststreamCalc(phase, originalApplicationStatus, results)
     }
   }
