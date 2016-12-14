@@ -138,7 +138,7 @@ trait OnlineTestController extends BaseController {
         phase3TestService.resetTests(onlineTestApp, resetOnlineTest.actionTriggeredBy)
           .map(_ => Ok)
           .recover {
-            case _: CannotResetPhase3Tests => NotFound }
+            case _: CannotResetPhase3Tests => Conflict }
       }
 
       appRepository.getOnlineTestApplication(applicationId).flatMap {
