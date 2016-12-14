@@ -189,6 +189,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "progress-status-timestamp" -> 1,
       "progress-status-dates" -> 1,
       "applicationRoute" -> 1,
+      "submissionDeadline" -> 1,
       "_id" -> 0
     )
 
@@ -202,7 +203,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
             document.getAs[BSONDocument]("progress-status-dates")
               .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))
           )
-        ApplicationStatusDetails(applicationStatus, applicationRoute, progressStatusTimeStamp)
+        val submissionDeadline = document.getAs[DateTime]("submissionDeadline")
+        ApplicationStatusDetails(applicationStatus, applicationRoute, progressStatusTimeStamp, submissionDeadline)
 
       case None => throw ApplicationNotFound(applicationId)
     }
