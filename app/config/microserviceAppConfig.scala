@@ -117,7 +117,9 @@ object AssessmentEvaluationMinimumCompetencyLevel {
   implicit val AssessmentEvaluationMinimumCompetencyLevelFormats = Json.format[AssessmentEvaluationMinimumCompetencyLevel]
 }
 
-object MicroserviceAppConfig extends ServicesConfig with RunMode {
+object MicroserviceAppConfig extends MicroserviceAppConfig
+
+trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val emailConfig = configuration.underlying.as[EmailConfig]("microservice.services.email")
   lazy val frameworksConfig = configuration.underlying.as[FrameworksConfig]("microservice.frameworks")
   lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
