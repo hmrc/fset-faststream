@@ -20,7 +20,6 @@ import java.time.{ LocalDateTime, ZoneId }
 import java.time.format.DateTimeFormatter
 
 import config.ApplicationRouteFrontendConfig
-import models.ApplicationData
 import models.ApplicationRoute._
 import org.joda.time.DateTime
 
