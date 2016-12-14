@@ -83,7 +83,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   }
 
   override def findStatus(applicationId: String): Future[ApplicationStatusDetails] = Future.successful(
-    ApplicationStatusDetails("", ApplicationRoute.Faststream))
+    ApplicationStatusDetails("", ApplicationRoute.Faststream, None, None))
 
   override def submit(applicationId: String): Future[Unit] = Future.successful(Unit)
 
