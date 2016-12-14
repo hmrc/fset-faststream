@@ -20,7 +20,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   val collectionName: String = "application"
 
   "next Application Ready For Evaluation" should {
-    "return nothing if there is no PHASE1_TESTS and PHASE2_TESTS applications" in {
+    "return nothing if there is no PHASE1_TESTS applications" in {
       insertApplication("appId", ApplicationStatus.SUBMITTED)
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
       result mustBe empty
@@ -130,36 +130,6 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
       result must not be empty
-    }
-
-    "return the candidate to re-evaluation in PHASE1_TESTS_PASSED if the passmark has changed" in {
-      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED)).futureValue
-      getOnePhase1Profile("app1") mustBe defined
-
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result must not be empty
-    }
-
-    "return the candidate to re-evaluation in PHASE2_TESTS if the passmark has changed" in {
-      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE2_TESTS_STARTED)).futureValue
-      getOnePhase1Profile("app1") mustBe defined
-
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result must not be empty
-    }
-
-    "do not change application status when it is not required" in {
-      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
-
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result must not be empty
-      result.head.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS
     }
   }
 

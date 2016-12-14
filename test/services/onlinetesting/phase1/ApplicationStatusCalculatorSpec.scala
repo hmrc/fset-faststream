@@ -27,13 +27,6 @@ import services.onlinetesting.ApplicationStatusCalculator
 class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   val calc = new ApplicationStatusCalculator {}
 
-  "Unimplemented application routes" must {
-    "throw an exception" in {
-      an[calc.UnimplementedApplicationRouteException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.SdipFaststream,
-        ApplicationStatus.PHASE1_TESTS, List(green), Phase.PHASE1)
-    }
-  }
-
   "determine SDIP phase 1 application status" must {
 
     "promote the application for all Greens" in {
