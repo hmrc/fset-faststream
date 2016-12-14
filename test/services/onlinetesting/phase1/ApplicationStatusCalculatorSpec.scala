@@ -80,12 +80,6 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
       newStatus mustBe Some(PHASE1_TESTS_FAILED)
     }
 
-    "update application status when amber" in {
-      val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS,
-        List(amber), Phase.PHASE1)
-      newStatus mustBe Some(PHASE1_TESTS_PASSED_WITH_AMBER)
-    }
-
     "do not update application status when PHASE1_TESTS_PASSED" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS_PASSED,
         List(green, green, green), Phase.PHASE1)

@@ -44,14 +44,6 @@ trait ApplicationStatusCalculator {
 
     val phase1: CalcStep = { case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED) }
 
-    val phase1Amber: CalcStep = {
-      case (PHASE1, ApplicationStatus.PHASE1_TESTS | ApplicationStatus.PHASE1_TESTS_PASSED_WITH_AMBER)
-        if results.contains(Amber) => Some(PHASE1_TESTS_PASSED_WITH_AMBER)
-
-      case (PHASE1, ApplicationStatus.PHASE1_TESTS | ApplicationStatus.PHASE1_TESTS_PASSED_WITH_AMBER) =>
-        processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
-    }
-
     val phase2: CalcStep = { case (PHASE2, ApplicationStatus.PHASE2_TESTS) => processResults(results, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED) }
 
     val phase3WithAmber: CalcStep = {
@@ -65,13 +57,9 @@ trait ApplicationStatusCalculator {
     val default: CalcStep = { case _ => None }
 
     applicationRoute match {
-      case ApplicationRoute.Faststream => (phase1 orElse phase2 orElse phase3WithAmber orElse default)(phase -> originalApplicationStatus)
+      case ApplicationRoute.Edip | ApplicationRoute.Sdip => (phase1 orElse default)(phase -> originalApplicationStatus)
 
-      case ApplicationRoute.Edip => (phase1Amber orElse default)(phase -> originalApplicationStatus)
-
-      case ApplicationRoute.Sdip => (phase1 orElse default)(phase -> originalApplicationStatus)
-
-      case _ => throw UnimplementedApplicationRouteException(s"Score evaluation for application route $applicationRoute is not implemented yet.")
+      case _ => (phase1 orElse phase2 orElse phase3WithAmber orElse default)(phase -> originalApplicationStatus)
     }
   }
   // scalastyle:on cyclomatic.complexity

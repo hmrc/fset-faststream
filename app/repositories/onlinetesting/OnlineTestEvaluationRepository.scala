@@ -102,7 +102,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments{
 
   val phase = PHASE1
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE2_TESTS)
+  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS)
   val evaluationProgressStatus = ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED
   val expiredProgressStatus = ProgressStatuses.PHASE1_TESTS_EXPIRED
 
