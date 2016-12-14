@@ -21,7 +21,7 @@ import mappings.PhoneNumberMapping._
 import mappings.PostCodeMapping._
 import models.ApplicationRoute._
 import models.UniqueIdentifier
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, Json }
 
 package object exchange {
@@ -40,7 +40,8 @@ package object exchange {
 
   case class ApplicationResponse(applicationId: UniqueIdentifier, applicationStatus: String, applicationRoute: ApplicationRoute,
                                  userId: UniqueIdentifier, progressResponse: ProgressResponse,
-                                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails])
+                                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
+                                 overriddenSubmissionDeadline: Option[DateTime])
 
   case class PersonalDetailsAdded(applicationId: UniqueIdentifier, userId: String)
 

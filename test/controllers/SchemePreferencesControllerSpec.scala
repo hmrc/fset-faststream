@@ -84,7 +84,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "European", "orderAgreed" -> "true",
         "eligible" -> "true")
       val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
-        ApplicationRoute.Faststream, currentUserId, ProgressResponseExamples.InProgress, Some(CivilServantExperience))
+        ApplicationRoute.Faststream, currentUserId, ProgressResponseExamples.InProgress, Some(CivilServantExperience), None)
       val schemePreferences = SchemePreferences(List("Finance", "European"), orderAgreed = true, eligible = true)
 
       when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier]))

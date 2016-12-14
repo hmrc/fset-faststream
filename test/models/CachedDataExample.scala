@@ -36,6 +36,7 @@ object CachedDataExample {
     ApplicationRoute.Faststream,
     ProgressExamples.InitialProgress,
     Some(CivilServiceExperienceDetails(applicable = false)),
+    None,
     None
   )
 
@@ -46,6 +47,7 @@ object CachedDataExample {
     ApplicationRoute.Faststream,
     ProgressExamples.Phase1TestsInvitedNotStarted,
     Some(CivilServiceExperienceDetails(applicable = true, fastPassReceived = Some(true), fastPassAccepted = Some(false))),
+    None,
     None
   )
 
@@ -56,6 +58,7 @@ object CachedDataExample {
     ApplicationRoute.Faststream,
     ProgressExamples.Phase1TestsStarted,
     Some(CivilServiceExperienceDetails(applicable = true, fastPassReceived = Some(true), fastPassAccepted = Some(false))),
+    None,
     None
   )
 
