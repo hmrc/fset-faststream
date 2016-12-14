@@ -81,7 +81,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val result = controller(previewApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
-      content must include("Fast Stream applications are now closed")
+      content must include("Applications are now closed")
       content must include("""<ol class="step-by-step-coloured disabled" id="sixSteps">""")
     }
 

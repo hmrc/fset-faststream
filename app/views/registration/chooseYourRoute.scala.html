@@ -3,9 +3,8 @@
 
 @(form: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState])(implicit lang: play.api.i18n.Lang)
 
-@import helpers.CSRFieldConstructor._
 @import models.ApplicationRoute
-@import views.html.widgets.{radioBox, radioBoxVerticalMultiToggle, yesNoQuestion, yesNoRadioWithNestedTogglePanel}
+@import views.html.widgets.{radioBoxVerticalMultiToggle, yesNoQuestion, yesNoRadioWithNestedTogglePanel}
 
 <section class="section-border clearfix" id="routeElig">
     <div class="text">
@@ -15,46 +14,52 @@
         <h2 class="form-label">Which route do you want to choose?</h2>
         <legend class="visuallyhidden">Which route do you want to choose?</legend>
         @radioBoxVerticalMultiToggle(form("applicationRoute"),
-                                 options = List((ApplicationRoute.Faststream.toString, "Civil Service Fast Stream", "faststream-elig-describe"),
-                                                (ApplicationRoute.Edip.toString, "Early Diversity Internship Programme (EDIP)", "edip-elig-describe"),
-                                                (ApplicationRoute.Sdip.toString, "Summer Diversity Internship Programme (SDIP)", "sdip-elig-describe"))
+            options = List(
+                (ApplicationRoute.Faststream.toString, "Civil Service Fast Stream", "faststream-elig-describe"),
+                (ApplicationRoute.Edip.toString, "Early Diversity Internship Programme (EDIP)", "edip-elig-describe"),
+                (ApplicationRoute.Sdip.toString, "Summer Diversity Internship Programme (SDIP)", "sdip-elig-describe")
+            )
         )
         <div class="toggle-content form-group form-group-compound" id="faststream-elig-describe">
-            <div id="fs-panel" class="clearfix">
-                @if(appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled)) {
-                    <div class="text">
-                        <h3 class="heading-medium">Confirm the following statements are true</h3>
-                    </div>
-                    <ul class="para-btm-margin text">
-                        <li>I'm <a href="https://www.faststream.gov.uk/faqs/" target="_blank" rel="external">eligible to work in the UK</a></li>
-                        <li>I have a relevant degree or qualify as a current civil servant</li>
-                        <li>I meet my schemes eligibility requirements</li>
-                    </ul>
-                    @yesNoQuestion(form("faststreamEligible"), question = "Are you eligible to apply for the Civil Service Fast Stream?",
-                    noMessage = Some("You must be eligible to apply for the Civil Service Fast Stream."))
-                } else {
-                    <div class="panel-info standard-panel">
-                        <p class="text">Unfortunately, applications for the Civil Service Fast Stream are now closed.</p>
-                    </div>
-                }
-            </div>
+            @if(appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled)) {
+                <div class="text">
+                    <h3 class="heading-medium">Confirm the following statements are true</h3>
+                </div>
+                <ul class="para-btm-margin text">
+                    <li>I'm <a href="https://www.faststream.gov.uk/faqs/" target="_blank" rel="external">eligible to work in the UK</a></li>
+                    <li>I have a relevant degree or qualify as a current civil servant</li>
+                    <li>I meet my schemes eligibility requirements</li>
+                </ul>
+                @yesNoQuestion(form("faststreamEligible"), question = "Are you eligible to apply for the Civil Service Fast Stream?",
+                noMessage = Some("You must be eligible to apply for the Civil Service Fast Stream."))
+            } else {
+                <div class="panel-info standard-panel">
+                    <p class="text">Unfortunately, applications for the Civil Service Fast Stream are now closed.</p>
+                </div>
+            }
         </div>
         <div class="toggle-content form-group form-group-compound" id="edip-elig-describe">
-            <div class="text">
-                <h2 class="heading-medium">Confirm the following statements are true</h2>
-            </div>
-            <ul id="eligibility-list" class="para-btm-margin text">
-                <li>I'm either from a BAME or socially/economically disadvantaged
-                    background</li>
-                <li>I'm in the first year at university</li>
-                <li>I qualify to apply according to the <a href="https://www.faststream.gov.uk/early-diversity-internship-programme/"
-                                                            rel="external" target="_blank">eligibility requirements</a></li>
-            </ul>
+            @if(appRouteConfigMap.get(Edip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled)) {
+                <div class="text">
+                    <h2 class="heading-medium">Confirm the following statements are true</h2>
+                </div>
+                <ul id="eligibility-list" class="para-btm-margin text">
+                    <li>I'm either from a BAME or socially/economically disadvantaged
+                        background</li>
+                    <li>I'm in the first year at university</li>
+                    <li>I qualify to apply according to the <a href="https://www.faststream.gov.uk/early-diversity-internship-programme/"
+                    rel="external" target="_blank">eligibility requirements</a></li>
+                </ul>
                 @yesNoQuestion(form("edipEligible"), question = "Are you eligible to apply for the Early Diversity Internship Programme (EDIP)?",
-                               noMessage = Some("You must be eligible to apply for the Early Diversity Internship Programme."))
+                    noMessage = Some("You must be eligible to apply for the Early Diversity Internship Programme."))
+            } else {
+                <div class="panel-info standard-panel">
+                    <p class="text">Unfortunately, applications for the Early Diversity Internship Programme are now closed.</p>
+                </div>
+            }
         </div>
         <div class="toggle-content form-group form-group-compound" id="sdip-elig-describe">
-            @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted)) {
+            @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) {
                 <div class="text">
                     <h2 class="heading-medium">Confirm the following statements are true</h2>
                 </div>
@@ -82,7 +87,7 @@
                     }
             } else {
                 <div class="panel-info standard-panel">
-                    <p class="text">Unfortunately, applications for the <a href="https://faststream.gov.uk/summer-diversity-internship-programme/">Summer Diversity Internship Programme</a> open in early December 2016</p>
+                    <p class="text">Unfortunately, applications for the Summer Diversity Internship Programme are now closed.</p>
                 </div>
             }
         </div>
