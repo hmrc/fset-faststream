@@ -102,6 +102,8 @@ trait GeneralApplicationRepository {
 
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
 
+  def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
+
   def applicationsWithAssessmentScoresAccepted(frameworkId: String): Future[List[ApplicationPreferences]]
 
   def applicationsPassedInAssessmentCentre(frameworkId: String): Future[List[ApplicationPreferencesWithTestResults]]
@@ -140,7 +142,7 @@ trait GeneralApplicationRepository {
 class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
                                         gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
-    Commands.Implicits.createApplicationRequestFormats,
+    Commands.Implicits.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers {
 
@@ -155,7 +157,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     )
     collection.insert(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
-        ApplicationResponse(applicationId, CREATED, route, userId, p, None)
+        ApplicationResponse(applicationId, CREATED, route, userId, p, None, None)
       }
     }
   }
@@ -187,6 +189,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "progress-status-timestamp" -> 1,
       "progress-status-dates" -> 1,
       "applicationRoute" -> 1,
+      "submissionDeadline" -> 1,
       "_id" -> 0
     )
 
@@ -200,7 +203,8 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
             document.getAs[BSONDocument]("progress-status-dates")
               .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))
           )
-        ApplicationStatusDetails(applicationStatus, applicationRoute, progressStatusTimeStamp)
+        val submissionDeadline = document.getAs[DateTime]("submissionDeadline")
+        ApplicationStatusDetails(applicationStatus, applicationRoute, progressStatusTimeStamp, submissionDeadline)
 
       case None => throw ApplicationNotFound(applicationId)
     }
@@ -215,8 +219,9 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
+        val submissionDeadline = document.getAs[DateTime]("submissionDeadline")
         findProgress(applicationId).map { progress =>
-          ApplicationResponse(applicationId, applicationStatus, applicationRoute, userId, progress, fastPassReceived)
+          ApplicationResponse(applicationId, applicationStatus, applicationRoute, userId, progress, fastPassReceived, submissionDeadline)
         }
       case None => throw ApplicationNotFound(userId)
     }
@@ -827,6 +832,13 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating status")
 
     collection.update(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map validator
+  }
+
+  def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating submission deadline")
+
+    collection.update(query, BSONDocument("$set" -> BSONDocument("submissionDeadline" -> newDeadline))) map validator
   }
 
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String): Future[Option[String]] = {
