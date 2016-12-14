@@ -16,18 +16,18 @@
 
 package controllers
 
-import _root_.forms.WithdrawApplicationForm
 import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange._
+import forms.WithdrawApplicationForm
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
 import models.{ ApplicationData, CachedData }
 import play.api.mvc.{ Action, AnyContent, Request, Result }
-import security.Roles
 import security.RoleUtils._
+import security.Roles
 import security.Roles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 

@@ -35,6 +35,37 @@ object ProgressExamples {
     AssessmentScores(false, false),
     AssessmentCentre(false, false, false)
   )
+  val Phase1TestsInvitedNotStarted = Progress(false, false, false, false, false, false, false, false, false, false, false,
+    phase1TestProgress = Phase1TestProgress(true, false, false, false, false, false,
+      false, false, false, false),
+    phase2TestProgress = Phase2TestProgress(false, false, false, false, false, false,
+      false, false, false, false),
+    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = false,
+      phase3TestsStarted = false,
+      phase3TestsCompleted = false,
+      phase3TestsExpired = false,
+      phase3TestsResultsReceived = false
+    ),
+    false,
+    false,
+    AssessmentScores(false, false),
+    AssessmentCentre(false, false, false)
+  )
+  val Phase1TestsStarted = Progress(false, false, false, false, false, false, false, false, false, false, false,
+    phase1TestProgress = Phase1TestProgress(phase1TestsInvited = true, phase1TestsStarted = true),
+    phase2TestProgress = Phase2TestProgress(false, false, false, false, false, false,
+      false, false, false, false),
+    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = false,
+      phase3TestsStarted = false,
+      phase3TestsCompleted = false,
+      phase3TestsExpired = false,
+      phase3TestsResultsReceived = false
+    ),
+    false,
+    false,
+    AssessmentScores(false, false),
+    AssessmentCentre(false, false, false)
+  )
   val FullProgress = Progress(true, true, true, true, true, true, true, true, true, true, true,
     phase1TestProgress = Phase1TestProgress(true, true, true, true, true, true,
       true, true, true, true),

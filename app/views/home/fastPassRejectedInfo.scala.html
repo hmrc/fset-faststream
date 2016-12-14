@@ -1,0 +1,10 @@
+@import security.RoleUtils._
+
+@(cachedUser: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+    @if(hasFastPassRejectedAndInvitedToPhase1Tests(cachedUser)){
+        <div class="panel-info" id="fastPassRejected">
+            <p class="">Unfortunately we've not been able to confirm that your Fast Pass is valid.</p>
+            <p>You now need to do your online exercises.</p>
+        </div>
+    }

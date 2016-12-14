@@ -40,6 +40,26 @@ object CachedDataExample {
     None
   )
 
+  val fastPassRejectedInvitedToPhase1Application = ApplicationData(
+    UniqueIdentifier(UUID.randomUUID.toString),
+    UniqueIdentifier(UUID.randomUUID.toString),
+    ApplicationStatus.SUBMITTED,
+    ApplicationRoute.Faststream,
+    ProgressExamples.Phase1TestsInvitedNotStarted,
+    Some(CivilServiceExperienceDetails(applicable = true, fastPassReceived = Some(true), fastPassAccepted = Some(false))),
+    None
+  )
+
+  val fastPassRejectedPhase1StartedApplication = ApplicationData(
+    UniqueIdentifier(UUID.randomUUID.toString),
+    UniqueIdentifier(UUID.randomUUID.toString),
+    ApplicationStatus.SUBMITTED,
+    ApplicationRoute.Faststream,
+    ProgressExamples.Phase1TestsStarted,
+    Some(CivilServiceExperienceDetails(applicable = true, fastPassReceived = Some(true), fastPassAccepted = Some(false))),
+    None
+  )
+
   val InProgressInPersonalDetailsApplication = CreatedApplication.copy(applicationStatus = ApplicationStatus.IN_PROGRESS,
     progress = ProgressExamples.PersonalDetailsProgress)
   val InProgressInSchemePreferencesApplication = InProgressInPersonalDetailsApplication.copy(progress =

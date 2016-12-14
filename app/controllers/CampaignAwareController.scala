@@ -41,7 +41,6 @@ case class ApplicationRouteStateImpl(config: ApplicationRouteFrontendConfig) ext
   def applicationsSubmitEnabled: Boolean = isAfterNow(config.blockApplicationsDate)
   def applicationsStartDate: Option[LocalDateTime] = config.startNewAccountsDate
 
-
   val zoneId = config.timeZone.map(ZoneId.of).getOrElse(ZoneId.systemDefault())
 
   def now = LocalDateTime.now(zoneId)
