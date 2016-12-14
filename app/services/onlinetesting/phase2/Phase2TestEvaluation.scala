@@ -29,8 +29,7 @@ trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
                passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
     for {
       schemeToEvaluate <- schemes
-      schemePassmarkOpt = passmark.schemes find (_.schemeName == schemeToEvaluate)
-      schemePassmark <- schemePassmarkOpt
+      schemePassmark <- passmark.schemes find (_.schemeName == schemeToEvaluate)
       phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.scheme == schemeToEvaluate)
     } yield {
       val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.etray)(etrayTestResult.tScore)
