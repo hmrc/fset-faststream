@@ -21,7 +21,9 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   "next Application Ready For Evaluation" should {
     "return nothing if there is no PHASE1_TESTS applications" in {
-      insertApplication("appId", ApplicationStatus.SUBMITTED)
+      insertApplication("appId1", ApplicationStatus.SUBMITTED)
+      insertApplication("appId2", ApplicationStatus.PHASE2_TESTS)
+      insertApplication("appId3", ApplicationStatus.PHASE3_TESTS)
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
       result mustBe empty
     }
