@@ -42,7 +42,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     }
 
     "return none if application for evaluation does not exist" in new TestFixture {
-      val application = ApplicationPhase1EvaluationExamples.application
+      val application = ApplicationPhase1EvaluationExamples.faststreamApplication
 
       when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(Some(PassmarkSettings)))
       when(mockPhase1EvaluationRepository
@@ -130,7 +130,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
   trait TestFixture {
     val PassmarkSettings = Phase1PassMarkSettingsExamples.passmark
-    val AppId = ApplicationPhase1EvaluationExamples.application.applicationId
+    val AppId = ApplicationPhase1EvaluationExamples.faststreamApplication.applicationId
     val PassmarkVersion = PassmarkSettings.version
     val SjqId = 16196
     val BqId = 16194
@@ -173,7 +173,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     def createAppWithTestGroup(tests: List[CubiksTest]) = {
       val phase1 = Phase1TestProfileExamples.profile.copy(tests = tests)
-      ApplicationPhase1EvaluationExamples.application.copy(activeCubiksTests = phase1.activeTests)
+      ApplicationPhase1EvaluationExamples.faststreamApplication.copy(activeCubiksTests = phase1.activeTests)
     }
 
     def createGisAppWithTestGroup(tests: List[CubiksTest]) = {

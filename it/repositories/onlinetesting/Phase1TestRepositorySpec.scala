@@ -419,6 +419,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   "Progress status" should {
     "update progress status to PHASE1_TESTS_STARTED" in {
       createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
+
       phase1TestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
 
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
@@ -426,6 +427,17 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
       val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
       appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
+    }
+
+    "update progress status should not update if the Application Status is different from that which is being set" in {
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE2_TESTS).futureValue
+
+      val result = phase1TestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
+      result mustBe unit
+
+      val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
+      app.progressResponse.phase1ProgressResponse.phase1TestsStarted mustBe false
+      app.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS.toString
     }
 
     "reset progress statuses" in {

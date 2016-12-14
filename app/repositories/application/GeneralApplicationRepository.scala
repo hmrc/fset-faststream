@@ -39,7 +39,7 @@ import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import scheduler.fixer.FixBatch
-import scheduler.fixer.RequiredFixes.{ PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
+import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.TimeZoneService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -514,6 +514,19 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
         selectRandom[Candidate](query, issue.batchSize)
       }
+      case AddMissingPhase2ResultReceived =>
+        val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_READY}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> BSONDocument("$ne" -> true)),
+          BSONDocument(s"testGroups.PHASE2.tests" ->
+            BSONDocument("$elemMatch" -> BSONDocument(
+            "usedForResults" -> true, "testResult" -> BSONDocument("$exists" -> true)
+              ))
+          )
+        ))
+
+        selectRandom[Candidate](query, issue.batchSize)
     }
   }
 
@@ -551,6 +564,21 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           "testGroups" -> "")))
         bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
       }
+      case AddMissingPhase2ResultReceived =>
+        val query = BSONDocument("$and" -> BSONArray(
+          BSONDocument("applicationId" -> application.applicationId),
+          BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_READY}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> BSONDocument("$ne" -> true))
+        ))
+        val updateOp = bsonCollection.updateModifier(BSONDocument("$set" ->
+          BSONDocument(
+            s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> true,
+            s"progress-status-timestamp.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> DateTime.now()
+          )))
+
+        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
+
     }
   }
 

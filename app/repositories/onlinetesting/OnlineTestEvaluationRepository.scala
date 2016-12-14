@@ -18,6 +18,7 @@ package repositories.onlinetesting
 
 import config.LaunchpadGatewayConfig
 import factories.DateTimeFactory
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
@@ -73,9 +74,10 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
                                    prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
+    val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").get
     val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
     val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
-    ApplicationReadyForEvaluation(applicationId, applicationStatus, isGis, activeCubiksTests,
+    ApplicationReadyForEvaluation(applicationId, applicationStatus, applicationRoute, isGis, activeCubiksTests,
       activeLaunchPadTest, prevPhaseEvaluation, preferences)
   }
 
@@ -100,7 +102,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments{
 
   val phase = PHASE1
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE2_TESTS)
+  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS)
   val evaluationProgressStatus = ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED
   val expiredProgressStatus = ProgressStatuses.PHASE1_TESTS_EXPIRED
 
