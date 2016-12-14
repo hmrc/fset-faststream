@@ -21,7 +21,6 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
-import controllers.testdata.TestDataGeneratorController.InvalidPostCodeFormatException
 import model.Exceptions.EmailTakenException
 import model.command.testdata.GeneratorConfig
 import model.exchange.testdata._
@@ -38,15 +37,12 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object TestDataGeneratorController extends TestDataGeneratorController {
-
-  case class InvalidPostCodeFormatException(message: String) extends Exception(message)
-}
+object TestDataGeneratorController extends TestDataGeneratorController
 
 trait TestDataGeneratorController extends BaseController {
 
-  def ping = Action.async { implicit request =>
-    Future.successful(Ok("OK"))
+  def ping = Action { implicit request =>
+    Ok("OK")
   }
 
   def clearDatabase() = Action.async { implicit request =>
@@ -56,69 +52,67 @@ trait TestDataGeneratorController extends BaseController {
   }
 
   // scalastyle:off method.length
-  def requestExample = Action.async { implicit request =>
-    Future {
-      val example = CreateCandidateInStatusRequest(
-       statusData = StatusDataRequest(
-         applicationStatus = ApplicationStatus.SUBMITTED.toString,
-         previousApplicationStatus = Some(ApplicationStatus.REGISTERED.toString),
-         progressStatus = Some(ProgressStatuses.SUBMITTED.toString),
-         applicationRoute = Some(ApplicationRoute.Faststream.toString)
-       ),
-        personalData = Some(PersonalDataRequest(
-          emailPrefix = Some(s"testf${Random.number()}"),
-          firstName = Some("Kathryn"),
-          lastName = Some("Janeway"),
-          preferredName = Some("Captain"),
-          dateOfBirth = Some("2328-05-20"),
-          postCode = Some("QQ1 1QQ"),
-          country = Some("America")
-        )),
-        assistanceDetails = Some(AssistanceDetailsRequest(
-          hasDisability = Some("false"),
-          hasDisabilityDescription = Some(Random.hasDisabilityDescription),
-          setGis = Some(false),
-          onlineAdjustments = Some(false),
-          onlineAdjustmentsDescription = Some(Random.onlineAdjustmentsDescription),
-          assessmentCentreAdjustments = Some(false),
-          assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
-        )),
-        schemeTypes = Some(List(SchemeType.Commercial, SchemeType.European, SchemeType.DigitalAndTechnology)),
-        isCivilServant = Some(Random.bool),
-        hasDegree = Some(Random.bool),
-        region = Some("region"),
-        loc1scheme1EvaluationResult = Some("loc1 scheme1 result1"),
-        loc1scheme2EvaluationResult = Some("loc1 scheme2 result2"),
-        confirmedAllocation = Some(Random.bool),
-        phase1TestData = Some(Phase1TestDataRequest(
-          start = Some("2340-01-01"),
-          expiry = Some("2340-01-29"),
-          completion = Some("2340-01-16"),
-          tscore = Some("80")
-        )),
-        phase2TestData = Some(Phase2TestDataRequest(
-          start = Some("2340-01-01"),
-          expiry = Some("2340-01-29"),
-          completion = Some("2340-01-16"),
-          tscore = Some("80")
-        )),
-        phase3TestData = Some(Phase3TestDataRequest(
-          start = Some("2340-01-01"),
-          expiry = Some("2340-01-29"),
-          completion = Some("2340-01-16")
-        )),
-        adjustmentInformation = Some(Adjustments(
-          adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
-          adjustmentsConfirmed = Some(true),
-          etray = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
-            , otherInfo = Some("Some other comments here"))),
-          video = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
-            , otherInfo = Some("Some other comments here")))
-        ))
-      )
+  def requestExample = Action { implicit request =>
+    val example = CreateCandidateInStatusRequest(
+     statusData = StatusDataRequest(
+       applicationStatus = ApplicationStatus.SUBMITTED.toString,
+       previousApplicationStatus = Some(ApplicationStatus.REGISTERED.toString),
+       progressStatus = Some(ProgressStatuses.SUBMITTED.toString),
+       applicationRoute = Some(ApplicationRoute.Faststream.toString)
+     ),
+      personalData = Some(PersonalDataRequest(
+        emailPrefix = Some(s"testf${Random.number()}"),
+        firstName = Some("Kathryn"),
+        lastName = Some("Janeway"),
+        preferredName = Some("Captain"),
+        dateOfBirth = Some("2328-05-20"),
+        postCode = Some("QQ1 1QQ"),
+        country = Some("America")
+      )),
+      assistanceDetails = Some(AssistanceDetailsRequest(
+        hasDisability = Some("false"),
+        hasDisabilityDescription = Some(Random.hasDisabilityDescription),
+        setGis = Some(false),
+        onlineAdjustments = Some(false),
+        onlineAdjustmentsDescription = Some(Random.onlineAdjustmentsDescription),
+        assessmentCentreAdjustments = Some(false),
+        assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
+      )),
+      schemeTypes = Some(List(SchemeType.Commercial, SchemeType.European, SchemeType.DigitalAndTechnology)),
+      isCivilServant = Some(Random.bool),
+      hasDegree = Some(Random.bool),
+      region = Some("region"),
+      loc1scheme1EvaluationResult = Some("loc1 scheme1 result1"),
+      loc1scheme2EvaluationResult = Some("loc1 scheme2 result2"),
+      confirmedAllocation = Some(Random.bool),
+      phase1TestData = Some(Phase1TestDataRequest(
+        start = Some("2340-01-01"),
+        expiry = Some("2340-01-29"),
+        completion = Some("2340-01-16"),
+        tscore = Some("80")
+      )),
+      phase2TestData = Some(Phase2TestDataRequest(
+        start = Some("2340-01-01"),
+        expiry = Some("2340-01-29"),
+        completion = Some("2340-01-16"),
+        tscore = Some("80")
+      )),
+      phase3TestData = Some(Phase3TestDataRequest(
+        start = Some("2340-01-01"),
+        expiry = Some("2340-01-29"),
+        completion = Some("2340-01-16")
+      )),
+      adjustmentInformation = Some(Adjustments(
+        adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
+        adjustmentsConfirmed = Some(true),
+        etray = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
+          , otherInfo = Some("Some other comments here"))),
+        video = Some(AdjustmentDetail(timeNeeded = Some(33), invigilatedInfo = Some("Some comments here")
+          , otherInfo = Some("Some other comments here")))
+      ))
+    )
 
-      Ok(Json.toJson(example))
-    }
+    Ok(Json.toJson(example))
   }
   // scalastyle:on method.length
 
@@ -165,20 +159,6 @@ trait TestDataGeneratorController extends BaseController {
     } catch {
       case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
-    }
-  }
-
-  private def validatePostcode(postcode: String) = {
-    // putting this on multiple lines won't make this regex any clearer
-    // scalastyle:off line.size.limit
-    val postcodePattern =
-      """^(?i)(GIR 0AA)|((([A-Z][0-9][0-9]?)|(([A-Z][A-HJ-Y][0-9][0-9]?)|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) ?[0-9][A-Z]{2})$""".r
-    // scalastyle:on line.size.limit
-
-    postcodePattern.pattern.matcher(postcode).matches match {
-      case true => postcode
-      case false if postcode.isEmpty => throw InvalidPostCodeFormatException(s"Postcode $postcode is empty")
-      case false => throw InvalidPostCodeFormatException(s"Postcode $postcode is in an invalid format")
     }
   }
 }
