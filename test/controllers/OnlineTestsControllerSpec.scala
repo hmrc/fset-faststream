@@ -128,14 +128,14 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
       status(response) mustBe OK
     }
 
-    "return cannot reset phase3 when test cannot be reset" in {
+    "return CONFLICT when test cannot be reset" in {
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
 
       when(mockPhase3TestService.resetTests(any[OnlineTestApplication], any[String])
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotResetPhase3Tests()))
 
       val response = controller.resetPhase3OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
-      status(response) mustBe NOT_FOUND
+      status(response) mustBe CONFLICT
     }
 
     "return NOT_FOUND when candidate is not found" in {
