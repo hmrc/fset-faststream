@@ -22,7 +22,7 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
-import model.{ ApplicationStatus, ProgressStatuses, SelectedSchemes }
+import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType, SelectedSchemes }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
 import repositories.{ BaseBSONReader, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
@@ -65,6 +65,22 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"saving passmark evaluation during $phase evaluation")
+
+    collection.update(query, passMarkEvaluation) map validator
+  }
+
+  def addSchemeResultToPassmarkEvaluation(applicationId: String,
+                                          schemeEvaluationResult: SchemeEvaluationResult,
+                                          passmarkVersion: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val passMarkEvaluation = BSONDocument(
+      "$addToSet" -> BSONDocument(s"testGroups.$phase.evaluation.result" -> schemeEvaluationResult),
+      "$set" -> BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> passmarkVersion)
+    )
+
+    val validator = singleUpdateValidator(applicationId,
+      actionDesc = s"add scheme evaluation result to passmark evaluation during $phase evaluation")
 
     collection.update(query, passMarkEvaluation) map validator
   }
@@ -112,16 +128,30 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
     applicationEvaluationBuilder(phase1.activeTests, None, None)(doc)
   })
 
-  val nextApplicationQuery = (currentPassmarkVersion: String) =>
-      BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
-        BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
-        BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
-        BSONDocument("$or" -> BSONArray(
-          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
-          BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
-        ))
+  val nextApplicationQuery = (currentPassmarkVersion: String) => {
+    val phase1TestsApplications = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
+      BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+      BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+        BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion))
       ))
+    ))
+
+    val sdipFaststreamApplications = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
+      BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"testGroups.$phase.evaluation.result" ->
+        BSONDocument("$not" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip))))
+    ))
+
+    BSONDocument("$or" -> BSONArray(
+      phase1TestsApplications,
+      sdipFaststreamApplications
+    ))
+  }
 }
 
 class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)

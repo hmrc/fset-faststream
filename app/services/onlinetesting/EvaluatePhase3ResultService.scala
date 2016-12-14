@@ -39,7 +39,7 @@ object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
 trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
   with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator {
 
-  def evaluate(application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettings): Future[Unit] = {
+  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating Phase3 appId=${application.applicationId}")
 
     val optLaunchpadTest = application.activeLaunchpadTest
