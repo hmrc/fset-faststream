@@ -287,7 +287,29 @@ object RoleUtils {
         .flatMap(_.fastPassReceived)
         .getOrElse(false)
 
+  def hasFastPassRejectedAndInvitedToPhase1Tests(user: CachedData)(implicit request: RequestHeader, lang: Lang) = {
+    val fastPassReceived = user.application
+      .flatMap(_.civilServiceExperienceDetails)
+      .flatMap(_.fastPassReceived)
+      .contains(true)
+
+    val fastPassAccepted = user.application
+      .flatMap(_.civilServiceExperienceDetails)
+      .flatMap(_.fastPassAccepted)
+      .forall(_ == true)
+
+    fastPassReceived && !fastPassAccepted && isPhase1TestsInvited(user) && !isPhase1TestsStarted(user)
+  }
+
   def isTestExpired(implicit user: CachedData) = progress.phase1TestProgress.phase1TestsExpired
+
+  def isPhase1TestsInvited(implicit user: CachedData) = {
+    user.application.isDefined && progress.phase1TestProgress.phase1TestsInvited
+  }
+
+  def isPhase1TestsStarted(implicit user: CachedData) = {
+    user.application.isDefined && progress.phase1TestProgress.phase1TestsStarted
+  }
 
   def isPhase1TestsPassed(implicit user: CachedData) = {
     user.application.isDefined && progress.phase1TestProgress.phase1TestsPassed

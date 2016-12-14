@@ -30,7 +30,6 @@ import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import play.api.i18n.Messages
 import play.api.test.Helpers._
 import security.UserService
 import testkit.BaseControllerSpec
@@ -162,6 +161,46 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       content must include("Your application has been withdrawn.")
       content must include("Congratulations, you've been succcessful for the Early Diversity")
+    }
+
+    "display fast pass rejected message" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      val fastPassRejectedInvitedToPhase1Application = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.fastPassRejectedInvitedToPhase1Application.copy(userId = ActiveCandidate.user.userID))
+
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(fastPassRejectedInvitedToPhase1Application.application.applicationId)
+      )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
+
+      val result = controller(fastPassRejectedInvitedToPhase1Application, applicationRouteState).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+
+      content must include("Unfortunately we've not been able to confirm that your Fast Pass is valid.")
+    }
+
+    "not display fast pass rejected message when phase1 tests are started" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = true
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None }
+
+      val fastPassRejectedPhase1StartedApplication = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.fastPassRejectedPhase1StartedApplication.copy(userId = ActiveCandidate.user.userID))
+
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(fastPassRejectedPhase1StartedApplication.application.applicationId)
+      )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
+
+      val result = controller(fastPassRejectedPhase1StartedApplication, applicationRouteState).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+
+      content mustNot include("Unfortunately we've not been able to confirm that your Fast Pass is valid.")
     }
   }
 
@@ -328,7 +367,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
       //scalastyle:off line.length
-      flash(result).data must be (Map("success" -> "You've successfully withdrawn your application. <a href=\"https://www.gov.uk/done/apply-civil-service-fast-stream\" target=\"_blank\" rel=\"external\">Give feedback?</a> (30 second survey)"))
+      flash(result).data must be (Map("success" ->"You've successfully withdrawn your application. <a href=\"https://www.gov.uk/done/apply-civil-service-fast-stream\" target=\"_blank\" rel=\"external\">Give feedback?</a> (30 second survey)"))
       //scalastyle:on line.length
     }
   }
