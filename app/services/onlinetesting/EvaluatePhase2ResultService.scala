@@ -36,7 +36,7 @@ object EvaluatePhase2ResultService extends EvaluatePhase2ResultService {
 trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestEvaluation
   with PassMarkSettingsService[Phase2PassMarkSettings] {
 
-  def evaluate(application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
+  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
 
     val activeTests = application.activeCubiksTests
