@@ -35,6 +35,8 @@ class SignUpControllerSpec extends BaseControllerSpec {
   override def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
     CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
 
+  val continueAsSdipPanelId = "id=\"existingFSApply\""
+
   "present" should {
     "display the sign up page and allow new accounts to be created" in new TestFixture {
       val applicationRouteState = new ApplicationRouteState {
@@ -46,6 +48,7 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val result = controller(applicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
+      content must include(continueAsSdipPanelId)
       content mustNot include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
       content mustNot include("Unfortunately, applications for the Early Diversity Internship Programme are now closed.")
       content mustNot include("Unfortunately, applications for the Summer Diversity Internship Programme are now closed.")
@@ -61,6 +64,7 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val result = controller(applicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
+      content mustNot include(continueAsSdipPanelId)
       content must include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
       content must include("Unfortunately, applications for the Early Diversity Internship Programme are now closed.")
       content must include("Unfortunately, applications for the Summer Diversity Internship Programme are now closed.")

@@ -22,6 +22,7 @@ import config.CSRCache
 import connectors.{ ApplicationClient, UserManagementClient }
 import forms.ConsiderForSdipForm
 import helpers.NotificationType._
+import models.ApplicationRoute._
 import models.ConsiderMeForSdipHelper._
 import security.RoleUtils._
 import security.Roles.{ ActiveUserRole, ContinueAsSdipRole }
@@ -31,13 +32,17 @@ import scala.concurrent.Future
 object ConsiderForSdipController extends ConsiderForSdipController(ApplicationClient, CSRCache, UserManagementClient)
 
 class ConsiderForSdipController(applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
-  extends BaseController(applicationClient, cacheClient) {
+  extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
+
+  val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] = config.FrontendAppConfig.applicationRoutesFrontend
 
   def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     Future.successful {
       cachedData.application match {
         case Some(app) if !isFaststreamOnly(cachedData) =>
           Redirect(routes.HomeController.present()).flashing(warning("error.notfaststream"))
+        case Some(app) if isFaststreamOnly(cachedData) && !isNewAccountsEnabled(Sdip) =>
+          Redirect(routes.HomeController.present(false))
         case optApp if faststreamerNotEligibleForSdip(cachedData).isDefinedAt(optApp) =>
           Redirect(routes.HomeController.present(true))
         case _ => Ok(views.html.application.sdip.considerMeForSdip(ConsiderForSdipForm.form))
