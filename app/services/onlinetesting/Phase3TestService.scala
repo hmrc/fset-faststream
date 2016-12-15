@@ -202,10 +202,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
     for {
       emailAddress <- candidateEmailAddress(application)
-      phase3Test <- registerAndInviteOrInviteOrResetOrRetake(
+      launchPadTest <- registerAndInviteOrInviteOrResetOrRetake(
         phase3TestGroup, application, emailAddress, interviewId, invitationDate, expirationDate)
       _ <- emailProcess(emailAddress)
-      _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(phase3Test)))
+      _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(launchPadTest)))
       _ <- extendIfInvigilated(application)
       _ <- eventSink {
         AuditEvents.VideoInterviewRegistrationAndInviteComplete("userId" -> application.userId) ::
@@ -219,7 +219,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                                                                       application: OnlineTestApplication, emailAddress: String,
                                                                       interviewId: Int, invitationDate: DateTime,
                                                                       expirationDate: DateTime
-                                        )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
+                                                                     )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
 
 
     case class InviteResetOrTakeResponse(candidateId: String, testUrl: String, customInviteId: String, customCandidateId: Option[String])
@@ -315,11 +315,14 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
+  // We ignore mark as completed requests on records without start date. That will cover the scenario, where we reschudule a
+  // video interview before recieving the complete callbacks from launchpad.
   def markAsCompleted(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     eventSink {
       phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
-        if (test.testGroup.tests.find(_.token == launchpadInviteId).get.completedDateTime.isEmpty) {
+        val launchpadTest = test.testGroup.tests.find(_.token == launchpadInviteId).get
+        if (launchpadTest.completedDateTime.isEmpty && !launchpadTest.startedDateTime.isEmpty) {
           for {
             _ <- phase3TestRepo.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
             updated <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
@@ -461,14 +464,26 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
-  private def merge(currentTestGroup: Option[Phase3TestGroup],
-                    newTestGroup: Phase3TestGroup): Phase3TestGroup = currentTestGroup match {
-    case None =>
-      newTestGroup
-    case Some(profile) =>
-      val interviewIdsToArchive = newTestGroup.tests.map(_.interviewId)
-      val existingTestsAfterUpdate = profile.tests.map { t => t.copy(usedForResults = false) }
-      Phase3TestGroup(newTestGroup.expirationDate, existingTestsAfterUpdate ++ newTestGroup.tests)
+  private def mergePhase3TestGroups(oldTestGroupOpt: Option[Phase3TestGroup], newTestGroup: Phase3TestGroup): Phase3TestGroup = {
+    oldTestGroupOpt match {
+      case None =>
+        newTestGroup
+      case Some(oldTestGroup) =>
+        newTestGroup.tests.headOption.map { newLaunchpadTest =>
+          val mergedLaunchpadTests = oldTestGroup.tests.map { oldLaunchpadTest =>
+            if (oldLaunchpadTest.interviewId == newLaunchpadTest.interviewId) {
+              oldLaunchpadTest.copy(startedDateTime = None, completedDateTime = None, usedForResults = true)
+            } else {
+              oldLaunchpadTest.copy(usedForResults = false)
+            }
+          }
+          if (mergedLaunchpadTests.filter(_.interviewId == newLaunchpadTest.interviewId).size > 0) {
+            Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests)
+          } else {
+            Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests :+ newLaunchpadTest.copy(usedForResults = true))
+          }
+        }.getOrElse(oldTestGroup)
+    }
   }
 
   // TODO: All resets are launchpad side, contemplate whether we should be able to call this invite method twice
@@ -477,7 +492,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                            (newPhase3TestGroup: Phase3TestGroup)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for {
       currentPhase3TestGroup <- phase3TestRepo.getTestGroup(application.applicationId)
-      updatedPhase3TestGroup = merge(currentPhase3TestGroup, newPhase3TestGroup)
+      updatedPhase3TestGroup = mergePhase3TestGroups(currentPhase3TestGroup, newPhase3TestGroup)
       _ <- phase3TestRepo.insertOrUpdateTestGroup(application.applicationId, updatedPhase3TestGroup)
       _ <- phase3TestRepo.resetTestProfileProgresses(application.applicationId, ResetPhase3Test.determineProgressStatusesToRemove)
       _ <- eventSink {
