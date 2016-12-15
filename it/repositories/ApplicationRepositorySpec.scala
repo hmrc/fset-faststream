@@ -77,6 +77,18 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  "Updating an application's submission deadline" should {
+    "Succeed" in {
+      val extendTo = new DateTime(2016, 5, 21, 23, 59, 59)
+      val applicationId = applicationRepo.create("userId1", "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId
+      applicationRepo.updateSubmissionDeadline(applicationId, extendTo).futureValue
+
+      val result = applicationRepo.findByUserId("userId1", "frameworkId").futureValue
+
+      result.overriddenSubmissionDeadline.get.getMillis mustBe extendTo.getMillis
+    }
+  }
+
   "Finding an application by User Id" should {
     "throw a NotFound exception when application doesn't exists" in {
       val result = applicationRepo.findByUserId("invalidUser", "invalidFramework")

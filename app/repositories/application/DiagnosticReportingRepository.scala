@@ -36,7 +36,7 @@ trait DiagnosticReportingRepository {
 
 class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
-    Commands.Implicits.createApplicationRequestFormats, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
+    Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
 
   private val defaultExclusions = Json.obj(
     "_id" -> 0,

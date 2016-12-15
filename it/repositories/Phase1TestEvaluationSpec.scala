@@ -1,9 +1,10 @@
 package repositories
 
 import config.Phase1TestsConfig
+import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults._
-import model.{ ApplicationStatus, Phase }
+import model.{ ApplicationRoute, ApplicationStatus, Phase }
 import model.SchemeType._
 import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds }
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
@@ -106,7 +107,33 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
       }
 
+    }
 
+    "evaluate sdip scheme to Red for SdipFaststream candidate" in new TestFixture {
+      applicationEvaluation("application-1", 80, 80, Commercial, DigitalAndTechnology, Sdip)(ApplicationRoute.SdipFaststream) mustResultIn (
+        PHASE1_TESTS_PASSED, Commercial -> Green, DigitalAndTechnology -> Green)
+
+      applicationReEvaluationWithSettings(
+        (Sdip, 90.00, 90.00, 90.00, 90.00)
+      ) mustResultIn (PHASE1_TESTS_PASSED,  Commercial -> Green, DigitalAndTechnology -> Green, Sdip -> Red)
+    }
+
+    "evaluate sdip scheme to Green for SdipFaststream candidate" in new TestFixture {
+      applicationEvaluation("application-1", 80, 80, Commercial, DigitalAndTechnology, Sdip)(ApplicationRoute.SdipFaststream) mustResultIn (
+        PHASE1_TESTS_PASSED, Commercial -> Green, DigitalAndTechnology -> Green)
+
+      applicationReEvaluationWithSettings(
+        (Sdip, 80.00, 80.00, 80.00, 80.00)
+      ) mustResultIn (PHASE1_TESTS_PASSED,  Commercial -> Green, DigitalAndTechnology -> Green, Sdip -> Green)
+    }
+
+    "do not evaluate sdip scheme for SdipFaststream candidate when no pass marks set" in new TestFixture {
+      applicationEvaluation("application-1", 80, 80, Commercial, DigitalAndTechnology, Sdip)(ApplicationRoute.SdipFaststream) mustResultIn (
+        PHASE1_TESTS_PASSED, Commercial -> Green, DigitalAndTechnology -> Green)
+
+      applicationReEvaluationWithSettings(
+        (Finance, 90.00, 90.00, 90.00, 90.00)
+      ) mustResultIn (PHASE1_TESTS_PASSED,  Commercial -> Green, DigitalAndTechnology -> Green)
     }
 
   }
@@ -148,9 +175,10 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       this
     }
 
-    def applicationEvaluation(applicationId:String, sjqScore: Double, bjqScore: Double, selectedSchemes: SchemeType*): TestFixture = {
+    def applicationEvaluation(applicationId:String, sjqScore: Double, bjqScore: Double, selectedSchemes: SchemeType*)
+                             (implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(applicationId, sjqScore, Some(bjqScore),
-        isGis = false)(selectedSchemes: _*)
+        isGis = false, applicationRoute = applicationRoute)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
       this
     }
@@ -167,7 +195,9 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
       phase1PassMarkSettings.version mustBe passMarkEvaluation.passmarkVersion
       applicationStatus mustBe expApplicationStatus
+      schemeResults.size mustBe expSchemeResults.size
       schemeResults must contain theSameElementsAs expSchemeResults
+      applicationReadyForEvaluation = applicationReadyForEvaluation.copy(applicationStatus = expApplicationStatus)
       this
     }
 
