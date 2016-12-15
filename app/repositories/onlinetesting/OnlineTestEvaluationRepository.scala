@@ -143,6 +143,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
       BSONDocument(s"progress-status.$evaluationProgressStatus" -> true),
       BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
       BSONDocument(s"testGroups.$phase.evaluation.result" ->
         BSONDocument("$not" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip))))
     ))

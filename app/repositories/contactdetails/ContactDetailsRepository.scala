@@ -20,8 +20,7 @@ import config.MicroserviceAppConfig
 import model.Address
 import model.Commands._
 import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
-import model.PersistedObjects.ContactDetailsWithId
-import model.persisted.ContactDetails
+import model.persisted.{ ContactDetails, ContactDetailsWithId }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -44,6 +43,10 @@ trait ContactDetailsRepository {
   def findAll: Future[List[ContactDetailsWithId]]
 
   def findAllPostcodes(): Future[Map[String, String]]
+
+  def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]]
+
+  def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]]
 
   def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
 }
@@ -100,7 +103,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     })
   }
 
-  def findAllPostcodes(): Future[Map[String, String]] = {
+  override def findAllPostcodes(): Future[Map[String, String]] = {
     val query = BSONDocument("contact-details.postCode" -> BSONDocument("$exists" -> true))
     val projection = BSONDocument("userId" -> 1, "contact-details.postCode" -> 1)
     implicit val tupleReads: Reads[(String, String)] = (
@@ -109,6 +112,37 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       )((_, _))
     val result = collection.find(query, projection).cursor[(String, String)](ReadPreference.nearest).collect[List]()
     result.map(_.toMap)
+  }
+
+  override def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]] = {
+
+    val query = BSONDocument("contact-details.postCode" -> postCode)
+
+    collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+      val id = doc.getAs[String]("userId").get
+      val root = doc.getAs[BSONDocument]("contact-details").get
+      val address = root.getAs[Address]("address").get
+      val postCode = root.getAs[PostCode]("postCode")
+      val phone = root.getAs[PhoneNumber]("phone")
+      val email = root.getAs[String]("email").get
+
+      ContactDetailsWithId(id, address, postCode, email, phone)
+    })
+  }
+
+  override def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]] = {
+    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+
+    collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+      val id = doc.getAs[String]("userId").get
+      val root = doc.getAs[BSONDocument]("contact-details").get
+      val address = root.getAs[Address]("address").get
+      val postCode = root.getAs[PostCode]("postCode")
+      val phone = root.getAs[PhoneNumber]("phone")
+      val email = root.getAs[String]("email").get
+
+      ContactDetailsWithId(id, address, postCode, email, phone)
+    })
   }
 
   override def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {

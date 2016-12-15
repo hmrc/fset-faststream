@@ -23,9 +23,8 @@ import controllers.ReportingController
 import mocks._
 import mocks.application.ReportingInMemoryRepository
 import model.Commands.PhoneNumber
-import model.PersistedObjects.ContactDetailsWithId
 import model._
-import model.persisted.ContactDetails
+import model.persisted.{ ContactDetails, ContactDetailsWithId }
 import model.report.{ CandidateProgressReportItem, _ }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._

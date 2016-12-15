@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-package repositories
+package model.persisted
 
 import model.Address
-import model.PersistedObjects.ContactDetails
-import testkit.MongoRepositorySpec
+import model.Commands.{ PhoneNumber, PostCode }
+import play.api.libs.json.Json
 
-class ContactDetailsRepositorySpec extends MongoRepositorySpec {
+case class ContactDetailsWithId(
+                                 userId: String,
+                                 address: Address,
+                                 postCode: Option[PostCode],
+                                 email: String,
+                                 phone: Option[PhoneNumber]
+                               )
 
-  override val collectionName = "contact-details"
-
-  def repo = new ContactDetailsMongoRepository()
-
-  "Contact details" should {
-    "create indexes for the repository" in {
-      val repo = repositories.contactDetailsRepository
-
-      val indexes = indexesWithFields(repo)
-      indexes must contain (List("_id"))
-      indexes must contain (List("userId"))
-      indexes.size mustBe 2
-    }
-  }
+object ContactDetailsWithId {
+  implicit val contactDetailsWithIdFormat = Json.format[ContactDetailsWithId]
 }

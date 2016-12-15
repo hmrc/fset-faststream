@@ -18,11 +18,13 @@ package services.allocation
 
 import connectors.CSREmailClient
 import model.Commands.ApplicationAssessment
-import model.PersistedObjects.{ AllocatedCandidate, ContactDetails }
+import model.PersistedObjects.AllocatedCandidate
+import model.persisted.ContactDetails
 import org.joda.time.DateTime
 import play.api.Logger
 import repositories._
 import repositories.application.CandidateAllocationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -31,7 +33,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 object CandidateAllocationService extends CandidateAllocationService {
   val caRepository = candidateAllocationMongoRepository
   val aaRepository = applicationAssessmentRepository
-  val cdRepository = contactDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
   val emailClient = CSREmailClient
   val auditService = AuditService
 }

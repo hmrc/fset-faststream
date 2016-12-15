@@ -18,8 +18,8 @@ package controllers
 
 import connectors.AuthProviderClient
 import model.Commands._
-import model.PersistedObjects.ContactDetailsWithId
 import model.command.ProgressResponse
+import model.persisted.ContactDetailsWithId
 import model.report.{ DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels, _ }
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
