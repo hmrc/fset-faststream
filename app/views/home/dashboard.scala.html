@@ -48,7 +48,7 @@
 @displayLeadInformation = @{(cannotBeConsideredForSdip, submitApplicationsEnabled) match {
     case (true, _) => sdipEligibilityInfo(usr)
     case (_, false) => submit_disabled(usr)
-    case _ if(WithdrawnApplicationRole.isAuthorized(usr)) => withdrawInformation(usr)
+    case _ if WithdrawnApplicationRole.isAuthorized(usr) => withdrawInformation(usr)
     case _ => fastPassRejectedInfo(usr)
 }}
 
@@ -61,7 +61,7 @@
     @if(isFaststream(usr) && !isCivilServant(usr)) {
         @renderProgressElement(showLink = PartnerGraduateProgrammesRole.isAuthorized(usr), checked = AssistanceDetailsRole.isAuthorized(usr), "partnerGraduateProgrammesStep")(routes.PartnerGraduateProgrammesController.present()) { Defer your place }
     }
-    @renderProgressElement(showLink = (AssistanceDetailsRole.isAuthorized(usr) || hasAssistanceDetails(usr)), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Disability and health conditions }
+    @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr) || hasAssistanceDetails(usr), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Disability and health conditions }
     @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = PreviewApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.presentStartOrContinue()) { Fill in the diversity questions }
     @renderProgressElement(showLink = PreviewApplicationRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "previewStep")(routes.PreviewApplicationController.present()) { Check your application }
     @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = AbleToWithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.present()) { Submit }

@@ -20,7 +20,6 @@ import play.api.i18n.{ Lang, Messages }
 import play.api.mvc.RequestHeader
 import security.Roles.WithdrawnApplicationRole
 
-
 object ConsiderMeForSdipHelper {
 
   def faststreamerNotEligibleForSdip(cachedData: CachedData)(implicit request: RequestHeader,

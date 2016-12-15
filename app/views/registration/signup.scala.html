@@ -16,17 +16,20 @@
 @main_template(title = "Create your account", pageForms = Seq(signUpForm), notification = notification) {
     <h1 class="heading-xlarge">Create your account</h1>
 
-    <section class="panel-info standard-panel toggle-content" id="existingFSApply" style="display: block;">
-        <div class="text">
-            <h2 class="heading-medium">Existing Fast Stream applicants</h2>
-            <p>If you want to apply for the
-                <a href="https://www.faststream.gov.uk/summer-diversity-internship-programme/" target="_blank" rel="external">Summer Diversity Internship Programme</a>
-                and have an existing Fast Stream account, you need to
-                <a href="@routes.SignInController.sdipPresent()">sign in</a>.
-            </p>
-            <p>If you don't have an account and want to apply for SDIP you can create your account.</p>
-        </div>
-    </section>
+    @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) {
+        <section class="panel-info standard-panel toggle-content" id="existingFSApply" style="display: block ;">
+            <div class="text">
+                <h2 class="heading-medium">Existing Fast Stream applicants</h2>
+                <p>If you want to apply for the
+                    <a href="https://www.faststream.gov.uk/summer-diversity-internship-programme/" target="_blank" rel="external">
+                        Summer Diversity Internship Programme</a>
+                    and have an existing Fast Stream account, you need to
+                    <a href="@routes.SignInController.sdipPresent()">sign in</a>.
+                </p>
+                <p>If you don't have an account and want to apply for SDIP you can create your account.</p>
+            </div>
+        </section>
+    }
 
     <section class="panel-indent text">
         <p>If you already have an account, you can return to <a href="@routes.SignInController.present">sign in</a>.</p>
