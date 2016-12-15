@@ -26,6 +26,7 @@ import model.persisted.ApplicationForNotification
 import play.api.Logger
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
@@ -41,7 +42,7 @@ object ApplicationAssessmentService extends ApplicationAssessmentService {
   val aRepository = applicationRepository
   val aasRepository = applicationAssessmentScoresRepository
   val fpRepository = frameworkPreferenceRepository
-  val cdRepository = contactDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
 
   val emailClient = CSREmailClient
   val auditService = AuditService

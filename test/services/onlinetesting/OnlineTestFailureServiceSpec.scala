@@ -18,19 +18,20 @@ package services.onlinetesting
 
 import connectors.CSREmailClient
 import model.Address
-import model.PersistedObjects.ContactDetails
-import model.persisted.ApplicationForNotification
+import model.persisted.{ ApplicationForNotification, ContactDetails }
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import org.scalatest.time.{ Millis, Span }
-import repositories.ContactDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.{ AuditService, BaseServiceSpec }
-import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
+import testkit.MockitoImplicits.OngoingStubbingExtensionUnit
 import model.ApplicationStatus._
+import repositories.contactdetails.ContactDetailsRepository
 import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
+
+import scala.concurrent.Future
 
 class OnlineTestFailureServiceSpec extends BaseServiceSpec {
 
@@ -140,7 +141,7 @@ class OnlineTestFailureServiceSpec extends BaseServiceSpec {
     val userId = "xyz"
     val preferredName = "Jon"
     val emailAddress = "jon@test.com"
-    val contactDetails = ContactDetails(Address("line 1"), "HP27 9JU", emailAddress, None)
+    val contactDetails = ContactDetails(outsideUk = false, Address("line 1"), Some("HP27 9JU"), None, emailAddress, "1234567")
     val failedTest = ApplicationForNotification(applicationId, userId, preferredName, PHASE1_TESTS_FAILED)
     def hc = HeaderCarrier()
 
@@ -161,7 +162,7 @@ class OnlineTestFailureServiceSpec extends BaseServiceSpec {
   }
 
   trait ProcessFailedFixture extends Fixture {
-    when(cdRepository.find(any())).thenReturnAsync(contactDetails)
+    when(cdRepository.find(any())).thenReturn(Future.successful(contactDetails))
     doReturnAsync()
       .when(service).emailCandidate(any(), any())
     doReturnAsync()

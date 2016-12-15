@@ -19,13 +19,15 @@ package services.allocation
 import connectors.CSREmailClient
 import model.Address
 import model.Commands.ApplicationAssessment
-import model.PersistedObjects.{ AllocatedCandidate, ContactDetails, PersonalDetailsWithUserId }
+import model.PersistedObjects.{ AllocatedCandidate, PersonalDetailsWithUserId }
+import model.persisted.ContactDetails
 import org.joda.time.{ DateTime, LocalDate }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.time.{ Seconds, Span }
 import repositories.application.CandidateAllocationRepository
-import repositories.{ ApplicationAssessmentRepository, ContactDetailsRepository }
+import repositories.ApplicationAssessmentRepository
+import repositories.contactdetails.ContactDetailsRepository
 import services.AuditService
 import testkit.UnitSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -36,7 +38,7 @@ class CandidateAllocationServiceSpec extends UnitSpec {
 
   val candidate = AllocatedCandidate(PersonalDetailsWithUserId("Alice", "userId"), "app1", LocalDate.now().plusDays(3))
   val applicationAssessment = ApplicationAssessment("app1", "London 1", LocalDate.now().plusDays(3), "AM", 1, confirmed = false)
-  val candidateContact = ContactDetails(Address("Aldwych road"), "AB CDE", "alice@test.com", None)
+  val candidateContact = ContactDetails(false, Address("Aldwych road"), Some("AB CDE"), None, "alice@test.com", "1234567")
 
   val caRepositoryMock = mock[CandidateAllocationRepository]
   val cdRepositoryMock = mock[ContactDetailsRepository]

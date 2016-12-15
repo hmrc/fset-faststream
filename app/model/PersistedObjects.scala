@@ -38,21 +38,6 @@ object PersistedObjects {
 
   case class PersonalDetailsWithUserId(preferredName: String, userId: String)
 
-  case class ContactDetails(
-    address: Address,
-    postCode: PostCode,
-    email: String,
-    phone: Option[PhoneNumber]
-  )
-
-  case class ContactDetailsWithId(
-    userId: String,
-    address: Address,
-    postCode: Option[PostCode],
-    email: String,
-    phone: Option[PhoneNumber]
-  )
-
   case class ApplicationIdWithUserIdAndStatus(applicationId: String, userId: String, applicationStatus: String)
 
   case class PersistedAnswer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
@@ -96,8 +81,6 @@ object PersistedObjects {
   object Implicits {
     implicit val persistedPersonalDetailsFormats = Json.format[PersonalDetails]
     implicit val addressFormats = Json.format[Address]
-    implicit val contactDetailsFormats = Json.format[ContactDetails]
-    implicit val contactDetailsIdFormats = Json.format[ContactDetailsWithId]
     implicit val answerFormats = Json.format[PersistedAnswer]
     implicit val questionFormats = Json.format[PersistedQuestion]
     implicit val personalDetailsWithUserIdFormats = Json.format[PersonalDetailsWithUserId]
@@ -109,7 +92,5 @@ object PersistedObjects {
     implicit val applicationUserFormats = Json.format[ApplicationUser]
 
     implicit val onlineTestPdfReportFormats = Json.format[OnlineTestPDFReport]
-
-    implicit val contactDetailsHandler = Macros.handler[ContactDetails]
   }
 }

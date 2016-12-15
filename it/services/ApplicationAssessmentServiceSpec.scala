@@ -37,6 +37,7 @@ import reactivemongo.bson.{ BSONDocument, BSONString }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.applicationassessment.ApplicationAssessmentService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
