@@ -421,6 +421,25 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val applicationResponse = repository.findTestForNotification(Phase3SuccessTestType).futureValue
       applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
     }
+
+    "do NOT find a edip candidate that has already been notified of successful phase1 test results" in {
+      val progressStatuses = (PHASE1_TESTS_SUCCESS_NOTIFIED, true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
+        additionalProgressStatuses = progressStatuses, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
+      val applicationResponse = repository.findTestForNotification(Phase1SuccessTestType).futureValue
+      applicationResponse mustBe None
+    }
+
+    "do NOT find a sdip candidate that has already been notified of successful phase1 test results" in {
+      val progressStatuses = (PHASE1_TESTS_SUCCESS_NOTIFIED, true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
+        additionalProgressStatuses = progressStatuses, applicationRoute = Some(ApplicationRoute.Sdip)).futureValue
+      val applicationResponse = repository.findTestForNotification(Phase1SuccessTestType).futureValue
+      applicationResponse mustBe None
+    }
+
     "find a candidate that needs to be notified of failed phase1 test results" in {
       val progressStatuses = (PHASE1_TESTS_RESULTS_RECEIVED, true) :: Nil
 
@@ -444,14 +463,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase3FailedTestType).futureValue
       applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
-    }
-    "do NOT find a edip candidate that has already been notified of successful phase1 test results" in {
-      val progressStatuses = (PHASE1_TESTS_SUCCESS_NOTIFIED, true) :: Nil
-
-      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
-        additionalProgressStatuses = progressStatuses, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
-      val applicationResponse = repository.findTestForNotification(Phase1SuccessTestType).futureValue
-      applicationResponse mustBe None
     }
     "do NOT find a candidate that has already been notified of successful phase3 test results" in {
       val progressStatuses = (PHASE3_TESTS_SUCCESS_NOTIFIED, true) :: Nil
