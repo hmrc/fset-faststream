@@ -24,7 +24,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
-import model.ApplicationRoute.{ apply => _ }
+import model.ApplicationRoute.{ ApplicationRoute, apply => _ }
 import model.Commands.Candidate
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.command.ProgressResponse
@@ -386,104 +386,114 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   }
 
   "findTestForNotification" should {
-    val frameworkId = "FastStream-2016"
+    "find an edip candidate that needs to be notified of successful phase1 test results" in new NewApplication {
+      val appStatus = ApplicationStatus.PHASE1_TESTS_PASSED
+      val appRoute = Some(ApplicationRoute.Edip)
+      createApplication()
 
-    "find an edip candidate that needs to be notified of successful phase1 test results" in {
-      val userId = "fastPassUser"
-      val appId = "fastPassApp"
-
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
-        applicationRoute = Some(ApplicationRoute.Edip)).futureValue
-      val applicationResponse = repository.findTestForNotification(Phase1SuccessTestType).futureValue
-      applicationResponse mustBe Some(TestResultNotification(appId, userId, testDataRepo.testCandidate("preferredName")))
+      val notification = repository.findTestForNotification(Phase1SuccessTestType).futureValue
+      notification mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
     }
-    "find a candidate that needs to be notified of successful phase3 test results" in {
-      val userId = "fastPassUser3"
-      val appId = "fastPassApp3"
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED).futureValue
+    "find an sdip candidate that needs to be notified of successful phase1 test results" in new NewApplication {
+      val appStatus = ApplicationStatus.PHASE1_TESTS_PASSED
+      val appRoute = Some(ApplicationRoute.Sdip)
+      createApplication()
+
+      val notification = repository.findTestForNotification(Phase1SuccessTestType).futureValue
+      notification mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
+    }
+
+    "find nothing if only faststream candidates passed phase1 test" in new NewApplication {
+      val appStatus = ApplicationStatus.PHASE1_TESTS_PASSED
+      val appRoute = Some(ApplicationRoute.Faststream)
+      createApplication()
+
+      val notification = repository.findTestForNotification(Phase1SuccessTestType).futureValue
+      notification mustBe empty
+    }
+
+    "find a candidate that needs to be notified of successful phase3 test results" in new NewApplication {
+      val appStatus = ApplicationStatus.PHASE3_TESTS_PASSED
+      val appRoute = None
+      createApplication()
+
       val applicationResponse = repository.findTestForNotification(Phase3SuccessTestType).futureValue
-      applicationResponse mustBe Some(TestResultNotification(appId, userId, testDataRepo.testCandidate("preferredName")))
+      applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
     }
     "find a candidate that needs to be notified of failed phase1 test results" in {
-      val userId = "fastPassUser1"
-      val appId = "fastPassApp1"
       val progressStatuses = (PHASE1_TESTS_RESULTS_RECEIVED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase1FailedTestType).futureValue
-      applicationResponse mustBe Some(TestResultNotification(appId, userId, testDataRepo.testCandidate("preferredName")))
+      applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
     }
     "find a candidate that needs to be notified of failed phase2 test results" in {
-      val userId = "fastPassUser2"
-      val appId = "fastPassApp2"
       val progressStatuses = (PHASE2_TESTS_RESULTS_RECEIVED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE2_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE2_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase2FailedTestType).futureValue
-      applicationResponse mustBe Some(TestResultNotification(appId, userId, testDataRepo.testCandidate("preferredName")))
+      applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
     }
     "find a candidate that needs to be notified of failed phase3 test results" in {
-      val userId = "fastPassUser3"
-      val appId = "fastPassApp3"
       val progressStatuses = (PHASE3_TESTS_RESULTS_RECEIVED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase3FailedTestType).futureValue
-      applicationResponse mustBe Some(TestResultNotification(appId, userId, testDataRepo.testCandidate("preferredName")))
+      applicationResponse mustBe Some(TestResultNotification(AppId, UserId, testDataRepo.testCandidate("preferredName")))
     }
     "do NOT find a edip candidate that has already been notified of successful phase1 test results" in {
-      val userId = "fastPassUser"
-      val appId = "fastPassApp"
       val progressStatuses = (PHASE1_TESTS_SUCCESS_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
         additionalProgressStatuses = progressStatuses, applicationRoute = Some(ApplicationRoute.Edip)).futureValue
       val applicationResponse = repository.findTestForNotification(Phase1SuccessTestType).futureValue
       applicationResponse mustBe None
     }
     "do NOT find a candidate that has already been notified of successful phase3 test results" in {
-      val userId = "fastPassUser3"
-      val appId = "fastPassApp3"
       val progressStatuses = (PHASE3_TESTS_SUCCESS_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase3SuccessTestType).futureValue
       applicationResponse mustBe None
     }
     "do NOT find a candidate that has already been notified of failed phase1 test results" in {
-      val userId = "fastPassUser1"
-      val appId = "fastPassApp1"
       val progressStatuses = (PHASE1_TESTS_FAILED_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase1FailedTestType).futureValue
       applicationResponse mustBe None
     }
     "do NOT find a candidate that has already been notified of failed phase2 test results" in {
-      val userId = "fastPassUser2"
-      val appId = "fastPassApp2"
       val progressStatuses = (PHASE2_TESTS_FAILED_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE2_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE2_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase2FailedTestType).futureValue
       applicationResponse mustBe None
     }
     "do NOT find a candidate that has already been notified of failed phase3 test results" in {
-      val userId = "fastPassUser3"
-      val appId = "fastPassApp3"
       val progressStatuses = (PHASE3_TESTS_FAILED_NOTIFIED, true) :: Nil
 
-      testDataRepo.createApplicationWithAllFields(userId, appId, frameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+      testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
         additionalProgressStatuses = progressStatuses).futureValue
       val applicationResponse = repository.findTestForNotification(Phase3FailedTestType).futureValue
       applicationResponse mustBe None
+    }
+
+    abstract class NewApplication {
+      val appStatus: ApplicationStatus
+      val appRoute: Option[ApplicationRoute]
+
+      def createApplication() = {
+        testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, appStatus,
+          applicationRoute = appRoute).futureValue
+      }
     }
   }
 
