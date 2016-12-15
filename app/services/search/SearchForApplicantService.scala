@@ -19,10 +19,11 @@ package services.search
 import connectors.AuthProviderClient
 import model.Commands.{ Candidate, SearchCandidate }
 import model.Exceptions.ContactDetailsNotFound
-import model.PersistedObjects.ContactDetailsWithId
+import model.persisted.ContactDetailsWithId
 import org.joda.time.LocalDate
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -31,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object SearchForApplicantService extends SearchForApplicantService {
   val appRepository = applicationRepository
   val psRepository = personalDetailsRepository
-  val cdRepository = contactDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
   val authProviderClient = AuthProviderClient
 }
 

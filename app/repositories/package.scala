@@ -20,9 +20,9 @@ import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
-import model.PersistedObjects.{ ContactDetails, PersistedAnswer, PersonalDetails }
+import model.PersistedObjects.{ PersistedAnswer, PersonalDetails }
 import model.command.WithdrawApplication
-import model.persisted.AssistanceDetails
+import model.persisted.{ AssistanceDetails, ContactDetails }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.indexes.Index
@@ -76,17 +76,17 @@ package object repositories {
   lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
   lazy val eventMongoRepository = new EventMongoRepository
   lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
+  lazy val flagCandidateRepository = new FlagCandidateMongoRepository
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
-  lazy val contactDetailsRepository = new ContactDetailsMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
   lazy val applicationAssessmentRepository = new ApplicationAssessmentMongoRepository()
   lazy val candidateAllocationMongoRepository = new CandidateAllocationMongoRepository(DateTimeFactory)
   lazy val applicationAssessmentScoresRepository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
-  lazy val flagCandidateRepository = new FlagCandidateMongoRepository
+
 
   /** Create indexes */
   Await.result(Future.sequence(List(
@@ -98,7 +98,6 @@ package object repositories {
     applicationRepository.collection.indexesManager.create(Index(Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false)),
     applicationRepository.collection.indexesManager.create(Index(Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)),
 
-    contactDetailsRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
     faststreamContactDetailsRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
 
     phase1PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),

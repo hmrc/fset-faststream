@@ -23,6 +23,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -32,7 +33,7 @@ import scala.concurrent.Future
 object SearchForApplicantsController extends SearchForApplicantsController {
   val appRepository = applicationRepository
   val psRepository = personalDetailsRepository
-  val cdRepository = contactDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
   val searchForApplicantService = SearchForApplicantService
 }
 
@@ -53,7 +54,7 @@ trait SearchForApplicantsController extends BaseController {
       psRepository.find(application.applicationId).flatMap { pd =>
         cdRepository.find(userId).map { cd =>
           Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), Some(cd.postCode), None,
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), cd.postCode, None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
         }.recover {
           case e: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),

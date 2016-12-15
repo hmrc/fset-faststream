@@ -17,11 +17,11 @@
 package repositories.application
 
 import connectors.ExchangeObjects
+import model.{ Address, CivilServiceExperienceType, InternshipType, SchemeType }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.PersistedObjects.ContactDetails
 import model.ProgressStatuses.ProgressStatus
-import model.{ ApplicationStatus => _, _ }
+import model.persisted.ContactDetails
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
@@ -48,7 +48,7 @@ trait TestDataContactDetailsRepository {
 
 class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo,
-    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with
+    ContactDetails.contactDetailsFormat, ReactiveMongoFormats.objectIdFormats) with
     TestDataContactDetailsRepository with ReactiveRepositoryHelpers {
 
   import Utils.chooseOne
@@ -62,7 +62,8 @@ class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
   }
 
   private def createSingleContactDetail(id: Int): Future[Unit] = {
-    val contactDetails = ContactDetails(Address("1st High Street"), chooseOne(postcodes), s"test_$id@test.com", Some("123456789"))
+    val contactDetails = ContactDetails(outsideUk = false, Address("1st High Street"), Some(chooseOne(postcodes)), None,
+      s"test_$id@test.com", "123456789")
     val contactDetailsBson = BSONDocument("$set" -> BSONDocument(
       "contact-details" -> contactDetails
     ))
@@ -74,7 +75,7 @@ class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
 
 class TestDataMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[ContactDetails, BSONObjectID]("application", mongo,
-    PersistedObjects.Implicits.contactDetailsFormats, ReactiveMongoFormats.objectIdFormats) with TestDataRepository
+    ContactDetails.contactDetailsFormat, ReactiveMongoFormats.objectIdFormats) with TestDataRepository
     with ReactiveRepositoryHelpers {
 
   import Utils.chooseOne
