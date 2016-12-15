@@ -3,8 +3,13 @@
 @import views.html.home.withdrawSection
 @import security.Roles._
 @import views.html.home.withdrawInformation
+@import models.ApplicationRoute._
 
 @(cachedUser: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+
+@applicationRoute = @{
+    user.flatMap(_.application).map(_.applicationRoute).getOrElse(Faststream)
+}
 
 @main_template(title = "Home") {
 
@@ -15,8 +20,7 @@
             <h2 class="heading-large"><i class="fa fa-check"></i>You've passed the online tests</h2>
             <div class="text">
                 <section>
-                    <p>Congratulations, you've been succcessful for the Early Diversity
-                        Internship Programme (EDIP).</p>
+                    <p>@Messages(s"dashboard.final.results.${applicationRoute.toString}")</p>
                 </section>
                 <h2 class="heading-large">What you need to do now</h2>
             </div>

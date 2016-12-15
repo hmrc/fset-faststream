@@ -125,42 +125,40 @@ class HomeControllerSpec extends BaseControllerSpec {
       content must include("Congratulations, you've been successful for at least one of your")
     }
 
-    "display edip final results page" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
-
-      val edipPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
-        CachedDataExample.EdipPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
-
+    "display edip final results page" in new EdipAndSdipTestFixture {
       val result = controller(edipPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
 
-      content must include("Congratulations, you've been succcessful for the Early Diversity")
+      content must include("Congratulations, you&#x27;ve been succcessful for the Early Diversity Internship Programme (EDIP).")
       content mustNot include("Your application has been withdrawn.")
     }
 
-    "display edip final results page for withdrawn application" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
+    "display sdip final results page" in new EdipAndSdipTestFixture {
+      val result = controller(sdipPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
 
-      val edipWithdrawnPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
-        CachedDataExample.EdipWithdrawnPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+      content must include("Congratulations, you&#x27;ve been succcessful for the Summer Diversity Internship Programme (SDIP).")
+      content mustNot include("Your application has been withdrawn.")
+    }
 
+    "display edip final results page for withdrawn application" in new EdipAndSdipTestFixture {
       val result = controller(edipWithdrawnPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
 
       content must include("Your application has been withdrawn.")
-      content must include("Congratulations, you've been succcessful for the Early Diversity")
+      content must include("Congratulations, you&#x27;ve been succcessful for the Early Diversity Internship Programme (EDIP).")
+    }
+
+    "display sdip final results page for withdrawn application" in new EdipAndSdipTestFixture {
+      val result = controller(sdipWithdrawnPhase1TestsPassedApp, applicationRouteState).present()(fakeRequest)
+      status(result) must be(OK)
+      val content = contentAsString(result)
+
+      content must include("Your application has been withdrawn.")
+      content must include("Congratulations, you&#x27;ve been succcessful for the Summer Diversity Internship Programme (SDIP).")
     }
 
     "display fast pass rejected message" in new TestFixture {
@@ -398,5 +396,26 @@ class HomeControllerSpec extends BaseControllerSpec {
       val applicationsSubmitEnabled = true
       val applicationsStartDate = Some(LocalDateTime.now)
     }
+  }
+
+  trait EdipAndSdipTestFixture extends TestFixture {
+    val applicationRouteState = new ApplicationRouteState {
+      val newAccountsStarted = true
+      val newAccountsEnabled = true
+      val applicationsSubmitEnabled = true
+      val applicationsStartDate = None }
+
+    when(mockApplicationClient.getFinalSchemeResults(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeType.DiplomaticService, "Green")))))
+
+    val edipPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
+      CachedDataExample.EdipPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+    val sdipPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
+      CachedDataExample.SdipPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+    val edipWithdrawnPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
+      CachedDataExample.EdipWithdrawnPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+    val sdipWithdrawnPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
+      CachedDataExample.SdipWithdrawnPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+
   }
 }
