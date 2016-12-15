@@ -19,6 +19,8 @@ package services
 import model.Commands.{ ApplicationResponse, Candidate }
 import model.command.ProgressResponse
 import model.events.AuditEvents
+import org.joda.time.DateTime
+import org.mockito.ArgumentMatchers.any
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationRoute, SchemeType, SelectedSchemes }
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
@@ -36,6 +38,7 @@ import services.events.EventServiceFixture
 import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase3ResultService }
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 
 import scala.concurrent.Future
 
@@ -43,7 +46,7 @@ import scala.concurrent.Future
 class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "fix" must {
-    "process all issues we have examples of" in new ApplicationServiceTest {
+    "process all issues we have examples of" in new TestFixture {
       when(appRepositoryMock.getApplicationsToFix(FixBatch(PassToPhase2, 1))).thenReturn(getApplicationsToFixSuccess2)
       when(appRepositoryMock.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1))).thenReturn(getApplicationsToFixSuccess1)
       when(appRepositoryMock.fix(candidate1, FixBatch(PassToPhase2, 1))).thenReturn(Future.successful(Some(candidate1)))
@@ -59,7 +62,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyNoMoreInteractions(underTest.auditEventHandlerMock)
     }
 
-    "don't fix anything if no issues is detected" in new ApplicationServiceTest {
+    "don't fix anything if no issues is detected" in new TestFixture {
       when(appRepositoryMock.getApplicationsToFix(FixBatch(PassToPhase2, 1))).thenReturn(getApplicationsToFixEmpty)
 
       underTest.fix(FixBatch(PassToPhase2, 1) :: Nil)(hc, rh).futureValue
@@ -68,7 +71,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyZeroInteractions(underTest.auditEventHandlerMock)
     }
 
-    "proceeds with the others searches if one of them fails" in new ApplicationServiceTest {
+    "proceeds with the others searches if one of them fails" in new TestFixture {
       when(appRepositoryMock.getApplicationsToFix(FixBatch(PassToPhase2, 1))).thenReturn(getApplicationsToFixSuccess1)
       when(appRepositoryMock.getApplicationsToFix(FixBatch(ResetPhase1TestInvitedSubmitted, 1))).thenReturn(failure)
       when(appRepositoryMock.fix(candidate3, FixBatch(PassToPhase2, 1))).thenReturn(Future.successful(Some(candidate3)))
@@ -81,14 +84,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       verifyZeroInteractions(underTest.auditEventHandlerMock)
     }
 
-    "retrieve passed schemes for Faststream application" in new ApplicationServiceTest {
+    "retrieve passed schemes for Faststream application" in new TestFixture {
 
       val userId = "userId"
       val applicationId = "appId"
       val frameworkId = ""
 
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
-        userId,ProgressResponse(applicationId), None)
+        userId,ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None,
         List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
           SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red")))
@@ -102,14 +105,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     }
 
-    "retrieve passed schemes for Faststream application with fast pass approved" in new ApplicationServiceTest {
+    "retrieve passed schemes for Faststream application with fast pass approved" in new TestFixture {
 
       val userId = "userId"
       val applicationId = "appId"
       val frameworkId = ""
 
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
-        userId,ProgressResponse(applicationId, fastPassAccepted = true), None)
+        userId,ProgressResponse(applicationId, fastPassAccepted = true), None, None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
       when(schemeRepositoryMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(List(SchemeType.Commercial),
@@ -121,13 +124,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     }
 
-    "retrieve passed schemes for Edip application" in new ApplicationServiceTest {
+    "retrieve passed schemes for Edip application" in new TestFixture {
 
       val userId = "userId"
       val applicationId = "appId"
       val frameworkId = ""
 
-      val edipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Edip, userId, ProgressResponse(applicationId), None)
+      val edipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Edip, userId,
+        ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Edip, "Green")))
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(edipApplication))
@@ -139,13 +143,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     }
 
-    "retrieve passed schemes for Sdip application" in new ApplicationServiceTest {
+    "retrieve passed schemes for Sdip application" in new TestFixture {
 
       val userId = "userId"
       val applicationId = "appId"
       val frameworkId = ""
 
-      val sdipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Sdip, userId, ProgressResponse(applicationId), None)
+      val sdipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Sdip, userId,
+        ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green")))
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(sdipApplication))
@@ -158,7 +163,20 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
-  trait ApplicationServiceTest {
+  "Override submission deadline" must {
+    "update the submission deadline in the repository" in new TestFixture {
+      val newDeadline = new DateTime(2016, 5, 21, 23, 59, 59)
+      val appId = "appId"
+
+      when(appRepositoryMock.updateSubmissionDeadline(appId, newDeadline)).thenReturn(Future.successful(()))
+
+      underTest.overrideSubmissionDeadline("appId", newDeadline)
+
+      verify(appRepositoryMock, times(1)).updateSubmissionDeadline(eqTo(appId), eqTo(newDeadline))
+    }
+  }
+
+  trait TestFixture {
 
     val appRepositoryMock: GeneralApplicationRepository = mock[GeneralApplicationRepository]
     val pdRepositoryMock: PersonalDetailsRepository = mock[PersonalDetailsRepository]

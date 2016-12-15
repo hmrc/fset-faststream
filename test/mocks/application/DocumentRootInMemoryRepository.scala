@@ -43,6 +43,7 @@ object DocumentRootInMemoryRepository extends DocumentRootInMemoryRepository
 class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def find(applicationIds: List[String]): Future[List[Candidate]] = ???
+  override def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime) = ???
 
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
               frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = ???
@@ -53,7 +54,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
     val applicationId = java.util.UUID.randomUUID().toString
     val applicationCreated = ApplicationResponse(applicationId, "CREATED", ApplicationRoute.Faststream, userId,
-      ProgressResponse(applicationId), None)
+      ProgressResponse(applicationId), None, None)
 
     inMemoryRepo += applicationId -> applicationCreated
     Future.successful(applicationCreated)
@@ -71,7 +72,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
     case _ =>
       val applicationId = "1111-1111"
       val applicationCreated = ApplicationResponse(applicationId, "CREATED", ApplicationRoute.Faststream, userId,
-        ProgressResponse(applicationId), None)
+        ProgressResponse(applicationId), None, None)
       Future.successful(applicationCreated)
   }
 
@@ -82,7 +83,7 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   }
 
   override def findStatus(applicationId: String): Future[ApplicationStatusDetails] = Future.successful(
-    ApplicationStatusDetails("", ApplicationRoute.Faststream))
+    ApplicationStatusDetails("", ApplicationRoute.Faststream, None, None))
 
   override def submit(applicationId: String): Future[Unit] = Future.successful(Unit)
 
