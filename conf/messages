@@ -264,3 +264,6 @@ global.error.pageNotFound404.message=The page you were looking for could not be 
 global.error.InternalServerError500.title=Service unavailable - 500
 global.error.InternalServerError500.heading=Service unavailable
 global.error.InternalServerError500.message=Something went wrong, try again in a few minutes.
+
+dashboard.final.results.Edip=Congratulations, you''ve been succcessful for the Early Diversity Internship Programme (EDIP).
+dashboard.final.results.Sdip=Congratulations, you''ve been succcessful for the Summer Diversity Internship Programme (SDIP).

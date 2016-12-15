@@ -45,7 +45,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
     implicit request => implicit cachedData =>
      cachedData.application.map { implicit application =>
        cachedData match {
-         case _ if isPhase1TestsPassed && isEdip(cachedData) => displayEdipResultsPage
+         case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
          case _ if isPhase3TestsPassed => displayFaststreamResultsPage
          case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
        }
@@ -115,9 +115,9 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       Ok(views.html.home.faststreamFinalResults(cachedData, results.getOrElse(Nil)))
     }
 
-  private def displayEdipResultsPage(implicit application: ApplicationData, cachedData: CachedData,
-                                      request: Request[_], hc: HeaderCarrier) =
-      Future.successful(Ok(views.html.home.edipFinalResults(cachedData)))
+  private def displayEdipOrSdipResultsPage(implicit application: ApplicationData, cachedData: CachedData,
+                                           request: Request[_], hc: HeaderCarrier) =
+      Future.successful(Ok(views.html.home.edipAndSdipFinalResults(cachedData)))
 
   private def dashboardWithOnlineTests(implicit application: ApplicationData,
                                        displaySdipEligibilityInfo: Boolean,
