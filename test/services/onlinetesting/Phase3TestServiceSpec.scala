@@ -243,9 +243,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         ResetApplicantRequest(
           testInterviewId,
           testLaunchpadCandidateId,
-          expectedCustomInviteId,
-          phase3TestGroupNotCompleted.expirationDate.toLocalDate,
-          s"http://www.foo.com/test/interview/fset-fast-stream/online-tests/phase3/complete/$expectedCustomInviteId"
+          phase3TestGroupNotCompleted.expirationDate.toLocalDate//,
         )
       ))
       verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
@@ -286,9 +284,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         RetakeApplicantRequest(
           testInterviewId,
           testLaunchpadCandidateId,
-          expectedCustomInviteId,
-          phase3TestGroupNotCompleted.expirationDate.toLocalDate,
-          s"http://www.foo.com/test/interview/fset-fast-stream/online-tests/phase3/complete/$expectedCustomInviteId"
+          phase3TestGroupNotCompleted.expirationDate.toLocalDate//,
         )
       ))
       verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())

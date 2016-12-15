@@ -225,7 +225,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     case class InviteResetOrTakeResponse(candidateId: String, testUrl: String, customInviteId: String, customCandidateId: Option[String])
 
     def inviteOrResetOrRetake: Future[InviteResetOrTakeResponse] = {
-      def hasStartedAndNotCompletedSameInterviewBefore(phase3TestGroup: Phase3TestGroup) = {
+      def hasNotCompletedSameInterviewBefore(phase3TestGroup: Phase3TestGroup) = {
         phase3TestGroup.tests.filter(launchPadTest =>
           !launchPadTest.completedDateTime.isDefined && launchPadTest.interviewId == interviewId).size > 0
       }
@@ -243,7 +243,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
           retakeApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map { retakeResponse =>
             InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
           }
-        } else if (hasStartedAndNotCompletedSameInterviewBefore(phase3TestGroupContent)) {
+        } else if (hasNotCompletedSameInterviewBefore(phase3TestGroupContent)) {
           resetApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map { resetResponse =>
             InviteResetOrTakeResponse(candidateId, resetResponse.testUrl, resetResponse.customInviteId, getInitialCustomCandidateId)
           }
@@ -434,27 +434,13 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
   private def resetApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: LocalDate)
                             (implicit hc: HeaderCarrier): Future[ResetApplicantResponse] = {
-
-    val customInviteId = "FSINV-" + tokenFactory.generateUUID()
-
-    val completionRedirectUrl = s"${gatewayConfig.phase3Tests.candidateCompletionRedirectUrl}/fset-fast-stream" +
-      s"/online-tests/phase3/complete/$customInviteId"
-
-    val resetApplicant = ResetApplicantRequest(interviewId, candidateId, customInviteId, newDeadLine, completionRedirectUrl)
-
+    val resetApplicant = ResetApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.resetApplicant(resetApplicant)
   }
 
   private def retakeApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: LocalDate)
                              (implicit hc: HeaderCarrier): Future[RetakeApplicantResponse] = {
-
-    val customInviteId = "FSINV-" + tokenFactory.generateUUID()
-
-    val completionRedirectUrl = s"${gatewayConfig.phase3Tests.candidateCompletionRedirectUrl}/fset-fast-stream" +
-      s"/online-tests/phase3/complete/$customInviteId"
-
-    val retakeApplicant = RetakeApplicantRequest(interviewId, candidateId, customInviteId, newDeadLine, completionRedirectUrl)
-
+    val retakeApplicant = RetakeApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.retakeApplicant(retakeApplicant)
   }
 
