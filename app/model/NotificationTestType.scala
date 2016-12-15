@@ -49,7 +49,7 @@ object Phase3FailedTestType
 object Phase1SuccessTestType
   extends SuccessTestType(ApplicationStatus.PHASE1_TESTS_PASSED, PHASE1_TESTS_SUCCESS_NOTIFIED,
     READY_FOR_EXPORT, "fset_faststream_app_online_phase1_test_success") {
-  override val applicationRoutes = List(ApplicationRoute.Edip)
+  override val applicationRoutes = List(ApplicationRoute.Edip, ApplicationRoute.Sdip)
 }
 
 object Phase3SuccessTestType
