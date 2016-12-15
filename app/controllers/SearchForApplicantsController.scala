@@ -24,6 +24,7 @@ import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
 import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -32,7 +33,7 @@ import scala.concurrent.Future
 
 object SearchForApplicantsController extends SearchForApplicantsController {
   val appRepository = applicationRepository
-  val psRepository = personalDetailsRepository
+  val psRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val searchForApplicantService = SearchForApplicantService
 }

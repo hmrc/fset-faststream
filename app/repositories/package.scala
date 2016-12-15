@@ -20,9 +20,9 @@ import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
-import model.PersistedObjects.{ PersistedAnswer, PersonalDetails }
+import model.PersistedObjects.PersistedAnswer
 import model.command.WithdrawApplication
-import model.persisted.{ AssistanceDetails, ContactDetails }
+import model.persisted.{ AssistanceDetails, ContactDetails, PersonalDetails }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import reactivemongo.api.indexes.Index
@@ -79,7 +79,6 @@ package object repositories {
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
 
   // Below repositories will be deleted as they are valid only for Fasttrack
-  lazy val personalDetailsRepository = new PersonalDetailsMongoRepository()
   lazy val frameworkRepository = new FrameworkYamlRepository()
   lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
   lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
@@ -127,27 +126,6 @@ package object repositories {
     def read(time: BSONString) = LocalDate.parse(time.value)
 
     def write(jdtime: LocalDate) = BSONString(jdtime.toString("yyyy-MM-dd"))
-  }
-
-  /** Implicit transformation for the PersistedPersonalDetails **/
-  @deprecated("fasttrack version", "ages ago")
-  implicit object BSONPersistedPersonalDetailsHandler extends BSONHandler[BSONDocument, PersonalDetails] {
-    def read(doc: BSONDocument): PersonalDetails = {
-      val root = doc.getAs[BSONDocument]("personal-details").get
-      val firstName = root.getAs[String]("firstName").get
-      val lastName = root.getAs[String]("lastName").get
-      val preferredName = root.getAs[String]("preferredName").get
-      val dateOfBirth = doc.getAs[LocalDate]("dateOfBirth").get
-
-      PersonalDetails(firstName, lastName, preferredName, dateOfBirth, aLevel = false, stemLevel = false)
-    }
-
-    def write(psDoc: PersonalDetails) = BSONDocument(
-      "firstName" -> psDoc.firstName,
-      "lastName" -> psDoc.lastName,
-      "preferredName" -> psDoc.preferredName,
-      "dateOfBirth" -> psDoc.dateOfBirth
-    )
   }
 
   implicit object BSONMapHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
