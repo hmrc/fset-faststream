@@ -23,7 +23,7 @@ import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.NotFoundException
+import model.Exceptions.{ ConnectorException, NotFoundException }
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
