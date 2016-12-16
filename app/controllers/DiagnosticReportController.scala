@@ -39,11 +39,11 @@ trait DiagnosticReportController extends BaseController {
     applicationUser.map { au =>
       Ok(Json.toJson(au))
     } recover {
-      case e => NotFound
+      case _ => NotFound
     }
   }
 
-  def getAllApplications() = Action { implicit request =>
+  def getAllApplications = Action { implicit request =>
     Ok.chunked(drRepository.findAll())
   }
 }

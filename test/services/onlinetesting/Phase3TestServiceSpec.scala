@@ -292,7 +292,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val p3TestRepositoryMock = mock[Phase3TestRepository]
     val launchpadGatewayClientMock = mock[LaunchpadGatewayClient]
     val emailClientMock = mock[CSREmailClient]
-    var auditServiceMock = mock[AuditService]
+    val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val dateTimeFactoryMock = mock[DateTimeFactory]
     val adjustmentsManagementServiceMock = mock[AdjustmentsManagementService]

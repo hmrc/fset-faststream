@@ -175,8 +175,8 @@ trait ReportingController extends BaseController {
         case None => ProgressStatusesReportLabels.RegisteredProgress
       }
 
-      val contactDetailsMap = contactDetails.toList.groupBy(_.userId).mapValues(_.headOption)
-      val applicationsMap = applications.toList
+      val contactDetailsMap = contactDetails.groupBy(_.userId).mapValues(_.headOption)
+      val applicationsMap = applications
         .groupBy { case (userId, _, _) => userId }
         .mapValues(_.headOption.map { case (_, _, app) => app })
 

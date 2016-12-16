@@ -73,10 +73,10 @@ trait Phase3TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
 
   def getReviewSectionQuestionRequest(questionId: Int, criteria1Score: Option[Double] = None, criteria2Score: Option[Double] = None,
                                       setNullScores: Boolean = false) = {
-    val (score1, score2) = setNullScores match {
-      case true => (None, None)
-      case false => (Some(criteria1Score.getOrElse(Random.getVideoInterviewScore())),
-        Some(criteria2Score.getOrElse(Random.getVideoInterviewScore())))
+    val (score1, score2) = if (setNullScores) {
+      None -> None
+    } else {
+      Some(criteria1Score.getOrElse(Random.getVideoInterviewScore)) -> Some(criteria2Score.getOrElse(Random.getVideoInterviewScore))
     }
     ReviewSectionQuestionRequest(questionId,
       ReviewSectionCriteriaRequest("numeric", score1),

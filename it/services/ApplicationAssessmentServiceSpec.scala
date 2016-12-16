@@ -71,7 +71,7 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
 
   "Assessment Centre Passmark Service" should {
     "for each test in the path evaluate scores" ignore new WithApplication {
-      suites.foreach(executeSuite _)
+      suites.foreach(executeSuite)
     }
   }
 
@@ -107,7 +107,6 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
 
     val passmarkSettings = loadPassmarkSettings
     val testCases = loadTestCases
-    val config = loadConfig
     testCases.foreach(executeTestCase(_, loadConfig, passmarkSettings))
   }
 
@@ -216,7 +215,6 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
       val location2Scheme2 = evaluationDoc.getAs[String]("location2Scheme2")
       val alternativeScheme = evaluationDoc.getAs[String]("alternativeScheme")
       val competencyAverage = evaluationDoc.getAs[CompetencyAverageResult]("competency-average")
-      val schemesEvaluationDocsOpt = evaluationDoc.getAs[List[BSONDocument]]("schemes-evaluation")
 
       val schemesEvaluation = evaluationDoc.getAs[BSONDocument]("schemes-evaluation").map { doc =>
         doc.elements.collect {

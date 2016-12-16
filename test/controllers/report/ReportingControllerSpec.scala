@@ -39,6 +39,7 @@ import testkit.UnitWithAppSpec
 import scala.concurrent.Future
 import scala.language.postfixOps
 
+//noinspection ZeroIndexToHead
 class ReportingControllerSpec extends UnitWithAppSpec {
 
   val mockContactDetailsRepository = mock[contactdetails.ContactDetailsRepository]

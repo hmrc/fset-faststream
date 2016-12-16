@@ -29,6 +29,7 @@ import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.JsValue
 import testkit.MongoRepositorySpec
 
+//noinspection ZeroIndexToHead,ZeroIndexToHead,ZeroIndexToHead,ZeroIndexToHead,ZeroIndexToHead,ZeroIndexToHead,ZeroIndexToHead,ZeroIndexToHead
 class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
@@ -51,9 +52,13 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
 
       val result = diagnosticReportRepo.findByUserId("user1").futureValue
       result.length mustBe 2
+      //noinspection ZeroIndexToHead
       (result(0) \ "applicationId").as[String] mustBe "app1"
+      //noinspection ZeroIndexToHead
       (result(0) \ "progress-status" \ "registered").as[Boolean] mustBe true
+      //noinspection ZeroIndexToHead
       (result(0) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      //noinspection ZeroIndexToHead
       (result(0) \\ "personal-details") mustBe Nil
       (result(1) \ "applicationId").as[String] mustBe "app2"
       (result(1) \ "progress-status" \ "registered").as[Boolean] mustBe true
@@ -71,12 +76,16 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
       val resultE = diagnosticReportRepo.findAll()
 
       val listProducer = Iteratee.fold[JsValue, List[JsValue]](Nil){(acc, v) => acc :+ v}
-      val result = (resultE.run(listProducer)).futureValue.sortBy(x => (x \ "applicationId").as[String])
+      val result = resultE.run(listProducer).futureValue.sortBy(x => (x \ "applicationId").as[String])
 
       result.length mustBe 3
+      //noinspection ZeroIndexToHead
       (result(0) \ "applicationId").as[String] mustBe "app1"
+      //noinspection ZeroIndexToHead
       (result(0) \ "progress-status" \ "registered").as[Boolean] mustBe true
+      //noinspection ZeroIndexToHead
       (result(0) \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      //noinspection ZeroIndexToHead
       (result(0) \\ "personal-details") mustBe Nil
       (result(1) \ "applicationId").as[String] mustBe "app2"
       (result(1) \ "progress-status" \ "registered").as[Boolean] mustBe true

@@ -63,9 +63,10 @@ trait SubmitApplicationController extends BaseController with EventSink {
       sl <- schemesLocationsFuture
       availableRegions <- frameworkRegionsRepository.getFrameworksByRegionFilteredByQualification(CandidateHighestQualification.from(gd))
     } yield {
-      ApplicationValidator(gd, ad, sl, availableRegions).validate match {
-        case true => submit(applicationId, cd.email, gd.preferredName).map(_ =>  Ok )
-        case false => Future.successful(BadRequest)
+      if (ApplicationValidator(gd, ad, sl, availableRegions).validate) {
+        submit(applicationId, cd.email, gd.preferredName).map(_ => Ok)
+      } else {
+        Future.successful(BadRequest)
       }
     }
 

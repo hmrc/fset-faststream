@@ -213,8 +213,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     "return only the applications in a specific framework id" in {
       Await.ready({
         for {
-          app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
-          app2 <- applicationRepo.create("userId2", "otherFramework", ApplicationRoute.Faststream)
+          _ <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+          _ <- applicationRepo.create("userId2", "otherFramework", ApplicationRoute.Faststream)
         } yield {
           Unit
         }
@@ -278,7 +278,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ))
       )
 
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, (GeneratorConfig.apply("", request))
+      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -300,7 +300,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           assessmentCentreAdjustmentsDescription = Some("I need a warm room and no sun light")
         ))
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, (GeneratorConfig.apply("", request))
+      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -329,7 +329,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, (GeneratorConfig.apply("", request))
+      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -339,7 +339,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result.head mustBe a[AdjustmentReportItem]
       result.head.userId must not be empty
       result.head.applicationId must not be empty
-      result.head.adjustments  mustBe Some(Adjustments(adjustments=Some(List("other adjustments")), adjustmentsConfirmed = Some(true), etray = None, video = None))
+      result.head.adjustments mustBe Some(Adjustments(adjustments=Some(List("other adjustments")),
+        adjustmentsConfirmed = Some(true), etray = None, video = None))
     }
 
     // This test only works when run in isolation, change ignore to in for that
@@ -363,7 +364,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           video = None)
         )
       )
-      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, (GeneratorConfig.apply("", request))
+      testDataGeneratorService.createCandidatesInSpecificStatus(1, StatusGeneratorFactory.getGenerator, GeneratorConfig.apply("", request)
       )(new HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue

@@ -6,7 +6,7 @@ import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{ Phase1TestProfile, Phase2TestGroup }
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument }
-import repositories.application.{ GeneralApplicationMongoRepository }
+import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
 import testkit.MongoRepositorySpec
 import reactivemongo.json.ImplicitBSONHandlers

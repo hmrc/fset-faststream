@@ -598,7 +598,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   private def createAppWithTestResult(progressStatuses: List[(ProgressStatus, Boolean)], testResult: Option[TestResult]) = {
     testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, ApplicationStatus.PHASE2_TESTS,
       additionalProgressStatuses = progressStatuses).futureValue
-    val test = CubiksTest(1, true, 1, "cubiks", "token", "testUrl", DateTime.now, 1, testResult = testResult)
+    val test = CubiksTest(1, usedForResults = true, 1, "cubiks", "token", "testUrl", DateTime.now, 1, testResult = testResult)
     val phase2TestGroup = Phase2TestGroup(DateTime.now, List(test))
     phase2TestRepo.insertOrUpdateTestGroup(AppId, phase2TestGroup).futureValue
   }
