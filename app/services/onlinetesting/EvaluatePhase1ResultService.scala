@@ -46,9 +46,10 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
     val sjqTestOpt = findFirstSjqTest(activeTests)
     val bqTestOpt = findFirstBqTest(activeTests)
 
-    evaluateSdipOnly(application) match {
-      case true => updatePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
-      case false => savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+    if (evaluateSdipOnly(application)) {
+      updatePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+    } else {
+      savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
     }
   }
 
@@ -64,9 +65,10 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
   }
 
   private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation) = {
-    evaluateSdipOnly(application) match {
-      case true => application.preferences.schemes.filter(_ == SchemeType.Sdip)
-      case false => application.preferences.schemes
+    if (evaluateSdipOnly(application)) {
+      application.preferences.schemes.filter(_ == SchemeType.Sdip)
+    } else {
+      application.preferences.schemes
     }
   }
 

@@ -18,7 +18,7 @@ package repositories
 
 import java.util
 
-import model.PersistedObjects.PersonalDetails
+import model.persisted.PersonalDetails
 import org.yaml.snakeyaml.Yaml
 import play.api.Play
 import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
@@ -63,13 +63,14 @@ object FrameworkRepository {
     val MAX = 3
 
     def from(personalDetails: PersonalDetails): CandidateHighestQualification =
+    /* From fasttrack
       if (personalDetails.stemLevel) {
         CandidateHighestQualification.A_LEVELS_C_PLUS_STEM
       } else if (personalDetails.aLevel) {
         CandidateHighestQualification.A_LEVELS_D_PLUS
-      } else {
+      } else { */
         CandidateHighestQualification.GCSE
-      }
+      // }
   }
 }
 

@@ -23,6 +23,7 @@ import repositories.FrameworkRepository.CandidateHighestQualification
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
 import services.events.{ EventService, EventSink }
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -31,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object SubmitApplicationController extends SubmitApplicationController {
-  override val pdRepository: PersonalDetailsRepository = personalDetailsRepository
+  override val pdRepository: PersonalDetailsRepository = faststreamPersonalDetailsRepository
   override val adRepository: AssistanceDetailsRepository = faststreamAssistanceDetailsRepository
   override val cdRepository = faststreamContactDetailsRepository
   override val frameworkPrefRepository: FrameworkPreferenceMongoRepository = frameworkPreferenceRepository
@@ -62,9 +63,10 @@ trait SubmitApplicationController extends BaseController with EventSink {
       sl <- schemesLocationsFuture
       availableRegions <- frameworkRegionsRepository.getFrameworksByRegionFilteredByQualification(CandidateHighestQualification.from(gd))
     } yield {
-      ApplicationValidator(gd, ad, sl, availableRegions).validate match {
-        case true => submit(applicationId, cd.email, gd.preferredName).map(_ =>  Ok )
-        case false => Future.successful(BadRequest)
+      if (ApplicationValidator(gd, ad, sl, availableRegions).validate) {
+        submit(applicationId, cd.email, gd.preferredName).map(_ => Ok)
+      } else {
+        Future.successful(BadRequest)
       }
     }
 

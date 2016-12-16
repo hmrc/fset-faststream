@@ -420,5 +420,5 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
                                                )(implicit reader: BSONDocumentReader[A]): Future[List[A]] =
     bsonCollection.find(query).projection(prj)
       .cursor[A](ReadPreference.nearest)
-      .collect[List](Int.MaxValue, true)
+      .collect[List](Int.MaxValue, stopOnError = true)
 }

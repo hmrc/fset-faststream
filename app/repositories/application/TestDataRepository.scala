@@ -158,7 +158,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
   def deferral(args: List[String] = Nil): BSONDocument = args match {
     case Nil => BSONDocument()
 
-    case head :: tail => BSONDocument(
+    case _ :: _ => BSONDocument(
       "interested" -> true,
       "partnerGraduateProgrammes" -> args
     )

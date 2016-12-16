@@ -61,14 +61,14 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
   }
 
   override def findProgress(applicationId: String): Future[ProgressResponse] = applicationId match {
-    case "1111-1234" => Future.failed(new ApplicationNotFound(applicationId))
-    case _ => Future.successful(ProgressResponse(applicationId, true))
+    case "1111-1234" => Future.failed(ApplicationNotFound(applicationId))
+    case _ => Future.successful(ProgressResponse(applicationId, personalDetails = true))
   }
 
   val inMemoryRepo = new mutable.HashMap[String, ApplicationResponse]
 
   override def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = userId match {
-    case "invalidUser" => Future.failed(new ApplicationNotFound("invalidUser"))
+    case "invalidUser" => Future.failed(ApplicationNotFound("invalidUser"))
     case _ =>
       val applicationId = "1111-1111"
       val applicationCreated = ApplicationResponse(applicationId, "CREATED", ApplicationRoute.Faststream, userId,

@@ -28,7 +28,7 @@ trait OnlineTestResultsCalculator {
     tScore match {
       case Some(score) if score >= passmark => Green
       case Some(score) if score <= failmark => Red
-      case Some(score) => Amber
+      case Some(_) => Amber
       case _ => throw new IllegalArgumentException("Score not found")
     }
   }

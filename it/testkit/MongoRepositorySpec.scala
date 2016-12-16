@@ -53,7 +53,7 @@ abstract class MongoRepositorySpec extends UnitWithAppSpec with Inside with Insp
     ReactiveMongoPlugin.mongoConnector.db
   }
 
-  override implicit lazy val app: FakeApplication = new FakeApplication(
+  override implicit lazy val app: FakeApplication = FakeApplication(
     additionalConfiguration = additionalConfig, withoutPlugins = Seq(
       "uk.gov.hmrc.play.health.HealthPlugin",
       "com.kenshoo.play.metrics.MetricsPlugin")

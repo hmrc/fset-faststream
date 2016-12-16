@@ -40,7 +40,7 @@ trait InProgressPartnerGraduateProgrammesStatusGenerator extends ConstructiveGen
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- generatorConfig.statusData.applicationRoute match {
         case ApplicationRoute.Faststream => pgpRepository.update(candidateInPreviousStatus.applicationId.get,
-          PartnerGraduateProgrammes(true, Some(List("Entrepreneur First", "Police Now"))))
+          PartnerGraduateProgrammes(interested = true, Some(List("Entrepreneur First", "Police Now"))))
         case _ => Future.successful(())
       }
     } yield {

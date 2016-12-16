@@ -49,7 +49,7 @@ trait SingleInstanceScheduledJob extends ExclusiveScheduledJob {
     running = false
     v.get
   }.map {
-    case Some(x) => Result("Done")
+    case Some(_) => Result("Done")
     case None => Result("Nothing")
   }
 }

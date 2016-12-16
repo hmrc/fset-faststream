@@ -27,5 +27,5 @@ object AssistanceDetailsInMemoryRepository extends AssistanceDetailsRepository w
     "111-111" ->
     AssistanceDetails("No", None, None, Some(false), None, Some(false), None, None, None)
 
-  override def notFound(applicationId: String) = throw new AssistanceDetailsNotFound(applicationId)
+  override def notFound(applicationId: String) = throw AssistanceDetailsNotFound(applicationId)
 }

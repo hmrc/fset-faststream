@@ -113,7 +113,7 @@ class ApplicationAssessmentRepositorySpec extends MongoRepositorySpec {
 
       createApplicationAssessment(appId, venue, date, session, slot, confirmed = false)
 
-      val result = repository.delete(appId).futureValue
+      repository.delete(appId).futureValue
 
       val checkResult = repository.collection.find(BSONDocument("applicationId" ->  appId)).one[BSONDocument].futureValue
 

@@ -53,7 +53,7 @@ trait Phase2TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
     }
 
     val now = DateTime.now().withZone(DateTimeZone.UTC)
-    def getPhase2Test(cubiksUserId: Int) = CubiksTest(0, true, cubiksUserId, "", "", "", now, 0)
+    def getPhase2Test(cubiksUserId: Int) = CubiksTest(0, usedForResults = true, cubiksUserId, "", "", "", now, 0)
     def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(Some(10.0)), Some(20.0), Some(30.0), Some(40.0))
 
 

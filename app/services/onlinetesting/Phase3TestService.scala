@@ -186,18 +186,20 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
     val invitationDate = dateTimeFactory.nowLocalTimeZone
 
-    def emailProcess(emailAddress: String): Future[Unit] = application.isInvigilatedVideo match {
-      case true => Future.successful(())
-      case false => emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+    def emailProcess(emailAddress: String): Future[Unit] = if (application.isInvigilatedVideo) {
+      Future.successful(())
+    } else {
+      emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
     }
 
-    def extendIfInvigilated(application: OnlineTestApplication): Future[Unit] = application.isInvigilatedVideo match {
-      case true => extendTestGroupExpiryTime(
+    def extendIfInvigilated(application: OnlineTestApplication): Future[Unit] = if (application.isInvigilatedVideo) {
+      extendTestGroupExpiryTime(
         application.applicationId,
         gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays - daysUntilExpiry,
         "InvigilatedInviteSystem"
       )
-      case false => Future.successful(())
+    } else {
+      Future.successful(())
     }
 
     for {
@@ -359,17 +361,18 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     } yield {
       val phase3Progress = progressResponse.phase3ProgressResponse
       val phase3Completed = phase3Progress.phase3TestsResultsReceived || phase3Progress.phase3TestsCompleted
-      phase3Completed match {
-        case true => AuditEvents.VideoInterviewReset(testGroup.applicationId) ::
+      if (phase3Completed) {
+        AuditEvents.VideoInterviewReset(testGroup.applicationId) ::
           DataStoreEvents.VideoInterviewReset(testGroup.applicationId) ::
           Nil
-        case false => Nil
+      } else {
+        Nil
       }
     }
   }
 
   def markAsResultsReceived(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
+    phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { _ =>
       for {
         testGroup <- phase3TestRepo.getTestGroupByToken(launchpadInviteId)
         // Launchpad only: If results have been sent for a user, unexpire them

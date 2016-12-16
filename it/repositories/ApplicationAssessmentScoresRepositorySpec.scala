@@ -46,7 +46,7 @@ class ApplicationAssessmentScoresRepositorySpec extends MongoRepositorySpec {
       CandidateScores(Some(4.0), Some(3.0), Some(2.0)))
 
     "create a new application scores and feedback document" in {
-      val result = repository.save(CandidateScoresWithFeedback).futureValue
+      repository.save(CandidateScoresWithFeedback).futureValue
 
       repository.tryFind("app1").futureValue mustBe Some(CandidateScoresWithFeedback)
     }
@@ -69,7 +69,7 @@ class ApplicationAssessmentScoresRepositorySpec extends MongoRepositorySpec {
       repository.save(CandidateScoresWithFeedback).futureValue
       val updatedApplicationScores = CandidateScoresWithFeedback.copy(attendancy = Some(false))
 
-      val result = repository.save(updatedApplicationScores).futureValue
+      repository.save(updatedApplicationScores).futureValue
 
       repository.tryFind("app1").futureValue mustBe Some(updatedApplicationScores)
     }

@@ -6,7 +6,7 @@ import model.persisted.PersonalDetailsExamples._
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.application.{GeneralApplicationMongoRepository}
+import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import testkit.MongoRepositorySpec

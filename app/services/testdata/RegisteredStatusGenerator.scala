@@ -62,7 +62,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
     for {
       user <- authProviderClient.addUser(email, "Service01", firstName, lastName, role)
       token <- authProviderClient.getToken(email)
-      activateUser <- authProviderClient.activate(email, token)
+      _ <- authProviderClient.activate(email, token)
     } yield {
       DataGenerationResponse(generationId, user.userId.toString, None, email, firstName, lastName)
     }
