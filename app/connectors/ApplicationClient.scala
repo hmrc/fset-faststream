@@ -38,7 +38,6 @@ trait ApplicationClient {
 
   import ApplicationClient._
   import config.FrontendAppConfig.faststreamConfig._
-  import exchange.Implicits._
 
   def createApplication(userId: UniqueIdentifier, frameworkId: String,
     applicationRoute: ApplicationRoute.ApplicationRoute = ApplicationRoute.Faststream)

@@ -24,7 +24,6 @@ import connectors.exchange._
 import models.{ CachedData, SecurityUser, UniqueIdentifier }
 import play.api.mvc.Request
 import uk.gov.hmrc.play.http.HeaderCarrier
-import Implicits.exchangeUserToCachedUser
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

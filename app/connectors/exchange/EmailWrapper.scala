@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package connectors
+package connectors.exchange
 
-package object exchange {
+import play.api.libs.json.Json
 
-  val FrameworkId = "FastStream-2016"
 
-  type LoginInfo = String
+case class EmailWrapper(email: String, service: String)
+
+object EmailWrapper {
+  implicit val format = Json.format[EmailWrapper]
 }
