@@ -320,7 +320,6 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   // We ignore mark as completed requests on records without start date. That will cover the scenario, where we reschudule a
   // video interview before recieving the complete callbacks from launchpad.
   def markAsCompleted(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-
     eventSink {
       phase3TestRepo.getTestGroupByToken(launchpadInviteId).flatMap { test =>
         val launchpadTest = test.testGroup.tests.find(_.token == launchpadInviteId).get

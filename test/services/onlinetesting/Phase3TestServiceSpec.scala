@@ -92,7 +92,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(p3TestRepositoryMock).insertOrUpdateTestGroup(eqTo(onlineTestApplication.applicationId), eqTo(Phase3TestGroup(
         expectedFromNowExpiryTime,
         List(
-          testPhase3Test
+          testPhase3Test.copy(startedDateTime = None)
         ),
         None
       )))
@@ -480,7 +480,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       testLaunchpadCandidateId,
       testFaststreamCustomCandidateId,
       testTimeNow,
-      None,
+      Some(testTimeNow),
       None,
       LaunchpadTestCallbacks()
     )
