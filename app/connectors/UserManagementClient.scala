@@ -32,7 +32,6 @@ trait UserManagementClient {
 
   val http: CSRHttp
 
-  import Implicits._
   import config.FrontendAppConfig.userManagementConfig._
 
   def register(email: String, password: String, firstName: String, lastName: String)(implicit hc: HeaderCarrier): Future[UserResponse] =

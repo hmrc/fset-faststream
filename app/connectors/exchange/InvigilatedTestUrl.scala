@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package connectors
+package connectors.exchange
 
-package object exchange {
+import play.api.libs.json.Json
 
-  val FrameworkId = "FastStream-2016"
+final case class InvigilatedTestUrl(url: String)
 
-  type LoginInfo = String
+object InvigilatedTestUrl {
+  implicit val format = Json.format[InvigilatedTestUrl]
 }
