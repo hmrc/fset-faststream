@@ -28,13 +28,14 @@ class SendInvitationJobSpec extends UnitWithAppSpec with ShortTimeout {
 
   val onlineTestingServiceMock = mock[OnlineTestService]
   object TestableSendInvitationJob extends SendInvitationJob {
-    val onlineTestingService = onlineTestingServiceMock
-    val lockId: String = "1"
-    val forceLockReleaseAfter: Duration = mock[Duration]
-    implicit val ec: ExecutionContext = mock[ExecutionContext]
-    def name: String = "test"
-    def initialDelay: FiniteDuration = mock[FiniteDuration]
-    def interval: FiniteDuration = mock[FiniteDuration]
+    override val onlineTestingService = onlineTestingServiceMock
+    override val lockId: String = "1"
+    override val forceLockReleaseAfter: Duration = mock[Duration]
+    override implicit val ec: ExecutionContext = mock[ExecutionContext]
+    override val name: String = "test"
+    override val initialDelay: FiniteDuration = mock[FiniteDuration]
+    override val interval: FiniteDuration = mock[FiniteDuration]
+    val config = SendPhase1InvitationJobConfig
   }
 
   "send invitation job" should {

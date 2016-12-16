@@ -16,8 +16,6 @@
 
 package scheduler.allocation
 
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
-
 import config.ScheduledJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.BasicJobConfig
@@ -27,14 +25,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object ConfirmAttendanceReminderJob extends ConfirmAttendanceReminderJob {
   val candidateAllocationService = CandidateAllocationService
+  val config = ConfirmAttendanceReminderJobConfig
 }
 
-trait ConfirmAttendanceReminderJob extends SingleInstanceScheduledJob with ConfirmAttendanceReminderJobConfig {
+trait ConfirmAttendanceReminderJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val candidateAllocationService: CandidateAllocationService
-
-  override implicit val ec = ExecutionContext.fromExecutor(
-    new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4))
-  )
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     candidateAllocationService.nextUnconfirmedCandidateForSendingReminder.flatMap {
@@ -46,9 +41,7 @@ trait ConfirmAttendanceReminderJob extends SingleInstanceScheduledJob with Confi
   }
 }
 
-trait ConfirmAttendanceReminderJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.confirmAttendanceReminderJobConfig
-  val configPrefix = "scheduling.confirm-attendance-reminder-job."
-  val name = "ConfirmAttendanceReminderJob"
-}
+object ConfirmAttendanceReminderJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.confirm-attendance-reminder-job",
+  name = "ConfirmAttendanceReminderJob"
+)

@@ -33,6 +33,6 @@ class ParityExportServiceSpec extends UnitSpec with OneAppPerSuite {
   }
 
   trait TestFixture {
-    val sut = ParityExportService
+    //val sut = ParityExportService
   }
 }

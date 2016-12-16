@@ -99,6 +99,7 @@ class ParityExportJobSpec extends UnitWithAppSpec {
     lazy val scheduler = new ParityExportJob {
       val service = mockParityService
       val parityExportJobConfig = mockParityJobConfig
+      val config = ParityExportJobConfig
     }
   }
 }

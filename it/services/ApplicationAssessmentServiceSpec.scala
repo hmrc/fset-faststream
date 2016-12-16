@@ -27,8 +27,6 @@ import model.Commands.AssessmentCentrePassMarkSettingsResponse
 import model.Commands.Implicits._
 import model.EvaluationResults._
 import model.Preferences
-import net.ceedubs.ficus.Ficus._
-import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import org.scalatest.mock.MockitoSugar
 import play.Logger
 import play.api.libs.json._

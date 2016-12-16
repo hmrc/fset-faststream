@@ -16,6 +16,7 @@
 
 package scheduler.onlinetesting
 
+import config.ScheduledJobConfig
 import model.Phase1ExpirationEvent
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -37,12 +38,13 @@ class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {
   object TestableExpireTestJob extends ExpireOnlineTestJob {
     val onlineTestingService = serviceMock
     val expiryTest = Phase1ExpirationEvent
-    val lockId: String = "1"
-    val forceLockReleaseAfter: Duration = mock[Duration]
-    implicit val ec: ExecutionContext = mock[ExecutionContext]
-    def name: String = "test"
-    def initialDelay: FiniteDuration = mock[FiniteDuration]
-    def interval: FiniteDuration = mock[FiniteDuration]
+    override val lockId: String = "1"
+    override val forceLockReleaseAfter: Duration = mock[Duration]
+    override implicit val ec: ExecutionContext = mock[ExecutionContext]
+    override val name: String = "test"
+    override val initialDelay: FiniteDuration = mock[FiniteDuration]
+    override val interval: FiniteDuration = mock[FiniteDuration]
+    val config = BasicJobConfig[ScheduledJobConfig]("", "")
   }
 
   "expire test phase N job" should {
