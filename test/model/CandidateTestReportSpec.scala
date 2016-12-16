@@ -91,9 +91,10 @@ class CandidateTestReportSpec extends UnitSpec with TableDrivenPropertyChecks {
     }
   }
 
-  def evaluate(candidate: CandidateTestReport, gis: Boolean) = candidate.isValid(gis) match {
-    case true => VALID
-    case false => INVALID
+  def evaluate(candidate: CandidateTestReport, gis: Boolean) = if (candidate.isValid(gis)) {
+    VALID
+  } else {
+    INVALID
   }
 }
 

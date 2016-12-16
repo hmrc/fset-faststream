@@ -122,7 +122,7 @@ trait TestDataGeneratorController extends BaseController {
         Ok(Json.toJson(candidates))
       }
     } catch {
-      case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
+      case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
   }
@@ -157,7 +157,7 @@ trait TestDataGeneratorController extends BaseController {
         Ok(Json.toJson(candidates))
       }
     } catch {
-      case e: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
+      case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
     }
   }

@@ -641,7 +641,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val otRepositoryMock = mock[Phase2TestRepository]
     val cubiksGatewayClientMock = mock[CubiksGatewayClient]
     val emailClientMock = mock[CSREmailClient]
-    var auditServiceMock = mock[AuditService]
+    val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val eventServiceMock = mock[EventService]
     val phase3TestServiceMock = mock[Phase3TestService]

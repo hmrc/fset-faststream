@@ -39,9 +39,9 @@ trait TestDataGeneratorService {
 
   def clearDatabase()(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
-      dropMainDatabase <- ReactiveMongoPlugin.mongoConnector.db().drop()
-      removeAllUsers <- AuthProviderClient.removeAllUsers()
-      makeAdminUser1 <- RegisteredStatusGenerator.createUser(
+      _ <- ReactiveMongoPlugin.mongoConnector.db().drop()
+      _ <- AuthProviderClient.removeAllUsers()
+      _ <- RegisteredStatusGenerator.createUser(
         1,
         "test_service_manager_1@mailinator.com", "CSR Test", "Service Manager", Some("TestServiceManager"), AuthProviderClient.TechnicalAdminRole
       )

@@ -24,7 +24,7 @@ class SchedulerSpec extends UnitWithAppSpec with ShortTimeout {
   "Scheduler" should {
     "contain send invitation job if it is enabled" in {
       val scheduler = new Scheduler {
-        override def sendPhase1InvitationJobConfigValues = ScheduledJobConfig(true, Some("id"), Some(5), Some(5))
+        override def sendPhase1InvitationJobConfigValues = ScheduledJobConfig(enabled = true, Some("id"), Some(5), Some(5))
       }
 
       scheduler.scheduledJobs must contain(SendPhase1InvitationJob)
@@ -32,7 +32,7 @@ class SchedulerSpec extends UnitWithAppSpec with ShortTimeout {
 
     "not contain send invitation job if it is disabled" in {
       val scheduler = new Scheduler {
-        override def sendPhase1InvitationJobConfigValues = ScheduledJobConfig(false, Some("id"), Some(5), Some(5))
+        override def sendPhase1InvitationJobConfigValues = ScheduledJobConfig(enabled = false, Some("id"), Some(5), Some(5))
       }
 
       scheduler.scheduledJobs must not contain SendPhase1InvitationJob

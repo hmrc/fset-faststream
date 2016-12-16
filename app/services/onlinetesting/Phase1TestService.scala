@@ -225,11 +225,11 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
       }
     }
 
-    val testResults = Future.sequence(testProfile.testGroup.activeTests.map { test =>
+    val testResults = Future.sequence(testProfile.testGroup.activeTests.flatMap { test =>
       test.reportId.map { reportId =>
         cubiksGatewayClient.downloadXmlReport(reportId)
       }.map(_.map(_ -> test))
-    }.flatten)
+    })
 
     for {
       eventualTestResults <- testResults
@@ -327,18 +327,17 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   }
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase1Test(cubiksUserId, phase1TestRepo.updateTestCompletionTime(_:Int, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
+    updatePhase1Test(cubiksUserId, phase1TestRepo.updateTestCompletionTime(_: Int, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
       require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
       val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
-      activeTestsCompleted match {
-        case true =>
-          phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
-            DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
-              DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
-              Nil
-          }
-        case false =>
-          Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
+      if (activeTestsCompleted) {
+        phase1TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
+          DataStoreEvents.OnlineExercisesCompleted(u.applicationId) ::
+            DataStoreEvents.AllOnlineExercisesCompleted(u.applicationId) ::
+            Nil
+        }
+      } else {
+        Future.successful(DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil)
       }
     }
   }
@@ -353,9 +352,10 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
     updatePhase1Test(cubiksUserId, phase1TestRepo.updateTestReportReady(_:Int, reportReady)).flatMap { updated =>
       val allResultReadyToDownload = updated.testGroup.activeTests forall (_.resultsReadyToDownload)
-      allResultReadyToDownload match {
-        case true => phase1TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
-        case false => Future.successful(())
+      if (allResultReadyToDownload) {
+        phase1TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
+      } else {
+        Future.successful(())
       }
     }
   }

@@ -336,7 +336,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "change progress status to preview" in {
       createApplication("app1", IN_PROGRESS)
 
-      val result = AssessmentRuleCategoryResult(Some(true), Some(EvaluationResults.Amber), None, None, None, None, None, None)
       applicationRepo.preview("app1").futureValue
 
       val status = getApplicationStatus("app1")

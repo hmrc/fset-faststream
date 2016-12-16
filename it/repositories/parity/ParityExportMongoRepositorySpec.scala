@@ -26,8 +26,6 @@ class ParityExportMongoRepositorySpec extends MongoRepositorySpec with CommonRep
 
   "next Applications Ready For export" must {
 
-    val resultToSave = List(SchemeEvaluationResult(SchemeType.Commercial, Green.toString))
-
     "return nothing if application does not have READY_FOR_EXPORT" in {
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS)
       val result = parityExportMongoRepo.nextApplicationsForExport(batchSize = 1).futureValue
@@ -80,7 +78,7 @@ class ParityExportMongoRepositorySpec extends MongoRepositorySpec with CommonRep
     }
 
     "throw an exception when an applicationId is invalid" in {
-        val result = parityExportMongoRepo.getApplicationForExport("app1").failed.futureValue mustBe a[ApplicationIdNotFoundException]
+        parityExportMongoRepo.getApplicationForExport("app1").failed.futureValue mustBe a[ApplicationIdNotFoundException]
     }
   }
 }

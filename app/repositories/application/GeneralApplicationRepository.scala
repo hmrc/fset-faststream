@@ -363,7 +363,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "preview",
-      new CannotUpdatePreview(s"preview $applicationId"))
+      CannotUpdatePreview(s"preview $applicationId"))
 
     collection.update(query, progressStatusBSON) map validator
   }
@@ -377,26 +377,23 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
     val query = Try{ notificationType match {
-      case s: SuccessTestType if s.applicationRoutes.isEmpty => {
+      case s: SuccessTestType if s.applicationRoutes.isEmpty =>
         BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationStatus" -> s.appStatus),
           BSONDocument(s"progress-status.${s.notificationProgress}" -> BSONDocument("$ne" -> true))
         ))
-      }
-      case s: SuccessTestType if s.applicationRoutes.nonEmpty => {
+      case s: SuccessTestType if s.applicationRoutes.nonEmpty =>
         BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationStatus" -> s.appStatus),
           BSONDocument(s"progress-status.${s.notificationProgress}" -> BSONDocument("$ne" -> true)),
           BSONDocument("applicationRoute" -> BSONDocument("$in" -> s.applicationRoutes))
         ))
-      }
-      case f: FailedTestType => {
+      case f: FailedTestType =>
         BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationStatus" -> f.appStatus),
           BSONDocument(s"progress-status.${f.notificationProgress}" -> BSONDocument("$ne" -> true)),
           BSONDocument(s"progress-status.${f.receiveStatus}" -> true)
         ))
-      }
       case unknown => throw new RuntimeException(s"Unsupported NotificationTestType: $unknown")
     }}
 
@@ -489,7 +486,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = {
     issue.fix match {
-      case PassToPhase2 => {
+      case PassToPhase2 =>
         val query = BSONDocument("$and" -> BSONArray(
             BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
             BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
@@ -497,7 +494,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           ))
 
         selectRandom[Candidate](query, issue.batchSize)
-      }
       case PassToPhase1TestPassed =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
@@ -506,14 +502,13 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         ))
 
         selectRandom[Candidate](query, issue.batchSize)
-      case ResetPhase1TestInvitedSubmitted => {
+      case ResetPhase1TestInvitedSubmitted =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
         ))
 
         selectRandom[Candidate](query, issue.batchSize)
-      }
       case AddMissingPhase2ResultReceived =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS),
@@ -532,7 +527,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   override def fix(application: Candidate, issue: FixBatch): Future[Option[Candidate]] = {
     issue.fix match {
-      case PassToPhase2 => {
+      case PassToPhase2 =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),
           BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
@@ -541,7 +536,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         ))
         val updateOp = bsonCollection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)))
         bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
-      }
       case PassToPhase1TestPassed =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),
@@ -552,7 +546,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         val updateOp = bsonCollection.updateModifier(BSONDocument("$set" ->
           BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED)))
         bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
-      case ResetPhase1TestInvitedSubmitted => {
+      case ResetPhase1TestInvitedSubmitted =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),
           BSONDocument("applicationStatus" -> ApplicationStatus.SUBMITTED),
@@ -563,7 +557,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
           s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
           "testGroups" -> "")))
         bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
-      }
       case AddMissingPhase2ResultReceived =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),
@@ -667,15 +660,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     val isNotWithdrawn = !progress.withdrawn
     isNotWithdrawn && isNotSubmitted
   }
-
-  private def getDocumentId(document: BSONDocument): BSONObjectID =
-    document.get("_id").get match {
-      case id: BSONObjectID => id
-      case id: BSONString => BSONObjectID(id.value)
-    }
-
-  private def isoTimeToPrettyDateTime(utcMillis: Long): String =
-    timeZoneService.localize(utcMillis).toString("yyyy-MM-dd HH:mm:ss")
 
   private def reportQueryWithProjections[A](
                                              query: BSONDocument,

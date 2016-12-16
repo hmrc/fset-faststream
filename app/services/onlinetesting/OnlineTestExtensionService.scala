@@ -61,10 +61,10 @@ trait OnlineTestExtensionService extends EventSink {
       (progressResponse, phase1TestGroup) match {
         case (progress, Some(group)) if progress.phase1ProgressResponse.phase1TestsExpired =>
           Extension(dateTimeFactory.nowLocalTimeZone.plusDays(extraDays), expired = true, group, progressResponse)
-        case (progress, Some(group)) if progressResponse.phase1ProgressResponse.phase1TestsInvited ||
+        case (_, Some(group)) if progressResponse.phase1ProgressResponse.phase1TestsInvited ||
           progressResponse.phase1ProgressResponse.phase1TestsStarted =>
           Extension(group.expirationDate.plusDays(extraDays), expired = false, group, progressResponse)
-        case (progress, None) =>
+        case (_, None) =>
           throw TestExtensionException("No Phase1TestGroupAvailable for the given application")
         case _ =>
           throw TestExtensionException("Application is in an invalid status for test extension")

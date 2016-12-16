@@ -22,7 +22,6 @@ import scala.collection.immutable.ListMap
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-//scalastyle:off printlnRegex
 object AssessmentCentreYamlConverter extends App {
   val AssessmentsCSV = "/resources/assessment-centres.csv"
   val YamlSuffix = ".yaml"
@@ -56,10 +55,10 @@ object AssessmentCentreYamlConverter extends App {
     }
 
   lazy val stringToWrite = parsedYaml.map { case (loc, venues) =>
-    val venuesStrList = venues.map { case (venueDescription, venueDetails) =>
+    val venuesStrList = venues.map { case (_, venueDetails) =>
 
       val capacities = "" +
-          "      capacities:\n"+ venueDetails.map { venueInfo =>
+          "      capacities:\n" + venueDetails.map { venueInfo =>
 
           s"""         - date: ${venueInfo.capacityInfo.head}
             |           amCapacity: ${venueInfo.capacityInfo(1)}
@@ -78,6 +77,7 @@ object AssessmentCentreYamlConverter extends App {
      """.stripMargin
   }
 
+  //scalastyle:off printlnRegex
   println("#################################################")
   println("#### Assessment Centre CSV to YAML Converter ####")
   println("#################################################")
@@ -104,5 +104,6 @@ object AssessmentCentreYamlConverter extends App {
         ex.printStackTrace()
     }
   }
+  //scalastyle:on printlnRegex
 }
-//scalastyle:on printlnRegex
+
