@@ -24,6 +24,7 @@ import org.joda.time.LocalDate
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -31,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object SearchForApplicantService extends SearchForApplicantService {
   val appRepository = applicationRepository
-  val psRepository = personalDetailsRepository
+  val psRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val authProviderClient = AuthProviderClient
 }

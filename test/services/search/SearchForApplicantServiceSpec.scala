@@ -23,9 +23,9 @@ import model.persisted.ContactDetailsWithId
 import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import repositories.PersonalDetailsRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
 import services.BaseServiceSpec
 import testkit.ShortTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier

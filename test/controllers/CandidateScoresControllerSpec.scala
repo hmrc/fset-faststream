@@ -20,7 +20,7 @@ import model.ApplicationStatus
 import model.CandidateScoresCommands.Implicits._
 import model.CandidateScoresCommands.{ ApplicationScores, CandidateScores, CandidateScoresAndFeedback, RecordCandidateScores }
 import model.Commands.ApplicationAssessment
-import model.PersistedObjects.PersonalDetails
+import model.persisted.PersonalDetails
 import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers.{ eq => eqTo }
 import org.mockito.Mockito._
@@ -28,7 +28,8 @@ import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
-import repositories.{ ApplicationAssessmentRepository, ApplicationAssessmentScoresRepository, PersonalDetailsRepository }
+import repositories.personaldetails.PersonalDetailsRepository
+import repositories.{ ApplicationAssessmentRepository, ApplicationAssessmentScoresRepository }
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -44,7 +45,7 @@ class CandidateScoresControllerSpec extends UnitWithAppSpec {
   "Get Candidate Scores" should {
     val assessmentDate = LocalDate.now.minusDays(1)
     val applicationAssessment = ApplicationAssessment("app1", "London (FSAC) 1", assessmentDate, "am", 1, confirmed = false)
-    val personalDetails = PersonalDetails("John", "Smith", "Jon", LocalDate.now().minusYears(15), aLevel = true, stemLevel = false)
+    val personalDetails = PersonalDetails("John", "Smith", "Jon", LocalDate.now().minusYears(15), None)
 
     "return basic candidate information when there is no score submitted" in new TestFixture {
       when(mockApplicationAssessmentRepository.find("app1")).thenReturn(Future.successful(applicationAssessment))
