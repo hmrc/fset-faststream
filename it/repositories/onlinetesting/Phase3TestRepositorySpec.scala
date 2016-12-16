@@ -10,7 +10,6 @@ import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
-//noinspection ZeroIndexToHead
 class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
   val Now =  DateTime.now(DateTimeZone.UTC)
