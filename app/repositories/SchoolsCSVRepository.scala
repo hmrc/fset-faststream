@@ -28,7 +28,6 @@ trait SchoolsRepository {
 }
 
 object SchoolsCSVRepository extends SchoolsRepository with CsvHelper {
-  private val SchoolsCSVPath = "UK_schools_data_v2.csv"
   override def expectedNumberOfHeaders = 10
 
   import play.api.Play.current

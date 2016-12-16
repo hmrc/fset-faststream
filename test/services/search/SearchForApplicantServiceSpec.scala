@@ -19,12 +19,13 @@ package services.search
 import connectors.AuthProviderClient
 import model.Address
 import model.Commands.{ Candidate, SearchCandidate }
-import model.PersistedObjects.ContactDetailsWithId
+import model.persisted.ContactDetailsWithId
 import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import repositories.{ ContactDetailsRepository, PersonalDetailsRepository }
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
 import services.BaseServiceSpec
 import testkit.ShortTimeout
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -72,7 +73,8 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
 
       when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
         any[Option[LocalDate]], any[List[String]])
-      ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None, None, None, None, None, None))))
+      ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None,
+        None, None, None, None, None))))
 
       val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = Some("Leia"),
         lastName = Some("Amadala"), dateOfBirth = None, postCode = Some("QQ1 1QQ"))).futureValue

@@ -71,7 +71,7 @@ trait CommonRepository {
     val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(sjq), None, None, None)))
     val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", bq, None, None, None)))
     val phase1Tests = if(isGis) List(sjqTest) else List(sjqTest, bqTest)
-    insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
+    insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = applicationRoute)
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
       Phase1TestProfile(now, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
     )

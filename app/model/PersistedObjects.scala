@@ -26,32 +26,7 @@ import reactivemongo.bson.Macros
 @deprecated("fasttrack version. Create one case class in one file. All persisted case classes are in model.persisted package", "July 2016")
 object PersistedObjects {
 
-  @deprecated("fasttrack version", "July 2016")
-  case class PersonalDetails(
-    firstName: String,
-    lastName: String,
-    preferredName: String,
-    dateOfBirth: LocalDate,
-    aLevel: Boolean,
-    stemLevel: Boolean
-  )
-
   case class PersonalDetailsWithUserId(preferredName: String, userId: String)
-
-  case class ContactDetails(
-    address: Address,
-    postCode: PostCode,
-    email: String,
-    phone: Option[PhoneNumber]
-  )
-
-  case class ContactDetailsWithId(
-    userId: String,
-    address: Address,
-    postCode: Option[PostCode],
-    email: String,
-    phone: Option[PhoneNumber]
-  )
 
   case class ApplicationIdWithUserIdAndStatus(applicationId: String, userId: String, applicationStatus: String)
 
@@ -94,10 +69,7 @@ object PersistedObjects {
     applicationStatus: String, progressStatuses: ApplicationProgressStatuses)
 
   object Implicits {
-    implicit val persistedPersonalDetailsFormats = Json.format[PersonalDetails]
     implicit val addressFormats = Json.format[Address]
-    implicit val contactDetailsFormats = Json.format[ContactDetails]
-    implicit val contactDetailsIdFormats = Json.format[ContactDetailsWithId]
     implicit val answerFormats = Json.format[PersistedAnswer]
     implicit val questionFormats = Json.format[PersistedQuestion]
     implicit val personalDetailsWithUserIdFormats = Json.format[PersonalDetailsWithUserId]
@@ -109,7 +81,5 @@ object PersistedObjects {
     implicit val applicationUserFormats = Json.format[ApplicationUser]
 
     implicit val onlineTestPdfReportFormats = Json.format[OnlineTestPDFReport]
-
-    implicit val contactDetailsHandler = Macros.handler[ContactDetails]
   }
 }

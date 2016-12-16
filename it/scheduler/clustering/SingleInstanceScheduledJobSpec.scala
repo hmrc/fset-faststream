@@ -16,7 +16,7 @@ class SingleInstanceScheduledJobSpec extends MongoRepositorySpec {
       val aLongTime = Duration(100, SECONDS)
 
       val job = new SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
-        val config = ???
+        def config = ???
         override val lockId = "test lock id"
         override val forceLockReleaseAfter = aLongTime
         override def name = "Test Lock"

@@ -48,8 +48,6 @@ object AssessmentCentrePassmarkRulesEngine extends AssessmentCentrePassmarkRules
         val minMotivationalFitScore = config.motivationalFitMinimumCompetencyLevelScore
           .getOrElse(throw new IllegalStateException("Motivational Fit competency level not set"))
 
-        val scores = candidateScore.scores
-
         Some(competencyAverage.scoresWithWeightOne.forall(_ >= minCompetencyLevelScore) &&
           competencyAverage.scoresWithWeightTwo.forall(_ >= minMotivationalFitScore))
       } else {
@@ -79,7 +77,6 @@ object AssessmentCentrePassmarkRulesEngine extends AssessmentCentrePassmarkRules
     val overallScore = competencyAverage.overallScore
     Logger.debug(s"Application ${candidateScores.scores.applicationId} overall score: $overallScore")
     val passmark = candidateScores.passmark
-    val schemes = passmark.schemes.map(_.schemeName)
 
     val allSchemesEvaluation = evaluateAllSchemes(passmark, overallScore)
     val allSchemesEvaluationMap = allSchemesEvaluation.map { x => x.schemeName -> x.result }.toMap

@@ -22,6 +22,7 @@ import model.persisted.ApplicationForNotification
 import play.api.Logger
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import uk.gov.hmrc.play.http.HeaderCarrier

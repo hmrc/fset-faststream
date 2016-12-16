@@ -61,7 +61,7 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
     running = false
     v.get
   }.map {
-    case Some(x) => Result("Done")
+    case Some(_) => Result("Done")
     case None => Result("Nothing")
   }
 }

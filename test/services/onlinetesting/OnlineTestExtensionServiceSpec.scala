@@ -144,7 +144,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
       "the new expiry date is more than 3 days ahead and the test was expired and not started" in new TestFixture {
         when(mockProfile.hasNotStartedYet).thenReturn(true)
-        when(mockProgressResponse.phase1ProgressResponse).thenReturn(new Phase1ProgressResponse(phase1TestsExpired = true))
+        when(mockProgressResponse.phase1ProgressResponse).thenReturn(Phase1ProgressResponse(phase1TestsExpired = true))
 
         val result = getProgressStatusesToRemove(InMoreThanThreeDays, mockProfile, mockProgressResponse)
         result mustBe Some(statusToRemoveWhenExpiryInMoreThanThreeDaysExpiredNotStarted)

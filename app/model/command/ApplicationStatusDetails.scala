@@ -20,7 +20,10 @@ import model.ApplicationRoute.ApplicationRoute
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class ApplicationStatusDetails(status: String, applicationRoute: ApplicationRoute, statusDate: Option[DateTime] = None)
+case class ApplicationStatusDetails(status: String,
+                                    applicationRoute: ApplicationRoute,
+                                    statusDate: Option[DateTime] = None,
+                                    overrideSubmissionDeadline: Option[DateTime])
 
 object ApplicationStatusDetails {
   implicit val applicationStatusDetailsFormat = Json.format[ApplicationStatusDetails]

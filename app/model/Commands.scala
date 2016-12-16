@@ -154,7 +154,8 @@ object Commands {
 
   case class ApplicationResponse(applicationId: String, applicationStatus: String,  applicationRoute: ApplicationRoute,
                                  userId: String, progressResponse: ProgressResponse,
-                                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails])
+                                 civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
+                                 overriddenSubmissionDeadline: Option[DateTime])
 
   case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: DateTime)
 
@@ -166,6 +167,8 @@ object Commands {
   case class Questionnaire(questions: List[Question])
 
   case class PreviewRequest(flag: Boolean)
+
+  case class OverrideSubmissionDeadlineRequest(submissionDeadline: DateTime)
 
   case class SearchCandidate(firstOrPreferredName: Option[String], lastName: Option[String], dateOfBirth: Option[LocalDate], postCode: Option[PostCode])
 
@@ -215,12 +218,14 @@ object Commands {
     implicit val applicationAddedFormat = Json.format[ApplicationResponse]
     implicit val passMarkSettingsCreateResponseFormat = Json.format[PassMarkSettingsCreateResponse]
     implicit val personalDetailsAddedFormat = Json.format[PersonalDetailsAdded]
-    implicit val createApplicationRequestFormats: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
+    implicit val createApplicationRequestFormat: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
 
-    implicit val answerFormats = Json.format[Answer]
-    implicit val questionFormats = Json.format[Question]
-    implicit val questionnaireFormats = Json.format[Questionnaire]
-    implicit val previewFormats = Json.format[PreviewRequest]
+    implicit val answerFormat = Json.format[Answer]
+    implicit val questionFormat = Json.format[Question]
+    implicit val questionnaireFormat = Json.format[Questionnaire]
+    implicit val previewFormat = Json.format[PreviewRequest]
+
+    implicit val submissionDeadlineFormat = Json.format[OverrideSubmissionDeadlineRequest]
 
     implicit val tooManyEntriesFormat = Json.format[TooManyEntries]
     implicit val noResultsReturnedFormat = Json.format[NoResultsReturned]
@@ -235,8 +240,8 @@ object Commands {
 
     implicit val onlineTestDetailsFormat = Json.format[OnlineTestDetails]
     implicit val onlineTestFormat = Json.format[OnlineTest]
-    implicit val onlineTestStatusFormats = Json.format[OnlineTestStatus]
-    implicit val userIdWrapperFormats = Json.format[UserIdWrapper]
+    implicit val onlineTestStatusFormat = Json.format[OnlineTestStatus]
+    implicit val userIdWrapperFormat = Json.format[UserIdWrapper]
 
     implicit val assessmentCentreAllocationReportFormat = Json.format[AssessmentCentreAllocationReport]
     implicit val candidateAwaitingAllocationFormat = Json.format[CandidateAwaitingAllocation]
@@ -249,9 +254,9 @@ object Commands {
     implicit val applicationPreferencesFormat = Json.format[ApplicationPreferences]
     implicit val assessmentResultsReportFormat = Json.format[AssessmentResultsReport]
     implicit val personalInfoFormat = Json.format[PersonalInfo]
-    implicit val schemeEvaluation = Json.format[SchemeEvaluation]
+    implicit val schemeEvaluationFormat = Json.format[SchemeEvaluation]
     implicit val candidateScoresSummaryFormat = Json.format[CandidateScoresSummary]
-    implicit val applicationPreferencesWithTestResults = Json.format[ApplicationPreferencesWithTestResults]
+    implicit val applicationPreferencesWithTestResultsFormat = Json.format[ApplicationPreferencesWithTestResults]
     implicit val assessmentCentreCandidatesReportFormat = Json.format[AssessmentCentreCandidatesReport]
   }
 

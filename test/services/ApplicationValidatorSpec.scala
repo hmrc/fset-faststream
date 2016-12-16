@@ -16,8 +16,7 @@
 
 package services
 
-import model.PersistedObjects.PersonalDetails
-import model.persisted.AssistanceDetailsExamples
+import model.persisted.{ AssistanceDetailsExamples, PersonalDetails }
 import model.{ ApplicationValidator, LocationPreference, Preferences }
 import org.joda.time.LocalDate
 import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
@@ -79,7 +78,7 @@ class ApplicationValidatorSpec extends UnitSpec {
 }
 
 object ApplicationValidatorSpec {
-  def personalDetails = PersonalDetails("firstName", "lastName", "preferredName", new LocalDate(), aLevel = true, stemLevel = true)
+  def personalDetails = PersonalDetails("firstName", "lastName", "preferredName", new LocalDate(), None)
 
   def assistanceDetails = AssistanceDetailsExamples.DisabilityGisAndAdjustments
   def preferences: Option[Preferences] = Some(

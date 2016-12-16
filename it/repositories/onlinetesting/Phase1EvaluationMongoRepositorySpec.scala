@@ -20,8 +20,10 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   val collectionName: String = "application"
 
   "next Application Ready For Evaluation" should {
-    "return nothing if there is no PHASE1_TESTS and PHASE2_TESTS applications" in {
-      insertApplication("appId", ApplicationStatus.SUBMITTED)
+    "return nothing if there is no PHASE1_TESTS applications" in {
+      insertApplication("appId1", ApplicationStatus.SUBMITTED)
+      insertApplication("appId2", ApplicationStatus.PHASE2_TESTS)
+      insertApplication("appId3", ApplicationStatus.PHASE3_TESTS)
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
       result mustBe empty
     }
@@ -132,34 +134,32 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result must not be empty
     }
 
-    "return the candidate to re-evaluation in PHASE1_TESTS_PASSED if the passmark has changed" in {
-      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED)).futureValue
-      getOnePhase1Profile("app1") mustBe defined
-
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result must not be empty
-    }
-
-    "return the candidate to re-evaluation in PHASE2_TESTS if the passmark has changed" in {
-      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE2_TESTS_STARTED)).futureValue
-      getOnePhase1Profile("app1") mustBe defined
-
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
-      result must not be empty
-    }
-
-    "do not change application status when it is not required" in {
-      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult))
+    "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is not evaluated for phase1" in {
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
+        applicationRoute = ApplicationRoute.SdipFaststream)
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
+      getOnePhase1Profile("app1") mustBe defined
 
-      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
       result must not be empty
-      result.head.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS
+    }
+
+    "do not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated for phase1" in {
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
+        applicationRoute = ApplicationRoute.SdipFaststream)
+
+      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
+        SchemeEvaluationResult(SchemeType.Sdip, Green.toString))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
+      getOnePhase1Profile("app1") mustBe defined
+
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
+      result mustBe empty
     }
   }
 

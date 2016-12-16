@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package models
+package model.persisted
 
+import model.Address
+import model.Commands.{ PhoneNumber, PostCode }
+import play.api.libs.json.Json
 
-object FieldNameHelpers {
+case class ContactDetailsWithId(
+                                 userId: String,
+                                 address: Address,
+                                 postCode: Option[PostCode],
+                                 email: String,
+                                 phone: Option[PhoneNumber]
+                               )
 
-  def createId(id: String, v: (String, String)) = id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_")
-
-  def formatId(id:String, v:(String,String)) =
-    createId(id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_"), v)
-
+object ContactDetailsWithId {
+  implicit val contactDetailsWithIdFormat = Json.format[ContactDetailsWithId]
 }

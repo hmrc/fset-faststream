@@ -35,7 +35,7 @@ trait SubmittedStatusGenerator extends ConstructiveGenerator {
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      submit <- appRepository.submit(candidateInPreviousStatus.applicationId.get)
+      _ <- appRepository.submit(candidateInPreviousStatus.applicationId.get)
     } yield {
       candidateInPreviousStatus
     }

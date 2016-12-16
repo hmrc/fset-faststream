@@ -18,7 +18,7 @@ package services.onlinetesting.phase1
 
 import model.ProgressStatuses._
 import model.EvaluationResults._
-import model.{ ApplicationRoute, ApplicationStatus, Phase }
+import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeType }
 import model.SchemeType.{ apply => _, _ }
 import model.persisted.SchemeEvaluationResult
 import services.BaseServiceSpec
@@ -27,10 +27,23 @@ import services.onlinetesting.ApplicationStatusCalculator
 class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   val calc = new ApplicationStatusCalculator {}
 
-  "Unimplemented application routes" must {
-    "throw an exception" in {
-      an[calc.UnimplementedApplicationRouteException] must be thrownBy calc.determineApplicationStatus(ApplicationRoute.SdipFaststream,
-        ApplicationStatus.PHASE1_TESTS, List(green), Phase.PHASE1)
+  "determine SDIP with Faststream phase 1 application status" must {
+    "promote the application for all Greens" in {
+       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
+        List(green, sdipGreen), Phase.PHASE1)
+      newStatus mustBe Some(PHASE1_TESTS_PASSED)
+    }
+
+    "fail application for all Reds" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
+        List(red, sdipRed), Phase.PHASE1)
+      newStatus mustBe Some(PHASE1_TESTS_FAILED)
+    }
+
+    "fail application for all faststream Reds and SDIP green" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
+        List(red, SchemeEvaluationResult(SchemeType.Sdip, Green.toString)), Phase.PHASE1)
+      newStatus mustBe Some(PHASE1_TESTS_FAILED)
     }
   }
 
@@ -78,12 +91,6 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS,
         List(red), Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_FAILED)
-    }
-
-    "update application status when amber" in {
-      val newStatus = calc.determineApplicationStatus(ApplicationRoute.Edip, ApplicationStatus.PHASE1_TESTS,
-        List(amber), Phase.PHASE1)
-      newStatus mustBe Some(PHASE1_TESTS_PASSED_WITH_AMBER)
     }
 
     "do not update application status when PHASE1_TESTS_PASSED" in {
@@ -216,8 +223,8 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   }
 
   def red = SchemeEvaluationResult(Commercial, Red.toString)
-
+  def sdipRed = SchemeEvaluationResult(Sdip, Red.toString)
   def amber = SchemeEvaluationResult(Commercial, Amber.toString)
-
   def green = SchemeEvaluationResult(Commercial, Green.toString)
+  def sdipGreen = SchemeEvaluationResult(Sdip, Green.toString)
 }

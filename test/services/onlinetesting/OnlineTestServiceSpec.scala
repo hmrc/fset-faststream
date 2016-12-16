@@ -57,7 +57,7 @@ class OnlineTestServiceSpec extends UnitSpec {
       when(appRepositoryMock.findTestForNotification(Phase1FailedTestType)).thenReturn(Future.successful(None))
 
       val result = underTest.processNextTestForNotification(Phase1FailedTestType).futureValue
-      result mustBe (())
+      result mustBe unit
 
       verify(appRepositoryMock).findTestForNotification(Phase1FailedTestType)
       verifyNoMoreInteractions(appRepositoryMock)
@@ -71,7 +71,7 @@ class OnlineTestServiceSpec extends UnitSpec {
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
       val result = underTest.processNextTestForNotification(Phase1FailedTestType).futureValue
-      result mustBe (())
+      result mustBe unit
 
       verify(appRepositoryMock).findTestForNotification(Phase1FailedTestType)
       verify(cdRepositoryMock).find(userId)
@@ -201,7 +201,7 @@ class OnlineTestServiceSpec extends UnitSpec {
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val emailClientMock = mock[OnlineTestEmailClient]
-    var auditServiceMock = mock[AuditService]
+    val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
     val eventServiceMock = mock[EventService]
@@ -225,7 +225,8 @@ class OnlineTestServiceSpec extends UnitSpec {
       participantScheduleId = 235
     )
     val reportReady = CubiksTestResultReady(reportId = Some(198), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
-    val successContactDetails = Future.successful(ContactDetails(false, Address("London"), Some("N32 6GH"), None, email, "0989836387432"))
+    val successContactDetails = Future.successful(ContactDetails(outsideUk = false, Address("London"), Some("N32 6GH"),
+      None, email, "0989836387432"))
     val successNotification = Future.successful(Some(TestResultNotification(applicationId, userId, preferredName)))
     val success = Future.successful(())
 

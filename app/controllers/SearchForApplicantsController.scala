@@ -23,6 +23,8 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
 import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -31,8 +33,8 @@ import scala.concurrent.Future
 
 object SearchForApplicantsController extends SearchForApplicantsController {
   val appRepository = applicationRepository
-  val psRepository = personalDetailsRepository
-  val cdRepository = contactDetailsRepository
+  val psRepository = faststreamPersonalDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
   val searchForApplicantService = SearchForApplicantService
 }
 
@@ -53,21 +55,21 @@ trait SearchForApplicantsController extends BaseController {
       psRepository.find(application.applicationId).flatMap { pd =>
         cdRepository.find(userId).map { cd =>
           Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), Some(cd.postCode), None,
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), cd.postCode, None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
         }.recover {
-          case e: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
+          case _: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
             Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), None, None, None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
         }
       }.recover {
-        case e: PersonalDetailsNotFound =>
+        case _: PersonalDetailsNotFound =>
           Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, None, None, None, None, None, None, None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
       }
     }.recover {
       // when application is not found, the application route is set to Faststream for backward compatibility
-      case e: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None, None,
+      case _: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None, None,
         Some(ApplicationRoute.Faststream), None)))
     }
   }

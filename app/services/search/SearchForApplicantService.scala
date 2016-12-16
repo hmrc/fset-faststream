@@ -18,11 +18,13 @@ package services.search
 
 import connectors.AuthProviderClient
 import model.Commands.{ Candidate, SearchCandidate }
-import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
-import model.PersistedObjects.ContactDetailsWithId
+import model.Exceptions.ContactDetailsNotFound
+import model.persisted.ContactDetailsWithId
 import org.joda.time.LocalDate
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -30,8 +32,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object SearchForApplicantService extends SearchForApplicantService {
   val appRepository = applicationRepository
-  val psRepository = personalDetailsRepository
-  val cdRepository = contactDetailsRepository
+  val psRepository = faststreamPersonalDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
   val authProviderClient = AuthProviderClient
 }
 
@@ -55,7 +57,7 @@ trait SearchForApplicantService {
         appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
           candidate.copy(address = Some(cd.address), postCode = cd.postCode)
         }).recover {
-          case e: ContactDetailsNotFound => None
+          case _: ContactDetailsNotFound => None
         }
       })
     }.map(_.flatten)

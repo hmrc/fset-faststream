@@ -35,6 +35,7 @@ import reactivemongo.bson.{ BSONDocument, BSONString }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.applicationassessment.ApplicationAssessmentService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
@@ -68,7 +69,7 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
 
   "Assessment Centre Passmark Service" should {
     "for each test in the path evaluate scores" ignore new WithApplication {
-      suites.foreach(executeSuite _)
+      suites.foreach(executeSuite)
     }
   }
 
@@ -104,7 +105,6 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
 
     val passmarkSettings = loadPassmarkSettings
     val testCases = loadTestCases
-    val config = loadConfig
     testCases.foreach(executeTestCase(_, loadConfig, passmarkSettings))
   }
 
@@ -112,6 +112,9 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
   def executeTestCase(testCase: File, config: AssessmentEvaluationMinimumCompetencyLevel,
                       passmark: AssessmentCentrePassMarkSettingsResponse) = {
     def loadTests = {
+      import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+      import net.ceedubs.ficus.Ficus._
+      import net.ceedubs.ficus.readers.ValueReader
       val tests = ConfigFactory.parseFile(new File(testCase.getAbsolutePath)).as[List[AssessmentServiceTest]]("tests")
       Logger.info(s"Found ${tests.length} tests")
       tests
@@ -213,7 +216,6 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
       val location2Scheme2 = evaluationDoc.getAs[String]("location2Scheme2")
       val alternativeScheme = evaluationDoc.getAs[String]("alternativeScheme")
       val competencyAverage = evaluationDoc.getAs[CompetencyAverageResult]("competency-average")
-      val schemesEvaluationDocsOpt = evaluationDoc.getAs[List[BSONDocument]]("schemes-evaluation")
 
       val schemesEvaluation = evaluationDoc.getAs[BSONDocument]("schemes-evaluation").map { doc =>
         doc.elements.collect {

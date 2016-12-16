@@ -26,6 +26,7 @@ import model.persisted.ApplicationForNotification
 import play.api.Logger
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
@@ -41,7 +42,7 @@ object ApplicationAssessmentService extends ApplicationAssessmentService {
   val aRepository = applicationRepository
   val aasRepository = applicationAssessmentScoresRepository
   val fpRepository = frameworkPreferenceRepository
-  val cdRepository = contactDetailsRepository
+  val cdRepository = faststreamContactDetailsRepository
 
   val emailClient = CSREmailClient
   val auditService = AuditService
@@ -132,8 +133,8 @@ trait ApplicationAssessmentService {
   }
 
   def processNextAssessmentCentrePassedOrFailedApplication: Future[Unit] = {
-    aRepository.nextAssessmentCentrePassedOrFailedApplication.flatMap {
-      case Some(application) => {
+    aRepository.nextAssessmentCentrePassedOrFailedApplication().flatMap {
+      case Some(application) =>
         Logger.debug(s"processAssessmentCentrePassedOrFailedApplication() with application id [${application.applicationId}] " +
           s"and status [${application.applicationStatus}]")
         for {
@@ -141,7 +142,6 @@ trait ApplicationAssessmentService {
           _ <- emailCandidate(application, emailAddress)
           _ <- commitNotifiedStatus(application)
         } yield ()
-      }
       case None => Future.successful(())
     }
   }
@@ -187,7 +187,7 @@ trait ApplicationAssessmentService {
       case _ =>
         Logger.warn(s"We cannot send email to candidate for application [${application.applicationId}] because its status is " +
           s"[${application.applicationStatus}].")
-        Future.failed(new IncorrectStatusInApplicationException(
+        Future.failed(IncorrectStatusInApplicationException(
           "Application should have been in ASSESSMENT_CENTRE_FAILED or ASSESSMENT_CENTRE_PASSED status"
         ))
     }

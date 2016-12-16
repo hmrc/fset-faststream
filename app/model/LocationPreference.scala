@@ -21,7 +21,7 @@ import reactivemongo.bson.Macros
 
 case class LocationPreference(region: String, location: String, firstFramework: String, secondFramework: Option[String]) {
   lazy val isValid: Boolean =
-    secondFramework.forall(_ != firstFramework)
+    !secondFramework.contains(firstFramework)
 }
 
 object LocationPreference {

@@ -40,7 +40,7 @@ object DataFaker {
     def randOne[T](options: List[T], cannotBe: List[T] = Nil) = {
       val filtered = options.filterNot(cannotBe.contains)
       if (filtered.isEmpty) {
-        throw new DataFakingException(s"There were no items left after filtering.")
+        throw DataFakingException(s"There were no items left after filtering.")
       } else {
         util.Random.shuffle(filtered).head
       }
@@ -51,7 +51,7 @@ object DataFaker {
 
         val filtered = options.filterNot(cannotBe.contains)
         if (filtered.isEmpty) {
-          throw new DataFakingException(s"There were no items left after filtering.")
+          throw DataFakingException(s"There were no items left after filtering.")
         } else {
           val newItem = util.Random.shuffle(filtered).head
           newItem :: randList(options, size - 1, newItem :: cannotBe)
@@ -163,7 +163,7 @@ object DataFaker {
       GovernmentCommunicationService, GovernmentEconomicsService, GovernmentOperationalResearchService,
       GovernmentSocialResearchService, GovernmentStatisticalService, HousesOfParliament, HumanResources,
       ProjectDelivery, ScienceAndEngineering),
-      randNumberOfSchemes)
+      randNumberOfSchemes())
 
     def gender = randOne(List(
       "Male",
@@ -677,7 +677,7 @@ object DataFaker {
 
     def accessCode = randomAlphaString(7)
 
-    def getVideoInterviewScore() = randOne(List(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0))
+    def getVideoInterviewScore = randOne(List(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0))
 
     private def randomAlphaString(n: Int) = {
       val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

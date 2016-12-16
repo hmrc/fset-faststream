@@ -50,7 +50,7 @@ class DiagnosticReportControllerSpec extends UnitWithAppSpec {
     "return NotFound if the user cannot be found" in new TestFixture {
       val IncorrectUserId = "1234"
       when(mockdiagnosticReportRepository.findByUserId(IncorrectUserId)).thenReturn(Future.failed(
-        new ApplicationNotFound(IncorrectUserId)
+        ApplicationNotFound(IncorrectUserId)
       ))
       val result = TestableDiagnosticReportingController.getApplicationByUserId(IncorrectUserId)(createGetUserByIdRequest(IncorrectUserId)).run
 

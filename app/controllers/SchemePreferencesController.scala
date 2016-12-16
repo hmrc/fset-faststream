@@ -39,7 +39,7 @@ trait SchemePreferencesController extends BaseController {
     schemePreferencesService.find(applicationId) map { sp =>
       Ok(Json.toJson(sp))
     } recover {
-      case e: SchemePreferencesNotFound => NotFound(s"Cannot find scheme preferences for applicationId: $applicationId")
+      case _: SchemePreferencesNotFound => NotFound(s"Cannot find scheme preferences for applicationId: $applicationId")
     }
   }
 
@@ -48,7 +48,7 @@ trait SchemePreferencesController extends BaseController {
       schemePreferencesService.update(applicationId, schemePref) map { _ =>
         Ok
       } recover {
-        case e: CannotUpdateSchemePreferences => BadRequest(s"Cannot update scheme preferences for applicationId: $applicationId")
+        case _: CannotUpdateSchemePreferences => BadRequest(s"Cannot update scheme preferences for applicationId: $applicationId")
       }
     }
   }

@@ -82,7 +82,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
     def getCivilServiceExperienceDetails(candidateInformation: DataGenerationResponse) = {
       if (generatorConfig.isCivilServant) {
-        CivilServiceExperienceDetails(true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
+        CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
       } else {
         CivilServiceExperienceDetails(applicable = false)
       }

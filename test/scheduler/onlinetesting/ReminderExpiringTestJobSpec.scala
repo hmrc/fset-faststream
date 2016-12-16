@@ -53,7 +53,7 @@ class ReminderExpiringTestJobSpec  extends UnitWithAppSpec with ShortTimeout {
     "complete successfully when service completes successfully" in {
       when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
-      TestableFirstReminderExpiringTestJob.tryExecute().futureValue mustBe (())
+      TestableFirstReminderExpiringTestJob.tryExecute().futureValue mustBe unit
     }
 
     "fail when the service fails" in {

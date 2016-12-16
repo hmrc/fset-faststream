@@ -53,7 +53,7 @@ class FastPassServiceSpec extends UnitSpec {
           "FastPassUserAcceptedEmailSent")
       )
 
-      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, true)
+      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = true)
       verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
@@ -77,7 +77,7 @@ class FastPassServiceSpec extends UnitSpec {
         List("FastPassUserRejected")
       )
 
-      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, false)
+      verify(csedRepositoryMock).evaluateFastPassCandidate(appId, accepted = false)
       verify(personalDetailsServiceMock).find(appId, userId)
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock)
       verifyZeroInteractions(appRepoMock, cdRepositoryMock, emailClientMock)

@@ -19,9 +19,9 @@ package services.onlinetesting
 import _root_.services.passmarksettings.PassMarkSettingsService
 import services.onlinetesting.phase1.{ Phase1TestEvaluation, Phase1TestSelector }
 import config.MicroserviceAppConfig._
-import model.Phase
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.ApplicationReadyForEvaluation
+import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest }
+import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeType }
 import play.api.Logger
 import repositories._
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
@@ -38,7 +38,7 @@ object EvaluatePhase1ResultService extends EvaluatePhase1ResultService {
 trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
   Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] {
 
-  def evaluate(application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
+  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase1 appId=${application.applicationId}")
 
     val activeTests = application.activeCubiksTests
@@ -46,14 +46,34 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
     val sjqTestOpt = findFirstSjqTest(activeTests)
     val bqTestOpt = findFirstBqTest(activeTests)
 
-    val schemeResults = (sjqTestOpt, bqTestOpt) match {
+    if (evaluateSdipOnly(application)) {
+      updatePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+    } else {
+      savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+    }
+  }
+
+  private def getSchemeResults(sjqTestOpt: Option[CubiksTest], bqTestOpt: Option[CubiksTest])
+                              (implicit application: ApplicationReadyForEvaluation,passmark: Phase1PassMarkSettings) =
+    (sjqTestOpt, bqTestOpt) match {
       case (Some(sjqTest), None) if application.isGis && sjqTest.testResult.isDefined =>
-        evaluateForGis(application.preferences.schemes, sjqTest.testResult.get, passmark)
+        evaluateForGis(getSchemesToEvaluate(application), sjqTest.testResult.get, passmark)
       case (Some(sjqTest), Some(bqTest)) if application.nonGis && sjqTest.testResult.isDefined && bqTest.testResult.isDefined =>
-        evaluateForNonGis(application.preferences.schemes, sjqTest.testResult.get, bqTest.testResult.get, passmark)
+        evaluateForNonGis(getSchemesToEvaluate(application), sjqTest.testResult.get, bqTest.testResult.get, passmark)
       case _ =>
         throw new IllegalStateException(s"Illegal number of active tests with results for this application: ${application.applicationId}")
+  }
+
+  private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation) = {
+    if (evaluateSdipOnly(application)) {
+      application.preferences.schemes.filter(_ == SchemeType.Sdip)
+    } else {
+      application.preferences.schemes
     }
-    savePassMarkEvaluation(application, schemeResults, passmark)
+  }
+
+  private def evaluateSdipOnly(application: ApplicationReadyForEvaluation) = {
+    application.applicationRoute == ApplicationRoute.SdipFaststream &&
+      application.applicationStatus != ApplicationStatus.PHASE1_TESTS
   }
 }

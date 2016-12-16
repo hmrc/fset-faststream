@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import model.ApplicationRoute._
-import model.{ ApplicationRoute, ApplicationStatus }
+import model.{ ApplicationRoute, ApplicationStatus, SchemeType }
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Result, _ }
 import model.Phase.Phase
@@ -26,12 +26,32 @@ import model.ProgressStatuses.ProgressStatus
 import model.ProgressStatuses._
 import model.persisted.SchemeEvaluationResult
 
-// scalastyle:off cyclomatic.complexity
 trait ApplicationStatusCalculator {
 
-  case class UnimplementedApplicationRouteException(m: String) extends Exception(m)
+  def faststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+    results: List[Result]): Option[ProgressStatus] = (phase, originalAppStatus) match {
+    case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
+    case (PHASE2, ApplicationStatus.PHASE2_TESTS) => processResults(results, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED)
+    case (PHASE3, ApplicationStatus.PHASE3_TESTS | ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
+        if results.contains(Amber) && results.contains(Green) => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
 
-  type CalcStep = PartialFunction[(Phase, ApplicationStatus), Option[ProgressStatus]]
+    case (PHASE3, ApplicationStatus.PHASE3_TESTS | ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER) =>
+        processResults(results, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED)
+
+    case _ => None
+  }
+
+  def sdipFaststreamCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+    evaluatedSchemes: List[SchemeEvaluationResult]): Option[ProgressStatus] = {
+    val results = evaluatedSchemes.filterNot(_.scheme == SchemeType.Sdip).map(s => Result(s.result))
+    faststreamCalc(phase, originalAppStatus, results)
+  }
+
+  def edipSdipCalc(phase: Phase, originalAppStatus: ApplicationStatus,
+    results: List[Result]): Option[ProgressStatus] = (phase, originalAppStatus) match {
+    case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
+    case _ => None
+  }
 
   def determineApplicationStatus(applicationRoute: ApplicationRoute,
     originalApplicationStatus: ApplicationStatus,
@@ -42,39 +62,12 @@ trait ApplicationStatusCalculator {
     val results = evaluatedSchemes.map(s => Result(s.result))
     require(results.nonEmpty, "Results not found")
 
-    val phase1: CalcStep = { case (PHASE1, ApplicationStatus.PHASE1_TESTS) => processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED) }
-
-    val phase1Amber: CalcStep = {
-      case (PHASE1, ApplicationStatus.PHASE1_TESTS | ApplicationStatus.PHASE1_TESTS_PASSED_WITH_AMBER)
-        if results.contains(Amber) => Some(PHASE1_TESTS_PASSED_WITH_AMBER)
-
-      case (PHASE1, ApplicationStatus.PHASE1_TESTS | ApplicationStatus.PHASE1_TESTS_PASSED_WITH_AMBER) =>
-        processResults(results, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED)
-    }
-
-    val phase2: CalcStep = { case (PHASE2, ApplicationStatus.PHASE2_TESTS) => processResults(results, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED) }
-
-    val phase3WithAmber: CalcStep = {
-      case (PHASE3, ApplicationStatus.PHASE3_TESTS | ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
-        if results.contains(Amber) && results.contains(Green) => Some(PHASE3_TESTS_PASSED_WITH_AMBER)
-
-      case (PHASE3, ApplicationStatus.PHASE3_TESTS | ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER) =>
-        processResults(results, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED)
-    }
-
-    val default: CalcStep = { case _ => None }
-
     applicationRoute match {
-      case ApplicationRoute.Faststream => (phase1 orElse phase2 orElse phase3WithAmber orElse default)(phase -> originalApplicationStatus)
-
-      case ApplicationRoute.Edip => (phase1Amber orElse default)(phase -> originalApplicationStatus)
-
-      case ApplicationRoute.Sdip => (phase1 orElse default)(phase -> originalApplicationStatus)
-
-      case _ => throw UnimplementedApplicationRouteException(s"Score evaluation for application route $applicationRoute is not implemented yet.")
+      case ApplicationRoute.Edip | ApplicationRoute.Sdip => edipSdipCalc(phase, originalApplicationStatus, results)
+      case ApplicationRoute.SdipFaststream => sdipFaststreamCalc(phase, originalApplicationStatus, evaluatedSchemes)
+      case _ => faststreamCalc(phase, originalApplicationStatus, results)
     }
   }
-  // scalastyle:on cyclomatic.complexity
 
   def processResults(results: List[Result], pass: ProgressStatus, fail: ProgressStatus): Option[ProgressStatus] = {
     if (results.forall(_ == Red)) {

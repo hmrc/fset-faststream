@@ -42,7 +42,7 @@ trait AssessmentScoresEnteredStatusGenerator extends ConstructiveGenerator {
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
 
     def getScoresAndFeedback(applicationId: String): CandidateScoresAndFeedback = {
-      CandidateScoresAndFeedback(applicationId, Some(true), false,
+      CandidateScoresAndFeedback(applicationId, Some(true), assessmentIncomplete = false,
         CandidateScores(Some(3.5), Some(3.5), Some(3.5)),
         CandidateScores(Some(3.5), Some(3.5), Some(3.5)),
         CandidateScores(Some(3.5), Some(3.5), Some(3.5)),

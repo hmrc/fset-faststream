@@ -43,7 +43,7 @@ class PartnerGraduateProgrammesControllerSpec extends UnitWithAppSpec {
 
     "return BAD_REQUEST when there is a CannotUpdatePartnerGraduateProgrammes exception" in new TestFixture {
       when(mockPartnerGraduateProgrammesService.update(AppId, PartnerGraduateProgrammesExchangeExamples.InterestedNotAll))
-        .thenReturn(Future.failed(new CannotUpdatePartnerGraduateProgrammes(UserId)))
+        .thenReturn(Future.failed(CannotUpdatePartnerGraduateProgrammes(UserId)))
       val result = controller.update(AppId)(Request)
       status(result) must be(BAD_REQUEST)
       verify(mockAuditService, times(0)).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
