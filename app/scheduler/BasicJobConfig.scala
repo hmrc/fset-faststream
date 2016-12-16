@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package scheduler.onlinetesting
+package scheduler
 
 import java.util.concurrent.TimeUnit
 
 import config.ScheduledJobConfigurable
+import net.ceedubs.ficus.Ficus._
+import net.ceedubs.ficus.readers.ValueReader
 import play.api.Play.configuration
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.util.Try
-import net.ceedubs.ficus.Ficus._
-import net.ceedubs.ficus.readers.ValueReader
 
 case class BasicJobConfig[T <: ScheduledJobConfigurable] (configPrefix: String, name: String)
                                                          (implicit reader: ValueReader[T]){

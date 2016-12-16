@@ -21,6 +21,7 @@ import model.Phase1ExpirationEvent
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
+import scheduler.BasicJobConfig
 import services.BaseServiceSpec
 import services.onlinetesting.OnlineTestService
 import testkit.ShortTimeout

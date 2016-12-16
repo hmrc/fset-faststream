@@ -18,6 +18,7 @@
 package scheduler.onlinetesting
 
 import config.WaitingScheduledJobConfig
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier

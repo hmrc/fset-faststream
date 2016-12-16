@@ -18,8 +18,8 @@ package scheduler.fixer
 
 import config.ScheduledJobConfig
 import model.EmptyRequestHeader
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.BasicJobConfig
 import services.application.ApplicationService
 import uk.gov.hmrc.play.http.HeaderCarrier
 

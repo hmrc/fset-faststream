@@ -1,7 +1,7 @@
 package scheduler.clustering
 
 import config.ScheduledJobConfig
-import scheduler.onlinetesting.BasicJobConfig
+import scheduler.BasicJobConfig
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.{ ExecutionContext, Future, Promise }

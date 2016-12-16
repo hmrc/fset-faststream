@@ -18,8 +18,7 @@ package scheduler.clustering
 
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
-import scheduler.LockKeeper
-import scheduler.onlinetesting.BasicJobConfig
+import scheduler.{ BasicJobConfig, LockKeeper }
 import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob
 
 import scala.concurrent.duration.Duration

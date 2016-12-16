@@ -18,11 +18,10 @@ package scheduler.parity
 
 import config.ScheduledJobConfig
 import model.EmptyRequestHeader
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.BasicJobConfig
 import services.parity.ParityExportService
 import uk.gov.hmrc.play.http.HeaderCarrier
-
 
 import scala.concurrent.{ ExecutionContext, Future }
 

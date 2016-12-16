@@ -83,7 +83,7 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
     }
 
     lazy val scheduler = new EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
-      val config = EvaluatePhase1ResultJobConfig.ensuring(_ != null)
+      def config = ???
       val phase = Phase.PHASE1
       val evaluateService = mockEvaluateService
       override val batchSize = 1

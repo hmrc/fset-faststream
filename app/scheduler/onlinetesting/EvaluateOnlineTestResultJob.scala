@@ -24,6 +24,7 @@ import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSetting
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
 import play.api.libs.json.Format
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
 import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase2ResultService, EvaluatePhase3ResultService }

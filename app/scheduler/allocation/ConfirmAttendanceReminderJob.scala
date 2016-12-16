@@ -17,8 +17,8 @@
 package scheduler.allocation
 
 import config.ScheduledJobConfig
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.BasicJobConfig
 import services.allocation.CandidateAllocationService
 
 import scala.concurrent.{ ExecutionContext, Future }
