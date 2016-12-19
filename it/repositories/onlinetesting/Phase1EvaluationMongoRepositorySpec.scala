@@ -136,7 +136,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
     "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is not evaluated for phase1" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
-        applicationRoute = ApplicationRoute.SdipFaststream)
+        applicationRoute = Some(ApplicationRoute.SdipFaststream))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
       applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
@@ -148,7 +148,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
     "do not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated for phase1" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
-        applicationRoute = ApplicationRoute.SdipFaststream)
+        applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
         SchemeEvaluationResult(SchemeType.Sdip, Green.toString))

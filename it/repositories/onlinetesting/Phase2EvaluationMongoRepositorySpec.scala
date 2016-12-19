@@ -50,6 +50,24 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         selectedSchemes(List(Commercial)))
     }
 
+    "return application in PHASE2_TESTS with results when applicationRoute is not set" in {
+      val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave)
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+        Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation), applicationRoute = None)
+
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase1_version1", batchSize = 1).futureValue
+
+      result.head mustBe ApplicationReadyForEvaluation(
+        "app1",
+        ApplicationStatus.PHASE2_TESTS,
+        ApplicationRoute.Faststream,
+        isGis = false,
+        Phase2TestGroup(now, phase2TestWithResult).activeTests,
+        None,
+        Some(phase1Evaluation),
+        selectedSchemes(List(Commercial)))
+    }
+
     "return nothing when PHASE2_TESTS are already evaluated" in {
       val phase1Evaluation = PassmarkEvaluation("phase1_version1", None, resultToSave)
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
