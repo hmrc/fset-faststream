@@ -74,7 +74,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE1_TESTS_PASSED",
        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), applicationRoute = "Faststream").futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 1
       results.head.applicationId mustBe "appId2"
@@ -88,7 +88,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         typeOfEtrayOnlineAdjustments = Nil
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 1
       results.head.applicationId mustBe "appId0"
@@ -102,7 +102,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 1
       results.head.applicationId mustBe "appId3"
@@ -117,7 +117,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 1
       results.head.applicationId mustBe "appId4"
@@ -132,7 +132,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 1
       results.head.applicationId mustBe "appId5"
@@ -146,7 +146,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         typeOfEtrayOnlineAdjustments = Nil
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 0
     }
@@ -159,7 +159,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         typeOfEtrayOnlineAdjustments = Nil
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 0
     }
@@ -172,7 +172,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 0
     }
@@ -184,7 +184,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         fastPassReceived = false, isGis = false, additionalProgressStatuses = List((SUBMITTED, true))
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 0
     }
@@ -197,7 +197,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         typeOfEtrayOnlineAdjustments = List("etrayInvigilated")
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 0
     }
@@ -214,7 +214,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         fastPassReceived = false, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 1
       results.head.applicationId mustBe "appId2"
@@ -231,7 +231,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         fastPassReceived = false, additionalProgressStatuses = List(PHASE1_TESTS_EXPIRED -> true)
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
       results.isEmpty mustBe true
     }
   }

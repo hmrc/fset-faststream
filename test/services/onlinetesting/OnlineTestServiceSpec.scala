@@ -31,6 +31,7 @@ import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
 import testkit.UnitSpec
@@ -200,6 +201,7 @@ class OnlineTestServiceSpec extends UnitSpec {
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
+    val testRepositoryMock = mock[Phase1TestRepository]
     val emailClientMock = mock[OnlineTestEmailClient]
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
@@ -235,6 +237,8 @@ class OnlineTestServiceSpec extends UnitSpec {
 
     class TestableOnlineTestService extends OnlineTestService with Phase1TestConcern with EventServiceFixture {
 
+      type TestRepository = Phase1TestRepository
+      override val testRepository = testRepositoryMock
       override val emailClient = emailClientMock
       override val auditService = auditServiceMock
       override val tokenFactory = tokenFactoryMock
@@ -243,15 +247,11 @@ class OnlineTestServiceSpec extends UnitSpec {
       override val appRepository = appRepositoryMock
       override val eventService = eventServiceMock
 
-      def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = Future.successful(List.empty)
+      def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = Future.successful(List.empty)
       def registerAndInviteForTestGroup(application: OnlineTestApplication)
                                        (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = success
       def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                        (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = success
-      def processNextExpiredTest(expiryTest: TestExpirationEvent)
-                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = success
-      def processNextTestForReminder(reminder: ReminderNotice)
-                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = success
       def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = success
 

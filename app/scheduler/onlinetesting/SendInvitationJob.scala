@@ -44,7 +44,7 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
   val onlineTestingService: OnlineTestService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    onlineTestingService.nextApplicationReadyForOnlineTesting.flatMap {
+    onlineTestingService.nextApplicationsReadyForOnlineTesting(config.conf.batchSize.getOrElse(1)).flatMap {
       case Nil =>
         Future.successful(())
       case applications =>

@@ -758,7 +758,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val phase2TestService = new Phase2TestService with EventServiceFixture with Phase2TestSelector {
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
-      val phase2TestRepo = otRepositoryMock
+      val testRepository = otRepositoryMock
       val cubiksGatewayClient = cubiksGatewayClientMock
       val emailClient = emailClientMock
       val auditService = auditServiceMock

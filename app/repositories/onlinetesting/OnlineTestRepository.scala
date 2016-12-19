@@ -45,7 +45,8 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
   type U <: Test
   type T <: TestProfile[U]
 
-  def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]]
+  def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]]
+  def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 
   def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -156,7 +157,8 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     selectOneRandom[ExpiringOnlineTest](query)
   }
 
-  def nextTestForReminder(reminder: ReminderNotice, progressStatusQuery: BSONDocument): Future[Option[NotificationExpiringOnlineTest]] = {
+  protected[this] def nextTestForReminder(reminder: ReminderNotice, progressStatusQuery: BSONDocument):
+    Future[Option[NotificationExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
       BSONDocument(s"testGroups.${reminder.phase}.expirationDate" ->

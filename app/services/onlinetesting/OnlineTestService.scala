@@ -31,6 +31,7 @@ import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.onlinetesting.OnlineTestRepository
 import services.AuditService
 import services.events.EventSink
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -39,24 +40,24 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 
 trait OnlineTestService extends TimeExtension with EventSink {
+  type U <: Test
+  type T <: TestProfile[U]
+  type RichTestGroup <: TestGroupWithIds[U, T]
+  type TestRepository <: OnlineTestRepository
+
   val emailClient: OnlineTestEmailClient
   val auditService: AuditService
   val tokenFactory: UUIDFactory
   val dateTimeFactory: DateTimeFactory
   val cdRepository: ContactDetailsRepository
   val appRepository: GeneralApplicationRepository
-
-  type U <: Test
-  type T <: TestProfile[U]
-  type RichTestGroup <: TestGroupWithIds[U, T]
+  val testRepository: TestRepository
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]]
+  def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-  def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-  def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]
@@ -69,6 +70,20 @@ trait OnlineTestService extends TimeExtension with EventSink {
       case None => Future.successful(())
     }
   }
+
+  def processNextExpiredTest(expiryTest: TestExpirationEvent)
+                                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    testRepository.nextExpiringApplication(expiryTest).flatMap {
+      case Some(expired) => processExpiredTest(expired, expiryTest)
+      case None => Future.successful(())
+    }
+  }
+
+  def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+    testRepository.nextTestForReminder(reminder).flatMap {
+      case Some(expiringTest) => processReminder(expiringTest, reminder)
+      case None => Future.successful(())
+    }
 
   protected def processTestForNotification(toNotify: TestResultNotification, `type`: NotificationTestType)
                                  (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
