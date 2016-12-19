@@ -52,7 +52,7 @@ object Phase2TestService extends Phase2TestService {
 
   val appRepository = applicationRepository
   val cdRepository = faststreamContactDetailsRepository
-  val phase2TestRepo = phase2TestRepository
+  val testRepository = phase2TestRepository
   val cubiksGatewayClient = CubiksGatewayClient
   val tokenFactory = UUIDFactory
   val dateTimeFactory = DateTimeFactory
@@ -67,8 +67,8 @@ object Phase2TestService extends Phase2TestService {
 
 // scalastyle:off number.of.methods
 trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Phase2TestSelector {
+  type TestRepository = Phase2TestRepository
   val actor: ActorSystem
-  val phase2TestRepo: Phase2TestRepository
   val cubiksGatewayClient: CubiksGatewayClient
   val gatewayConfig: CubiksGatewayConfig
   val authProvider: AuthProviderClient
@@ -86,7 +86,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   def getTestGroup(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
     for {
-      phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
+      phase2Opt <- testRepository.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
       val test = phase2.activeTests
         .find(_.usedForResults)
@@ -101,23 +101,16 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   def verifyAccessCode(email: String, accessCode: String): Future[String] = for {
     userId <- cdRepository.findUserIdByEmail(email)
-    testGroupOpt <- phase2TestRepo.getTestGroupByUserId(userId)
+    testGroupOpt <- testRepository.getTestGroupByUserId(userId)
     testUrl <- Future.fromTry(processEtrayToken(testGroupOpt, accessCode))
   } yield testUrl
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
-    phase2TestRepo.nextApplicationsReadyForOnlineTesting(maxBatchSize)
-  }
-
-  override def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    phase2TestRepo.nextTestForReminder(reminder).flatMap {
-      case Some(expiringTest) => processReminder(expiringTest, reminder)
-      case None => Future.successful(())
-    }
+    testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize)
   }
 
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
-    phase2TestRepo.nextTestGroupWithReportReady
+    testRepository.nextTestGroupWithReportReady
   }
 
   override def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest,
@@ -164,7 +157,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   private def resetPhase2Tests(application: OnlineTestApplication, actionTriggeredBy: String)
                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-      phase2TestRepo.getTestGroup(application.applicationId).flatMap {
+      testRepository.getTestGroup(application.applicationId).flatMap {
         case Some(phase2TestGroup) if !application.isInvigilatedETray =>
           val (_, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
           registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
@@ -191,7 +184,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
   }
 
   override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    phase2TestRepo.nextExpiringApplication(expiryTest).flatMap {
+    testRepository.nextExpiringApplication(expiryTest).flatMap {
       case Some(expired) => processExpiredTest(expired, expiryTest)
       case None => Future.successful(())
     }
@@ -346,21 +339,21 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   private def insertOrUpdateTestGroup(application: OnlineTestApplication)
                                      (newOnlineTestProfile: Phase2TestGroup): Future[Unit] = for {
-    currentOnlineTestProfile <- phase2TestRepo.getTestGroup(application.applicationId)
+    currentOnlineTestProfile <- testRepository.getTestGroup(application.applicationId)
     updatedTestProfile <- insertOrAppendNewTests(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- phase2TestRepo.resetTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
+    _ <- testRepository.resetTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
   } yield ()
 
   private def insertOrAppendNewTests(applicationId: String, currentProfile: Option[Phase2TestGroup],
                                      newProfile: Phase2TestGroup): Future[Phase2TestGroup] = {
     (currentProfile match {
-      case None => phase2TestRepo.insertOrUpdateTestGroup(applicationId, newProfile)
+      case None => testRepository.insertOrUpdateTestGroup(applicationId, newProfile)
       case Some(profile) =>
         val existingActiveTests = profile.tests.filter(_.usedForResults).map(_.cubiksUserId)
-        Future.traverse(existingActiveTests)(phase2TestRepo.markTestAsInactive).flatMap { _ =>
-          phase2TestRepo.insertCubiksTests(applicationId, newProfile)
+        Future.traverse(existingActiveTests)(testRepository.markTestAsInactive).flatMap { _ =>
+          testRepository.insertCubiksTests(applicationId, newProfile)
         }
-    }).flatMap { _ => phase2TestRepo.getTestGroup(applicationId)
+    }).flatMap { _ => testRepository.getTestGroup(applicationId)
     }.map {
       case Some(testProfile) => testProfile
       case None => throw ApplicationNotFound(applicationId)
@@ -369,19 +362,19 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestStartTime(_: Int, startedTime)).flatMap { u =>
-      phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
+    updatePhase2Test(cubiksUserId, testRepository.updateTestStartTime(_: Int, startedTime)).flatMap { u =>
+      testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
         DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
       }
     }
   }
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestCompletionTime(_: Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
+    updatePhase2Test(cubiksUserId, testRepository.updateTestCompletionTime(_: Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
       require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
       val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
       if (activeTestsCompleted) {
-        phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
+        testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
           DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
         }
       } else {
@@ -391,16 +384,16 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
   }
 
   def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    phase2TestRepo.getTestProfileByToken(token).flatMap { p =>
+    testRepository.getTestProfileByToken(token).flatMap { p =>
       p.tests.find(_.token == token).map { test => markAsCompleted(test.cubiksUserId) }
         .getOrElse(Future.successful(()))
     }
   }
 
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
-    updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestReportReady(_: Int, reportReady)).flatMap { updated =>
+    updatePhase2Test(cubiksUserId, testRepository.updateTestReportReady(_: Int, reportReady)).flatMap { updated =>
       if (updated.testGroup.activeTests forall (_.resultsReadyToDownload)) {
-        phase2TestRepo.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
+        testRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
       } else {
         Future.successful(())
       }
@@ -410,7 +403,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
   private def updatePhase2Test(cubiksUserId: Int, updateCubiksTest: Int => Future[Unit]): Future[Phase2TestGroupWithAppId] = {
     for {
       _ <- updateCubiksTest(cubiksUserId)
-      updated <- phase2TestRepo.getTestProfileByCubiksId(cubiksUserId)
+      updated <- testRepository.getTestProfileByCubiksId(cubiksUserId)
     } yield {
       updated
     }
@@ -435,7 +428,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     val progressFut = appRepository.findProgress(applicationId)
-    val phase2TestGroup = phase2TestRepo.getTestGroup(applicationId)
+    val phase2TestGroup = testRepository.getTestGroup(applicationId)
       .map(tg => tg.getOrElse(throw new IllegalStateException("Expiration date for Phase 2 cannot be extended. Test group not found.")))
 
     for {
@@ -444,7 +437,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
       isAlreadyExpired = progress.phase2ProgressResponse.phase2TestsExpired
       extendDays = extendTime(isAlreadyExpired, phase2.expirationDate)
       newExpiryDate = extendDays(extraDays)
-      _ <- phase2TestRepo.updateGroupExpiryTime(applicationId, newExpiryDate, phase2TestRepo.phaseName)
+      _ <- testRepository.updateGroupExpiryTime(applicationId, newExpiryDate, testRepository.phaseName)
       _ <- progressStatusesToRemoveWhenExtendTime(newExpiryDate, phase2, progress)
         .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
@@ -497,7 +490,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
     def insertTests(testResults: List[(OnlineTestCommands.TestResult, U)]): Future[Unit] = {
       Future.sequence(testResults.map {
-        case (result, phase1Test) => phase2TestRepo.insertTestResult(
+        case (result, phase1Test) => testRepository.insertTestResult(
           testProfile.applicationId,
           phase1Test, model.persisted.TestResult.fromCommandObject(result)
         )
@@ -505,11 +498,11 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     }
 
     def maybeUpdateProgressStatus(appId: String) = {
-      phase2TestRepo.getTestGroup(appId).flatMap { eventualProfile =>
+      testRepository.getTestGroup(appId).flatMap { eventualProfile =>
 
         val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No profile returned for $appId"))
         if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
-          phase2TestRepo.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_ =>
+          testRepository.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_ =>
             audit(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}", appId))
         } else {
           Future.successful(())

@@ -659,7 +659,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       override val delaySecsBetweenRegistrations = 0
       val appRepository = appRepositoryMock
       val cdRepository = cdRepositoryMock
-      val phase1TestRepo = otRepositoryMock
+      val testRepository = otRepositoryMock
       val cubiksGatewayClient = cubiksGatewayClientMock
       val emailClient = emailClientMock
       val auditService = auditServiceMock

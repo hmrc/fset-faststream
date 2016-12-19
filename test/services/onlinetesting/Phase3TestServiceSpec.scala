@@ -602,7 +602,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val service =
         new Phase3TestService {
           val appRepository = appRepositoryMock
-          val phase3TestRepo = p3TestRepositoryMock
+          val testRepository = p3TestRepositoryMock
           val cdRepository = cdRepositoryMock
           val launchpadGatewayClient = launchpadGatewayClientMock
           val tokenFactory = tokenFactoryMock
@@ -755,7 +755,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       mockSetup
       new Phase3TestService {
         val appRepository = appRepositoryMock
-        val phase3TestRepo = p3TestRepositoryMock
+        val testRepository = p3TestRepositoryMock
         val cdRepository = cdRepositoryMock
         val launchpadGatewayClient = launchpadGatewayClientMock
         val tokenFactory = tokenFactoryMock

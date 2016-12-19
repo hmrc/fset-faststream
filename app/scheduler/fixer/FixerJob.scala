@@ -31,6 +31,7 @@ object FixerJob extends FixerJob {
 }
 
 trait FixerJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+
   val service: ApplicationService
   lazy val jobBatchSize = config.conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
