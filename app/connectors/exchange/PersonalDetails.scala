@@ -16,7 +16,6 @@
 
 package connectors.exchange
 
-import connectors.exchange.CivilServiceExperienceDetails
 import mappings.Address
 import mappings.PhoneNumberMapping._
 import mappings.PostCodeMapping._

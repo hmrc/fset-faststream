@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 
-package connectors
+package connectors.exchange
 
-package object exchange {
+import models.{ ApplicationRoute, UniqueIdentifier }
+import org.joda.time.DateTime
+import play.api.libs.json.Json
 
-  val FrameworkId = "FastStream-2016"
 
-  type LoginInfo = String
+case class ApplicationResponse(
+  applicationId: UniqueIdentifier,
+  applicationStatus: String,
+  applicationRoute: ApplicationRoute.ApplicationRoute,
+  userId: UniqueIdentifier,
+  progressResponse: ProgressResponse,
+  civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
+  overriddenSubmissionDeadline: Option[DateTime]
+)
+
+object ApplicationResponse {
+  implicit val applicationAddedFormat = Json.format[ApplicationResponse]
 }

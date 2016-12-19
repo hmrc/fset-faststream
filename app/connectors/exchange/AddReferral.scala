@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package connectors
+package connectors.exchange
 
-package object exchange {
+import models.UniqueIdentifier
+import play.api.libs.json.Json
 
-  val FrameworkId = "FastStream-2016"
+case class AddReferral(userId: UniqueIdentifier, media: String)
 
-  type LoginInfo = String
+object AddReferral {
+  implicit val format = Json.format[AddReferral]
 }

@@ -22,7 +22,6 @@ import com.mohiva.play.silhouette.api.SignUpEvent
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import connectors.UserManagementClient.EmailTakenException
-import connectors.exchange.Implicits._
 import connectors.exchange._
 import helpers.NotificationType._
 import models.{ ApplicationRoute, SecurityUser }
