@@ -53,6 +53,6 @@ object SuccessPhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
 )
 
 object SuccessPhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
-  configPrefix = "scheduling.online-testing.success-phase1-test-job",
-  name = "SuccessPhase1TestJob"
+  configPrefix = "scheduling.online-testing.success-phase3-test-job",
+  name = "SuccessPhase3TestJob"
 )
