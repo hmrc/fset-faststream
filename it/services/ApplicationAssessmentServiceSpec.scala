@@ -27,8 +27,6 @@ import model.Commands.AssessmentCentrePassMarkSettingsResponse
 import model.Commands.Implicits._
 import model.EvaluationResults._
 import model.Preferences
-import net.ceedubs.ficus.Ficus._
-import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import org.scalatest.mock.MockitoSugar
 import play.Logger
 import play.api.libs.json._
@@ -114,6 +112,9 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
   def executeTestCase(testCase: File, config: AssessmentEvaluationMinimumCompetencyLevel,
                       passmark: AssessmentCentrePassMarkSettingsResponse) = {
     def loadTests = {
+      import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+      import net.ceedubs.ficus.Ficus._
+      import net.ceedubs.ficus.readers.ValueReader
       val tests = ConfigFactory.parseFile(new File(testCase.getAbsolutePath)).as[List[AssessmentServiceTest]]("tests")
       Logger.info(s"Found ${tests.length} tests")
       tests

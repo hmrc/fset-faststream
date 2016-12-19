@@ -31,11 +31,13 @@ class EvaluateAssessmentScoreJobSpec extends UnitWithAppSpec with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val applicationAssessmentServiceMock = mock[ApplicationAssessmentService]
-  val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, None, None)
+  val competencyConfig = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, None, None)
 
   object TestableEvaluateAssessmentScoreJob extends EvaluateAssessmentScoreJob {
     val applicationAssessmentService = applicationAssessmentServiceMock
-    override val minimumCompetencyLevelConfig = config
+    val config = new EvaluateAssessmentScoreJobConfig {
+      override val minimumCompetencyLevelConfig = competencyConfig
+    }
   }
 
   "application assessment service" should {
@@ -48,13 +50,13 @@ class EvaluateAssessmentScoreJobSpec extends UnitWithAppSpec with ShortTimeout {
       when(applicationAssessmentServiceMock.nextAssessmentCandidateScoreReadyForEvaluation).thenReturn(
         Future.successful(Some(candidateScore))
       )
-      when(applicationAssessmentServiceMock.evaluateAssessmentCandidateScore(candidateScore, config)).thenReturn(
+      when(applicationAssessmentServiceMock.evaluateAssessmentCandidateScore(candidateScore, competencyConfig)).thenReturn(
         Future.successful(())
       )
 
       TestableEvaluateAssessmentScoreJob.tryExecute().futureValue
 
-      verify(applicationAssessmentServiceMock).evaluateAssessmentCandidateScore(candidateScore, config)
+      verify(applicationAssessmentServiceMock).evaluateAssessmentCandidateScore(candidateScore, competencyConfig)
     }
   }
 }

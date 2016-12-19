@@ -16,35 +16,34 @@
 
 package scheduler.onlinetesting
 
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
-
 import config.ScheduledJobConfig
 import model._
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService, Phase3TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object FailedPhase1TestJob extends FailedTestJob with FailedPhase1TestJobConfig {
+object FailedPhase1TestJob extends FailedTestJob {
   override val service = Phase1TestService
   override val failedType: FailedTestType = Phase1FailedTestType
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+  val config = FailedPhase1TestJobConfig
 }
 
-object FailedPhase2TestJob extends FailedTestJob with FailedPhase2TestJobConfig {
+object FailedPhase2TestJob extends FailedTestJob {
   override val service = Phase2TestService
   override val failedType: FailedTestType = Phase2FailedTestType
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+  val config = FailedPhase2TestJobConfig
 }
 
-object FailedPhase3TestJob extends FailedTestJob with FailedPhase3TestJobConfig {
+object FailedPhase3TestJob extends FailedTestJob {
   override val service = Phase3TestService
   override val failedType: FailedTestType = Phase3FailedTestType
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+  val config = FailedPhase3TestJobConfig
 }
 
-trait FailedTestJob extends SingleInstanceScheduledJob {
+trait FailedTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: OnlineTestService
   val failedType: FailedTestType
 
@@ -55,23 +54,17 @@ trait FailedTestJob extends SingleInstanceScheduledJob {
   }
 }
 
-trait FailedPhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.failedPhase1TestJobConfig
-  val configPrefix = "scheduling.online-testing.failed-phase1-test-job."
-  val name = "FailedPhase1TestJob"
-}
+object FailedPhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.failed-phase1-test-job",
+  name = "FailedPhase1TestJob"
+)
 
-trait FailedPhase2TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.failedPhase2TestJobConfig
-  val configPrefix = "scheduling.online-testing.failed-phase2-test-job."
-  val name = "FailedPhase2TestJob"
-}
+object FailedPhase2TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.failed-phase2-test-job",
+  name = "FailedPhase2TestJob"
+)
 
-trait FailedPhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.failedPhase3TestJobConfig
-  val configPrefix = "scheduling.online-testing.failed-phase3-test-job."
-  val name = "FailedPhase3TestJob"
-}
+object FailedPhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.failed-phase3-test-job",
+  name = "FailedPhase3TestJob"
+)

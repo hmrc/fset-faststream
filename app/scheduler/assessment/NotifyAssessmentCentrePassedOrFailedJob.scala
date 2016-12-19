@@ -16,31 +16,26 @@
 
 package scheduler.assessment
 
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
-
 import config.ScheduledJobConfig
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.BasicJobConfig
 import services.applicationassessment.ApplicationAssessmentService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object NotifyAssessmentCentrePassedOrFailedJob extends NotifyAssessmentCentrePassedOrFailedJob {
   val applicationAssessmentService: ApplicationAssessmentService = ApplicationAssessmentService
+  val config = NotifyAssessmentCentrePassedOrFailedJobConfig
 }
 
-trait NotifyAssessmentCentrePassedOrFailedJob extends SingleInstanceScheduledJob with NotifyAssessmentCentrePassedOrFailedJobConfig {
+trait NotifyAssessmentCentrePassedOrFailedJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val applicationAssessmentService: ApplicationAssessmentService
-
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] =
     applicationAssessmentService.processNextAssessmentCentrePassedOrFailedApplication
 }
 
-trait NotifyAssessmentCentrePassedOrFailedJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.notifyAssessmentCentrePassedOrFailedJobConfig
-  val configPrefix = "scheduling.notify-assessment-centre-passed-or-failed-job."
-  val name = "NotifyAssessmentCentrePassedOrFailedJob"
-}
+object NotifyAssessmentCentrePassedOrFailedJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.notify-assessment-centre-passed-or-failed-job",
+  name = "NotifyAssessmentCentrePassedOrFailedJob"
+)

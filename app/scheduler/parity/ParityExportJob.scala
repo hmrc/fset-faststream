@@ -16,13 +16,10 @@
 
 package scheduler.parity
 
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
-
-import config.{ MicroserviceAppConfig, ScheduledJobConfig }
+import config.ScheduledJobConfig
 import model.EmptyRequestHeader
-import play.api.Logger
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.BasicJobConfig
 import services.parity.ParityExportService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -30,31 +27,25 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object ParityExportJob extends ParityExportJob {
   override val service = ParityExportService
-  override val parityExportJobConfig = MicroserviceAppConfig.parityExportJobConfig
+  val config = ParityExportJobConfig
 }
 
-trait ParityExportJob extends SingleInstanceScheduledJob with ParityExportJobConfig {
+trait ParityExportJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: ParityExportService
-  val parityExportJobConfig: ScheduledJobConfig
-
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+  def jobBatchSize = config.conf.batchSize.getOrElse(1)
 
   implicit val blankHeaderCarrier = HeaderCarrier()
   implicit val requestHeader = EmptyRequestHeader
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    service.nextApplicationsForExport(parityExportJobConfig.batchSize.getOrElse(1)).flatMap { applicationList =>
+    service.nextApplicationsForExport(jobBatchSize).flatMap { applicationList =>
       val exportFuts = applicationList.map(applicationReadyForExport => service.exportApplication(applicationReadyForExport.applicationId))
       Future.sequence(exportFuts).map(_ => ())
     }
   }
 }
 
-trait ParityExportJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.parityExportJobConfig
-  val configPrefix = "scheduling.parity-export-job."
-  val name = "ParityExportJob"
-  val jobBatchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
-  Logger.debug(s"Max number of applications in scheduler $name: $jobBatchSize")
-}
+object ParityExportJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.parity-export-job",
+  name = "ParityExportJob"
+)
