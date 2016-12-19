@@ -50,7 +50,7 @@ trait SearchForApplicantService {
       searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName, lastName, dateOfBirth, postCode)
   }
 
-  private def searchByPostCode(postCode: String): Future[List[Candidate]] = {
+  private def searchByPostCode(postCode: String): Future[List[Candidate]] =
     cdRepository.findByPostCode(postCode).flatMap { cdList =>
       Future.sequence(cdList.map { cd =>
         appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
@@ -60,13 +60,12 @@ trait SearchForApplicantService {
         }
       })
     }.map(_.flatten)
-  }
 
   private def searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName: Option[String],
                                                      lastName: Option[String],
                                                      dateOfBirth: Option[LocalDate],
                                                      postCodeOpt: Option[String]
-                                                    )(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
+                                                    )(implicit hc: HeaderCarrier): Future[List[Candidate]] =
     for {
       contactDetailsFromPostcode <- postCodeOpt.map(cdRepository.findByPostCode).getOrElse(Future.successful(List.empty))
       candidates <- appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, contactDetailsFromPostcode.map(_.userId))
@@ -87,44 +86,60 @@ trait SearchForApplicantService {
         )
       }.getOrElse(candidate)
     }
-  }
 
   private def searchAuthProviderByFirstAndLastName(firstNameOpt: Option[String],
-                                                   lastNameOpt: Option[String])(
-                                                   implicit hc: HeaderCarrier): Future[List[Candidate]] = {
+                                                   lastNameOpt: Option[String])
+                                                  (implicit hc: HeaderCarrier): Future[List[Candidate]] =
+    (firstNameOpt, lastNameOpt) match {
+      case (Some(firstName), Some(lastName)) => searchByFirstNameAndLastName(firstName, lastName)
+      case (Some(firstName), None) => searchByFirstName(firstName)
+      case (None, Some(lastName)) => searchByLastName(lastName)
+    }
 
-    val firstNameResultsFut = firstNameOpt.map {
-      firstName => authProviderClient.findByFirstName(firstName, List("candidate"))
-    }.getOrElse(Future.successful(List.empty))
-
-    val lastNameResultsFut = lastNameOpt.map {
-      lastName => authProviderClient.findByLastName(lastName, List("candidate"))
-    }.getOrElse(Future.successful(List.empty))
-
+  private def searchByFirstNameAndLastName(firstName: String, lastName: String)
+                                          (implicit hc: HeaderCarrier): Future[List[Candidate]] =
     for {
-      firstNameResults <- firstNameResultsFut
-      lastNameResults <- lastNameResultsFut
+      results <- authProviderClient.findByFirstNameAndLastName(firstName, lastName, List("candidate"))
     } yield {
-      (firstNameResults ++ lastNameResults).distinct.map(exchangeCandidate =>
-        Candidate(
-          exchangeCandidate.userId,
-          None,
-          Some(exchangeCandidate.email),
-          Some(exchangeCandidate.firstName),
-          Some(exchangeCandidate.lastName),
-
-          exchangeCandidate.preferredName,
-          None,
-          None,
-          None,
-          None,
-          // In this level we cannot say if the candidate's application exist, so it set to None
-          // If the application does not exist, the candidate is Faststream
-          // otherwise applicationRoute is saved in application
-          None,
-          None
-        )
+      results.map( exchangeCandidate =>
+        convertCandidate(exchangeCandidate)
       )
     }
-  }
+
+  private def searchByFirstName(firstName: String)(implicit hc: HeaderCarrier): Future[List[Candidate]] =
+    for {
+      results <- authProviderClient.findByFirstName(firstName, List("candidate"))
+    } yield {
+      results.map( exchangeCandidate =>
+        convertCandidate(exchangeCandidate)
+      )
+    }
+
+  private def searchByLastName(lastName: String)(implicit hc: HeaderCarrier): Future[List[Candidate]] =
+    for {
+      results <- authProviderClient.findByLastName(lastName, List("candidate"))
+    } yield {
+      results.map( exchangeCandidate =>
+        convertCandidate(exchangeCandidate)
+      )
+    }
+
+  private def convertCandidate(exchangeCandidate: connectors.ExchangeObjects.Candidate): Candidate =
+    Candidate(
+      exchangeCandidate.userId,
+      None,
+      Some(exchangeCandidate.email),
+      Some(exchangeCandidate.firstName),
+      Some(exchangeCandidate.lastName),
+      exchangeCandidate.preferredName,
+      None,
+      None,
+      None,
+      None,
+      // In this level we cannot say if the candidate's application exist, so it set to None
+      // If the application does not exist, the candidate is Faststream
+      // otherwise applicationRoute is saved in application
+      None,
+      None
+    )
 }
