@@ -48,40 +48,98 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
 
   implicit val headerCarrier = new HeaderCarrier()
 
+  val testAddress = Address(line1 = "1 Test Street", line2 = None, line3 = None, line4 = None)
+  val testEmail = "test@test.com"
+  val expected = Candidate("123", None, Some(testEmail), Some("Leia"), Some("Amadala"),
+    None, None, Some(testAddress), Some("QQ1 1QQ"), None, None, None
+  )
+
+  private def setupMocks() = {
+    when(cdRepositoryMock.findByPostCode(any[String])).thenReturn(
+      Future.successful(
+        List(ContactDetailsWithId(userId = "123", postCode = Some("QQ1 1QQ"), address = testAddress, email = testEmail,
+          phone = None))
+      )
+    )
+
+    when(cdRepositoryMock.findByUserIds(any[List[String]])).thenReturn(
+      Future.successful(
+        List(ContactDetailsWithId(userId = "123", postCode = Some("QQ1 1QQ"), address = testAddress, email = testEmail,
+          phone = None))
+      )
+    )
+
+    when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
+      any[Option[LocalDate]], any[List[String]])
+    ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None,
+      None, None, None, None, None))))
+  }
+
   "find by criteria" should {
-    "filter by post code" in {
-      val testAddress = Address(line1 = "1 Test Street", line2 = None, line3 = None, line4 = None)
-      val testEmail = "test@test.com"
-
-      when(cdRepositoryMock.findByPostCode(any[String])).thenReturn(
-        Future.successful(List(ContactDetailsWithId(userId = "123", postCode = Some("QQ1 1QQ"), address = testAddress, email = testEmail,
-          phone = None)))
-      )
-
-      when(cdRepositoryMock.findByUserIds(any[List[String]])).thenReturn(
-        Future.successful(List(ContactDetailsWithId(userId = "123", postCode = Some("QQ1 1QQ"), address = testAddress, email = testEmail,
-          phone = None)))
-      )
-
+    "search by first name only" in {
+      setupMocks()
       when(authProviderClientMock.findByFirstName(any[String], any[List[String]])(any[HeaderCarrier])).thenReturn(
         Future.successful(Nil)
       )
 
-      when(authProviderClientMock.findByLastName(any[String], any[List[String]])(any[HeaderCarrier])).thenReturn(
-        Future.successful(Nil)
-      )
-
-      when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
-        any[Option[LocalDate]], any[List[String]])
-      ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None,
-        None, None, None, None, None))))
-
       val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = Some("Leia"),
-        lastName = Some("Amadala"), dateOfBirth = None, postCode = Some("QQ1 1QQ"))).futureValue
+        lastName = None, dateOfBirth = None, postCode = None)).futureValue
 
       val expected = Candidate("123", None, Some(testEmail), Some("Leia"), Some("Amadala"),
         None, None, Some(testAddress), Some("QQ1 1QQ"), None, None, None
       )
+
+      actual mustBe List(expected)
+    }
+
+    "search by last name only" in {
+      setupMocks()
+      when(authProviderClientMock.findByLastName(any[String], any[List[String]])(any[HeaderCarrier])).thenReturn(
+        Future.successful(Nil)
+      )
+
+      val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = None,
+        lastName = Some("Amadala"), dateOfBirth = None, postCode = None)).futureValue
+
+      actual mustBe List(expected)
+    }
+
+    "search by first name and last name" in {
+      setupMocks()
+      when(authProviderClientMock.findByFirstNameAndLastName(any[String], any[String], any[List[String]])
+      (any[HeaderCarrier])).thenReturn(
+        Future.successful(Nil)
+      )
+
+      val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = Some("Leia"),
+        lastName = Some("Amadala"), dateOfBirth = None, postCode = None)).futureValue
+
+      actual mustBe List(expected)
+    }
+
+    "search by date of birth only" in {
+      setupMocks()
+      when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
+        any[Option[LocalDate]], any[List[String]])
+      ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None,
+        Some(new LocalDate("1990-11-25")), None, None, None, None, None))))
+
+      val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = None,
+        lastName = None, dateOfBirth = Some(new LocalDate("1990-11-25")), postCode = None)).futureValue
+
+      val expectedWithDateOfBirth = expected.copy(dateOfBirth = Some(new LocalDate("1990-11-25")))
+      actual mustBe List(expectedWithDateOfBirth)
+    }
+
+    "filter by post code" in {
+      setupMocks()
+      when(authProviderClientMock.findByFirstNameAndLastName(any[String], any[String], any[List[String]])
+      (any[HeaderCarrier])).thenReturn(
+        Future.successful(Nil)
+      )
+
+      val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = Some("Leia"),
+        lastName = Some("Amadala"), dateOfBirth = None, postCode = Some("QQ1 1QQ"))).futureValue
 
       actual mustBe List(expected)
     }

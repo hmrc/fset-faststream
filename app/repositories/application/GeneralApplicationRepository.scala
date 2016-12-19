@@ -234,7 +234,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
   def findByCriteria(firstOrPreferredNameOpt: Option[String],
                      lastNameOpt: Option[String],
-                     dateOfBirth: Option[LocalDate],
+                     dateOfBirthOpt: Option[LocalDate],
                      filterToUserIds: List[String]
                     ): Future[List[Candidate]] = {
 
@@ -246,7 +246,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         BSONDocument("personal-details.preferredName" -> matchIfSome(firstOrPreferredNameOpt))
       )),
       BSONDocument("personal-details.lastName" -> matchIfSome(lastNameOpt)),
-      BSONDocument("personal-details.dateOfBirth" -> dateOfBirth)
+      BSONDocument("personal-details.dateOfBirth" -> dateOfBirthOpt)
     )
 
     val fullQuery = if (filterToUserIds.isEmpty) {

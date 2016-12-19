@@ -121,7 +121,20 @@ trait AuthProviderClient {
     }
   }
 
-  
+  def findByFirstNameAndLastName(firstName: String, lastName: String, roles: List[String])
+                                (implicit hc: HeaderCarrier): Future[List[Candidate]] = {
+    WSHttp.POST(s"$url/service/$ServiceName/findByFirstNameLastName",
+      FindByFirstNameLastNameRequest(roles, firstName, lastName)
+    ).map { response =>
+      response.json.as[List[Candidate]]
+    }.recover {
+      case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
+        throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
+      case errorResponse =>
+        throw new ConnectorException(s"Bad response received when getting token for user: $errorResponse")
+    }
+  }
+
   def generateAccessCode(implicit hc: HeaderCarrier): Future[SimpleTokenResponse] = {
     WSHttp.GET(s"$url/user-friendly-access-token").map { response =>
       response.json.as[SimpleTokenResponse]
