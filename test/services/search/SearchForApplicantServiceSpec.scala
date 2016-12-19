@@ -73,9 +73,7 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
       any[Option[LocalDate]], any[List[String]])
     ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None ,None,
       None, None, None, None, None))))
-
   }
-
 
   "find by criteria" should {
     "search by first name only" in {
@@ -117,6 +115,20 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
         lastName = Some("Amadala"), dateOfBirth = None, postCode = None)).futureValue
 
       actual mustBe List(expected)
+    }
+
+    "search by date of birth only" in {
+      setupMocks()
+      when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
+        any[Option[LocalDate]], any[List[String]])
+      ).thenReturn(Future.successful(List(Candidate("123", None, None, Some("Leia"), Some("Amadala"), None,
+        Some(new LocalDate("1990-11-25")), None, None, None, None, None))))
+
+      val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = None,
+        lastName = None, dateOfBirth = Some(new LocalDate("1990-11-25")), postCode = None)).futureValue
+
+      val expectedWithDateOfBirth = expected.copy(dateOfBirth = Some(new LocalDate("1990-11-25")))
+      actual mustBe List(expectedWithDateOfBirth)
     }
 
     "filter by post code" in {

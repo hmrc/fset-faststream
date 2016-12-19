@@ -95,6 +95,7 @@ trait SearchForApplicantService {
       case (Some(firstName), Some(lastName)) => searchByFirstNameAndLastName(firstName, lastName)
       case (Some(firstName), None) => searchByFirstName(firstName)
       case (None, Some(lastName)) => searchByLastName(lastName)
+      case (None, None) => Future.successful(List.empty)
     }
 
   private def searchByFirstNameAndLastName(firstName: String, lastName: String)
