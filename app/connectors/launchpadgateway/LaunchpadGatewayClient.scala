@@ -22,7 +22,8 @@ import connectors.launchpadgateway.exchangeobjects.out._
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
 import play.api.libs.json.Reads
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
+import _root_.services.onlinetesting.ResetPhase3Test.CannotResetPhase3Tests
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, Upstream4xxResponse }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -48,6 +49,19 @@ trait LaunchpadGatewayClient {
   def inviteApplicant(inviteApplicant: InviteApplicantRequest): Future[InviteApplicantResponse] =
     http.POST(s"$urlWithPathPrefix/invite", inviteApplicant).map(responseAsOrThrow[InviteApplicantResponse])
 
+  def resetApplicant(resetApplicant: ResetApplicantRequest): Future[ResetApplicantResponse] =
+    http.POST(s"$urlWithPathPrefix/reset", resetApplicant).map(responseAsOrThrow[ResetApplicantResponse]).recover {
+      case e: Upstream4xxResponse if (e.upstreamResponseCode == CONFLICT) => throw new CannotResetPhase3Tests
+      case t: Throwable => throw t
+    }
+
+  def retakeApplicant(retakeApplicant: RetakeApplicantRequest): Future[RetakeApplicantResponse] = {
+    http.POST(s"$urlWithPathPrefix/retake", retakeApplicant).map(responseAsOrThrow[RetakeApplicantResponse]).recover {
+      case e: Upstream4xxResponse if (e.upstreamResponseCode == CONFLICT) => throw new CannotResetPhase3Tests
+      case t: Throwable => throw t
+    }
+  }
+
   def extendDeadline(extendDeadline: ExtendDeadlineRequest): Future[Unit] =
     http.POST(s"$urlWithPathPrefix/extend", extendDeadline).map { response =>
       if (response.status != OK) {
@@ -57,10 +71,9 @@ trait LaunchpadGatewayClient {
     }
 
   private def responseAsOrThrow[A](response: HttpResponse)(implicit jsonFormat: Reads[A]) = {
-    if (response.status == OK) {
-      response.json.as[A]
-    } else {
-      throw new ConnectorException(s"There was a general problem connecting with the Launchpad Gateway. HTTP status " +
+    response.status match {
+      case OK => response.json.as[A]
+      case _ => throw new ConnectorException(s"There was a general problem connecting with the Launchpad Gateway. HTTP status " +
         s"was ${response.status} and response was ${response.body}")
     }
   }

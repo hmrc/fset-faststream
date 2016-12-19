@@ -3,6 +3,9 @@ package repositories.onlinetesting
 import java.util.UUID
 
 import connectors.launchpadgateway.exchangeobjects.in.{ SetupProcessCallbackRequest, ViewPracticeQuestionCallbackRequest }
+import model.Commands.ApplicationResponse
+import model.ProgressStatuses.{ PHASE3_TESTS_PASSED_WITH_AMBER, _ }
+
 import model.ProgressStatuses._
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model.{ ApplicationStatus, Phase3FirstReminder, Phase3SecondReminder, ProgressStatuses }
@@ -12,9 +15,10 @@ import testkit.MongoRepositorySpec
 
 class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
-  val Now =  DateTime.now(DateTimeZone.UTC)
+  val Now = DateTime.now(DateTimeZone.UTC)
   val DatePlus7Days = Now.plusDays(7)
   val Token = newToken
+
   def newToken = UUID.randomUUID.toString
 
   val phase3Test = LaunchpadTest(
@@ -41,6 +45,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   )
 
   val TestGroup = Phase3TestGroup(expirationDate = DatePlus7Days, tests = List(phase3Test))
+
   def multiTestGroup(interviewOffset: Int = 0): Phase3TestGroup = TestGroup.copy(
     tests = List(
       phase3Test.copy(
@@ -59,6 +64,10 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       )
     )
   )
+
+  val progressStatusesToResetInPhase3 = List(PHASE3_TESTS_EXPIRED, PHASE3_TESTS_STARTED, PHASE3_TESTS_FIRST_REMINDER,
+    PHASE3_TESTS_SECOND_REMINDER, PHASE3_TESTS_COMPLETED, PHASE3_TESTS_RESULTS_RECEIVED, PHASE3_TESTS_FAILED,
+    PHASE3_TESTS_FAILED_NOTIFIED, PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_WITH_AMBER)
 
   "Get online test" should {
     "return None if there is no test for the specific user id" in {
@@ -88,7 +97,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val test = testWithCallback.tests.find(t => t.token == token).get
 
       test.callbacks.setupProcess.length mustBe 1
-      inside (test.callbacks.setupProcess.head) { case SetupProcessCallbackRequest(received, candidateId, customCandidateId,
+      inside(test.callbacks.setupProcess.head) { case SetupProcessCallbackRequest(received, candidateId, customCandidateId,
       interviewId, customInterviewId, customInviteId, deadline) =>
         received.getMillis mustBe callbackToAppend.received.getMillis
         candidateId mustBe callbackToAppend.candidateId
@@ -228,7 +237,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     "remove test when requested" in {
       createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE3", needsSupportForOnlineAssessment = false,
         adjustmentsConfirmed = false, timeExtensionAdjustments = false, fastPassApplicable = false,
-        additionalProgressStatuses = List((ProgressStatuses.PHASE3_TESTS_INVITED,true)),
+        additionalProgressStatuses = List((ProgressStatuses.PHASE3_TESTS_INVITED, true)),
         fastPassReceived = false
       ).futureValue
 
@@ -327,6 +336,73 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
   }
 
+  "reset progress statuses" should {
+    "reset PHASE3_TESTS status for an application at PHASE3_TESTS_RESULTS_RECEIVED" in {
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE3_TESTS,
+        additionalProgressStatuses = List(
+          ProgressStatuses.PHASE3_TESTS_INVITED -> true,
+          ProgressStatuses.PHASE3_TESTS_STARTED -> true,
+          ProgressStatuses.PHASE3_TESTS_COMPLETED -> true,
+          ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED -> true
+        )).futureValue
+
+      phase3TestRepo.resetTestProfileProgresses("appId", progressStatusesToResetInPhase3).futureValue
+
+      val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
+      assertResetPhase3ApplicationAndProgressStatus(app)
+    }
+
+    "reset PHASE3_TESTS_PASSED status" in {
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
+        additionalProgressStatuses = List(
+          ProgressStatuses.PHASE3_TESTS_INVITED -> true,
+          ProgressStatuses.PHASE3_TESTS_STARTED -> true,
+          ProgressStatuses.PHASE3_TESTS_COMPLETED -> true,
+          ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED -> true,
+          ProgressStatuses.PHASE3_TESTS_PASSED -> true
+        )).futureValue
+
+      phase3TestRepo.resetTestProfileProgresses("appId", progressStatusesToResetInPhase3).futureValue
+
+      val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
+      assertResetPhase3ApplicationAndProgressStatus(app)
+    }
+
+    "reset PHASE3_TESTS_FAILED status at PHASE3_TESTS_FAILED_NOTIFIED" in {
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+        additionalProgressStatuses = List(
+          ProgressStatuses.PHASE3_TESTS_INVITED -> true,
+          ProgressStatuses.PHASE3_TESTS_STARTED -> true,
+          ProgressStatuses.PHASE3_TESTS_COMPLETED -> true,
+          ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED -> true,
+          ProgressStatuses.PHASE3_TESTS_FAILED -> true,
+          ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED -> true
+        )).futureValue
+
+      phase3TestRepo.resetTestProfileProgresses("appId", progressStatusesToResetInPhase3).futureValue
+
+      val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
+      assertResetPhase3ApplicationAndProgressStatus(app)
+    }
+
+    "reset PHASE3_TESTS_PASSED_WITH_AMBER status" in {
+      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
+        additionalProgressStatuses = List(
+          ProgressStatuses.PHASE3_TESTS_INVITED -> true,
+          ProgressStatuses.PHASE3_TESTS_STARTED -> true,
+          ProgressStatuses.PHASE3_TESTS_COMPLETED -> true,
+          ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED -> true,
+          ProgressStatuses.PHASE3_TESTS_PASSED_WITH_AMBER -> true
+        )).futureValue
+
+      phase3TestRepo.resetTestProfileProgresses("appId", progressStatusesToResetInPhase3).futureValue
+
+      val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
+      assertResetPhase3ApplicationAndProgressStatus(app)
+    }
+
+  }
+
   trait CallbackFixture {
     def assertCallbacks(test: LaunchpadTest, setupProcesses: Int = 0, viewPracticeQuestions: Int = 0,
                         finalCallbacks: Int = 0, finished: Int = 0, viewBrandedVideo: Int = 0, questions: Int = 0) = {
@@ -337,5 +413,14 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       test.callbacks.viewBrandedVideo.length mustBe viewBrandedVideo
       test.callbacks.question.length mustBe questions
     }
+  }
+
+  private def assertResetPhase3ApplicationAndProgressStatus(app: ApplicationResponse) = {
+    app.applicationStatus mustBe ApplicationStatus.PHASE3_TESTS.toString
+    app.progressResponse.phase3ProgressResponse.phase3TestsInvited mustBe true // reset always imply re invite
+    app.progressResponse.phase3ProgressResponse.phase3TestsStarted mustBe false
+    app.progressResponse.phase3ProgressResponse.phase3TestsCompleted mustBe false
+    app.progressResponse.phase3ProgressResponse.phase3TestsResultsReceived mustBe false
+    app.progressResponse.phase3ProgressResponse.phase3TestsPassed mustBe false
   }
 }

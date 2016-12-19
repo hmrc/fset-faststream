@@ -165,7 +165,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
   "get online test" should {
     "return None if the application id does not exist" in new OnlineTest {
       when(otRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
-      val result = phase1TestService.getTestProfile("nonexistent-userid").futureValue
+      val result = phase1TestService.getTestGroup("nonexistent-userid").futureValue
       result mustBe None
     }
 
@@ -182,7 +182,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
         ))
       ))
 
-      val result = phase1TestService.getTestProfile("valid-userid").futureValue
+      val result = phase1TestService.getTestGroup("valid-userid").futureValue
 
       result.get.expirationDate must equal(validExpireDate)
     }

@@ -90,6 +90,8 @@ object DataStoreEvents {
   case class VideoInterviewResultsReceived(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewExpiryReminder(appId: String) extends DataStoreEventWithAppId
   case class VideoInterviewRemoved(appId: String) extends DataStoreEventWithAppId
+  case class VideoInterviewRescheduled(appId: String, createdByUser: String) extends DataStoreEventWithAppId
+
 
   case class ManageAdjustmentsUpdated(appId: String) extends DataStoreEventWithAppId
   case class FastPassApproved(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy

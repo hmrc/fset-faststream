@@ -63,6 +63,7 @@ object AuditEvents {
   case class VideoInterviewResultsReceived(applicationId: String) extends AuditEventWithAppId(applicationId)
   case class VideoInterviewTestExpiryReminder(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class VideoInterviewRemoved(applicationId: String) extends AuditEventWithAppId(applicationId)
+  case class VideoInterviewRescheduled(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
 
   case class FixedProdData(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class FailedFixedProdData(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)

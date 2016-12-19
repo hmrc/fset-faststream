@@ -28,6 +28,7 @@ import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
+import services.onlinetesting.ResetPhase3Test.CannotResetPhase3Tests
 import services.onlinetesting.{ Phase1TestService, Phase2TestService, Phase3TestService }
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -57,6 +58,25 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     val phase2TestService = mockPhase2TestService
     val phase3TestService = mockPhase3TestService
     val appRepository = mockApplicationRepository
+  }
+
+  "reset phase1 tests" should {
+    "return OK when candidate is reset" in {
+      when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
+
+      when(mockPhase1TestService.resetTests(any[OnlineTestApplication], any[List[String]], any[String])
+      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
+
+      val response = controller.resetPhase1OnlineTests(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      status(response) mustBe OK
+    }
+
+    "return NOT_FOUND when candidate is not found" in {
+      when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(None))
+
+      val response = controller.resetPhase1OnlineTests(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      status(response) mustBe NOT_FOUND
+    }
   }
 
   "reset phase2 tests" should {
@@ -93,6 +113,35 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
       when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(None))
       val response = controller.resetPhase2OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      status(response) mustBe NOT_FOUND
+    }
+  }
+
+  "reset phase3 tests" should {
+    "return OK when candidate is reset" in {
+      when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
+
+      when(mockPhase3TestService.resetTests(any[OnlineTestApplication], any[String])
+      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
+
+      val response = controller.resetPhase3OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      status(response) mustBe OK
+    }
+
+    "return CONFLICT when test cannot be reset" in {
+      when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(Some(onlineTestApplication)))
+
+      when(mockPhase3TestService.resetTests(any[OnlineTestApplication], any[String])
+      (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.failed(CannotResetPhase3Tests()))
+
+      val response = controller.resetPhase3OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
+      status(response) mustBe CONFLICT
+    }
+
+    "return NOT_FOUND when candidate is not found" in {
+      when(mockApplicationRepository.getOnlineTestApplication(any[String])).thenReturn(Future.successful(None))
+
+      val response = controller.resetPhase3OnlineTest(AppId)(fakeRequest(ResetOnlineTest(Nil, "")))
       status(response) mustBe NOT_FOUND
     }
   }

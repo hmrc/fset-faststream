@@ -47,7 +47,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
   "Register and Invite an applicant" should {
 
     "send audit events" in new Phase3TestServiceFixture {
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
       verifyDataStoreEvents(4,
         List("VideoInterviewCandidateRegistered",
@@ -67,39 +67,39 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "suppress the invitation email for invigilated applicants" in new Phase3TestServiceFixture {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
       val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
-      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
+      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId, None).futureValue
       verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
     }
 
     "invite and immediately extend invigilated applicants" in new Phase3TestServiceFixture {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
       val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
-      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId).futureValue
+      phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId, None).futureValue
       verify(phase3TestServiceNoTestGroupForInvigilated, times(1)).extendTestGroupExpiryTime(any(), any(),
         any())(any[HeaderCarrier](), any[RequestHeader]())
     }
 
     "invite and not immediately extend when the applicant is not invigilated" in new Phase3TestServiceFixture {
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
       verify(phase3TestServiceNoTestGroupForInvigilated, times(0)).extendTestGroupExpiryTime(any(), any(),
         any())(any[HeaderCarrier](), any[RequestHeader]())
     }
 
     "insert a valid test group" in new Phase3TestServiceFixture {
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
       verify(p3TestRepositoryMock).insertOrUpdateTestGroup(eqTo(onlineTestApplication.applicationId), eqTo(Phase3TestGroup(
         expectedFromNowExpiryTime,
         List(
-          testPhase3Test
+          testPhase3Test.copy(startedDateTime = None)
         ),
         None
       )))
     }
 
     "call the register and invite methods of the launchpad gateway only once and with the correct arguments" in new Phase3TestServiceFixture {
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
       verify(launchpadGatewayClientMock).registerApplicant(eqTo(
         RegisterApplicantRequest(
@@ -167,6 +167,130 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
     }
   }
+
+  "Register and Invite an applicant to reschedule an interview with new adjustments" should {
+    "send audit events" in new Phase3TestServiceFixture {
+
+      phase3TestServiceForReschedule.registerAndInviteForTestGroup(
+        onlineTestApplicationWithThirtyThreeTimeAdjustment, thirtyThreePCAdjustedInterviewId, Some(phase3TestGroupNotCompleted)).futureValue
+
+      verifyDataStoreEvents(3,
+        List("VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvited",
+          "VideoInterviewInvitationEmailSent")
+      )
+
+      verifyAuditEvents(3,
+        List("VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvited",
+          "VideoInterviewInvitationEmailSent")
+      )
+    }
+
+    "invite to a new interview and reset statuses" in new Phase3TestServiceFixture {
+      phase3TestServiceForReschedule.registerAndInviteForTestGroup(
+        onlineTestApplicationWithThirtyThreeTimeAdjustment,
+        thirtyThreePCAdjustedInterviewId,
+        Some(phase3TestGroupNotCompleted)
+      ).futureValue
+
+      verify(launchpadGatewayClientMock, times(0)).registerApplicant(any())
+
+      val expectedCustomInviteId = "FSINV-" + tokens.head
+      verify(launchpadGatewayClientMock).inviteApplicant(eqTo(
+        InviteApplicantRequest(
+          thirtyThreePCAdjustedInterviewId,
+          testLaunchpadCandidateId,
+          expectedCustomInviteId,
+          s"http://www.foo.com/test/interview/fset-fast-stream/online-tests/phase3/complete/$expectedCustomInviteId"
+        )
+      ))
+      verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
+    }
+  }
+
+  "Register and Invite an applicant to reschedule a started but not completed with no adjustments" should {
+    "send audit events" in new Phase3TestServiceFixture {
+
+      phase3TestServiceForReschedule.registerAndInviteForTestGroup(
+        onlineTestApplication, testInterviewId, Some(phase3TestGroupNotCompleted)).futureValue
+
+      verifyDataStoreEvents(3,
+        List("VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvited",
+          "VideoInterviewInvitationEmailSent")
+      )
+
+      verifyAuditEvents(3,
+        List("VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvited",
+          "VideoInterviewInvitationEmailSent")
+      )
+    }
+
+    "reset same new interview (reset interview in launchpad) and reset statuses" in new Phase3TestServiceFixture {
+      phase3TestServiceForReschedule.registerAndInviteForTestGroup(
+        onlineTestApplication,
+        testInterviewId,
+        Some(phase3TestGroupNotCompleted)
+      ).futureValue
+
+      verify(launchpadGatewayClientMock, times(0)).registerApplicant(any())
+      verify(launchpadGatewayClientMock, times(0)).inviteApplicant(any())
+      verify(launchpadGatewayClientMock, times(0)).retakeApplicant(any())
+      val expectedCustomInviteId = "FSINV-" + tokens.head
+      verify(launchpadGatewayClientMock).resetApplicant(eqTo(
+        ResetApplicantRequest(
+          testInterviewId,
+          testLaunchpadCandidateId,
+          phase3TestGroupNotCompleted.expirationDate.toLocalDate//,
+        )
+      ))
+      verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
+    }
+  }
+
+  "Register and Invite an applicant to reschedule a completed test with no adjustments" should {
+    "send audit events" in new Phase3TestServiceFixture {
+
+      phase3TestServiceForReschedule.registerAndInviteForTestGroup(
+        onlineTestApplication, testInterviewId, Some(phase3TestGroupNotCompleted)).futureValue
+
+      verifyDataStoreEvents(3,
+        List("VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvited",
+          "VideoInterviewInvitationEmailSent")
+      )
+
+      verifyAuditEvents(3,
+        List("VideoInterviewRegistrationAndInviteComplete",
+          "VideoInterviewInvited",
+          "VideoInterviewInvitationEmailSent")
+      )
+    }
+
+    "invite to retake same new interview (reset interview in launchpad) and reset statuses" in new Phase3TestServiceFixture {
+      phase3TestServiceForReschedule.registerAndInviteForTestGroup(
+        onlineTestApplication,
+        testInterviewId,
+        Some(phase3TestGroupCompleted)
+      ).futureValue
+
+      verify(launchpadGatewayClientMock, times(0)).registerApplicant(any())
+      verify(launchpadGatewayClientMock, times(0)).inviteApplicant(any())
+      verify(launchpadGatewayClientMock, times(0)).resetApplicant(any())
+      val expectedCustomInviteId = "FSINV-" + tokens.head
+      verify(launchpadGatewayClientMock).retakeApplicant(eqTo(
+        RetakeApplicantRequest(
+          testInterviewId,
+          testLaunchpadCandidateId,
+          phase3TestGroupNotCompleted.expirationDate.toLocalDate//,
+        )
+      ))
+      verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
+    }
+  }
+
 
   "mark as started" should {
     "change progress to started" in new Phase3TestServiceFixture {
@@ -356,14 +480,54 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       testLaunchpadCandidateId,
       testFaststreamCustomCandidateId,
       testTimeNow,
-      None,
+      Some(testTimeNow),
       None,
       LaunchpadTestCallbacks()
     )
 
+    val testPhase3TestNotCompleted = LaunchpadTest(
+      testInterviewId,
+      usedForResults = true,
+      "launchpad",
+      testCandidateRedirectUrl,
+      testInviteId,
+      testLaunchpadCandidateId,
+      testFaststreamCustomCandidateId,
+      testTimeNow,
+      Some(testTimeNow),
+      None,
+      LaunchpadTestCallbacks()
+    )
+
+    val testPhase3TestCompleted = testPhase3TestNotCompleted.copy(completedDateTime = Some(testTimeNow))
+
     val testTestGroup = Phase3TestGroup(
       expectedFromNowExpiryTime,
       List(testPhase3Test)
+    )
+
+    val phase3TestGroupUnexpiring = Phase3TestGroup(
+      unexpiredTestExpiryTime,
+      List(
+        testPhase3Test
+      ),
+      None
+    )
+
+    val phase3TestGroupNotCompleted = Phase3TestGroup(
+      unexpiredTestExpiryTime,
+      List(
+        testPhase3TestNotCompleted
+      ),
+      None
+    )
+
+    val phase3TestGroupCompleted = Phase3TestGroup(
+      unexpiredTestExpiryTime,
+      List(
+        testPhase3TestCompleted
+      ),
+      None
     )
 
     // Common Mocks
@@ -399,6 +563,22 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
     }
 
+    when(launchpadGatewayClientMock.retakeApplicant(any())).thenReturn {
+      Future.successful(RetakeApplicantResponse(
+        testFaststreamCustomCandidateId,
+        testCandidateRedirectUrl,
+        "Tomorrow"
+      ))
+    }
+
+    when(launchpadGatewayClientMock.resetApplicant(any())).thenReturn {
+      Future.successful(ResetApplicantResponse(
+        testFaststreamCustomCandidateId,
+        testCandidateRedirectUrl,
+        "Tomorrow"
+      ))
+    }
+
     when(emailClientMock.sendOnlineTestInvitation(any(), any(), any())(any[HeaderCarrier]())).thenReturn(
       Future.successful(())
     )
@@ -406,6 +586,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     def noTestGroupMocks = {
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
       when(p3TestRepositoryMock.insertOrUpdateTestGroup(any(), any())).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
         ProgressResponse("appId")
@@ -442,17 +623,40 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     lazy val phase3TestServiceWithUnexpiredTestGroup = mockService {
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(Some(
-        Phase3TestGroup(
-          unexpiredTestExpiryTime,
-          List(
-            testPhase3Test
-          ),
-          None
-        )
+        phase3TestGroupUnexpiring
       )))
 
       // Extensions
       when(p3TestRepositoryMock.updateGroupExpiryTime(any(), any(), any())).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any())).thenReturn(Future.successful(()))
+      when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
+      when(launchpadGatewayClientMock.extendDeadline(any())).thenReturn(Future.successful(()))
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
+        ProgressResponse("appId")
+      ))
+
+      // Mark As Started
+      when(p3TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
+        .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId123", testTestGroup)))
+      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED)).thenReturn(Future.successful(()))
+
+      markAsCompleteMocks
+
+      markAsResultsReceivedMocks
+    }
+
+    lazy val phase3TestServiceForReschedule = mockService {
+      when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(Some(
+        phase3TestGroupUnexpiring
+      )))
+
+      // Extensions
+      when(p3TestRepositoryMock.updateGroupExpiryTime(any(), any(), any())).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any())).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.insertOrUpdateTestGroup(any(), any())).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any())).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(Some(phase3TestGroupNotCompleted)))
       when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
       when(launchpadGatewayClientMock.extendDeadline(any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(

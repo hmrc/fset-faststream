@@ -68,6 +68,8 @@ object StatusGeneratorFactory {
         case PHASE2_TESTS_FAILED => Phase2TestsFailedStatusGenerator
         case PHASE3_TESTS_PASSED => Phase3TestsPassedStatusGenerator
         case PHASE3_TESTS_FAILED => Phase3TestsFailedStatusGenerator
+        case (READY_FOR_EXPORT) => ReadyForExportStatusGenerator
+        case (EXPORTED) => ExportedStatusGenerator
       }
       case (IN_PROGRESS, Some(ProgressStatuses.PERSONAL_DETAILS)) => InProgressPersonalDetailsStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.SCHEME_PREFERENCES)) => InProgressSchemePreferencesStatusGenerator

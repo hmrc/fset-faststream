@@ -84,7 +84,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   case class NoActiveTestException(m: String) extends Exception(m)
 
-  def getTestProfile(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
+  def getTestGroup(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
     for {
       phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
