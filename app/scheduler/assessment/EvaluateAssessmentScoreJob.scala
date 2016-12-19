@@ -17,33 +17,34 @@
 package scheduler.assessment
 
 import config.ScheduledJobConfig
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.BasicJobConfig
 import services.applicationassessment.ApplicationAssessmentService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object EvaluateAssessmentScoreJob extends EvaluateAssessmentScoreJob {
   val applicationAssessmentService: ApplicationAssessmentService = ApplicationAssessmentService
+  val config = EvaluateAssessmentScoreJobConfig
 }
 
-trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob with EvaluateAssessmentScoreJobConfig {
+trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob[EvaluateAssessmentScoreJobConfig] {
   val applicationAssessmentService: ApplicationAssessmentService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     applicationAssessmentService.nextAssessmentCandidateScoreReadyForEvaluation.flatMap { scoresOpt =>
       scoresOpt.map { scores =>
-        applicationAssessmentService.evaluateAssessmentCandidateScore(scores, minimumCompetencyLevelConfig)
+        applicationAssessmentService.evaluateAssessmentCandidateScore(scores, config.minimumCompetencyLevelConfig)
       }.getOrElse(Future.successful(()))
     }
   }
 }
 
-trait EvaluateAssessmentScoreJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
+object EvaluateAssessmentScoreJobConfig extends EvaluateAssessmentScoreJobConfig
+
+class EvaluateAssessmentScoreJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.evaluate-assessment-score-job",
+  name = "EvaluateAssessmentScoreJob") {
   // // TODO: FSET-696 Remove this scheduler or replace the configuration to use one from assessment not phase1
-  val conf = config.MicroserviceAppConfig.evaluatePhase1ResultJobConfig
-  val configPrefix = "scheduling.evaluate-assessment-score-job."
-  val name = "EvaluateAssessmentScoreJob"
   val minimumCompetencyLevelConfig = config.MicroserviceAppConfig.assessmentEvaluationMinimumCompetencyLevelConfig
 }

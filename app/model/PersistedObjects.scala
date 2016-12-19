@@ -26,16 +26,6 @@ import reactivemongo.bson.Macros
 @deprecated("fasttrack version. Create one case class in one file. All persisted case classes are in model.persisted package", "July 2016")
 object PersistedObjects {
 
-  @deprecated("fasttrack version", "July 2016")
-  case class PersonalDetails(
-    firstName: String,
-    lastName: String,
-    preferredName: String,
-    dateOfBirth: LocalDate,
-    aLevel: Boolean,
-    stemLevel: Boolean
-  )
-
   case class PersonalDetailsWithUserId(preferredName: String, userId: String)
 
   case class ApplicationIdWithUserIdAndStatus(applicationId: String, userId: String, applicationStatus: String)
@@ -79,7 +69,6 @@ object PersistedObjects {
     applicationStatus: String, progressStatuses: ApplicationProgressStatuses)
 
   object Implicits {
-    implicit val persistedPersonalDetailsFormats = Json.format[PersonalDetails]
     implicit val addressFormats = Json.format[Address]
     implicit val answerFormats = Json.format[PersistedAnswer]
     implicit val questionFormats = Json.format[PersistedQuestion]

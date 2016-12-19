@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package models
+package connectors.launchpadgateway.exchangeobjects.out
 
+import org.joda.time.LocalDate
+import play.api.libs.json.Json
 
-object FieldNameHelpers {
+case class RetakeApplicantRequest(interviewId: Int, candidateId: String, newDeadline: LocalDate)
 
-  def createId(id: String, v: (String, String)) = id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_")
-
-  def formatId(id:String, v:(String,String)) =
-    createId(id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_"), v)
-
+object RetakeApplicantRequest {
+  implicit val retakeApplicantRequestFormat = Json.format[RetakeApplicantRequest]
 }

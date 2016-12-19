@@ -40,7 +40,4 @@ trait AssessmentScoreCalculator {
   }
 
   private def average(scores: CandidateScores) = scores.sum / scores.length
-
-  private def countOverallScore(scores: CompetencyAverageResult): Double =
-    (scores.scoresWithWeightOne.map(BigDecimal(_)).sum + scores.scoresWithWeightTwo.map(BigDecimal(_)).sum).toDouble
 }

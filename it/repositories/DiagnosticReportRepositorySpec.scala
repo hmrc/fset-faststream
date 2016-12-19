@@ -71,7 +71,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
       val resultE = diagnosticReportRepo.findAll()
 
       val listProducer = Iteratee.fold[JsValue, List[JsValue]](Nil){(acc, v) => acc :+ v}
-      val result = (resultE.run(listProducer)).futureValue.sortBy(x => (x \ "applicationId").as[String])
+      val result = resultE.run(listProducer).futureValue.sortBy(x => (x \ "applicationId").as[String])
 
       result.length mustBe 3
       (result(0) \ "applicationId").as[String] mustBe "app1"

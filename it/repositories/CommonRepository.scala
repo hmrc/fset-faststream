@@ -71,7 +71,7 @@ trait CommonRepository {
     val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(sjq), None, None, None)))
     val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", bq, None, None, None)))
     val phase1Tests = if(isGis) List(sjqTest) else List(sjqTest, bqTest)
-    insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = applicationRoute)
+    insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = Some(applicationRoute))
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
       Phase1TestProfile(now, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
     )
@@ -111,16 +111,23 @@ trait CommonRepository {
                         phase1Evaluation: Option[PassmarkEvaluation] = None,
                         phase2Evaluation: Option[PassmarkEvaluation] = None,
                         additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
-    applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+    applicationRoute: Option[ApplicationRoute] = Some(ApplicationRoute.Faststream)
   ): Unit = {
     val gis = if (isGis) Some(true) else None
-    applicationRepository.collection.insert(BSONDocument(
+    applicationRepository.collection.insert(
+      BSONDocument(
       "applicationId" -> appId,
       "userId" -> appId,
       "applicationStatus" -> applicationStatus,
-      "applicationRoute" -> applicationRoute,
       "progress-status" -> progressStatus(additionalProgressStatuses)
-    )).futureValue
+    ) ++ {
+        if (applicationRoute.isDefined) {
+          BSONDocument("applicationRoute" -> applicationRoute.get)
+        } else {
+          BSONDocument.empty
+        }
+      }
+    ).futureValue
 
     val ad = AssistanceDetails("No", None, gis, needsSupportForOnlineAssessment = Some(false), None,
       needsSupportAtVenue = Some(false), None, needsSupportForPhoneInterview = None, needsSupportForPhoneInterviewDescription = None)

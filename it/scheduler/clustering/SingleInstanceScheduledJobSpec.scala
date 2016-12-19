@@ -1,5 +1,7 @@
 package scheduler.clustering
 
+import config.ScheduledJobConfig
+import scheduler.BasicJobConfig
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.{ ExecutionContext, Future, Promise }
@@ -13,15 +15,16 @@ class SingleInstanceScheduledJobSpec extends MongoRepositorySpec {
       val promise = Promise[Unit]
       val aLongTime = Duration(100, SECONDS)
 
-      val job = new SingleInstanceScheduledJob {
-        val lockId = "test lock id"
-        val forceLockReleaseAfter = aLongTime
-        def name = "Test Lock"
+      val job = new SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+        def config = ???
+        override val lockId = "test lock id"
+        override val forceLockReleaseAfter = aLongTime
+        override def name = "Test Lock"
 
-        def initialDelay = Duration(200, MILLISECONDS)
-        def interval = aLongTime
+        override def initialDelay = Duration(200, MILLISECONDS)
+        override def interval = aLongTime
 
-        implicit val ec: ExecutionContext = global
+        override implicit val ec: ExecutionContext = global
 
         def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
           isRunning.futureValue mustBe true

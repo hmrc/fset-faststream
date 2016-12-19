@@ -18,8 +18,7 @@ package model
 
 import java.io.Serializable
 
-import model.PersistedObjects.PersonalDetails
-import model.persisted.AssistanceDetails
+import model.persisted.{ AssistanceDetails, PersonalDetails }
 import repositories.FrameworkRepository.Region
 // scalastyle:off cyclomatic.complexity
 case class ApplicationValidator(gd: PersonalDetails, ad: AssistanceDetails, sl: Option[Preferences], availableRegions: List[Region]) {

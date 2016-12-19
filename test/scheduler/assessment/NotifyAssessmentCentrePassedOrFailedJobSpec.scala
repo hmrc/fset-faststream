@@ -38,6 +38,7 @@ class NotifyAssessmentCentrePassedOrFailedJobSpec extends UnitWithAppSpec with E
 
     object Job extends NotifyAssessmentCentrePassedOrFailedJob {
       override val applicationAssessmentService = applicationAssessmentServiceMock
+      override val config = NotifyAssessmentCentrePassedOrFailedJobConfig
     }
 
     val application = OnlineTestApplicationWithCubiksUser("appId1", "userId1", 2)

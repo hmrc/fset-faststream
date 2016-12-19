@@ -56,6 +56,7 @@ class ConfirmAttendanceReminderJobSpec extends UnitWithAppSpec {
 
     def job = new ConfirmAttendanceReminderJob {
       val candidateAllocationService = candidateAllocationServiceMock
+      val config = ConfirmAttendanceReminderJobConfig
     }
   }
 }

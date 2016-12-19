@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package model
+package connectors.launchpadgateway.exchangeobjects.out
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
-case class LocationPreference(region: String, location: String, firstFramework: String, secondFramework: Option[String]) {
-  lazy val isValid: Boolean =
-    !secondFramework.contains(firstFramework)
-}
+case class RetakeApplicantResponse(customInviteId: String, testUrl: String, deadline: String)
 
-object LocationPreference {
-  implicit val jsonFormat = Json.format[LocationPreference]
-  implicit val bsonFormat = Macros.handler[LocationPreference]
+object RetakeApplicantResponse {
+  implicit val retakeApplicantResponseFormat = Json.format[RetakeApplicantResponse]
 }

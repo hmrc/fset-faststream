@@ -79,7 +79,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
     def getHaveDegreeAnswer = {
       if (generatorConfig.isCivilServant) {
         Some(PersistedQuestion("Do you have a degree?",
-          PersistedAnswer(Some((if (generatorConfig.hasDegree) { "Yes" } else {"No"})), None, None))
+          PersistedAnswer(Some(if (generatorConfig.hasDegree) { "Yes" } else { "No" }), None, None))
         )
       } else { None }
     }

@@ -84,7 +84,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   case class NoActiveTestException(m: String) extends Exception(m)
 
-  def getTestProfile(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
+  def getTestGroup(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
     for {
       phase2Opt <- phase2TestRepo.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
@@ -137,7 +137,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     ApplicationStatus.withName(application.applicationStatus) match {
       case PHASE2_TESTS | PHASE2_TESTS_PASSED | PHASE2_TESTS_FAILED =>
         resetPhase2Tests(application, actionTriggeredBy)
-      case PHASE3_TESTS => {
+      case PHASE3_TESTS =>
         inPhase3TestsInvited(application.applicationId).flatMap { result =>
           if (result) {
             phase3TestService.removeTestGroup(application.applicationId).flatMap { _ =>
@@ -147,7 +147,6 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
             throw CannotResetPhase2Tests()
           }
         }
-      }
       case _ => throw CannotResetPhase2Tests()
     }
   }
@@ -157,7 +156,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
       progressResponse <- appRepository.findProgress(applicationId)
     } yield {
       progressResponse.phase3ProgressResponse match {
-        case response: Phase3ProgressResponse if (response.phase3TestsInvited) => true
+        case response: Phase3ProgressResponse if response.phase3TestsInvited => true
         case _ => false
       }
     }
@@ -167,7 +166,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
       phase2TestRepo.getTestGroup(application.applicationId).flatMap {
         case Some(phase2TestGroup) if !application.isInvigilatedETray =>
-          val (scheduleName, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
+          val (_, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
           registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
             AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
               DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
@@ -175,7 +174,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
         case Some(phase2TestGroup) if application.isInvigilatedETray =>
           val scheduleInv = testConfig.scheduleForInvigilatedETray
-          val (scheduleName, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
+          val (_, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
           registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
             AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
               DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
@@ -243,7 +242,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     registerAndInviteForTestGroup(applicationsWithTheSameType, schedule) flatMap { candidatesToProgress =>
       eventSink {
         Future.successful {
-          candidatesToProgress.map(candidate => {
+          candidatesToProgress.flatMap(candidate => {
             // TODO LT: This events should be emit one level down to also be logged by reset path
             DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId) ::
               AuditEvents.Phase2TestInvitationProcessComplete(Map(
@@ -251,7 +250,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
                 "absoluteTime" -> s"${calculateAbsoluteTimeWithAdjustments(candidate)}",
                 "scheduleName" -> s"$scheduleName")) ::
               Nil
-          }).flatten
+          })
         }
       }
     }
@@ -284,7 +283,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     applications match {
       case Nil => Future.successful(Nil)
       case candidatesToProcess =>
-        val tokens = for (i <- 1 to candidatesToProcess.size) yield tokenFactory.generateUUID()
+        val tokens = (1 to candidatesToProcess.size).map(_ => tokenFactory.generateUUID())
         val isInvigilatedETrayBatch = applications.head.isInvigilatedETray
         val expiryTimeInDays = if (isInvigilatedETrayBatch) {
           gatewayConfig.phase2Tests.expiryTimeInDaysForInvigilatedETray
@@ -381,12 +380,12 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     updatePhase2Test(cubiksUserId, phase2TestRepo.updateTestCompletionTime(_: Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
       require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
       val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
-      activeTestsCompleted match {
-        case true => phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
+      if (activeTestsCompleted) {
+        phase2TestRepo.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
           DataStoreEvents.ETrayCompleted(u.applicationId) :: Nil
         }
-
-        case false => Future.successful(List.empty[EventType])
+      } else {
+        Future.successful(List.empty[EventType])
       }
     }
   }
@@ -418,7 +417,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
   }
 
   def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication) = {
-    application.eTrayAdjustments.flatMap(_.timeNeeded).map { extraTime =>
+    application.eTrayAdjustments.flatMap(_.timeNeeded).map { _ =>
       List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = calculateAbsoluteTimeWithAdjustments(application)))
     }.getOrElse(Nil)
   }
@@ -518,11 +517,11 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
       }
     }
 
-    val testResults = Future.sequence(testProfile.testGroup.activeTests.map { test =>
+    val testResults = Future.sequence(testProfile.testGroup.activeTests.flatMap { test =>
       test.reportId.map { reportId =>
         cubiksGatewayClient.downloadXmlReport(reportId)
       }.map(_.map(_ -> test))
-    }.flatten)
+    })
 
     for {
       eventualTestResults <- testResults

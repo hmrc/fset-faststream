@@ -45,7 +45,7 @@ class MediaMongoRepository(implicit mongo: () => DB)
 
   override def create(addMedia: Media): Future[Unit] = insert(addMedia).map { _ => ()
   } recover {
-    case e: WriteResult => throw CannotAddMedia(addMedia.userId)
+    case _: WriteResult => throw CannotAddMedia(addMedia.userId)
   }
 
   override def find(userId: String): Future[Option[Media]] = {

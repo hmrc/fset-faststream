@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package model
+package connectors.launchpadgateway.exchangeobjects.out
 
+import org.joda.time.LocalDate
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
-case class LocationPreference(region: String, location: String, firstFramework: String, secondFramework: Option[String]) {
-  lazy val isValid: Boolean =
-    !secondFramework.contains(firstFramework)
-}
+case class ResetApplicantRequest(interviewId: Int, candidateId: String, newDeadline: LocalDate)
 
-object LocationPreference {
-  implicit val jsonFormat = Json.format[LocationPreference]
-  implicit val bsonFormat = Macros.handler[LocationPreference]
+object ResetApplicantRequest {
+  implicit val resetApplicantRequestFormat = Json.format[ResetApplicantRequest]
 }

@@ -49,7 +49,7 @@ class FastPassApprovalControllerSpec extends UnitWithAppSpec {
     implicit val hc = new HeaderCarrier()
     implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
     val mockFastPassService = mock[FastPassService]
-    val request = FastPassEvaluation(true, "adminId")
+    val request = FastPassEvaluation(accepted = true, "adminId")
     val serviceResponse: Future[(String, String)] = Future.successful(("George", "Foreman"))
 
     def controllerUnderTest = new FastPassApprovalController {

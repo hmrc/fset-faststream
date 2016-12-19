@@ -42,7 +42,8 @@ trait FailedToAttendStatusGenerator extends ConstructiveGenerator {
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- aasRepository.save(CandidateScoresAndFeedback(candidateInPreviousStatus.applicationId.get, Some(false), true))
+      _ <- aasRepository.save(CandidateScoresAndFeedback(candidateInPreviousStatus.applicationId.get, Some(false),
+        assessmentIncomplete = true))
       _ <- aRepository.updateStatus(candidateInPreviousStatus.applicationId.get, FAILED_TO_ATTEND)
     } yield {
       candidateInPreviousStatus

@@ -58,7 +58,8 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
     ),
     competenceAssessment = CubiksGatewayStandardAssessment(31, 32),
     situationalAssessment = CubiksGatewayStandardAssessment(41, 42),
-    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, expiryTimeInDaysForInvigilatedETray = 90, Map("daro" -> Phase2ScheduleExamples.DaroSchedule)),
+    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 7, expiryTimeInDaysForInvigilatedETray = 90,
+      Map("daro" -> Phase2ScheduleExamples.DaroSchedule)),
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"
@@ -133,7 +134,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
   val postcode : Option[PostCode]= Some("WC2B 4")
   val emailContactDetails = "emailfjjfjdf@mailinator.com"
-  val contactDetails = ContactDetails(false, Address("Aldwych road"), postcode, Some("UK"), emailContactDetails, "111111")
+  val contactDetails = ContactDetails(outsideUk = false, Address("Aldwych road"), postcode, Some("UK"), emailContactDetails, "111111")
 
   val auditDetails = Map("userId" -> userId)
   val auditDetailsWithEmail = auditDetails + ("email" -> emailContactDetails)
@@ -164,7 +165,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
   "get online test" should {
     "return None if the application id does not exist" in new OnlineTest {
       when(otRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
-      val result = phase1TestService.getTestProfile("nonexistent-userid").futureValue
+      val result = phase1TestService.getTestGroup("nonexistent-userid").futureValue
       result mustBe None
     }
 
@@ -181,7 +182,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
         ))
       ))
 
-      val result = phase1TestService.getTestProfile("valid-userid").futureValue
+      val result = phase1TestService.getTestGroup("valid-userid").futureValue
 
       result.get.expirationDate must equal(validExpireDate)
     }
@@ -196,7 +197,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       val result = phase1TestService
         .registerAndInviteForTestGroup(onlineTestApplication.copy(guaranteedInterview = true))
 
-      result.futureValue mustBe (())
+      result.futureValue mustBe unit
 
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
@@ -216,7 +217,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
 
-      result.futureValue mustBe (())
+      result.futureValue mustBe unit
 
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
@@ -336,7 +337,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
         .thenReturn(Future.successful(()))
 
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
-      result.futureValue mustBe (())
+      result.futureValue mustBe unit
 
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
@@ -589,7 +590,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
   "processNextExpiredTest" should {
     "do nothing if there are no expired application to process" in new OnlineTest {
       when(otRepositoryMock.nextExpiringApplication(Phase1ExpirationEvent)).thenReturn(Future.successful(None))
-      phase1TestService.processNextExpiredTest(Phase1ExpirationEvent).futureValue mustBe (())
+      phase1TestService.processNextExpiredTest(Phase1ExpirationEvent).futureValue mustBe unit
     }
 
     "update progress status and send an email to the user when an application is expired" in new OnlineTest {
@@ -600,7 +601,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
       val result = phase1TestService.processNextExpiredTest(Phase1ExpirationEvent)
 
-      result.futureValue mustBe (())
+      result.futureValue mustBe unit
 
       verify(cdRepositoryMock).find(userId)
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_EXPIRED)
@@ -611,7 +612,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
   "processNextTestForReminder" should {
     "do nothing if there are no application to process for reminders" in new OnlineTest {
       when(otRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(None))
-      phase1TestService.processNextTestForReminder(Phase1FirstReminder).futureValue mustBe (())
+      phase1TestService.processNextTestForReminder(Phase1FirstReminder).futureValue mustBe unit
     }
 
     "update progress status and send an email to the user when an application is about to expire" in new OnlineTest {
@@ -623,7 +624,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
       val result = phase1TestService.processNextTestForReminder(Phase1FirstReminder)
 
-      result.futureValue mustBe (())
+      result.futureValue mustBe unit
 
       verify(cdRepositoryMock).find(userId)
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_FIRST_REMINDER)

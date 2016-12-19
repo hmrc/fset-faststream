@@ -96,7 +96,7 @@ trait AuthProviderClient {
     WSHttp.POST(s"$url/activate", ActivateEmailRequest(email.toLowerCase, token, ServiceName)).map(_ => (): Unit)
       .recover {
         case Upstream4xxResponse(_, GONE, _, _) => throw new TokenExpiredException()
-        case e: NotFoundException => throw new TokenEmailPairInvalidException()
+        case _: NotFoundException => throw new TokenEmailPairInvalidException()
       }
 
   def findByFirstName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
@@ -139,7 +139,7 @@ trait AuthProviderClient {
     WSHttp.GET(s"$url/user-friendly-access-token").map { response =>
       response.json.as[SimpleTokenResponse]
     }.recover {
-      case errorResponse => throw new ConnectorException(s"Bad response received when getting access code")
+      case _ => throw new ConnectorException(s"Bad response received when getting access code")
     }
   }
 }

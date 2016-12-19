@@ -39,20 +39,21 @@ class ReminderExpiringTestJobSpec  extends UnitWithAppSpec with ShortTimeout {
 
   object TestableFirstReminderExpiringTestJob extends FirstReminderExpiringTestJob {
     val service = serviceMock
-    val lockId: String = "1"
-    val forceLockReleaseAfter: Duration = mock[Duration]
-    val reminderNotice = Phase1FirstReminder
-    implicit val ec: ExecutionContext = mock[ExecutionContext]
-    def name: String = "test"
-    def initialDelay: FiniteDuration = mock[FiniteDuration]
-    def interval: FiniteDuration = mock[FiniteDuration]
+    override val lockId = "1"
+    override val forceLockReleaseAfter: Duration = mock[Duration]
+    override val reminderNotice = Phase1FirstReminder
+    override implicit val ec: ExecutionContext = mock[ExecutionContext]
+    override val name = "test"
+    override val initialDelay: FiniteDuration = mock[FiniteDuration]
+    override val interval: FiniteDuration = mock[FiniteDuration]
+    val config = FirstPhase1ReminderExpiringTestJobConfig
   }
 
   "send first reminder job" should {
     "complete successfully when service completes successfully" in {
       when(serviceMock.processNextTestForReminder(eqTo(TestableFirstReminderExpiringTestJob.reminderNotice))
       (any[HeaderCarrier], any[RequestHeader])).thenReturn(Future.successful(()))
-      TestableFirstReminderExpiringTestJob.tryExecute().futureValue mustBe (())
+      TestableFirstReminderExpiringTestJob.tryExecute().futureValue mustBe unit
     }
 
     "fail when the service fails" in {

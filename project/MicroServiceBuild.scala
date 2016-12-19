@@ -73,9 +73,7 @@ private object AppDependencies {
       "org.scalatestplus" %% "play" % scalatestplus % scope,
       "org.scalatest" %% "scalatest" % scalatest % scope,
       "org.pegdown" % "pegdown" % pegdown % scope,
-      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll (
-        ExclusionRule(organization = "org.specs2")
-        ),
+      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
       "org.specs2" %% "specs2-core" % specs2 % scope
     )
   }

@@ -29,7 +29,7 @@ object QuestionnaireInMemoryRepository extends QuestionnaireRepository with InMe
     Future.successful(())
   }
 
-  override def notFound(applicationId: String) = throw new QuestionnaireNotFound(applicationId)
+  override def notFound(applicationId: String) = throw QuestionnaireNotFound(applicationId)
 
   override def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]] =
     Future.successful(Map.empty[String, PersistedAnswer])

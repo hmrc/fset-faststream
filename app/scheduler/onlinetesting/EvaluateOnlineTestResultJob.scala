@@ -24,33 +24,40 @@ import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSetting
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
 import play.api.libs.json.Format
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
+import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
 import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase2ResultService, EvaluatePhase3ResultService }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
-object EvaluatePhase1ResultJob extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] with EvaluatePhase1ResultJobConfig {
+object EvaluatePhase1ResultJob extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
   val evaluateService = EvaluatePhase1ResultService
   val phase = Phase.PHASE1
+  val config = EvaluatePhase1ResultJobConfig
 }
 
-object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] with EvaluatePhase2ResultJobConfig {
+object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
   val evaluateService = EvaluatePhase2ResultService
   val phase = Phase.PHASE2
+  val config = EvaluatePhase2ResultJobConfig
 }
 
-object EvaluatePhase3ResultJob extends EvaluateOnlineTestResultJob[Phase3PassMarkSettings] with EvaluatePhase3ResultJobConfig {
+object EvaluatePhase3ResultJob extends EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
   val evaluateService = EvaluatePhase3ResultService
   val phase = Phase.PHASE3
   override val errorLog = (app: ApplicationReadyForEvaluation) =>
     s"${app.applicationId}, Launchpad test Id: ${app.activeLaunchpadTest.map(_.token)}"
+  val config = EvaluatePhase3ResultJobConfig
 }
 
-abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonFormat: Format[T]) extends SingleInstanceScheduledJob {
+abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonFormat: Format[T]) extends
+  SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+
   val evaluateService: EvaluateOnlineTestResultService[T]
-  val batchSize: Int
   val phase: Phase
+  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     evaluateService.nextCandidatesReadyForEvaluation(batchSize) flatMap {
@@ -93,33 +100,18 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
   }
 }
 
-trait EvaluatePhase1ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  val conf = config.MicroserviceAppConfig.evaluatePhase1ResultJobConfig
-  val configPrefix = "scheduling.online-testing.evaluate-phase1-result-job."
-  val name = "EvaluatePhase1ResultJob"
+object EvaluatePhase1ResultJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.evaluate-phase1-result-job",
+  name = "EvaluatePhase1ResultJob"
+)
 
-  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
-  Logger.debug(s"Max number of applications in scheduler: $batchSize")
-}
+object EvaluatePhase2ResultJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.evaluate-phase2-result-job",
+  name = "EvaluatePhase2ResultJob"
+)
 
-trait EvaluatePhase2ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  val conf = config.MicroserviceAppConfig.evaluatePhase2ResultJobConfig
-  val configPrefix = "scheduling.online-testing.evaluate-phase2-result-job."
-  val name = "EvaluatePhase2ResultJob"
-
-  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
-  Logger.debug(s"Max number of applications in scheduler: $batchSize")
-}
-
-trait EvaluatePhase3ResultJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  val conf = config.MicroserviceAppConfig.evaluatePhase3ResultJobConfig
-  val configPrefix = "scheduling.online-testing.evaluate-phase3-result-job."
-  val name = "EvaluatePhase3ResultJob"
-
-  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
-  Logger.debug(s"Max number of applications in scheduler: $batchSize")
-}
+object EvaluatePhase3ResultJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.evaluate-phase3-result-job",
+  name = "EvaluatePhase3ResultJob"
+)
 
