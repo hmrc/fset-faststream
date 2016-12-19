@@ -34,7 +34,7 @@ abstract class SubmitApplicationController(applicationClient: ApplicationClient,
 
   def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
-      if (isSubmitApplicationsEnabled(user.application.applicationRoute)) {
+      if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
         Future.successful(Ok(views.html.application.submit()))
       } else {
         Future.successful(Redirect(routes.HomeController.present()))
@@ -48,7 +48,7 @@ abstract class SubmitApplicationController(applicationClient: ApplicationClient,
 
   def submit = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
-      if (isSubmitApplicationsEnabled(user.application.applicationRoute)) {
+      if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
         applicationClient.submitApplication(user.user.userID, user.application.applicationId).flatMap { _ =>
           updateProgress(data =>
             data.copy(application = data.application.map(_.copy(applicationStatus = SUBMITTED))))(_ =>

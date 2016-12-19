@@ -80,6 +80,7 @@ class UserCacheServiceSpec extends UnitSpec {
       ApplicationRoute.Faststream,
       testUserId,
       ProgressResponse(testApplicationId.toString()),
+      None,
       None
     )
     val expectedCachedDataUser = CachedUser(
@@ -97,6 +98,7 @@ class UserCacheServiceSpec extends UnitSpec {
       ApplicationStatus.withName(testApplicationResponse.applicationStatus),
       ApplicationRoute.Faststream,
       Progress.fromProgressRespToAppProgress(testApplicationResponse.progressResponse),
+      None,
       None,
       None
     )

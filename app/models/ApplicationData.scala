@@ -20,6 +20,7 @@ import connectors.exchange.ApplicationResponse
 import connectors.exchange.CivilServiceExperienceDetails
 import models.ApplicationData.ApplicationStatus.ApplicationStatus
 import models.ApplicationRoute.ApplicationRoute
+import org.joda.time.DateTime
 import play.api.libs.json._
 
 import scala.language.implicitConversions
@@ -30,7 +31,8 @@ case class ApplicationData(applicationId: UniqueIdentifier,
                            applicationRoute: ApplicationRoute,
                            progress: Progress,
                            civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
-                           edipCompleted: Option[Boolean]
+                           edipCompleted: Option[Boolean],
+                           overriddenSubmissionDeadline: Option[DateTime]
                           ) {
   import ApplicationData.ApplicationStatus._
   def isPhase1 = applicationStatus == PHASE1_TESTS || applicationStatus == PHASE1_TESTS_PASSED || applicationStatus == PHASE1_TESTS_FAILED
@@ -76,7 +78,7 @@ object ApplicationData {
 
   implicit def fromAppRespToAppData(resp: ApplicationResponse): ApplicationData =
     new ApplicationData(resp.applicationId, resp.userId, ApplicationStatus.withName(resp.applicationStatus),
-      resp.applicationRoute, resp.progressResponse, resp.civilServiceExperienceDetails, None)
+      resp.applicationRoute, resp.progressResponse, resp.civilServiceExperienceDetails, None, resp.overriddenSubmissionDeadline)
 
   implicit val applicationDataFormat = Json.format[ApplicationData]
 

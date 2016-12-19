@@ -25,33 +25,20 @@ import forms.SignupFormGenerator
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
 import models.{ CachedDataExample, CachedDataWithApp }
-import org.mockito.Matchers.{ eq => eqTo }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import security.UserService
 import testkit.BaseControllerSpec
-
 
 class SignUpControllerSpec extends BaseControllerSpec {
 
   override def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
     CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
 
-  "present" should {
-    "display the sign up page" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = false
-        val applicationsSubmitEnabled = false
-        val applicationsStartDate = None
-      }
-      val result = controller(applicationRouteState).present()(fakeRequest)
-      status(result) mustBe OK
-      val content = contentAsString(result)
-      content must include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
-    }
+  val continueAsSdipPanelId = "id=\"existingFSApply\""
 
-    "display the sign up page with fast stream applications closed message" in new TestFixture {
+  "present" should {
+    "display the sign up page and allow new accounts to be created" in new TestFixture {
       val applicationRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
@@ -61,7 +48,26 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val result = controller(applicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
+      content must include(continueAsSdipPanelId)
       content mustNot include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
+      content mustNot include("Unfortunately, applications for the Early Diversity Internship Programme are now closed.")
+      content mustNot include("Unfortunately, applications for the Summer Diversity Internship Programme are now closed.")
+    }
+
+    "display the sign up page but not allow new accounts to be created" in new TestFixture {
+      val applicationRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = false
+        val applicationsSubmitEnabled = false
+        val applicationsStartDate = None
+      }
+      val result = controller(applicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+      content mustNot include(continueAsSdipPanelId)
+      content must include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
+      content must include("Unfortunately, applications for the Early Diversity Internship Programme are now closed.")
+      content must include("Unfortunately, applications for the Summer Diversity Internship Programme are now closed.")
     }
   }
 

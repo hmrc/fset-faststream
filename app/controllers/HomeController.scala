@@ -16,18 +16,18 @@
 
 package controllers
 
-import _root_.forms.WithdrawApplicationForm
 import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ ApplicationNotFound, CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange._
+import forms.WithdrawApplicationForm
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus
 import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3TestsPage }
 import models.{ ApplicationData, CachedData }
-import play.api.mvc.{ Request, Result }
-import security.Roles
+import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
+import security.Roles
 import security.Roles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -45,7 +45,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
     implicit request => implicit cachedData =>
      cachedData.application.map { implicit application =>
        cachedData match {
-         case _ if isPhase1TestsPassed && isEdip(cachedData) => displayEdipResultsPage
+         case _ if isPhase1TestsPassed && (isEdip(cachedData) || isSdip(cachedData)) => displayEdipOrSdipResultsPage
          case _ if isPhase3TestsPassed => displayFaststreamResultsPage
          case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
        }
@@ -57,14 +57,14 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       Future.successful(Redirect(Roles.userJourneySequence.find(_._1.isAuthorized(user)).map(_._2).getOrElse(routes.HomeController.present())))
   }
 
-  def create = CSRSecureAction(ApplicationStartRole) { implicit request =>
-    implicit user =>
+  def create: Action[AnyContent] = CSRSecureAction(ApplicationStartRole) { implicit request =>
+    implicit cachedData =>
       for {
-        response <- applicationClient.findApplication(user.user.userID, FrameworkId).recoverWith {
-          case _: ApplicationNotFound => applicationClient.createApplication(user.user.userID, FrameworkId)
+        response <- applicationClient.findApplication(cachedData.user.userID, FrameworkId).recoverWith {
+          case _: ApplicationNotFound => applicationClient.createApplication(cachedData.user.userID, FrameworkId)
         }
-        _ <- env.userService.save(user.copy(application = Some(response)))
-        if isSubmitApplicationsEnabled(response.applicationRoute)
+        _ <- env.userService.save(cachedData.copy(application = Some(response)))
+        if canApplicationBeSubmitted(response.overriddenSubmissionDeadline)(response.applicationRoute)
       } yield {
         Redirect(routes.PersonalDetailsController.presentAndContinue())
       }
@@ -115,9 +115,9 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       Ok(views.html.home.faststreamFinalResults(cachedData, results.getOrElse(Nil)))
     }
 
-  private def displayEdipResultsPage(implicit application: ApplicationData, cachedData: CachedData,
-                                      request: Request[_], hc: HeaderCarrier) =
-      Future.successful(Ok(views.html.home.edipFinalResults(cachedData)))
+  private def displayEdipOrSdipResultsPage(implicit application: ApplicationData, cachedData: CachedData,
+                                           request: Request[_], hc: HeaderCarrier) =
+      Future.successful(Ok(views.html.home.edipAndSdipFinalResults(cachedData)))
 
   private def dashboardWithOnlineTests(implicit application: ApplicationData,
                                        displaySdipEligibilityInfo: Boolean,
@@ -147,7 +147,8 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       val applicationSubmitted = !cachedData.application.forall { app =>
         app.applicationStatus == ApplicationStatus.CREATED || app.applicationStatus == ApplicationStatus.IN_PROGRESS
       }
-      val isDashboardEnabled = isSubmitApplicationsEnabled(application.applicationRoute) || applicationSubmitted
+      val isDashboardEnabled = canApplicationBeSubmitted(application.overriddenSubmissionDeadline)(application.applicationRoute) ||
+        applicationSubmitted
       val dashboardPage = DashboardPage(cachedData, None, None, None)
       Future.successful(Ok(views.html.home.dashboard(cachedData, dashboardPage,
         submitApplicationsEnabled = isDashboardEnabled,
@@ -160,7 +161,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       val dashboardPage = DashboardPage(cachedData, None, None, None)
       Future.successful(
         Ok(views.html.home.dashboard(cachedData, dashboardPage,
-          submitApplicationsEnabled = isSubmitApplicationsEnabled,
+          submitApplicationsEnabled = canApplicationBeSubmitted(None),
           displaySdipEligibilityInfo = displaySdipEligibilityInfo))
       )
   }

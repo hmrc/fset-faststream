@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package connectors
+package connectors.exchange
 
-package object exchange {
+import models.UniqueIdentifier
+import play.api.libs.json.Json
 
-  val FrameworkId = "FastStream-2016"
+case class PersonalDetailsAdded(applicationId: UniqueIdentifier, userId: String)
 
-  type LoginInfo = String
+object PersonalDetailsAdded {
+  implicit val format = Json.format[PersonalDetailsAdded]
 }

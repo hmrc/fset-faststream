@@ -89,6 +89,23 @@ class ConsiderForSdipControllerSpec extends BaseControllerSpec {
       status(result) mustBe OK
       content must include("I agree and want to be considered for SDIP")
     }
+
+    "display dashboard with no ability to continue the faststream application as SDIP " +
+      "when creating new SDIP accounts is blocked" in new TestFixture {
+      val submittedCandidate = currentCandidateWithApp.copy(application = CachedDataExample.CreatedApplication)
+
+      val newAccountsBlockedAppRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = false
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = Some(LocalDateTime.now)
+      }
+
+      val result = controller(candidateWithApp = submittedCandidate, appRouteState = newAccountsBlockedAppRouteState)
+        .present()(fakeRequest)
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.HomeController.present(false).url)
+    }
   }
 
   "continue as sdip" should {
@@ -121,7 +138,7 @@ class ConsiderForSdipControllerSpec extends BaseControllerSpec {
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override protected def env = securityEnvironment
-      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
+      override val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] = Map.empty[ApplicationRoute, ApplicationRouteState]
       when(securityEnvironment.userService).thenReturn(mockUserService)
     }
 
@@ -132,7 +149,7 @@ class ConsiderForSdipControllerSpec extends BaseControllerSpec {
       override val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
     }
 
-    def defaultApplicationRouteState = new ApplicationRouteState {
+    val defaultApplicationRouteState = new ApplicationRouteState {
       val newAccountsStarted = true
       val newAccountsEnabled = true
       val applicationsSubmitEnabled = true

@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 
 import config.ApplicationRouteFrontendConfig
 import models.ApplicationRoute._
+import org.joda.time.DateTime
 
 trait ApplicationRouteState {
   def newAccountsStarted: Boolean
@@ -40,7 +41,6 @@ case class ApplicationRouteStateImpl(config: ApplicationRouteFrontendConfig) ext
   def applicationsSubmitEnabled: Boolean = isAfterNow(config.blockApplicationsDate)
   def applicationsStartDate: Option[LocalDateTime] = config.startNewAccountsDate
 
-
   val zoneId = config.timeZone.map(ZoneId.of).getOrElse(ZoneId.systemDefault())
 
   def now = LocalDateTime.now(zoneId)
@@ -55,16 +55,25 @@ trait CampaignAwareController {
 
   val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState]
 
-  def isNewAccountsStarted(implicit applicationRoute: ApplicationRoute = Faststream) =
+  def isNewAccountsStarted(implicit applicationRoute: ApplicationRoute = Faststream): Boolean =
     appRouteConfigMap.get(applicationRoute).forall(_.newAccountsStarted)
 
-  def isNewAccountsEnabled(implicit applicationRoute: ApplicationRoute = Faststream) =
+  def isNewAccountsEnabled(implicit applicationRoute: ApplicationRoute = Faststream): Boolean =
     appRouteConfigMap.get(applicationRoute).forall(_.newAccountsEnabled)
 
-  def isSubmitApplicationsEnabled(implicit applicationRoute: ApplicationRoute = Faststream) =
+  def canApplicationBeSubmitted(overriddenSubmissionDeadline: Option[DateTime])
+                               (implicit applicationRoute: ApplicationRoute = Faststream): Boolean = {
+    isSubmitApplicationsEnabled match {
+      case true => true
+      case false if overriddenSubmissionDeadline.isDefined => overriddenSubmissionDeadline.get.isAfter(DateTime.now)
+      case _ => false
+    }
+  }
+
+  private def isSubmitApplicationsEnabled(implicit applicationRoute: ApplicationRoute): Boolean =
     appRouteConfigMap.get(applicationRoute).forall(_.applicationsSubmitEnabled)
 
-  def getApplicationStartDate(implicit applicationRoute: ApplicationRoute = Faststream) =
+  def getApplicationStartDate(implicit applicationRoute: ApplicationRoute = Faststream): String =
     appRouteConfigMap.get(applicationRoute)
       .flatMap(_.applicationsStartDate.map(_.format(DateTimeFormatter.ofPattern("dd MMM YYYY"))))
       .getOrElse("")
