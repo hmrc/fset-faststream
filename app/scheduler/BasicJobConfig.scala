@@ -14,33 +14,36 @@
  * limitations under the License.
  */
 
-package scheduler.onlinetesting
+package scheduler
 
 import java.util.concurrent.TimeUnit
 
 import config.ScheduledJobConfigurable
+import net.ceedubs.ficus.Ficus._
+import net.ceedubs.ficus.readers.ValueReader
+import play.api.Play.configuration
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.util.Try
 
-trait BasicJobConfig[T <: ScheduledJobConfigurable] {
+case class BasicJobConfig[T <: ScheduledJobConfigurable] (configPrefix: String, name: String)
+                                                         (implicit reader: ValueReader[T]){
+  import play.api.Play.current
 
-  val conf: T
-  val configPrefix: String
-  val name: String
-
+  lazy val conf: T = configuration.underlying.as[T](configPrefix)
   val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  lazy val lockId = conf.lockId.getOrElse(exception("lockId"))
+  def lockId = conf.lockId.getOrElse(exception("lockId"))
 
-  lazy val initialDelay = conf.initialDelaySecs.flatMap(toDuration).getOrElse(exception("initialDelaySecs"))
-  lazy val configuredInterval = conf.intervalSecs.flatMap(toFiniteDuration).getOrElse(exception("intervalSecs"))
+  def initialDelay = conf.initialDelaySecs.flatMap(toDuration).getOrElse(exception("initialDelaySecs"))
+  def configuredInterval = conf.intervalSecs.flatMap(toFiniteDuration).getOrElse(exception("intervalSecs"))
   // Extra 1 second allows mongo lock to be relinquished
-  lazy val interval = configuredInterval.plus(Duration(1, TimeUnit.SECONDS))
-  lazy val forceLockReleaseAfter = configuredInterval
+  def interval = configuredInterval.plus(Duration(1, TimeUnit.SECONDS))
+  def forceLockReleaseAfter = configuredInterval
+  def enabled = conf.enabled
 
   private def toFiniteDuration(v: Int) = Try(FiniteDuration(v, TimeUnit.SECONDS)).toOption
   private def toDuration(v: Int) = Try(Duration(v, TimeUnit.SECONDS)).toOption
-  def exception(propertyName: String) = throw new IllegalStateException(s"$configPrefix$propertyName config value not set")
+  def exception(propertyName: String) = throw new IllegalStateException(s"$configPrefix.$propertyName config value not set")
 }

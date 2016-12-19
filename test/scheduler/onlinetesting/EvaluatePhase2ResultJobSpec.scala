@@ -81,13 +81,14 @@ class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
     lazy val scheduler = new EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
       val phase = Phase.PHASE2
       val evaluateService = mockEvaluateService
-      val batchSize = 1
-      val lockId: String = "1"
-      val forceLockReleaseAfter: Duration = mock[Duration]
-      implicit val ec: ExecutionContext = mock[ExecutionContext]
-      def name: String = "test"
-      def initialDelay: FiniteDuration = mock[FiniteDuration]
-      def interval: FiniteDuration = mock[FiniteDuration]
+      override val batchSize = 1
+      override val lockId = "1"
+      override val forceLockReleaseAfter: Duration = mock[Duration]
+      override implicit val ec: ExecutionContext = mock[ExecutionContext]
+      override val name = "test"
+      override val initialDelay: FiniteDuration = mock[FiniteDuration]
+      override val interval: FiniteDuration = mock[FiniteDuration]
+      val config = EvaluatePhase2ResultJobConfig
     }
 
     def assertAllApplicationsWereEvaluated(apps: Seq[ApplicationReadyForEvaluation]) = apps foreach { app =>

@@ -16,13 +16,10 @@
 
 package scheduler.fixer
 
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
-
 import config.ScheduledJobConfig
 import model.EmptyRequestHeader
-import play.api.Logger
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.onlinetesting.BasicJobConfig
 import services.application.ApplicationService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -30,12 +27,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object FixerJob extends FixerJob {
   override val service = ApplicationService
+  val config = FixerJobConfig
 }
 
-trait FixerJob extends SingleInstanceScheduledJob with FixerJobConfig {
+trait FixerJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: ApplicationService
+  val jobBatchSize = config.conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
   implicit val rh = EmptyRequestHeader
   implicit val hc = new HeaderCarrier()
   val typesBeFixed = RequiredFixes.allFixes.map(f => FixBatch(f, jobBatchSize))
@@ -45,11 +43,7 @@ trait FixerJob extends SingleInstanceScheduledJob with FixerJobConfig {
   }
 }
 
-trait FixerJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.fixerJobConfig
-  val configPrefix = "scheduling.fixer-job."
-  val name = "FixerJob"
-  val jobBatchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
-  Logger.debug(s"Max number of applications in scheduler $name: $jobBatchSize")
-}
+object FixerJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.fixer-job",
+  name = "FixerJob"
+)

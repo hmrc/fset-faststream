@@ -16,35 +16,34 @@
 
 package scheduler.onlinetesting
 
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
-
 import config.ScheduledJobConfig
 import model.{ EmptyRequestHeader, Phase1FirstReminder, Phase2FirstReminder, Phase3FirstReminder, ReminderNotice }
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService, Phase3TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object FirstPhase1ReminderExpiringTestJob extends FirstReminderExpiringTestJob with FirstPhase1ReminderExpiringTestJobConfig {
+object FirstPhase1ReminderExpiringTestJob extends FirstReminderExpiringTestJob {
   override val service = Phase1TestService
   override val reminderNotice: ReminderNotice = Phase1FirstReminder
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+  val config = FirstPhase1ReminderExpiringTestJobConfig
 }
 
-object FirstPhase2ReminderExpiringTestJob extends FirstReminderExpiringTestJob with FirstPhase2ReminderExpiringTestJobConfig {
+object FirstPhase2ReminderExpiringTestJob extends FirstReminderExpiringTestJob {
   override val service = Phase2TestService
   override val reminderNotice: ReminderNotice = Phase2FirstReminder
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+  val config = FirstPhase2ReminderExpiringTestJobConfig
 }
 
-object FirstPhase3ReminderExpiringTestJob extends FirstReminderExpiringTestJob with FirstPhase3ReminderExpiringTestJobConfig {
+object FirstPhase3ReminderExpiringTestJob extends FirstReminderExpiringTestJob {
   override val service = Phase3TestService
   override val reminderNotice: ReminderNotice = Phase3FirstReminder
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+  val config = FirstPhase3ReminderExpiringTestJobConfig
 }
 
-trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob {
+trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: OnlineTestService
   val reminderNotice: ReminderNotice
 
@@ -55,23 +54,17 @@ trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob {
   }
 }
 
-trait FirstPhase1ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.firstPhase1ReminderJobConfig
-  val configPrefix = "scheduling.online-testing.first-phase1-reminder-expiring-test-job."
-  val name = "FirstPhase1ReminderExpiringTestJob"
-}
+object FirstPhase1ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.first-phase1-reminder-expiring-test-job",
+  name = "FirstPhase1ReminderExpiringTestJob"
+)
 
-trait FirstPhase2ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.firstPhase2ReminderJobConfig
-  val configPrefix = "scheduling.online-testing.first-phase2-reminder-expiring-test-job."
-  val name = "FirstPhase2ReminderExpiringTestJob"
-}
+object FirstPhase2ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.first-phase2-reminder-expiring-test-job",
+  name = "FirstPhase2ReminderExpiringTestJob"
+)
 
-trait FirstPhase3ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.firstPhase3ReminderJobConfig
-  val configPrefix = "scheduling.online-testing.first-phase3-reminder-expiring-test-job."
-  val name = "FirstPhase3ReminderExpiringTestJob"
-}
+object FirstPhase3ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.first-phase3-reminder-expiring-test-job",
+  name = "FirstPhase3ReminderExpiringTestJob"
+)

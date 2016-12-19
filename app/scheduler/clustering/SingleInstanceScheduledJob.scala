@@ -16,22 +16,33 @@
 
 package scheduler.clustering
 
-import scheduler.LockKeeper
+import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
+
+import scheduler.{ BasicJobConfig, LockKeeper }
 import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
-trait SingleInstanceScheduledJob extends ExclusiveScheduledJob {
-  val lockId: String
-  val forceLockReleaseAfter: Duration
+trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveScheduledJob {
+  def config: C
+
+  def lockId: String = config.lockId
+  def forceLockReleaseAfter: Duration = config.forceLockReleaseAfter
+  def interval = config.interval
+  def initialDelay = config.initialDelay
+  def configuredInterval = config.configuredInterval
+  def name = config.name
+  def enabled = config.enabled
 
   @volatile
   var running = false
 
   lazy val lockKeeper: LockKeeper = LockKeeper(lockIdToUse = lockId, forceLockReleaseAfterToUse = forceLockReleaseAfter)
-  implicit val ec: ExecutionContext
+
+  implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(
+    new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit]
 

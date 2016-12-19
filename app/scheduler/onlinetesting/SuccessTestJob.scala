@@ -16,29 +16,27 @@
 
 package scheduler.onlinetesting
 
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
-
 import config.ScheduledJobConfig
 import model._
+import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase3TestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object SuccessPhase1TestJob extends SuccessTestJob with SuccessPhase3TestJobConfig {
+object SuccessPhase1TestJob extends SuccessTestJob {
   override val service = Phase1TestService
   override val successType: SuccessTestType = Phase1SuccessTestType
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
+  val config = SuccessPhase1TestJobConfig
 }
 
-object SuccessPhase3TestJob extends SuccessTestJob with SuccessPhase3TestJobConfig {
+object SuccessPhase3TestJob extends SuccessTestJob {
   override val service = Phase3TestService
   override val successType: SuccessTestType = Phase3SuccessTestType
-  override implicit val ec = ExecutionContext.fromExecutor(new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
-}
+  val config = SuccessPhase3TestJobConfig}
 
-trait SuccessTestJob extends SingleInstanceScheduledJob {
+trait SuccessTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: OnlineTestService
   val successType: SuccessTestType
 
@@ -49,15 +47,12 @@ trait SuccessTestJob extends SingleInstanceScheduledJob {
   }
 }
 
-trait SuccessPhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.successPhase3TestJobConfig
-  val configPrefix = "scheduling.online-testing.success-phase1-test-job."
-  val name = "SuccessPhase1TestJob"
-}
-trait SuccessPhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig] {
-  this: SingleInstanceScheduledJob =>
-  override val conf = config.MicroserviceAppConfig.successPhase1TestJobConfig
-  val configPrefix = "scheduling.online-testing.success-phase1-test-job."
-  val name = "SuccessPhase1TestJob"
-}
+object SuccessPhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.success-phase1-test-job",
+  name = "SuccessPhase1TestJob"
+)
+
+object SuccessPhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.success-phase1-test-job",
+  name = "SuccessPhase1TestJob"
+)

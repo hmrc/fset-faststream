@@ -17,7 +17,7 @@
 package config
 
 import net.ceedubs.ficus.Ficus._
-import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+import net.ceedubs.ficus.readers.ValueReader
 import play.api.Play.{ configuration, current }
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.config.{ RunMode, ServicesConfig }
@@ -44,6 +44,12 @@ case class ScheduledJobConfig(
   batchSize: Option[Int] = None
 ) extends ScheduledJobConfigurable
 
+object ScheduledJobConfig {
+  implicit lazy val _reader: ValueReader[ScheduledJobConfig] = {
+    net.ceedubs.ficus.readers.ArbitraryTypeReader.arbitraryTypeValueReader[ScheduledJobConfig]
+  }
+}
+
 case class WaitingScheduledJobConfig(
   enabled: Boolean,
   lockId: Option[String],
@@ -52,6 +58,12 @@ case class WaitingScheduledJobConfig(
   waitSecs: Option[Int],
   batchSize: Option[Int] = None
 ) extends ScheduledJobConfigurable
+
+object WaitingScheduledJobConfig {
+  implicit lazy val _reader: ValueReader[WaitingScheduledJobConfig] = {
+    net.ceedubs.ficus.readers.ArbitraryTypeReader.arbitraryTypeValueReader[WaitingScheduledJobConfig]
+  }
+}
 
 case class CubiksGatewayConfig(url: String,
   phase1Tests: Phase1TestsConfig,
@@ -117,7 +129,10 @@ object AssessmentEvaluationMinimumCompetencyLevel {
   implicit val AssessmentEvaluationMinimumCompetencyLevelFormats = Json.format[AssessmentEvaluationMinimumCompetencyLevel]
 }
 
-object MicroserviceAppConfig extends ServicesConfig with RunMode {
+object MicroserviceAppConfig extends MicroserviceAppConfig
+
+trait MicroserviceAppConfig extends ServicesConfig with RunMode {
+  import net.ceedubs.ficus.readers.ArbitraryTypeReader._
   lazy val emailConfig = configuration.underlying.as[EmailConfig]("microservice.services.email")
   lazy val frameworksConfig = configuration.underlying.as[FrameworksConfig]("microservice.frameworks")
   lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
@@ -125,59 +140,6 @@ object MicroserviceAppConfig extends ServicesConfig with RunMode {
   lazy val launchpadGatewayConfig = configuration.underlying.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
   lazy val parityGatewayConfig = configuration.underlying.as[ParityGatewayConfig]("microservice.services.parity-gateway")
   lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
-
-  lazy val sendPhase1InvitationJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase1-invitation-job")
-  lazy val sendPhase2InvitationJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase2-invitation-job")
-  lazy val sendPhase3InvitationJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.send-phase3-invitation-job")
-
-  lazy val firstPhase1ReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-phase1-reminder-expiring-test-job")
-  lazy val secondPhase1ReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-phase1-reminder-expiring-test-job")
-  lazy val firstPhase2ReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-phase2-reminder-expiring-test-job")
-  lazy val secondPhase2ReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-phase2-reminder-expiring-test-job")
-  lazy val firstPhase3ReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.first-phase3-reminder-expiring-test-job")
-  lazy val secondPhase3ReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.second-phase3-reminder-expiring-test-job")
-
-  lazy val expirePhase1TestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase1-job")
-  lazy val expirePhase2TestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase2-job")
-  lazy val expirePhase3TestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.expiry-phase3-job")
-  lazy val failedPhase1TestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-phase1-test-job")
-  lazy val failedPhase2TestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-phase2-test-job")
-  lazy val failedPhase3TestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.failed-phase3-test-job")
-  lazy val successPhase1TestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.success-phase1-test-job")
-  lazy val successPhase3TestJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.success-phase3-test-job")
-  lazy val retrievePhase1ResultsJobConfig =
-    configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-phase1-results-job")
-  lazy val retrievePhase2ResultsJobConfig =
-    configuration.underlying.as[WaitingScheduledJobConfig]("scheduling.online-testing.retrieve-phase2-results-job")
-  lazy val evaluatePhase1ResultJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.evaluate-phase1-result-job")
-  lazy val evaluatePhase2ResultJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.evaluate-phase2-result-job")
-  lazy val evaluatePhase3ResultJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.evaluate-phase3-result-job")
-  lazy val confirmAttendanceReminderJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.confirm-attendance-reminder-job")
-  lazy val evaluateAssessmentScoreJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.evaluate-assessment-score-job")
-  lazy val notifyAssessmentCentrePassedOrFailedJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.notify-assessment-centre-passed-or-failed-job")
 
   lazy val assessmentCentresLocationsConfig =
     configuration.underlying.as[AssessmentCentresLocationsConfig]("scheduling.online-testing.assessment-centres-locations")
