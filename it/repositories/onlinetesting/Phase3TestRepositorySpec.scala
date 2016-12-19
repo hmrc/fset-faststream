@@ -196,7 +196,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE2_TESTS_PASSED",
        additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Faststream").futureValue
 
-      val results = phase3TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase3TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 1
       results.head.applicationId mustBe "appId2"
@@ -209,7 +209,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         fastPassReceived = false, additionalProgressStatuses = List((model.ProgressStatuses.PHASE2_TESTS_PASSED, true))
       ).futureValue
 
-      val result = phase3TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val result = phase3TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       result.size mustBe 1
       result.head.applicationId mustBe "appId"

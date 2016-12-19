@@ -70,8 +70,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   val launchpadGatewayClient: LaunchpadGatewayClient
   val gatewayConfig: LaunchpadGatewayConfig
 
-  override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    phase3TestRepo.nextApplicationsReadyForOnlineTesting
+  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
+    phase3TestRepo.nextApplicationsReadyForOnlineTesting(maxBatchSize: Int)
   }
 
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = phase3TestRepo.getTestGroup(applicationId)

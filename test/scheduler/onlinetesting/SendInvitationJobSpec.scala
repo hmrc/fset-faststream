@@ -40,12 +40,12 @@ class SendInvitationJobSpec extends UnitWithAppSpec with ShortTimeout {
 
   "send invitation job" should {
     "complete successfully when there is no application ready for online testing" in {
-      when(onlineTestingServiceMock.nextApplicationReadyForOnlineTesting).thenReturn(Future.successful(Nil))
-      TestableSendInvitationJob.tryExecute().futureValue mustBe (_: Unit)
+      when(onlineTestingServiceMock.nextApplicationsReadyForOnlineTesting(1)).thenReturn(Future.successful(Nil))
+      TestableSendInvitationJob.tryExecute().futureValue mustBe unit
     }
 
     "fail when there is an exception getting next application ready for online testing" in {
-      when(onlineTestingServiceMock.nextApplicationReadyForOnlineTesting).thenReturn(Future.failed(new Exception))
+      when(onlineTestingServiceMock.nextApplicationsReadyForOnlineTesting(1)).thenReturn(Future.failed(new Exception))
       TestableSendInvitationJob.tryExecute().failed.futureValue mustBe an[Exception]
     }
   }

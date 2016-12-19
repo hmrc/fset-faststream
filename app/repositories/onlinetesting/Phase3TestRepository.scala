@@ -92,11 +92,11 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     collection.update(query, update) map validator
   }
 
-  override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
+  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
     val query = inviteToTestBSON(PHASE2_TESTS_PASSED) ++ BSONDocument("applicationRoute" -> BSONDocument("$nin" -> BSONArray("Sdip", "Edip")))
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
-    selectRandom[OnlineTestApplication](query, 1)
+    selectRandom[OnlineTestApplication](query, maxBatchSize)
   }
 
   override def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit] = {

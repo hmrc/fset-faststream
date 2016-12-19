@@ -45,7 +45,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
   type U <: Test
   type T <: TestProfile[U]
 
-  def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]]
+  def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]]
 
   def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
     val query = BSONDocument("applicationId" -> applicationId)

@@ -117,7 +117,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         fastPassReceived = true
       ).futureValue
 
-      val result = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val result = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       result mustBe Nil
     }
@@ -128,7 +128,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         fastPassReceived = true, fastPassAccepted = Some(true)
       ).futureValue
 
-      val result = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val result = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       result mustBe Nil
     }
@@ -139,7 +139,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         fastPassReceived = true, fastPassAccepted = Some(false)
       ).futureValue
 
-      val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 1
       results.head.applicationId mustBe "appId"
@@ -152,7 +152,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         fastPassReceived = false
       ).futureValue
 
-      val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       results.length mustBe 1
       results.head.applicationId mustBe "appId"
@@ -232,7 +232,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         isGis = true
       ).futureValue
 
-      val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       onlineTestApplications.length mustBe 1
 
@@ -258,7 +258,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         isGis = true
       ).futureValue
 
-      val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting.futureValue
+      val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
       onlineTestApplications.length mustBe 1
 

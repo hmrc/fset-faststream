@@ -77,7 +77,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     getTestProfileByToken(token, phaseName)
   }
 
-  override def nextApplicationsReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
+  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
     val submittedStatuses = List[String](ApplicationStatus.SUBMITTED, ApplicationStatus.SUBMITTED.toLowerCase)
 
     val query = BSONDocument("$and" -> BSONArray(
@@ -89,7 +89,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
       ))
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
-    selectRandom[OnlineTestApplication](query, 1)
+    selectRandom[OnlineTestApplication](query, maxBatchSize)
   }
 
   override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestGroupWithUserIds] = {

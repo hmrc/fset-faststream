@@ -65,9 +65,8 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   val gatewayConfig: CubiksGatewayConfig
   val delaySecsBetweenRegistrations = 1
 
-  override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    phase1TestRepo.nextApplicationsReadyForOnlineTesting
-  }
+  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] =
+    phase1TestRepo.nextApplicationsReadyForOnlineTesting(maxBatchSize)
 
   override def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     phase1TestRepo.nextTestForReminder(reminder).flatMap {

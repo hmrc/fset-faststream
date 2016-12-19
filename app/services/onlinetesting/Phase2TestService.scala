@@ -105,8 +105,8 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     testUrl <- Future.fromTry(processEtrayToken(testGroupOpt, accessCode))
   } yield testUrl
 
-  override def nextApplicationReadyForOnlineTesting: Future[List[OnlineTestApplication]] = {
-    phase2TestRepo.nextApplicationsReadyForOnlineTesting
+  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
+    phase2TestRepo.nextApplicationsReadyForOnlineTesting(maxBatchSize)
   }
 
   override def processNextTestForReminder(reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
