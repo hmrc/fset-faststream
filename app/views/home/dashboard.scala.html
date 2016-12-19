@@ -67,7 +67,20 @@
     @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = AbleToWithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.present()) { Submit }
 }
 
+@displaySdipFaststreamBanner = {
+    <div class="panel-info standard-panel" id="sdipPermanentBanner">
+        <div class="text">
+            <p>You've requested to be considered for the Summer Diversity Internship
+                Programme (SDIP). Once we've assessed your online test results, we'll
+                let you know on this page.</p>
+        </div>
+    </div>
+}
+
 @main_template(title = "Home") {
+    @if(isSdipFaststream(usr)) {
+        @displaySdipFaststreamBanner
+    }
 
     <div class="hgroup">
         <h1 class="heading-xlarge">Home</h1>
