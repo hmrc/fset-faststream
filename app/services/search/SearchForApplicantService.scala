@@ -128,20 +128,20 @@ trait SearchForApplicantService {
 
   private def convertCandidate(exchangeCandidate: connectors.ExchangeObjects.Candidate): Candidate =
     Candidate(
-      exchangeCandidate.userId,
-      None,
-      Some(exchangeCandidate.email),
-      Some(exchangeCandidate.firstName),
-      Some(exchangeCandidate.lastName),
-      exchangeCandidate.preferredName,
-      None,
-      None,
-      None,
-      None,
+      userId = exchangeCandidate.userId,
+      applicationId = None,
+      email = Some(exchangeCandidate.email),
+      firstName = Some(exchangeCandidate.firstName),
+      lastName = Some(exchangeCandidate.lastName),
+      preferredName = exchangeCandidate.preferredName,
+      dateOfBirth = None,
+      address = None,
+      postCode = None,
+      country = None,
       // In this level we cannot say if the candidate's application exist, so it set to None
       // If the application does not exist, the candidate is Faststream
       // otherwise applicationRoute is saved in application
-      None,
-      None
+      applicationRoute = None,
+      applicationStatus = None
     )
 }
