@@ -148,7 +148,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   }
 
   def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
-                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     import ApplicationStatus._
 
     ApplicationStatus.withName(application.applicationStatus) match {
