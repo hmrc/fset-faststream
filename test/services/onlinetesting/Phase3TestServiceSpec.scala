@@ -20,15 +20,15 @@ import config._
 import connectors.CSREmailClient
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
-import factories.{ DateTimeFactory, UUIDFactory }
+import factories.{DateTimeFactory, UUIDFactory}
 import model.OnlineTestCommands.OnlineTestApplication
 import model._
-import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.persisted.{ ContactDetails, Phase3TestGroupWithAppId }
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
+import model.command.{Phase3ProgressResponse, ProgressResponse}
+import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
+import model.persisted.{ContactDetails, Phase3TestGroupWithAppId}
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -37,7 +37,7 @@ import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
 import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.events.EventServiceFixture
-import testkit.{ ExtendedTimeout, UnitSpec }
+import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -174,16 +174,17 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       phase3TestServiceForReschedule.registerAndInviteForTestGroup(
         onlineTestApplicationWithThirtyThreeTimeAdjustment, thirtyThreePCAdjustedInterviewId, Some(phase3TestGroupNotCompleted)).futureValue
 
-      verifyDataStoreEvents(3,
+      verifyDataStoreEvents(4,
         List("VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
-          "VideoInterviewInvitationEmailSent")
-      )
-
-      verifyAuditEvents(3,
+          "VideoInterviewInvitationEmailSent",
+          "VideoInterviewExtended"
+        ))
+      verifyAuditEvents(4,
         List("VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
-          "VideoInterviewInvitationEmailSent")
+          "VideoInterviewInvitationEmailSent",
+          "VideoInterviewExtended")
       )
     }
 
@@ -215,16 +216,18 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       phase3TestServiceForReschedule.registerAndInviteForTestGroup(
         onlineTestApplication, testInterviewId, Some(phase3TestGroupNotCompleted)).futureValue
 
-      verifyDataStoreEvents(3,
+      verifyDataStoreEvents(4,
         List("VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
-          "VideoInterviewInvitationEmailSent")
+          "VideoInterviewInvitationEmailSent",
+          "VideoInterviewExtended")
       )
 
-      verifyAuditEvents(3,
+      verifyAuditEvents(4,
         List("VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
-          "VideoInterviewInvitationEmailSent")
+          "VideoInterviewInvitationEmailSent",
+          "VideoInterviewExtended")
       )
     }
 
@@ -243,7 +246,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         ResetApplicantRequest(
           testInterviewId,
           testLaunchpadCandidateId,
-          phase3TestGroupNotCompleted.expirationDate.toLocalDate//,
+          phase3TestGroupNotCompleted.expirationDate.toLocalDate //,
         )
       ))
       verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
@@ -256,16 +259,18 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       phase3TestServiceForReschedule.registerAndInviteForTestGroup(
         onlineTestApplication, testInterviewId, Some(phase3TestGroupNotCompleted)).futureValue
 
-      verifyDataStoreEvents(3,
+      verifyDataStoreEvents(4,
         List("VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
-          "VideoInterviewInvitationEmailSent")
+          "VideoInterviewInvitationEmailSent",
+          "VideoInterviewExtended")
       )
 
-      verifyAuditEvents(3,
+      verifyAuditEvents(4,
         List("VideoInterviewRegistrationAndInviteComplete",
           "VideoInterviewInvited",
-          "VideoInterviewInvitationEmailSent")
+          "VideoInterviewInvitationEmailSent",
+          "VideoInterviewExtended")
       )
     }
 
@@ -284,7 +289,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         RetakeApplicantRequest(
           testInterviewId,
           testLaunchpadCandidateId,
-          phase3TestGroupNotCompleted.expirationDate.toLocalDate//,
+          phase3TestGroupNotCompleted.expirationDate.toLocalDate //,
         )
       ))
       verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
@@ -465,7 +470,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
         Map(
           "0pc" -> zeroPCAdjustedInterviewId,
-          "33pc"-> thirtyThreePCAdjustedInterviewId
+          "33pc" -> thirtyThreePCAdjustedInterviewId
         ),
         72
       )
@@ -615,7 +620,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val phase3TestServiceSpy = spy(service)
 
-      doReturn(Future.successful(()), Nil:_*).when(phase3TestServiceSpy).extendTestGroupExpiryTime(any(), any(),
+      doReturn(Future.successful(()), Nil: _*).when(phase3TestServiceSpy).extendTestGroupExpiryTime(any(), any(),
         any())(any[HeaderCarrier](), any[RequestHeader]())
 
       phase3TestServiceSpy
@@ -768,4 +773,5 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       }
     }
   }
+
 }

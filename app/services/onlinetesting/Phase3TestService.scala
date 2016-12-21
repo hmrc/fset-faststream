@@ -163,6 +163,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
+  // scalastyle:off method.length
   private[onlinetesting] def registerAndInviteForTestGroup(application: OnlineTestApplication,
                                                            interviewId: Int,
                                                            phase3TestGroup: Option[Phase3TestGroup])
@@ -170,7 +171,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     val daysUntilExpiry = gatewayConfig.phase3Tests.timeToExpireInDays
 
     val expirationDate = phase3TestGroup.map { phase3TG =>
-      if (phase3TG.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZone)) {
+      if (phase3TG.expirationDate.isAfterNow()) {
         phase3TG.expirationDate
       } else {
         dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry)
@@ -185,70 +186,80 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
     }
 
-    def extendIfInvigilated(application: OnlineTestApplication): Future[Unit] = if (application.isInvigilatedVideo) {
-      extendTestGroupExpiryTime(
-        application.applicationId,
-        gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays - daysUntilExpiry,
-        "InvigilatedInviteSystem"
-      )
-    } else {
-      Future.successful(())
+    def extendIfInvigilatedOrIfAdjustmentsWereChanged(application: OnlineTestApplication): Future[Unit] = {
+      def couldHaveBeenInvigilatedBefore(phase3TestGroup: Option[Phase3TestGroup]): Boolean =
+        phase3TestGroup.map(_.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry*2))).getOrElse(false)
+
+      if (couldHaveBeenInvigilatedBefore(phase3TestGroup)) {
+        if (!application.isInvigilatedVideo) {
+          extendTestGroupExpiryTime(
+            application.applicationId,
+            - gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays + daysUntilExpiry,
+            "NonInvigilatedInviteSystem"
+          )
+        } else {
+          Future.successful(())
+        }
+      } else {
+        if (application.isInvigilatedVideo) {
+          extendTestGroupExpiryTime(
+            application.applicationId,
+            gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays - daysUntilExpiry,
+            "InvigilatedInviteSystem"
+          )
+        } else {
+          Future.successful(())
+        }
+      }
     }
 
     for {
       emailAddress <- candidateEmailAddress(application)
-      launchPadTest <- registerAndInviteOrInviteOrResetOrRetake(
+      launchPadTest <- registerAndInviteOrInviteOrResetOrRetakeOrNothing(
         phase3TestGroup, application, emailAddress, interviewId, invitationDate, expirationDate)
       _ <- emailProcess(emailAddress)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(launchPadTest)))
-      _ <- extendIfInvigilated(application)
+      _ <- extendIfInvigilatedOrIfAdjustmentsWereChanged(application)
       _ <- eventSink {
         AuditEvents.VideoInterviewRegistrationAndInviteComplete("userId" -> application.userId) ::
           DataStoreEvents.VideoInterviewRegistrationAndInviteComplete(application.applicationId) :: Nil
       }
     } yield {}
   }
+  // scalastyle:on method.length
 
   //scalastyle:off method.length
-  private[onlinetesting] def registerAndInviteOrInviteOrResetOrRetake(phase3TestGroup: Option[Phase3TestGroup],
-                                                                      application: OnlineTestApplication, emailAddress: String,
-                                                                      interviewId: Int, invitationDate: DateTime,
-                                                                      expirationDate: DateTime
+  private[onlinetesting] def registerAndInviteOrInviteOrResetOrRetakeOrNothing(phase3TestGroup: Option[Phase3TestGroup],
+                                                                               application: OnlineTestApplication, emailAddress: String,
+                                                                               interviewId: Int, invitationDate: DateTime,
+                                                                               expirationDate: DateTime
                                                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
-
 
     case class InviteResetOrTakeResponse(candidateId: String, testUrl: String, customInviteId: String, customCandidateId: Option[String])
 
     def inviteOrResetOrRetake: Future[InviteResetOrTakeResponse] = {
-      def hasNotCompletedSameInterviewBefore(phase3TestGroup: Phase3TestGroup) = {
-        phase3TestGroup.tests.filter(launchPadTest =>
-          !launchPadTest.completedDateTime.isDefined && launchPadTest.interviewId == interviewId).size > 0
-      }
-
-      def hasCompletedSameInterviewBefore(phase3TestGroup: Phase3TestGroup) = {
-        phase3TestGroup.tests.filter(launchPadTest =>
-          launchPadTest.completedDateTime.isDefined && launchPadTest.interviewId == interviewId).size > 0
-      }
-
       val customCandidateId = "FSCND-" + tokenFactory.generateUUID()
       val getInitialCustomCandidateId = phase3TestGroup.map(_.activeTests.head.customCandidateId)
-      phase3TestGroup.map { phase3TestGroupContent => // If invited before
+      phase3TestGroup.map { phase3TestGroupContent =>
         val candidateId = phase3TestGroupContent.tests.head.candidateId
-        if (hasCompletedSameInterviewBefore(phase3TestGroupContent)) {
-          retakeApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map { retakeResponse =>
-            InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
+        phase3TestGroupContent.tests.filter(_.interviewId == interviewId).headOption.map { launchpadTest =>
+          if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isDefined) {
+            retakeApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map { retakeResponse =>
+              InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
+            }
+          } else if (launchpadTest.startedDateTime.isDefined && !launchpadTest.completedDateTime.isDefined) {
+            resetApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map { resetResponse =>
+              InviteResetOrTakeResponse(candidateId, resetResponse.testUrl, resetResponse.customInviteId, getInitialCustomCandidateId)
+            }
+          } else {
+            Future.successful(
+              InviteResetOrTakeResponse(candidateId, launchpadTest.testUrl, launchpadTest.token, getInitialCustomCandidateId))
           }
-        } else if (hasNotCompletedSameInterviewBefore(phase3TestGroupContent)) {
-          resetApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map { resetResponse =>
-            InviteResetOrTakeResponse(candidateId, resetResponse.testUrl, resetResponse.customInviteId, getInitialCustomCandidateId)
-          }
-        } else {
-          // invite second time or later with different interview
-          inviteApplicant(application, interviewId, phase3TestGroupContent.tests.head.candidateId).map { inviteResponse =>
-            InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl, inviteResponse.customInviteId, Some(inviteResponse.customCandidateId))
-          }
-        }
-      }.getOrElse(// If invite first time
+        }.getOrElse(inviteApplicant(application, interviewId, phase3TestGroupContent.tests.head.candidateId).map { inviteResponse =>
+          InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl,
+            inviteResponse.customInviteId, Some(inviteResponse.customCandidateId))
+        })
+      }.getOrElse(
         registerApplicant(application, emailAddress, customCandidateId).flatMap { candidateId =>
           inviteApplicant(application, interviewId, candidateId).map { inviteResponse =>
             InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl, inviteResponse.customInviteId, Some(inviteResponse.customCandidateId))
