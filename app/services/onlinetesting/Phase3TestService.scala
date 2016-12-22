@@ -187,16 +187,16 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
 
     def extendIfInvigilatedOrIfAdjustmentsWereChanged(application: OnlineTestApplication): Future[Unit] = {
-      def couldHaveBeenInvigilatedBefore(phase3TestGroup: Option[Phase3TestGroup]): Boolean =
-        phase3TestGroup.map(_.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry * 2))).getOrElse(false)
+      val couldHaveBeenInvigilatedBefore = phase3TestGroup
+        .exists(_.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry * 2)))
 
-      if (couldHaveBeenInvigilatedBefore(phase3TestGroup) && !application.isInvigilatedVideo) {
+      if (couldHaveBeenInvigilatedBefore && !application.isInvigilatedVideo) {
         extendTestGroupExpiryTime(
           application.applicationId,
           -gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays + daysUntilExpiry,
           "NonInvigilatedInviteSystem"
         )
-      } else if (!couldHaveBeenInvigilatedBefore(phase3TestGroup) && application.isInvigilatedVideo) {
+      } else if (!couldHaveBeenInvigilatedBefore && application.isInvigilatedVideo) {
         extendTestGroupExpiryTime(
           application.applicationId,
           gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays - daysUntilExpiry,
