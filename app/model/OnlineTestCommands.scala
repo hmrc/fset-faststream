@@ -38,7 +38,7 @@ object OnlineTestCommands {
                                    eTrayAdjustments: Option[AdjustmentDetail],
                                    videoInterviewAdjustments: Option[AdjustmentDetail]) {
     def isInvigilatedETray = needsOnlineAdjustments && eTrayAdjustments.exists(_.invigilatedInfo.isDefined)
-    def isInvigilatedVideo = needsOnlineAdjustments && videoInterviewAdjustments.exists(_.invigilatedInfo.isDefined)
+    def isInvigilatedVideo = videoInterviewAdjustments.exists(_.invigilatedInfo.isDefined)
   }
 
   case class OnlineTestApplicationWithCubiksUser(applicationId: String, userId: String, cubiksUserId: Int)
