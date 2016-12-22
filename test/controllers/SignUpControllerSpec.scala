@@ -36,66 +36,111 @@ class SignUpControllerSpec extends BaseControllerSpec {
     CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
 
   val continueAsSdipPanelId = "id=\"existingFSApply\""
+  val applicationsClosedPanelId = "id=\"applicationsClosed\""
+  val faststreamClosed = "Unfortunately, applications for the Civil Service Fast Stream are now closed."
+  val faststreamEligible = "Are you eligible to apply for the Civil Service Fast Stream?"
+  val edipClosed = "Unfortunately, applications for the Early Diversity Internship Programme are now closed."
+  val edipEligible = "Are you eligible to apply for the Early Diversity Internship Programme (EDIP)?"
+  val sdipClosed = "Unfortunately, applications for the Summer Diversity Internship Programme are now closed."
+  val sdipEligible = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?"
 
   "present" should {
     "display the sign up page and allow new accounts to be created" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
+      val appRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true
         val applicationsSubmitEnabled = false
         val applicationsStartDate = None
       }
-      val result = controller(applicationRouteState).present()(fakeRequest)
+      val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
+      val result = controller(appRouteConfigMap).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
       content must include(continueAsSdipPanelId)
-      content mustNot include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
-      content mustNot include("Unfortunately, applications for the Early Diversity Internship Programme are now closed.")
-      content mustNot include("Unfortunately, applications for the Summer Diversity Internship Programme are now closed.")
+      content mustNot include(faststreamClosed)
+      content mustNot include(edipClosed)
+      content mustNot include(sdipClosed)
     }
 
-    "display the sign up page but not allow new accounts to be created" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
+    "display the sign up page but not allow new sdip accounts to be created when sdip is closed" in new TestFixture {
+      val appRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = false
         val applicationsSubmitEnabled = false
         val applicationsStartDate = None
       }
-      val result = controller(applicationRouteState).present()(fakeRequest)
+      val appRouteConfigMap = Map(Faststream -> defaultAppRouteState, Edip -> defaultAppRouteState, Sdip -> appRouteState)
+      val result = controller(appRouteConfigMap).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
       content mustNot include(continueAsSdipPanelId)
-      content must include("Unfortunately, applications for the Civil Service Fast Stream are now closed.")
-      content must include("Unfortunately, applications for the Early Diversity Internship Programme are now closed.")
-      content must include("Unfortunately, applications for the Summer Diversity Internship Programme are now closed.")
+      content mustNot include(sdipEligible)
+      content must include(faststreamEligible)
+      content must include(sdipClosed)
+      content must include(edipEligible)
+    }
+
+    "display the sign up page but not allow new edip accounts to be created when edip is closed" in new TestFixture {
+      val appRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = false
+        val applicationsSubmitEnabled = false
+        val applicationsStartDate = None
+      }
+      val appRouteConfigMap = Map(Faststream -> defaultAppRouteState, Edip -> appRouteState, Sdip -> defaultAppRouteState)
+      val result = controller(appRouteConfigMap).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+      content must include(sdipEligible)
+      content must include(faststreamEligible)
+      content must include(edipClosed)
+      content mustNot include(edipEligible)
+    }
+
+    "prevent any new accounts being created when all application routes are closed" in new TestFixture {
+      val appRouteState = new ApplicationRouteState {
+        val newAccountsStarted = true
+        val newAccountsEnabled = false
+        val applicationsSubmitEnabled = true
+        val applicationsStartDate = None
+      }
+      val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
+      val result = controller(appRouteConfigMap).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+      content must include(applicationsClosedPanelId)
+      content mustNot include("Create account")
     }
   }
 
   "sign up" should {
-    "display fast stream applications closed message" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
+    "display fast stream applications closed message " in new TestFixture {
+      val appRouteState = new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = false
-        val applicationsSubmitEnabled = false
+        val applicationsSubmitEnabled = true
         val applicationsStartDate = None
       }
+      val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
       val (data, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
-      val result = controller(applicationRouteState).signUp()(Request)
+      val result = controller(appRouteConfigMap).signUp()(Request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SignUpController.present().url))
       flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are now closed"))
     }
+
     "display fast stream applications not started message" in new TestFixture {
-      val applicationRouteState =  new ApplicationRouteState {
+      val appRouteState =  new ApplicationRouteState {
         val newAccountsStarted = false
         val newAccountsEnabled = false
         val applicationsSubmitEnabled = false
         val applicationsStartDate = Some(LocalDateTime.parse("2016-12-06T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME))
       }
+      val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
       val (data, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
-      val result = controller(applicationRouteState).signUp()(Request)
+      val result = controller(appRouteConfigMap).signUp()(Request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SignUpController.present().url))
       flash(result).data must be (Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are opened from 06 Dec 2016"))
@@ -107,15 +152,23 @@ class SignUpControllerSpec extends BaseControllerSpec {
     val mockCacheClient = mock[CSRCache]
     val mockSecurityEnvironment = mock[security.SecurityEnvironment]
     val mockUserService = mock[UserService]
+    val defaultAppRouteState = new ApplicationRouteState {
+      val newAccountsStarted = true
+      val newAccountsEnabled = true
+      val applicationsSubmitEnabled = true
+      val applicationsStartDate = None
+    }
 
-    class TestableSignUpController(val applicationRouteState: ApplicationRouteState)
+    val defaultAppRouteConfigMap = Map(Faststream -> defaultAppRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
+
+    class TestableSignUpController(val testAppRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState])
       extends SignUpController(mockApplicationClient, mockCacheClient) with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override protected def env = mockSecurityEnvironment
-      val appRouteConfigMap = Map(Faststream -> applicationRouteState, Edip -> applicationRouteState, Sdip -> applicationRouteState)
+      val appRouteConfigMap = testAppRouteConfigMap
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller(applicationRouteState: ApplicationRouteState) = new TestableSignUpController(applicationRouteState)
+    def controller(appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState]) = new TestableSignUpController(appRouteConfigMap)
   }
 }

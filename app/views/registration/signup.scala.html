@@ -13,136 +13,162 @@
     result
 }
 
-@main_template(title = "Create your account", pageForms = Seq(signUpForm), notification = notification) {
-    <h1 class="heading-xlarge">Create your account</h1>
+@allAppRouteWindowsClosed = @{
+    !appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled) &&
+    !appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled) &&
+    !appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled)
+}
 
-    @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) {
-        <section class="panel-info standard-panel toggle-content" id="existingFSApply" style="display: block ;">
-            <div class="text">
-                <h2 class="heading-medium">Existing Fast Stream applicants</h2>
-                <p>If you want to apply for the
-                    <a href="https://www.faststream.gov.uk/summer-diversity-internship-programme/" target="_blank" rel="external">
-                        Summer Diversity Internship Programme</a>
-                    and have an existing Fast Stream account, you need to
-                    <a href="@routes.SignInController.sdipPresent()">sign in</a>.
-                </p>
-                <p>If you don't have an account and want to apply for SDIP you can create your account.</p>
-            </div>
-        </section>
-    }
-
+@existingAccountPanel = @{
     <section class="panel-indent text">
         <p>If you already have an account, you can return to <a href="@routes.SignInController.present">sign in</a>.</p>
     </section>
+}
 
-    @helper.form(action = routes.SignUpController.signUp(), 'novalidate -> "novalidate") {
-        @helper.CSRF.formField
+@main_template(title = "Create your account", pageForms = Seq(signUpForm), notification = notification) {
+    <h1 class="heading-xlarge">Create your account</h1>
 
-        <!-- The following will stop browsers from trying to autofill the username and password fields in the create account page -->
-        <input type="text" title="Hidden username" class="alwayshidden">
-        <input type="password" name="Hidden password" class="alwayshidden">
-            <!-- End -->
-
-        <section class="section-border">
-            <h2 class="heading-large">Name and email</h2>
-            @helper.inputText(signUpForm("firstName"),
-                '_label -> "First name",
-                'class -> "form-control",
-                '_class -> "form-group-compound",
-                '_showConstraints -> false)
-            @helper.inputText(signUpForm("lastName"),
-                '_label -> "Last name",
-                'class -> "form-control",
-                '_showConstraints -> false)
-            @helper.inputText(signUpForm("email"),
-                '_label -> "Email",
-                '_help -> "You'll need this to sign in to your account",
-                'class -> "form-control",
-                '_class -> "form-group-compound",
-                'type -> "email",
-                '_showConstraints -> false,
-                'spellcheck -> "false")
-            <div class="panel-indent">
-                <p>You'll need access to this email address over the next year.</p>
-                <p>If you're currently a civil servant, use your personal email address.</p>
-            </div>
-            @helper.inputText(signUpForm("email_confirm"),
-                '_label -> "Confirm your email",
-                'class -> "form-control",
-                'type -> "email",
-                '_showConstraints -> false,
-                'spellcheck -> "false")
-        </section>
-        <section class="section-border">
-            <h2 class="heading-large">Set your password</h2>
-            <div class="form-group">
-                <label for="password" class="form-label" id="firstPassLabel">Create password</label>
-                <span class="visuallyhidden" id="hiddenPasswordRequirements">Must have: uppercase letters, lowercase letters, a number, and at least 9 characters</span>
-                <div class="form-hint text">
-                    <p class="no-btm-margin">Must have:</p>
-                    <ul id="passwordRequirements" class="list-withicons list-text">
-                        <li id="includesUppercase" class=""><i class="fa the-icon fa-times fa-minus"></i>uppercase letters</li>
-                        <li id="includesLowercase" class=""><i class="fa the-icon fa-times fa-minus"></i>lowercase letters</li>
-                        <li id="includesNumber" class=""><i class="fa the-icon fa-times fa-minus"></i>a number</li>
-                        <li id="includes9Characters" class=""><i class="fa the-icon fa-times fa-minus"></i>at least 9 characters</li>
-                    </ul>
+    @if(!allAppRouteWindowsClosed) {
+        @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) {
+            <section class="panel-info standard-panel toggle-content" id="existingFSApply" style="display: block ;">
+                <div class="text">
+                    <h2 class="heading-medium">Existing Fast Stream applicants</h2>
+                    <p>If you want to apply for the
+                        <a href="https://www.faststream.gov.uk/summer-diversity-internship-programme/" target="_blank" rel="external">
+                            Summer Diversity Internship Programme</a>
+                        and have an existing Fast Stream account, you need to
+                        <a href="@routes.SignInController.sdipPresent()">sign in</a>.
+                    </p>
+                    <p>If you don't have an account and want to apply for SDIP you can create your account.</p>
                 </div>
-                <div class="form-group password-wrapper">
-                @helper.inputPassword(signUpForm("password"),
-                    '_label -> "",
-                    'class -> "form-control new-password",
+            </section>
+        }
+
+        @existingAccountPanel
+
+        @helper.form(action = routes.SignUpController.signUp(), 'novalidate -> "novalidate") {
+            @helper.CSRF.formField
+
+            <!-- The following will stop browsers from trying to autofill the username and password fields in the create account page -->
+            <input type="text" title="Hidden username" class="alwayshidden">
+            <input type="password" name="Hidden password" class="alwayshidden">
+                <!-- End -->
+
+            <section class="section-border">
+                <h2 class="heading-large">Name and email</h2>
+                @helper.inputText(signUpForm("firstName"),
+                    '_label -> "First name",
+                    'class -> "form-control",
+                    '_class -> "form-group-compound",
+                    '_showConstraints -> false)
+                @helper.inputText(signUpForm("lastName"),
+                    '_label -> "Last name",
+                    'class -> "form-control",
+                    '_showConstraints -> false)
+                @helper.inputText(signUpForm("email"),
+                    '_label -> "Email",
+                    '_help -> "You'll need this to sign in to your account",
+                    'class -> "form-control",
+                    '_class -> "form-group-compound",
+                    'type -> "email",
                     '_showConstraints -> false,
-                    '_showErrors -> false,
-                    '_help -> ""
-                )
+                    'spellcheck -> "false")
+                <div class="panel-indent">
+                    <p>You'll need access to this email address over the next year.</p>
+                    <p>If you're currently a civil servant, use your personal email address.</p>
                 </div>
-                <div class="password-second form-group">
-                    <div id="confirmpwd_field" class="form-group">
-                        <label for="confirmpwd" class="form-label">Confirm password</label>
-                        <input id="confirmpwd" name="confirmpwd" type="password" class="form-control confirm-password">
-                        <div id="matchingHint" class="invisible">
-                            <p class="form-hint">Password matching:
-                                <span id="pass_match" class="strength-weak"></span>
-                            </p>
+                @helper.inputText(signUpForm("email_confirm"),
+                    '_label -> "Confirm your email",
+                    'class -> "form-control",
+                    'type -> "email",
+                    '_showConstraints -> false,
+                    'spellcheck -> "false")
+            </section>
+            <section class="section-border">
+                <h2 class="heading-large">Set your password</h2>
+                <div class="form-group">
+                    <label for="password" class="form-label" id="firstPassLabel">Create password</label>
+                    <span class="visuallyhidden" id="hiddenPasswordRequirements">Must have: uppercase letters, lowercase letters, a number, and at least 9 characters</span>
+                    <div class="form-hint text">
+                        <p class="no-btm-margin">Must have:</p>
+                        <ul id="passwordRequirements" class="list-withicons list-text">
+                            <li id="includesUppercase" class=""><i class="fa the-icon fa-times fa-minus"></i>uppercase letters</li>
+                            <li id="includesLowercase" class=""><i class="fa the-icon fa-times fa-minus"></i>lowercase letters</li>
+                            <li id="includesNumber" class=""><i class="fa the-icon fa-times fa-minus"></i>a number</li>
+                            <li id="includes9Characters" class=""><i class="fa the-icon fa-times fa-minus"></i>at least 9 characters</li>
+                        </ul>
+                    </div>
+                    <div class="form-group password-wrapper">
+                    @helper.inputPassword(signUpForm("password"),
+                        '_label -> "",
+                        'class -> "form-control new-password",
+                        '_showConstraints -> false,
+                        '_showErrors -> false,
+                        '_help -> ""
+                    )
+                    </div>
+                    <div class="password-second form-group">
+                        <div id="confirmpwd_field" class="form-group">
+                            <label for="confirmpwd" class="form-label">Confirm password</label>
+                            <input id="confirmpwd" name="confirmpwd" type="password" class="form-control confirm-password">
+                            <div id="matchingHint" class="invisible">
+                                <p class="form-hint">Password matching:
+                                    <span id="pass_match" class="strength-weak"></span>
+                                </p>
+                            </div>
                         </div>
                     </div>
+                    <div class="panel-danger hidden" id="errorPassword" role="alert">
+                      <p>There is a problem with your password</p>
+                    </div>
                 </div>
-                <div class="panel-danger hidden" id="errorPassword" role="alert">
-                  <p>There is a problem with your password</p>
+            </section>
+
+            @chooseYourRoute(signUpForm, appRouteConfigMap)
+
+            <section class="section-border">
+                <h2 class="heading-large">How did you hear about us?</h2>
+                <div data-optional>
+                    @select_guard(signUpForm("campaignReferrer"), models.view.CampaignReferrers.list,
+                    "hearAboutUsDetail", "-- Select one --") {
+                    Select how you heard about us (optional)
+                    }
                 </div>
-            </div>
-        </section>
-
-        @chooseYourRoute(signUpForm, appRouteConfigMap)
-
-        <section class="section-border">
-            <h2 class="heading-large">How did you hear about us?</h2>
-            <div data-optional>
-                @select_guard(signUpForm("campaignReferrer"), models.view.CampaignReferrers.list,
-                "hearAboutUsDetail", "-- Select one --") {
-                Select how you heard about us (optional)
+                <div class="form-group toggle-content" id="hearAboutUsDetail" data-requiredifshown data-optional>
+                    @helper.inputText(signUpForm("campaignOther"),
+                    '_label -> "Provide more information (optional)",
+                    'class -> "form-control",
+                    '_showConstraints -> false)
+                </div>
+            </section>
+            <section>
+                <h2 class="heading-large">Terms and conditions</h2>
+                <div class="form-group">
+                @checkbox(signUpForm("agree")) {
+                    I accept the <a href="@routes.ApplicationController.terms()" target="_blank">terms and conditions</a>
                 }
-            </div>
-            <div class="form-group toggle-content" id="hearAboutUsDetail" data-requiredifshown data-optional>
-                @helper.inputText(signUpForm("campaignOther"),
-                '_label -> "Provide more information (optional)",
-                'class -> "form-control",
-                '_showConstraints -> false)
-            </div>
-        </section>
-        <section>
-            <h2 class="heading-large">Terms and conditions</h2>
+                </div>
+            </section>
+
             <div class="form-group">
-            @checkbox(signUpForm("agree")) {
-                I accept the <a href="@routes.ApplicationController.terms()" target="_blank">terms and conditions</a>
-            }
+                <div>
+                    <button id="submit" type="submit" value="submit" class="button">Create account</button>
+                </div>
+            </div>
+        }
+    } else {
+        <section class="panel-info standard-panel toggle-content" id="applicationsClosed" style="display: block ;">
+            <div class="text">
+                <h2 class="heading-medium">Applications are now closed</h2>
+                <p>Applications for the Civil Service Fast Stream, Early and Summer Diversity
+                    Internship Programmes (SDIP and EDIP) are now closed.</p>
+                <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank"
+                rel="external">Civil Service jobs</a> site for more opportunities
+                    with us. Or alternatively you can apply when the next application
+                    window opens.</p>
             </div>
         </section>
 
-        <div class="form-group">
-            <div>
-                <button id="submit" type="submit" value="submit" class="button">Create account</button>
-            </div>
-        </div>
+        @existingAccountPanel
     }
 }
