@@ -22,18 +22,18 @@ import config.LaunchpadGatewayConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
-import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.{ ConnectorException, NotFoundException }
+import factories.{DateTimeFactory, UUIDFactory}
+import model.Exceptions.{ConnectorException, NotFoundException}
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
 import model.command.ProgressResponse
 import model.events.EventTypes.EventType
-import model.events.{ AuditEvents, DataStoreEvents }
+import model.events.{AuditEvents, DataStoreEvents}
 import model.exchange.Phase3TestGroupWithActiveTest
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
-import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
-import org.joda.time.{ DateTime, LocalDate }
+import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
+import model.persisted.{NotificationExpiringOnlineTest, Phase3TestGroupWithAppId}
+import org.joda.time.{DateTime, LocalDate}
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
@@ -188,28 +188,21 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
     def extendIfInvigilatedOrIfAdjustmentsWereChanged(application: OnlineTestApplication): Future[Unit] = {
       def couldHaveBeenInvigilatedBefore(phase3TestGroup: Option[Phase3TestGroup]): Boolean =
-        phase3TestGroup.map(_.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry*2))).getOrElse(false)
+        phase3TestGroup.map(_.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry * 2))).getOrElse(false)
 
-      if (couldHaveBeenInvigilatedBefore(phase3TestGroup)) {
-        if (!application.isInvigilatedVideo) {
-          extendTestGroupExpiryTime(
-            application.applicationId,
-            - gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays + daysUntilExpiry,
-            "NonInvigilatedInviteSystem"
-          )
-        } else {
-          Future.successful(())
-        }
+      if (couldHaveBeenInvigilatedBefore(phase3TestGroup) && !application.isInvigilatedVideo) {
+        extendTestGroupExpiryTime(
+          application.applicationId,
+          -gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays + daysUntilExpiry,
+          "NonInvigilatedInviteSystem"
+        )
+      } else if (!couldHaveBeenInvigilatedBefore(phase3TestGroup) && application.isInvigilatedVideo) {
+        extendTestGroupExpiryTime(
+          application.applicationId,
+          gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays - daysUntilExpiry,
+          "InvigilatedInviteSystem")
       } else {
-        if (application.isInvigilatedVideo) {
-          extendTestGroupExpiryTime(
-            application.applicationId,
-            gatewayConfig.phase3Tests.invigilatedTimeToExpireInDays - daysUntilExpiry,
-            "InvigilatedInviteSystem"
-          )
-        } else {
-          Future.successful(())
-        }
+        Future.successful(())
       }
     }
 
@@ -226,6 +219,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       }
     } yield {}
   }
+
   // scalastyle:on method.length
 
   //scalastyle:off method.length
@@ -233,37 +227,44 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                                                                                application: OnlineTestApplication, emailAddress: String,
                                                                                interviewId: Int, invitationDate: DateTime,
                                                                                expirationDate: DateTime
-                                                                     )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
+                                                                              )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
 
     case class InviteResetOrTakeResponse(candidateId: String, testUrl: String, customInviteId: String, customCandidateId: Option[String])
 
     def inviteOrResetOrRetake: Future[InviteResetOrTakeResponse] = {
       val customCandidateId = "FSCND-" + tokenFactory.generateUUID()
       val getInitialCustomCandidateId = phase3TestGroup.map(_.activeTests.head.customCandidateId)
-      phase3TestGroup.map { phase3TestGroupContent =>
-        val candidateId = phase3TestGroupContent.tests.head.candidateId
-        phase3TestGroupContent.tests.filter(_.interviewId == interviewId).headOption.map { launchpadTest =>
-          if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isDefined) {
-            retakeApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map { retakeResponse =>
-              InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
-            }
-          } else if (launchpadTest.startedDateTime.isDefined && !launchpadTest.completedDateTime.isDefined) {
-            resetApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map { resetResponse =>
-              InviteResetOrTakeResponse(candidateId, resetResponse.testUrl, resetResponse.customInviteId, getInitialCustomCandidateId)
-            }
-          } else {
-            Future.successful(
-              InviteResetOrTakeResponse(candidateId, launchpadTest.testUrl, launchpadTest.token, getInitialCustomCandidateId))
-          }
-        }.getOrElse(inviteApplicant(application, interviewId, phase3TestGroupContent.tests.head.candidateId).map { inviteResponse =>
-          InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl,
-            inviteResponse.customInviteId, Some(inviteResponse.customCandidateId))
-        })
+      phase3TestGroup.map {
+        phase3TestGroupContent =>
+          val candidateId = phase3TestGroupContent.tests.head.candidateId
+          phase3TestGroupContent.tests.filter(_.interviewId == interviewId).headOption.map {
+            launchpadTest =>
+              if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isDefined) {
+                retakeApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
+                  retakeResponse =>
+                    InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
+                }
+              } else if (launchpadTest.startedDateTime.isDefined && !launchpadTest.completedDateTime.isDefined) {
+                resetApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
+                  resetResponse =>
+                    InviteResetOrTakeResponse(candidateId, resetResponse.testUrl, resetResponse.customInviteId, getInitialCustomCandidateId)
+                }
+              } else {
+                Future.successful(
+                  InviteResetOrTakeResponse(candidateId, launchpadTest.testUrl, launchpadTest.token, getInitialCustomCandidateId))
+              }
+          }.getOrElse(inviteApplicant(application, interviewId, phase3TestGroupContent.tests.head.candidateId).map {
+            inviteResponse =>
+              InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl,
+                inviteResponse.customInviteId, Some(inviteResponse.customCandidateId))
+          })
       }.getOrElse(
-        registerApplicant(application, emailAddress, customCandidateId).flatMap { candidateId =>
-          inviteApplicant(application, interviewId, candidateId).map { inviteResponse =>
-            InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl, inviteResponse.customInviteId, Some(inviteResponse.customCandidateId))
-          }
+        registerApplicant(application, emailAddress, customCandidateId).flatMap {
+          candidateId =>
+            inviteApplicant(application, interviewId, candidateId).map {
+              inviteResponse =>
+                InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl, inviteResponse.customInviteId, Some(inviteResponse.customCandidateId))
+            }
         }
       )
     }
@@ -325,23 +326,24 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   // video interview before recieving the complete callbacks from launchpad.
   def markAsCompleted(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     eventSink {
-      testRepository.getTestGroupByToken(launchpadInviteId).flatMap { test =>
-        val launchpadTest = test.testGroup.tests.find(_.token == launchpadInviteId).get
-        if (launchpadTest.completedDateTime.isEmpty && !launchpadTest.startedDateTime.isEmpty) {
-          for {
-            _ <- testRepository.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
-            updated <- testRepository.getTestGroupByToken(launchpadInviteId)
-            // Launchpad only: If a user has completed unexpire them
-            _ <- removeExpiryStatus(updated.applicationId)
-            _ <- testRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
-          } yield {
-            AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
-              DataStoreEvents.VideoInterviewCompleted(updated.applicationId) ::
-              Nil
+      testRepository.getTestGroupByToken(launchpadInviteId).flatMap {
+        test =>
+          val launchpadTest = test.testGroup.tests.find(_.token == launchpadInviteId).get
+          if (launchpadTest.completedDateTime.isEmpty && !launchpadTest.startedDateTime.isEmpty) {
+            for {
+              _ <- testRepository.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
+              updated <- testRepository.getTestGroupByToken(launchpadInviteId)
+              // Launchpad only: If a user has completed unexpire them
+              _ <- removeExpiryStatus(updated.applicationId)
+              _ <- testRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
+            } yield {
+              AuditEvents.VideoInterviewCompleted(updated.applicationId) ::
+                DataStoreEvents.VideoInterviewCompleted(updated.applicationId) ::
+                Nil
+            }
+          } else {
+            Future.successful(List[EventType]())
           }
-        } else {
-          Future.successful(List[EventType]())
-        }
       }
     }
   }
@@ -375,17 +377,18 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
   }
 
   def markAsResultsReceived(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    testRepository.getTestGroupByToken(launchpadInviteId).flatMap { _ =>
-      for {
-        testGroup <- testRepository.getTestGroupByToken(launchpadInviteId)
-        // Launchpad only: If results have been sent for a user, unexpire them
-        _ <- removeExpiryStatus(testGroup.applicationId)
-        _ <- testRepository.updateProgressStatus(testGroup.applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
-      } yield {
-        AuditEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
-          DataStoreEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
-          Nil
-      }
+    testRepository.getTestGroupByToken(launchpadInviteId).flatMap {
+      _ =>
+        for {
+          testGroup <- testRepository.getTestGroupByToken(launchpadInviteId)
+          // Launchpad only: If results have been sent for a user, unexpire them
+          _ <- removeExpiryStatus(testGroup.applicationId)
+          _ <- testRepository.updateProgressStatus(testGroup.applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+        } yield {
+          AuditEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
+            DataStoreEvents.VideoInterviewResultsReceived(testGroup.applicationId) ::
+            Nil
+        }
     }
   }
 
@@ -414,17 +417,19 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
           "applicationId" -> applicationId) ::
           DataStoreEvents.VideoInterviewExtended(applicationId, actionTriggeredBy) :: Nil
       }
-    } yield {}
+    } yield {
+    }
   }
 
   private def registerApplicant(application: OnlineTestApplication, emailAddress: String,
                                 customCandidateId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)
-    launchpadGatewayClient.registerApplicant(registerApplicant).flatMap { registration =>
-      eventSink {
-        AuditEvents.VideoInterviewCandidateRegistered("userId" -> application.userId) ::
-          DataStoreEvents.VideoInterviewCandidateRegistered(application.applicationId) :: Nil
-      }.map(_ => registration.candidateId)
+    launchpadGatewayClient.registerApplicant(registerApplicant).flatMap {
+      registration =>
+        eventSink {
+          AuditEvents.VideoInterviewCandidateRegistered("userId" -> application.userId) ::
+            DataStoreEvents.VideoInterviewCandidateRegistered(application.applicationId) :: Nil
+        }.map(_ => registration.candidateId)
     }
   }
 
@@ -433,7 +438,9 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
     val customInviteId = "FSINV-" + tokenFactory.generateUUID()
 
-    val completionRedirectUrl = s"${gatewayConfig.phase3Tests.candidateCompletionRedirectUrl}/fset-fast-stream" +
+    val completionRedirectUrl = s"${
+      gatewayConfig.phase3Tests.candidateCompletionRedirectUrl
+    }/fset-fast-stream" +
       s"/online-tests/phase3/complete/$customInviteId"
 
     val inviteApplicant = InviteApplicantRequest(interviewId, candidateId, customInviteId, completionRedirectUrl)
@@ -457,16 +464,17 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                                       invitationDate: DateTime, expirationDate: DateTime
                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val preferredName = application.preferredName
-    emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).flatMap { _ =>
-      eventSink {
-        AuditEvents.VideoInterviewInvitationEmailSent(
-          "userId" -> application.userId,
-          "emailAddress" -> emailAddress
-        ) ::
-          DataStoreEvents.VideoInterviewInvitationEmailSent(
-            application.applicationId
-          ) :: Nil
-      }
+    emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).flatMap {
+      _ =>
+        eventSink {
+          AuditEvents.VideoInterviewInvitationEmailSent(
+            "userId" -> application.userId,
+            "emailAddress" -> emailAddress
+          ) ::
+            DataStoreEvents.VideoInterviewInvitationEmailSent(
+              application.applicationId
+            ) :: Nil
+        }
     }
   }
 
@@ -475,19 +483,21 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       case None =>
         newTestGroup
       case Some(oldTestGroup) =>
-        newTestGroup.tests.headOption.map { newLaunchpadTest =>
-          val mergedLaunchpadTests = oldTestGroup.tests.map { oldLaunchpadTest =>
-            if (oldLaunchpadTest.interviewId == newLaunchpadTest.interviewId) {
-              oldLaunchpadTest.copy(startedDateTime = None, completedDateTime = None, usedForResults = true)
-            } else {
-              oldLaunchpadTest.copy(usedForResults = false)
+        newTestGroup.tests.headOption.map {
+          newLaunchpadTest =>
+            val mergedLaunchpadTests = oldTestGroup.tests.map {
+              oldLaunchpadTest =>
+                if (oldLaunchpadTest.interviewId == newLaunchpadTest.interviewId) {
+                  oldLaunchpadTest.copy(startedDateTime = None, completedDateTime = None, usedForResults = true)
+                } else {
+                  oldLaunchpadTest.copy(usedForResults = false)
+                }
             }
-          }
-          if (mergedLaunchpadTests.filter(_.interviewId == newLaunchpadTest.interviewId).size > 0) {
-            Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests)
-          } else {
-            Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests :+ newLaunchpadTest.copy(usedForResults = true))
-          }
+            if (mergedLaunchpadTests.filter(_.interviewId == newLaunchpadTest.interviewId).size > 0) {
+              Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests)
+            } else {
+              Phase3TestGroup(newTestGroup.expirationDate, mergedLaunchpadTests :+ newLaunchpadTest.copy(usedForResults = true))
+            }
         }.getOrElse(oldTestGroup)
     }
   }
@@ -505,7 +515,8 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
         AuditEvents.VideoInterviewInvited("userId" -> application.userId) ::
           DataStoreEvents.VideoInterviewInvited(application.applicationId) :: Nil
       }
-    } yield {}
+    } yield {
+    }
   }
 
   private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: DateTime,
@@ -537,7 +548,9 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       timeNeeded <- videoAdjustments.timeNeeded
     } yield timeNeeded).getOrElse(0)
 
-    gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage(s"${time}pc")
+    gatewayConfig.phase3Tests.interviewsByAdjustmentPercentage(s"${
+      time
+    }pc")
   }
 }
 
