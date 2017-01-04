@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase1
 
-import _root_.services.AuditService
+import services.AuditService
 import akka.actor.ActorSystem
 import common.{ FutureEx, Phase1TestConcern }
 import config.CubiksGatewayConfig
@@ -34,6 +34,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase1TestRepository
 import services.events.EventService
+import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._

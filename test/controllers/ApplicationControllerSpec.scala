@@ -32,7 +32,7 @@ import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.application.ApplicationService
-import services.onlinetesting.EvaluatePhase3ResultService
+import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 

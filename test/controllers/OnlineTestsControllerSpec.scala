@@ -27,14 +27,15 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
-import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
-import services.onlinetesting.ResetPhase3Test.CannotResetPhase3Tests
-import services.onlinetesting.{ Phase1TestService, Phase2TestService, Phase3TestService }
+import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.Exceptions.{ ResetLimitExceededException, CannotResetPhase2Tests }
+import services.onlinetesting.phase3.Phase3TestService
+import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
-import scala.util.{ Failure, Success }
 
 class OnlineTestsControllerSpec extends UnitWithAppSpec {
   val mockPhase1TestService = mock[Phase1TestService]

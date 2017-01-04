@@ -16,7 +16,12 @@
 
 package services.onlinetesting
 
+import model.Exceptions.NotFoundException
+
 object Exceptions {
   case class TestExtensionException(message: String) extends Exception(message)
   case class ReportIdNotDefinedException(message: String) extends Exception(message)
+  case class NoActiveTestException(m: String) extends Exception(m)
+  case class CannotResetPhase2Tests() extends NotFoundException
+  case class ResetLimitExceededException() extends Exception
 }

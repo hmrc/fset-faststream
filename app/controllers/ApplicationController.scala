@@ -19,14 +19,13 @@ package controllers
 import model.Commands._
 import model.Exceptions.{ ApplicationNotFound, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
 import model.command.WithdrawApplication
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import services.application.ApplicationService
-import services.onlinetesting.EvaluatePhase3ResultService
+import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global

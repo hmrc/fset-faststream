@@ -18,7 +18,7 @@ package services.testdata.onlinetests.phase3
 
 import java.util.UUID
 
-import _root_.services.onlinetesting.Phase3TestService
+import _root_.services.onlinetesting.phase3.Phase3TestService
 import _root_.services.testdata.ConstructiveGenerator
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig._

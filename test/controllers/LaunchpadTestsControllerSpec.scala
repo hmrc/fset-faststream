@@ -20,14 +20,14 @@ import java.util.UUID
 
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.events.EventService
-import services.onlinetesting.{ Phase3TestCallbackService, Phase3TestService }
+import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 

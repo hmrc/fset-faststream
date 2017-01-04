@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase2
 
 import _root_.services.AuditService
 import akka.actor.ActorSystem
@@ -35,11 +35,11 @@ import model.{ ApplicationStatus, _ }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.events.EventService
-import services.onlinetesting.ResetPhase2Test._
-import services.onlinetesting.phase2.Phase2TestSelector
+import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, NoActiveTestException }
+import services.onlinetesting.phase3.Phase3TestService
+import services.onlinetesting.OnlineTestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -66,7 +66,7 @@ object Phase2TestService extends Phase2TestService {
 }
 
 // scalastyle:off number.of.methods
-trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Phase2TestSelector {
+trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Phase2TestSelector with ResetPhase2Test {
   type TestRepository = Phase2TestRepository
   val actor: ActorSystem
   val cubiksGatewayClient: CubiksGatewayClient
@@ -82,7 +82,6 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
                                   registration: Registration,
                                   invitation: Invitation)
 
-  case class NoActiveTestException(m: String) extends Exception(m)
 
   def getTestGroup(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
     for {
@@ -528,13 +527,9 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
   }
 }
 
-object ResetPhase2Test {
+trait ResetPhase2Test {
 
   import ProgressStatuses._
-
-  case class CannotResetPhase2Tests() extends NotFoundException
-
-  case class ResetLimitExceededException() extends Exception
 
   def determineStatusesToRemove(testGroup: Phase2TestGroup): List[ProgressStatus] = {
     (if (testGroup.hasNotStartedYet) List(PHASE2_TESTS_STARTED) else List()) ++

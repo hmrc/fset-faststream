@@ -21,7 +21,7 @@ import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
-import services.onlinetesting.Phase3TestService
+import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.ConstructiveGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
 

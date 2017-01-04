@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase3
 
 import config._
 import connectors.CSREmailClient
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
-import factories.{DateTimeFactory, UUIDFactory}
+import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model._
-import model.command.{Phase3ProgressResponse, ProgressResponse}
-import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
-import model.persisted.{ContactDetails, Phase3TestGroupWithAppId}
+import model.command.{ Phase3ProgressResponse, ProgressResponse }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
+import model.persisted.{ ContactDetails, Phase3TestGroupWithAppId }
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -37,7 +37,7 @@ import repositories.onlinetesting.Phase3TestRepository
 import services.AuditService
 import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.events.EventServiceFixture
-import testkit.{ExtendedTimeout, UnitSpec}
+import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

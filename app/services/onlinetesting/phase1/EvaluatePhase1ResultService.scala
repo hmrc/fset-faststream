@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase1
 
 import _root_.services.passmarksettings.PassMarkSettingsService
-import services.onlinetesting.phase1.{ Phase1TestEvaluation, Phase1TestSelector }
 import config.MicroserviceAppConfig._
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest }

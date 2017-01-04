@@ -27,7 +27,9 @@ import play.api.libs.json.Format
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
-import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase2ResultService, EvaluatePhase3ResultService }
+import services.onlinetesting.phase1.EvaluatePhase1ResultService
+import services.onlinetesting.phase2.EvaluatePhase2ResultService
+import services.onlinetesting.phase3.EvaluatePhase3ResultService
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }

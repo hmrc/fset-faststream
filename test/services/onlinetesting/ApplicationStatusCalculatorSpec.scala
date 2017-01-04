@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package services.onlinetesting.phase1
+package services.onlinetesting
 
-import model.ProgressStatuses._
 import model.EvaluationResults._
-import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeType }
+import model.ProgressStatuses._
 import model.SchemeType.{ apply => _, _ }
 import model.persisted.SchemeEvaluationResult
+import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeType }
 import services.BaseServiceSpec
-import services.onlinetesting.ApplicationStatusCalculator
 
 class ApplicationStatusCalculatorSpec extends BaseServiceSpec {
   val calc = new ApplicationStatusCalculator {}
