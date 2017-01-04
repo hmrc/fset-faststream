@@ -107,6 +107,27 @@ object ProgressStatuses {
   case object EXPORTED extends ProgressStatus(ApplicationStatus.EXPORTED)
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
+  def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
+    case object PHASE1_TEST_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)
+    PHASE1_TEST_SDIP_FS_PASSED
+  }
+
+  def getProgressStatusForSdipFsFailed(applicationStatus: ApplicationStatus): ProgressStatus = {
+    case object PHASE1_TEST_SDIP_FS_FAILED extends ProgressStatus(applicationStatus)
+    PHASE1_TEST_SDIP_FS_FAILED
+  }
+
+  def getProgressStatusForSdipFsFailedNotified(applicationStatus: ApplicationStatus): ProgressStatus = {
+    case object PHASE1_TEST_SDIP_FS_FAILED_NOTIFIED extends ProgressStatus(applicationStatus)
+    PHASE1_TEST_SDIP_FS_FAILED_NOTIFIED
+  }
+
+  def getProgressStatusForSdipFsPassedNotified(applicationStatus: ApplicationStatus): ProgressStatus = {
+    case object PHASE1_TEST_SDIP_FS_PASSED_NOTIFIED extends ProgressStatus(applicationStatus)
+    PHASE1_TEST_SDIP_FS_PASSED_NOTIFIED
+  }
+
+
   @deprecated("This status is not used in Faststream", "24/10/2016")
   case object FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FAILED_TO_ATTEND)
   @deprecated("This status is not used in Faststream", "24/10/2016")
@@ -144,11 +165,11 @@ object ProgressStatuses {
     val originType = insMirror.symbol.typeSignature
     val members = originType.members
     members.collect { member =>
-        member.typeSignature match {
-          case tpe if tpe <:< typeOf[ProgressStatus] && member.isModule =>
-            val module = member.asModule
-            (mirror reflectModule module).instance.asInstanceOf[ProgressStatus]
-        }
+      member.typeSignature match {
+        case tpe if tpe <:< typeOf[ProgressStatus] && member.isModule =>
+          val module = member.asModule
+          (mirror reflectModule module).instance.asInstanceOf[ProgressStatus]
+      }
     }.toSeq
   }
 
