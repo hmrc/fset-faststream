@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase2
 
 import akka.actor.ActorSystem
 import config.Phase2ScheduleExamples._
@@ -41,15 +41,14 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
 import services.events.{ EventService, EventServiceFixture }
-import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
-import services.onlinetesting.phase2.Phase2TestSelector
+import services.onlinetesting.Exceptions.CannotResetPhase2Tests
+import services.onlinetesting.phase3.Phase3TestService
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
-import scala.util.{ Failure, Success }
 
 class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 

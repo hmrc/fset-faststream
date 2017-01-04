@@ -19,9 +19,10 @@ package services.testdata.onlinetests
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus }
 import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
-import repositories._
-import repositories.onlinetesting.OnlineTestRepository
-import services.onlinetesting.{ OnlineTestService, Phase1TestService, Phase2TestService, Phase3TestService }
+import services.onlinetesting.OnlineTestService
+import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.ConstructiveGenerator
 import services.testdata.onlinetests.phase1.Phase1TestsInvitedStatusGenerator
 import services.testdata.onlinetests.phase2.Phase2TestsInvitedStatusGenerator

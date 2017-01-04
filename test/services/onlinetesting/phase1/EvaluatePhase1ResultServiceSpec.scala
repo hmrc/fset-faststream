@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase1
 
 import config.CubiksGatewayConfig
 import model.EvaluationResults.Green
@@ -28,7 +28,6 @@ import org.mockito.Mockito._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
-import services.onlinetesting.phase1.Phase1TestEvaluation
 
 import scala.concurrent.Future
 

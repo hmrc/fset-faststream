@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase3
 
-import _root_.services.onlinetesting.phase3.Phase3TestEvaluation
 import _root_.services.passmarksettings.PassMarkSettingsService
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import model.Phase
 import model.exchange.passmarksettings.Phase3PassMarkSettings
-import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation }
+import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
 import repositories._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
+import services.onlinetesting.ApplicationStatusCalculator
 
 import scala.concurrent.Future
 

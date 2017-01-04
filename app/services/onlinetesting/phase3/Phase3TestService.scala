@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase3
 
 import _root_.services.AuditService
 import common.Phase3TestConcern
@@ -22,24 +22,25 @@ import config.LaunchpadGatewayConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
-import factories.{DateTimeFactory, UUIDFactory}
-import model.Exceptions.{ConnectorException, NotFoundException}
+import factories.{ DateTimeFactory, UUIDFactory }
+import model.Exceptions.{ NotFoundException }
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
 import model.command.ProgressResponse
 import model.events.EventTypes.EventType
-import model.events.{AuditEvents, DataStoreEvents}
+import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.Phase3TestGroupWithActiveTest
-import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
-import model.persisted.{NotificationExpiringOnlineTest, Phase3TestGroupWithAppId}
-import org.joda.time.{DateTime, LocalDate}
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
+import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import services.events.EventService
-import services.onlinetesting.Phase2TestService.NoActiveTestException
-import services.onlinetesting.ResetPhase3Test.CannotResetPhase3Tests
+import services.onlinetesting.Exceptions.NoActiveTestException
+import services.onlinetesting.OnlineTestService
+import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -224,10 +225,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
 
   //scalastyle:off method.length
   private[onlinetesting] def registerAndInviteOrInviteOrResetOrRetakeOrNothing(phase3TestGroup: Option[Phase3TestGroup],
-                                                                               application: OnlineTestApplication, emailAddress: String,
-                                                                               interviewId: Int, invitationDate: DateTime,
-                                                                               expirationDate: DateTime
-                                                                              )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
+    application: OnlineTestApplication, emailAddress: String,
+    interviewId: Int, invitationDate: DateTime,
+    expirationDate: DateTime
+  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
 
     case class InviteResetOrTakeResponse(candidateId: String, testUrl: String, customInviteId: String, customCandidateId: Option[String])
 
@@ -263,7 +264,9 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
           candidateId =>
             inviteApplicant(application, interviewId, candidateId).map {
               inviteResponse =>
-                InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl, inviteResponse.customInviteId, Some(inviteResponse.customCandidateId))
+                InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl, inviteResponse.customInviteId,
+                  Some(inviteResponse.customCandidateId)
+                )
             }
         }
       )

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase1
 
 import akka.actor.ActorSystem
 import config._

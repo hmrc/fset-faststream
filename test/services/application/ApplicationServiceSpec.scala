@@ -20,7 +20,6 @@ import model.Commands.{ ApplicationResponse, Candidate }
 import model.command.ProgressResponse
 import model.events.AuditEvents
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.any
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationRoute, SchemeType, SelectedSchemes }
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
@@ -35,10 +34,11 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.application.ApplicationService
 import services.events.EventServiceFixture
-import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase3ResultService }
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import services.onlinetesting.phase1.EvaluatePhase1ResultService
+import services.onlinetesting.phase3.EvaluatePhase3ResultService
 
 import scala.concurrent.Future
 

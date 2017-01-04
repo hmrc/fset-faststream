@@ -39,7 +39,8 @@ import repositories.schemepreferences.SchemePreferencesRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.events.{ EventService, EventSink }
-import services.onlinetesting.{ EvaluatePhase1ResultService, EvaluatePhase3ResultService }
+import services.onlinetesting.phase1.EvaluatePhase1ResultService
+import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }

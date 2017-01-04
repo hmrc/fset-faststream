@@ -21,6 +21,9 @@ import model._
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting._
+import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase3.Phase3TestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }

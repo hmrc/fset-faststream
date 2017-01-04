@@ -11,7 +11,7 @@ import org.joda.time.DateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop._
 import reactivemongo.json.ImplicitBSONHandlers
-import services.onlinetesting.EvaluatePhase3ResultService
+import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import testkit.MongoRepositorySpec
 
 

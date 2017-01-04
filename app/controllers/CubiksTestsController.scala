@@ -21,7 +21,8 @@ import model.exchange.CubiksTestResultReady
 import play.api.Logger
 import play.api.mvc.{ Action, Result }
 import services.events.EventService
-import services.onlinetesting.{ Phase1TestService, Phase2TestService }
+import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global

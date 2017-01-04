@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase2
 
-import _root_.services.onlinetesting.phase2.Phase2TestEvaluation
 import _root_.services.passmarksettings.PassMarkSettingsService
 import model.Phase
 import model.exchange.passmarksettings.Phase2PassMarkSettings

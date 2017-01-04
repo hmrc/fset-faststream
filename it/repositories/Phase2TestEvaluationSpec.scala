@@ -14,7 +14,7 @@ import org.scalatest.prop._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
-import services.onlinetesting.EvaluatePhase2ResultService
+import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future

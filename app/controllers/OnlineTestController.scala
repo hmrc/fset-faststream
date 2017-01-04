@@ -18,7 +18,7 @@ package controllers
 
 import model.ApplicationStatus._
 import model.Commands
-import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenException, InvalidTokenException }
+import model.Exceptions.ExpiredTestForTokenException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ InvigilatedTestUrl, ResetOnlineTest, VerifyAccessCode }
 import org.joda.time.DateTime
@@ -27,14 +27,15 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import services.onlinetesting.ResetPhase2Test.{ CannotResetPhase2Tests, ResetLimitExceededException }
-import services.onlinetesting.ResetPhase3Test.CannotResetPhase3Tests
-import services.onlinetesting.{ Phase1TestService, Phase2TestService, Phase3TestService }
+import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.Exceptions.{ ResetLimitExceededException, CannotResetPhase2Tests }
+import services.onlinetesting.phase3.Phase3TestService
+import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{ Failure, Success }
 
 case class OnlineTestDetails(
   inviteDate: DateTime, expireDate: DateTime, onlineTestLink: String,

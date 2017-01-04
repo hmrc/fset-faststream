@@ -26,7 +26,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase2TestRepository
-import services.onlinetesting.Phase2TestService
+import services.onlinetesting.phase2.Phase2TestService
 import services.testdata.ConstructiveGenerator
 import uk.gov.hmrc.play.http.HeaderCarrier
 

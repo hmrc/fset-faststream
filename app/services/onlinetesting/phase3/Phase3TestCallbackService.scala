@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package services.onlinetesting
+package services.onlinetesting.phase3
 
 import _root_.services.AuditService
 import config.LaunchpadGatewayConfig
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
-import model.EmptyRequestHeader
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository
