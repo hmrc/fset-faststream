@@ -23,7 +23,7 @@ import model.Commands._
 import model.EvaluationResults.AssessmentRuleCategoryResult
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands.OnlineTestApplication
-import model._
+import model.{ NotificationTestTypeSdipFs, _ }
 import model.command._
 import model.persisted._
 import model.report._
@@ -119,6 +119,12 @@ class DocumentRootInMemoryRepository extends GeneralApplicationRepository {
 
   override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
     Future.successful(Some(TestResultNotification("31009ccc-1ac3-4d55-9c53-1908a13dc5e1", "fbb466a3-13a3-4dd0-93d6-9dfa764a5555", "George")))
+  }
+
+  override def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]] = {
+    Future.successful(Some(TestResultSdipFsNotification(
+      "31009ccc-1ac3-4d55-9c53-1908a13dc5e1", "fbb466a3-13a3-4dd0-93d6-9dfa764a5555", ApplicationStatus.PHASE2_TESTS_FAILED, "George")
+    ))
   }
 
   override def gisByApplication(applicationId: String): Future[Boolean] = ???

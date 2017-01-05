@@ -123,6 +123,8 @@ trait GeneralApplicationRepository {
 
   def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]]
 
+  def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]]
+
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
 
   def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
@@ -403,6 +405,17 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       result <- selectOneRandom[TestResultNotification](q)
     } yield result
 
+  }
+
+  def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> notificationType.applicationRoute),
+      BSONDocument(s"progress-status.${notificationType.progressStatus}" -> true),
+      BSONDocument(s"progress-status.${notificationType.notificationProgress}" -> BSONDocument("$ne" -> true))
+    ))
+
+    implicit val reader = bsonReader(TestResultSdipFsNotification.fromBson)
+    selectOneRandom[TestResultSdipFsNotification](query)
   }
 
   // scalastyle:off method.length
