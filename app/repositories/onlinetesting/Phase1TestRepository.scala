@@ -22,7 +22,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
-import model.{ ApplicationStatus, ReminderNotice }
+import model.{ ApplicationRoute, ApplicationStatus, ReminderNotice, SchemeType }
 import org.joda.time.DateTime
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -90,6 +90,15 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, maxBatchSize)
+  }
+
+  def nextSdipFaststreamCandidateReadyForSdipProgression: Future[List[Phase1TestGroupWithUserIds]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument("testGroups.PHASE1.evaluation.results" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip)))
+    ))
+
+    selectRandom[Phase1TestGroupWithUserIds](query)
   }
 
   override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestGroupWithUserIds] = {

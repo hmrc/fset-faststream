@@ -155,32 +155,6 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   }
 }
 
-class Phase1SdipForFastStreamEvaluationMongoRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
-    ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments {
-
-  val phase = PHASE1
-  val evaluationApplicationStatuses = List(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE3_TESTS)
-  val evaluationProgressStatus = ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED
-  val expiredProgressStatus = ProgressStatuses.PHASE1_TESTS_EXPIRED
-
-  implicit val applicationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation] = bsonReader(doc => {
-    val bsonPhase1: Option[BSONDocument] = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
-    val phase1: Phase1TestProfile = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
-    applicationEvaluationBuilder(phase1.activeTests, None, None)(doc)
-  })
-
-  val nextApplicationQuery = (currentPassmarkVersion: String) => BSONDocument("$and" -> BSONArray(
-    BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
-    BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
-    BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
-    BSONDocument(s"testGroups.$phase.evaluation.result" -> BSONDocument(
-      "$not" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip))
-    ))
-  ))
-}
-
 
 class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
