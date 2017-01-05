@@ -70,6 +70,7 @@ case class Progress(
   occupationQuestionnaire: Boolean,
   submitted: Boolean,
   withdrawn: Boolean = false,
+  sdipFSFailed: Boolean = false,
   phase1TestProgress: Phase1TestProgress = Phase1TestProgress(false, false, false, false, false,
     false, false, false, false, false),
   phase2TestProgress: Phase2TestProgress = Phase2TestProgress(false, false, false, false,
@@ -103,6 +104,7 @@ object Progress {
       occupationQuestionnaire = progressResponse.questionnaire.contains("occupation_questionnaire"),
       submitted = progressResponse.submitted,
       withdrawn = progressResponse.withdrawn,
+      sdipFSFailed = progressResponse.sdipFSFailed,
       phase1TestProgress = Phase1TestProgress(
         phase1TestsInvited = progressResponse.phase1ProgressResponse.phase1TestsInvited,
         phase1TestsStarted  = progressResponse.phase1ProgressResponse.phase1TestsStarted,

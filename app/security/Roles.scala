@@ -347,6 +347,8 @@ object RoleUtils {
 
   def isSdipFaststream(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.SdipFaststream)
 
+  def isSdipFaststreamFailed(implicit user: CachedData): Boolean = user.application.fold(false)(_.progress.sdipFSFailed)
+
   def isFaststream(implicit user: Option[CachedData]): Boolean = user.forall(u => isFaststream(u))
 
   def isEdip(implicit user: Option[CachedData]): Boolean = user.exists(isEdip(_))
