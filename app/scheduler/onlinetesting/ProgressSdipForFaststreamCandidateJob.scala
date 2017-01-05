@@ -38,8 +38,8 @@ trait ProgressSdipForFaststreamCandidateJob extends SingleInstanceScheduledJob[B
     implicit val hc = new HeaderCarrier()
 
     service.nextSdipFaststreamCandidateReadyForSdipProgression.flatMap {
-      case testGroup :: _ => service.progressSdipFaststreamCandidateForSdip(testGroup)
-      case Nil => Future.successful()
+      case Some(o) => service.progressSdipFaststreamCandidateForSdip(o)
+      case None => Future.successful(())
     }
   }
 }

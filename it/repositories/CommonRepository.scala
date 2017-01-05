@@ -48,8 +48,6 @@ trait CommonRepository {
 
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository()
 
-  def phase1SdipForFaststreamEvaluationRepo = new Phase1SdipForFastStreamEvaluationMongoRepository()
-
   def phase2EvaluationRepo = new Phase2EvaluationMongoRepository()
 
   def phase3EvaluationRepo = new Phase3EvaluationMongoRepository(mockLaunchpadConfig, DateTimeFactory)

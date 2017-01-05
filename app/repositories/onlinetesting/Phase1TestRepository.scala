@@ -92,13 +92,20 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     selectRandom[OnlineTestApplication](query, maxBatchSize)
   }
 
-  def nextSdipFaststreamCandidateReadyForSdipProgression: Future[List[Phase1TestGroupWithUserIds]] = {
+  def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
-      BSONDocument("testGroups.PHASE1.evaluation.results" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip)))
+      BSONDocument("testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip)))
     ))
-
-    selectRandom[Phase1TestGroupWithUserIds](query)
+    collection.find(query).one[BSONDocument] map {
+      case Some(doc) =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val userId = doc.getAs[String]("userId").get
+        val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
+        val phase1TestGroup = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
+        Some(Phase1TestGroupWithUserIds(applicationId, userId, phase1TestGroup))
+      case _ => None
+    }
   }
 
   override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestGroupWithUserIds] = {

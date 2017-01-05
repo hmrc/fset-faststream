@@ -70,7 +70,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] =
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize)
 
-  def nextSdipFaststreamCandidateReadyForSdipProgression: Future[List[Phase1TestGroupWithUserIds]] = {
+  def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]] = {
     phase1TestRepository.nextSdipFaststreamCandidateReadyForSdipProgression
   }
 
@@ -81,8 +81,8 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
       )
 
       val newProgressStatus = result.result match {
-        case Green.toString => ProgressStatuses.getProgressStatusForSdipFsSuccess(ApplicationStatus.PHASE1_TESTS)
-        case Red.toString => ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS)
+        case "Green" => ProgressStatuses.getProgressStatusForSdipFsSuccess(ApplicationStatus.PHASE1_TESTS)
+        case "Red" => ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS)
       }
 
       testRepository.updateProgressStatus(o.applicationId, newProgressStatus, forceApplicationStatusUpdate = false)
