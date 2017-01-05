@@ -195,10 +195,11 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(otRepositoryMock.updateTestStartTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
         .thenReturn(Future.successful(Phase2TestGroupWithAppId("appId123", phase2TestProfile)))
-      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED,
+        forceApplicationStatusUpdate = true)).thenReturn(Future.successful(()))
       phase2TestService.markAsStarted(cubiksUserId).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED, forceApplicationStatusUpdate = true)
     }
   }
 
@@ -211,11 +212,12 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
         .thenReturn(Future.successful(Phase2TestGroupWithAppId("appId123", phase2Tests)))
-      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED)).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED,
+        forceApplicationStatusUpdate = true)).thenReturn(Future.successful(()))
 
       phase2TestService.markAsCompleted(cubiksUserId).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED)
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED, forceApplicationStatusUpdate = true)
     }
   }
 
@@ -238,7 +240,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val result = phase2TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
-      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])
     }
 
     "change progress to reports ready if all the active tests have reports ready" in new Phase2TestServiceFixture {
@@ -254,12 +256,12 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )
       when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady))
         .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean]))
         .thenReturn(Future.successful(()))
 
       val result = phase2TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus("appId", ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
+      verify(otRepositoryMock).updateProgressStatus("appId", ProgressStatuses.PHASE2_TESTS_RESULTS_READY, forceApplicationStatusUpdate = true)
     }
   }
 
@@ -415,7 +417,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("ResultsRetrievedForSchedule"), any[Map[String, String]])
       verify(auditServiceMock, times(0)).logEventNoRequest(eqTo(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}"),
         any[Map[String, String]])
-      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])
       verify(otRepositoryMock, times(0)).insertTestResult(any[String], eqTo(failedTest), any[TestResult])
     }
 
@@ -424,7 +426,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val unusedTest = phase2Test.copy(usedForResults = false, reportId = Some(123), resultsReadyToDownload = true)
       val testProfile = phase2TestProfile.copy(tests = List(usedTest, unusedTest))
 
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean]))
         .thenReturn(Future.successful(()))
 
       phase2TestService.retrieveTestResult(Phase2TestGroupWithAppId(
@@ -434,7 +436,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("ResultsRetrievedForSchedule"), any[Map[String, String]])
       verify(auditServiceMock, times(0)).logEventNoRequest(eqTo(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}"),
         any[Map[String, String]])
-      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])
       verify(otRepositoryMock, times(0)).insertTestResult(any[String], eqTo(usedTest), any[TestResult])
       verify(otRepositoryMock, times(0)).insertTestResult(any[String], eqTo(unusedTest), any[TestResult])
     }
@@ -448,7 +450,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult]))
         .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
         Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult))))))
@@ -459,7 +461,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )).futureValue
 
       verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(otRepositoryMock).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(otRepositoryMock).updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])
     }
 
     "save a phase2 report for a candidate and not update progress status" in new Phase2TestServiceFixture {
@@ -472,7 +474,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult]))
         .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean]))
         .thenReturn(Future.successful(()))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
         Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady))))
@@ -483,7 +485,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )).futureValue
 
       verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])
     }
   }
 

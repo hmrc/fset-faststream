@@ -301,7 +301,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "change progress to started" in new Phase3TestServiceFixture {
       phase3TestServiceWithUnexpiredTestGroup.markAsStarted(testInviteId).futureValue
 
-      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED)
+      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED, forceApplicationStatusUpdate = true)
 
       verifyDataStoreEvents(1, "VideoInterviewStarted")
       verifyAuditEvents(1, "VideoInterviewStarted")
@@ -312,7 +312,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "change progress to completed if there are all tests completed" in new Phase3TestServiceFixture {
       phase3TestServiceWithUnexpiredTestGroup.markAsCompleted(testInviteId).futureValue
 
-      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)
+      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED, forceApplicationStatusUpdate = true)
 
       verifyDataStoreEvents(1, "VideoInterviewCompleted")
       verifyAuditEvents(1, "VideoInterviewCompleted")
@@ -321,7 +321,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "change progress to completed if there are all tests completed and remove expired, if it was set" in new Phase3TestServiceFixture {
       phase3TestServiceWithExpiredTestGroup.markAsCompleted(testInviteId).futureValue
 
-      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)
+      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED, false)
       verify(appRepositoryMock).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
 
       verifyDataStoreEvents(1, "VideoInterviewCompleted")
@@ -333,7 +333,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "change progress to results received when any result set arrives" in new Phase3TestServiceFixture {
       phase3TestServiceWithUnexpiredTestGroup.markAsResultsReceived(testInviteId).futureValue
 
-      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED,
+        forceApplicationStatusUpdate = true)
 
       verifyDataStoreEvents(1, "VideoInterviewResultsReceived")
       verifyAuditEvents(1, "VideoInterviewResultsReceived")
@@ -342,7 +343,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "change progress to results received when any result set arrives and unexpire the testgroup if expired" in new Phase3TestServiceFixture {
       phase3TestServiceWithExpiredTestGroup.markAsResultsReceived(testInviteId).futureValue
 
-      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+      verify(p3TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED,
+        forceApplicationStatusUpdate = true)
       verify(appRepositoryMock).removeProgressStatuses("appId123", ProgressStatuses.PHASE3_TESTS_EXPIRED :: Nil)
 
       verifyDataStoreEvents(1, "VideoInterviewResultsReceived")
@@ -644,7 +646,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(p3TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
       when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
         .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId123", testTestGroup)))
-      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED)).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED,
+        forceApplicationStatusUpdate = true)).thenReturn(Future.successful(()))
 
       markAsCompleteMocks
 
@@ -672,7 +675,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(p3TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
       when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
         .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId123", testTestGroup)))
-      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED)).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED,
+        forceApplicationStatusUpdate = true)).thenReturn(Future.successful(()))
 
       markAsCompleteMocks
 
@@ -682,13 +686,14 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     private def markAsCompleteMocks = {
       when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
         .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId123", testTestGroup)))
-      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED,
+        forceApplicationStatusUpdate = true)).thenReturn(Future.successful(()))
       when(p3TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
     }
 
     private def markAsResultsReceivedMocks = {
-      when(p3TestRepositoryMock.updateProgressStatus("appId123",
-        ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED,
+        forceApplicationStatusUpdate = true)).thenReturn(Future.successful(()))
     }
 
     lazy val phase3TestServiceWithExpiredTestGroup = mockService {
