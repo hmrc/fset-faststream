@@ -171,9 +171,10 @@ class Phase1SdipForFastStreamEvaluationMongoRepository()(implicit mongo: () => D
     applicationEvaluationBuilder(phase1.activeTests, None, None)(doc)
   })
 
-  val nextApplicationQuery = BSONDocument("$and" -> BSONArray(
+  val nextApplicationQuery = (currentPassmarkVersion: String) => BSONDocument("$and" -> BSONArray(
     BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
     BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
+    BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
     BSONDocument(s"testGroups.$phase.evaluation.result" -> BSONDocument(
       "$not" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip))
     ))
