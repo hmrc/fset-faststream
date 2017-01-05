@@ -42,7 +42,6 @@ trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfi
     implicit val hc = new HeaderCarrier()
     service.processNextTestForSdipFsNotification(notificationType)
   }
-
 }
 
 object FailedSdipFsTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
