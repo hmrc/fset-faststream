@@ -30,6 +30,7 @@ object ProgressResponseExamples {
     questionnaire = Nil,
     submitted = false,
     withdrawn = false,
+    sdipFSFailed = false,
     phase1ProgressResponse = Phase1ProgressResponse(
       phase1TestsInvited = false,
       phase1TestsStarted = false,
