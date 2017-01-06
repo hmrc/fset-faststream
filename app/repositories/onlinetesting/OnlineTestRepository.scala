@@ -178,7 +178,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     updateProgressStatus(appId, progressStatus, progressStatusOnlyBSON)
 
   private def updateProgressStatus(appId: String, progressStatus: ProgressStatus,
-    updateGenerator: (ProgressStatus) => BSONDocument = applicationStatusBSON): Future[Unit] = {
+    updateGenerator: (ProgressStatus) => BSONDocument): Future[Unit] = {
     require(progressStatus.applicationStatus == thisApplicationStatus, "Forbidden progress status update")
 
     val query = BSONDocument(
@@ -186,7 +186,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       "applicationStatus" -> thisApplicationStatus
     )
 
-    val update = updateGenerator(progressStatus)
+    val update = BSONDocument("$set" -> updateGenerator(progressStatus))
     val validator = singleUpdateValidator(appId, actionDesc = "updating progress status", ignoreNotFound = true)
 
     collection.update(query, update) map validator
