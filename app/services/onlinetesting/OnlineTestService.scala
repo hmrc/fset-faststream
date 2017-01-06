@@ -37,6 +37,7 @@ import services.events.EventSink
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Try
 
 
 trait OnlineTestService extends TimeExtension with EventSink {
@@ -71,6 +72,15 @@ trait OnlineTestService extends TimeExtension with EventSink {
     }
   }
 
+  def processNextTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs)
+                                          (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    appRepository.findTestForSdipFsNotification(notificationType).flatMap {
+      case Some(test) => processTestForSdipFsNotification(test, notificationType)
+      case None => Future.successful(())
+    }
+  }
+
   def processNextExpiredTest(expiryTest: TestExpirationEvent)
                                      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     testRepository.nextExpiringApplication(expiryTest).flatMap {
@@ -91,6 +101,21 @@ trait OnlineTestService extends TimeExtension with EventSink {
       emailAddress <- candidateEmailAddress(toNotify.userId)
       _ <- commitProgressStatus(toNotify.applicationId, `type`.notificationProgress)
       _ <- emailCandidate(toNotify.applicationId, toNotify.preferredName, emailAddress, `type`.template, `type`.notificationProgress)
+    } yield ()
+  }
+
+  protected def processTestForSdipFsNotification(toNotify: TestResultSdipFsNotification, `type`: NotificationTestTypeSdipFs)
+                                          (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    val notificationProgressStatus = Try{(`type`, toNotify.applicationStatus) match {
+      case(n: FailedTestTypeSdipFs, status) => getProgressStatusForSdipFsFailedNotified(status)
+    }}
+
+    for {
+      notificationStatus <- Future.fromTry(notificationProgressStatus)
+      emailAddress <- candidateEmailAddress(toNotify.userId)
+      _ <- commitProgressStatus(toNotify.applicationId, notificationStatus)
+      _ <- emailCandidate(toNotify.applicationId, toNotify.preferredName, emailAddress, `type`.template, notificationStatus)
     } yield ()
   }
 

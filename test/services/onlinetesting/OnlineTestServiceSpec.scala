@@ -22,11 +22,12 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.exchange.CubiksTestResultReady
-import model.persisted.{ ContactDetails, CubiksTest, NotificationExpiringOnlineTest, TestResultNotification }
+import model.persisted._
 import model._
 import model.events.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -79,6 +80,42 @@ class OnlineTestServiceSpec extends UnitSpec {
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, Phase1FailedTestType.notificationProgress)
       verify(emailClientMock).sendEmailWithName(email, preferredName, Phase1FailedTestType.template)(hc)
       verifyNoMoreInteractions(appRepositoryMock, cdRepositoryMock, emailClientMock)
+    }
+  }
+
+  "processNextTestForSdipFsNotification" should {
+    "return a successful unit future if no test to notify is found and do not process the notification" in new OnlineTest {
+      when(appRepositoryMock.findTestForSdipFsNotification(FailedSdipFsTestType)).thenReturn(Future.successful(None))
+
+      val result = underTest.processNextTestForSdipFsNotification(FailedSdipFsTestType).futureValue
+      result mustBe unit
+
+      verify(appRepositoryMock).findTestForSdipFsNotification(FailedSdipFsTestType)
+      verifyNoMoreInteractions(appRepositoryMock)
+      verifyZeroInteractions(cdRepositoryMock, emailClientMock)
+    }
+
+    "return a successful unit future if a test to notify is found and process the notification" in new OnlineTest {
+      when(appRepositoryMock.findTestForSdipFsNotification(any[NotificationTestTypeSdipFs])).thenReturn(sdipFsTestnotification)
+      when(cdRepositoryMock.find(any[String])).thenReturn(successContactDetails)
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val expectedNotificationProgressStatus = getProgressStatusForSdipFsFailedNotified(sdipFsTestnotification.futureValue.get.applicationStatus)
+      val captor: ArgumentCaptor[ProgressStatus] = ArgumentCaptor.forClass(classOf[ProgressStatus])
+
+      val result = underTest.processNextTestForSdipFsNotification(FailedSdipFsTestType).futureValue
+      result mustBe unit
+
+      verify(appRepositoryMock).findTestForSdipFsNotification(FailedSdipFsTestType)
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId), captor.capture())
+      verify(emailClientMock).sendEmailWithName(email, preferredName, FailedSdipFsTestType.template)(hc)
+      verifyNoMoreInteractions(appRepositoryMock, cdRepositoryMock, emailClientMock)
+
+      val notificationProgressStatus = captor.getValue
+      notificationProgressStatus.applicationStatus mustBe expectedNotificationProgressStatus.applicationStatus
+      notificationProgressStatus.toString mustBe expectedNotificationProgressStatus.toString
     }
   }
 
@@ -230,6 +267,8 @@ class OnlineTestServiceSpec extends UnitSpec {
     val successContactDetails = Future.successful(ContactDetails(outsideUk = false, Address("London"), Some("N32 6GH"),
       None, email, "0989836387432"))
     val successNotification = Future.successful(Some(TestResultNotification(applicationId, userId, preferredName)))
+    val sdipFsTestnotification = Future.successful(Some(
+      TestResultSdipFsNotification(applicationId, userId, ApplicationStatus.PHASE1_TESTS_FAILED, preferredName)))
     val success = Future.successful(())
 
     def updateFn(cTest: CubiksTest): CubiksTest = cTest.copy(testUrl = "www.bogustest.test")
