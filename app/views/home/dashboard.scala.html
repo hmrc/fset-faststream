@@ -11,7 +11,7 @@
 @import security.QuestionnaireRoles._
 @import security.Roles._
 @import security.RoleUtils._
-@import views.html.widgets.onlineTestProgress
+@import views.html.widgets.{ onlineTestProgress, sdipFaststreamBanner }
 @import views.html.home.sdipEligibilityInfo
 @import views.html.home.submit_disabled
 @import views.html.home.fastPassRejectedInfo
@@ -67,20 +67,9 @@
     @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = AbleToWithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.present()) { Submit }
 }
 
-@displaySdipFaststreamBanner = {
-    <div class="panel-info standard-panel" id="sdipPermanentBanner">
-        <div class="text">
-            <p>You've requested to be considered for the Summer Diversity Internship
-                Programme (SDIP). Once we've assessed your online test results, we'll
-                let you know on this page.</p>
-        </div>
-    </div>
-}
-
 @main_template(title = "Home") {
-    @if(isSdipFaststream(usr)) {
-        @displaySdipFaststreamBanner
-    }
+
+    @sdipFaststreamBanner(usr)
 
     <div class="hgroup">
         <h1 class="heading-xlarge">Home</h1>
