@@ -88,6 +88,7 @@ case class ProgressResponse(
   fastPassAccepted: Boolean = false,
   withdrawn: Boolean = false,
   sdipFSFailed: Boolean = false,
+  sdipFSSuccessful: Boolean = false,
   phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
   phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
   phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),

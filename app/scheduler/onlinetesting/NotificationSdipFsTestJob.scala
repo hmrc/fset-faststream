@@ -17,10 +17,11 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
-import model._
+import model.{ SuccessfulSdipFsTestType, _ }
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.onlinetesting.{ OnlineTestService, Phase1TestService }
+import services.onlinetesting.OnlineTestService
+import services.onlinetesting.phase1.Phase1TestService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -30,6 +31,13 @@ object FailedSdipFsTestJob extends NotificationSdipFsTestJob {
   override val notificationType: FailedTestTypeSdipFs = FailedSdipFsTestType
 
   val config = FailedPhase1TestJobConfig
+}
+
+object SuccessfulSdipFsTestJob extends NotificationSdipFsTestJob {
+  override val service = Phase1TestService
+  override val notificationType: SuccessfulTestTypeSdipFs = SuccessfulSdipFsTestType
+
+  val config = SuccessfulSdipFsTestJobConfig
 }
 
 trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
@@ -47,4 +55,9 @@ trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfi
 object FailedSdipFsTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
   configPrefix = "scheduling.online-testing.failed-sdip-fs-test-job",
   name = "FailedSdipFsTestJob"
+)
+
+object SuccessfulSdipFsTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.online-testing.success-sdip-fs-test-job",
+  name = "SuccessfulSdipFsTestJob"
 )

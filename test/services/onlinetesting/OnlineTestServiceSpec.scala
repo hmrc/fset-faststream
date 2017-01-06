@@ -117,6 +117,29 @@ class OnlineTestServiceSpec extends UnitSpec {
       notificationProgressStatus.applicationStatus mustBe expectedNotificationProgressStatus.applicationStatus
       notificationProgressStatus.toString mustBe expectedNotificationProgressStatus.toString
     }
+
+    "process a successful notification and update the application status accordingly" in new OnlineTest {
+      when(appRepositoryMock.findTestForSdipFsNotification(any[NotificationTestTypeSdipFs])).thenReturn(sdipFsTestnotification)
+      when(cdRepositoryMock.find(any[String])).thenReturn(successContactDetails)
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+
+      val expectedNotificationProgressStatus = getProgressStatusForSdipFsPassedNotified(sdipFsTestnotification.futureValue.get.applicationStatus)
+      val captor: ArgumentCaptor[ProgressStatus] = ArgumentCaptor.forClass(classOf[ProgressStatus])
+
+      val result = underTest.processNextTestForSdipFsNotification(SuccessfulSdipFsTestType).futureValue
+      result mustBe unit
+
+      verify(appRepositoryMock).findTestForSdipFsNotification(SuccessfulSdipFsTestType)
+      verify(cdRepositoryMock).find(userId)
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId), captor.capture())
+      verify(emailClientMock).sendEmailWithName(email, preferredName, SuccessfulSdipFsTestType.template)(hc)
+      verifyNoMoreInteractions(appRepositoryMock, cdRepositoryMock, emailClientMock)
+
+      val notificationProgressStatus = captor.getValue
+      notificationProgressStatus.applicationStatus mustBe ApplicationStatus.READY_FOR_EXPORT
+      notificationProgressStatus.toString mustBe expectedNotificationProgressStatus.toString
+    }
   }
 
   "generateStatusEvents" should {
@@ -268,7 +291,7 @@ class OnlineTestServiceSpec extends UnitSpec {
       None, email, "0989836387432"))
     val successNotification = Future.successful(Some(TestResultNotification(applicationId, userId, preferredName)))
     val sdipFsTestnotification = Future.successful(Some(
-      TestResultSdipFsNotification(applicationId, userId, ApplicationStatus.PHASE1_TESTS_FAILED, preferredName)))
+      TestResultSdipFsNotification(applicationId, userId, ApplicationStatus.PHASE2_TESTS_FAILED, preferredName)))
     val success = Future.successful(())
 
     def updateFn(cTest: CubiksTest): CubiksTest = cTest.copy(testUrl = "www.bogustest.test")
