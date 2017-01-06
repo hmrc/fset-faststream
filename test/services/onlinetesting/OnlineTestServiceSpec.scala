@@ -84,7 +84,7 @@ class OnlineTestServiceSpec extends UnitSpec {
   }
 
   "processNextTestForSdipFsNotification" should {
-    "return a successful unit future if no test to notify is found" in new OnlineTest {
+    "return a successful unit future if no test to notify is found and do not process the notification" in new OnlineTest {
       when(appRepositoryMock.findTestForSdipFsNotification(FailedSdipFsTestType)).thenReturn(Future.successful(None))
 
       val result = underTest.processNextTestForSdipFsNotification(FailedSdipFsTestType).futureValue
@@ -95,7 +95,7 @@ class OnlineTestServiceSpec extends UnitSpec {
       verifyZeroInteractions(cdRepositoryMock, emailClientMock)
     }
 
-    "return a successful unit future if a test to notify is found" in new OnlineTest {
+    "return a successful unit future if a test to notify is found and process the notification" in new OnlineTest {
       when(appRepositoryMock.findTestForSdipFsNotification(any[NotificationTestTypeSdipFs])).thenReturn(sdipFsTestnotification)
       when(cdRepositoryMock.find(any[String])).thenReturn(successContactDetails)
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
