@@ -62,6 +62,13 @@ trait CommonBSONDocuments extends BaseBSONReader {
     )
   }
 
+  def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {
+     BSONDocument(
+      s"progress-status.${progressStatus.key}" -> true,
+      s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
+    )
+  }
+
   def progressStatusGuardBSON(progressStatus: ProgressStatus) = {
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,

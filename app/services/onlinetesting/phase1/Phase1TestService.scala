@@ -23,12 +23,13 @@ import config.CubiksGatewayConfig
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, CubiksGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
 import model.events.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames }
 import model.persisted.{ CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, TestResult => _, _ }
-import model.{ ProgressStatuses, ReminderNotice, TestExpirationEvent }
+import model._
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
@@ -68,6 +69,26 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] =
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize)
+
+  def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]] = {
+    phase1TestRepository.nextSdipFaststreamCandidateReadyForSdipProgression
+  }
+
+  def progressSdipFaststreamCandidateForSdip(o: Phase1TestGroupWithUserIds): Future[Unit] = {
+
+    o.testGroup.evaluation.map { evaluation =>
+      val result = evaluation.result.find(_.scheme == SchemeType.Sdip).getOrElse(
+        throw new IllegalStateException(s"No SDIP results found for application ${o.applicationId}}")
+      )
+
+      val newProgressStatus = result.result match {
+        case "Green" => ProgressStatuses.getProgressStatusForSdipFsSuccess(ApplicationStatus.PHASE1_TESTS)
+        case "Red" => ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS)
+      }
+
+      testRepository.updateProgressStatusOnly(o.applicationId, newProgressStatus)
+    }.getOrElse(Future.successful(()))
+  }
 
   override def emailCandidateForExpiringTestReminder(
     expiringTest: NotificationExpiringOnlineTest,

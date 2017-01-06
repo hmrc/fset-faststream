@@ -636,9 +636,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
       when(launchpadGatewayClientMock.extendDeadline(any())).thenReturn(Future.successful(()))
-      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
-        ProgressResponse("appId")
-      ))
+      when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(ProgressResponse("appId")))
 
       // Mark As Started
       when(p3TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
@@ -687,8 +685,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     private def markAsResultsReceivedMocks = {
-      when(p3TestRepositoryMock.updateProgressStatus("appId123",
-        ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED))
+        .thenReturn(Future.successful(()))
     }
 
     lazy val phase3TestServiceWithExpiredTestGroup = mockService {
