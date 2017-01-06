@@ -155,7 +155,6 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
   }
 }
 
-
 class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
