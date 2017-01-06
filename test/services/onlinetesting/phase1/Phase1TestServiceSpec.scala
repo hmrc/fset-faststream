@@ -415,11 +415,10 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       when(otRepositoryMock.updateTestStartTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
         .thenReturn(Future.successful(Phase1TestGroupWithUserIds("appId123", "userId", phase1TestProfile)))
-      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED,
-        forceApplicationStatusUpdate = true)).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)).thenReturn(Future.successful(()))
       phase1TestService.markAsStarted(cubiksUserId).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED, forceApplicationStatusUpdate = true)
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
     }
   }
 
@@ -432,12 +431,11 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
       when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
         .thenReturn(Future.successful(Phase1TestGroupWithUserIds("appId123", "userId", phase1Tests)))
-      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED,
-        forceApplicationStatusUpdate = true)).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful(()))
 
       phase1TestService.markAsCompleted(cubiksUserId).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED, forceApplicationStatusUpdate = true)
+      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
     }
   }
 
@@ -453,14 +451,12 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
           )
         )))
       )
-      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady))
-        .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean]))
-        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
 
       val result = phase1TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
-      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
     }
 
     "change progress to reports ready if all the active tests have reports ready" in new OnlineTest {
@@ -474,14 +470,12 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
           )
         )))
       )
-      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady))
-        .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean]))
-        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
 
       val result = phase1TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_READY, forceApplicationStatusUpdate = true)
+      verify(otRepositoryMock).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
     }
   }
 
@@ -549,10 +543,8 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
-        .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean]))
-        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
         Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult))))))
       )
@@ -562,7 +554,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       )).futureValue
 
       verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(otRepositoryMock).updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])
+      verify(otRepositoryMock).updateProgressStatus(any[String], any[ProgressStatus])
     }
 
     "save a phase1 report for a candidate and not update progress status" in new OnlineTest {
@@ -573,10 +565,8 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
-        .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean]))
-        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
         Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady))))
       )
@@ -586,7 +576,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       )).futureValue
 
       verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])
+      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
     }
   }
 
@@ -643,7 +633,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
   "Progress Sdip for SdipFaststream candidate" should {
     "Set the progress status the candidate has passed Sdip" in new OnlineTest {
       import scala.collection.JavaConversions._
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])).thenReturn(Future.successful(unit))
+      when(otRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
         evaluation = Some(PassmarkEvaluation("version", None, result = List(SchemeEvaluationResult(SchemeType.Finance, "Green"),
@@ -657,13 +647,13 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
       val result = phase1TestService.progressSdipFaststreamCandidateForSdip(phase1TestGroup).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus(any[String], eventCaptor.capture, any[Boolean])
+      verify(otRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
       eventCaptor.getAllValues.head.toString mustBe ProgressStatuses.getProgressStatusForSdipFsSuccess(ApplicationStatus.PHASE1_TESTS).toString
     }
 
     "Set the progress status the candidate has failed Sdip" in new OnlineTest {
       import scala.collection.JavaConversions._
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus], any[Boolean])).thenReturn(Future.successful(unit))
+      when(otRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
         evaluation = Some(PassmarkEvaluation("version", None, result = List(SchemeEvaluationResult(SchemeType.Finance, "Green"),
@@ -677,7 +667,7 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
       val result = phase1TestService.progressSdipFaststreamCandidateForSdip(phase1TestGroup).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus(any[String], eventCaptor.capture, any[Boolean])
+      verify(otRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
       eventCaptor.getAllValues.head.toString mustBe ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS).toString
     }
   }

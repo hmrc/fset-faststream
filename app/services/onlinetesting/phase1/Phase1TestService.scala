@@ -75,6 +75,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   }
 
   def progressSdipFaststreamCandidateForSdip(o: Phase1TestGroupWithUserIds): Future[Unit] = {
+
     o.testGroup.evaluation.map { evaluation =>
       val result = evaluation.result.find(_.scheme == SchemeType.Sdip).getOrElse(
         throw new IllegalStateException(s"No SDIP results found for application ${o.applicationId}}")
@@ -85,7 +86,7 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
         case "Red" => ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS)
       }
 
-      testRepository.updateProgressStatus(o.applicationId, newProgressStatus, forceApplicationStatusUpdate = false)
+      testRepository.updateProgressStatusOnly(o.applicationId, newProgressStatus)
     }.getOrElse(Future.successful(()))
   }
 
