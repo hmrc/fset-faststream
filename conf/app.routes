@@ -35,6 +35,7 @@ GET         /application/resume                                     controllers.
 GET         /application/withdraw                                   controllers.HomeController.presentWithdrawApplication
 POST        /application/withdraw                                   controllers.HomeController.withdrawApplication
 #POST        /application/confirm-allocation                         controllers.HomeController.confirmAlloc
+GET         /application/sdip-next-steps                            controllers.HomeController.showSdipNextSteps
 
 GET         /application/details                                    controllers.PersonalDetailsController.present
 POST        /application/details                                    controllers.PersonalDetailsController.submitPersonalDetails

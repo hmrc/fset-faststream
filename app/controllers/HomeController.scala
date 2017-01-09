@@ -52,6 +52,16 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
      }.getOrElse { dashboardWithoutApplication }
   }
 
+  def showSdipNextSteps = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
+    implicit val displaySdipEligibilityInfo = false
+    cachedData.application.map { implicit application =>
+      cachedData match {
+        case _ if isPhase1TestsPassed && isSdipFaststream => displayEdipOrSdipResultsPage
+        case _ => dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
+      }
+    }.getOrElse { dashboardWithoutApplication }
+  }
+
   def resume = CSRSecureAppAction(ActiveUserRole) { implicit request =>
     implicit user =>
       Future.successful(Redirect(Roles.userJourneySequence.find(_._1.isAuthorized(user)).map(_._2).getOrElse(routes.HomeController.present())))
@@ -115,7 +125,7 @@ abstract class HomeController(applicationClient: ApplicationClient, cacheClient:
       Ok(views.html.home.faststreamFinalResults(cachedData, results.getOrElse(Nil)))
     }
 
-  private def displayEdipOrSdipResultsPage(implicit application: ApplicationData, cachedData: CachedData,
+  private def displayEdipOrSdipResultsPage(implicit cachedData: CachedData,
                                            request: Request[_], hc: HeaderCarrier) =
       Future.successful(Ok(views.html.home.edipAndSdipFinalResults(cachedData)))
 

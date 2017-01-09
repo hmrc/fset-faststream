@@ -11,6 +11,19 @@
         </div>
     </div>
 }
+@displaySdipFaststreamSuccessfulBanner = {
+    <div class="panel-success standard-panel" id="sdipFsSuccessBanner">
+        <div class="text">
+            <p>You've passed the online exercises for the Summer Diversity Internship
+                Programme (SDIP).
+                <br/><br/>
+
+                <a class="" id="sdip-next-steps" href="@routes.HomeController.showSdipNextSteps">
+                    Complete these steps</a> to continue your application.
+            </p>
+        </div>
+    </div>
+}
 
 @displaySdipFaststreamFailedBanner = {
     <div class="panel-info standard-panel" id="sdipFsFailedBanner">
@@ -23,10 +36,14 @@
     </div>
 }
 
-@isSdipResultAvailable = @{isSdipFaststreamFailed(cachedUserData)}
+@isSdipResultAvailable = @{isSdipFaststreamFailed(cachedUserData) || isSdipFaststreamSuccessful(cachedUserData)}
 
 @if(isSdipFaststreamFailed(cachedUserData)) {
     @displaySdipFaststreamFailedBanner
+}
+
+@if(isSdipFaststreamSuccessful(cachedUserData)) {
+    @displaySdipFaststreamSuccessfulBanner
 }
 
 @if(!isSdipResultAvailable && isSdipFaststream(cachedUserData)) {

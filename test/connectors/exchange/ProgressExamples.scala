@@ -19,54 +19,18 @@ package connectors.exchange
 import models.{ Phase1TestProgress, Phase2TestProgress, Phase3TestProgress, Progress }
 
 object ProgressExamples {
-  val InitialProgress = Progress(false, false, false, false, false, false, false, false, false, false, false, false,
-    phase1TestProgress = Phase1TestProgress(false, false, false, false, false, false,
-      false, false, false, false),
-    phase2TestProgress = Phase2TestProgress(false, false, false, false, false, false,
-      false, false, false, false),
-    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = false,
-      phase3TestsStarted = false,
-      phase3TestsCompleted = false,
-      phase3TestsExpired = false,
-      phase3TestsResultsReceived = false
-    ),
-    false,
-    false,
-    AssessmentScores(false, false),
-    AssessmentCentre(false, false, false)
+  val InitialProgress = Progress()
+
+  val Phase1TestsInvitedNotStarted = Progress(
+    phase1TestProgress = Phase1TestProgress(phase1TestsInvited = true)
   )
-  val Phase1TestsInvitedNotStarted = Progress(false, false, false, false, false, false, false, false, false, false, false, false,
-    phase1TestProgress = Phase1TestProgress(true, false, false, false, false, false,
-      false, false, false, false),
-    phase2TestProgress = Phase2TestProgress(false, false, false, false, false, false,
-      false, false, false, false),
-    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = false,
-      phase3TestsStarted = false,
-      phase3TestsCompleted = false,
-      phase3TestsExpired = false,
-      phase3TestsResultsReceived = false
-    ),
-    false,
-    false,
-    AssessmentScores(false, false),
-    AssessmentCentre(false, false, false)
+
+  val Phase1TestsStarted = Progress(
+    phase1TestProgress = Phase1TestProgress(phase1TestsInvited = true, phase1TestsStarted = true)
   )
-  val Phase1TestsStarted = Progress(false, false, false, false, false, false, false, false, false, false, false, false,
-    phase1TestProgress = Phase1TestProgress(phase1TestsInvited = true, phase1TestsStarted = true),
-    phase2TestProgress = Phase2TestProgress(false, false, false, false, false, false,
-      false, false, false, false),
-    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = false,
-      phase3TestsStarted = false,
-      phase3TestsCompleted = false,
-      phase3TestsExpired = false,
-      phase3TestsResultsReceived = false
-    ),
-    false,
-    false,
-    AssessmentScores(false, false),
-    AssessmentCentre(false, false, false)
-  )
+
   val FullProgress = Progress(true, true, true, true, true, true, true, true, true, true, true, true,
+    true,
     phase1TestProgress = Phase1TestProgress(true, true, true, true, true, true,
       true, true, true, true),
     phase2TestProgress = Phase2TestProgress(true, true, true, true, true, true,
@@ -83,6 +47,7 @@ object ProgressExamples {
     AssessmentCentre(true, true, true)
   )
   val Phase3TestsPassed = Progress(true, true, true, true, true, true, true, true, true, true, true, false,
+    false,
     phase1TestProgress = Phase1TestProgress(true, true, true, true, true, true,
       true, true, true, true),
     phase2TestProgress = Phase2TestProgress(true, true, true, true, true, true,

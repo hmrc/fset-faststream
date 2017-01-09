@@ -59,27 +59,26 @@ case class Phase3TestProgress(phase3TestsInvited: Boolean = false,
                              )
 
 case class Progress(
-  personalDetails: Boolean,
-  schemePreferences: Boolean,
-  partnerGraduateProgrammes: Boolean,
-  assistanceDetails: Boolean,
-  preview: Boolean,
-  startedQuestionnaire: Boolean,
-  diversityQuestionnaire: Boolean,
-  educationQuestionnaire: Boolean,
-  occupationQuestionnaire: Boolean,
-  submitted: Boolean,
+  personalDetails: Boolean = false,
+  schemePreferences: Boolean = false,
+  partnerGraduateProgrammes: Boolean = false,
+  assistanceDetails: Boolean = false,
+  preview: Boolean = false,
+  startedQuestionnaire: Boolean = false,
+  diversityQuestionnaire: Boolean = false,
+  educationQuestionnaire: Boolean = false,
+  occupationQuestionnaire: Boolean = false,
+  submitted: Boolean = false,
   withdrawn: Boolean = false,
   sdipFSFailed: Boolean = false,
-  phase1TestProgress: Phase1TestProgress = Phase1TestProgress(false, false, false, false, false,
-    false, false, false, false, false),
-  phase2TestProgress: Phase2TestProgress = Phase2TestProgress(false, false, false, false,
-    false, false, false, false, false, false),
+  sdipFSSuccessful: Boolean = false,
+  phase1TestProgress: Phase1TestProgress = Phase1TestProgress(),
+  phase2TestProgress: Phase2TestProgress = Phase2TestProgress(),
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
   exported: Boolean = false,
   failedToAttend: Boolean = false,
-  assessmentScores: AssessmentScores,
-  assessmentCentre: AssessmentCentre
+  assessmentScores: AssessmentScores = AssessmentScores(),
+  assessmentCentre: AssessmentCentre = AssessmentCentre()
 )
 
 object Progress {
@@ -105,6 +104,7 @@ object Progress {
       submitted = progressResponse.submitted,
       withdrawn = progressResponse.withdrawn,
       sdipFSFailed = progressResponse.sdipFSFailed,
+      sdipFSSuccessful = progressResponse.sdipFSSuccessful,
       phase1TestProgress = Phase1TestProgress(
         phase1TestsInvited = progressResponse.phase1ProgressResponse.phase1TestsInvited,
         phase1TestsStarted  = progressResponse.phase1ProgressResponse.phase1TestsStarted,
