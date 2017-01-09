@@ -156,25 +156,37 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   private def resetPhase2Tests(application: OnlineTestApplication, actionTriggeredBy: String)
                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-      testRepository.getTestGroup(application.applicationId).flatMap {
-        case Some(phase2TestGroup) if !application.isInvigilatedETray =>
-          val (_, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
-          registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
-            AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
-              DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
-          }
 
-        case Some(phase2TestGroup) if application.isInvigilatedETray =>
-          val scheduleInv = testConfig.scheduleForInvigilatedETray
-          val (_, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
-          registerAndInviteForTestGroup(List(application), schedule, Some(phase2TestGroup.expirationDate)).map { _ =>
-            AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
-              DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
-          }
-
-        case _ =>
-          throw CannotResetPhase2Tests()
+    def getNewExpirationDate(phase2TestGroup: Phase2TestGroup, application: OnlineTestApplication, expiryTimeInDays: Int) = {
+      require(phase2TestGroup.activeTests.nonEmpty, "Active e-tray tests not found")
+      val hasInvigilatedEtray = phase2TestGroup.activeTests.head.invigilatedAccessCode.isDefined
+      application.isInvigilatedETray == hasInvigilatedEtray && phase2TestGroup.expirationDate.isAfterNow match {
+        case true => phase2TestGroup.expirationDate
+        case false => calcOnlineTestDates(expiryTimeInDays)._2
       }
+    }
+
+    testRepository.getTestGroup(application.applicationId).flatMap {
+      case Some(phase2TestGroup) if !application.isInvigilatedETray =>
+        val (_, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
+        registerAndInviteForTestGroup(List(application), schedule,
+          Some(getNewExpirationDate(phase2TestGroup, application, gatewayConfig.phase2Tests.expiryTimeInDays))).map { _ =>
+          AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
+            DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
+        }
+
+      case Some(phase2TestGroup) if application.isInvigilatedETray =>
+        val scheduleInv = testConfig.scheduleForInvigilatedETray
+        val (_, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
+        registerAndInviteForTestGroup(List(application), schedule,
+          Some(getNewExpirationDate(phase2TestGroup, application, gatewayConfig.phase2Tests.expiryTimeInDaysForInvigilatedETray))).map { _ =>
+          AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
+            DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
+        }
+
+      case _ =>
+        throw CannotResetPhase2Tests()
+    }
   }
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
