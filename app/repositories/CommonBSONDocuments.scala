@@ -19,7 +19,7 @@ package repositories
 import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
 import model.command._
-import model.{ ApplicationStatus, ProgressStatuses }
+import model.{ ApplicationStatus, FailedSdipFsTestType, ProgressStatuses }
 import org.joda.time.DateTime
 import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader }
 
@@ -62,6 +62,13 @@ trait CommonBSONDocuments extends BaseBSONReader {
     )
   }
 
+  def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {
+     BSONDocument(
+      s"progress-status.${progressStatus.key}" -> true,
+      s"progress-status-timestamp.${progressStatus.key}" -> DateTime.now()
+    )
+  }
+
   def progressStatusGuardBSON(progressStatus: ProgressStatus) = {
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
@@ -98,6 +105,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
           submitted = getProgress(ProgressStatuses.SUBMITTED.key),
           fastPassAccepted = getProgress(ProgressStatuses.FAST_PASS_ACCEPTED.key),
           withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
+          sdipFSFailed = getProgress(FailedSdipFsTestType.progressStatus),
           applicationArchived = getProgress(ProgressStatuses.APPLICATION_ARCHIVED.key),
           phase1ProgressResponse = Phase1ProgressResponse(
             phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),

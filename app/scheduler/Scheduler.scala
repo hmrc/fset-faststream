@@ -49,6 +49,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(FailedPhase1TestJobConfig, FailedPhase1TestJob),
     maybeInitScheduler(FailedPhase2TestJobConfig, FailedPhase2TestJob),
     maybeInitScheduler(FailedPhase3TestJobConfig, FailedPhase3TestJob),
+    maybeInitScheduler(FailedSdipFsTestJobConfig, FailedSdipFsTestJob),
     maybeInitScheduler(SuccessPhase1TestJobConfig, SuccessPhase1TestJob),
     maybeInitScheduler(SuccessPhase3TestJobConfig, SuccessPhase3TestJob),
     maybeInitScheduler(RetrievePhase1ResultsJobConfig, RetrievePhase1ResultsJob),
@@ -60,6 +61,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(EvaluateAssessmentScoreJobConfig, EvaluateAssessmentScoreJob),
     maybeInitScheduler(NotifyAssessmentCentrePassedOrFailedJobConfig, NotifyAssessmentCentrePassedOrFailedJob),
     maybeInitScheduler(FixerJobConfig, FixerJob),
+    maybeInitScheduler(ProgressSdipForFaststreamCandidateJobConfig, ProgressSdipForFaststreamCandidateJob),
     maybeInitScheduler(ParityExportJobConfig, ParityExportJob)
   ).flatten
 }

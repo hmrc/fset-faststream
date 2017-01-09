@@ -30,6 +30,7 @@ import model.exchange.CubiksTestResultReady
 import model.persisted._
 import model.{ ProgressStatuses, _ }
 import org.joda.time.DateTime
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import org.scalatest.PrivateMethodTester
@@ -450,10 +451,8 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
           )
         )))
       )
-      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady))
-        .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
-        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
 
       val result = phase1TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
@@ -471,10 +470,8 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
           )
         )))
       )
-      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady))
-        .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
-        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
 
       val result = phase1TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
@@ -546,10 +543,8 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
-        .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
-        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
         Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult))))))
       )
@@ -570,10 +565,8 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
       when(cubiksGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult]))
-        .thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus]))
-        .thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
       when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
         Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady))))
       )
@@ -634,6 +627,48 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
         Phase1FirstReminder.hoursBeforeReminder,
         Phase1FirstReminder.timeUnit,
         expiryReminder.expiryDate)
+    }
+  }
+
+  "Progress Sdip for SdipFaststream candidate" should {
+    "Set the progress status the candidate has passed Sdip" in new OnlineTest {
+      import scala.collection.JavaConversions._
+      when(otRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
+
+      val testProfileWithEvaluation = phase1TestProfile.copy(
+        evaluation = Some(PassmarkEvaluation("version", None, result = List(SchemeEvaluationResult(SchemeType.Finance, "Green"),
+          SchemeEvaluationResult(SchemeType.Sdip, "Green")
+        )))
+      )
+
+      val phase1TestGroup = Phase1TestGroupWithUserIds("appId1", "userId1", testProfileWithEvaluation)
+
+      val eventCaptor = ArgumentCaptor.forClass(classOf[ProgressStatuses.ProgressStatus])
+
+      val result = phase1TestService.progressSdipFaststreamCandidateForSdip(phase1TestGroup).futureValue
+
+      verify(otRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
+      eventCaptor.getAllValues.head.toString mustBe ProgressStatuses.getProgressStatusForSdipFsSuccess(ApplicationStatus.PHASE1_TESTS).toString
+    }
+
+    "Set the progress status the candidate has failed Sdip" in new OnlineTest {
+      import scala.collection.JavaConversions._
+      when(otRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
+
+      val testProfileWithEvaluation = phase1TestProfile.copy(
+        evaluation = Some(PassmarkEvaluation("version", None, result = List(SchemeEvaluationResult(SchemeType.Finance, "Green"),
+          SchemeEvaluationResult(SchemeType.Sdip, "Red")
+        )))
+      )
+
+      val phase1TestGroup = Phase1TestGroupWithUserIds("appId1", "userId1", testProfileWithEvaluation)
+
+      val eventCaptor = ArgumentCaptor.forClass(classOf[ProgressStatuses.ProgressStatus])
+
+      val result = phase1TestService.progressSdipFaststreamCandidateForSdip(phase1TestGroup).futureValue
+
+      verify(otRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
+      eventCaptor.getAllValues.head.toString mustBe ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS).toString
     }
   }
 

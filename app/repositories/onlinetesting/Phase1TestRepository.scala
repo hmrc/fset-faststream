@@ -22,7 +22,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
-import model.{ ApplicationStatus, ReminderNotice }
+import model.{ ApplicationRoute, ApplicationStatus, ReminderNotice, SchemeType }
 import org.joda.time.DateTime
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -90,6 +90,22 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, maxBatchSize)
+  }
+
+  def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument("testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip)))
+    ))
+    collection.find(query).one[BSONDocument] map {
+      case Some(doc) =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val userId = doc.getAs[String]("userId").get
+        val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
+        val phase1TestGroup = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
+        Some(Phase1TestGroupWithUserIds(applicationId, userId, phase1TestGroup))
+      case _ => None
+    }
   }
 
   override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestGroupWithUserIds] = {
