@@ -33,6 +33,7 @@ import model.events.DataStoreEvents.OnlineExerciseResultSent
 import model.exchange.CubiksTestResultReady
 import model.persisted.{ ContactDetails, Phase2TestGroup, Phase2TestGroupWithAppId, _ }
 import org.joda.time.{ DateTime, DateTimeZone }
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -260,8 +261,10 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
   }
 
   "reset phase2 tests" should {
+
     "remove progress and register for new tests" in new Phase2TestServiceFixture {
-      override val phase2TestProfile = Phase2TestGroup(expirationDate,
+      val currentExpirationDate = now.plusDays(2)
+      override val phase2TestProfile = Phase2TestGroup(currentExpirationDate,
         List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
       )
 
@@ -281,7 +284,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
 
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
       when(cubiksGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(expectedRegistration)))
       when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
@@ -293,7 +296,199 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
           PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED))
       verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
-      verify(otRepositoryMock).insertCubiksTests(any[String], any[Phase2TestGroup])
+
+      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
+      verify(otRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
+
+      val phase2TestGroup = phase2TestGroupCaptor.getValue
+      phase2TestGroup.expirationDate mustBe currentExpirationDate
+
+      verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+    }
+
+    "reset and set 7 days expiry date for non invigilated e-tray" in new Phase2TestServiceFixture {
+      val currentExpiryDate = now.minusDays(2)
+      override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
+        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
+      )
+
+      val onlineTestApplicationForReset = onlineTestApplication.copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED)
+
+      val expectedRegistration = registrations.head
+      val expectedInvite = invites.head
+      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
+        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
+      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
+        List(phase2Test.copy(usedForResults = false), phase2Test))
+
+      // expectations for 3 invocations
+      when(otRepositoryMock.getTestGroup(any[String]))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
+
+      when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
+      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+        .thenReturn(Future.successful(List(expectedRegistration)))
+      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+        .thenReturn(Future.successful(List(expectedInvite)))
+
+      phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
+
+      verify(otRepositoryMock).resetTestProfileProgresses("appId",
+        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
+          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED))
+      verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
+
+      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
+      verify(otRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
+
+      val phase2TestGroup = phase2TestGroupCaptor.getValue
+      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(7).toLocalDate
+
+      verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+    }
+
+    "reset and reinstate expiry date from remaining days for invigilated e-tray" in new Phase2TestServiceFixture {
+      val currentExpiryDate = now.plusDays(30)
+      override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
+        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId, invigilatedAccessCode = Some("ABC")))
+      )
+
+      val invigilatedOnlineTestApplicationForReset = onlineTestApplication.copy(
+        applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED,
+        needsOnlineAdjustments = true,
+        eTrayAdjustments = Some(AdjustmentDetail(invigilatedInfo = Some("")))
+      )
+
+      val expectedRegistration = registrations.head
+      val expectedInvite = invites.head
+      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
+        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
+      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
+        List(phase2Test.copy(usedForResults = false), phase2Test))
+
+      // expectations for 3 invocations
+      when(otRepositoryMock.getTestGroup(any[String]))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
+
+      when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
+      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+        .thenReturn(Future.successful(List(expectedRegistration)))
+      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+        .thenReturn(Future.successful(List(expectedInvite)))
+
+      phase2TestService.resetTests(invigilatedOnlineTestApplicationForReset, "createdBy").futureValue
+
+      verify(otRepositoryMock).resetTestProfileProgresses("appId",
+        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
+          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED))
+      verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
+
+      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
+      verify(otRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
+
+      val phase2TestGroup = phase2TestGroupCaptor.getValue
+      phase2TestGroup.expirationDate mustBe currentExpiryDate
+
+      verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+    }
+
+    "reset and set 90 days expiry date for invigilated e-tray" in new Phase2TestServiceFixture {
+      val currentExpiryDate = now.minusDays(2)
+      override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
+        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
+      )
+
+      val invigilatedOnlineTestApplicationForReset = onlineTestApplication.copy(
+        applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED,
+        needsOnlineAdjustments = true,
+        eTrayAdjustments = Some(AdjustmentDetail(invigilatedInfo = Some("")))
+      )
+
+      val expectedRegistration = registrations.head
+      val expectedInvite = invites.head
+      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
+        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
+      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
+        List(phase2Test.copy(usedForResults = false), phase2Test))
+
+      // expectations for 3 invocations
+      when(otRepositoryMock.getTestGroup(any[String]))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
+
+      when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
+      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+        .thenReturn(Future.successful(List(expectedRegistration)))
+      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+        .thenReturn(Future.successful(List(expectedInvite)))
+
+      phase2TestService.resetTests(invigilatedOnlineTestApplicationForReset, "createdBy").futureValue
+
+      verify(otRepositoryMock).resetTestProfileProgresses("appId",
+        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
+          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED))
+      verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
+
+      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
+      verify(otRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
+
+      val phase2TestGroup = phase2TestGroupCaptor.getValue
+      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(90).toLocalDate
+
+      verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+    }
+
+    "reset invigilated e-tray by removing adjustments and set 7 days expiry date" in new Phase2TestServiceFixture {
+      val currentExpiryDate = now.plusDays(30)
+      override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
+        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId, invigilatedAccessCode = Some("ABC")))
+      )
+
+      val onlineTestApplicationForReset = onlineTestApplication.copy(
+        applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED
+      )
+
+      val expectedRegistration = registrations.head
+      val expectedInvite = invites.head
+      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
+        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
+      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
+        List(phase2Test.copy(usedForResults = false), phase2Test))
+
+      // expectations for 3 invocations
+      when(otRepositoryMock.getTestGroup(any[String]))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
+        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
+
+      when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
+      when(cubiksGatewayClientMock.registerApplicants(any[Int]))
+        .thenReturn(Future.successful(List(expectedRegistration)))
+      when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
+        .thenReturn(Future.successful(List(expectedInvite)))
+
+      phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
+
+      verify(otRepositoryMock).resetTestProfileProgresses("appId",
+        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
+          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED))
+      verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
+
+      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
+      verify(otRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
+
+      val phase2TestGroup = phase2TestGroupCaptor.getValue
+      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(7).toLocalDate
+
       verify(phase2TestService.dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
     }
 
@@ -325,7 +520,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
 
       when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
       when(cubiksGatewayClientMock.registerApplicants(any[Int]))
         .thenReturn(Future.successful(List(expectedRegistration)))
       when(cubiksGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
