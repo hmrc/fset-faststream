@@ -28,14 +28,14 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object FailedSdipFsTestJob extends NotificationSdipFsTestJob {
   override val service = Phase1TestService
-  override val notificationType: FailedTestTypeSdipFs = FailedSdipFsTestType
+  override val notificationType = FailedSdipFsTestType
 
   val config = FailedPhase1TestJobConfig
 }
 
 object SuccessfulSdipFsTestJob extends NotificationSdipFsTestJob {
   override val service = Phase1TestService
-  override val notificationType: SuccessfulTestTypeSdipFs = SuccessfulSdipFsTestType
+  override val notificationType = SuccessfulSdipFsTestType
 
   val config = SuccessfulSdipFsTestJobConfig
 }
