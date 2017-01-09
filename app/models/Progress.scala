@@ -59,16 +59,16 @@ case class Phase3TestProgress(phase3TestsInvited: Boolean = false,
                              )
 
 case class Progress(
-  personalDetails: Boolean,
-  schemePreferences: Boolean,
-  partnerGraduateProgrammes: Boolean,
-  assistanceDetails: Boolean,
-  preview: Boolean,
-  startedQuestionnaire: Boolean,
-  diversityQuestionnaire: Boolean,
-  educationQuestionnaire: Boolean,
-  occupationQuestionnaire: Boolean,
-  submitted: Boolean,
+  personalDetails: Boolean = false,
+  schemePreferences: Boolean = false,
+  partnerGraduateProgrammes: Boolean = false,
+  assistanceDetails: Boolean = false,
+  preview: Boolean = false,
+  startedQuestionnaire: Boolean = false,
+  diversityQuestionnaire: Boolean = false,
+  educationQuestionnaire: Boolean = false,
+  occupationQuestionnaire: Boolean = false,
+  submitted: Boolean = false,
   withdrawn: Boolean = false,
   sdipFSFailed: Boolean = false,
   sdipFSSuccessful: Boolean = false,
@@ -77,8 +77,8 @@ case class Progress(
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
   exported: Boolean = false,
   failedToAttend: Boolean = false,
-  assessmentScores: AssessmentScores,
-  assessmentCentre: AssessmentCentre
+  assessmentScores: AssessmentScores = AssessmentScores(),
+  assessmentCentre: AssessmentCentre = AssessmentCentre()
 )
 
 object Progress {
