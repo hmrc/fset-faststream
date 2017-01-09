@@ -108,23 +108,23 @@ object ProgressStatuses {
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TEST_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)
-    PHASE1_TEST_SDIP_FS_PASSED
+    case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)
+    PHASE1_TESTS_SDIP_FS_PASSED
   }
 
   def getProgressStatusForSdipFsFailed(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TEST_SDIP_FS_FAILED extends ProgressStatus(applicationStatus)
-    PHASE1_TEST_SDIP_FS_FAILED
+    case object PHASE1_TESTS_SDIP_FS_FAILED extends ProgressStatus(applicationStatus)
+    PHASE1_TESTS_SDIP_FS_FAILED
   }
 
   def getProgressStatusForSdipFsFailedNotified(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TEST_SDIP_FS_FAILED_NOTIFIED extends ProgressStatus(applicationStatus)
-    PHASE1_TEST_SDIP_FS_FAILED_NOTIFIED
+    case object PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED extends ProgressStatus(applicationStatus)
+    PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED
   }
 
   def getProgressStatusForSdipFsPassedNotified(applicationStatus: ApplicationStatus): ProgressStatus = {
-    case object PHASE1_TEST_SDIP_FS_PASSED_NOTIFIED extends ProgressStatus(applicationStatus)
-    PHASE1_TEST_SDIP_FS_PASSED_NOTIFIED
+    case object PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED extends ProgressStatus(applicationStatus)
+    PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED
   }
 
 

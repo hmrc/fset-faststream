@@ -17,7 +17,7 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
-import model.{ SuccessfulSdipFsTestType, _ }
+import model._
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
