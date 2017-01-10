@@ -22,7 +22,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
-import model.{ ApplicationRoute, ApplicationStatus, ReminderNotice, SchemeType }
+import model._
 import org.joda.time.DateTime
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -95,6 +95,10 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
+      BSONDocument("$and" -> BSONArray(
+        BSONDocument(s"progress-status.${FailedSdipFsTestType.progressStatus}" -> BSONDocument("$ne" -> true)),
+        BSONDocument(s"progress-status.${SuccessfulSdipFsTestType.progressStatus}" -> BSONDocument("$ne" -> true))
+      )),
       BSONDocument("testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip)))
     ))
     collection.find(query).one[BSONDocument] map {
