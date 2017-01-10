@@ -28,7 +28,7 @@ object ApplicationStatus extends Enumeration with ApplicationStatusOnlyForTest {
   val PHASE1_TESTS, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED = Value
   val PHASE2_TESTS, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED = Value
   val PHASE3_TESTS, PHASE3_TESTS_PASSED_WITH_AMBER, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED = Value
-  val READY_FOR_EXPORT, EXPORTED, READY_TO_UPDATE = Value
+  val READY_FOR_EXPORT, EXPORTED, READY_TO_UPDATE, UPDATE_EXPORTED = Value
   val ARCHIVED = Value
 
   // Do not use or add statuses in this section. They are legacy statuses from fasttrack
