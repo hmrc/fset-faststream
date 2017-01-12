@@ -32,7 +32,7 @@ object ParityExportJob extends ParityExportJob {
   val config = ParityExportJobConfig
 }
 
-object ParityUpdateExportJob extends ParityExportJob {
+object ParityUpdateExportJob extends ParityUpdateExportJob {
   override val service = ParityExportService
   val config = ParityUpdateExportJobConfig
 }

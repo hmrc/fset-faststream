@@ -93,7 +93,7 @@ case class ProgressResponse(
   phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
   phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
   exported: Boolean = false,
-  update_exported: Boolean = false,
+  updateExported: Boolean = false,
   applicationArchived: Boolean = false,
   failedToAttend: Boolean = false,
   assessmentScores: AssessmentScores = AssessmentScores(),

@@ -45,8 +45,7 @@ object ApplicationReadyForExport {
 trait ParityExportRepository extends RandomSelection with CommonBSONDocuments with ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
 
-  def nextApplicationsForExport(batchSize: Int,
-    exportStatus: ApplicationStatus = READY_FOR_EXPORT): Future[List[ApplicationReadyForExport]]
+  def nextApplicationsForExport(batchSize: Int, exportStatus: ApplicationStatus): Future[List[ApplicationReadyForExport]]
 
   def getApplicationForExport(applicationId: String): Future[JsValue]
 }
@@ -56,10 +55,8 @@ class ParityExportMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () 
     Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats
   ) with ParityExportRepository with CommonBSONDocuments {
 
-  override def nextApplicationsForExport(batchSize: Int,
-    statusToExport: ApplicationStatus = READY_FOR_EXPORT): Future[List[ApplicationReadyForExport]] = {
+  override def nextApplicationsForExport(batchSize: Int, statusToExport: ApplicationStatus): Future[List[ApplicationReadyForExport]] = {
     val query = BSONDocument("applicationStatus" -> statusToExport)
-
     selectRandom[ApplicationReadyForExport](query, batchSize)
   }
 
