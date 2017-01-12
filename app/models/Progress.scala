@@ -47,16 +47,17 @@ case class Phase2TestProgress(
   phase2TestsFailed: Boolean = false
 )
 
-case class Phase3TestProgress(phase3TestsInvited: Boolean = false,
-                              phase3TestsFirstReminder: Boolean = false,
-                              phase3TestsSecondReminder: Boolean = false,
-                              phase3TestsStarted: Boolean = false,
-                              phase3TestsCompleted: Boolean = false,
-                              phase3TestsExpired: Boolean = false,
-                              phase3TestsResultsReceived: Boolean = false,
-                              phase3TestsPassed: Boolean = false,
-                              phase3TestsFailed: Boolean = false
-                             )
+case class Phase3TestProgress(
+  phase3TestsInvited: Boolean = false,
+  phase3TestsFirstReminder: Boolean = false,
+  phase3TestsSecondReminder: Boolean = false,
+  phase3TestsStarted: Boolean = false,
+  phase3TestsCompleted: Boolean = false,
+  phase3TestsExpired: Boolean = false,
+  phase3TestsResultsReceived: Boolean = false,
+  phase3TestsPassed: Boolean = false,
+  phase3TestsFailed: Boolean = false
+)
 
 case class Progress(
   personalDetails: Boolean = false,
@@ -76,6 +77,7 @@ case class Progress(
   phase2TestProgress: Phase2TestProgress = Phase2TestProgress(),
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
   exported: Boolean = false,
+  updateExported: Boolean = false,
   failedToAttend: Boolean = false,
   assessmentScores: AssessmentScores = AssessmentScores(),
   assessmentCentre: AssessmentCentre = AssessmentCentre()
@@ -140,6 +142,7 @@ object Progress {
         phase3TestsFailed = progressResponse.phase3ProgressResponse.phase3TestsFailed
       ),
       exported = progressResponse.exported,
+      updateExported = progressResponse.updateExported,
       failedToAttend = progressResponse.failedToAttend,
       assessmentScores = progressResponse.assessmentScores,
       assessmentCentre = progressResponse.assessmentCentre
