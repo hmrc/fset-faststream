@@ -55,7 +55,7 @@
     @displaySdipFaststreamFailedBanner
 }
 
-@if(isSdipFaststreamSuccessful(cachedUserData) && (!isExported(cachedUserData) && !isUpdatedExported(cachedUserData))) {
+@if(isSdipFaststreamSuccessful(cachedUserData) && !isUpdatedExported(cachedUserData)) {
     @displaySdipFaststreamSuccessfulBanner
 }
 
@@ -63,7 +63,6 @@
     @displaySdipFaststreamBanner
 }
 
-@if(isSdipFaststream(cachedUserData) && isSdipFaststreamSuccessful(cachedUserData) &&
-    (isExported(cachedUserData) || isUpdatedExported(cachedUserData))) {
+@if(isSdipFaststream(cachedUserData) && isSdipFaststreamSuccessful(cachedUserData) && isUpdatedExported(cachedUserData)) {
     @displaySdipFaststreamExportedBanner
 }

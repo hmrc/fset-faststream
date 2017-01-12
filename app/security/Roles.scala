@@ -105,8 +105,8 @@ object Roles {
 
   object PreviewApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    activeUserWithActiveApp(user) && !statusIn(user)(CREATED) &&
-        hasDiversity(user) && hasEducation(user) && hasOccupation(user)
+      (activeUserWithActiveApp(user) && !statusIn(user)(CREATED) &&
+        hasDiversity(user) && hasEducation(user) && hasOccupation(user)) || statusIn(user)(EXPORTED, UPDATE_EXPORTED)
   }
 
   object SubmitApplicationRole extends CsrAuthorization {
@@ -121,12 +121,12 @@ object Roles {
 
   object AbleToWithdrawApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithActiveApp(user) && !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED)
+      activeUserWithActiveApp(user) && !statusIn(user)(IN_PROGRESS, WITHDRAWN, CREATED, EXPORTED, UPDATE_EXPORTED)
   }
 
   object WithdrawnApplicationRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithActiveApp(user) && statusIn(user)(WITHDRAWN)
+      statusIn(user)(WITHDRAWN)
   }
 
   object OnlineTestInvitedRole extends CsrAuthorization {
@@ -171,7 +171,7 @@ object Roles {
 
   object Phase3TestFailedRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-      activeUserWithActiveApp(user) && isPhase3TestsFailed(user)
+      isPhase3TestsFailed(user)
   }
 
 
