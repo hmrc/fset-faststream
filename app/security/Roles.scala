@@ -239,7 +239,8 @@ object RoleUtils {
   implicit def hc(implicit request: RequestHeader): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
 
   def activeUserWithActiveApp(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
-    user.user.isActive && user.application.isDefined && user.application.forall(_.applicationStatus != EXPORTED)
+    user.user.isActive && user.application.isDefined &&
+      user.application.forall(a => a.applicationStatus != EXPORTED && a.applicationStatus != UPDATE_EXPORTED)
 
   def statusIn(user: CachedData)(status: ApplicationStatus*)(implicit request: RequestHeader, lang: Lang) =
     user.application.isDefined && status.contains(user.application.get.applicationStatus)

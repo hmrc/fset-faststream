@@ -43,6 +43,12 @@ class RolesSpec extends UnitSpec {
       RoleUtils.activeUserWithActiveApp(user)(rh, Lang("en-GB")) mustBe false
     }
 
+    "Not contain updated exported users" in {
+      val user = activeUser(ApplicationStatus.UPDATE_EXPORTED)
+      implicit val rh = mock[RequestHeader]
+      RoleUtils.activeUserWithActiveApp(user)(rh, Lang("en-GB")) mustBe false
+    }
+
     "Contain non-exported users" in {
       val user = activeUser(ApplicationStatus.PHASE3_TESTS, ProgressExamples.Phase3TestsPassed)
       implicit val rh = mock[RequestHeader]
@@ -77,7 +83,7 @@ class RolesSpec extends UnitSpec {
   "Withdraw Component" must {
     "be enable only for specific roles" in {
       val disabledStatuses = List(IN_PROGRESS, WITHDRAWN, CREATED,
-        ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED, EXPORTED)
+        ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED, EXPORTED, UPDATE_EXPORTED)
       val enabledStatuses = ApplicationStatus.values.toList.diff(disabledStatuses)
 
       assertValidAndInvalidStatuses(WithdrawComponent, enabledStatuses, disabledStatuses)
