@@ -20,21 +20,24 @@ class ParityExportMongoRepositorySpec extends MongoRepositorySpec with CommonRep
 
     "return nothing if application does not have READY_FOR_EXPORT" in {
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS)
-      val result = parityExportMongoRepo.nextApplicationsForExport(batchSize = 1).futureValue
+      val result = parityExportMongoRepo.nextApplicationsForExport(batchSize = 1,
+        statusToExport = ApplicationStatus.READY_FOR_EXPORT).futureValue
       result mustBe empty
     }
 
     "return application id in READY_FOR_EXPORT" in {
       insertApplication("app1", ApplicationStatus.READY_FOR_EXPORT, None)
 
-      val result = parityExportMongoRepo.nextApplicationsForExport(batchSize = 1).futureValue
+      val result = parityExportMongoRepo.nextApplicationsForExport(batchSize = 1,
+        statusToExport = ApplicationStatus.READY_FOR_EXPORT).futureValue
 
       result.size mustBe 1
       result.head.applicationId mustBe "app1"
     }
 
     "return nothing when no applications are in READY_FOR_EXPORT" in {
-      val result = parityExportMongoRepo.nextApplicationsForExport(batchSize = 1).futureValue
+      val result = parityExportMongoRepo.nextApplicationsForExport(batchSize = 1,
+        statusToExport = ApplicationStatus.READY_FOR_EXPORT).futureValue
       result mustBe empty
     }
 
@@ -63,7 +66,8 @@ class ParityExportMongoRepositorySpec extends MongoRepositorySpec with CommonRep
       1 to 6 foreach { id =>
         insertApplication(s"app$id", ApplicationStatus.READY_FOR_EXPORT)
       }
-      val result = parityExportMongoRepo.nextApplicationsForExport(batchSizeLimit).futureValue
+      val result = parityExportMongoRepo.nextApplicationsForExport(batchSizeLimit,
+        statusToExport = ApplicationStatus.READY_FOR_EXPORT).futureValue
       result.size mustBe batchSizeLimit
     }
 
@@ -72,7 +76,8 @@ class ParityExportMongoRepositorySpec extends MongoRepositorySpec with CommonRep
       1 to 2 foreach { id =>
         insertApplication(s"app$id", ApplicationStatus.READY_FOR_EXPORT)
       }
-      val result = parityExportMongoRepo.nextApplicationsForExport(batchSizeLimit).futureValue
+      val result = parityExportMongoRepo.nextApplicationsForExport(batchSizeLimit,
+        statusToExport = ApplicationStatus.READY_FOR_EXPORT).futureValue
       result.size mustBe 2
     }
   }
