@@ -152,11 +152,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId,
         ProgressResponse(applicationId), None, None
       )
-      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green")))
+      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green"),
+        SchemeEvaluationResult(SchemeType.Finance, "Green")))
 
       val phase3PassmarkEvaluation = PassmarkEvaluation("", None,
         List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
-          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red")))
+          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red"),
+          SchemeEvaluationResult(SchemeType.Finance, "Red")
+      ))
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))
       when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(phase3PassmarkEvaluation))
@@ -164,7 +167,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
-      passedSchemes mustBe List(SchemeType.Sdip, SchemeType.Commercial)
+      passedSchemes mustBe List(SchemeType.Commercial, SchemeType.Sdip)
     }
 
     "retrieve schemes for SdipFaststream when the applicant has failed Faststream prior to Phase 3 tests" in new TestFixture {

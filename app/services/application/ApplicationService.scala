@@ -168,7 +168,7 @@ trait ApplicationService extends EventSink {
       case _: PassMarkEvaluationNotFound => PassmarkEvaluation(passmarkVersion = "", previousPhasePassMarkVersion = None, result = Nil)
     }
   } yield {
-    (phase1.result ++ phase3.result).distinct.filter(r => r.result == Green.toString).map(_.scheme)
+    (phase3.result ++ phase1.result.find(_.scheme == SchemeType.Sdip).toList).filter(r => r.result == Green.toString).map(_.scheme)
   }
 
   private def fixData(fixType: FixBatch)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
