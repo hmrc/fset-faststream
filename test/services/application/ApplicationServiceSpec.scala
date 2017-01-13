@@ -86,10 +86,6 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "retrieve passed schemes for Faststream application" in new TestFixture {
 
-      val userId = "userId"
-      val applicationId = "appId"
-      val frameworkId = ""
-
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
         userId,ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None,
@@ -107,10 +103,6 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "retrieve passed schemes for Faststream application with fast pass approved" in new TestFixture {
 
-      val userId = "userId"
-      val applicationId = "appId"
-      val frameworkId = ""
-
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
         userId,ProgressResponse(applicationId, fastPassAccepted = true), None, None)
 
@@ -125,10 +117,6 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "retrieve passed schemes for Edip application" in new TestFixture {
-
-      val userId = "userId"
-      val applicationId = "appId"
-      val frameworkId = ""
 
       val edipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Edip, userId,
         ProgressResponse(applicationId), None, None)
@@ -145,10 +133,6 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "retrieve passed schemes for Sdip application" in new TestFixture {
 
-      val userId = "userId"
-      val applicationId = "appId"
-      val frameworkId = ""
-
       val sdipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Sdip, userId,
         ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green")))
@@ -160,6 +144,26 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       passedSchemes mustBe List(SchemeType.Sdip)
 
+    }
+
+    "retrieve passed schemes for SdipFaststream application" in new TestFixture {
+
+      val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId,
+        ProgressResponse(applicationId), None, None
+      )
+      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green")))
+
+      val phase3PassmarkEvaluation = PassmarkEvaluation("", None,
+        List(SchemeEvaluationResult(SchemeType.Commercial, "Green"),
+          SchemeEvaluationResult(SchemeType.GovernmentOperationalResearchService, "Red")))
+
+      when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))
+      when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(phase3PassmarkEvaluation))
+      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(phase1PassmarkEvaluation))
+
+      val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
+
+      passedSchemes mustBe List(SchemeType.Sdip, SchemeType.Commercial)
     }
   }
 
@@ -199,6 +203,11 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     implicit val hc = HeaderCarrier()
     implicit val rh = mock[RequestHeader]
+
+
+    val userId = "userId"
+    val applicationId = "appId"
+    val frameworkId = ""
 
     val candidate1 = Candidate(userId = "user123", applicationId = Some("appId234"), email = Some("test1@localhost"),
       None, None, None, None, None, None, None, None, None)

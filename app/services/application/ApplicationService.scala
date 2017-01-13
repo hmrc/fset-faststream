@@ -151,11 +151,22 @@ trait ApplicationService extends EventSink {
       appRepository.findByUserId(userId, frameworkId).flatMap { appResponse =>
         (appResponse.progressResponse.fastPassAccepted, appResponse.applicationRoute) match {
           case (true, _) => schemeRepository.find(appResponse.applicationId).map(_.schemes)
+
           case (_, ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
             evaluateP1ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
+
+          case (_, ApplicationRoute.SdipFaststream) => getSdipFaststreamSchemes(appResponse.applicationId)
+
           case _ => evaluateP3ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
         }
       }
+  }
+
+  private def getSdipFaststreamSchemes(applicationId: String): Future[List[SchemeType]] = for {
+    phase1 <- evaluateP1ResultService.getPassmarkEvaluation(applicationId)
+    phase3 <- evaluateP3ResultService.getPassmarkEvaluation(applicationId)
+  } yield {
+    (phase1.result ++ phase3.result).distinct.filter(r => r.result == Green.toString).map(_.scheme)
   }
 
   private def fixData(fixType: FixBatch)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
