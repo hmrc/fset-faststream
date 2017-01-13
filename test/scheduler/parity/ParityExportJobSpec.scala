@@ -17,6 +17,7 @@
 package scheduler.parity
 
 import config.ScheduledJobConfig
+import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.ConnectorException
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -34,9 +35,9 @@ class ParityExportJobSpec extends UnitWithAppSpec {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
   "Scheduler execution" should {
-    "export applications ready for export" in new TestFixture {
+    "export applications ready for export" in new ExportTestFixture {
       val appId = "appId1"
-      when(mockParityService.nextApplicationsForExport(any[Int])).thenReturn(Future.successful(
+      when(mockParityService.nextApplicationsForExport(any[Int], any[ApplicationStatus])).thenReturn(Future.successful(
           ApplicationReadyForExport(appId) :: Nil
         ))
       when(mockParityService.exportApplication(any[String])(any[HeaderCarrier](), any[RequestHeader]())).thenReturn(Future.successful(
@@ -45,13 +46,13 @@ class ParityExportJobSpec extends UnitWithAppSpec {
 
       scheduler.tryExecute().futureValue
 
-      verify(mockParityService, times(1)).nextApplicationsForExport(eqTo(batchSize))
+      verify(mockParityService, times(1)).nextApplicationsForExport(eqTo(batchSize), any[ApplicationStatus])
       verify(mockParityService, times(1)).exportApplication(eqTo(appId))(any[HeaderCarrier](), any[RequestHeader]())
     }
 
-    "export all applications even when some of them fail" in new TestFixture {
+    "export all applications even when some of them fail" in new ExportTestFixture {
       val appIds = List("appId1", "appId2", "appId3", "appId4")
-      when(mockParityService.nextApplicationsForExport(any[Int])).thenReturn(Future.successful(
+      when(mockParityService.nextApplicationsForExport(any[Int], any[ApplicationStatus])).thenReturn(Future.successful(
         appIds.map(ApplicationReadyForExport(_))
       ))
 
@@ -75,8 +76,8 @@ class ParityExportJobSpec extends UnitWithAppSpec {
       verify(mockParityService, times(1)).exportApplication(eqTo(appIds(3)))(any[HeaderCarrier](), any[RequestHeader]())
     }
 
-    "do not export an application if none of them are ready for export" in new TestFixture {
-      when(mockParityService.nextApplicationsForExport(any[Int])).thenReturn(Future.successful(
+    "do not export an application if none of them are ready for export" in new ExportTestFixture {
+      when(mockParityService.nextApplicationsForExport(any[Int], any[ApplicationStatus])).thenReturn(Future.successful(
         Nil
       ))
       scheduler.tryExecute().futureValue
@@ -85,7 +86,7 @@ class ParityExportJobSpec extends UnitWithAppSpec {
     }
   }
 
-  trait TestFixture {
+  trait ExportTestFixture {
     val batchSize = 1
     val mockParityService = mock[ParityExportService]
     val mockParityJobConfig = ScheduledJobConfig(

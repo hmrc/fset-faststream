@@ -21,7 +21,7 @@ import scheduler.allocation.{ ConfirmAttendanceReminderJob, ConfirmAttendanceRem
 import scheduler.assessment._
 import scheduler.fixer.{ FixerJob, FixerJobConfig }
 import scheduler.onlinetesting._
-import scheduler.parity.{ ParityExportJob, ParityExportJobConfig }
+import scheduler.parity._
 import uk.gov.hmrc.play.scheduling.{ RunningOfScheduledJobs, ScheduledJob }
 
 trait Scheduler extends RunningOfScheduledJobs {
@@ -63,6 +63,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(NotifyAssessmentCentrePassedOrFailedJobConfig, NotifyAssessmentCentrePassedOrFailedJob),
     maybeInitScheduler(FixerJobConfig, FixerJob),
     maybeInitScheduler(ProgressSdipForFaststreamCandidateJobConfig, ProgressSdipForFaststreamCandidateJob),
-    maybeInitScheduler(ParityExportJobConfig, ParityExportJob)
+    maybeInitScheduler(ParityExportJobConfig, ParityExportJob),
+    maybeInitScheduler(ParityUpdateExportJobConfig, ParityUpdateExportJob)
   ).flatten
 }

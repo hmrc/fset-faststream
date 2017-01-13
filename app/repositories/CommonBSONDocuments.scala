@@ -149,7 +149,8 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString),
             phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key)
           ),
-          exported = getProgress(EXPORTED.toString),
+          exported = getProgress(ProgressStatuses.EXPORTED.toString),
+          updateExported = getProgress(ProgressStatuses.UPDATE_EXPORTED.toString),
           failedToAttend = getProgress(FAILED_TO_ATTEND.toString),
           assessmentScores = AssessmentScores(getProgress(ASSESSMENT_SCORES_ENTERED.toString), getProgress(ASSESSMENT_SCORES_ACCEPTED.toString)),
           assessmentCentre = AssessmentCentre(

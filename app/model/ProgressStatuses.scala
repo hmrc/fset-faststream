@@ -105,6 +105,7 @@ object ProgressStatuses {
   case object FAST_PASS_ACCEPTED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
 
   case object EXPORTED extends ProgressStatus(ApplicationStatus.EXPORTED)
+  case object UPDATE_EXPORTED extends ProgressStatus(ApplicationStatus.UPDATE_EXPORTED)
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {

@@ -19,7 +19,8 @@ package services.parity
 import config.{ MicroserviceAppConfig, ParityGatewayConfig }
 import connectors.ExchangeObjects
 import connectors.paritygateway.ParityGatewayClient
-import model.ProgressStatuses.EXPORTED
+import model.ApplicationStatus.ApplicationStatus
+import model.ProgressStatuses.{ EXPORTED, ProgressStatus, UPDATE_EXPORTED }
 import model.events.{ AuditEvents, DataStoreEvents }
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
@@ -61,11 +62,11 @@ trait ParityExportService extends EventSink {
   val socioEconomicCalculator: SocioEconomicScoreCalculator
   val appRepository: GeneralApplicationRepository
 
-  // Random apps in READY_FOR_EXPORT
-  def nextApplicationsForExport(batchSize: Int): Future[List[ApplicationReadyForExport]] =
-  parityExRepository.nextApplicationsForExport(batchSize)
+  def nextApplicationsForExport(batchSize: Int, statusToExport: ApplicationStatus): Future[List[ApplicationReadyForExport]] =
+  parityExRepository.nextApplicationsForExport(batchSize, statusToExport)
 
-  def exportApplication(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+  def exportApplication(applicationId: String)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       exportJson <- generateExportJson(applicationId)
       _ <- parityGatewayClient.createExport(exportJson)
@@ -73,6 +74,18 @@ trait ParityExportService extends EventSink {
     } yield {
       AuditEvents.ApplicationExported("applicationId" -> applicationId) ::
       DataStoreEvents.ApplicationExported(applicationId) :: Nil
+    }
+  }
+
+  def updateExportApplication(applicationId: String)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      exportJson <- generateExportJson(applicationId)
+      _ <- parityGatewayClient.updateExport(exportJson)
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, UPDATE_EXPORTED)
+    } yield {
+      AuditEvents.ApplicationExportUpdated("applicationId" -> applicationId) ::
+      DataStoreEvents.ApplicationExportUpdated(applicationId) :: Nil
     }
   }
 

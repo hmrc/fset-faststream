@@ -17,9 +17,9 @@
 package repositories.parity
 
 import factories.DateTimeFactory
+import model.ApplicationStatus.{ ApplicationStatus, READY_FOR_EXPORT }
 import model.{ ApplicationStatus, Commands }
 import model.Commands.CreateApplicationRequest
-import model.persisted.ApplicationReadyForEvaluation
 import play.api.libs.json.{ JsValue, Json }
 import reactivemongo.api.DB
 import reactivemongo.bson._
@@ -45,7 +45,7 @@ object ApplicationReadyForExport {
 trait ParityExportRepository extends RandomSelection with CommonBSONDocuments with ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
 
-  def nextApplicationsForExport(batchSize: Int): Future[List[ApplicationReadyForExport]]
+  def nextApplicationsForExport(batchSize: Int, exportStatus: ApplicationStatus): Future[List[ApplicationReadyForExport]]
 
   def getApplicationForExport(applicationId: String): Future[JsValue]
 }
@@ -55,9 +55,8 @@ class ParityExportMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () 
     Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats
   ) with ParityExportRepository with CommonBSONDocuments {
 
-  override def nextApplicationsForExport(batchSize: Int): Future[List[ApplicationReadyForExport]] = {
-    val query = BSONDocument("applicationStatus" -> ApplicationStatus.READY_FOR_EXPORT.toString)
-
+  override def nextApplicationsForExport(batchSize: Int, statusToExport: ApplicationStatus): Future[List[ApplicationReadyForExport]] = {
+    val query = BSONDocument("applicationStatus" -> statusToExport)
     selectRandom[ApplicationReadyForExport](query, batchSize)
   }
 

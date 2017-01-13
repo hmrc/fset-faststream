@@ -18,6 +18,8 @@ package scheduler.parity
 
 import config.ScheduledJobConfig
 import model.EmptyRequestHeader
+import model.ApplicationStatus.{ ApplicationStatus, READY_FOR_EXPORT, READY_TO_UPDATE }
+import play.api.mvc.RequestHeader
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.parity.ParityExportService
@@ -30,6 +32,11 @@ object ParityExportJob extends ParityExportJob {
   val config = ParityExportJobConfig
 }
 
+object ParityUpdateExportJob extends ParityUpdateExportJob {
+  override val service = ParityExportService
+  val config = ParityUpdateExportJobConfig
+}
+
 trait ParityExportJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val service: ParityExportService
   def jobBatchSize = config.conf.batchSize.getOrElse(1)
@@ -38,8 +45,23 @@ trait ParityExportJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedule
   implicit val requestHeader = EmptyRequestHeader
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    service.nextApplicationsForExport(jobBatchSize).flatMap { applicationList =>
+    service.nextApplicationsForExport(jobBatchSize, READY_FOR_EXPORT).flatMap { applicationList =>
       val exportFuts = applicationList.map(applicationReadyForExport => service.exportApplication(applicationReadyForExport.applicationId))
+      Future.sequence(exportFuts).map(_ => ())
+    }
+  }
+}
+
+trait ParityUpdateExportJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+  val service: ParityExportService
+  def jobBatchSize = config.conf.batchSize.getOrElse(1)
+
+  implicit val blankHeaderCarrier = HeaderCarrier()
+  implicit val requestHeader = EmptyRequestHeader
+
+  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    service.nextApplicationsForExport(jobBatchSize, READY_TO_UPDATE).flatMap { applicationList =>
+      val exportFuts = applicationList.map(applicationReadyForExport => service.updateExportApplication(applicationReadyForExport.applicationId))
       Future.sequence(exportFuts).map(_ => ())
     }
   }
@@ -48,4 +70,9 @@ trait ParityExportJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedule
 object ParityExportJobConfig extends BasicJobConfig[ScheduledJobConfig](
   configPrefix = "scheduling.parity-export-job",
   name = "ParityExportJob"
+)
+
+object ParityUpdateExportJobConfig extends BasicJobConfig[ScheduledJobConfig](
+  configPrefix = "scheduling.parity-update-export-job",
+  name = "ParityUpdateExportJob"
 )

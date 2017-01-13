@@ -20,7 +20,7 @@ import common.FutureEx
 import connectors.ExchangeObjects
 import model.Commands.Candidate
 import model.EvaluationResults.Green
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
+import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
 import model.SchemeType.SchemeType
 import model.command.WithdrawApplication
 import model.events.EventTypes._
@@ -151,11 +151,24 @@ trait ApplicationService extends EventSink {
       appRepository.findByUserId(userId, frameworkId).flatMap { appResponse =>
         (appResponse.progressResponse.fastPassAccepted, appResponse.applicationRoute) match {
           case (true, _) => schemeRepository.find(appResponse.applicationId).map(_.schemes)
+
           case (_, ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
             evaluateP1ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
+
+          case (_, ApplicationRoute.SdipFaststream) => getSdipFaststreamSchemes(appResponse.applicationId)
+
           case _ => evaluateP3ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
         }
       }
+  }
+
+  private def getSdipFaststreamSchemes(applicationId: String): Future[List[SchemeType]] = for {
+    phase1 <- evaluateP1ResultService.getPassmarkEvaluation(applicationId)
+    phase3 <- evaluateP3ResultService.getPassmarkEvaluation(applicationId).recover{
+      case _: PassMarkEvaluationNotFound => PassmarkEvaluation(passmarkVersion = "", previousPhasePassMarkVersion = None, result = Nil)
+    }
+  } yield {
+    (phase3.result ++ phase1.result.find(_.scheme == SchemeType.Sdip).toList).filter(r => r.result == Green.toString).map(_.scheme)
   }
 
   private def fixData(fixType: FixBatch)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
