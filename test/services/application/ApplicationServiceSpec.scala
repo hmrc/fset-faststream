@@ -17,6 +17,7 @@
 package services
 
 import model.Commands.{ ApplicationResponse, Candidate }
+import model.Exceptions.PassMarkEvaluationNotFound
 import model.command.ProgressResponse
 import model.events.AuditEvents
 import org.joda.time.DateTime
@@ -164,6 +165,22 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
       passedSchemes mustBe List(SchemeType.Sdip, SchemeType.Commercial)
+    }
+
+    "retrieve schemes for SdipFaststream when the applicant has failed Faststream prior to Phase 3 tests" in new TestFixture {
+
+      val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId,
+        ProgressResponse(applicationId), None, None
+      )
+      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeType.Sdip, "Green")))
+
+      when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))
+      when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.failed(PassMarkEvaluationNotFound(applicationId)))
+      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(phase1PassmarkEvaluation))
+
+      val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
+
+      passedSchemes mustBe List(SchemeType.Sdip)
     }
   }
 

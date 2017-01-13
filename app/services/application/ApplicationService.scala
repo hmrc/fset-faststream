@@ -20,7 +20,7 @@ import common.FutureEx
 import connectors.ExchangeObjects
 import model.Commands.Candidate
 import model.EvaluationResults.Green
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
+import model.Exceptions.{ ApplicationNotFound, NotFoundException, PassMarkEvaluationNotFound }
 import model.SchemeType.SchemeType
 import model.command.WithdrawApplication
 import model.events.EventTypes._
@@ -164,7 +164,9 @@ trait ApplicationService extends EventSink {
 
   private def getSdipFaststreamSchemes(applicationId: String): Future[List[SchemeType]] = for {
     phase1 <- evaluateP1ResultService.getPassmarkEvaluation(applicationId)
-    phase3 <- evaluateP3ResultService.getPassmarkEvaluation(applicationId)
+    phase3 <- evaluateP3ResultService.getPassmarkEvaluation(applicationId).recover{
+      case _: PassMarkEvaluationNotFound => PassmarkEvaluation(passmarkVersion = "", previousPhasePassMarkVersion = None, result = Nil)
+    }
   } yield {
     (phase1.result ++ phase3.result).distinct.filter(r => r.result == Green.toString).map(_.scheme)
   }
