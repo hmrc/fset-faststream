@@ -2,7 +2,9 @@
 @import views.html.home.commonSectionFinalResults
 @import views.html.home.withdrawSection
 @import security.Roles._
+@import security.RoleUtils._
 @import views.html.home.withdrawInformation
+@import views.html.widgets.sdipFaststreamBanner
 
 @(cachedUser: CachedData, finalSchemeResults: List[SchemeEvaluationResult])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
 
@@ -26,6 +28,8 @@
 @main_template(title = "Home") {
 
     @commonSectionFinalResults(cachedUser)
+
+    @sdipFaststreamBanner(cachedUser)
 
     <section class="section-border @if(WithdrawnApplicationRole.isAuthorized(cachedUser)){disabled}" id="mainProgressPage">
         <h2 class="heading-large"><i class="fa fa-check"></i>You've passed the video interview</h2>

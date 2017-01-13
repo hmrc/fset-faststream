@@ -16,8 +16,7 @@
 
 package connectors.exchange
 
-import models.ApplicationData.ProgressStatuses
-import models.UniqueIdentifier
+import models.{ ProgressStatuses, UniqueIdentifier }
 import play.api.libs.json.Json
 
 case class TestStatusUpdate(status: ProgressStatuses.ProgressStatus,

@@ -54,7 +54,7 @@ object CachedDataExample {
   val fastPassRejectedPhase1StartedApplication = ApplicationData(
     UniqueIdentifier(UUID.randomUUID.toString),
     UniqueIdentifier(UUID.randomUUID.toString),
-    ApplicationStatus.SUBMITTED,
+    ApplicationStatus.PHASE1_TESTS,
     ApplicationRoute.Faststream,
     ProgressExamples.Phase1TestsStarted,
     Some(CivilServiceExperienceDetails(applicable = true, fastPassReceived = Some(true), fastPassAccepted = Some(false))),
@@ -73,7 +73,7 @@ object CachedDataExample {
   val InProgressInQuestionnaireApplication = InProgressInAssistanceDetailsApplication.copy(progress = ProgressExamples.QuestionnaireProgress)
   val InProgressInPreviewApplication = InProgressInQuestionnaireApplication.copy(progress = ProgressExamples.PreviewProgress)
   val SubmittedApplication = InProgressInPreviewApplication.copy(applicationStatus = ApplicationStatus.SUBMITTED,
-    progress = ProgressExamples.SubmitProgress)
+    progress = ProgressExamples.SubmittedProgress)
   val WithdrawApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
     progress = ProgressExamples.WithdrawnAfterSubmitProgress)
   val EdipPhase1TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
@@ -83,7 +83,7 @@ object CachedDataExample {
   val Phase3TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
     progress = ProgressExamples.Phase3TestsPassed)
   val Phase1TestsExpiredApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE1_TESTS,
-    progress = ProgressExamples.SubmitProgress.copy(phase1TestProgress = Phase1TestProgress(phase1TestsExpired = true)))
+    progress = ProgressExamples.SubmittedProgress.copy(phase1TestProgress = Phase1TestProgress(phase1TestsExpired = true)))
   val EdipWithdrawnPhase1TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
     progress = ProgressExamples.Phase3TestsPassed, applicationRoute = ApplicationRoute.Edip)
   val SdipWithdrawnPhase1TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,

@@ -36,16 +36,33 @@
     </div>
 }
 
+@displaySdipFaststreamExportedBanner = {
+    <div class="panel-success standard-panel" id="sdipFsExportedBanner">
+        <div class="text">
+            <p>You've passed the online exercises for the Summer Diversity Internship
+                Programme (SDIP).</p>
+            <p>As you've already got an account for the Fast Stream assessment centre,
+                you'll need to <a href="sdip-profile-home-successful.html">follow these steps</a>
+                to apply for SDIP. When you're asked to sign in, use the same details
+                you used previously.</p>
+        </div>
+    </div>
+}
+
 @isSdipResultAvailable = @{isSdipFaststreamFailed(cachedUserData) || isSdipFaststreamSuccessful(cachedUserData)}
 
 @if(isSdipFaststreamFailed(cachedUserData)) {
     @displaySdipFaststreamFailedBanner
 }
 
-@if(isSdipFaststreamSuccessful(cachedUserData)) {
+@if(isSdipFaststreamSuccessful(cachedUserData) && !isUpdatedExported(cachedUserData)) {
     @displaySdipFaststreamSuccessfulBanner
 }
 
 @if(!isSdipResultAvailable && isSdipFaststream(cachedUserData)) {
     @displaySdipFaststreamBanner
+}
+
+@if(isSdipFaststream(cachedUserData) && isSdipFaststreamSuccessful(cachedUserData) && isUpdatedExported(cachedUserData)) {
+    @displaySdipFaststreamExportedBanner
 }

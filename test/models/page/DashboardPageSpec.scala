@@ -30,8 +30,10 @@ import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import security.RolesSpec
+import connectors.exchange.ProgressExamples._
+import org.scalatest.Inside
 
-class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks {
+class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Inside {
   import DashboardPageSpec._
 
   implicit val request: RequestHeader = FakeRequest()
@@ -42,14 +44,14 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks {
   val Applications = Table(
     ("applicationStatus",                      "step1",          "step2",         "step3",                    "step4",                  "isApplicationSubmittedAndNotWithdrawn",  "isApplicationWithdrawn",  "isApplicationInProgress", "isUserWithNoApplication",  "isPhase1TestsPassed", "isPhase2TestsPassed", "isTestGroupExpired", "isPhase2TestGroupExpired", "isPhase3TestGroupExpired",   "isPhase1TestFailed", "isPhase2TestFailed",  "isPhase3TestFailed",  "fullName",   "testProfile", "phase2TestProfile", "phase3TestProfile",  "assessmentInProgressStatus"),
     (REGISTERED,                               ProgressInactive, ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                     false,                     true,                       false,                  false,                false,                 false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
-    (CREATED,                                  ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                     false,                     true,                       true,                   true,                 false,                 false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
-    (IN_PROGRESS,                              ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                     true,                      false,                      true,                   true,                 false,                 false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
-    (SUBMITTED,                                ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         true,                                     false,                     false,                     false,                      true,                   true,                 false,                 false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (CREATED,                                  ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                     false,                     true,                       false,                  false,                false,                 false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (IN_PROGRESS,                              ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         false,                                    false,                     true,                      false,                      false,                  false,                false,                 false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (SUBMITTED,                                ProgressActive,   ProgressInactive, ProgressInactive,          ProgressInactive,         true,                                     false,                     false,                     false,                      false,                  false,                false,                 false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
     (WITHDRAWN,                                ProgressActive,   ProgressActive,   ProgressActive,            ProgressInactiveDisabled, false,                                    true,                      false,                     false,                      true,                   true,                 false,                 false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
-    (PHASE1_TESTS,                             ProgressActive,   ProgressActive,   ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                     false,                     false,                      true,                   true,                 true,                  false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
-    (PHASE1_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                     false,                     false,                      true,                   true,                 false,                 false,                     false,                        true,                 false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
-    (PHASE2_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                     false,                     false,                      true,                   true,                 false,                 false,                     false,                        false,                true,                  false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
-    (PHASE3_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                     false,                     false,                      true,                   true,                 false,                 false,                     false,                        false,                false,                 true,                  "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN)
+    (PHASE1_TESTS,                             ProgressActive,   ProgressActive,   ProgressInactive,          ProgressInactive,         true,                                     false,                     false,                     false,                      true,                   false,                false,                 false,                     false,                        false,                false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (PHASE1_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                     false,                     false,                      false,                  false,                false,                 false,                     false,                        true,                 false,                 false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (PHASE2_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                     false,                     false,                      false,                  false,                false,                 false,                     false,                        false,                true,                  false,                 "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN),
+    (PHASE3_TESTS_FAILED,                      ProgressActive,   ProgressInactive, ProgressInactiveDisabled,  ProgressInactiveDisabled, true,                                     false,                     false,                     false,                      false,                  false,                false,                 false,                     false,                        false,                false,                 true,                  "John Biggs",  None,         None,                 None,                 ASSESSMENT_STATUS_UNKNOWN)
   )
 
   // scalastyle:on line.size.limit
@@ -80,9 +82,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks {
          phase3TestGroup: Option[Phase3TestsPage],
          assessmentInProgressStatus: AssessmentStageStatus
         ) => {
-          val obj = DashboardPage(user(status), None, None, None)
-          DashboardPage(user(status), None, None, None) mustBe
-            DashboardPage(
+          val expected = DashboardPage(
               step1,
               step2,
               step3,
@@ -106,6 +106,31 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks {
               phase3TestGroup,
               assessmentInProgressStatus
             )
+
+          // this is rather unwieldy but makes it much easier to match up what field is wrong in the long list of booleans
+          val actual = DashboardPage(user(status), None, None, None)
+
+          actual.firstStepVisibility mustBe expected.firstStepVisibility
+          actual.secondStepVisibility mustBe expected.secondStepVisibility
+          actual.thirdStepVisibility mustBe expected.thirdStepVisibility
+          actual.fourthStepVisibility mustBe expected.fourthStepVisibility
+          actual.isApplicationSubmittedAndNotWithdrawn mustBe expected.isApplicationSubmittedAndNotWithdrawn
+          actual.isApplicationWithdrawn mustBe expected.isApplicationWithdrawn
+          actual.isApplicationInProgress mustBe expected.isApplicationInProgress
+          actual.isUserWithNoApplication mustBe expected.isUserWithNoApplication
+          actual.isPhase1TestsPassed mustBe expected.isPhase1TestsPassed
+          actual.isPhase2TestsPassed mustBe expected.isPhase2TestsPassed
+          actual.isTestGroupExpired mustBe expected.isTestGroupExpired
+          actual.isPhase2TestGroupExpired mustBe expected.isPhase2TestGroupExpired
+          actual.isPhase3TestGroupExpired mustBe expected.isPhase3TestGroupExpired
+          actual.isPhase1TestFailed mustBe expected.isPhase1TestFailed
+          actual.isPhase2TestFailed mustBe expected.isPhase2TestFailed
+          actual.isPhase3TestFailed mustBe expected.isPhase3TestFailed
+          actual.fullName mustBe expected.fullName
+          actual.phase1TestsPage mustBe expected.phase1TestsPage
+          actual.phase2TestsPage mustBe expected.phase2TestsPage
+          actual.phase3TestsPage mustBe expected.phase3TestsPage
+          actual.assessmentStageStatus mustBe expected.assessmentStageStatus
         }
       }
     }
@@ -115,7 +140,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks {
       val statusesTested = Applications.toList.map(_._1)
       val allStatuses = ApplicationStatus.values.toList
 
-      statusesTested must contain theSameElementsAs(allStatuses)
+      statusesTested must contain theSameElementsAs allStatuses
     }
   }
 
@@ -123,12 +148,12 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks {
   // scalastyle:off line.size.limit
  val WithdrawnApplications = Table(
     ("Status before Withdraw", "step1", "step2", "step3", "step4", "isApplicationSubmittedAndNotWithdrawn", "isApplicationWithdrawn", "isApplicationInProgress", "isUserWithNoApplication", "isPhase1TestsPassed", "isPhase2TestsPassed", "isTestGroupExpired", "isPhase2TestGroupExpired", "isPhase3TestGroupExpired", "isPhase1TestFailed", "isPhase2TestFailed", "isPhase3TestFailed", "fullName", "testProfile", "phase2TestProfile", "phase3TestGroup", "assessmentInProgressStatus"),
-    (PersonalDetailsProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, true, false, false, false, false, false, false, false, false, false, false, "John Biggs", None, None, None, ASSESSMENT_STATUS_UNKNOWN),
-    (SubmittedProgress, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, true, false, false, false, false, false, false, false, false, false, false, "John Biggs", None, None, None, ASSESSMENT_STATUS_UNKNOWN)
+    (PersonalDetailsProgressResponse, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, true, false, false, false, false, false, false, false, false, false, false, "John Biggs", None, None, None, ASSESSMENT_STATUS_UNKNOWN),
+    (SubmittedProgressResponse, ProgressActive, ProgressInactiveDisabled, ProgressInactiveDisabled, ProgressInactiveDisabled, false, true, false, false, false, false, false, false, false, false, false, false, "John Biggs", None, None, None, ASSESSMENT_STATUS_UNKNOWN)
   )
   // scalastyle:on line.size.limit
   // format: on
-  "The steps visibility when application is withdrawn from status" should {
+  "Withdrawn The steps visibility when application is withdrawn from status" should {
     "be correctly determined by previous applicationStatus" in {
 
       forAll(WithdrawnApplications) {
@@ -207,14 +232,18 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks {
 
 object DashboardPageSpec {
 
-  import connectors.exchange.AllocationDetails
-  import org.joda.time.{ DateTime, LocalDate }
-
   def user(status: ApplicationStatus.Value) = {
-    if (status == ApplicationStatus.REGISTERED) {
-      RolesSpec.registeredUser(status)
-    } else {
-      RolesSpec.activeUser(status)
+    import models.ApplicationData.ApplicationStatus._
+    status match {
+     case REGISTERED => RolesSpec.registeredUser(status)
+     case CREATED | IN_PROGRESS => RolesSpec.activeUser(status, InitialProgress)
+     case SUBMITTED => RolesSpec.activeUser(status, SubmittedProgress)
+     case WITHDRAWN => RolesSpec.activeUser(status)
+     case PHASE1_TESTS => RolesSpec.activeUser(status, Phase1TestsPassed)
+     case PHASE1_TESTS_FAILED => RolesSpec.activeUser(status, Phase1TestsFailed)
+     case PHASE2_TESTS_FAILED => RolesSpec.activeUser(status, Phase2TestsFailed)
+     case PHASE3_TESTS_FAILED => RolesSpec.activeUser(status, Phase3TestsFailed)
+     case _ => RolesSpec.activeUser(status)
     }
   }
 
@@ -228,10 +257,8 @@ object DashboardPageSpec {
     templateCachedData.copy(application = updatedApplication)
   }
 
-  val EmptyProgress = ProgressResponseExamples.Initial
+  val EmptyProgressResponse = ProgressResponseExamples.Initial
 
-  val PersonalDetailsProgress = EmptyProgress.copy(personalDetails = true)
-  val SubmittedProgress = PersonalDetailsProgress.copy(submitted = true)
-  private val AllocationDetails_Expired = AllocationDetails("", "", new DateTime(), Some(new LocalDate().minusDays(1)))
-  private val AllocationDetails_Not_Expired = AllocationDetails("", "", new DateTime(), Some(new LocalDate().plusDays(1)))
+  val PersonalDetailsProgressResponse = EmptyProgressResponse.copy(personalDetails = true)
+  val SubmittedProgressResponse = PersonalDetailsProgressResponse.copy(submitted = true)
 }
