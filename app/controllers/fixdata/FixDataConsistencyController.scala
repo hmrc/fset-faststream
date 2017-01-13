@@ -17,18 +17,23 @@
 package controllers.fixdata
 
 import model.Exceptions.NotFoundException
+import model.command.{ FastPassEvaluation, FastPassPromotion, ProcessedFastPassCandidate }
+import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.application.ApplicationService
+import services.fastpass.FastPassService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object FixDataConsistencyController extends FixDataConsistencyController {
-  val applicationService = ApplicationService
+  override val applicationService = ApplicationService
+  override val fastPassService = FastPassService
 }
 
 trait FixDataConsistencyController extends BaseController {
   val applicationService: ApplicationService
+  val fastPassService: FastPassService
 
   def removeETray(appId: String) = Action.async { implicit request =>
     applicationService.fixDataByRemovingETray(appId).map { _ =>
@@ -43,6 +48,16 @@ trait FixDataConsistencyController extends BaseController {
       NoContent
     } recover {
       case _: NotFoundException => NotFound
+    }
+  }
+
+  def promoteToFastPassAccepted(applicationId: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[FastPassPromotion] { req =>
+      fastPassService.promoteToFastPassCandidate(applicationId, req.triggeredBy).map { _ =>
+        NoContent
+      } recover {
+        case _: NotFoundException => NotFound
+      }
     }
   }
 
