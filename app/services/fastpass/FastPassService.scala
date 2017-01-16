@@ -17,7 +17,7 @@
 package services.fastpass
 
 import connectors.{ CSREmailClient, OnlineTestEmailClient }
-import model.ProgressStatuses
+import model.{ CivilServiceExperienceDetails, ProgressStatuses }
 import model.events.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
 import model.events.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
 import play.api.mvc.RequestHeader
@@ -33,12 +33,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object FastPassService extends FastPassService {
-  val appRepo = applicationRepository
-  val personalDetailsService = PersonalDetailsService
-  val eventService: EventService = EventService
-  val emailClient = CSREmailClient
-  val cdRepository = faststreamContactDetailsRepository
-  val csedRepository = civilServiceExperienceDetailsRepository
+  override val appRepo = applicationRepository
+  override val personalDetailsService = PersonalDetailsService
+  override val eventService: EventService = EventService
+  override val emailClient = CSREmailClient
+  override val cdRepository = faststreamContactDetailsRepository
+  override val csedRepository = civilServiceExperienceDetailsRepository
+
+  override val fastPassDetails = CivilServiceExperienceDetails(
+    applicable = true,
+    fastPassReceived = Some(true),
+    fastPassAccepted = Some(true),
+    certificateNumber = Some("0000000")
+  )
 
 }
 
@@ -51,6 +58,8 @@ trait FastPassService extends EventSink {
   val cdRepository: ContactDetailsRepository
   val csedRepository: CivilServiceExperienceDetailsRepository
 
+  val fastPassDetails: CivilServiceExperienceDetails
+
   val acceptedTemplate = "fset_faststream_app_online_fast-pass_accepted"
 
 
@@ -58,6 +67,19 @@ trait FastPassService extends EventSink {
                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[(String, String)] = {
     if (accepted) { acceptFastPassCandidate(userId, applicationId, actionTriggeredBy) }
     else {rejectFastPassCandidate(userId, applicationId, actionTriggeredBy)}
+  }
+
+  def promoteToFastPassCandidate(applicationId: String, actionTriggeredBy: String)
+                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    val eventMap = Map("createdBy" -> actionTriggeredBy, "applicationId" -> applicationId)
+    for {
+      _ <- csedRepository.update(applicationId, fastPassDetails)
+      _ <- appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      _ <- eventSink(model.events.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
+      _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
+
+    } yield ()
   }
 
   private def acceptFastPassCandidate(userId: String, applicationId: String, actionTriggeredBy: String)
