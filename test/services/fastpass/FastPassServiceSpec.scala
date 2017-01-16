@@ -107,8 +107,7 @@ class FastPassServiceSpec extends UnitSpec {
 
   "promoteToFastPassCandidate" should {
     "force a candidate to a fast pass accepted state" in new TextFixtureWithMockResponses {
-      val applicationId = underTest.promoteToFastPassCandidate(appId, triggeredBy).futureValue
-      applicationId mustBe appId
+      underTest.promoteToFastPassCandidate(appId, triggeredBy).futureValue
 
       verifyDataStoreEvents(2,
         List("FastPassApproved",

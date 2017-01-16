@@ -70,7 +70,7 @@ trait FastPassService extends EventSink {
   }
 
   def promoteToFastPassCandidate(applicationId: String, actionTriggeredBy: String)
-                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[String] = {
+                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     val eventMap = Map("createdBy" -> actionTriggeredBy, "applicationId" -> applicationId)
     for {
@@ -79,7 +79,7 @@ trait FastPassService extends EventSink {
       _ <- eventSink(model.events.AuditEvents.ApplicationReadyForExport(eventMap) :: ApplicationReadyForExport(applicationId) :: Nil)
       _ <- eventSink(FastPassUserAccepted(eventMap) :: FastPassApproved(applicationId, actionTriggeredBy) :: Nil)
 
-    } yield applicationId
+    } yield ()
   }
 
   private def acceptFastPassCandidate(userId: String, applicationId: String, actionTriggeredBy: String)

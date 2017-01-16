@@ -18,9 +18,8 @@ package model.command
 
 import play.api.libs.json.Json
 
-final case class FastPassPromotion(triggeredBy: String, certificateNumber: Option[String] = None)
+final case class FastPassPromotion(triggeredBy: String)
 
 object FastPassPromotion {
   implicit val fastPassPromotionFormat = Json.format[FastPassPromotion]
-
 }
