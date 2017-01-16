@@ -105,6 +105,27 @@ class FastPassServiceSpec extends UnitSpec {
     }
   }
 
+  "promoteToFastPassCandidate" should {
+    "force a candidate to a fast pass accepted state" in new TextFixtureWithMockResponses {
+      val applicationId = underTest.promoteToFastPassCandidate(appId, triggeredBy).futureValue
+      applicationId mustBe appId
+
+      verifyDataStoreEvents(2,
+        List("FastPassApproved",
+          "ApplicationReadyForExport")
+      )
+
+      verifyAuditEvents(2,
+        List("FastPassUserAccepted",
+          "ApplicationReadyForExport")
+      )
+
+      verify(csedRepositoryMock).update(eqTo(appId), eqTo(underTest.fastPassDetails))
+      verify(appRepoMock).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAST_PASS_ACCEPTED)
+      verifyNoMoreInteractions(csedRepositoryMock, appRepoMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
+    }
+  }
+
   trait TestFixture extends EventServiceFixture {
     implicit val hc = HeaderCarrier()
     implicit val rh = mock[RequestHeader]
@@ -142,6 +163,7 @@ class FastPassServiceSpec extends UnitSpec {
 
   trait TextFixtureWithMockResponses extends TestFixture {
     when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceFutureResponse)
+    when(csedRepositoryMock.update(any[String], any[CivilServiceExperienceDetails])).thenReturn(serviceFutureResponse)
     when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
     when(personalDetailsServiceMock.find(any[String], any[String])).thenReturn(personalDetailsResponse)
     when(cdRepositoryMock.find(any[String])).thenReturn(contactDetailsResponse)
