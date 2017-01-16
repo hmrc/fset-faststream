@@ -17,7 +17,7 @@
 package services.fastpass
 
 import connectors.OnlineTestEmailClient
-import model.ProgressStatuses
+import model.{ CivilServiceExperienceDetails, ProgressStatuses }
 import model.command.PersonalDetailsExamples._
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -131,6 +131,12 @@ class FastPassServiceSpec extends UnitSpec {
       val emailClient = emailClientMock
       val cdRepository = cdRepositoryMock
       val csedRepository = csedRepositoryMock
+      override val fastPassDetails = CivilServiceExperienceDetails(
+        applicable = true,
+        fastPassReceived = Some(true),
+        fastPassAccepted = Some(true),
+        certificateNumber = Some("0000000")
+      )
     }
   }
 
