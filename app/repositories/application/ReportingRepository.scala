@@ -57,6 +57,7 @@ trait ReportingRepository {
 
   def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]]
 
+  def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]]
 }
 
 class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
@@ -385,6 +386,37 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
         PersonalDetailsAdded(applicationId, userId)
       }
     }
+  }
+
+  override def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]] = {
+    val query = BSONDocument("personal-details" -> BSONDocument("$exists" -> true))
+    val projection = BSONDocument(
+      "applicationId" -> 1,
+      "userId" -> "1",
+      "progress-status" -> "1",
+      "personal-details.firstName" -> "1",
+      "personal-details.lastName" -> "1",
+      "personal-details.dateOfBirth" -> "1"
+    )
+
+    collection.find(query, projection)
+      .cursor[BSONDocument]()
+      .collect[List]()
+      .map(_.map(toUserApplicationProfile))
+  }
+
+  private def toUserApplicationProfile(document: BSONDocument) = {
+    val applicationId = document.getAs[String]("applicationId").get
+    val userId = document.getAs[String]("userId").get
+
+    val personalDetailsDoc = document.getAs[BSONDocument]("personal-details").get
+    val firstName = personalDetailsDoc.getAs[String]("firstName").get
+    val lastName = personalDetailsDoc.getAs[String]("lastName").get
+    val dob = personalDetailsDoc.getAs[LocalDate]("dateOfBirth").get
+    val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
+    val latestProgressStatus = ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses)
+
+    UserApplicationProfile(userId, latestProgressStatus, firstName, lastName, dob, exportedToParity = candidateProgressStatuses.exported)
   }
 
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
