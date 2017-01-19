@@ -43,9 +43,12 @@ trait DuplicateDetectionService {
 
   def findAll: Future[List[DuplicateApplicationGroup]] = {
     for {
+      // TODO LT: O(n)
       allCandidates <- reportingRepository.candidatesForDuplicateDetectionReport
+      // TODO LT: O(n), we can do these 2 operations in parallel
       userIdToEmail <- cdRepository.findAll.map(_.groupBy(_.userId).mapValues(_.head.email))
     } yield {
+      // TODO LT: O(n)
       val exportedApplications = allCandidates.filter(_.exportedToParity)
       Logger.info(s"Detect duplications from ${allCandidates.length} candidates")
       Logger.info(s"Detect duplications for ${exportedApplications.length} exported candidates")
@@ -55,13 +58,25 @@ trait DuplicateDetectionService {
 
   private def detectDuplicates(source: List[UserApplicationProfile], population: List[UserApplicationProfile],
                                userIdToEmail: Map[String, String]) = {
-    source.flatMap { originalApp =>
-      val duplicatesInThreeFields = population.filter(originalApp.sameFirstNameLastNameAndDOB)
-      val duplicatesInTwoFields = population.filter(app => originalApp == app || originalApp.sameExactlyTwoFirstNameLastNameAndDOB(app))
+    val threeFieldsMap = population.groupBy(u => (u.firstName, u.lastName, u.dateOfBirth))
+    val firstNameLastNameMap = population.groupBy(u => (u.firstName, u.lastName))
+    val firstNameDoBMap = population.groupBy(u => (u.firstName, u.dateOfBirth))
+    val lastNameDoBMap = population.groupBy(u => (u.lastName, u.dateOfBirth))
+
+    // TODO LT: O(m)
+    source.flatMap { s =>
+      // TODO LT: O(n)
+      val duplicatesInThreeFields = threeFieldsMap.getOrElse((s.firstName, s.lastName, s.dateOfBirth), Nil)
+      // TODO LT: O(n)
+      val duplicatesFirstNameLastName = firstNameLastNameMap.getOrElse((s.firstName, s.lastName), Nil).filterNot(duplicatesInThreeFields.contains(_))
+      val duplicatesFirstNameDoB = firstNameDoBMap.getOrElse((s.firstName, s.dateOfBirth), Nil).filterNot(duplicatesInThreeFields.contains(_))
+      val duplicatesDoBLastName = lastNameDoBMap.getOrElse((s.lastName, s.dateOfBirth), Nil).filterNot(duplicatesInThreeFields.contains(_))
 
       List(
         findDuplicationOpt(HighProbabilityMatchGroup, duplicatesInThreeFields, userIdToEmail),
-        findDuplicationOpt(MediumProbabilityMatchGroup, duplicatesInTwoFields, userIdToEmail)
+        findDuplicationOpt(MediumProbabilityMatchGroup, duplicatesFirstNameLastName, userIdToEmail),
+        findDuplicationOpt(MediumProbabilityMatchGroup, duplicatesFirstNameDoB, userIdToEmail),
+        findDuplicationOpt(MediumProbabilityMatchGroup, duplicatesDoBLastName, userIdToEmail)
       ).flatten
     }
   }

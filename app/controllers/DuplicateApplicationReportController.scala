@@ -34,6 +34,7 @@ trait DuplicateApplicationReportController extends BaseController {
 
   def findPotentialDuplicates = Action.async { implicit request =>
     duplicateDetectionService.findAll.map { potentialDuplications =>
+      // TODO LT: zipWithIndex complexity?
       val result = potentialDuplications.zipWithIndex.flatMap { case (dup, matchGroup) =>
         toDuplicateApplicationsReportItem(dup, matchGroup)
       }
@@ -43,6 +44,7 @@ trait DuplicateApplicationReportController extends BaseController {
 
   private def toDuplicateApplicationsReportItem(source: DuplicateApplicationGroup, matchGroup: Int) = {
     val matchType = source.matchType
+    // TODO LT: O(n)
     source.candidates.map { c =>
       DuplicateApplicationsReportItem(c.firstName, c.lastName, c.email, c.latestProgressStatus, matchType, matchGroup)
     }
