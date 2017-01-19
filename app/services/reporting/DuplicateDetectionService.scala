@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package services.reporting.duplicatedetection
+package services.reporting
 
 import model.persisted.UserApplicationProfile
 import play.Logger
-import play.api.libs.json.Json
 import repositories.application.ReportingRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.faststreamContactDetailsRepository
@@ -28,16 +27,7 @@ import scala.concurrent.Future
 
 case class DuplicateCandidate(email: String, firstName: String, lastName: String, latestProgressStatus: String)
 
-case object DuplicateCandidate {
-  implicit val duplicateCandidateFormat = Json.format[DuplicateCandidate]
-}
-
-case class DuplicateApplicationGroup(matchType: Int,
-                                     candidates: List[DuplicateCandidate])
-
-case object DuplicateApplicationGroup {
-  implicit val duplicateApplicationGroupFormat = Json.format[DuplicateApplicationGroup]
-}
+case class DuplicateApplicationGroup(matchType: Int, candidates: List[DuplicateCandidate])
 
 object DuplicateDetectionService extends DuplicateDetectionService {
   val reportingRepository: ReportingRepository = repositories.reportingRepository

@@ -16,26 +16,17 @@
 
 package controllers
 
+import model.report.DuplicateApplicationsReportItem
 import play.api.libs.json.Json
 import play.api.mvc.Action
-import services.reporting.duplicatedetection.{ DuplicateApplicationGroup, DuplicateDetectionService }
+import services.reporting.{ DuplicateApplicationGroup, DuplicateDetectionService }
+import services.reporting.DuplicateApplicationGroup
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object DuplicateApplicationReportController extends DuplicateApplicationReportController {
   val duplicateDetectionService: DuplicateDetectionService = DuplicateDetectionService
-}
-
-case class DuplicateApplicationsReportItem(firstName: String,
-                                           lastName: String,
-                                           email: String,
-                                           progress: String,
-                                           matchType: Int,
-                                           matchGroup: Int)
-
-object DuplicateApplicationsReportItem {
-  implicit val duplicateApplicationsReportItemFormat = play.api.libs.json.Json.format[DuplicateApplicationsReportItem]
 }
 
 trait DuplicateApplicationReportController extends BaseController {

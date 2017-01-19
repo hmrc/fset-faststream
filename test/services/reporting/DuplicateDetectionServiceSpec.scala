@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package services.reporting.duplicatedetection
+package services.reporting
 
 import factories.DateTimeFactory
+import model.AddressExamples
+import model.ProgressStatuses.ProgressStatus._
 import model.ProgressStatuses._
 import model.persisted.{ ContactDetailsWithId, UserApplicationProfile }
-import repositories.application.ReportingRepository
-import services.BaseServiceSpec
 import org.mockito.Mockito._
-import ProgressStatus._
-import model.AddressExamples
+import repositories.application.ReportingRepository
 import repositories.contactdetails.ContactDetailsRepository
+import services.BaseServiceSpec
 import testkit.ShortTimeout
 
 import scala.concurrent.Future
