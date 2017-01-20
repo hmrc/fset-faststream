@@ -33,16 +33,14 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
 
   "Find all" should {
     "detect no duplications if no applications" in new TestFixture {
-      when(reportingRepositoryMock.candidatesForDuplicateDetectionReport).thenReturn(Future.successful(Nil))
-
+      override val allApplications = Nil
       val result = service.findAll.futureValue
       result mustBe Nil
     }
 
     "detect no duplications if only one application" in new TestFixture {
       val app1 = UserApplicationProfile("1", EXPORTED, "first1", "last1", dob, exportedToParity = true)
-      val applications = List(app1)
-      when(reportingRepositoryMock.candidatesForDuplicateDetectionReport).thenReturn(Future.successful(applications))
+      override val allApplications = List(app1)
 
       val result = service.findAll.futureValue
       result mustBe Nil
@@ -52,8 +50,7 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
       val app1 = UserApplicationProfile("1", SUBMITTED, "first1", "last1", dob, exportedToParity = false)
       val app2 = UserApplicationProfile("2", SUBMITTED, "first1", "last1", dob, exportedToParity = false)
       val app3 = UserApplicationProfile("3", SUBMITTED, "first1", "last1", differentDob, exportedToParity = false)
-      val applications = List(app1, app2, app3)
-      when(reportingRepositoryMock.candidatesForDuplicateDetectionReport).thenReturn(Future.successful(applications))
+      override val allApplications = List(app1, app2, app3)
 
       val result = service.findAll.futureValue
       result mustBe Nil
@@ -64,8 +61,7 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
       val app2 = UserApplicationProfile("2", SUBMITTED, "first1", "last1", dob, exportedToParity = false)
       val app3 = UserApplicationProfile("3", PHASE1_TESTS_FAILED, "first1", "last1", dob, exportedToParity = false)
       val app4 = UserApplicationProfile("4", SUBMITTED, "first1", "last2", differentDob, exportedToParity = false)
-      val applications = List(app1, app2, app3, app4)
-      when(reportingRepositoryMock.candidatesForDuplicateDetectionReport).thenReturn(Future.successful(applications))
+      override val allApplications = List(app1, app2, app3, app4)
 
       val result = service.findAll.futureValue
       result mustBe List(DuplicateApplicationGroup(1, List(
@@ -81,8 +77,8 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
       val app3 = UserApplicationProfile("3", PHASE1_TESTS_FAILED, "first1", "last2", dob, exportedToParity = false)
       val app4 = UserApplicationProfile("4", SUBMITTED, "first2", "last1", dob, exportedToParity = false)
       val app5 = UserApplicationProfile("5", SUBMITTED, "first2", "last2", dob, exportedToParity = false)
-      val applications = List(app1, app2, app3, app4, app5)
-      when(reportingRepositoryMock.candidatesForDuplicateDetectionReport).thenReturn(Future.successful(applications))
+      val allApplications = List(app1, app2, app3, app4, app5)
+      when(reportingRepositoryMock.candidatesForDuplicateDetectionReport).thenReturn(Future.successful(allApplications))
 
       val result = service.findAll.futureValue
       result mustBe List(DuplicateApplicationGroup(2, List(
@@ -99,8 +95,7 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
       val app3 = UserApplicationProfile("3", PHASE1_TESTS_FAILED, "first1", "last1", differentDob, exportedToParity = false)
       val app4 = UserApplicationProfile("4", PHASE1_TESTS_FAILED, "first2", "second2", dob, exportedToParity = true)
       val app5 = UserApplicationProfile("5", PHASE1_TESTS_FAILED, "first2", "second2", differentDob, exportedToParity = false)
-      val applications = List(app1, app2, app3, app4, app5)
-      when(reportingRepositoryMock.candidatesForDuplicateDetectionReport).thenReturn(Future.successful(applications))
+      val allApplications = List(app1, app2, app3, app4, app5)
 
       val result = service.findAll.futureValue
       result mustBe List(
@@ -118,6 +113,25 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
         )
       )
     }
+
+    "find duplications even if the duplicated applications do not have an email" in new TestFixture {
+      val app1 = UserApplicationProfile("1", SUBMITTED, "first1", "last1", dob, exportedToParity = true)
+      val appWithoutEmail1 = UserApplicationProfile("6", SUBMITTED, "first1", "last1", dob, exportedToParity = false)
+      val appWithoutEmail2 = UserApplicationProfile("7", SUBMITTED, "first1", "diff", dob, exportedToParity = false)
+      val allApplications = List(app1, appWithoutEmail1, appWithoutEmail2)
+
+      val result = service.findAll.futureValue
+      result mustBe List(
+        DuplicateApplicationGroup(1, List(
+          DuplicateCandidate("user1@email", "first1", "last1", SUBMITTED),
+          DuplicateCandidate("", "first1", "last1", SUBMITTED))
+        ),
+        DuplicateApplicationGroup(2, List(
+          DuplicateCandidate("user1@email", "first1", "last1", SUBMITTED),
+          DuplicateCandidate("", "first1", "diff", SUBMITTED))
+        )
+      )
+    }
   }
 
   trait TestFixture {
@@ -125,6 +139,8 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
     val differentDob = dob.plusDays(30)
     val reportingRepositoryMock = mock[ReportingRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
+
+    val allApplications: List[UserApplicationProfile]
 
     when(cdRepositoryMock.findAll).thenReturn(Future.successful(List(
       ContactDetailsWithId("1", AddressExamples.FullAddress, None, "user1@email", None),
@@ -134,7 +150,9 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
       ContactDetailsWithId("5", AddressExamples.FullAddress, None, "user5@email", None)
     )))
 
-    val service = new DuplicateDetectionService {
+    lazy val service = new DuplicateDetectionService {
+      when(reportingRepositoryMock.candidatesForDuplicateDetectionReport).thenReturn(Future.successful(allApplications))
+
       val reportingRepository: ReportingRepository = reportingRepositoryMock
       val cdRepository: ContactDetailsRepository = cdRepositoryMock
     }

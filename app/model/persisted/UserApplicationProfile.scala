@@ -24,24 +24,7 @@ case class UserApplicationProfile(userId: String,
                                   firstName: String,
                                   lastName: String,
                                   dateOfBirth: LocalDate,
-                                  exportedToParity: Boolean) {
-
-  final def sameFirstNameLastNameAndDOB(app: UserApplicationProfile): Boolean = {
-    countSameFirstNameLastNameAndDoB(app) == 3
-  }
-
-  final def sameExactlyTwoFirstNameLastNameAndDOB(app: UserApplicationProfile): Boolean = {
-    countSameFirstNameLastNameAndDoB(app) == 2
-  }
-
-  private def countSameFirstNameLastNameAndDoB(candidate: UserApplicationProfile): Int = {
-    //scalastyle:off
-    List(firstName == candidate.firstName,
-      lastName == candidate.lastName,
-      dateOfBirth == candidate.dateOfBirth).count(_ == true)
-    //scalastyle:on
-  }
-}
+                                  exportedToParity: Boolean)
 
 object UserApplicationProfile {
   import repositories.BSONLocalDateHandler

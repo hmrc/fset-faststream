@@ -20,7 +20,6 @@ import model.report.DuplicateApplicationsReportItem
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.reporting.{ DuplicateApplicationGroup, DuplicateDetectionService }
-import services.reporting.DuplicateApplicationGroup
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,19 +33,17 @@ trait DuplicateApplicationReportController extends BaseController {
 
   def findPotentialDuplicates = Action.async { implicit request =>
     duplicateDetectionService.findAll.map { potentialDuplications =>
-      // TODO LT: zipWithIndex complexity?
       val result = potentialDuplications.zipWithIndex.flatMap { case (dup, matchGroup) =>
-        toDuplicateApplicationsReportItem(dup, matchGroup)
+        toReportItem(dup, matchGroup)
       }
       Ok(Json.toJson(result))
     }
   }
 
-  private def toDuplicateApplicationsReportItem(source: DuplicateApplicationGroup, matchGroup: Int) = {
-    val matchType = source.matchType
-    // TODO LT: O(n)
+  private def toReportItem(source: DuplicateApplicationGroup, matchGroup: Int) = {
     source.candidates.map { c =>
-      DuplicateApplicationsReportItem(c.firstName, c.lastName, c.email, c.latestProgressStatus, matchType, matchGroup)
+      DuplicateApplicationsReportItem(c.firstName, c.lastName, c.email, c.latestProgressStatus, source.matchType, matchGroup)
     }
   }
+
 }

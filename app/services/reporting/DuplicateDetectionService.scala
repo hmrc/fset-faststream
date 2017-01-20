@@ -16,7 +16,7 @@
 
 package services.reporting
 
-import model.persisted.UserApplicationProfile
+import model.persisted.{ ContactDetailsWithId, UserApplicationProfile }
 import play.Logger
 import repositories.application.ReportingRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -42,57 +42,69 @@ trait DuplicateDetectionService {
   val cdRepository: ContactDetailsRepository
 
   def findAll: Future[List[DuplicateApplicationGroup]] = {
+    def toUserIdToEmailMap(cds: List[ContactDetailsWithId]) = {
+      cds.groupBy(_.userId).mapValues(_.head.email)
+    }
+
     for {
-      // TODO LT: O(n)
       allCandidates <- reportingRepository.candidatesForDuplicateDetectionReport
-      // TODO LT: O(n), we can do these 2 operations in parallel
-      userIdToEmail <- cdRepository.findAll.map(_.groupBy(_.userId).mapValues(_.head.email))
+      candidatesEmails <- cdRepository.findAll.map(toUserIdToEmailMap)
     } yield {
-      // TODO LT: O(n)
       val exportedApplications = allCandidates.filter(_.exportedToParity)
       Logger.info(s"Detect duplications from ${allCandidates.length} candidates")
       Logger.info(s"Detect duplications for ${exportedApplications.length} exported candidates")
-      detectDuplicates(exportedApplications, allCandidates, userIdToEmail)
+      findDuplicates(exportedApplications, allCandidates, candidatesEmails)
     }
   }
 
-  private def detectDuplicates(source: List[UserApplicationProfile], population: List[UserApplicationProfile],
-                               userIdToEmail: Map[String, String]) = {
+  private def findDuplicates(source: List[UserApplicationProfile], population: List[UserApplicationProfile],
+                             userIdsToEmails: Map[String, String]) = {
     val threeFieldsMap = population.groupBy(u => (u.firstName, u.lastName, u.dateOfBirth))
     val firstNameLastNameMap = population.groupBy(u => (u.firstName, u.lastName))
     val firstNameDoBMap = population.groupBy(u => (u.firstName, u.dateOfBirth))
     val lastNameDoBMap = population.groupBy(u => (u.lastName, u.dateOfBirth))
 
-    // TODO LT: O(m)
     source.flatMap { s =>
-      // TODO LT: O(n)
       val duplicatesInThreeFields = threeFieldsMap.getOrElse((s.firstName, s.lastName, s.dateOfBirth), Nil)
-      // TODO LT: O(n)
-      val duplicatesFirstNameLastName = firstNameLastNameMap.getOrElse((s.firstName, s.lastName), Nil).filterNot(duplicatesInThreeFields.contains(_))
-      val duplicatesFirstNameDoB = firstNameDoBMap.getOrElse((s.firstName, s.dateOfBirth), Nil).filterNot(duplicatesInThreeFields.contains(_))
-      val duplicatesDoBLastName = lastNameDoBMap.getOrElse((s.lastName, s.dateOfBirth), Nil).filterNot(duplicatesInThreeFields.contains(_))
+
+      val duplicatesFirstNameLastName = firstNameLastNameMap
+        .getOrElse((s.firstName, s.lastName), Nil)
+        .filterNot(duplicatesInThreeFields.contains(_))
+      val duplicatesFirstNameDoB = firstNameDoBMap
+        .getOrElse((s.firstName, s.dateOfBirth), Nil)
+        .filterNot(duplicatesInThreeFields.contains(_))
+      val duplicatesDoBLastName = lastNameDoBMap
+        .getOrElse((s.lastName, s.dateOfBirth), Nil)
+        .filterNot(duplicatesInThreeFields.contains(_))
+      val duplicatesInTwoFields = s ::
+        duplicatesFirstNameLastName ++
+        duplicatesFirstNameDoB ++
+        duplicatesDoBLastName
 
       List(
-        findDuplicationOpt(HighProbabilityMatchGroup, duplicatesInThreeFields, userIdToEmail),
-        findDuplicationOpt(MediumProbabilityMatchGroup, duplicatesFirstNameLastName, userIdToEmail),
-        findDuplicationOpt(MediumProbabilityMatchGroup, duplicatesFirstNameDoB, userIdToEmail),
-        findDuplicationOpt(MediumProbabilityMatchGroup, duplicatesDoBLastName, userIdToEmail)
+        selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, duplicatesInThreeFields, userIdsToEmails),
+        selectDuplicatesOnlyOpt(MediumProbabilityMatchGroup, duplicatesInTwoFields, userIdsToEmails)
       ).flatten
     }
   }
 
-  private def findDuplicationOpt(matchGroup: Int, duplicatesGroup: List[UserApplicationProfile],
-                                 userIdToEmail: Map[String, String]) = {
+  private def selectDuplicatesOnlyOpt(matchGroup: Int, duplicatesGroup: List[UserApplicationProfile],
+                                      userIdsToEmails: Map[String, String]) = {
+    def toDuplicateCandidate(app: UserApplicationProfile) = {
+      DuplicateCandidate(
+        userIdsToEmails.getOrElse(app.userId, ""),
+        app.firstName,
+        app.lastName,
+        app.latestProgressStatus
+      )
+    }
+
     if (duplicatesGroup.size > 1) {
-      val duplicateCandidates = duplicatesGroup.map(d => toDuplicateCandidate(d, userIdToEmail))
+      val duplicateCandidates = duplicatesGroup.map(toDuplicateCandidate)
       Some(DuplicateApplicationGroup(matchGroup, duplicateCandidates))
     } else {
       None
     }
-  }
-
-  private def toDuplicateCandidate(app: UserApplicationProfile, userIdToEmail: Map[String, String]) = {
-    DuplicateCandidate(userIdToEmail.getOrElse(app.userId, ""), app.firstName, app.lastName, app.latestProgressStatus)
   }
 }
 
