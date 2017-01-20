@@ -16,7 +16,7 @@
 
 package services.reporting
 
-import model.persisted.{ ContactDetailsWithId, UserApplicationProfile }
+import model.persisted.{ UserApplicationProfile, UserIdWithEmail }
 import play.Logger
 import repositories.application.ReportingRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -42,13 +42,13 @@ trait DuplicateDetectionService {
   val cdRepository: ContactDetailsRepository
 
   def findAll: Future[List[DuplicateApplicationGroup]] = {
-    def toUserIdToEmailMap(cds: List[ContactDetailsWithId]) = {
+    def toUserIdToEmailMap(cds: List[UserIdWithEmail]) = {
       cds.groupBy(_.userId).mapValues(_.head.email)
     }
 
     for {
       allCandidates <- reportingRepository.candidatesForDuplicateDetectionReport
-      candidatesEmails <- cdRepository.findAll.map(toUserIdToEmailMap)
+      candidatesEmails <- cdRepository.findEmails.map(toUserIdToEmailMap)
     } yield {
       val exportedApplications = allCandidates.filter(_.exportedToParity)
       Logger.info(s"Detect duplications from ${allCandidates.length} candidates")
@@ -65,6 +65,7 @@ trait DuplicateDetectionService {
     val lastNameDoBMap = population.groupBy(u => (u.lastName, u.dateOfBirth))
 
     source.flatMap { s =>
+      // "s" (source candidate) will be part of the list because it matches with itself in all fields
       val duplicatesInThreeFields = threeFieldsMap.getOrElse((s.firstName, s.lastName, s.dateOfBirth), Nil)
 
       val duplicatesFirstNameLastName = firstNameLastNameMap
@@ -76,6 +77,9 @@ trait DuplicateDetectionService {
       val duplicatesDoBLastName = lastNameDoBMap
         .getOrElse((s.lastName, s.dateOfBirth), Nil)
         .filterNot(duplicatesInThreeFields.contains(_))
+
+      // "s" (source candidate) matches with itself in more than 2 fields. Therefore, it will not be part of any
+      // duplicates*InTwoFields lists. It needs to be added "manually" as the head to be present in the final report.
       val duplicatesInTwoFields = s ::
         duplicatesFirstNameLastName ++
         duplicatesFirstNameDoB ++

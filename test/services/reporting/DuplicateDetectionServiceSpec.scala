@@ -17,10 +17,9 @@
 package services.reporting
 
 import factories.DateTimeFactory
-import model.AddressExamples
 import model.ProgressStatuses.ProgressStatus._
 import model.ProgressStatuses._
-import model.persisted.{ ContactDetailsWithId, UserApplicationProfile }
+import model.persisted.{ UserApplicationProfile, UserIdWithEmail }
 import org.mockito.Mockito._
 import repositories.application.ReportingRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -142,12 +141,12 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
 
     val allApplications: List[UserApplicationProfile]
 
-    when(cdRepositoryMock.findAll).thenReturn(Future.successful(List(
-      ContactDetailsWithId("1", AddressExamples.FullAddress, None, "user1@email", None),
-      ContactDetailsWithId("2", AddressExamples.FullAddress, None, "user2@email", None),
-      ContactDetailsWithId("3", AddressExamples.FullAddress, None, "user3@email", None),
-      ContactDetailsWithId("4", AddressExamples.FullAddress, None, "user4@email", None),
-      ContactDetailsWithId("5", AddressExamples.FullAddress, None, "user5@email", None)
+    when(cdRepositoryMock.findEmails).thenReturn(Future.successful(List(
+      UserIdWithEmail("1", "user1@email"),
+      UserIdWithEmail("2", "user2@email"),
+      UserIdWithEmail("3", "user3@email"),
+      UserIdWithEmail("4", "user4@email"),
+      UserIdWithEmail("5", "user5@email")
     )))
 
     lazy val service = new DuplicateDetectionService {
