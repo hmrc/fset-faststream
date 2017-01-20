@@ -2,7 +2,7 @@ package repositories.contactdetails
 
 import model.Address
 import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
-import model.persisted.ContactDetails
+import model.persisted.{ ContactDetails, UserIdWithEmail }
 import model.persisted.ContactDetailsExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
@@ -122,6 +122,25 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
       repository.find(userIdToArchiveWith).futureValue mustBe ContactDetailsUK
     }
+  }
+
+  "find emails" should {
+    "return an empty list if there is no candidates" in {
+      val result = repository.findEmails.futureValue
+      result mustBe Nil
+    }
+
+    "return list of users with emails" in {
+      insert(BSONDocument("userId" -> "1", collectionName -> ContactDetailsUK)).futureValue
+      insert(BSONDocument("userId" -> "2", collectionName -> ContactDetailsOutsideUK)).futureValue
+      val result = repository.findEmails.futureValue
+
+      result mustBe List(
+        UserIdWithEmail("1", ContactDetailsUK.email),
+        UserIdWithEmail("2", ContactDetailsOutsideUK.email)
+      )
+    }
+
   }
 
   def insert(doc: BSONDocument) = repository.collection.insert(doc)

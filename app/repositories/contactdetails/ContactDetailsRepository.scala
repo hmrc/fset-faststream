@@ -20,7 +20,7 @@ import config.MicroserviceAppConfig
 import model.Address
 import model.Commands._
 import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
-import model.persisted.{ ContactDetails, ContactDetailsWithId }
+import model.persisted.{ ContactDetails, ContactDetailsWithId, UserIdWithEmail }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -49,6 +49,8 @@ trait ContactDetailsRepository {
   def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]]
 
   def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
+
+  def findEmails: Future[List[UserIdWithEmail]]
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
@@ -155,5 +157,22 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
     val validator = singleUpdateValidator(originalUserId, actionDesc = "archiving contact details")
     collection.update(query, updateWithArchiveUserId) map validator
+  }
+
+  override def findEmails: Future[List[UserIdWithEmail]] = {
+    val query = BSONDocument("contact-details" -> BSONDocument("$exists" -> true))
+    val projection = BSONDocument(
+      "userId" -> 1,
+      "contact-details.email" -> 1,
+      "_id" -> 0
+    )
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+      val id = doc.getAs[String]("userId").get
+      val root = doc.getAs[BSONDocument]("contact-details").get
+      val email = root.getAs[String]("email").get
+
+      UserIdWithEmail(id, email)
+    })
   }
 }

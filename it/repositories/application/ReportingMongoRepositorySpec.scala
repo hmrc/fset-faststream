@@ -18,7 +18,7 @@ package repositories.application
 
 import _root_.services.testdata.{ StatusGeneratorFactory, TestDataGeneratorService }
 import factories.UUIDFactory
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
+import model.ProgressStatuses.{ EXPORTED, PHASE3_TESTS_INVITED, SUBMITTED, PHASE1_TESTS_PASSED => _}
 import model.SchemeType.SchemeType
 import model._
 import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
@@ -29,6 +29,7 @@ import model.command.testdata.GeneratorConfig
 import model.command.{ ProgressResponse, WithdrawApplication }
 import model.exchange.testdata.{ AssistanceDetailsRequest, CreateCandidateInStatusRequest, StatusDataRequest }
 import model.persisted._
+import reactivemongo.bson.BSONDocument
 import repositories.CommonBSONDocuments
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -399,5 +400,52 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
   }
 
+  "Candidates for duplicate detection report" must {
+    "return empty list when there is no candidates" in {
+      val candidates = repository.candidatesForDuplicateDetectionReport.futureValue
+      candidates mustBe empty
+    }
+
+    "return all candidates with personal-details" in {
+      val user1 = UserApplicationProfile("1", EXPORTED.key.toLowerCase, "first1", "last1",
+        factories.DateTimeFactory.nowLocalDate, exportedToParity = true)
+      val user2 = UserApplicationProfile("2", SUBMITTED.key.toLowerCase, "first2", "last2",
+        factories.DateTimeFactory.nowLocalDate, exportedToParity = false)
+      create(user1)
+      create(user2)
+      createWithoutPersonalDetails("3", PHASE3_TESTS_INVITED.key)
+
+      val candidates = repository.candidatesForDuplicateDetectionReport.futureValue
+      candidates mustBe List(user1, user2)
+    }
+  }
+
+  private def create(application: UserApplicationProfile) = {
+    import repositories.BSONLocalDateHandler
+    import reactivemongo.json.ImplicitBSONHandlers._
+
+    repository.collection.insert(BSONDocument(
+      "applicationId" -> application.userId,
+      "userId" -> application.userId,
+      "frameworkId" -> FrameworkId,
+      "progress-status" -> BSONDocument(application.latestProgressStatus -> true),
+      "personal-details" -> BSONDocument(
+        "firstName" -> application.firstName,
+        "lastName" -> application.lastName,
+        "dateOfBirth" -> application.dateOfBirth
+      )
+    )).futureValue
+  }
+
+  private def createWithoutPersonalDetails(userId: String, latestProgressStatus: String) = {
+    import repositories.BSONLocalDateHandler
+    import reactivemongo.json.ImplicitBSONHandlers._
+
+    repository.collection.insert(BSONDocument(
+      "userId" -> userId,
+      "frameworkId" -> FrameworkId,
+      "progress-status" -> BSONDocument(latestProgressStatus -> true)
+    )).futureValue
+  }
 
 }
