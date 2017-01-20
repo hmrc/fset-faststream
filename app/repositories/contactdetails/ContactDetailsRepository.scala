@@ -161,8 +161,13 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
   override def findEmails: Future[List[UserIdWithEmail]] = {
     val query = BSONDocument("contact-details" -> BSONDocument("$exists" -> true))
+    val projection = BSONDocument(
+      "userId" -> 1,
+      "contact-details.email" -> 1,
+      "_id" -> 0
+    )
 
-    collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val email = root.getAs[String]("email").get
