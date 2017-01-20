@@ -43,7 +43,7 @@ trait DuplicateDetectionService {
 
   def findAll: Future[List[DuplicateApplicationGroup]] = {
     def toUserIdToEmailMap(cds: List[UserIdWithEmail]) = {
-      cds.groupBy(_.userId).mapValues(_.head.email)
+      cds.map(cd => cd.userId -> cd.email).toMap
     }
 
     for {
@@ -59,23 +59,29 @@ trait DuplicateDetectionService {
 
   private def findDuplicates(source: List[UserApplicationProfile], population: List[UserApplicationProfile],
                              userIdsToEmails: Map[String, String]) = {
-    val threeFieldsMap = population.groupBy(u => (u.firstName, u.lastName, u.dateOfBirth))
-    val firstNameLastNameMap = population.groupBy(u => (u.firstName, u.lastName))
-    val firstNameDoBMap = population.groupBy(u => (u.firstName, u.dateOfBirth))
-    val lastNameDoBMap = population.groupBy(u => (u.lastName, u.dateOfBirth))
+    def normalise(s: String) = s.trim.toLowerCase()
+    def takeThreeFields(u: UserApplicationProfile) = (normalise(u.firstName), normalise(u.lastName), u.dateOfBirth)
+    def takeFirstNameAndLastName(u: UserApplicationProfile) = (normalise(u.firstName), normalise(u.lastName))
+    def takeFirstNameAndDoB(u: UserApplicationProfile) = (normalise(u.firstName), u.dateOfBirth)
+    def takeLastNameAndDob(u: UserApplicationProfile) = (normalise(u.lastName), u.dateOfBirth)
+
+    val threeFieldsMap = population groupBy takeThreeFields
+    val firstNameLastNameMap = population groupBy takeFirstNameAndLastName
+    val firstNameDoBMap = population groupBy takeFirstNameAndDoB
+    val lastNameDoBMap = population groupBy takeLastNameAndDob
 
     source.flatMap { s =>
       // "s" (source candidate) will be part of the list because it matches with itself in all fields
-      val duplicatesInThreeFields = threeFieldsMap.getOrElse((s.firstName, s.lastName, s.dateOfBirth), Nil)
+      val duplicatesInThreeFields = threeFieldsMap.getOrElse(takeThreeFields(s), Nil)
 
       val duplicatesFirstNameLastName = firstNameLastNameMap
-        .getOrElse((s.firstName, s.lastName), Nil)
+        .getOrElse(takeFirstNameAndLastName(s), Nil)
         .filterNot(duplicatesInThreeFields.contains(_))
       val duplicatesFirstNameDoB = firstNameDoBMap
-        .getOrElse((s.firstName, s.dateOfBirth), Nil)
+        .getOrElse(takeFirstNameAndDoB(s), Nil)
         .filterNot(duplicatesInThreeFields.contains(_))
       val duplicatesDoBLastName = lastNameDoBMap
-        .getOrElse((s.lastName, s.dateOfBirth), Nil)
+        .getOrElse(takeLastNameAndDob(s), Nil)
         .filterNot(duplicatesInThreeFields.contains(_))
 
       // "s" (source candidate) matches with itself in more than 2 fields. Therefore, it will not be part of any

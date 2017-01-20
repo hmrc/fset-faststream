@@ -131,6 +131,20 @@ class DuplicateDetectionServiceSpec extends BaseServiceSpec with ShortTimeout {
         )
       )
     }
+
+    "detect duplications even if the first name and last name differ by white spaces or lower/upper cases" in new TestFixture {
+      val app1 = UserApplicationProfile("1", SUBMITTED, " First1", "last1", dob, exportedToParity = true)
+      val app2 = UserApplicationProfile("2", SUBMITTED, "fIRST1   ", "    last1   ", dob, exportedToParity = false)
+      val app3 = UserApplicationProfile("3", PHASE1_TESTS_FAILED, " first1", "      LAST1 ", dob, exportedToParity = false)
+      override val allApplications = List(app1, app2, app3)
+
+      val result = service.findAll.futureValue
+      result mustBe List(DuplicateApplicationGroup(1, List(
+        DuplicateCandidate("user1@email", " First1", "last1", SUBMITTED),
+        DuplicateCandidate("user2@email", "fIRST1   ", "    last1   ", SUBMITTED),
+        DuplicateCandidate("user3@email", " first1", "      LAST1 ", PHASE1_TESTS_FAILED)
+      )))
+    }
   }
 
   trait TestFixture {
