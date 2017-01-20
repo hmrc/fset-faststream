@@ -51,8 +51,8 @@ trait DuplicateDetectionService {
       candidatesEmails <- cdRepository.findEmails.map(toUserIdToEmailMap)
     } yield {
       val exportedApplications = allCandidates.filter(_.exportedToParity)
-      Logger.info(s"Detect duplications from ${allCandidates.length} candidates")
-      Logger.info(s"Detect duplications for ${exportedApplications.length} exported candidates")
+      Logger.debug(s"Detect duplications from ${allCandidates.length} candidates")
+      Logger.debug(s"Detect duplications for ${exportedApplications.length} exported candidates")
       findDuplicates(exportedApplications, allCandidates, candidatesEmails)
     }
   }
