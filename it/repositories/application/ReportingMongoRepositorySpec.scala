@@ -416,7 +416,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       createWithoutPersonalDetails("3", PHASE3_TESTS_INVITED.key)
 
       val candidates = repository.candidatesForDuplicateDetectionReport.futureValue
-      candidates must contain theSameElementsAs List(user2, user1)
+      candidates must contain theSameElementsAs List(user1, user2)
     }
   }
 
