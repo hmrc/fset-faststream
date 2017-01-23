@@ -16,7 +16,7 @@
 
 package model.report
 
-import model.command.{ ProgressResponse, ProgressResponseExamples }
+import model.command.{ Phase3ProgressResponse, ProgressResponse, ProgressResponseExamples }
 import testkit.UnitSpec
 
 class ProgressStatusesReportLabelsSpec extends UnitSpec {
@@ -27,57 +27,68 @@ class ProgressStatusesReportLabelsSpec extends UnitSpec {
     "return registered" in {
       val status = ProgressStatusesReportLabels.progressStatusNameInReports(new ProgressResponse("id", false, false,
         false, false, false, Nil, false, false))
-      status must be("registered")
+      status mustBe ("registered")
     }
   }
 
   "a withdrawn application" should {
     "return withdrawn" in {
-      ProgressStatusesReportLabels.progressStatusNameInReports(progressResponse) must be("withdrawn")
+      ProgressStatusesReportLabels.progressStatusNameInReports(progressResponse) mustBe ("withdrawn")
     }
 
     "return withdrawn when all other progresses are set" in {
-      ProgressStatusesReportLabels.progressStatusNameInReports(completeProgressResponse) must be("withdrawn")
+      ProgressStatusesReportLabels.progressStatusNameInReports(completeProgressResponse) mustBe ("withdrawn")
+    }
+
+    "return withdrawn when one or more test are expired" in {
+      ProgressStatusesReportLabels.progressStatusNameInReports(expiredProgressResponse) mustBe ("withdrawn")
     }
   }
 
   "a submitted application" should {
     "return submitted" in {
       val customProgress = progressResponse.copy(withdrawn = false)
-      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("submitted")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) mustBe ("submitted")
+    }
+  }
+
+  "a test expired application" should {
+    "return phase3_tests_expired" in {
+      val customProgress = expiredProgressResponse.copy(withdrawn = false)
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) mustBe ("phase3_tests_expired")
     }
   }
 
   "a previewed application" should {
     "return previewed" in {
       val customProgress = ProgressResponseExamples.InPreview
-      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("preview_completed")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) mustBe ("preview_completed")
     }
   }
 
   "an application in partner graduate programmes" should {
     "Return partner_graduate_programmes_completed" in {
       val customProgress = ProgressResponseExamples.InPartnerGraduateProgrammes
-      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("partner_graduate_programmes_completed")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) mustBe ("partner_graduate_programmes_completed")
     }
   }
 
   "an application in scheme preferences" should {
     "return scheme_preferences_completed" in {
       val customProgress = ProgressResponseExamples.InSchemePreferences
-      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("scheme_preferences_completed")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) mustBe ("scheme_preferences_completed")
     }
   }
 
   "an application in personal details" should {
     "return personal_details_completed" in {
       val customProgress = ProgressResponseExamples.InPersonalDetails
-      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("personal_details_completed")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) mustBe ("personal_details_completed")
     }
 
     "return personal_details_completed when sections are not completed" in {
       val customProgress = ProgressResponseExamples.InPersonalDetails
-      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) must be("personal_details_completed")
+      ProgressStatusesReportLabels.progressStatusNameInReports(customProgress) mustBe ("personal_details_completed")
     }
   }
 }
@@ -95,4 +106,19 @@ object ProgressStatusesReportLabelsSpec {
     List("start_questionnaire", "diversity_questionnaire", "education_questionnaire", "occupation_questionnaire"),
     submitted = true, withdrawn = true
   )
+
+  val expiredProgressResponse = progressResponse.copy(phase3ProgressResponse = Phase3ProgressResponse(
+    phase3TestsInvited = true,
+    phase3TestsFirstReminder = true,
+    phase3TestsSecondReminder = true,
+    phase3TestsStarted = true,
+    phase3TestsCompleted = true,
+    phase3TestsExpired = true,
+    phase3TestsResultsReceived = true,
+    phase3TestsPassedWithAmber= false,
+    phase3TestsPassed = false,
+    phase3TestsFailed = false,
+    phase3TestsFailedNotified = false,
+    phase3TestsSuccessNotified = false
+  ))
 }
