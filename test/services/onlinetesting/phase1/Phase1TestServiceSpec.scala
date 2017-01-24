@@ -24,7 +24,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, ProgressStatus }
+import model.ProgressStatuses.{ toString => _, _ }
 import model.events.EventTypes.{ toString => _ }
 import model.exchange.CubiksTestResultReady
 import model.persisted._
@@ -577,6 +577,27 @@ class Phase1TestServiceSpec extends UnitWithAppSpec with ExtendedTimeout
 
       verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
       verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+    }
+
+    "retrieve only reports which are not already saved" in new OnlineTest {
+      when(cubiksGatewayClientMock.downloadXmlReport(123)).thenReturn(Future.successful(result))
+      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult])).thenReturn(Future.successful(()))
+      when(otRepositoryMock.updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
+
+      val testWithoutResult = phase1Test.copy(reportId = Some(123), resultsReadyToDownload = true)
+      val testWithResult = phase1Test.copy(reportId = Some(456), resultsReadyToDownload = true, testResult = Some(savedResult))
+      val testProfileAfterTestResultInsertion = phase1TestProfile.copy(tests = List(
+        testWithoutResult.copy(testResult = Some(savedResult)),
+        testWithResult
+      ))
+      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(testProfileAfterTestResultInsertion)))
+
+      val testProfile = phase1TestProfile.copy(tests = List(testWithoutResult, testWithResult))
+      phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds("appId", "userId", testProfile)).futureValue
+
+      verify(otRepositoryMock).insertTestResult("appId", testWithoutResult, savedResult)
+      verify(otRepositoryMock).updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)
+      verify(cubiksGatewayClientMock, never).downloadXmlReport(456)
     }
   }
 
