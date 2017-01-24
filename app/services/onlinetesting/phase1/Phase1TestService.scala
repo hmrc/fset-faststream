@@ -239,7 +239,9 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
       }
     }
 
-    val testResults = Future.sequence(testProfile.testGroup.activeTests.flatMap { test =>
+    val testsWithoutTestResult = testProfile.testGroup.activeTests.filterNot(_.testResult.isDefined)
+
+    val testResults = Future.sequence(testsWithoutTestResult.flatMap { test =>
       test.reportId.map { reportId =>
         cubiksGatewayClient.downloadXmlReport(reportId)
       }.map(_.map(_ -> test))
