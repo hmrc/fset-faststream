@@ -138,9 +138,6 @@ trait ParityExportService extends EventSink {
       // TODO: Validate against json schema
       // finalDoc.get.validate()
 
-      Logger.warn("========== JSON EXPORT SCHEMES = " + passedSchemes)
-      Logger.warn("========== JSON EXPORT DOC = = " + finalDoc)
-
       finalDoc.get
     }
     // scalastyle:on method.length
