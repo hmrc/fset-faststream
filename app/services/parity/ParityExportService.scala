@@ -22,6 +22,7 @@ import connectors.paritygateway.ParityGatewayClient
 import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.{ EXPORTED, ProgressStatus, UPDATE_EXPORTED }
 import model.events.{ AuditEvents, DataStoreEvents }
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
 import repositories._
@@ -136,6 +137,9 @@ trait ParityExportService extends EventSink {
 
       // TODO: Validate against json schema
       // finalDoc.get.validate()
+
+      Logger.warn("========== JSON EXPORT SCHEMES = " + passedSchemes)
+      Logger.warn("========== JSON EXPORT DOC = = " + finalDoc)
 
       finalDoc.get
     }
