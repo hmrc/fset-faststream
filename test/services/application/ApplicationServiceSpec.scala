@@ -167,7 +167,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
-      passedSchemes mustBe List(SchemeType.Commercial, SchemeType.Sdip)
+      passedSchemes mustBe List(SchemeType.Sdip)
     }
 
     "retrieve schemes for SdipFaststream when the applicant has failed Faststream prior to Phase 3 tests" in new TestFixture {
