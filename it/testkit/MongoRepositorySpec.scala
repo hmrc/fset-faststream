@@ -36,7 +36,7 @@ import scala.language.postfixOps
 abstract class MongoRepositorySpec extends UnitWithAppSpec with Inside with Inspectors with IndexesReader {
   import ImplicitBSONHandlers._
 
-  val timeout = 10 seconds
+  val timeout = 60 seconds
   val collectionName: String
   val additionalCollections: List[String] = Nil
 
