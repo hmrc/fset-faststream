@@ -18,7 +18,7 @@ package repositories.onlinetesting
 
 import java.util.UUID
 
-import model.EvaluationResults.{ Green, Red }
+import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.{ CannotFindTestByCubiksId, PassMarkEvaluationNotFound }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PHASE1_TESTS_STARTED, _ }
@@ -161,7 +161,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "Next SdipFasttream test ready for SDIP progression" should {
-    "return an SdipFaststream application that already has SDIP scores evaluated" in {
+    "return an SdipFaststream application that already has SDIP scores evaluated to Green/Red" in {
 
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
         SchemeEvaluationResult(SchemeType.Sdip, Green.toString)
@@ -176,6 +176,23 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
       val results = phase1TestRepo.nextSdipFaststreamCandidateReadyForSdipProgression.futureValue
       results.isDefined mustBe true
+    }
+
+    "do not return an SdipFaststream application that has SDIP scores evaluated to Ambers" in {
+
+      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
+        SchemeEvaluationResult(SchemeType.Sdip, Amber.toString)
+      )
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      createApplicationWithAllFields("userId1", "app1", appStatus = ApplicationStatus.PHASE1_TESTS,
+        phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.SdipFaststream.toString
+      ).futureValue
+      createApplicationWithAllFields("userId2", "app2", appStatus = ApplicationStatus.PHASE2_TESTS,
+        phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.Sdip.toString
+      ).futureValue
+
+      val results = phase1TestRepo.nextSdipFaststreamCandidateReadyForSdipProgression.futureValue
+      results.isDefined mustBe false
     }
   }
 
