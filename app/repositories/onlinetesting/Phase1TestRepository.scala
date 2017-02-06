@@ -19,6 +19,7 @@ package repositories.onlinetesting
 import common.Phase1TestConcern
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
+import model.EvaluationResults.{ Green, Red }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
@@ -99,7 +100,9 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         BSONDocument(s"progress-status.${FailedSdipFsTestType.progressStatus}" -> BSONDocument("$ne" -> true)),
         BSONDocument(s"progress-status.${SuccessfulSdipFsTestType.progressStatus}" -> BSONDocument("$ne" -> true))
       )),
-      BSONDocument("testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip)))
+      BSONDocument("testGroups.PHASE1.evaluation.result" -> BSONDocument("$elemMatch" ->
+        BSONDocument("scheme" -> SchemeType.Sdip,
+          "result" -> BSONDocument("$in" -> List(Green.toString, Red.toString)))))
     ))
     collection.find(query).one[BSONDocument] map {
       case Some(doc) =>

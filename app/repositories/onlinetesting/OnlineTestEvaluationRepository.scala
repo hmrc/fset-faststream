@@ -20,6 +20,7 @@ import config.LaunchpadGatewayConfig
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
+import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
 import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType, SelectedSchemes }
@@ -74,15 +75,21 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
                                           passmarkVersion: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
+    val removeEvaluationIfExists = BSONDocument(
+      "$pull" -> BSONDocument(s"testGroups.$phase.evaluation.result" ->
+        BSONDocument("scheme" -> SchemeType.Sdip)))
+
     val passMarkEvaluation = BSONDocument(
       "$addToSet" -> BSONDocument(s"testGroups.$phase.evaluation.result" -> schemeEvaluationResult),
       "$set" -> BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> passmarkVersion)
     )
 
-    val validator = singleUpdateValidator(applicationId,
+    val evalSdipvalidator = singleUpdateValidator(applicationId,
       actionDesc = s"add scheme evaluation result to passmark evaluation during $phase evaluation")
 
-    collection.update(query, passMarkEvaluation) map validator
+    collection.update(query, removeEvaluationIfExists) flatMap { _ =>
+      collection.update(query, passMarkEvaluation) map evalSdipvalidator
+    }
   }
 
   def applicationEvaluationBuilder(activeCubiksTests: List[CubiksTest],
@@ -145,7 +152,10 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
       BSONDocument(s"progress-status.$expiredProgressStatus" -> BSONDocument("$ne" -> true)),
       BSONDocument(s"testGroups.$phase.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
       BSONDocument(s"testGroups.$phase.evaluation.result" ->
-        BSONDocument("$not" -> BSONDocument("$elemMatch" -> BSONDocument("scheme" -> SchemeType.Sdip))))
+        BSONDocument("$not" -> BSONDocument("$elemMatch" ->
+          BSONDocument("scheme" -> SchemeType.Sdip,
+            "result" -> BSONDocument("$in" -> List(Green.toString, Red.toString))
+          ))))
     ))
 
     BSONDocument("$or" -> BSONArray(

@@ -1,7 +1,7 @@
 package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.Green
+import model.EvaluationResults.{ Amber, Green, Red }
 import model.SchemeType._
 import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest, Phase1TestProfile, _ }
 import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType }
@@ -146,7 +146,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result must not be empty
     }
 
-    "do not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated for phase1" in {
+    "do not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is already evaluated to Green/Red for phase1" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
@@ -160,6 +160,59 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
       result mustBe empty
+    }
+
+    "return the SdipFaststream candidate in PHASE2_TESTS if the sdip is evaluated to Amber for phase1" in {
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
+        applicationRoute = Some(ApplicationRoute.SdipFaststream))
+
+      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
+        SchemeEvaluationResult(SchemeType.Sdip, Amber.toString))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
+      getOnePhase1Profile("app1") mustBe defined
+
+      val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
+      result must not be empty
+    }
+  }
+
+  "Add a scheme to passmark evaluation" should {
+    "add sdip results to pass mark evaluation" in {
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
+        applicationRoute = Some(ApplicationRoute.SdipFaststream))
+
+      val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+
+      val sdipResult = SchemeEvaluationResult(SchemeType.Sdip, Green.toString)
+
+      phase1EvaluationRepo.addSchemeResultToPassmarkEvaluation("app1", sdipResult, "version2").futureValue
+
+      val passmarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation("app1").futureValue
+
+      passmarkEvaluation.result must contain theSameElementsAs List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Green.toString),
+        SchemeEvaluationResult(SchemeType.Sdip, Green.toString))
+    }
+
+    "update sdip results in pass mark evaluation" in {
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
+        applicationRoute = Some(ApplicationRoute.SdipFaststream))
+
+      val resultToSave = List(SchemeEvaluationResult(SchemeType.Sdip, Amber.toString))
+      val evaluation = PassmarkEvaluation("version1", None, resultToSave)
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+
+      val sdipResult = SchemeEvaluationResult(SchemeType.Sdip, Red.toString)
+
+      phase1EvaluationRepo.addSchemeResultToPassmarkEvaluation("app1", sdipResult, "version2").futureValue
+
+      val passmarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation("app1").futureValue
+
+      passmarkEvaluation.result must contain theSameElementsAs List(SchemeEvaluationResult(SchemeType.Sdip, Red.toString))
     }
   }
 
