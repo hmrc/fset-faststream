@@ -115,7 +115,8 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
                              invigilatedTimeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
                              interviewsByAdjustmentPercentage: Map[String, Int],
-                             evaluationWaitTimeAfterResultsReceivedInHours: Int)
+                             evaluationWaitTimeAfterResultsReceivedInHours: Int,
+                             verifyAllScoresArePresent: Boolean)
 
 case class AssessmentCentresLocationsConfig(yamlFilePath: String)
 case class AssessmentCentresConfig(yamlFilePath: String)

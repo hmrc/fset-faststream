@@ -17,6 +17,8 @@
 package services.onlinetesting.phase3
 
 import _root_.services.passmarksettings.PassMarkSettingsService
+import config.LaunchpadGatewayConfig
+import config.MicroserviceAppConfig.launchpadGatewayConfig
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import model.Phase
 import model.exchange.passmarksettings.Phase3PassMarkSettings
@@ -33,11 +35,14 @@ object EvaluatePhase3ResultService extends EvaluatePhase3ResultService {
   val evaluationRepository: OnlineTestEvaluationRepository
     = repositories.faststreamPhase3EvaluationRepository
   val passMarkSettingsRepo = phase3PassMarkSettingsRepository
+  val launchpadGWConfig = launchpadGatewayConfig
   val phase = Phase.PHASE3
 }
 
 trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
   with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator {
+
+  val launchpadGWConfig: LaunchpadGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating Phase3 appId=${application.applicationId}")
@@ -47,8 +52,10 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
     require(application.prevPhaseEvaluation.isDefined, "Phase2 results required to evaluate Phase3")
 
     val optLatestReviewed = optLaunchpadTest.map(_.callbacks.reviewed).flatMap(getLatestReviewed)
-    require(optLatestReviewed.exists(_.allQuestionsReviewed),
-      s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId}")
+    if (!launchpadGWConfig.phase3Tests.verifyAllScoresArePresent) {
+      require(optLatestReviewed.exists(_.allQuestionsReviewed),
+        s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId}")
+    }
 
     val schemeResults = (optLatestReviewed, application.prevPhaseEvaluation) match {
       case (Some(launchpadReview), Some(prevPhaseEvaluation)) =>
