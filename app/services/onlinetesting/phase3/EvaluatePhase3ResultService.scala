@@ -52,7 +52,7 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
     require(application.prevPhaseEvaluation.isDefined, "Phase2 results required to evaluate Phase3")
 
     val optLatestReviewed = optLaunchpadTest.map(_.callbacks.reviewed).flatMap(getLatestReviewed)
-    if (!launchpadGWConfig.phase3Tests.verifyAllScoresArePresent) {
+    if (launchpadGWConfig.phase3Tests.verifyAllScoresArePresent) {
       require(optLatestReviewed.exists(_.allQuestionsReviewed),
         s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId}")
     }

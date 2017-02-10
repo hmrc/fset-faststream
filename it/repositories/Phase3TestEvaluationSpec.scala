@@ -23,7 +23,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   val collectionName = "application"
   override val additionalCollections = List("phase3-pass-mark-settings")
 
-  def phase3TestEvaluationService(verifyAllScoresArePresent: Boolean = false) = new EvaluatePhase3ResultService {
+  def phase3TestEvaluationService(verifyAllScoresArePresent: Boolean = true) = new EvaluatePhase3ResultService {
     val evaluationRepository = phase3EvaluationRepo
     val gatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo = phase3PassMarkSettingRepo
@@ -38,16 +38,16 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Commercial, Green.toString),
           SchemeEvaluationResult(DigitalAndTechnology, Green.toString)))
         intercept[IllegalArgumentException] {
-          applicationEvaluation("application-1", None, false, Commercial, DigitalAndTechnology) mustResultIn(
+          applicationEvaluation("application-1", None, true, Commercial, DigitalAndTechnology) mustResultIn(
             PHASE3_TESTS_PASSED, Commercial -> Green, DigitalAndTechnology -> Green)
         }
       }
     }
-    "give fail results when all schemes are red and one score is empty and we enable to change of empty into zeros" in new TestFixture {
+    "give fail results when all schemes are red and one score is empty and we disable verifcation that checks all scores are present" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Commercial, Red.toString),
           SchemeEvaluationResult(DigitalAndTechnology, Red.toString)))
-        applicationEvaluation("application-1", None, true, Commercial, DigitalAndTechnology) mustResultIn(
+        applicationEvaluation("application-1", None, false, Commercial, DigitalAndTechnology) mustResultIn(
           PHASE3_TESTS_FAILED, Commercial -> Red, DigitalAndTechnology -> Red)
       }
     }
@@ -55,17 +55,17 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Commercial, Green.toString),
           SchemeEvaluationResult(DigitalAndTechnology, Green.toString)))
-        applicationEvaluation("application-1", Some(80), false, Commercial, DigitalAndTechnology) mustResultIn(
+        applicationEvaluation("application-1", Some(80), true, Commercial, DigitalAndTechnology) mustResultIn(
           PHASE3_TESTS_PASSED, Commercial -> Green, DigitalAndTechnology -> Green)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HousesOfParliament, Green.toString)))
-        applicationEvaluation("application-2", Some(79.999), false, HousesOfParliament) mustResultIn(
+        applicationEvaluation("application-2", Some(79.999), true, HousesOfParliament) mustResultIn(
           PHASE3_TESTS_PASSED, HousesOfParliament -> Green)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Generalist, Green.toString)))
-        applicationEvaluation("application-3", Some(30), false, Generalist) mustResultIn(
+        applicationEvaluation("application-3", Some(30), true, Generalist) mustResultIn(
           PHASE3_TESTS_PASSED, Generalist -> Green)
       }
     }
@@ -74,7 +74,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Commercial, Red.toString),
           SchemeEvaluationResult(DigitalAndTechnology, Green.toString)))
-        applicationEvaluation("application-1", Some(80), false, Commercial, DigitalAndTechnology) mustResultIn(
+        applicationEvaluation("application-1", Some(80), true, Commercial, DigitalAndTechnology) mustResultIn(
           PHASE3_TESTS_PASSED, Commercial -> Red, DigitalAndTechnology -> Green)
       }
     }
@@ -82,13 +82,13 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Green.toString),
           SchemeEvaluationResult(ScienceAndEngineering, Green.toString)))
-        applicationEvaluation("application-1", Some(35), false, European, ScienceAndEngineering) mustResultIn(
+        applicationEvaluation("application-1", Some(35), true, European, ScienceAndEngineering) mustResultIn(
           PHASE3_TESTS_FAILED, European -> Red, ScienceAndEngineering -> Red)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Red.toString),
           SchemeEvaluationResult(ScienceAndEngineering, Red.toString)))
-        applicationEvaluation("application-2", Some(80), false, European, ScienceAndEngineering) mustResultIn(
+        applicationEvaluation("application-2", Some(80), true, European, ScienceAndEngineering) mustResultIn(
           PHASE3_TESTS_FAILED, European -> Red, ScienceAndEngineering -> Red)
       }
     }
@@ -96,24 +96,24 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Amber.toString),
           SchemeEvaluationResult(ScienceAndEngineering, Amber.toString)))
-        applicationEvaluation("application-1", Some(80), false, European, ScienceAndEngineering) mustResultIn(
+        applicationEvaluation("application-1", Some(80), true, European, ScienceAndEngineering) mustResultIn(
           PHASE3_TESTS, European -> Amber, ScienceAndEngineering -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Green.toString)))
-        applicationEvaluation("application-2", Some(50), false, European) mustResultIn(
+        applicationEvaluation("application-2", Some(50), true, European) mustResultIn(
           PHASE3_TESTS, European -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(European, Amber.toString),
           SchemeEvaluationResult(ProjectDelivery, Amber.toString)))
-        applicationEvaluation("application-3", Some(50), false, European, ProjectDelivery) mustResultIn(
+        applicationEvaluation("application-3", Some(50), true, European, ProjectDelivery) mustResultIn(
           PHASE3_TESTS, European -> Amber, ProjectDelivery -> Amber)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HumanResources, Green.toString),
           SchemeEvaluationResult(ProjectDelivery, Green.toString)))
-        applicationEvaluation("application-4", Some(50), false, HumanResources, ProjectDelivery) mustResultIn(
+        applicationEvaluation("application-4", Some(50), true, HumanResources, ProjectDelivery) mustResultIn(
           PHASE3_TESTS_PASSED_WITH_AMBER, HumanResources -> Green, ProjectDelivery -> Amber)
       }
     }
@@ -123,7 +123,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
           List(SchemeEvaluationResult(DiplomaticServiceEconomics, Green.toString),
             SchemeEvaluationResult(DiplomaticServiceEuropean, Green.toString)))
 
-        applicationEvaluation("application-1", Some(40), false, DiplomaticServiceEconomics, DiplomaticServiceEuropean) mustResultIn(
+        applicationEvaluation("application-1", Some(40), true, DiplomaticServiceEconomics, DiplomaticServiceEuropean) mustResultIn(
           PHASE3_TESTS, DiplomaticServiceEconomics -> Amber, DiplomaticServiceEuropean -> Amber)
 
         applicationReEvaluationWithSettings(
@@ -137,7 +137,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HumanResources, Red.toString),
           SchemeEvaluationResult(ProjectDelivery, Green.toString)))
 
-        applicationEvaluation("application-2", Some(50), false, HumanResources, ProjectDelivery) mustResultIn(
+        applicationEvaluation("application-2", Some(50), true, HumanResources, ProjectDelivery) mustResultIn(
           PHASE3_TESTS, HumanResources -> Red, ProjectDelivery -> Amber)
 
         applicationReEvaluationWithSettings(
@@ -148,7 +148,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "move candidate from PHASE3_TESTS_PASSED_WITH_AMBER to PHASE3_TESTS_PASSED " in new TestFixture {
       phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(HumanResources, Green.toString),
         SchemeEvaluationResult(ProjectDelivery, Green.toString)))
-      applicationEvaluation("application-4", Some(50), false, HumanResources, ProjectDelivery) mustResultIn(
+      applicationEvaluation("application-4", Some(50), true, HumanResources, ProjectDelivery) mustResultIn(
         PHASE3_TESTS_PASSED_WITH_AMBER, HumanResources -> Green, ProjectDelivery -> Amber)
 
       applicationReEvaluationWithSettings(
@@ -191,7 +191,8 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     var phase2PassMarkEvaluation: PassmarkEvaluation = _
 
-    def applicationEvaluation(applicationId: String, videoInterviewScore: Option[Double], verifyAllScoresArePresent: Boolean, selectedSchemes: SchemeType*): TestFixture = {
+    def applicationEvaluation(applicationId: String, videoInterviewScore: Option[Double],
+                              verifyAllScoresArePresent: Boolean, selectedSchemes: SchemeType*): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase3TestResults(applicationId, videoInterviewScore,
         phase2PassMarkEvaluation)(selectedSchemes: _*)
       phase3TestEvaluationService(verifyAllScoresArePresent).evaluate(applicationReadyForEvaluation, phase3PassMarkSettings).futureValue
