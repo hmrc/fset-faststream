@@ -23,7 +23,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   implicit val hrsBeforeLastReviewed = 72
 
   override val mockLaunchpadConfig = LaunchpadGatewayConfig("", Phase3TestsConfig(0, 0, "",
-    Map.empty[String, Int], 72))
+    Map.empty[String, Int], 72, false))
 
   val collectionName: String = "application"
 

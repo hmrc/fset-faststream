@@ -472,7 +472,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
           "0pc" -> zeroPCAdjustedInterviewId,
           "33pc" -> thirtyThreePCAdjustedInterviewId
         ),
-        72
+        72,
+        false
       )
     )
 

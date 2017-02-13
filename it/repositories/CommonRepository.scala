@@ -92,7 +92,7 @@ trait CommonRepository {
       List(etrayTest), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
-  def insertApplicationWithPhase3TestResults(appId: String, videoInterviewScore: Double,
+  def insertApplicationWithPhase3TestResults(appId: String, videoInterviewScore: Option[Double],
     phase2PassMarkEvaluation: PassmarkEvaluation,
     applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
   )(schemes:SchemeType*): ApplicationReadyForEvaluation = {
@@ -174,7 +174,7 @@ trait CommonRepository {
       "occupation_questionnaire" -> true
     )
   }
-  
+
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(
       "personal-details" -> true,
