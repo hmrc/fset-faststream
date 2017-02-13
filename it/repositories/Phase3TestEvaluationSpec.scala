@@ -43,7 +43,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         }
       }
     }
-    "give fail results when all schemes are red and one score is empty and we disable verifcation that checks all scores are present" in new TestFixture {
+    "give fail results when all schemes are red and one score is empty and we disable verification that checks all scores are present" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(Commercial, Red.toString),
           SchemeEvaluationResult(DigitalAndTechnology, Red.toString)))
