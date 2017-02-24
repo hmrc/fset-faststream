@@ -15,6 +15,7 @@
  */
 
 import de.heikoseeberger.sbtheader.{ AutomateHeaderPlugin, HeaderPlugin }
+import play.routes.compiler.StaticRoutesGenerator
 import sbt.Keys._
 import sbt.Tests.{ Group, SubProcess }
 import sbt._
@@ -29,6 +30,7 @@ trait MicroService {
   import DefaultBuildSettings._
   import TestPhases._
   import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
+  import play.sbt.routes.RoutesKeys.routesGenerator
 
   import scalariform.formatter.preferences._
 
@@ -41,12 +43,13 @@ trait MicroService {
   lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 
   lazy val microservice = Project(appName, file("."))
-    .enablePlugins(Seq(play.PlayScala) ++ plugins : _*)
+    .enablePlugins(Seq(play.sbt.PlayScala) ++ plugins : _*)
     .settings(playSettings : _*)
     .settings(scalaSettings: _*)
     .settings(publishingSettings)
     .settings(defaultSettings(): _*)
     .settings(
+      routesGenerator := StaticRoutesGenerator,
       targetJvm := "jvm-1.8",
       scalaVersion := "2.11.8",
       libraryDependencies ++= appDependencies,
@@ -84,7 +87,8 @@ trait MicroService {
     .settings(
       resolvers := Seq(
         Resolver.bintrayRepo("hmrc", "releases"),
-        Resolver.typesafeRepo("releases")
+        Resolver.typesafeRepo("releases"),
+        Resolver.jcenterRepo
       )
     )
     .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)

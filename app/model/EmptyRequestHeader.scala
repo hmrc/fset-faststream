@@ -16,6 +16,8 @@
 
 package model
 
+import java.security.cert.X509Certificate
+
 import play.api.mvc.{ Headers, RequestHeader }
 
 object EmptyRequestHeader extends EmptyRequestHeader
@@ -35,9 +37,9 @@ trait EmptyRequestHeader extends RequestHeader {
 
   override def queryString: Map[String, Seq[String]] = Map.empty
 
-  override def headers: Headers = new Headers {
-    override protected val data: Seq[(String, Seq[String])] = Seq.empty
-  }
+  override def clientCertificateChain: Option[Seq[X509Certificate]] = None
+
+  override def headers: Headers = new Headers(_headers = Nil)
 
   override def remoteAddress: String = ""
 

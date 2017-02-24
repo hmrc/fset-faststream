@@ -22,7 +22,7 @@ import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model.command.testdata.GeneratorConfig
 import play.api.Play.current
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.modules.reactivemongo.MongoDbConnection
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -35,11 +35,11 @@ import scala.language.postfixOps
 object TestDataGeneratorService extends TestDataGeneratorService {
 }
 
-trait TestDataGeneratorService {
+trait TestDataGeneratorService extends MongoDbConnection {
 
   def clearDatabase()(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
-      _ <- ReactiveMongoPlugin.mongoConnector.db().drop()
+      _ <- db().drop()
       _ <- AuthProviderClient.removeAllUsers()
       _ <- RegisteredStatusGenerator.createUser(
         1,

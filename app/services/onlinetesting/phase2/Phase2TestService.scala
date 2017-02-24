@@ -169,8 +169,10 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
     testRepository.getTestGroup(application.applicationId).flatMap {
       case Some(phase2TestGroup) if !application.isInvigilatedETray =>
         val (_, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
+
         registerAndInviteForTestGroup(List(application), schedule,
-          Some(getNewExpirationDate(phase2TestGroup, application, gatewayConfig.phase2Tests.expiryTimeInDays))).map { _ =>
+          Some(getNewExpirationDate(phase2TestGroup, application, gatewayConfig.phase2Tests.expiryTimeInDays))
+        ).map { _ =>
           AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
             DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
         }

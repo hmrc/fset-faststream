@@ -24,7 +24,7 @@ import model.PersistedObjects.PersistedAnswer
 import model.command.WithdrawApplication
 import model.persisted.{ AssistanceDetails, ContactDetails, PersonalDetails }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
-import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
@@ -35,6 +35,8 @@ import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
 import play.api.libs.json._
+import reactivemongo.api.MongoConnection
+import reactivemongo.core.actors.MongoDBSystem
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.parity.ParityExportMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
@@ -45,11 +47,11 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
-package object repositories {
+package object repositories extends MongoDbConnection {
   private val timeZoneService = GBTimeZoneService
   private implicit val connection = {
     import play.api.Play.current
-    ReactiveMongoPlugin.mongoConnector.db
+    db
   }
 
   lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
