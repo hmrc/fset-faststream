@@ -23,21 +23,21 @@ import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
 import org.scalatestplus.play.PlaySpec
-import play.api.Application
+import play.api.{ Application, Play }
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
+import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.DefaultDB
-import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
-import play.modules.reactivemongo.MongoDbConnection
 import uk.gov.hmrc.mongo.ReactiveRepository
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ Await, ExecutionContext }
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
 abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Inside with Inspectors with ScalaFutures with IndexesReader
-  with MongoDbConnection {
+  with BeforeAndAfterEach with BeforeAndAfterAll {
   import ImplicitBSONHandlers._
 
   val timeout: FiniteDuration = 60 seconds
@@ -60,20 +60,21 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   implicit val context: ExecutionContext = play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-  implicit def mongo: () => DefaultDB = {
+  implicit lazy val mongo: () => DefaultDB = {
     new MongoDbConnection {}.mongoConnector.db
   }
 
-  //override def withFixture(test: NoArgTest): Outcome = {
-  //  Helpers.running(app) {
-  //    Future.traverse(collectionName :: additionalCollections)(clearCollection).futureValue
-  //    super.withFixture(test)
-  //  }
-  //}
+  override def beforeAll(): Unit = {
+    Play.start(app)
+  }
 
-  private def clearCollection(name: String) = {
-    val collection = mongo().collection[JSONCollection](name)
-    collection.remove(BSONDocument.empty)
+  override def afterAll(): Unit = {
+    Play.stop(app)
+  }
+
+  override def beforeEach(): Unit = {
+    val collection = mongo().collection[JSONCollection](collectionName)
+    Await.ready(collection.remove(Json.obj()), timeout)
   }
 }
 

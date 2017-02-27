@@ -32,12 +32,10 @@ private object Versions {
   val hmrcTestVersion               = "2.3.0"
   val playReactivemongoVersion      = "5.2.0"
   val logbackJsonLogger             = "3.1.0"
-  val guice                         = "4.0.0"
 
   val pegdown                       = "1.6.0"
   val mockito                       = "2.2.17"
   val scalatestplus                 = "1.5.1"
-  val specs2                        = "3.6.5"
 }
 
 
@@ -55,7 +53,6 @@ private object AppDependencies {
     "org.webjars" %% "webjars-play" % "2.3.0",
     "org.webjars" % "bootstrap" % "3.1.1",
     "org.webjars" % "jquery" % "1.11.0",
-    "net.codingwell" %% "scala-guice" % guice,
     "net.ceedubs" %% "ficus" % ficus,
     "org.yaml" % "snakeyaml" % "1.16",
     "com.jsuereth" %% "scala-arm" % "1.4",
@@ -70,8 +67,8 @@ private object AppDependencies {
       "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
       "org.mockito" % "mockito-core" % mockito % scope,
       "org.scalatestplus.play" %% "scalatestplus-play" % scalatestplus % scope,
-      "org.pegdown" % "pegdown" % pegdown % scope
-      //"com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
+      "org.pegdown" % "pegdown" % pegdown % scope,
+      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2")
       //"org.specs2" %% "specs2-core" % specs2 % scope
     )
   }

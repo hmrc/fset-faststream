@@ -38,6 +38,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 
 class OnlineTestsControllerSpec extends UnitWithAppSpec {
+
   val mockPhase1TestService = mock[Phase1TestService]
   val mockPhase2TestService = mock[Phase2TestService]
   val mockPhase3TestService = mock[Phase3TestService]

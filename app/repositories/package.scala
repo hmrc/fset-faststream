@@ -38,16 +38,20 @@ import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.parity.ParityExportMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
+import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
-package object repositories extends MongoDbConnection {
+package object repositories {
+
+  object MongoDbConnection extends MongoDbConnectionTrait
+
   private val timeZoneService = GBTimeZoneService
   private implicit val connection = {
-    db
+    MongoDbConnection.mongoConnector.db
   }
 
   lazy val faststreamPersonalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository()
