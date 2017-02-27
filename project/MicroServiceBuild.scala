@@ -27,14 +27,13 @@ private object Versions {
   val microserviceBootstrapVersion  = "5.12.0"
   val ficus                         = "1.1.2"
   val playHealthVersion             = "2.1.0"
-  val playConfigVersion             = "3.0.0"
+  val playConfigVersion             = "4.2.0"
   val hmrcScheduler                 = "4.0.0"
-  val hmrcTestVersion               = "1.8.0"
+  val hmrcTestVersion               = "2.3.0"
   val playReactivemongoVersion      = "5.2.0"
   val logbackJsonLogger             = "3.1.0"
   val guice                         = "4.0.0"
 
-  val scalatest                     = "2.2.6"
   val pegdown                       = "1.6.0"
   val mockito                       = "2.2.17"
   val scalatestplus                 = "1.5.1"
@@ -71,10 +70,9 @@ private object AppDependencies {
       "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
       "org.mockito" % "mockito-core" % mockito % scope,
       "org.scalatestplus.play" %% "scalatestplus-play" % scalatestplus % scope,
-      //"org.scalatest" %% "scalatest" % scalatest % scope,
-      "org.pegdown" % "pegdown" % pegdown % scope,
-      "com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
-      "org.specs2" %% "specs2-core" % specs2 % scope
+      "org.pegdown" % "pegdown" % pegdown % scope
+      //"com.typesafe.play" %% "play-test" % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
+      //"org.specs2" %% "specs2-core" % specs2 % scope
     )
   }
 

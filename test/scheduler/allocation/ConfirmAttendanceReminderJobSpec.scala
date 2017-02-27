@@ -19,7 +19,6 @@ package scheduler.allocation
 import model.PersistedObjects.{ AllocatedCandidate, PersonalDetailsWithUserId }
 import org.joda.time.LocalDate
 import org.mockito.Mockito._
-import play.api.test.WithApplication
 import services.allocation.CandidateAllocationService
 import testkit.UnitWithAppSpec
 

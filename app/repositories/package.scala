@@ -22,7 +22,7 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
 import model.PersistedObjects.PersistedAnswer
 import model.command.WithdrawApplication
-import model.persisted.{ AssistanceDetails, ContactDetails, PersonalDetails }
+import model.persisted.{ AssistanceDetails, ContactDetails }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.Index
@@ -35,12 +35,9 @@ import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
 import play.api.libs.json._
-import reactivemongo.api.MongoConnection
-import reactivemongo.core.actors.MongoDBSystem
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.parity.ParityExportMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
-import repositories.NorthSouthIndicatorCSVRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -50,7 +47,6 @@ import scala.language.postfixOps
 package object repositories extends MongoDbConnection {
   private val timeZoneService = GBTimeZoneService
   private implicit val connection = {
-    import play.api.Play.current
     db
   }
 

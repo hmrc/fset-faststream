@@ -20,7 +20,6 @@ import model.Phase1FirstReminder
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
-import play.api.test.WithApplication
 import services.onlinetesting.OnlineTestService
 import testkit.{ ShortTimeout, UnitWithAppSpec }
 import uk.gov.hmrc.play.http.HeaderCarrier
