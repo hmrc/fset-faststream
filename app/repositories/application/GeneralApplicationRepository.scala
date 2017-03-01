@@ -217,7 +217,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     collection.find(query).one[BSONDocument] flatMap {
       case Some(document) =>
-        play.api.Logger.error(s"\n\n ${play.api.libs.json.Json.toJson(document)}")
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)

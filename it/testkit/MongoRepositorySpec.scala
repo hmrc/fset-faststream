@@ -66,6 +66,8 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   override def beforeAll(): Unit = {
     Play.start(app)
+    val collection = mongo().collection[JSONCollection](collectionName)
+    Await.ready(collection.drop, timeout)
   }
 
   override def afterAll(): Unit = {

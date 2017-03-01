@@ -263,12 +263,10 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     ))
 
     val progressesToRemoveQueryPartial = progressStatuses map (p => s"progress-status.$p" -> BSONString(""))
-    play.api.Logger.error(s"\n\nProgress status reset ${progressesToRemoveQueryPartial}")
 
     val updateQuery = BSONDocument(
       "$set" -> BSONDocument("applicationStatus" -> thisApplicationStatus),
-      "$unset" -> BSONDocument(progressesToRemoveQueryPartial),
-      "$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> "")
+      "$unset" -> (BSONDocument(progressesToRemoveQueryPartial) ++ BSONDocument(s"testGroups.$phaseName.evaluation" -> ""))
     )
 
     val validator = singleUpdateValidator(appId, actionDesc = s"resetting $phaseName test progresses", ApplicationNotFound(appId))
