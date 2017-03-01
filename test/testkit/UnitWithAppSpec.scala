@@ -25,8 +25,6 @@ import play.api.libs.json.{ JsValue, Json, Writes }
 import play.api.mvc.Results
 import play.api.test.{ FakeHeaders, FakeRequest }
 import play.modules.reactivemongo.ReactiveMongoHmrcModule
-import play.api.libs.crypto.CSRFTokenSigner
-import play.api.inject.bind
 
 /**
   * Common base class for all controller tests

@@ -36,7 +36,7 @@ import scala.concurrent.{ Await, ExecutionContext }
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Inside with Inspectors with ScalaFutures with IndexesReader
+abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Inside with ScalaFutures with IndexesReader
   with BeforeAndAfterEach with BeforeAndAfterAll {
   import ImplicitBSONHandlers._
 
@@ -74,7 +74,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   override def beforeEach(): Unit = {
     val collection = mongo().collection[JSONCollection](collectionName)
-    Await.ready(collection.remove(Json.obj()), timeout)
+    Await.ready(collection.drop, timeout)
   }
 }
 

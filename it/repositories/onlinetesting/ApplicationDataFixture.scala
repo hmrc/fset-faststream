@@ -113,6 +113,12 @@ trait ApplicationDataFixture {
     appId
   }
 
+  def printApplication(appId: String): Unit = {
+    helperRepo.getApplicationBson(appId).map { doc =>
+      play.api.Logger.error(s"\n\n APPLICATION ${play.api.libs.json.Json.toJson(doc)}")
+    }
+  }
+
   // scalastyle:off parameter.number
   // scalastyle:off method.length
   def createApplicationWithAllFields(userId: String,

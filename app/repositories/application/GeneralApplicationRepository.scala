@@ -217,6 +217,7 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
 
     collection.find(query).one[BSONDocument] flatMap {
       case Some(document) =>
+        play.api.Logger.error(s"\n\n ${play.api.libs.json.Json.toJson(document)}")
         val applicationId = document.getAs[String]("applicationId").get
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
@@ -912,6 +913,10 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     collection.find(query).one[BSONDocument] map {
       _.map(bsonDocToOnlineTestApplication)
     }
+  }
+
+  def getApplicationBson(appId: String): Future[BSONDocument] = {
+    collection.find(BSONDocument("applicationId" -> appId)).one[BSONDocument].map(_.getOrElse(BSONDocument()))
   }
 
   override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {

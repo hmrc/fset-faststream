@@ -320,7 +320,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     "return one result" when {
       "there is an application in PHASE1_TESTS and should be expired" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "PHASE1_TESTS").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent).futureValue mustBe Some(ExpiringOnlineTest(AppId, UserId, "Georgy"))
       }
@@ -373,7 +373,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       "there is an application in PHASE1_TESTS and is about to expire in the next 72 hours" in {
         val date = DateTime.now().plusHours(Phase1FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "PHASE1_TESTS").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         val notification = phase1TestRepo.nextTestForReminder(Phase1FirstReminder).futureValue
         notification.isDefined mustBe true
@@ -388,7 +388,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       "there is an application in PHASE1_TESTS and is about to expire in the next 24 hours" in {
         val date = DateTime.now().plusHours(Phase1SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, "frameworkId", "PHASE1_TESTS").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         val notification = phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue
         notification.isDefined mustBe true
@@ -480,11 +480,13 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
           ProgressStatuses.PHASE1_TESTS_COMPLETED -> true)).futureValue
+
       phase1TestRepo.resetTestProfileProgresses("appId", List(
         ProgressStatuses.PHASE1_TESTS_INVITED,
         ProgressStatuses.PHASE1_TESTS_COMPLETED)
       ).futureValue
 
+      printApplication("appId")
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe false
       app.progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe false
@@ -497,7 +499,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
           ProgressStatuses.PHASE1_TESTS_COMPLETED -> true,
           ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
-
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Red.toString))
