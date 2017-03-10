@@ -22,15 +22,17 @@ import org.joda.time.Seconds._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
-import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.{ OneAppPerTest, PlaySpec }
 import play.api.{ Application, Play }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.DefaultDB
+import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.play.test.WithFakeApplication
 
 import scala.concurrent.{ Await, ExecutionContext }
 import scala.concurrent.duration._
@@ -66,8 +68,6 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   override def beforeAll(): Unit = {
     Play.start(app)
-    val collection = mongo().collection[JSONCollection](collectionName)
-    Await.ready(collection.drop, timeout)
   }
 
   override def afterAll(): Unit = {
@@ -76,7 +76,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   override def beforeEach(): Unit = {
     val collection = mongo().collection[JSONCollection](collectionName)
-    Await.ready(collection.drop, timeout)
+    Await.ready(collection.remove(Json.obj()), timeout)
   }
 }
 
@@ -84,8 +84,10 @@ trait IndexesReader {
   this: ScalaFutures =>
 
   def indexesWithFields(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): Seq[Seq[String]] = {
+//    play.api.Logger.error(s"\n\n COLL ${repo.collection.name}")
     val indexesManager = repo.collection.indexesManager
     val indexes = indexesManager.list().futureValue
+    play.api.Logger.error(s"\n\nINDICES $indexes\n")
     indexes.map(_.key.map(_._1))
   }
 }

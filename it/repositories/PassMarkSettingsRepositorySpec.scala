@@ -19,6 +19,7 @@ package repositories
 import model.SchemeType._
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
+import org.scalatestplus.play.OneAppPerTest
 import play.api.libs.json.Format
 import repositories.passmarksettings._
 import testkit.MongoRepositorySpec
