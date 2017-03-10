@@ -914,10 +914,6 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
     }
   }
 
-  def getApplicationBson(appId: String): Future[BSONDocument] = {
-    collection.find(BSONDocument("applicationId" -> appId)).one[BSONDocument].map(_.getOrElse(BSONDocument()))
-  }
-
   override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating progress and app status")

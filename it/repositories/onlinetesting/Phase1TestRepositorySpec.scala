@@ -486,7 +486,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         ProgressStatuses.PHASE1_TESTS_COMPLETED)
       ).futureValue
 
-      printApplication("appId")
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe false
       app.progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe false
@@ -501,7 +500,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
           ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
-      printApplication("appId")
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Red.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave)
 
