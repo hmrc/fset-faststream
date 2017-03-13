@@ -16,59 +16,67 @@
 
 package testkit
 
+import com.kenshoo.play.metrics.PlayModule
 import org.joda.time.DateTime
 import org.joda.time.Seconds._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
-import play.api.test.{ FakeApplication, Helpers }
-import play.modules.reactivemongo.ReactiveMongoPlugin
+import org.scalatestplus.play.{ OneAppPerTest, PlaySpec }
+import play.api.{ Application, Play }
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
+import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.DefaultDB
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
 import reactivemongo.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.play.test.WithFakeApplication
 
+import scala.concurrent.{ Await, ExecutionContext }
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
-abstract class MongoRepositorySpec extends UnitWithAppSpec with Inside with Inspectors with IndexesReader {
+abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Inside with ScalaFutures with IndexesReader
+  with BeforeAndAfterEach with BeforeAndAfterAll {
   import ImplicitBSONHandlers._
 
-  val timeout = 60 seconds
+  val timeout: FiniteDuration = 60 seconds
   val collectionName: String
   val additionalCollections: List[String] = Nil
+  val unit: Unit = ()
+  val AppId = "AppId"
+  val UserId = "UserId"
 
   val FrameworkId = "FrameworkId"
 
-  val timesApproximatelyEqual = (time1: DateTime, time2: DateTime) => secondsBetween(time1, time2)
+  val timesApproximatelyEqual: (DateTime, DateTime) => Boolean = (time1: DateTime, time2: DateTime) => secondsBetween(time1, time2)
     .isLessThan(seconds(5))
+
+  implicit final def app: Application = new GuiceApplicationBuilder()
+    .disable[PlayModule]
+    .build
 
   override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(timeout.toMillis, Millis)))
 
-  implicit val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
+  implicit val context: ExecutionContext = play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-  implicit def mongo: () => DefaultDB = {
-    ReactiveMongoPlugin.mongoConnector.db
+  implicit lazy val mongo: () => DefaultDB = {
+    new MongoDbConnection {}.mongoConnector.db
   }
 
-  override implicit lazy val app: FakeApplication = FakeApplication(
-    additionalConfiguration = additionalConfig, withoutPlugins = Seq(
-      "uk.gov.hmrc.play.health.HealthPlugin",
-      "com.kenshoo.play.metrics.MetricsPlugin")
-  )
-
-  override def withFixture(test: NoArgTest) = {
-    Helpers.running(app) {
-      Future.traverse(collectionName :: additionalCollections)(clearCollection).futureValue
-      super.withFixture(test)
-    }
+  override def beforeAll(): Unit = {
+    Play.start(app)
   }
 
-  private def clearCollection(name: String) = {
-    val collection = mongo().collection[JSONCollection](name)
-    collection.remove(BSONDocument.empty)
+  override def afterAll(): Unit = {
+    Play.stop(app)
+  }
+
+  override def beforeEach(): Unit = {
+    val collection = mongo().collection[JSONCollection](collectionName)
+    Await.ready(collection.remove(Json.obj()), timeout)
   }
 }
 
@@ -76,8 +84,10 @@ trait IndexesReader {
   this: ScalaFutures =>
 
   def indexesWithFields(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): Seq[Seq[String]] = {
+    play.api.Logger.error(s"\n\n COLL ${repo.collection.name}")
     val indexesManager = repo.collection.indexesManager
     val indexes = indexesManager.list().futureValue
+    play.api.Logger.error(s"\n\nINDICES $indexes\n")
     indexes.map(_.key.map(_._1))
   }
 }

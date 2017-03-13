@@ -30,7 +30,6 @@ import model.Preferences
 import org.scalatest.mock.MockitoSugar
 import play.Logger
 import play.api.libs.json._
-import play.api.test.WithApplication
 import reactivemongo.bson.{ BSONDocument, BSONString }
 import reactivemongo.json.ImplicitBSONHandlers
 import repositories._
@@ -41,11 +40,12 @@ import services.applicationassessment.ApplicationAssessmentService
 import services.evaluation.AssessmentCentrePassmarkRulesEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.MongoRepositorySpec
+import uk.gov.hmrc.play.test.WithFakeApplication
 
 import scala.io.Source
 import scala.util.{ Failure, Success, Try }
 
-class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoSugar {
+class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoSugar with WithFakeApplication {
 
   import ApplicationAssessmentServiceSpec._
   import ImplicitBSONHandlers._
@@ -68,7 +68,7 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
   val DebugTestNameAppId: Option[String] = None
 
   "Assessment Centre Passmark Service" should {
-    "for each test in the path evaluate scores" ignore new WithApplication {
+    "for each test in the path evaluate scores" ignore {
       suites.foreach(executeSuite)
     }
   }

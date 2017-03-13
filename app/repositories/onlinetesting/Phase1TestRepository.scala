@@ -139,8 +139,8 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val update = BSONDocument("$set" -> applicationStatusBSON(PHASE1_TESTS_INVITED)) ++
-      BSONDocument("$set" -> BSONDocument(s"testGroups.$phaseName" -> phase1TestProfile)
+    val update = BSONDocument("$set" -> (applicationStatusBSON(PHASE1_TESTS_INVITED) ++
+      BSONDocument(s"testGroups.$phaseName" -> phase1TestProfile))
     )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")

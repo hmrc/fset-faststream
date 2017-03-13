@@ -19,7 +19,7 @@ package scheduler
 import java.util.UUID
 
 import org.joda.time.Duration
-import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.modules.reactivemongo.MongoDbConnection
 import repositories._
 import uk.gov.hmrc.play.config.RunMode
 
@@ -52,10 +52,9 @@ trait LockKeeper {
   }
 }
 
-object LockKeeper extends RunMode {
+object LockKeeper extends RunMode with MongoDbConnection {
   private implicit val connection = {
-    import play.api.Play.current
-    ReactiveMongoPlugin.mongoConnector.db
+    db
   }
 
   lazy val generatedServerId = UUID.randomUUID().toString

@@ -2,7 +2,7 @@
 <configuration>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>logs/fset-faststream.log</file>
+        <file>logs/fset-fasttrack.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>%date{ISO8601} level=[%level] logger=[%logger] thread=[%thread] message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
         </encoder>
@@ -50,6 +50,19 @@
     <logger name="connector" level="TRACE">
         <appender-ref ref="STDOUT"/>
     </logger>
+
+    <logger name="io.netty.util.ResourceLeakDetectorFactory" level="INFO" />
+    <logger name="org.jboss.netty.channel.socket.nio" level="WARN" />
+    <logger name="io.netty.buffer" level="WARN"/>
+    <logger name="org.asynchttpclient.netty.handler" level="INFO"/>
+    <logger name="org.asynchttpclient.netty.channel" level="INFO"/>
+
+    <logger name="com.google.inject.internal" level="WARN" />
+    <logger name="javax.management.mbeanserver" level="WARN"/>
+    <logger name="akka.event" level="INFO"/>
+    <logger name="net.sf.ehcache" level="INFO"/>
+    <logger name="akka.event.slf4j.Slf4jLogger" level="WARN"/>
+    <logger name="play.api.libs.concurrent.ActorSystemProvider" level="INFO"/>
 
     <root level="DEBUG">
         <appender-ref ref="FILE"/>

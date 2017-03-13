@@ -480,6 +480,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
           ProgressStatuses.PHASE1_TESTS_COMPLETED -> true)).futureValue
+
       phase1TestRepo.resetTestProfileProgresses("appId", List(
         ProgressStatuses.PHASE1_TESTS_INVITED,
         ProgressStatuses.PHASE1_TESTS_COMPLETED)
@@ -497,7 +498,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
           ProgressStatuses.PHASE1_TESTS_COMPLETED -> true,
           ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
-
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
       val resultToSave = List(SchemeEvaluationResult(SchemeType.DigitalAndTechnology, Red.toString))

@@ -22,20 +22,20 @@ import play.api.{ Application, Configuration, Play }
 import scheduler.Scheduler
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.config.{ AppName, ControllerConfig }
+import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 
-object ControllerConfiguration extends ControllerConfig {
+object ControllerConfiguration extends ControllerConfig with MicroserviceFilterSupport {
   lazy val controllerConfigs: Config = Play.current.configuration.underlying.as[Config]("controllers")
 }
 
-object MicroserviceAuditFilter extends AuditFilter with AppName {
+object MicroserviceAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport {
   override val auditConnector = MicroserviceAuditConnector
-  override def controllerNeedsAuditing(controllerName: String) =
-    false // Disable implicit _inbound_ auditing.
+  override def controllerNeedsAuditing(controllerName: String) = false // Disable implicit _inbound_ auditing.
 }
 
-object MicroserviceLoggingFilter extends LoggingFilter {
+object MicroserviceLoggingFilter extends LoggingFilter with MicroserviceFilterSupport {
   override def controllerNeedsLogging(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
 

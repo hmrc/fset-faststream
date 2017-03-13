@@ -4,7 +4,7 @@ import factories.DateTimeFactory
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{ Phase1TestProfile, Phase2TestGroup }
-import reactivemongo.api.commands.WriteResult
+import reactivemongo.api.commands.{ UpdateWriteResult, WriteResult }
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
@@ -29,12 +29,12 @@ trait ApplicationDataFixture {
 
   override val collectionName = "application"
 
-  def updateApplication(doc: BSONDocument, appId: String) =
+  def updateApplication(doc: BSONDocument, appId: String): Future[UpdateWriteResult] =
     phase1TestRepo.collection.update(BSONDocument("applicationId" -> appId), doc)
 
   def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String,
                         needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean,
-                        fastPassApplicable: Boolean = false) = {
+                        fastPassApplicable: Boolean = false): WriteResult = {
 
     helperRepo.collection.insert(BSONDocument(
       "userId" -> userId,
@@ -48,7 +48,7 @@ trait ApplicationDataFixture {
     )).futureValue
   }
 
-  def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean) = {
+  def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean): BSONDocument = {
     if (needsSupportForOnlineAssessment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
@@ -266,7 +266,7 @@ trait ApplicationDataFixture {
     "dateOfBirth" -> "1986-05-01"
   )
 
-  def insertApplication(appId: String, userId: String) = {
+  def insertApplication(appId: String, userId: String): WriteResult = {
     helperRepo.collection.insert(BSONDocument(
       "applicationId" -> appId,
       "userId" -> userId,

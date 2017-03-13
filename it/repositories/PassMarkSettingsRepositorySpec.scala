@@ -19,6 +19,7 @@ package repositories
 import model.SchemeType._
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
+import org.scalatestplus.play.OneAppPerTest
 import play.api.libs.json.Format
 import repositories.passmarksettings._
 import testkit.MongoRepositorySpec
@@ -33,7 +34,7 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   val passMarkSettings = Phase1PassMarkSettings(phase1PassMarks, version, createdDate, createdByUser)
   val newPassMarkThresholds = Phase1PassMarkThresholds(PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d))
   val newPassMarks = List(Phase1PassMark(Finance, newPassMarkThresholds))
-  def passMarkSettingsRepo = new Phase1PassMarkSettingsMongoRepository()
+  def passMarkSettingsRepo = phase1PassMarkSettingsRepository
   val collectionName = "phase1-pass-mark-settings"
 
   override def copyNewPassMarkSettings(o: Phase1PassMarkSettings, newPassMarks: List[Phase1PassMark], newVersion: String, newDate:
@@ -51,7 +52,7 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   val passMarkSettings = Phase2PassMarkSettings(phase2PassMarks, version, createdDate, createdByUser)
   val newPassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(30d, 80d))
   val newPassMarks = List(Phase2PassMark(Finance, newPassMarkThresholds))
-  def passMarkSettingsRepo = new Phase2PassMarkSettingsMongoRepository()
+  def passMarkSettingsRepo = phase2PassMarkSettingsRepository
   val collectionName = "phase2-pass-mark-settings"
 
   override def copyNewPassMarkSettings(o: Phase2PassMarkSettings, newPassMarks: List[Phase2PassMark], newVersion: String, newDate:
@@ -69,7 +70,7 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   val passMarkSettings = Phase3PassMarkSettings(phase3PassMarks, version, createdDate, createdByUser)
   val newPassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(30d, 80d))
   val newPassMarks = List(Phase3PassMark(Finance, newPassMarkThresholds))
-  def passMarkSettingsRepo = new Phase3PassMarkSettingsMongoRepository()
+  def passMarkSettingsRepo = phase3PassMarkSettingsRepository
   val collectionName = "phase3-pass-mark-settings"
 
   override def copyNewPassMarkSettings(o: Phase3PassMarkSettings, newPassMarks: List[Phase3PassMark], newVersion: String, newDate:

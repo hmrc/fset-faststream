@@ -48,7 +48,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   def testDataRepo = new TestDataMongoRepository()
 
-  val testDataGeneratorService = TestDataGeneratorService
+  def testDataGeneratorService = TestDataGeneratorService
 
   implicit def blankedHeaderCarrier = new HeaderCarrier()
 

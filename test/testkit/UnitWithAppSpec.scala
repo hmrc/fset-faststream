@@ -16,10 +16,15 @@
 
 package testkit
 
+import akka.stream.Materializer
+import com.kenshoo.play.metrics.PlayModule
 import org.scalatestplus.play.OneAppPerSuite
-import play.api.libs.json.{ Json, Writes }
+import play.api.{ Application, Play }
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.{ JsValue, Json, Writes }
 import play.api.mvc.Results
-import play.api.test.{ FakeApplication, FakeHeaders, FakeRequest }
+import play.api.test.{ FakeHeaders, FakeRequest }
+import play.modules.reactivemongo.ReactiveMongoHmrcModule
 
 /**
   * Common base class for all controller tests
@@ -28,18 +33,19 @@ abstract class UnitWithAppSpec extends UnitSpec with OneAppPerSuite with Results
   val AppId = "AppId"
   val UserId = "UserId"
 
+  override implicit lazy val app: Application = new GuiceApplicationBuilder()
+    .disable[PlayModule]
+    .disable[ReactiveMongoHmrcModule]
+    .build
+
+  implicit def mat: Materializer = Play.materializer(app)
+
   // Suppress logging during tests
   def additionalConfig = Map("logger.application" -> "ERROR")
 
-  override implicit lazy val app: FakeApplication = FakeApplication(
-    additionalConfiguration = additionalConfig, withoutPlugins = Seq(
-      "play.modules.reactivemongo.ReactiveMongoPlugin",
-      "uk.gov.hmrc.play.health.HealthPlugin",
-      "com.kenshoo.play.metrics.MetricsPlugin")
-  )
-
-  def fakeRequest[T](request: T)(implicit tjs: Writes[T]) =
+  def fakeRequest[T](request: T)(implicit tjs: Writes[T]): FakeRequest[JsValue] =
     FakeRequest("", "", FakeHeaders(), Json.toJson(request)).withHeaders("Content-Type" -> "application/json")
 
   def fakeRequest = FakeRequest()
+
 }

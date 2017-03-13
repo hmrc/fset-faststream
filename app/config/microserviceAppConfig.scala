@@ -134,6 +134,7 @@ object MicroserviceAppConfig extends MicroserviceAppConfig
 
 trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+  lazy val app = play.api.Play.current
   lazy val emailConfig = configuration.underlying.as[EmailConfig]("microservice.services.email")
   lazy val frameworksConfig = configuration.underlying.as[FrameworksConfig]("microservice.frameworks")
   lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")

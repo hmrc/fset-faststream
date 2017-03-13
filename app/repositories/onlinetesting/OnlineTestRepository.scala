@@ -266,8 +266,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     val updateQuery = BSONDocument(
       "$set" -> BSONDocument("applicationStatus" -> thisApplicationStatus),
-      "$unset" -> BSONDocument(progressesToRemoveQueryPartial),
-      "$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> "")
+      "$unset" -> (BSONDocument(progressesToRemoveQueryPartial) ++ BSONDocument(s"testGroups.$phaseName.evaluation" -> ""))
     )
 
     val validator = singleUpdateValidator(appId, actionDesc = s"resetting $phaseName test progresses", ApplicationNotFound(appId))
