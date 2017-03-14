@@ -24,13 +24,16 @@ import models.view.SchoolView._
 import models.view.SchoolView.SchoolImplicits
 import play.api.libs.json.Json
 import security.QuestionnaireRoles.EducationQuestionnaireRole
+import security.SilhouetteComponent
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
-object SchoolsController extends SchoolsController(SchoolsClient, CSRCache, ApplicationClient)
+object SchoolsController extends SchoolsController(SchoolsClient, CSRCache, ApplicationClient) {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
-class SchoolsController(schoolsClient: SchoolsClient, cacheClient: CSRCache, applicationClient: ApplicationClient)
+abstract class SchoolsController(schoolsClient: SchoolsClient, cacheClient: CSRCache, applicationClient: ApplicationClient)
   extends BaseController(applicationClient, cacheClient) {
   def getSchools(term: String) = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>

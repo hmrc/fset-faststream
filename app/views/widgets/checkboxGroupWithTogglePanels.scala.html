@@ -2,7 +2,7 @@
 @import helpers.CSRSkinnyFieldConstructor._
 @import FieldNameHelpers._
 
-@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(togglePanels:Html)
+@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(togglePanels:Html)(implicit messages: Messages)
 
 @helper.input(field, args:_*) { (id, name, value, htmlArgs) =>
     <fieldset>

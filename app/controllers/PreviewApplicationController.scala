@@ -24,12 +24,17 @@ import helpers.NotificationType._
 import models.CachedDataWithApp
 import security.RoleUtils._
 import security.Roles.PreviewApplicationRole
+import security.SilhouetteComponent
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
-object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, CSRCache, SchemeClient)
+object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, CSRCache, SchemeClient) {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
-class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
+abstract class PreviewApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
   extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>

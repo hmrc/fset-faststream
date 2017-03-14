@@ -1,4 +1,4 @@
-@(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(form: Form[_root_.forms.AssistanceDetailsForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
     @import views.html.application.assistancedetails.{ hasDisability, needsSupportOnlineAssessments, needsSupportAtVenue, needsSupportPhoneInterview }
     @import views.html.widgets.{ pageProgress, saveAndContinueButton }

@@ -21,12 +21,17 @@ import config.CSRCache
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.{ ApplicationClient, SchemeClient }
 import security.Roles.SchemesRole
+import security.SilhouetteComponent
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
-object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, CSRCache, SchemeClient)
+object SchemePreferencesController extends SchemePreferencesController(ApplicationClient, CSRCache, SchemeClient) {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
-class SchemePreferencesController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
+abstract class SchemePreferencesController(applicationClient: ApplicationClient, cacheClient: CSRCache, schemeClient: SchemeClient)
   extends BaseController(applicationClient, cacheClient){
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>

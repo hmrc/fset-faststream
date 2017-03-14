@@ -25,14 +25,19 @@ import models.{ ApplicationRoute, CachedDataWithApp }
 import play.api.mvc.{ Request, RequestHeader, Result }
 import security.QuestionnaireRoles._
 import security.Roles.{ CsrAuthorization, PreviewApplicationRole, SubmitApplicationRole }
+import security.SilhouetteComponent
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
-object QuestionnaireController extends QuestionnaireController(ApplicationClient, CSRCache)
+object QuestionnaireController extends QuestionnaireController(ApplicationClient, CSRCache) {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
-class QuestionnaireController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+abstract class QuestionnaireController(applicationClient: ApplicationClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) {
 
   val QuestionnaireCompletedBanner = danger("questionnaire.completed")

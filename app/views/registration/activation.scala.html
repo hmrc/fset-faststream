@@ -1,5 +1,5 @@
 @(email: String, activationForm: Form[_root_.forms.ActivateAccountForm.Data],
-        notification: Option[(helpers.NotificationType, String)] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+        notification: Option[(helpers.NotificationType, String)] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
     @import helpers.CSRFieldConstructor._
 

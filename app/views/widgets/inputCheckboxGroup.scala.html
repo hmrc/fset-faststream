@@ -18,7 +18,7 @@
 *@
 @import helpers.CSRSkinnyFieldConstructor._
 
-@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)
+@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit messages: Messages)
 
 @createId(id:String, v:(String,String))=@{id + "_"+v._1.replace(" ", "_").replace("/", "_").replace("'","_")}
 

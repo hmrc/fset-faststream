@@ -24,12 +24,17 @@ import forms.VerifyCodeForm
 import helpers.NotificationType._
 import models.CachedData
 import play.api.mvc.{ Request, Result }
+import security.SilhouetteComponent
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
-object InvigilatedController extends InvigilatedController(ApplicationClient, CSRCache)
+object InvigilatedController extends InvigilatedController(ApplicationClient, CSRCache) {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
-class InvigilatedController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+abstract class InvigilatedController(applicationClient: ApplicationClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRUserAwareAction { implicit request =>

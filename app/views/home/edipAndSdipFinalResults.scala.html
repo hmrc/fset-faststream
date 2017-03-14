@@ -5,7 +5,7 @@
 @import views.html.home.withdrawInformation
 @import models.ApplicationRoute._
 
-@(cachedUser: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(cachedUser: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @applicationRoute = @{
     user.flatMap(_.application).map(_.applicationRoute).getOrElse(Faststream)

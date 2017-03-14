@@ -3,7 +3,7 @@
         schemePreferences: connectors.exchange.SelectedSchemes,
         partnerGraduateProgrammes: Option[connectors.exchange.PartnerGraduateProgrammes],
         assistanceDetails: connectors.exchange.AssistanceDetails,
-        applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+        applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @import views.html.application.previewapplication.{assistanceDetailsViewSection, personalDetailsViewSection, schemePreferencesViewSection, partnerGraduateProgrammesViewSection, diversityQuestionnaireViewSection}
 @import models.ApplicationData.ApplicationStatus._

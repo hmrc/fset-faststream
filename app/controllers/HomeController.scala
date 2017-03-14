@@ -27,14 +27,17 @@ import models.page.{ DashboardPage, Phase1TestsPage, Phase2TestsPage, Phase3Test
 import models.{ ApplicationData, CachedData }
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
-import security.Roles
+import security.{ Roles, SilhouetteComponent }
 import security.Roles._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 object HomeController extends HomeController(ApplicationClient, CSRCache) {
   val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
+  lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class HomeController(applicationClient: ApplicationClient, cacheClient: CSRCache)

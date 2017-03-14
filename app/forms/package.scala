@@ -17,6 +17,8 @@
 import play.api.data.FormError
 import play.api.data.format.Formatter
 import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 /*
  * Copyright 2016 HM Revenue & Customs

@@ -27,7 +27,7 @@ object FrontendBuild extends Build with MicroService {
 
 private object Versions {
 
-  val silhouette    = "2.0.2"
+  val silhouette    = "4.0.0"
 }
 
 private object AppDependencies {

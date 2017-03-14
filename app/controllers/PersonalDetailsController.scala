@@ -34,10 +34,15 @@ import security.Roles.{ EditPersonalDetailsAndContinueRole, EditPersonalDetailsR
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
+import security.SilhouetteComponent
 
-object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, CSRCache, UserManagementClient)
+object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, CSRCache, UserManagementClient) {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
-class PersonalDetailsController(applicationClient: ApplicationClient,
+abstract class PersonalDetailsController(applicationClient: ApplicationClient,
                                 schemeClient: SchemeClient,
                                 cacheClient: CSRCache,
                                 userManagementClient: UserManagementClient)

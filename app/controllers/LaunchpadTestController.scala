@@ -21,12 +21,16 @@ import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
 import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, Phase3TestInvitedRole }
+import security.SilhouetteComponent
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 object LaunchpadTestController extends LaunchpadTestController(ApplicationClient, CSRCache) {
   val http = CSRHttp
+  lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class LaunchpadTestController(applicationClient: ApplicationClient, cache: CSRCache) extends BaseController(applicationClient, cache) {

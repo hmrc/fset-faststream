@@ -16,14 +16,22 @@
 
 package security
 
-import com.mohiva.play.silhouette.api.Environment
+import com.mohiva.play.silhouette.api.services.AuthenticatorService
+import com.mohiva.play.silhouette.api.{ Env, Environment, EventBus }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import connectors.UserManagementClient
 import models.SecurityUser
 
-trait SecurityEnvironment extends Environment[SecurityUser, SessionAuthenticator] with UserManagementClient {
+trait SecurityEnvironment extends Env with UserManagementClient {
+
+  type I = SecurityUser
+  type A = SessionAuthenticator
 
   def userService: UserService
 
   def credentialsProvider: CsrCredentialsProvider
+
+  val eventBus: EventBus
+
+  val authenticatorService: AuthenticatorService[SessionAuthenticator]
 }

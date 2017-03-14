@@ -1,5 +1,5 @@
 @import models.view.PartnerGraduateProgrammes
-@(form: Form[_root_.forms.PartnerGraduateProgrammesForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(form: Form[_root_.forms.PartnerGraduateProgrammesForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @import views.html.widgets.{ pageProgress, saveAndContinueButton, radioBoxHorizontal, inputCheckboxGroup }
 @import helpers.CSRFieldConstructor._

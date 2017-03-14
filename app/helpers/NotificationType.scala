@@ -19,6 +19,8 @@ package helpers
 import play.api.i18n.Messages
 
 import scala.language.implicitConversions
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 /**
  * see flashMessage.scala.html

@@ -19,11 +19,13 @@ package controllers.testdata
 import config.{ CSRCache, CSRHttp }
 import connectors.{ ApplicationClient, TestDataClient }
 import controllers.BaseController
+import security.SilhouetteComponent
 
 import scala.concurrent.Future
 
 object TestDataGeneratorRedirectController extends TestDataGeneratorRedirectController(ApplicationClient, CSRCache) {
   val http = CSRHttp
+  lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class TestDataGeneratorRedirectController(applicationClient: ApplicationClient with TestDataClient, cacheClient: CSRCache)

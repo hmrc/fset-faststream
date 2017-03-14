@@ -21,12 +21,16 @@ import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
 import helpers.NotificationType._
 import models.ApplicationData.ApplicationStatus.SUBMITTED
-import security.Roles.{ SubmitApplicationRole, AbleToWithdrawApplicationRole }
+import security.Roles.{ AbleToWithdrawApplicationRole, SubmitApplicationRole }
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
+import security.SilhouetteComponent
 
 object SubmitApplicationController extends SubmitApplicationController(ApplicationClient, CSRCache) {
   val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
+  lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class SubmitApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)

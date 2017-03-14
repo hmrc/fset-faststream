@@ -1,4 +1,4 @@
-@(selectedSchemes: connectors.exchange.SelectedSchemes)(edit: Html)
+@(selectedSchemes: connectors.exchange.SelectedSchemes)(edit: Html)(implicit messages: Messages)
 
 @getOrder(pos: Int) = @{
     pos match {

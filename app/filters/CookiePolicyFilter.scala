@@ -18,11 +18,12 @@ package filters
 
 import models.CookiePolicy
 import play.api.mvc.{ Filter, RequestHeader, Result }
+import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object CookiePolicyFilter extends Filter {
+object CookiePolicyFilter extends Filter with MicroserviceFilterSupport {
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] =
     next(rh).map { result =>
       if (result.header.status == 200 && !CookiePolicy.bannerSeen(rh)) {

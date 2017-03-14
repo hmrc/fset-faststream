@@ -1,4 +1,4 @@
-@(withdrawForm: Form[_root_.forms.WithdrawApplicationForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(withdrawForm: Form[_root_.forms.WithdrawApplicationForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
     @import views.html.widgets.{ radioBoxHorizontal, select_guard }
     @import helpers.CSRFieldConstructor._
