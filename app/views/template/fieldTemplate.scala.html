@@ -1,4 +1,4 @@
-@(elements: helper.FieldElements))
+@(elements: helper.FieldElements)
 
 @defining(if (elements.args.get('_hasLink).exists(_.asInstanceOf[Boolean])) "form-group-withlink" else "") {linkClass=>
     <div id="@{elements.id}_field" class="form-group @elements.args.get('_class) @linkClass @if(elements.hasErrors) {has-an-error input-validation-error}">
