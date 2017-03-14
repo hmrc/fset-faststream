@@ -76,18 +76,19 @@ class LockAccountControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
     val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
     val mockEnvironment = mock[SecurityEnvironment]
 
     class TestableLockAccountController extends LockAccountController(mockApplicationClient, mockCacheClient) {
-      override val env = mock[SecurityEnvironmentImpl]
-      override val silhouette = SilhouetteComponent.silhouette
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
     }
 
     def lockAccountController = new LockAccountController(mockApplicationClient, mockCacheClient) with NoIdentityTestableCSRUserAwareAction {
-      override val env = mock[SecurityEnvironmentImpl]
-      override val silhouette = SilhouetteComponent.silhouette
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
     }
   }
 }

@@ -20,8 +20,9 @@ import controllers.UnitSpec
 import forms.PersonalDetailsFormExamples._
 import org.joda.time.LocalDate
 import org.scalatestplus.play.PlaySpec
+import testkit.UnitWithAppSpec
 
-class PersonalDetailsFormSpec extends UnitSpec {
+class PersonalDetailsFormSpec extends UnitWithAppSpec {
   implicit val now = LocalDate.now
 
   import PersonalDetailsForm.{ form => personalDetailsForm }
@@ -149,7 +150,7 @@ class PersonalDetailsFormSpec extends UnitSpec {
     }
 
     "be invalid with all mandatory fields except edip completed question for in progress sdip candidate" in {
-      assertFormError("error.needsEdipCompleted.required", (SdipInProgressValidOutsideUKDetails - "edipCompleted"))
+      assertFormError("Tell us if you have completed EDIP", (SdipInProgressValidOutsideUKDetails - "edipCompleted"))
     }
   }
 

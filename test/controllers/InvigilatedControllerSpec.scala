@@ -74,6 +74,8 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
+
     val testUrl = "http://localhost:9284/fset-fast-stream/invigilated-etray"
     val succesfulValidationResponse = Future.successful(InvigilatedTestUrl(testUrl))
     val failedValidationResponse = Future.failed(new TokenEmailPairInvalidException())
@@ -81,8 +83,8 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
 
     class TestableInvigilatedController extends InvigilatedController(mockApplicationClient, mockCacheClient) {
       val http: CSRHttp = CSRHttp
-      override val env = mock[SecurityEnvironmentImpl]
-      override val silhouette = SilhouetteComponent.silhouette
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
     }
 
     val underTest = new TestableInvigilatedController

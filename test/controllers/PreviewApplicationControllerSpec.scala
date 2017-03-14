@@ -28,7 +28,7 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserService }
+import security.{ SilhouetteComponent, UserCacheService, UserService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -136,8 +136,8 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
     val mockSchemeClient = mock[SchemeClient]
-    val mockSecurityEnvironment = mock[security.SecurityEnvironment]
-    val mockUserService = mock[UserService]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
+    val mockUserService = mock[UserCacheService]
 
     when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
@@ -152,13 +152,13 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       mockSchemeClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override val env = mock[SecurityEnvironmentImpl]
-      override val silhouette = SilhouetteComponent.silhouette
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePreviewApplicationController{
-      override val candidateWithApp: CachedDataWithApp = candidateWithApp
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePreviewApplicationController{
+      override val candidateWithApp: CachedDataWithApp = candWithApp
     }
   }
 }

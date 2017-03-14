@@ -24,11 +24,12 @@ import testkit.{ BaseControllerSpec, TestableSecureActions }
 class ApplicationControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]
   val mockCacheClient = mock[CSRCache]
+  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
   class TestableApplicationController extends ApplicationController(mockApplicationClient, mockCacheClient) with TestableSecureActions {
     val http: CSRHttp = CSRHttp
-    override val env = mock[SecurityEnvironmentImpl]
-    override val silhouette = SilhouetteComponent.silhouette
+    override val env = mockSecurityEnvironment
+    override lazy val silhouette = SilhouetteComponent.silhouette
   }
 
   def controller = new TestableApplicationController

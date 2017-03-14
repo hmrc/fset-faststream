@@ -167,7 +167,7 @@ class SignUpControllerSpec extends BaseControllerSpec {
       extends SignUpController(mockApplicationClient, mockCacheClient, mockUserManagementClient) with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
-      override val silhouette = SilhouetteComponent.silhouette
+      override lazy val silhouette = SilhouetteComponent.silhouette
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       val appRouteConfigMap = testAppRouteConfigMap
     }

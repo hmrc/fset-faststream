@@ -17,8 +17,9 @@
 package forms
 
 import controllers.UnitSpec
+import testkit.UnitWithAppSpec
 
-class LockAccountFormSpec extends UnitSpec {
+class LockAccountFormSpec extends UnitWithAppSpec {
 
   import LockAccountForm.{ form => lockAccountForm }
 

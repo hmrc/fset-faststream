@@ -27,7 +27,7 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserService }
+import security.{ SilhouetteComponent, UserCacheService, UserService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -145,20 +145,21 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
-    val mockUserService = mock[UserService]
+    val mockUserService = mock[UserCacheService]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
     class TestableAssistanceDetailsController extends AssistanceDetailsController(mockApplicationClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
 
-      override val env = mock[SecurityEnvironmentImpl]
-      override val silhouette = SilhouetteComponent.silhouette
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
 
-      when(securityEnvironment.userService).thenReturn(mockUserService)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestableAssistanceDetailsController {
-      override val candidateWithApp: CachedDataWithApp = candidateWithApp
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestableAssistanceDetailsController {
+      override val candidateWithApp: CachedDataWithApp = candWithApp
     }
   }
 }

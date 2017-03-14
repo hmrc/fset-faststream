@@ -24,7 +24,7 @@ import connectors.ApplicationClient
 import models.CachedDataExample
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import play.api.mvc.{ Flash, Request, Result, Results }
+import play.api.mvc._
 import play.api.test.Helpers._
 import security._
 import testables.{ NoIdentityTestableCSRUserAwareAction, TestableCSRUserAwareAction }
@@ -175,7 +175,7 @@ class SignInControllerSpec extends BaseControllerSpec {
       }
 
       "sign out if you are signed in" in new TestFixture {
-        when(mockAuthenticatorService.discard(any[SessionAuthenticator], any[Result])).thenReturn(
+        when(mockAuthenticatorService.discard(any[SessionAuthenticator], any[Result])(any[RequestHeader])).thenReturn(
           Future.successful(AuthenticatorResult.apply(Results.Redirect(routes.SignInController.present())))
         )
 
@@ -213,7 +213,7 @@ class SignInControllerSpec extends BaseControllerSpec {
     class TestableSignInController extends SignInController(mockApplicationClient, mockCacheClient) with TestableSignInService {
       override val signInService = mockSignInService
       override val env = mockSecurityEnvironment
-      override val silhouette = SilhouetteComponent.silhouette
+      override lazy val silhouette = SilhouetteComponent.silhouette
     }
 
     def signInController = new TestableSignInController with NoIdentityTestableCSRUserAwareAction

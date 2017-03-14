@@ -43,12 +43,12 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   def controllerUnderTest = new SchemePreferencesController(applicationClient, mockCacheClient, schemeClient) with TestableSecureActions {
     override val env = mockSecurityEnvironment
-    override val silhouette = SilhouetteComponent.silhouette
+    override lazy val silhouette = SilhouetteComponent.silhouette
     when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any())).thenReturn(Future.successful(CachedData(
       mock[CachedUser],
       application = Some(mock[ApplicationData])
     )))
-    when(securityEnvironment.userService).thenReturn(userService)
+    when(mockSecurityEnvironment.userService).thenReturn(userService)
   }
 
   "present" should {

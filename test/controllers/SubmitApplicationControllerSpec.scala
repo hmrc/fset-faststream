@@ -108,14 +108,14 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
       override val env = mockSecurityEnvironment
-      override val silhouette = SilhouetteComponent.silhouette
+      override lazy val silhouette = SilhouetteComponent.silhouette
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
     }
 
-    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp,
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,
                    appRouteConfig: ApplicationRouteState = defaultApplicationRouteState) = new TestableSubmitApplicationController{
-      override val candidateWithApp: CachedDataWithApp = candidateWithApp
+      override val candidateWithApp: CachedDataWithApp = candWithApp
       override implicit val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] =
         Map(Faststream -> appRouteConfig, Edip -> appRouteConfig, Sdip -> appRouteConfig)
     }

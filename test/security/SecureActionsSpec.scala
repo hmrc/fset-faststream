@@ -99,7 +99,7 @@ class SecureActionsSpec extends UnitSpec {
            override val userService = mockUserCacheService
         }
 
-        override val silhouette = SilhouetteComponent.silhouette
+        override lazy val silhouette = SilhouetteComponent.silhouette
       }
     }
   }

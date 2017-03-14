@@ -18,8 +18,9 @@ package forms
 
 import controllers.UnitSpec
 import forms.DiversityQuestionnaireForm.{ Data, form }
+import testkit.UnitWithAppSpec
 
-class DiversityQuestionnaireFormSpec extends UnitSpec {
+class DiversityQuestionnaireFormSpec extends UnitWithAppSpec {
 
   "the diversity form" should {
     "be valid when all values are correct" in new Fixture {

@@ -31,7 +31,7 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserService }
+import security.{ SilhouetteComponent, UserCacheService, UserService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -373,21 +373,22 @@ class HomeControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
-    val mockUserService = mock[UserService]
+    val mockUserService = mock[UserCacheService]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
     class TestableHomeController extends HomeController(mockApplicationClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override val env = mock[SecurityEnvironmentImpl]
-      override val silhouette = SilhouetteComponent.silhouette
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
       val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
-      when(securityEnvironment.userService).thenReturn(mockUserService)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp,
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,
                    appRouteState: ApplicationRouteState = defaultApplicationRouteState) = new TestableHomeController {
-      override val candidate: CachedData = CachedData(candidateWithApp.user, Some(candidateWithApp.application))
-      override val candidateWithApp: CachedDataWithApp = candidateWithApp
+      override val candidate: CachedData = CachedData(candWithApp.user, Some(candWithApp.application))
+      override val candidateWithApp: CachedDataWithApp = candWithApp
       override val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
     }
 

@@ -32,7 +32,7 @@ import scala.concurrent.Future
 class ActivationControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]
   val mockCacheClient = mock[CSRCache]
-  val mockEnvironment = mock[SecurityEnvironmentImpl]
+  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
   val mockUserManagementClient = mock[UserManagementClient]
   val mockSignInService = mock[SignInService]
 
@@ -42,8 +42,8 @@ class ActivationControllerSpec extends BaseControllerSpec {
     mockCacheClient, mockUserManagementClient) with TestableSignInService
     with TestableSecureActions {
     val signInService = mockSignInService
-    override val env = mock[SecurityEnvironmentImpl]
-    override val silhouette = SilhouetteComponent.silhouette
+    override val env = mockSecurityEnvironment
+    override lazy val silhouette = SilhouetteComponent.silhouette
   }
 
   def controller = new TestableActivationController
@@ -75,7 +75,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
       when(mockUserManagementClient.activate(eqTo(currentEmail), eqTo(ValidToken))(any())).thenReturn(Future.successful(()))
       when(mockSignInService.signInUser(
         eqTo(currentCandidate.user.copy(isActive = true)),
-        eqTo(mockEnvironment),
+        eqTo(mockSecurityEnvironment),
         any[Result])(any[Request[_]])
       ).thenReturn(Future.successful(Results.Redirect(routes.HomeController.present())))
 

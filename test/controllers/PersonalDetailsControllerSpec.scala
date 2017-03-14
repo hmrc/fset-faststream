@@ -29,7 +29,7 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.Request
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserService }
+import security.{ SilhouetteComponent, UserCacheService, UserService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -40,21 +40,22 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
   val mockCacheClient = mock[CSRCache]
   val mockSchemeClient = mock[SchemeClient]
   val mockUserManagementClient = mock[UserManagementClient]
-  val userService = mock[UserService]
+  val userService = mock[UserCacheService]
+  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
   class TestablePersonalDetailsController extends PersonalDetailsController(mockApplicationClient, mockSchemeClient,
     mockCacheClient, mockUserManagementClient)
     with TestableSecureActions {
     val http: CSRHttp = CSRHttp
-    override val env = mock[SecurityEnvironmentImpl]
-    override val silhouette = SilhouetteComponent.silhouette
+    override val env = mockSecurityEnvironment
+    override lazy val silhouette = SilhouetteComponent.silhouette
 
-    when(securityEnvironment.userService).thenReturn(userService)
+    when(mockSecurityEnvironment.userService).thenReturn(userService)
   }
 
   // scalastyle:off method.name
-  def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePersonalDetailsController {
-    override val candidateWithApp: CachedDataWithApp = candidateWithApp
+  def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePersonalDetailsController {
+    override val candidateWithApp: CachedDataWithApp = candWithApp
   }
 
   "present" should {
