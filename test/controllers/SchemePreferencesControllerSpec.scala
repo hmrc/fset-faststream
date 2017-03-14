@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.CSRCache
+import config.{ CSRCache, SecurityEnvironmentImpl }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.CivilServiceExperienceDetailsExamples._
 import connectors.exchange.{ ApplicationResponse, SchemePreferencesExamples }
@@ -27,21 +27,23 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserCacheService, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
+  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
   val applicationClient = mock[ApplicationClient]
   val mockCacheClient = mock[CSRCache]
   val schemeClient  = mock[SchemeClient]
-  val userService = mock[UserService]
+  val userService = mock[UserCacheService]
 
   def controllerUnderTest = new SchemePreferencesController(applicationClient, mockCacheClient, schemeClient) with TestableSecureActions {
-    override protected def env = securityEnvironment
+    override val env = mockSecurityEnvironment
+    override val silhouette = SilhouetteComponent.silhouette
     when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any())).thenReturn(Future.successful(CachedData(
       mock[CachedUser],
       application = Some(mock[ApplicationData])

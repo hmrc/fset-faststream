@@ -16,15 +16,23 @@
 
 package testkit
 
+import akka.stream.Materializer
+import com.kenshoo.play.metrics.PlayModule
 import controllers.UnitSpec
 import org.scalatestplus.play.OneAppPerSuite
-import play.api.test.FakeApplication
+import play.api.{ Application, Play }
+import play.api.inject.guice.GuiceApplicationBuilder
 
 abstract class UnitWithAppSpec extends UnitSpec with OneAppPerSuite {
 
   // Suppress logging during tests
   val additionalConfig = Map("logger.application" -> "ERROR")
 
-  override implicit lazy val app: FakeApplication = new FakeApplication(additionalConfiguration = additionalConfig)
+  override implicit lazy val app: Application = new GuiceApplicationBuilder()
+    .overrides(new SilhouetteFakeModule())
+    .disable[PlayModule]
+    .configure(additionalConfig)
+    .build
 
+  implicit def mat: Materializer = Play.materializer(app)
 }

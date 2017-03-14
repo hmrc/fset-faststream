@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp }
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
 import connectors.exchange.PartnerGraduateProgrammesExamples
@@ -27,8 +27,8 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -93,7 +93,8 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
     class TestablePartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(mockApplicationClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override protected def env = mockSecurityEnvironment
+      override val env = mock[SecurityEnvironmentImpl]
+      override val silhouette = SilhouetteComponent.silhouette
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 

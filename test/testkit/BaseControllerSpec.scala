@@ -19,7 +19,9 @@ package testkit
 import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
+import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
+import config.SecurityEnvironmentImpl
 import controllers.{ ApplicationRouteState, BaseController, routes }
 import models.ApplicationRoute.{ ApplicationRoute => _ }
 import models.SecurityUserExamples._
@@ -28,7 +30,8 @@ import org.joda.time.DateTime
 import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.filters.csrf.CSRF
+import play.filters.csrf.{ CSRF, CSRFConfigProvider, CSRFFilter }
+import play.filters.csrf.CSRF.Token
 import security.Roles.CsrAuthorization
 import security.{ SecureActions, SecurityEnvironment, SignInService }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -64,7 +67,17 @@ abstract class BaseControllerSpec extends UnitWithAppSpec {
 
   def randomUUID = UniqueIdentifier(UUID.randomUUID().toString)
 
-  def fakeRequest = FakeRequest().withSession(CSRF.TokenName -> CSRF.SignedTokenProvider.generateToken)
+  private val csrfConfig     = app.injector.instanceOf[CSRFConfigProvider].get
+  private val csrfFilter     = app.injector.instanceOf[CSRFFilter]
+  private val token          = csrfFilter.tokenProvider.generateToken
+
+  def fakeRequest = {
+    val fakeRequest = FakeRequest()
+    fakeRequest.copyFakeRequest(tags = fakeRequest.tags ++ Map(
+      Token.NameRequestTag  -> csrfConfig.tokenName,
+      Token.RequestTag      -> token
+    )).withHeaders((csrfConfig.headerName, token))
+  }
 
   val defaultApplicationRouteState = new ApplicationRouteState {
     val newAccountsStarted = true
@@ -84,7 +97,7 @@ abstract class BaseControllerSpec extends UnitWithAppSpec {
     val signInService: SignInService
 
     override def signInUser(user: CachedUser,
-                            env: SecurityEnvironment,
+                            env: SecurityEnvironmentImpl,
                             redirect: Result = Redirect(routes.HomeController.present())
                            )(implicit request: Request[_]): Future[Result] =
       signInService.signInUser(user, env, redirect)(request)
@@ -99,44 +112,5 @@ abstract class BaseControllerSpec extends UnitWithAppSpec {
   def assertPageRedirection(result: Future[Result], expectedUrl: String) = {
     status(result) must be(SEE_OTHER)
     redirectLocation(result) must be(Some(expectedUrl))
-  }
-
-  // scalastyle:off method.name
-  trait TestableSecureActions extends SecureActions {
-
-    val Candidate: CachedData = currentCandidate
-    val CandidateWithApp: CachedDataWithApp = currentCandidateWithApp
-
-    override def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedData => Future[Result]): Action[AnyContent] =
-      execute(Candidate)(block)
-
-    override def CSRSecureAppAction(role: CsrAuthorization)(block: (SecuredRequest[_]) => (CachedDataWithApp) =>
-      Future[Result]): Action[AnyContent] = execute(CandidateWithApp)(block)
-
-    override def CSRUserAwareAction(block: UserAwareRequest[_] => Option[CachedData] => Future[Result]): Action[AnyContent] =
-      Action.async { request =>
-        val secReq = UserAwareRequest(None, None, request)
-        implicit val carrier = hc(request)
-        block(secReq)(None)
-      }
-
-    private def execute[T](result: T)(block: (SecuredRequest[_]) => (T) => Future[Result]): Action[AnyContent] = {
-      Action.async { request =>
-        val secReq = defaultAction(request)
-        implicit val carrier = hc(request)
-        block(secReq)(result)
-      }
-    }
-
-    private def defaultAction[T](request: Request[AnyContent]) =
-      SecuredRequest(
-        SecurityUser(UUID.randomUUID.toString),
-        SessionAuthenticator(
-          LoginInfo("fakeProvider", "fakeKey"),
-          DateTime.now(),
-          DateTime.now().plusDays(1),
-          None, None
-        ), request
-      )
   }
 }

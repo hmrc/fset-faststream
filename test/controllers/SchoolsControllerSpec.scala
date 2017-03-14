@@ -16,14 +16,15 @@
 
 package controllers
 
-import config.CSRCache
+import config.{ CSRCache, SecurityEnvironmentImpl }
 import connectors.{ ApplicationClient, SchoolsClient }
 import connectors.SchoolsClient.SchoolsNotFound
 import connectors.exchange.School
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import testkit.BaseControllerSpec
+import security.SilhouetteComponent
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -34,7 +35,10 @@ class SchoolsControllerSpec extends BaseControllerSpec {
   val mockCacheClient = mock[CSRCache]
   val mockApplicationClient = mock[ApplicationClient]
 
-  def schoolsController = new SchoolsController(schoolClient, mockCacheClient, mockApplicationClient) with TestableSecureActions
+  def schoolsController = new SchoolsController(schoolClient, mockCacheClient, mockApplicationClient) with TestableSecureActions {
+    override val env = mock[SecurityEnvironmentImpl]
+    override val silhouette = SilhouetteComponent.silhouette
+  }
 
   "get schools" should {
     val schoolList = List(

@@ -28,17 +28,14 @@ import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-object ActivationController extends ActivationController(ApplicationClient, CSRCache) {
+object ActivationController extends ActivationController(ApplicationClient, CSRCache, UserManagementClient) {
   val http = CSRHttp
-  val userManagementClient = UserManagementClient
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class ActivationController(val applicationClient: ApplicationClient,
-                                    cacheClient: CSRCache) extends
+                                    cacheClient: CSRCache, userManagementClient: UserManagementClient) extends
   BaseController(applicationClient, cacheClient) with SignInService {
-
-  val userManagementClient: UserManagementClient
 
   def present = CSRSecureAction(NoRole) { implicit request =>
     implicit user => user.user.isActive match {

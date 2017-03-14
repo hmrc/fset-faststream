@@ -16,31 +16,34 @@
 
 package controllers
 
-import config.CSRCache
-import connectors.ApplicationClient
+import config.{ CSRCache, SecurityEnvironmentImpl }
+import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.UserManagementClient.{ TokenEmailPairInvalidException, TokenExpiredException }
 import models.CachedData
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.{ Request, Result, Results }
 import play.api.test.Helpers._
-import security.SignInService
-import testkit.BaseControllerSpec
+import security.{ SignInService, SilhouetteComponent }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 
 import scala.concurrent.Future
 
 class ActivationControllerSpec extends BaseControllerSpec {
   val mockApplicationClient = mock[ApplicationClient]
   val mockCacheClient = mock[CSRCache]
-  val mockEnvironment = mock[security.SecurityEnvironment]
+  val mockEnvironment = mock[SecurityEnvironmentImpl]
+  val mockUserManagementClient = mock[UserManagementClient]
   val mockSignInService = mock[SignInService]
 
   import models.SecurityUserExamples._
 
-  class TestableActivationController extends ActivationController(mockApplicationClient, mockCacheClient) with TestableSignInService
+  class TestableActivationController extends ActivationController(mockApplicationClient,
+    mockCacheClient, mockUserManagementClient) with TestableSignInService
     with TestableSecureActions {
     val signInService = mockSignInService
-    override protected def env = mockEnvironment
+    override val env = mock[SecurityEnvironmentImpl]
+    override val silhouette = SilhouetteComponent.silhouette
   }
 
   def controller = new TestableActivationController
@@ -56,7 +59,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
     "redirect to registration page for inactive user" in {
       val controllerForInactiveUser = new TestableActivationController {
-        override val Candidate: CachedData = InactiveCandidate
+        override val candidate: CachedData = InactiveCandidate
       }
 
       val result = controllerForInactiveUser.present()(fakeRequest)
@@ -69,7 +72,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
   "Activation Controller activate form" should {
     "activate user when activation form is valid" in {
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
-      when(mockEnvironment.activate(eqTo(currentEmail), eqTo(ValidToken))(any())).thenReturn(Future.successful(()))
+      when(mockUserManagementClient.activate(eqTo(currentEmail), eqTo(ValidToken))(any())).thenReturn(Future.successful(()))
       when(mockSignInService.signInUser(
         eqTo(currentCandidate.user.copy(isActive = true)),
         eqTo(mockEnvironment),
@@ -94,7 +97,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
     "reject form when token expired" in {
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
-      when(mockEnvironment.activate(eqTo(currentEmail), eqTo(ValidToken))(any()))
+      when(mockUserManagementClient.activate(eqTo(currentEmail), eqTo(ValidToken))(any()))
         .thenReturn(Future.failed(new TokenExpiredException))
 
       val result = controller.activateForm()(Request)
@@ -105,7 +108,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
     "reject form when token and email pair invalid" in {
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
-      when(mockEnvironment.activate(eqTo(ActiveCandidateUser.email), eqTo(ValidToken))(any()))
+      when(mockUserManagementClient.activate(eqTo(ActiveCandidateUser.email), eqTo(ValidToken))(any()))
         .thenReturn(Future.failed(new TokenEmailPairInvalidException))
 
       val result = controller.activateForm()(Request)
@@ -117,7 +120,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
   "Activation Controller resend code" should {
     "resend the activation code" in {
-      when(mockEnvironment.resendActivationCode(eqTo(ActiveCandidateUser.email))(any())).thenReturn(Future.successful(()))
+      when(mockUserManagementClient.resendActivationCode(eqTo(ActiveCandidateUser.email))(any())).thenReturn(Future.successful(()))
 
       val result = controller.resendCode()(fakeRequest)
 

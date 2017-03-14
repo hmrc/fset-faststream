@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp }
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.{ CivilServiceExperienceDetailsExamples, PersonalDetailsExamples, SelectedSchemes }
 import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
@@ -29,8 +29,8 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.Request
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -46,14 +46,15 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     mockCacheClient, mockUserManagementClient)
     with TestableSecureActions {
     val http: CSRHttp = CSRHttp
-    override protected def env = securityEnvironment
+    override val env = mock[SecurityEnvironmentImpl]
+    override val silhouette = SilhouetteComponent.silhouette
 
     when(securityEnvironment.userService).thenReturn(userService)
   }
 
   // scalastyle:off method.name
   def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePersonalDetailsController {
-    override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+    override val candidateWithApp: CachedDataWithApp = candidateWithApp
   }
 
   "present" should {

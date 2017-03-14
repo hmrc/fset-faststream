@@ -17,10 +17,10 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp }
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.exchange.{ AssistanceDetailsExamples, PersonalDetailsExamples, PartnerGraduateProgrammesExamples, SchemePreferencesExamples }
+import connectors.exchange.{ AssistanceDetailsExamples, PartnerGraduateProgrammesExamples, PersonalDetailsExamples, SchemePreferencesExamples }
 import connectors.{ ApplicationClient, SchemeClient }
 import forms.AssistanceDetailsFormExamples
 import models.SecurityUserExamples._
@@ -28,8 +28,8 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -152,12 +152,13 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       mockSchemeClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override protected def env = mockSecurityEnvironment
+      override val env = mock[SecurityEnvironmentImpl]
+      override val silhouette = SilhouetteComponent.silhouette
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 
     def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePreviewApplicationController{
-      override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+      override val candidateWithApp: CachedDataWithApp = candidateWithApp
     }
   }
 }

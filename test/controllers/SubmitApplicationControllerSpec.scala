@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{ CSRCache, CSRHttp }
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
@@ -24,8 +24,8 @@ import models.{ CachedData, CachedDataExample, CachedDataWithApp, ProgressRespon
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserCacheService, UserCacheServiceSpec, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -101,20 +101,21 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
-    val mockSecurityEnvironment = mock[security.SecurityEnvironment]
-    val mockUserService = mock[UserService]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
+    val mockUserService = mock[UserCacheService]
 
     class TestableSubmitApplicationController extends SubmitApplicationController(mockApplicationClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override protected def env = mockSecurityEnvironment
-      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
+      override val env = mockSecurityEnvironment
+      override val silhouette = SilhouetteComponent.silhouette
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
     }
 
     def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp,
                    appRouteConfig: ApplicationRouteState = defaultApplicationRouteState) = new TestableSubmitApplicationController{
-      override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+      override val candidateWithApp: CachedDataWithApp = candidateWithApp
       override implicit val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] =
         Map(Faststream -> appRouteConfig, Edip -> appRouteConfig, Sdip -> appRouteConfig)
     }

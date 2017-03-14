@@ -40,19 +40,19 @@ class RolesSpec extends UnitSpec {
     "Not contain exported users" in {
       val user = activeUser(ApplicationStatus.EXPORTED)
       implicit val rh = mock[RequestHeader]
-      RoleUtils.activeUserWithActiveApp(user)(rh, Lang("en-GB")) mustBe false
+      RoleUtils.activeUserWithActiveApp(user)(rh) mustBe false
     }
 
     "Not contain updated exported users" in {
       val user = activeUser(ApplicationStatus.UPDATE_EXPORTED)
       implicit val rh = mock[RequestHeader]
-      RoleUtils.activeUserWithActiveApp(user)(rh, Lang("en-GB")) mustBe false
+      RoleUtils.activeUserWithActiveApp(user)(rh) mustBe false
     }
 
     "Contain non-exported users" in {
       val user = activeUser(ApplicationStatus.PHASE3_TESTS, ProgressExamples.Phase3TestsPassed)
       implicit val rh = mock[RequestHeader]
-      RoleUtils.activeUserWithActiveApp(user)(rh, Lang("en-GB")) mustBe true
+      RoleUtils.activeUserWithActiveApp(user)(rh) mustBe true
     }
   }
 
@@ -61,22 +61,22 @@ class RolesSpec extends UnitSpec {
     "return true if the candidate fastPass has been accepted" in {
       val appData = CreatedApplication.copy(civilServiceExperienceDetails = Some(CivilServantExperienceFastPassApproved))
       implicit val rh = mock[RequestHeader]
-      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh, Lang("en-GB")) mustBe true
+      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh) mustBe true
     }
     "return false if the candidate fastPass has not been accepted" in {
       val appData = CreatedApplication.copy(civilServiceExperienceDetails = Some(CivilServantExperienceFastPassRejectd))
       implicit val rh = mock[RequestHeader]
-      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh, Lang("en-GB")) mustBe false
+      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh) mustBe false
     }
     "return false if the acceptance flag is not present" in {
       val appData = CreatedApplication.copy(civilServiceExperienceDetails = Some(CivilServantExperience))
       implicit val rh = mock[RequestHeader]
-      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh, Lang("en-GB")) mustBe false
+      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh) mustBe false
     }
     "return false if the are no civil servant details" in {
       val appData = CreatedApplication.copy(civilServiceExperienceDetails = None)
       implicit val rh = mock[RequestHeader]
-      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh, Lang("en-GB")) mustBe false
+      RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh) mustBe false
     }
   }
 
@@ -105,13 +105,13 @@ class RolesSpec extends UnitSpec {
   ) = {
     valid.foreach { validStatus =>
       withClue(s"$validStatus is not accepted by $role") {
-        role.isAuthorized(activeUser(validStatus))(request, Lang("en-GB")) must be(true)
+        role.isAuthorized(activeUser(validStatus))(request) must be(true)
       }
     }
 
     invalid.foreach { invalidStatus =>
       withClue(s"$invalidStatus is accepted by $role") {
-        role.isAuthorized(activeUser(invalidStatus))(request, Lang("en-GB")) must be(false)
+        role.isAuthorized(activeUser(invalidStatus))(request) must be(false)
       }
     }
   }

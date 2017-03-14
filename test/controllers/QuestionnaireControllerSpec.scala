@@ -16,14 +16,15 @@
 
 package controllers
 
-import config.CSRCache
+import config.{ CSRCache, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import models.CachedDataWithApp
 import models.Progress
 import models.ApplicationData.ApplicationStatus._
 import play.api.test.Helpers._
 import play.api.mvc.Result
-import testkit.BaseControllerSpec
+import security.SilhouetteComponent
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 
 import scala.concurrent._
 
@@ -36,7 +37,9 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
   val errorContent = "You've now completed this part of the application and for security reasons you can't go back and change your answers."
 
   def controllerUnderTest(appStatus: Progress) = new QuestionnaireController(applicationClient, mockCacheClient) with TestableSecureActions {
-    override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+    override val env = mock[SecurityEnvironmentImpl]
+    override val silhouette = SilhouetteComponent.silhouette
+    override val candidateWithApp: CachedDataWithApp = candidateWithApp
       .copy(application = candidateWithApp.application.copy(progress = appStatus))
   }
 

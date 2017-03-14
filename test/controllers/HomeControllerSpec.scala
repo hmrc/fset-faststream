@@ -19,7 +19,7 @@ package controllers
 import java.time.LocalDateTime
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp }
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.{ CannotWithdraw, OnlineTestNotFound }
 import connectors.exchange.{ AssistanceDetailsExamples, SchemeEvaluationResult, WithdrawApplicationExamples }
@@ -31,8 +31,8 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -378,15 +378,16 @@ class HomeControllerSpec extends BaseControllerSpec {
     class TestableHomeController extends HomeController(mockApplicationClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override protected def env = securityEnvironment
+      override val env = mock[SecurityEnvironmentImpl]
+      override val silhouette = SilhouetteComponent.silhouette
       val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
       when(securityEnvironment.userService).thenReturn(mockUserService)
     }
 
     def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp,
                    appRouteState: ApplicationRouteState = defaultApplicationRouteState) = new TestableHomeController {
-      override val Candidate: CachedData = CachedData(candidateWithApp.user, Some(candidateWithApp.application))
-      override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+      override val candidate: CachedData = CachedData(candidateWithApp.user, Some(candidateWithApp.application))
+      override val candidateWithApp: CachedDataWithApp = candidateWithApp
       override val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
     }
 

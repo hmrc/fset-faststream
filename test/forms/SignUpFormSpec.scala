@@ -21,6 +21,8 @@ import forms.SignUpForm.{ Data, _ }
 import models.ApplicationRoute
 import play.api.data.Form
 import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 class SignUpFormSpec extends UnitSpec {
 
