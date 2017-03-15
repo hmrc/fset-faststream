@@ -41,11 +41,10 @@ trait SignInService {
 
   val applicationClient: ApplicationClient
 
-  def signInUser(
-                  user: CachedUser,
-                  env: SecurityEnvironmentImpl,
-                  redirect: Result = Redirect(routes.HomeController.present())
-  )(implicit request: Request[_]): Future[Result] = {
+  def signInUser(user: CachedUser,
+                 env: SecurityEnvironmentImpl,
+                 redirect: Result = Redirect(routes.HomeController.present())
+                )(implicit request: Request[_]): Future[Result] = {
     if (user.lockStatus == "LOCKED") {
       Future.successful(Redirect(routes.LockAccountController.present()).addingToSession("email" -> user.email))
     } else {
