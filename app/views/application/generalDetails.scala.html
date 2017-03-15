@@ -1,4 +1,4 @@
-@(details: Form[_root_.forms.PersonalDetailsForm.Data], updateStatus: Boolean)(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, lang: play.api.i18n.Lang)
+@(details: Form[_root_.forms.PersonalDetailsForm.Data], updateStatus: Boolean)(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @import views.html.application.personalDetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel

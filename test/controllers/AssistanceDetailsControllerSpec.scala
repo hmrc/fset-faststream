@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp }
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import connectors.exchange.AssistanceDetailsExamples
@@ -27,8 +27,8 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserCacheService, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -117,7 +117,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     "update assistance details and redirect to preview if questionnaire is completed" in new TestFixture {
 
       class TestableAssistanceDetailsControllerWithUserInQuestionnaire extends TestableAssistanceDetailsController {
-        override val CandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
+        override val candidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
           CachedDataExample.InProgressInQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
       }
 
@@ -145,19 +145,21 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
-    val mockUserService = mock[UserService]
+    val mockUserService = mock[UserCacheService]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
     class TestableAssistanceDetailsController extends AssistanceDetailsController(mockApplicationClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
 
-      override protected def env = securityEnvironment
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
 
-      when(securityEnvironment.userService).thenReturn(mockUserService)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestableAssistanceDetailsController {
-      override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestableAssistanceDetailsController {
+      override val candidateWithApp: CachedDataWithApp = candWithApp
     }
   }
 }

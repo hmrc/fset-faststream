@@ -27,22 +27,7 @@ object FrontendBuild extends Build with MicroService {
 
 private object Versions {
 
-  val ficus         = "1.1.2"
-  val cacheClient   = "5.6.0"
-  val frontend      = "6.7.0"
-  val playConfig    = "2.1.0"
-  val playHealth    = "1.1.0"
-  val urlBuilder    = "1.0.0"
-  val httpclient    = "4.3.6"
-  val jsonLogger    = "2.1.1"
-  val scalatest     = "2.2.6"
-  val pegdown       = "1.6.0"
-  val jsoup         = "1.9.2"
-  val wiremock      = "1.57"
-  val hmrctest      = "1.8.0"
-  val scalatestplus = "1.2.0"
-  val silhouette    = "2.0.2"
-  val playWhitelist = "1.1.0"
+  val silhouette    = "4.0.0"
 }
 
 private object AppDependencies {
@@ -50,26 +35,33 @@ private object AppDependencies {
   import Versions._
 
   val compile = Seq(
-    "net.ceedubs"               %% "ficus"                    % ficus,
-    "uk.gov.hmrc"               %% "http-caching-client"      % cacheClient,
-    "uk.gov.hmrc"               %% "frontend-bootstrap"       % frontend,
-    "uk.gov.hmrc"               %% "play-config"              % playConfig,
-    "uk.gov.hmrc"               %% "play-json-logger"         % jsonLogger,
-    "uk.gov.hmrc"               %% "play-health"              % playHealth,
-    "uk.gov.hmrc"               %% "url-builder"              % urlBuilder,
-    "uk.gov.hmrc"               %% "play-whitelist-filter"    % playWhitelist,
-    "org.apache.httpcomponents" %  "httpclient"               % httpclient,
-    "com.mohiva"                %% "play-silhouette"          % silhouette
+    "com.iheart"                %% "ficus"                                    % "1.2.6",
+    "uk.gov.hmrc"               %% "http-caching-client"                      % "6.1.0",
+    "uk.gov.hmrc"               %% "frontend-bootstrap"                       % "7.10.0",
+    "uk.gov.hmrc"               %% "play-config"                              % "3.1.0",
+    "uk.gov.hmrc"               %% "logback-json-logger"                      % "3.1.0",
+    "uk.gov.hmrc"               %% "play-health"                              % "2.0.0",
+    "uk.gov.hmrc"               %% "play-whitelist-filter"                    % "2.0.0",
+    "uk.gov.hmrc"               %% "url-builder"                              % "1.0.0",
+    "org.apache.httpcomponents" %  "httpclient"                               % "4.5.3",
+    "org.apache.httpcomponents" %  "httpcore"                                 % "4.4.5",
+    "com.mohiva"                %% "play-silhouette"                          % silhouette,
+    "com.mohiva"                %% "play-silhouette-password-bcrypt"          % silhouette,
+    "com.mohiva"                %% "play-silhouette-crypto-jca"               % silhouette,
+    "com.mohiva"                %% "play-silhouette-persistence"              % silhouette,
+    "uk.gov.hmrc"               %% "play-filters"                             % "5.6.0",
+    "net.codingwell"            %% "scala-guice"                              % "4.1.0"
   )
 
   val test = Seq(
-    "org.scalatest"             %% "scalatest"                % scalatest     % "test",
-    "org.scalatestplus"         %% "play"                     % scalatestplus % "test",
-    "org.pegdown"               %  "pegdown"                  % pegdown       % "test",
-    "org.jsoup"                 %  "jsoup"                    % jsoup         % "test",
-    "com.github.tomakehurst"    %  "wiremock"                 % wiremock      % "test",
-    "uk.gov.hmrc"               %% "hmrctest"                 % hmrctest      % "test",
-    "com.mohiva"                %% "play-silhouette-testkit"  % silhouette    % "test"
+    "org.scalatestplus.play"    %% "scalatestplus-play"           % "1.5.1"       % "test",
+    "org.mockito"               %  "mockito-all"                  % "1.10.19"     % "test",
+    "org.scalatestplus"         %% "play"                         % "1.2.0"       % "test",
+    "org.pegdown"               %  "pegdown"                      % "1.4.2"       % "test",
+    "org.jsoup"                 %  "jsoup"                        % "1.7.3"       % "test",
+    "com.github.tomakehurst"    %  "wiremock"                     % "1.57"        % "test",
+    "uk.gov.hmrc"               %% "hmrctest"                     % "2.3.0"       % "test",
+    "com.mohiva"                %% "play-silhouette-testkit"      % silhouette    % "test"
   )
 
   def apply() = compile ++ test

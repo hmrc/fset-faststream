@@ -25,9 +25,12 @@ import models.ApplicationRoute
 import security.{ SignInService, _ }
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 object SignInController extends SignInController(ApplicationClient, CSRCache) with SignInService {
   val http = CSRHttp
+  lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class SignInController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
@@ -81,10 +84,11 @@ abstract class SignInController(val applicationClient: ApplicationClient, cacheC
 
   def signOut = CSRUserAwareAction { implicit request =>
     implicit user =>
-      logOutAndRedirectUserAware(successAction = Future.successful(Redirect(routes.SignInController.present())
-          .flashing(success("feedback", config.FrontendAppConfig.feedbackUrl)).withNewSession),
-        failAction = Future.successful(Redirect(routes.SignInController.present())
-          .flashing(danger("You have already signed out")).withNewSession)
+      logOutAndRedirectUserAware(
+        successAction = Redirect(routes.SignInController.present())
+          .flashing(success("feedback", config.FrontendAppConfig.feedbackUrl)).withNewSession,
+        failAction = Redirect(routes.SignInController.present())
+          .flashing(danger("You have already signed out")).withNewSession
       )
   }
 }

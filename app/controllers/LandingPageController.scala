@@ -17,8 +17,11 @@
 package controllers
 
 import play.api.mvc.{ Action, Controller }
+import security.SilhouetteComponent
 
-object LandingPageController extends LandingPageController
+object LandingPageController extends LandingPageController {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
 trait LandingPageController extends Controller {
   def index = Action {

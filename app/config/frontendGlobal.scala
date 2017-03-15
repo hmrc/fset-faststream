@@ -16,7 +16,6 @@
 
 package config
 
-import com.mohiva.play.silhouette.api.SecuredSettings
 import com.typesafe.config.Config
 import controllers.{ SignInController, routes }
 import filters.CookiePolicyFilter
@@ -30,13 +29,14 @@ import play.twirl.api.Html
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.play.audit.filters.FrontendAuditFilter
 import uk.gov.hmrc.play.config.{ AppName, ControllerConfig, RunMode }
+import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
 import uk.gov.hmrc.play.frontend.bootstrap.DefaultFrontendGlobal
 import uk.gov.hmrc.play.http.logging.filters.FrontendLoggingFilter
 
 import scala.concurrent.Future
 
 abstract class DevelopmentFrontendGlobal
-  extends DefaultFrontendGlobal with SecuredSettings {
+  extends DefaultFrontendGlobal {
 
   import FrontendAppConfig.feedbackUrl
 
@@ -55,23 +55,17 @@ abstract class DevelopmentFrontendGlobal
     views.html.error_template(pageTitle, heading, message)(rh, feedbackUrl)
 
   override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig("microservice.metrics")
-
-  override def onNotAuthenticated(request: RequestHeader, lang: Lang): Option[Future[Result]] =
-    Some(Future.successful(Redirect(routes.SignInController.present())))
-
-  override def onNotAuthorized(request: RequestHeader, lang: Lang): Option[Future[Result]] =
-    SignInController.notAuthorised(request, lang)
 }
 
 object ControllerConfiguration extends ControllerConfig {
   lazy val controllerConfigs = Play.current.configuration.underlying.as[Config]("controllers")
 }
 
-object LoggingFilter extends FrontendLoggingFilter {
+object LoggingFilter extends FrontendLoggingFilter with MicroserviceFilterSupport {
   override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
 
-object AuditFilter extends FrontendAuditFilter with RunMode with AppName {
+object AuditFilter extends FrontendAuditFilter with RunMode with AppName with MicroserviceFilterSupport {
 
   override lazy val maskedFormFields = Seq(
     SignInForm.passwordField,

@@ -21,12 +21,17 @@ import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
 import security.Roles.PartnerGraduateProgrammesRole
+import security.SilhouetteComponent
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
-object PartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(ApplicationClient, CSRCache)
+object PartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(ApplicationClient, CSRCache) {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
-class PartnerGraduateProgrammesController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+abstract class PartnerGraduateProgrammesController(applicationClient: ApplicationClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRSecureAppAction(PartnerGraduateProgrammesRole) { implicit request =>

@@ -23,7 +23,7 @@ import play.api.test.Helpers._
 class ApplicationSpec extends UnitWithAppSpec {
 
   "Application" should {
-    "send 404 on a bad request" in {
+    "send 404 on a bad request" ignore {
       val result = route(FakeRequest(GET, "/boo"))
       result.isDefined must be(false)
     }

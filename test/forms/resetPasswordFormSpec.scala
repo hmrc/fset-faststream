@@ -17,8 +17,9 @@
 package forms
 
 import controllers.UnitSpec
+import testkit.UnitWithAppSpec
 
-class resetPasswordFormSpec extends UnitSpec {
+class resetPasswordFormSpec extends UnitWithAppSpec {
 
   "the validate method" should {
     "validate an email" in {

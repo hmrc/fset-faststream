@@ -19,6 +19,8 @@ package models
 import play.api.i18n.{ Lang, Messages }
 import play.api.mvc.RequestHeader
 import security.Roles.WithdrawnApplicationRole
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 object ConsiderMeForSdipHelper {
 

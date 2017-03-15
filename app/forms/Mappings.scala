@@ -21,6 +21,8 @@ import play.api.data.format.Formatter
 import play.api.data.validation.Constraints
 import play.api.data.{ FormError, Mapping }
 import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 // scalastyle:off line.size.limit
 // Adapted from:

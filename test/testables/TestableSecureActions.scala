@@ -19,13 +19,14 @@ package testables
 import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
+import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import controllers.PersonalDetailsController
 import models._
 import org.joda.time.DateTime
-import play.api.mvc.{Action, AnyContent, Result}
+import play.api.mvc.{ Action, AnyContent, Result }
 import security.Roles.CsrAuthorization
-import security.SecureActions
+import security.{ SecureActions, SecurityEnvironment }
 import uk.gov.hmrc.play.http.SessionKeys
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,9 +40,9 @@ trait TestableCSRSecureAction extends SecureActions {
    * The Action gets a default role that checks  if the user is active or not. \
    * If the user is inactive then the onNotAuthorized method on global will be called.
    */
-  override def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_] => CachedData => Future[Result]): Action[AnyContent] = {
+  override def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_,_] => CachedData => Future[Result]): Action[AnyContent] = {
     Action.async { request =>
-      val secReq = SecuredRequest(
+      val secReq = SecuredRequest[SecurityEnvironment, AnyContent](
         SecurityUser(UniqueIdentifier(UUID.randomUUID.toString).toString()),
         SessionAuthenticator(
           LoginInfo("fakeProvider", "fakeKey"),
@@ -58,9 +59,9 @@ trait TestableCSRSecureAction extends SecureActions {
 
 trait TestableCSRUserAwareAction extends SecureActions {
 
-  override def CSRUserAwareAction(block: UserAwareRequest[_] => Option[CachedData] => Future[Result]): Action[AnyContent] =
+  override def CSRUserAwareAction(block: UserAwareRequest[_,_] => Option[CachedData] => Future[Result]): Action[AnyContent] =
     Action.async { request =>
-      val userAwareReq = UserAwareRequest(
+      val userAwareReq = UserAwareRequest[SecurityEnvironment, AnyContent](
         Some(SecurityUser("userId")),
         Some(SessionAuthenticator(
           LoginInfo("fakeProvider", "fakeKey"),
@@ -79,7 +80,7 @@ trait TestableCSRUserAwareAction extends SecureActions {
 
 trait NoIdentityTestableCSRUserAwareAction extends SecureActions {
 
-  override def CSRUserAwareAction(block: UserAwareRequest[_] => Option[CachedData] => Future[Result]): Action[AnyContent] =
+  override def CSRUserAwareAction(block: UserAwareRequest[_,_] => Option[CachedData] => Future[Result]): Action[AnyContent] =
     Action.async { request =>
       val userAwareReq = UserAwareRequest(
         None,

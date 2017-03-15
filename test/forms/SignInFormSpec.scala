@@ -17,8 +17,9 @@
 package forms
 
 import controllers.UnitSpec
+import testkit.UnitWithAppSpec
 
-class SignInFormSpec extends UnitSpec {
+class SignInFormSpec extends UnitWithAppSpec {
 
   import SignInForm.{ form => signInForm }
 

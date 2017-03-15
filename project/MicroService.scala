@@ -18,14 +18,15 @@ import com.typesafe.sbt.digest.Import._
 import com.typesafe.sbt.gzip.Import._
 import com.typesafe.sbt.web.Import._
 import com.typesafe.sbt.web.SbtWeb
-import play.PlayImport.PlayKeys._
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
 import sbt._
-import play.PlayImport.PlayKeys._
+import play.sbt.routes.RoutesKeys._
+import play.sbt.PlayImport._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import uk.gov.hmrc.versioning.SbtGitVersioning
+import play.sbt.routes.RoutesKeys.routesGenerator
 
 trait MicroService {
 
@@ -39,7 +40,7 @@ trait MicroService {
   val appName: String
   val appDependencies : Seq[ModuleID]
 
-  lazy val plugins : Seq[Plugins] = Seq(play.PlayScala, SbtWeb, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  lazy val plugins : Seq[Plugins] = Seq(play.sbt.PlayScala, SbtWeb, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   lazy val playSettings : Seq[Setting[_]] = Seq(routesImport ++= Seq("binders.CustomBinders._", "models._"))
 
   lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
@@ -60,7 +61,8 @@ trait MicroService {
       retrieveManaged := true,
       scalacOptions += "-feature",
       // Currently don't enable warning in value discard in tests until ScalaTest 3
-      scalacOptions in (Compile, compile) += "-Ywarn-value-discard"
+      scalacOptions in (Compile, compile) += "-Ywarn-value-discard",
+      routesGenerator := StaticRoutesGenerator
     )
     .settings(sources in (Compile, doc) := Seq.empty)
     .configs(IntegrationTest)
@@ -84,7 +86,7 @@ trait MicroService {
       parallelExecution in IntegrationTest := false)
     // Silhouette transitive dependencies require that the Atlassian repository be first in the resolver list
     .settings(resolvers := ("Atlassian Releases" at "https://maven.atlassian.com/public/") +: resolvers.value)
-    .settings(resolvers += Resolver.bintrayRepo("hmrc", "releases"))
+    .settings(resolvers ++= Seq(Resolver.bintrayRepo("hmrc", "releases"), Resolver.jcenterRepo))
     .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 }
 

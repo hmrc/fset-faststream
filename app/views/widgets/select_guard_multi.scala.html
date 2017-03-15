@@ -1,7 +1,7 @@
 @(field : play.api.data.Field,
         options: Map[String, List[(String, Boolean)]],
         optionTrigger: String,
-        defaultChoice: String = "-- Choose One --")(labelContent: Html)
+        defaultChoice: String = "-- Choose One --")(labelContent: Html)(implicit messages: Messages)
 
 @import helpers.CSRSkinnyFieldConstructor._
 

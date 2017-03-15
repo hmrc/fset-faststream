@@ -26,12 +26,17 @@ import models.ApplicationRoute._
 import models.ConsiderMeForSdipHelper._
 import security.RoleUtils._
 import security.Roles.{ ActiveUserRole, ContinueAsSdipRole }
+import security.SilhouetteComponent
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
-object ConsiderForSdipController extends ConsiderForSdipController(ApplicationClient, CSRCache, UserManagementClient)
+object ConsiderForSdipController extends ConsiderForSdipController(ApplicationClient, CSRCache, UserManagementClient) {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
-class ConsiderForSdipController(applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
+abstract class ConsiderForSdipController(applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
   extends BaseController(applicationClient, cacheClient) with CampaignAwareController {
 
   val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] = config.FrontendAppConfig.applicationRoutesFrontend

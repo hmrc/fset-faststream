@@ -17,18 +17,19 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp }
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.PartnerGraduateProgrammesNotFound
 import connectors.exchange.PartnerGraduateProgrammesExamples
 import forms.PartnerGraduateProgrammesFormExamples
+import models.ApplicationData.ApplicationStatus
 import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserCacheService, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -87,13 +88,16 @@ class PartnerGraduateProgrammesControllerSpec extends BaseControllerSpec {
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
     val mockCacheClient = mock[CSRCache]
-    val mockSecurityEnvironment = mock[security.SecurityEnvironment]
-    val mockUserService = mock[UserService]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
+    val mockUserService = mock[UserCacheService]
 
     class TestablePartnerGraduateProgrammesController extends PartnerGraduateProgrammesController(mockApplicationClient, mockCacheClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override protected def env = mockSecurityEnvironment
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
+
+      override def candidateWithApp = currentCandidateWithApp
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
     }
 

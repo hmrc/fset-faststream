@@ -95,9 +95,11 @@ class SecureActionsSpec extends UnitSpec {
 
         implicit def hc(implicit request: Request[_]): HeaderCarrier = new HeaderCarrier()
 
-        override protected def env: SecurityEnvironment = new SecurityEnvironmentImpl {
+        override val env: SecurityEnvironmentImpl = new SecurityEnvironmentImpl {
            override val userService = mockUserCacheService
         }
+
+        override lazy val silhouette = SilhouetteComponent.silhouette
       }
     }
   }

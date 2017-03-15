@@ -16,14 +16,15 @@
 
 package controllers
 
-import com.mohiva.play.silhouette.api.EventBus
+import com.mohiva.play.silhouette.api.services.AuthenticatorResult
+import com.mohiva.play.silhouette.api.{ Authenticator, EventBus }
 import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticator, SessionAuthenticatorService }
-import config.CSRCache
+import config.{ CSRCache, SecurityEnvironmentImpl }
 import connectors.ApplicationClient
 import models.CachedDataExample
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import play.api.mvc.{ Flash, Request, Result, Results }
+import play.api.mvc._
 import play.api.test.Helpers._
 import security._
 import testables.{ NoIdentityTestableCSRUserAwareAction, TestableCSRUserAwareAction }
@@ -82,7 +83,7 @@ class SignInControllerSpec extends BaseControllerSpec {
     "return to home page if the user has been locked" in new TestFixture {
       when(mockSignInService.signInUser(
         eqTo(CachedDataExample.LockedCandidateUser),
-        any[SecurityEnvironment],
+        any[SecurityEnvironmentImpl],
         any[Result])(any[Request[_]])
       ).thenReturn(Future.successful(Results.Redirect(routes.HomeController.present())))
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Right(CachedDataExample.LockedCandidateUser)))
@@ -97,7 +98,7 @@ class SignInControllerSpec extends BaseControllerSpec {
     "sign in user if he/ she is active" in new TestFixture {
       when(mockSignInService.signInUser(
         eqTo(CachedDataExample.ActiveCandidateUser),
-        any[SecurityEnvironment],
+        any[SecurityEnvironmentImpl],
         any[Result])(any[Request[_]])
       ).thenReturn(Future.successful(Results.Redirect(routes.HomeController.present())))
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Right(CachedDataExample.ActiveCandidateUser)))
@@ -111,7 +112,7 @@ class SignInControllerSpec extends BaseControllerSpec {
     "sign in user if he/ she and redirect to activation page" in new TestFixture {
       when(mockSignInService.signInUser(
         eqTo(CachedDataExample.NonActiveCandidateUser),
-        any[SecurityEnvironment],
+        any[SecurityEnvironmentImpl],
         any[Result])(any[Request[_]])
       ).thenReturn(Future.successful(Results.Redirect(routes.ActivationController.present())))
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Right(CachedDataExample.NonActiveCandidateUser)))
@@ -174,7 +175,9 @@ class SignInControllerSpec extends BaseControllerSpec {
       }
 
       "sign out if you are signed in" in new TestFixture {
-        when(mockAuthenticator.discard(any[Future[Result]])).thenReturn(Future.successful(Results.Redirect(routes.SignInController.present())))
+        when(mockAuthenticatorService.discard(any[SessionAuthenticator], any[Result])(any[RequestHeader])).thenReturn(
+          Future.successful(AuthenticatorResult.apply(Results.Redirect(routes.SignInController.present())))
+        )
 
         val result = signInControllerAfterSignIn.signOut(fakeRequest)
 
@@ -197,19 +200,20 @@ class SignInControllerSpec extends BaseControllerSpec {
     val mockCacheClient = mock[CSRCache]
     val mockSignInService = mock[SignInService]
 
-    val mockEnvironment = mock[SecurityEnvironment]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
     val mockCredentialsProvider = mock[CsrCredentialsProvider]
     val mockAuthenticatorService = mock[SessionAuthenticatorService]
     val mockEventBus = mock[EventBus]
-    when(mockEnvironment.credentialsProvider).thenReturn(mockCredentialsProvider)
-    when(mockEnvironment.authenticatorService).thenReturn(mockAuthenticatorService)
-    when(mockEnvironment.eventBus).thenReturn(mockEventBus)
+    when(mockSecurityEnvironment.credentialsProvider).thenReturn(mockCredentialsProvider)
+    when(mockSecurityEnvironment.authenticatorService).thenReturn(mockAuthenticatorService)
+    when(mockSecurityEnvironment.eventBus).thenReturn(mockEventBus)
 
     val mockAuthenticator = mock[SessionAuthenticator]
 
     class TestableSignInController extends SignInController(mockApplicationClient, mockCacheClient) with TestableSignInService {
       override val signInService = mockSignInService
-      override protected def env = mockEnvironment
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
     }
 
     def signInController = new TestableSignInController with NoIdentityTestableCSRUserAwareAction

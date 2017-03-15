@@ -17,7 +17,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp }
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.{ CivilServiceExperienceDetailsExamples, PersonalDetailsExamples, SelectedSchemes }
 import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
@@ -29,8 +29,8 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.Request
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserCacheService, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -40,20 +40,22 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
   val mockCacheClient = mock[CSRCache]
   val mockSchemeClient = mock[SchemeClient]
   val mockUserManagementClient = mock[UserManagementClient]
-  val userService = mock[UserService]
+  val userService = mock[UserCacheService]
+  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
   class TestablePersonalDetailsController extends PersonalDetailsController(mockApplicationClient, mockSchemeClient,
     mockCacheClient, mockUserManagementClient)
     with TestableSecureActions {
     val http: CSRHttp = CSRHttp
-    override protected def env = securityEnvironment
+    override val env = mockSecurityEnvironment
+    override lazy val silhouette = SilhouetteComponent.silhouette
 
-    when(securityEnvironment.userService).thenReturn(userService)
+    when(mockSecurityEnvironment.userService).thenReturn(userService)
   }
 
   // scalastyle:off method.name
-  def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePersonalDetailsController {
-    override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+  def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePersonalDetailsController {
+    override val candidateWithApp: CachedDataWithApp = candWithApp
   }
 
   "present" should {

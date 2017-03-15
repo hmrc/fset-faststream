@@ -19,16 +19,16 @@ package controllers
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import config.{ CSRCache, CSRHttp }
-import connectors.ApplicationClient
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
+import connectors.{ ApplicationClient, UserManagementClient }
 import forms.SignupFormGenerator
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
 import models.{ CachedDataExample, CachedDataWithApp }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserCacheService, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 
 class SignUpControllerSpec extends BaseControllerSpec {
 
@@ -149,9 +149,11 @@ class SignUpControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
+    val mockUserManagementClient = mock[UserManagementClient]
     val mockCacheClient = mock[CSRCache]
-    val mockSecurityEnvironment = mock[security.SecurityEnvironment]
-    val mockUserService = mock[UserService]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
+    val mockUserService = mock[UserCacheService]
+
     val defaultAppRouteState = new ApplicationRouteState {
       val newAccountsStarted = true
       val newAccountsEnabled = true
@@ -162,11 +164,12 @@ class SignUpControllerSpec extends BaseControllerSpec {
     val defaultAppRouteConfigMap = Map(Faststream -> defaultAppRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
 
     class TestableSignUpController(val testAppRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState])
-      extends SignUpController(mockApplicationClient, mockCacheClient) with TestableSecureActions {
+      extends SignUpController(mockApplicationClient, mockCacheClient, mockUserManagementClient) with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override protected def env = mockSecurityEnvironment
-      val appRouteConfigMap = testAppRouteConfigMap
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      val appRouteConfigMap = testAppRouteConfigMap
     }
 
     def controller(appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState]) = new TestableSignUpController(appRouteConfigMap)

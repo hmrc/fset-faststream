@@ -18,8 +18,9 @@ package forms
 
 import controllers.UnitSpec
 import forms.ParentalOccupationQuestionnaireForm.{ Data, form }
+import testkit.UnitWithAppSpec
 
-class ParentalOccupationQuestionnaireFormSpec extends UnitSpec {
+class ParentalOccupationQuestionnaireFormSpec extends UnitWithAppSpec {
 
   "the occupation form" should {
 

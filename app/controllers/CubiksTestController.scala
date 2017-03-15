@@ -21,12 +21,16 @@ import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
 import models.UniqueIdentifier
 import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole }
+import security.SilhouetteComponent
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 object CubiksTestController extends CubiksTestController(ApplicationClient, CSRCache) {
   val http = CSRHttp
+  lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class CubiksTestController(applicationClient: ApplicationClient, cacheClient: CSRCache)

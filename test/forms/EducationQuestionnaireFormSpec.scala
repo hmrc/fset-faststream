@@ -16,13 +16,14 @@
 
 package forms
 
-import controllers.UnitSpec
 import forms.EducationQuestionnaireFormExamples._
 import org.scalatestplus.play.PlaySpec
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
+import testkit.UnitWithAppSpec
 
-class EducationQuestionnaireFormSpec extends UnitSpec {
+class EducationQuestionnaireFormSpec extends UnitWithAppSpec {
 
   "the education form" should {
     "be valid when all values are correct" in new Fixture {
@@ -82,16 +83,16 @@ class EducationQuestionnaireFormSpec extends UnitSpec {
       val invalidForm = fastStreamForm.bind(NotUkLivedAndHaveDegreeValidFormMap - "university")
       invalidForm.hasErrors mustBe true
       invalidForm.error("university") mustBe Some(
-        FormError("university", List(Messages("error.university.required")))
-      )
+        FormError("university", List(Messages("error.university.required"))
+      ))
     }
 
     "fail when all values are correct and not lived in UK and have degree but no university, with EDIP message" in new Fixture {
       val invalidForm = edipForm.bind(NotUkLivedAndHaveDegreeValidFormMap - "university")
       invalidForm.hasErrors mustBe true
       invalidForm.error("university") mustBe Some(
-        FormError("university", List(Messages("error.currentUniversity.required")))
-      )
+        FormError("university", List(Messages("error.currentUniversity.required"))
+      ))
     }
 
     "fail when all values are correct and live in UK and no degree but no school" in new Fixture {

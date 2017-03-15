@@ -20,8 +20,9 @@ import controllers.UnitSpec
 import forms.PartnerGraduateProgrammesForm.Data
 import forms.PartnerGraduateProgrammesFormExamples._
 import play.api.data.Form
+import testkit.UnitWithAppSpec
 
-class PartnerGraduateProgrammesFormSpec extends UnitSpec {
+class PartnerGraduateProgrammesFormSpec extends UnitWithAppSpec {
 
   "the partner graduate programmes form" should {
     "be valid when the user selects no in the interested" in new Fixture {
@@ -36,7 +37,7 @@ class PartnerGraduateProgrammesFormSpec extends UnitSpec {
 
     "be invalid when user is interested but no programme is selected" in new Fixture {
       assertFormError(Seq(
-        "error.partnerGraduateProgrammes.chooseone"
+        "You must choose at least one partner programme"
       ), PartnerGraduateProgrammesFormExamples.InterestedButNoProgrammeSelectedMap)
     }
   }

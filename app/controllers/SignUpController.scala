@@ -20,23 +20,26 @@ import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
 import config.{ CSRCache, CSRHttp }
-import connectors.ApplicationClient
+import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange._
 import helpers.NotificationType._
 import models.{ ApplicationRoute, SecurityUser }
 import play.api.i18n.Messages
 import play.api.mvc.Result
-import security.SignInService
+import security.{ SignInService, SilhouetteComponent }
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
-object SignUpController extends SignUpController(ApplicationClient, CSRCache) {
+object SignUpController extends SignUpController(ApplicationClient, CSRCache, UserManagementClient) {
   val http = CSRHttp
   val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
+  lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class SignUpController(val applicationClient: ApplicationClient, cacheClient: CSRCache)
+abstract class SignUpController(val applicationClient: ApplicationClient, cacheClient: CSRCache, userManagementClient: UserManagementClient)
   extends BaseController(applicationClient, cacheClient) with SignInService with CampaignAwareController {
 
   def present = CSRUserAwareAction { implicit request =>
@@ -69,7 +72,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
         data => {
           val appRoute = ApplicationRoute.withName(data.applicationRoute)
           checkAppWindowBeforeProceeding(SignUpForm.form.fill(data).data, {
-              env.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
+              userManagementClient.register(data.email.toLowerCase, data.password, data.firstName, data.lastName).flatMap { u =>
                 applicationClient.addReferral(u.userId, extractMediaReferrer(data)).flatMap { _ =>
                   applicationClient.createApplication(u.userId, FrameworkId, appRoute).flatMap { appResponse =>
                     signInUser(
@@ -77,7 +80,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, cacheC
                       redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
                       env = env
                     ).map { r =>
-                      env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request, request2lang))
+                      env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request))
                       r
                     }
                   }

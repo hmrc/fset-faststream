@@ -6,7 +6,7 @@
 @import views.html.home.withdrawInformation
 @import views.html.widgets.sdipFaststreamBanner
 
-@(cachedUser: CachedData, finalSchemeResults: List[SchemeEvaluationResult])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String)
+@(cachedUser: CachedData, finalSchemeResults: List[SchemeEvaluationResult])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @getOrder(pos: Int) = @{
   pos match {

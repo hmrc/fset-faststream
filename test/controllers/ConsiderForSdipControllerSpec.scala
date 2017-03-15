@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRCache, CSRHttp }
+import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.exchange.UserResponse
 import connectors.{ ApplicationClient, UserManagementClient }
 import helpers.NotificationType.{ apply => _ }
@@ -30,8 +30,8 @@ import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.Request
 import play.api.test.Helpers._
-import security.UserService
-import testkit.BaseControllerSpec
+import security.{ SilhouetteComponent, UserCacheService, UserService }
+import testkit.{ BaseControllerSpec, TestableSecureActions }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -101,7 +101,7 @@ class ConsiderForSdipControllerSpec extends BaseControllerSpec {
         val applicationsStartDate = Some(LocalDateTime.now)
       }
 
-      val result = controller(candidateWithApp = submittedCandidate, appRouteState = newAccountsBlockedAppRouteState)
+      val result = controller(candWithApp = submittedCandidate, appRouteState = newAccountsBlockedAppRouteState)
         .present()(fakeRequest)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustBe Some(routes.HomeController.present(false).url)
@@ -116,6 +116,7 @@ class ConsiderForSdipControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(UserResponse("", "", None, isActive = false, UniqueIdentifier(UUID.randomUUID()), "", "", "", "")))
       when(mockApplicationClient.continueAsSdip(any[UniqueIdentifier], any[UniqueIdentifier])(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockUserService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier],
         any[Request[_]])).thenReturn(Future.successful(currentCandidate))
 
@@ -130,22 +131,24 @@ class ConsiderForSdipControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val mockApplicationClient = mock[ApplicationClient]
+    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
     val mockCacheClient = mock[CSRCache]
-    val mockUserService = mock[UserService]
+    val mockUserService = mock[UserCacheService]
     val mockUserManagementClient = mock[UserManagementClient]
 
     class TestableConsiderForSdipController extends ConsiderForSdipController(mockApplicationClient, mockCacheClient, mockUserManagementClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp
-      override protected def env = securityEnvironment
+      override val env = mockSecurityEnvironment
+      override lazy val silhouette = SilhouetteComponent.silhouette
       override val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] = Map.empty[ApplicationRoute, ApplicationRouteState]
       when(securityEnvironment.userService).thenReturn(mockUserService)
     }
 
-    def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp,
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,
                    appRouteState: ApplicationRouteState = defaultApplicationRouteState) = new TestableConsiderForSdipController {
-      override val Candidate: CachedData = CachedData(candidateWithApp.user, Some(candidateWithApp.application))
-      override val CandidateWithApp: CachedDataWithApp = candidateWithApp
+      override val candidate: CachedData = CachedData(candWithApp.user, Some(candWithApp.application))
+      override val candidateWithApp: CachedDataWithApp = candWithApp
       override val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
     }
 

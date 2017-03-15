@@ -19,14 +19,18 @@ package controllers
 import config.{ CSRCache, CSRHttp }
 import connectors.ApplicationClient
 import play.api.mvc.Action
+import security.SilhouetteComponent
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
 /**
  * Provide all the peripheral links from this controller, like T&C link
  */
 object ApplicationController extends ApplicationController(ApplicationClient, CSRCache) {
   val http = CSRHttp
+  lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class ApplicationController(applicationClient: ApplicationClient, cacheClient: CSRCache)

@@ -1,4 +1,4 @@
-@(form: Form[_], fieldNamespace: String, labelContent: String)
+@(form: Form[_], fieldNamespace: String, labelContent: String)(implicit messages: Messages)
 
 @defining(form.errors.filter(f => f.key.startsWith(s"$fieldNamespace.") || f.key == fieldNamespace)) { errors =>
 

@@ -1,4 +1,4 @@
-@(forms: Seq[Form[_]])
+@(forms: Seq[Form[_]])(implicit messages: Messages)
 
 @defining(forms.flatMap(_.errors)) { errors =>
   @if(errors.nonEmpty) {

@@ -1,4 +1,4 @@
-@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit user: Option[CachedData], lang: play.api.i18n.Lang)
+@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit user: Option[CachedData], messages: Messages)
 
 @import security.RoleUtils._
 @import views.html.widgets.{ checkbox, selectValueDifferentFromDisplayedText }

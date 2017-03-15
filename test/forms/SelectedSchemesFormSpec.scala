@@ -18,8 +18,9 @@ package forms
 
 import controllers.UnitSpec
 import forms.SelectedSchemesForm.{ form => selectedSchemesForm }
+import testkit.UnitWithAppSpec
 
-class SelectedSchemesFormSpec extends UnitSpec {
+class SelectedSchemesFormSpec extends UnitWithAppSpec {
 
   "Selected Schemes form" should {
     "be valid when required values are supplied" in {

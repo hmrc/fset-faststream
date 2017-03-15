@@ -17,8 +17,9 @@
 package forms
 
 import controllers.UnitSpec
+import testkit.UnitWithAppSpec
 
-class ActivateAccountFormSpec extends UnitSpec {
+class ActivateAccountFormSpec extends UnitWithAppSpec {
 
   import ActivateAccountForm.{ form => activateAccountForm }
 

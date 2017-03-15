@@ -16,13 +16,14 @@
 
 package forms
 
-import controllers.UnitSpec
 import forms.SignUpForm.{ Data, _ }
 import models.ApplicationRoute
 import play.api.data.Form
+import testkit.UnitWithAppSpec
+import play.api.i18n.Messages.Implicits._
 import play.api.i18n.Messages
 
-class SignUpFormSpec extends UnitSpec {
+class SignUpFormSpec extends UnitWithAppSpec {
 
   "the sign up form" should {
     "be valid when all the data are correct" in {

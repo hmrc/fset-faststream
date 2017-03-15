@@ -21,14 +21,18 @@ import config.CSRCache
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import models.CachedData
-import security.RoleUtils
+import security.{ RoleUtils, SilhouetteComponent }
 import security.Roles.AssistanceDetailsRole
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
-object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient, CSRCache)
+object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient, CSRCache) {
+  lazy val silhouette = SilhouetteComponent.silhouette
+}
 
-class AssistanceDetailsController(applicationClient: ApplicationClient, cacheClient: CSRCache)
+abstract class AssistanceDetailsController(applicationClient: ApplicationClient, cacheClient: CSRCache)
   extends BaseController(applicationClient, cacheClient) {
 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>

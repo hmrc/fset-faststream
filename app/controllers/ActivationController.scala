@@ -18,20 +18,23 @@ package controllers
 
 import _root_.forms.ActivateAccountForm
 import config.{ CSRCache, CSRHttp }
-import connectors.ApplicationClient
+import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.UserManagementClient.{ TokenEmailPairInvalidException, TokenExpiredException }
 import helpers.NotificationType._
 import security.Roles._
-import security.SignInService
+import security.{ SignInService, SilhouetteComponent }
 
 import scala.concurrent.Future
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
 
-object ActivationController extends ActivationController(ApplicationClient, CSRCache) {
+object ActivationController extends ActivationController(ApplicationClient, CSRCache, UserManagementClient) {
   val http = CSRHttp
+  lazy val silhouette = SilhouetteComponent.silhouette
 }
 
 abstract class ActivationController(val applicationClient: ApplicationClient,
-                                    cacheClient: CSRCache) extends
+                                    cacheClient: CSRCache, userManagementClient: UserManagementClient) extends
   BaseController(applicationClient, cacheClient) with SignInService {
 
   def present = CSRSecureAction(NoRole) { implicit request =>
@@ -47,7 +50,7 @@ abstract class ActivationController(val applicationClient: ApplicationClient,
         invalidForm =>
           Future.successful(Ok(views.html.registration.activation(user.user.email, invalidForm))),
         data => {
-          env.activate(user.user.email, data.activationCode).flatMap { _ =>
+          userManagementClient.activate(user.user.email, data.activationCode).flatMap { _ =>
             signInUser(user.user.copy(isActive = true), env)
           }.recover {
             case e: TokenExpiredException =>
@@ -69,7 +72,7 @@ abstract class ActivationController(val applicationClient: ApplicationClient,
 
   def resendCode = CSRSecureAction(ActivationRole) { implicit request =>
     implicit user =>
-      env.resendActivationCode(user.user.email).map { _ =>
+      userManagementClient.resendActivationCode(user.user.email).map { _ =>
         Redirect(routes.ActivationController.present()).flashing(success("activation.code-resent"))
       }
   }

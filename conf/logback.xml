@@ -51,6 +51,25 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
+    <logger name="io.netty.util.ResourceLeakDetectorFactory" level="INFO" />
+    <logger name="org.jboss.netty.channel.socket.nio" level="WARN" />
+    <logger name="io.netty.buffer" level="WARN"/>
+    <logger name="io.netty" level="INFO"/>
+    <logger name="org.asynchttpclient.netty.handler" level="INFO"/>
+    <logger name="org.asynchttpclient.netty.channel" level="INFO"/>
+
+    <logger name="com.google.inject.internal" level="WARN" />
+    <logger name="javax.management.mbeanserver" level="WARN"/>
+    <logger name="akka.event" level="INFO"/>
+    <logger name="akka.stream.impl.io" level="INFO"/>
+    <logger name="net.sf.ehcache" level="INFO"/>
+    <logger name="akka.event.slf4j.Slf4jLogger" level="WARN"/>
+    <logger name="play.api.libs.concurrent.ActorSystemProvider" level="INFO"/>
+    <logger name="play.core.netty.utils.ServerCookieDecoder" level="INFO"/>
+
+    <logger name="org.apache.http" level="INFO"/>
+    <logger name="org.apache.http.wire" level="INFO"/>
+
     <root level="DEBUG">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>

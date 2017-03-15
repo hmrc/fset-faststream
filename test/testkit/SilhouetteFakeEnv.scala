@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package security
+package testkit
 
-import com.mohiva.play.silhouette.api.services.AuthenticatorService
-import com.mohiva.play.silhouette.api.{ Env, Environment, EventBus }
-import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
-import connectors.UserManagementClient
+import com.mohiva.play.silhouette.api.{ Environment, LoginInfo }
+import com.mohiva.play.silhouette.test.FakeEnvironment
 import models.SecurityUser
+import security.SecurityEnvironment
 
-trait SecurityEnvironment extends Env with UserManagementClient {
+import scala.concurrent.ExecutionContext.Implicits.global
 
-  type I = SecurityUser
-  type A = SessionAuthenticator
+trait SilhouetteFakeEnv {
+  private val identity = SecurityUser("foo")
 
-  def userService: UserService
-
-  def credentialsProvider: CsrCredentialsProvider
-
-  val eventBus: EventBus
-
-  val authenticatorService: AuthenticatorService[SessionAuthenticator]
+  implicit val env: Environment[SecurityEnvironment] = FakeEnvironment[SecurityEnvironment](
+    Seq(LoginInfo("foo", "foo") -> identity)
+  )
 }
