@@ -35,7 +35,6 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 trait ReportingRepository {
   def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]]
 
@@ -58,6 +57,8 @@ trait ReportingRepository {
   def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]]
 
   def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]]
+
+  def applicationsForEdipReport(frameworkId: String): Future[List[ApplicationForEdipReport]]
 }
 
 class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
@@ -92,6 +93,31 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       "progress-status" -> "2"
     )
     reportQueryWithProjectionsBSON[CandidateProgressReportItem](query, projection)
+  }
+
+  override def applicationsForEdipReport(frameworkId: String): Future[List[ApplicationForEdipReport]] = {
+    val query = BSONDocument("$and" ->
+      BSONArray(
+        BSONDocument("frameworkId" -> frameworkId),
+        BSONDocument("applicationRoute" -> "Edip"),
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_COMPLETED}" -> true),
+        BSONDocument("personal-details" -> BSONDocument("$exists" -> true)),
+        BSONDocument("assistance-details" -> BSONDocument("$exists" -> true)),
+        BSONDocument("testGroups" -> BSONDocument("$exists" -> true))
+      ))
+
+    val projection = BSONDocument(
+      "applicationId" -> true,
+      "userId" -> true,
+      "personal-details.firstName" -> true,
+      "personal-details.lastName" -> true,
+      "personal-details.preferredName" -> true,
+      "assistance-details.guaranteedInterview" -> true,
+      "progress-status" -> true,
+      "testGroups" -> true
+    )
+
+    reportQueryWithProjectionsBSON[ApplicationForEdipReport](query, projection)
   }
 
   override def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]] = {
