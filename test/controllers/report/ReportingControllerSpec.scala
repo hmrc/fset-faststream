@@ -22,7 +22,7 @@ import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
 import mocks._
 import mocks.application.ReportingInMemoryRepository
-import model.Commands.PhoneNumber
+import model.Commands._
 import model._
 import model.persisted.{ ContactDetails, ContactDetailsWithId }
 import model.report.{ CandidateProgressReportItem, _ }
@@ -144,6 +144,52 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     }
   }
 
+  "Reporting controller edip report" must {
+    "return the edip report in a happy path scenario" in new TestFixture {
+      val underTest = new TestableReportingController
+      when(reportingRepositoryMock.applicationsForEdipReport(frameworkId)).thenReturn(SuccessfulEdipReportResponse)
+      when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(SuccessfulFindByUserIdsResponse)
+
+      val result = underTest.edipReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+
+      val json = contentAsJson(result).as[JsArray].value
+
+      json mustBe a[Seq[_]]
+      json.size mustBe 2
+
+      val reportItem1 = json(0)
+      (reportItem1 \ "progressStatus").asOpt[String] mustBe Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}")
+      (reportItem1 \ "firstName").asOpt[String] mustBe Some("Joe")
+      (reportItem1 \ "lastName").asOpt[String] mustBe Some("Bloggs")
+      (reportItem1 \ "preferredName").asOpt[String] mustBe Some("Joey")
+      (reportItem1 \ "email").asOpt[String] mustBe Some("joe.bloggs@test.com")
+      (reportItem1 \ "guaranteedInterviewScheme").asOpt[String] mustBe Some("N")
+      (reportItem1 \ "behaviouralTScore").asOpt[String] mustBe None
+      (reportItem1 \ "situationalTScore").asOpt[String] mustBe None
+
+      val reportItem2 = json(1)
+      (reportItem2 \ "progressStatus").asOpt[String] mustBe Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}")
+      (reportItem2 \ "firstName").asOpt[String] mustBe Some("Bill")
+      (reportItem2 \ "lastName").asOpt[String] mustBe Some("Bloggs")
+      (reportItem2 \ "preferredName").asOpt[String] mustBe Some("Billy")
+      (reportItem2 \ "email").asOpt[String] mustBe Some("bill.bloggs@test.com")
+      (reportItem2 \ "guaranteedInterviewScheme").asOpt[String] mustBe Some("Y")
+      (reportItem2 \ "behaviouralTScore").asOpt[String] mustBe Some("10.0")
+      (reportItem2 \ "situationalTScore").asOpt[String] mustBe Some("11.0")
+    }
+
+    "throw an exception if no contact details are fetched" in new TestFixture {
+      val underTest = new TestableReportingController
+      when(reportingRepositoryMock.applicationsForEdipReport(frameworkId)).thenReturn(SuccessfulEdipReportResponse)
+      when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(Future.successful(List.empty[ContactDetailsWithId]))
+
+      val result = underTest.edipReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+
+      result.failed.futureValue.isInstanceOf[IllegalStateException] mustBe true
+      result.failed.futureValue.getMessage mustBe "No contact details found for user Id = user1"
+    }
+  }
+
   "Reporting controller create progress report" must {
     "return the progress report in an happy path scenario" in new TestFixture {
       val underTest = new TestableReportingController
@@ -173,8 +219,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       (user4 \ "userId").asOpt[String] mustBe Some("user4")
       (user4 \ "fsacIndicator").asOpt[String] mustBe Some("London")
     }
-    "return a failed future with the expected throwable when candidateProgressReport fails" in new TestFixture {
 
+    "return a failed future with the expected throwable when candidateProgressReport fails" in new TestFixture {
       val underTest = new TestableReportingController
       when(reportingRepositoryMock.candidateProgressReport(frameworkId)).thenReturn(GenericFailureResponse)
       when(mockContactDetailsRepository.findAllPostcodes()).thenReturn(SuccessfulFindAllPostCodeResponse)
@@ -182,10 +228,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
 
       result.failed.futureValue mustBe Error
-
     }
-    "return a failed future with the expected throwable when findAllPostcodes fails" in new TestFixture {
 
+    "return a failed future with the expected throwable when findAllPostcodes fails" in new TestFixture {
       val underTest = new TestableReportingController
       when(reportingRepositoryMock.candidateProgressReport(frameworkId)).thenReturn(SuccessfulProgressReportResponse)
       when(mockContactDetailsRepository.findAllPostcodes()).thenReturn(GenericFailureResponse)
@@ -193,7 +238,6 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
 
       result.failed.futureValue mustBe Error
-
     }
   }
 
@@ -443,6 +487,24 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       )
     )
 
+    val SuccessfulEdipReportResponse = Future.successful(
+      List(
+        ApplicationForEdipReport(userId = "user1", progressStatus = Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}"),
+          firstName = Some("Joe"), lastName = Some("Bloggs"),
+          preferredName = Some("Joey"), guaranteedInterviewScheme = None, behaviouralTScore = None, situationalTScore = None),
+        ApplicationForEdipReport(userId = "user2", progressStatus = Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}"),
+          firstName = Some("Bill"), lastName = Some("Bloggs"), preferredName = Some("Billy"),
+          guaranteedInterviewScheme = Some(true), behaviouralTScore = Some(10.0d), situationalTScore = Some(11.0d))
+      )
+    )
+
+    val SuccessfulFindByUserIdsResponse = Future.successful(
+      List(
+        ContactDetailsWithId(userId = "user1", address = Address(line1 = "line1"), postCode = None, email = "joe.bloggs@test.com", phone = None),
+        ContactDetailsWithId(userId = "user2", address = Address(line1 = "line1"), postCode = None, email = "bill.bloggs@test.com", phone = None)
+      )
+    )
+
     val SuccessfulFindAllPostCodeResponse = Future.successful(
       Map(
         "user1" -> "EH9 9ZZ",
@@ -466,6 +528,11 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     def candidateProgressRequest(frameworkId: String) = {
       FakeRequest(Helpers.GET, controllers.routes.ReportingController.candidateProgressReport(frameworkId).url, FakeHeaders(), "")
+        .withHeaders("Content-Type" -> "application/json")
+    }
+
+    def edipReportRequest(frameworkId: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.ReportingController.edipReport(frameworkId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
 
