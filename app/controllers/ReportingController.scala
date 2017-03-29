@@ -53,10 +53,11 @@ trait ReportingController extends BaseController {
   val authProviderClient: AuthProviderClient
 
   def edipReport(frameworkId: String) = Action.async { implicit request =>
+    def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
     val applicationsFut = reportingRepository.applicationsForEdipReport(frameworkId)
     val reportFut = for {
       applications <- applicationsFut
-      contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(x => x.map(cd => cd.userId -> cd).toMap)
+      contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(cdList => contactDetailsToMap(cdList))
     } yield {
       buildEdipReportItems(applications, contactDetails)
     }
