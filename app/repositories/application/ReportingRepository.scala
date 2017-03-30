@@ -22,7 +22,7 @@ import model.command._
 import model.persisted._
 import model.report._
 import model.{ ApplicationStatus, _ }
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Format
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.{ DB, ReadPreference }
@@ -58,6 +58,8 @@ trait ReportingRepository {
   def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]]
 
   def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]]
+
+  def candidatesForTimeToOfferReport: Future[List[TimeToOfferPartialItem]]
 }
 
 class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
@@ -404,6 +406,61 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       .collect[List]()
       .map(_.map(toUserApplicationProfile))
   }
+
+  //scalastyle:off method.length
+  override def candidatesForTimeToOfferReport: Future[List[TimeToOfferPartialItem]] = {
+    def getDate(doc: BSONDocument, status: ApplicationStatus): Option[DateTime] = {
+      doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](status))
+    }
+
+    val query = BSONDocument("$and" ->
+      BSONArray(
+        BSONDocument("userId" -> BSONDocument("$exists" -> true)),
+        BSONDocument("$or" ->
+          BSONArray(
+            BSONDocument(s"progress-status.${ApplicationStatus.EXPORTED}" -> true),
+            BSONDocument(s"progress-status.${ApplicationStatus.UPDATE_EXPORTED}" -> true)
+          )
+        )
+      )
+    )
+
+    val projection = BSONDocument(
+      "userId" -> true,
+      "personal-details" -> true,
+      "progress-status" -> true,
+      "progress-status-timestamp" -> true,
+      "personal-details.firstName" -> true,
+      "personal-details.lastName" -> true,
+      "personal-details.preferredName" -> true
+    )
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map {
+      _.map { doc =>
+        val userId = doc.getAs[String]("userId").get
+        val personalDetailsDoc = doc.getAs[BSONDocument]("personal-details")
+        val fullName = for {
+          first <- personalDetailsDoc.flatMap(_.getAs[String]("firstName"))
+          last <- personalDetailsDoc.flatMap(_.getAs[String]("lastName"))
+        } yield first + " " + last
+
+        val preferredName = personalDetailsDoc.flatMap(_.getAs[String]("preferredName"))
+        val maybeSubmittedTimestamp = getDate(doc, ApplicationStatus.SUBMITTED)
+        val maybeExportedTimestamp = getDate(doc, ApplicationStatus.EXPORTED)
+        val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.UPDATE_EXPORTED)
+
+        TimeToOfferPartialItem(
+          userId,
+          fullName,
+          preferredName,
+          maybeSubmittedTimestamp,
+          maybeExportedTimestamp,
+          maybeUpdateExportedTimestamp
+        )
+      }
+    }
+  }
+  //scalastyle:on method.length
 
   private def toUserApplicationProfile(document: BSONDocument) = {
     val applicationId = document.getAs[String]("applicationId").get
