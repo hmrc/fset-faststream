@@ -76,6 +76,30 @@ trait ReportingController extends BaseController {
     }
   }
 
+  def analyticalSchemesReport(frameworkId: String) = Action.async { implicit request =>
+    def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
+    val applicationsFut = reportingRepository.applicationsForAnalyticalSchemesReport(frameworkId)
+    val reportFut = for {
+      applications <- applicationsFut
+      contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(cdList => contactDetailsToMap(cdList))
+    } yield {
+      buildAnalyticalSchemesReportItems(applications, contactDetails)
+    }
+    reportFut.map { report =>
+      Ok(Json.toJson(report))
+    }
+  }
+
+  private def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],
+                                   contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
+    applications.map { application =>
+      val contactDetails = contactDetailsMap.getOrElse(application.userId,
+        throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
+      )
+      AnalyticalSchemesReportItem(application, contactDetails)
+    }
+  }
+
   def adjustmentReport(frameworkId: String) = Action.async { implicit request =>
     val reports =
       for {

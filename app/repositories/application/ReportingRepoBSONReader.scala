@@ -159,6 +159,42 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
+  implicit val toApplicationForAnalyticalSchemesReport = bsonReader {
+    (doc: BSONDocument) => {
+      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
+      val userId = doc.getAs[String]("userId").getOrElse("")
+
+      val psDoc = doc.getAs[BSONDocument]("personal-details")
+      val firstName = psDoc.flatMap(_.getAs[String]("firstName"))
+      val lastName = psDoc.flatMap(_.getAs[String]("lastName"))
+
+      val spDoc = doc.getAs[BSONDocument]("scheme-preferences")
+      val schemes = spDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
+      val firstSchemePreference = schemes.map(_.head.toString)
+
+      val adDoc = doc.getAs[BSONDocument]("assistance-details")
+      val guaranteedInterviewScheme = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
+
+      val testResults: TestResultsForOnlineTestPassMarkReportItem = toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId)
+      val behaviouralTScore = testResults.behavioural.flatMap(_.tScore)
+      val situationalTScore = testResults.situational.flatMap(_.tScore)
+      val etrayTScore = testResults.etray.flatMap(_.tScore)
+      val overallVideoScore = testResults.videoInterview.map(_.overallTotal)
+
+      ApplicationForAnalyticalSchemesReport(
+        userId = userId,
+        firstName = firstName,
+        lastName = lastName,
+        firstSchemePreference = firstSchemePreference,
+        guaranteedInterviewScheme = guaranteedInterviewScheme,
+        behaviouralTScore = behaviouralTScore,
+        situationalTScore = situationalTScore,
+        etrayTScore = etrayTScore,
+        overallVideoScore = overallVideoScore
+      )
+    }
+  }
+
   implicit val toApplicationForDiversityReport = bsonReader {
     (doc: BSONDocument) => {
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)

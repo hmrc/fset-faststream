@@ -59,6 +59,8 @@ trait ReportingRepository {
   def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]]
 
   def applicationsForEdipReport(frameworkId: String): Future[List[ApplicationForEdipReport]]
+
+  def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]]
 }
 
 class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
@@ -118,6 +120,31 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     )
 
     reportQueryWithProjectionsBSON[ApplicationForEdipReport](query, projection)
+  }
+
+  override def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]] = {
+    val firstSchemePreference = "scheme-preferences.schemes.0"
+    val query = BSONDocument("$and" ->
+      BSONArray(
+        BSONDocument("frameworkId" -> frameworkId),
+        BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED}" -> true),
+        BSONDocument(firstSchemePreference -> "GovernmentOperationalResearchService"),
+        BSONDocument("personal-details" -> BSONDocument("$exists" -> true)),
+        BSONDocument("assistance-details" -> BSONDocument("$exists" -> true)),
+        BSONDocument("testGroups" -> BSONDocument("$exists" -> true))
+      ))
+
+    val projection = BSONDocument(
+      "applicationId" -> true,
+      "userId" -> true,
+      "personal-details.firstName" -> true,
+      "personal-details.lastName" -> true,
+      "scheme-preferences" -> true,
+      "assistance-details.guaranteedInterview" -> true,
+      "testGroups" -> true
+    )
+
+    reportQueryWithProjectionsBSON[ApplicationForAnalyticalSchemesReport](query, projection)
   }
 
   override def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]] = {
