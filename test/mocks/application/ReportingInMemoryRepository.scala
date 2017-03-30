@@ -88,4 +88,6 @@ class ReportingInMemoryRepository extends ReportingRepository {
   override def candidateDeferralReport(frameworkId: String): Future[List[ApplicationDeferralPartialItem]] = ???
 
   def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]] = ???
+
+  def candidatesForTimeToOfferReport: Future[List[TimeToOfferPartialItem]] = ???
 }
