@@ -128,6 +128,37 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
+  implicit val toApplicationForEdipReport = bsonReader {
+    (doc: BSONDocument) => {
+      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
+      val userId = doc.getAs[String]("userId").getOrElse("")
+      val progressResponse = toProgressResponse(applicationId).read(doc)
+
+      val psDoc = doc.getAs[BSONDocument]("personal-details")
+      val firstName = psDoc.flatMap(_.getAs[String]("firstName"))
+      val lastName = psDoc.flatMap(_.getAs[String]("lastName"))
+      val preferredName = psDoc.flatMap(_.getAs[String]("preferredName"))
+
+      val adDoc = doc.getAs[BSONDocument]("assistance-details")
+      val guaranteedInterviewScheme = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
+
+      val testResults: TestResultsForOnlineTestPassMarkReportItem = toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId)
+      val behaviouralTScore = testResults.behavioural.flatMap(_.tScore)
+      val situationalTScore = testResults.situational.flatMap(_.tScore)
+
+      ApplicationForEdipReport(
+        userId = userId,
+        progressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(progressResponse)),
+        firstName = firstName,
+        lastName = lastName,
+        preferredName = preferredName,
+        guaranteedInterviewScheme = guaranteedInterviewScheme,
+        behaviouralTScore = behaviouralTScore,
+        situationalTScore = situationalTScore
+      )
+    }
+  }
+
   implicit val toApplicationForDiversityReport = bsonReader {
     (doc: BSONDocument) => {
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)

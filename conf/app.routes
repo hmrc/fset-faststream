@@ -56,6 +56,7 @@ GET         /report/adjustments/:frameworkId                             control
 GET         /report/candidate-progress/:frameworkId                      controllers.ReportingController.candidateProgressReport(frameworkId: String)
 GET         /report/online-test-pass-mark/:frameworkId                   controllers.ReportingController.onlineTestPassMarkReport(frameworkId: String)
 GET         /report/candidate-deferral/:frameworkId                      controllers.ReportingController.candidateDeferralReport(frameworkId: String)
+GET         /report/edip/:frameworkId                                    controllers.ReportingController.edipReport(frameworkId: String)
 GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
 #GET         /report/assessment-centre-allocation/:frameworkId            controllers.ReportingController.createAssessmentCentreAllocationReport(frameworkId: String)
 #GET         /report/pass-mark-personal-data/:frameworkId                 controllers.ReportingController.createPassMarkWithPersonalDataReport(frameworkId: S#tring)
