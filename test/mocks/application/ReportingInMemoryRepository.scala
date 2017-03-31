@@ -90,4 +90,6 @@ class ReportingInMemoryRepository extends ReportingRepository {
   def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]] = ???
 
   override def applicationsForEdipReport(frameworkId: String): Future[List[ApplicationForEdipReport]] = ???
+
+  def candidatesForTimeToOfferReport: Future[List[TimeToOfferPartialItem]] = ???
 }
