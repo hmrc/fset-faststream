@@ -61,4 +61,12 @@ trait FixDataConsistencyController extends BaseController {
     }
   }
 
+  def removeVideoInterviewFailed(appId: String) = Action.async { implicit request =>
+    applicationService.fixDataByRemovingVideoInterviewFailed(appId).map { _ =>
+      NoContent
+    } recover {
+      case _: NotFoundException => NotFound
+    }
+  }
+
 }

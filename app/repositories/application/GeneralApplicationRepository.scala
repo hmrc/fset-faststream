@@ -131,6 +131,8 @@ trait GeneralApplicationRepository {
 
   def fixDataByRemovingETray(appId: String): Future[Unit]
 
+  def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit]
+
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit]
 
   def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit]
@@ -621,6 +623,29 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
         "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_FAILED.key}" -> ""),
         "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE2_TESTS_FAILED_NOTIFIED.key}" -> ""),
         "$unset" -> BSONDocument(s"testGroups.PHASE2" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map(_ => ())
+  }
+
+  def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = {
+    import ProgressStatuses._
+
+    val query = BSONDocument("$and" ->
+      BSONArray(
+        BSONDocument("applicationId" -> appId),
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_FAILED)
+      ))
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE3_TESTS),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE3_TESTS_FAILED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status.${PHASE3_TESTS_FAILED_NOTIFIED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE3_TESTS_FAILED.key}" -> ""),
+        "$unset" -> BSONDocument(s"progress-status-timestamp.${PHASE3_TESTS_FAILED_NOTIFIED.key}" -> ""),
+        "$unset" -> BSONDocument(s"testGroups.PHASE3.evaluation" -> "")
       )
     )
 
