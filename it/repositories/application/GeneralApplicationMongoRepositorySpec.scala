@@ -616,6 +616,25 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "Remove video interview failed" should {
+    "Remove evaluation section, progress failed statuses and update application status" in {
+      import ProgressStatuses._
+      val progressStatuses = (PHASE3_TESTS_RESULTS_RECEIVED, true) :: (PHASE3_TESTS_FAILED, true) ::
+        (PHASE3_TESTS_FAILED_NOTIFIED, true) :: Nil
+      testDataRepo.createApplicationWithAllFields(
+        UserId,AppId, FrameworkId, appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+        additionalProgressStatuses = progressStatuses, additionalDoc = phase3TestGroup).futureValue
+
+      repository.fixDataByRemovingVideoInterviewFailed(AppId).futureValue
+
+      val applicationResponse = repository.findByUserId(UserId, FrameworkId).futureValue
+      applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE3_TESTS.toString
+      applicationResponse.progressResponse.phase3ProgressResponse.phase3TestsResultsReceived mustBe true
+      applicationResponse.progressResponse.phase3ProgressResponse.phase3TestsFailed mustBe false
+      applicationResponse.progressResponse.phase3ProgressResponse.phase3TestsFailedNotified mustBe false
+    }
+  }
+
   private def createAppWithTestResult(progressStatuses: List[(ProgressStatus, Boolean)], testResult: Option[TestResult]) = {
     testDataRepo.createApplicationWithAllFields(UserId, AppId, FrameworkId, ApplicationStatus.PHASE2_TESTS,
       additionalProgressStatuses = progressStatuses).futureValue
@@ -661,6 +680,16 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
             "reportLinkURL" -> "https://gergtrhtrhtrhtrhtr.com",
             "reportId" -> "546456"
           )
+        )
+      )
+    )
+  )
+
+  val phase3TestGroup = BSONDocument (
+    "testGroups" -> BSONDocument(
+      "PHASE3" -> BSONDocument(
+        "evaluation" -> BSONDocument(
+          "passmarkVersion" -> java.util.UUID.randomUUID().toString
         )
       )
     )

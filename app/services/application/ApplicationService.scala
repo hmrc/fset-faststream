@@ -127,6 +127,10 @@ trait ApplicationService extends EventSink {
     appRepository.fixDataByRemovingETray(appId)
   }
 
+  def fixDataByRemovingVideoInterviewFailed(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    appRepository.fixDataByRemovingVideoInterviewFailed(appId)
+  }
+
   def fixDataByRemovingProgressStatus(appId: String, progressStatusToRemove: String)(implicit hc: HeaderCarrier,
                                                                                      rh: RequestHeader): Future[Unit] = {
     appRepository.fixDataByRemovingProgressStatus(appId, progressStatusToRemove)

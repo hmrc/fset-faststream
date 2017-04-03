@@ -70,6 +70,7 @@ GET         /diagnostic/user/:userId                                     control
 GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
 DELETE      /diagnostic/application/:applicationId/eTray                 controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
 DELETE      /diagnostic/application/:applicationId/progress/:progress    controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
+DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation  controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
 PUT         /diagnostic/application/:applicationId/fastPassPromotion     controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
 
 GET         /online-test/phase1/candidate/:applicationId        controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
