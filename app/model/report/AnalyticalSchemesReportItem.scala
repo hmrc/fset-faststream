@@ -30,7 +30,7 @@ case class AnalyticalSchemesReportItem(firstName: Option[String],
                                        overallVideoInterviewScore: Option[String]
                          )
 
-case object AnalyticalSchemesReportItem {
+object AnalyticalSchemesReportItem {
   def apply(application: ApplicationForAnalyticalSchemesReport, contactDetails: ContactDetailsWithId): AnalyticalSchemesReportItem = {
     AnalyticalSchemesReportItem(
       firstName = application.firstName,

@@ -130,10 +130,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED}" -> true),
-        BSONDocument(firstSchemePreference -> "GovernmentOperationalResearchService"),
-        BSONDocument("personal-details" -> BSONDocument("$exists" -> true)),
-        BSONDocument("assistance-details" -> BSONDocument("$exists" -> true)),
-        BSONDocument("testGroups" -> BSONDocument("$exists" -> true))
+        BSONDocument(firstSchemePreference -> "GovernmentOperationalResearchService")
       ))
 
     val projection = BSONDocument(
