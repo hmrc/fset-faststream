@@ -53,7 +53,6 @@ trait ReportingController extends BaseController {
   val authProviderClient: AuthProviderClient
 
   def edipReport(frameworkId: String) = Action.async { implicit request =>
-    def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
     val applicationsFut = reportingRepository.applicationsForEdipReport(frameworkId)
     val reportFut = for {
       applications <- applicationsFut
@@ -66,6 +65,8 @@ trait ReportingController extends BaseController {
     }
   }
 
+  private def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
+
   private def buildEdipReportItems(applications: List[ApplicationForEdipReport],
                                    contactDetailsMap: Map[String, ContactDetailsWithId]): List[EdipReportItem] = {
     applications.map { application =>
@@ -73,6 +74,29 @@ trait ReportingController extends BaseController {
         throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
       )
       EdipReportItem(application, contactDetails)
+    }
+  }
+
+  def analyticalSchemesReport(frameworkId: String) = Action.async { implicit request =>
+    val applicationsFut = reportingRepository.applicationsForAnalyticalSchemesReport(frameworkId)
+    val reportFut = for {
+      applications <- applicationsFut
+      contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(cdList => contactDetailsToMap(cdList))
+    } yield {
+      buildAnalyticalSchemesReportItems(applications, contactDetails)
+    }
+    reportFut.map { report =>
+      Ok(Json.toJson(report))
+    }
+  }
+
+  private def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],
+                                   contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
+    applications.map { application =>
+      val contactDetails = contactDetailsMap.getOrElse(application.userId,
+        throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
+      )
+      AnalyticalSchemesReportItem(application, contactDetails)
     }
   }
 
