@@ -37,7 +37,7 @@ private object AppDependencies {
   val compile = Seq(
     "com.iheart"                %% "ficus"                                    % "1.2.6",
     "uk.gov.hmrc"               %% "http-caching-client"                      % "6.1.0",
-    "uk.gov.hmrc"               %% "frontend-bootstrap"                       % "7.10.0",
+    "uk.gov.hmrc"               %% "frontend-bootstrap"                       % "7.22.0",
     "uk.gov.hmrc"               %% "play-config"                              % "3.1.0",
     "uk.gov.hmrc"               %% "logback-json-logger"                      % "3.1.0",
     "uk.gov.hmrc"               %% "play-health"                              % "2.0.0",
