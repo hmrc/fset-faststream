@@ -20,21 +20,20 @@ import config.{ EmailConfig, WSHttp }
 import connectors.ExchangeObjects._
 import org.joda.time.{ DateTime, LocalDate }
 import uk.gov.hmrc.play.http.HeaderCarrier
-import Implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.TimeUnit
 
 object CSREmailClient extends CSREmailClient {
-  val emailConfig = config.MicroserviceAppConfig.emailConfig
+  val emailConfig: EmailConfig = config.MicroserviceAppConfig.emailConfig
 }
 
 object Phase2OnlineTestEmailClient extends OnlineTestEmailClient with EmailClient {
-  val emailConfig = config.MicroserviceAppConfig.emailConfig
+  val emailConfig: EmailConfig = config.MicroserviceAppConfig.emailConfig
 
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)
-    (implicit hc: HeaderCarrier) = sendEmail(to,
+    (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
       "fset_faststream_app_phase2_test_invitation",
       Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
     )
@@ -46,17 +45,17 @@ object Phase2OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
   }
 
   override def sendOnlineTestFailed(to: String, name: String)
-    (implicit hc: HeaderCarrier) = sendEmail(to,
+    (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
       "csr_app_online_test_failed",
       Map("name" -> name)
     )
 }
 
 object Phase3OnlineTestEmailClient extends OnlineTestEmailClient with EmailClient {
-  val emailConfig = config.MicroserviceAppConfig.emailConfig
+  val emailConfig: EmailConfig = config.MicroserviceAppConfig.emailConfig
 
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)
-                                       (implicit hc: HeaderCarrier) = sendEmail(to,
+                                       (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
     "fset_faststream_app_phase3_test_invitation",
     Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
   )
@@ -67,7 +66,7 @@ object Phase3OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
     sendExpiringReminder("fset_faststream_app_online_phase3_test_reminder", to, name, timeLeftInHours, timeUnit, expiryDate)
 
   override def sendOnlineTestFailed(to: String, name: String)
-                                   (implicit hc: HeaderCarrier) =
+                                   (implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(
       to,
       "csr_app_online_test_failed",
@@ -77,7 +76,7 @@ object Phase3OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
 
 trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailClient with EmailClient {
 
-  override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier) =
+  override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(
       to,
       "fset_faststream_app_online_test_invitation",
@@ -89,7 +88,7 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
     sendExpiringReminder("fset_faststream_app_online_phase1_test_reminder", to,name,timeLeftInHours, timeUnit, expiryDate)
   }
 
-  override def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier) =
+  override def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(
       to,
       "csr_app_online_test_failed",
@@ -99,7 +98,7 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
   override def sendConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime, confirmByDate: LocalDate)(
     implicit
     hc: HeaderCarrier
-  ) =
+  ): Future[Unit] =
     sendEmail(
       to,
       "csr_app_confirm_attendance",
@@ -180,25 +179,32 @@ trait AssessmentCentreEmailClient {
 trait EmailClient extends WSHttp {
   val emailConfig: EmailConfig
 
-  protected def sendEmail(to: String, template: String, parameters: Map[String, String])(implicit hc: HeaderCarrier) =
-    POST(s"${emailConfig.url}/send-templated-email", UserEmail(List(to), template, parameters), Seq()).map(_ => (): Unit)
+  protected def sendEmail(to: String, template: String, parameters: Map[String, String])(implicit hc: HeaderCarrier): Future[Unit] = {
+    val data = SendFsetMailRequest(
+      to :: Nil,
+      template,
+      parameters ++ Map("programme" -> "faststream")
+    )
+    POST(s"${emailConfig.url}/fset/email", data, Seq()).map(_ => (): Unit)
+  }
 
-  def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier) =
+  def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_app_submit_confirmation", Map("name" -> name))
 
-  def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier) =
+  def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_app_withdrawn", Map("name" -> name))
 
-  def sendAdjustmentsConfirmation(to: String, name: String, etrayAdjustments: String, videoAdjustments: String)(implicit hc: HeaderCarrier) =
+  def sendAdjustmentsConfirmation(to: String, name: String, etrayAdjustments: String,
+    videoAdjustments: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_adjustments_confirmation",
       Map("name" -> name, "etrayAdjustments" -> etrayAdjustments, "videoAdjustments" -> videoAdjustments))
 
   def sendAdjustmentsUpdateConfirmation(to: String, name: String, etrayAdjustments: String,
-                                        videoAdjustments: String)(implicit hc: HeaderCarrier) =
+                                        videoAdjustments: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_adjustments_changed",
       Map("name" -> name, "etrayAdjustments" -> etrayAdjustments, "videoAdjustments" -> videoAdjustments))
 
-  def sendApplicationExtendedToSdip(to: String, name: String)(implicit hc: HeaderCarrier) =
+  def sendApplicationExtendedToSdip(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
     sendEmail(to, "fset_faststream_app_converted_to_sdip_confirmation", Map("name" -> name))
 
 }
