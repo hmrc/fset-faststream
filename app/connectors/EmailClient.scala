@@ -185,7 +185,7 @@ trait EmailClient extends WSHttp {
       template,
       parameters ++ Map("programme" -> "faststream")
     )
-    POST(s"${emailConfig.url}/fset/email", data, Seq()).map(_ => (): Unit)
+    POST(s"${emailConfig.url}/fsetfaststream/email", data, Seq()).map(_ => (): Unit)
   }
 
   def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
