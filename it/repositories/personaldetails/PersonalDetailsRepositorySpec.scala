@@ -9,12 +9,13 @@ import reactivemongo.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
+import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
-  override val collectionName = "application"
+  override val collectionName = CollectionNames.APPLICATION
 
   def repository = new PersonalDetailsMongoRepository
   def appRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)

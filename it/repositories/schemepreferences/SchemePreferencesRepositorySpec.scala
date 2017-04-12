@@ -10,12 +10,13 @@ import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
 import model.SchemeType.SchemeType
 import model.{ SchemeType, SelectedSchemes }
+import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
-  val collectionName: String = "application"
+  val collectionName: String = CollectionNames.APPLICATION
 
   def repository = new SchemePreferencesMongoRepository
   def applicationRepository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)

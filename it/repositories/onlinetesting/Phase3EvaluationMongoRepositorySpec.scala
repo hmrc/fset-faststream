@@ -10,7 +10,7 @@ import model.persisted.phase3tests.Phase3TestGroup
 import model.{ ApplicationStatus, ProgressStatuses, SchemeType }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.CommonRepository
+import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 
@@ -25,7 +25,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   override val mockLaunchpadConfig = LaunchpadGatewayConfig("", Phase3TestsConfig(0, 0, "",
     Map.empty[String, Int], 72, false))
 
-  val collectionName: String = "application"
+  val collectionName: String = CollectionNames.APPLICATION
 
   "next Application Ready For Evaluation" must {
 

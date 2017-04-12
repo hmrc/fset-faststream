@@ -9,7 +9,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.CommonRepository
+import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
@@ -17,7 +17,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   import ImplicitBSONHandlers._
   import Phase1EvaluationMongoRepositorySpec._
 
-  val collectionName: String = "application"
+  val collectionName: String = CollectionNames.APPLICATION
 
   "next Application Ready For Evaluation" should {
     "return nothing if there is no PHASE1_TESTS applications" in {

@@ -18,7 +18,7 @@ package repositories.application
 
 import _root_.services.testdata.{ StatusGeneratorFactory, TestDataGeneratorService }
 import factories.UUIDFactory
-import model.ProgressStatuses.{ EXPORTED, PHASE3_TESTS_INVITED, SUBMITTED, PHASE1_TESTS_PASSED => _}
+import model.ProgressStatuses.{ EXPORTED, PHASE3_TESTS_INVITED, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model.SchemeType.SchemeType
 import model._
 import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
@@ -30,7 +30,7 @@ import model.command.{ ProgressResponse, WithdrawApplication }
 import model.exchange.testdata.{ AssistanceDetailsRequest, CreateCandidateInStatusRequest, StatusDataRequest }
 import model.persisted._
 import reactivemongo.bson.BSONDocument
-import repositories.CommonBSONDocuments
+import repositories.{ CollectionNames, CommonBSONDocuments }
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -40,7 +40,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   val frameworkId = "FastStream-2016"
 
-  val collectionName = "application"
+  val collectionName = CollectionNames.APPLICATION
 
   def repository = new ReportingMongoRepository(GBTimeZoneService)
 

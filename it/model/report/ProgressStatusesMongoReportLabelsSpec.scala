@@ -3,10 +3,11 @@ package model.report
 import java.util.UUID
 
 import model.{ ApplicationRoute, ProgressStatuses }
+import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
-  val collectionName: String = "application"
+  val collectionName: String = CollectionNames.APPLICATION
 
   lazy val appRepo = repositories.applicationRepository
 

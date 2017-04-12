@@ -4,7 +4,7 @@ import model.{ ApplicationStatus, SchemeType }
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.JsArray
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.CommonRepository
+import repositories.{ CollectionNames, CommonRepository }
 import repositories.parity.ParityExportRepository.ApplicationIdNotFoundException
 import testkit.MongoRepositorySpec
 
@@ -14,7 +14,7 @@ class ParityExportMongoRepositorySpec extends MongoRepositorySpec with CommonRep
   import ImplicitBSONHandlers._
   import model.Phase3TestProfileExamples._
 
-  val collectionName: String = "application"
+  val collectionName: String = CollectionNames.APPLICATION
 
   "next Applications Ready For export" must {
 

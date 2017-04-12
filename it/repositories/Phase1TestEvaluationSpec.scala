@@ -24,8 +24,8 @@ class Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
   import ImplicitBSONHandlers._
 
-  val collectionName = "application"
-  override val additionalCollections = List("phase1-pass-mark-settings")
+  val collectionName = CollectionNames.APPLICATION
+  override val additionalCollections = List(CollectionNames.PHASE1_PASS_MARK_SETTINGS)
 
   def phase1TestEvaluationService = new EvaluatePhase1ResultService {
     val evaluationRepository = phase1EvaluationRepo

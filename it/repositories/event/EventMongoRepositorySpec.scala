@@ -4,7 +4,7 @@ import model.persisted.Event
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.EventMongoRepository
+import repositories.{ CollectionNames, EventMongoRepository }
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future
@@ -12,7 +12,7 @@ import scala.concurrent.Future
 class EventMongoRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
-  override val collectionName = "event"
+  override val collectionName = CollectionNames.EVENT
 
   lazy val repository = new EventMongoRepository()
 

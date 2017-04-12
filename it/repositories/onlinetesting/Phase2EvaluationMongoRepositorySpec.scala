@@ -10,7 +10,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mock.MockitoSugar
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
-import repositories.CommonRepository
+import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 
@@ -20,7 +20,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   import Phase1EvaluationMongoRepositorySpec._
   import Phase2EvaluationMongoRepositorySpec._
 
-  val collectionName: String = "application"
+  val collectionName: String = CollectionNames.APPLICATION
 
   "next Application Ready For Evaluation" should {
 

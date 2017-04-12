@@ -20,8 +20,8 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   import ImplicitBSONHandlers._
 
-  val collectionName = "application"
-  override val additionalCollections = List("phase3-pass-mark-settings")
+  val collectionName = CollectionNames.APPLICATION
+  override val additionalCollections = List(CollectionNames.PHASE3_PASS_MARK_SETTINGS)
 
   def phase3TestEvaluationService(verifyAllScoresArePresent: Boolean = true) = new EvaluatePhase3ResultService {
     val evaluationRepository = phase3EvaluationRepo

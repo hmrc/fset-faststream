@@ -22,7 +22,7 @@ import testkit.MongoRepositorySpec
 
 class AssessmentCentrePassMarkSettingsRepositorySpec extends MongoRepositorySpec {
 
-  override val collectionName = "assessment-centre-pass-mark-settings"
+  override val collectionName = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS
 
   def repository = new AssessmentCentrePassMarkSettingsMongoRepository()
 

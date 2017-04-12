@@ -27,13 +27,14 @@ import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, persisted, _ }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
+import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Await
 
 class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
-  override val collectionName = "application"
+  override val collectionName = CollectionNames.APPLICATION
 
   val Token = UUID.randomUUID.toString
   val Now = DateTime.now(DateTimeZone.UTC)

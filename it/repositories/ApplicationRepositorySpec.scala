@@ -42,7 +42,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val frameworkId = "FastStream-2016"
 
-  val collectionName = "application"
+  val collectionName = CollectionNames.APPLICATION
 
   def applicationRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
 

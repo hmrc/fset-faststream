@@ -6,6 +6,7 @@ import model.persisted.{ ContactDetails, UserIdWithEmail }
 import model.persisted.ContactDetailsExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.json.ImplicitBSONHandlers
+import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Await
@@ -13,7 +14,7 @@ import scala.concurrent.Await
 class ContactDetailsRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
-  override val collectionName = "contact-details"
+  override val collectionName = CollectionNames.CONTACT_DETAILS
 
   def repository = new ContactDetailsMongoRepository
 

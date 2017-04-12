@@ -22,7 +22,7 @@ import testkit.MongoRepositorySpec
 
 class ApplicationAssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
-  override val collectionName = "application-assessment-scores"
+  override val collectionName = CollectionNames.APPLICATION_ASSESSMENT_SCORES
 
   def repository = new ApplicationAssessmentScoresMongoRepository(DateTimeFactory)
 
