@@ -33,7 +33,7 @@ trait FrameworkPreferenceRepository {
 
 class FrameworkPreferenceMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Preferences, BSONObjectID](
-    "application", mongo, Preferences.jsonFormat, ReactiveMongoFormats.objectIdFormats
+    CollectionNames.APPLICATION, mongo, Preferences.jsonFormat, ReactiveMongoFormats.objectIdFormats
   )
   with FrameworkPreferenceRepository with ReactiveRepositoryHelpers {
 

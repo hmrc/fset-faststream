@@ -66,7 +66,7 @@ trait ReportingRepository {
 }
 
 class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with ReportingRepository with RandomSelection with
     CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
 

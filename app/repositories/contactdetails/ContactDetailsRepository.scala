@@ -26,7 +26,7 @@ import play.api.libs.json.Reads._
 import play.api.libs.json._
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import repositories.ReactiveRepositoryHelpers
+import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -54,14 +54,14 @@ trait ContactDetailsRepository {
 }
 
 class ContactDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo, ContactDetails.contactDetailsFormat,
+  extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.CONTACT_DETAILS, mongo, ContactDetails.contactDetailsFormat,
     ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with ReactiveRepositoryHelpers {
 
-  val ContactDetailsCollection = "contact-details"
+  val ContactDetailsDocumentKey = "contact-details"
 
   override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
-    val contactDetailsBson = BSONDocument("$set" -> BSONDocument(ContactDetailsCollection -> contactDetails))
+    val contactDetailsBson = BSONDocument("$set" -> BSONDocument(ContactDetailsDocumentKey -> contactDetails))
 
     val validator = singleUpsertValidator(userId, actionDesc = s"updating contact details for $userId")
 
@@ -70,7 +70,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
   override def find(userId: String): Future[ContactDetails] = {
     val query = BSONDocument("userId" -> userId)
-    val projection = BSONDocument(ContactDetailsCollection -> 1, "_id" -> 0)
+    val projection = BSONDocument(ContactDetailsDocumentKey -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) if document.getAs[BSONDocument]("contact-details").isDefined =>

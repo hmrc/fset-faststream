@@ -26,20 +26,20 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import repositories.OFormatHelper
+import repositories.{ CollectionNames, OFormatHelper }
 
 class Phase1PassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase1PassMarkSettings, BSONObjectID]("phase1-pass-mark-settings", mongo,
+  extends ReactiveRepository[Phase1PassMarkSettings, BSONObjectID](CollectionNames.PHASE1_PASS_MARK_SETTINGS, mongo,
     Phase1PassMarkSettings.phase1PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
   ) with PassMarkSettingsRepository[Phase1PassMarkSettings]
 
 class Phase2PassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase2PassMarkSettings, BSONObjectID]("phase2-pass-mark-settings", mongo,
+  extends ReactiveRepository[Phase2PassMarkSettings, BSONObjectID](CollectionNames.PHASE2_PASS_MARK_SETTINGS, mongo,
     Phase2PassMarkSettings.phase2PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
   ) with PassMarkSettingsRepository[Phase2PassMarkSettings]
 
 class Phase3PassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase3PassMarkSettings, BSONObjectID]("phase3-pass-mark-settings", mongo,
+  extends ReactiveRepository[Phase3PassMarkSettings, BSONObjectID](CollectionNames.PHASE3_PASS_MARK_SETTINGS, mongo,
     Phase3PassMarkSettings.phase3PassMarkSettingsFormat, ReactiveMongoFormats.objectIdFormats
   ) with PassMarkSettingsRepository[Phase3PassMarkSettings]
 

@@ -145,7 +145,7 @@ trait GeneralApplicationRepository {
 // scalastyle:off file.size.limit
 class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
                                         gatewayConfig: CubiksGatewayConfig)(implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers {

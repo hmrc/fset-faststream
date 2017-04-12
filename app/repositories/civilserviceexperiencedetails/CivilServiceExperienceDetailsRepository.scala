@@ -20,7 +20,7 @@ import model.CivilServiceExperienceDetails
 import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.ReactiveRepositoryHelpers
+import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -39,7 +39,7 @@ trait CivilServiceExperienceDetailsRepository {
 }
 
 class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) extends
-  ReactiveRepository[CivilServiceExperienceDetails, BSONObjectID]("application", mongo,
+  ReactiveRepository[CivilServiceExperienceDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
     CivilServiceExperienceDetails.civilServiceExperienceDetailsFormat, ReactiveMongoFormats.objectIdFormats)
   with CivilServiceExperienceDetailsRepository with ReactiveRepositoryHelpers {
 

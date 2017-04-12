@@ -20,7 +20,7 @@ import model.Exceptions._
 import model.persisted.PartnerGraduateProgrammes
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.ReactiveRepositoryHelpers
+import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -34,7 +34,7 @@ trait PartnerGraduateProgrammesRepository {
 }
 
 class PartnerGraduateProgrammesMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[PartnerGraduateProgrammes, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[PartnerGraduateProgrammes, BSONObjectID](CollectionNames.APPLICATION, mongo,
     PartnerGraduateProgrammes.partnerGraduateProgrammesFormat, ReactiveMongoFormats.objectIdFormats) with PartnerGraduateProgrammesRepository
     with ReactiveRepositoryHelpers {
 

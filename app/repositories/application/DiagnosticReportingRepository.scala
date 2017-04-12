@@ -23,6 +23,7 @@ import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.BSONObjectID
+import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -35,7 +36,7 @@ trait DiagnosticReportingRepository {
 }
 
 class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
 
   private val defaultExclusions = Json.obj(

@@ -47,7 +47,7 @@ trait TestDataContactDetailsRepository {
 }
 
 class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[ContactDetails, BSONObjectID]("contact-details", mongo,
+  extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.CONTACT_DETAILS, mongo,
     ContactDetails.contactDetailsFormat, ReactiveMongoFormats.objectIdFormats) with
     TestDataContactDetailsRepository with ReactiveRepositoryHelpers {
 
@@ -74,7 +74,7 @@ class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
 }
 
 class TestDataMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[ContactDetails, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ContactDetails.contactDetailsFormat, ReactiveMongoFormats.objectIdFormats) with TestDataRepository
     with ReactiveRepositoryHelpers {
 

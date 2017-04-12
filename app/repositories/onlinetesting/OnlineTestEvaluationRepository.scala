@@ -23,10 +23,10 @@ import model.ApplicationStatus._
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeType, SelectedSchemes }
+import model.{ ApplicationStatus, ApplicationStatus => _, Phase => _, _ }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
-import repositories.{ BaseBSONReader, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
+import repositories.{ BaseBSONReader, CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import model.Phase._
@@ -120,7 +120,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 }
 
 class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments{
 
@@ -166,7 +166,7 @@ class Phase1EvaluationMongoRepository()(implicit mongo: () => DB)
 }
 
 class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository
     with CommonBSONDocuments {
@@ -202,7 +202,7 @@ class Phase2EvaluationMongoRepository()(implicit mongo: () => DB)
 
 class Phase3EvaluationMongoRepository(launchpadGatewayConfig: LaunchpadGatewayConfig,
                                       dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with BaseBSONReader {
 

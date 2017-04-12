@@ -61,7 +61,7 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase3TestGroup, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[Phase3TestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo,
     model.persisted.phase3tests.Phase3TestGroup.phase3TestGroupFormat, ReactiveMongoFormats.objectIdFormats
   ) with Phase3TestRepository with CommonBSONDocuments {
 

@@ -21,7 +21,7 @@ import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import repositories.{ ReactiveRepositoryHelpers, CommonBSONDocuments }
+import repositories.{ CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -38,7 +38,7 @@ trait PersonalDetailsRepository {
 }
 
 class PersonalDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[PersonalDetails, BSONObjectID]("application", mongo, PersonalDetails.personalDetailsFormat,
+  extends ReactiveRepository[PersonalDetails, BSONObjectID](CollectionNames.APPLICATION, mongo, PersonalDetails.personalDetailsFormat,
     ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
   val PersonalDetailsCollection = "personal-details"
 
