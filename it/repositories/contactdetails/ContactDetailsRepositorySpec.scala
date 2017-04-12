@@ -55,7 +55,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
     "return the user id when a user does exist with the given email" in {
       val result = (for {
-        _ <- insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsUK))
+        _ <- insert(BSONDocument("userId" -> UserId, "contact-details" -> ContactDetailsUK))
         userId <- repository.findUserIdByEmail(ContactDetailsUK.email)
       } yield userId).futureValue
 
@@ -94,7 +94,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
     "return an empty map if the present records have no post code" in {
       val result = (for {
-        _ <- insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsOutsideUK))
+        _ <- insert(BSONDocument("userId" -> UserId, "contact-details" -> ContactDetailsOutsideUK))
         res <- repository.findAllPostcodes()
       } yield res).futureValue
 
@@ -103,7 +103,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
     "return the postcode for a given user Id if present" in {
       val result: Map[String, String] = (for {
-        _ <- insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsUK))
+        _ <- insert(BSONDocument("userId" -> UserId, "contact-details" -> ContactDetailsUK))
         res <- repository.findAllPostcodes()
       } yield res).futureValue
 
@@ -113,7 +113,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
   "Archive" should {
     "archive the existing contact details" in {
-      insert(BSONDocument("userId" -> UserId, collectionName -> ContactDetailsUK)).futureValue
+      insert(BSONDocument("userId" -> UserId, "contact-details" -> ContactDetailsUK)).futureValue
 
       val userIdToArchiveWith = "newUserId"
 
@@ -132,8 +132,8 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
 
     "return list of users with emails" in {
-      insert(BSONDocument("userId" -> "1", collectionName -> ContactDetailsUK)).futureValue
-      insert(BSONDocument("userId" -> "2", collectionName -> ContactDetailsOutsideUK)).futureValue
+      insert(BSONDocument("userId" -> "1", "contact-details" -> ContactDetailsUK)).futureValue
+      insert(BSONDocument("userId" -> "2", "contact-details" -> ContactDetailsOutsideUK)).futureValue
       val result = repository.findEmails.futureValue
 
       result mustBe List(

@@ -23,7 +23,7 @@ import model.ApplicationStatus._
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
-import model.{ ApplicationStatus, ApplicationStatus => _, Phase => _, _ }
+import model.{ ApplicationStatus, Phase => _, _ }
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
 import repositories.{ BaseBSONReader, CollectionNames, CommonBSONDocuments, RandomSelection, ReactiveRepositoryHelpers }
