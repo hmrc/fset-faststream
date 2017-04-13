@@ -463,6 +463,10 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       doc.getAs[BSONDocument]("progress-status-timestamp").flatMap(_.getAs[DateTime](status))
     }
 
+    def getLegacyDate(doc: BSONDocument, status: ApplicationStatus): Option[DateTime] = {
+      doc.getAs[BSONDocument]("progress-status-dates").flatMap(_.getAs[DateTime](status.toLowerCase))
+    }
+
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("userId" -> BSONDocument("$exists" -> true)),
@@ -495,9 +499,11 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
         } yield first + " " + last
 
         val preferredName = personalDetailsDoc.flatMap(_.getAs[String]("preferredName"))
-        val maybeSubmittedTimestamp = getDate(doc, ApplicationStatus.SUBMITTED)
-        val maybeExportedTimestamp = getDate(doc, ApplicationStatus.EXPORTED)
-        val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.UPDATE_EXPORTED)
+        val maybeSubmittedTimestamp = getDate(doc, ApplicationStatus.SUBMITTED).orElse(getLegacyDate(doc, ApplicationStatus.SUBMITTED))
+        val maybeExportedTimestamp = getDate(doc, ApplicationStatus.EXPORTED).orElse(getLegacyDate(doc, ApplicationStatus.EXPORTED))
+        val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.UPDATE_EXPORTED).orElse(
+          getLegacyDate(doc, ApplicationStatus.UPDATE_EXPORTED)
+        )
 
         TimeToOfferPartialItem(
           userId,
