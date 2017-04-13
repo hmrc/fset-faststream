@@ -63,7 +63,7 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
     val emailClient: CSREmailClient = mock[CSREmailClient]
   }
 
-  val collectionName = "application"
+  val collectionName = CollectionNames.APPLICATION
   // set this test to run only one test - useful in debugging
   val DebugTestNameAppId: Option[String] = None
 

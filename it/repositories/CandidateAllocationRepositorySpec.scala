@@ -31,7 +31,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
   import ImplicitBSONHandlers._
 
-  override val collectionName = "application"
+  override val collectionName = CollectionNames.APPLICATION
   
   def candidateAllocationRepo = new CandidateAllocationMongoRepository(DateTimeFactory)
   def helperRepo = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)

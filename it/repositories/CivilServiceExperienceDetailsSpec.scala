@@ -12,7 +12,7 @@ class CivilServiceExperienceDetailsSpec extends MongoRepositorySpec {
 
   import ImplicitBSONHandlers._
 
-  override val collectionName: String = "application"
+  override val collectionName: String = CollectionNames.APPLICATION
 
   def repository = new CivilServiceExperienceDetailsMongoRepository
 

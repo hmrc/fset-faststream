@@ -31,7 +31,7 @@ trait EventRepository {
 }
 
 class EventMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Event, BSONObjectID]("event", mongo, Event.eventFormat,
+  extends ReactiveRepository[Event, BSONObjectID](CollectionNames.EVENT, mongo, Event.eventFormat,
     ReactiveMongoFormats.objectIdFormats) with EventRepository {
 
   def create(event: Event): Future[Unit] = {

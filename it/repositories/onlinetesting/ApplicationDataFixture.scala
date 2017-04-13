@@ -13,6 +13,7 @@ import reactivemongo.json.ImplicitBSONHandlers
 
 import scala.concurrent.Future
 import config.MicroserviceAppConfig.cubiksGatewayConfig
+import repositories.CollectionNames
 
 trait ApplicationDataFixture {
   this: MongoRepositorySpec =>
@@ -27,7 +28,7 @@ trait ApplicationDataFixture {
 
   import ImplicitBSONHandlers._
 
-  override val collectionName = "application"
+  override val collectionName = CollectionNames.APPLICATION
 
   def updateApplication(doc: BSONDocument, appId: String): Future[UpdateWriteResult] =
     phase1TestRepo.collection.update(BSONDocument("applicationId" -> appId), doc)

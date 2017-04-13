@@ -37,7 +37,7 @@ trait CandidateAllocationRepository {
 }
 
 class CandidateAllocationMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[AllocatedCandidate, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[AllocatedCandidate, BSONObjectID](CollectionNames.APPLICATION, mongo,
     PersistedObjects.Implicits.allocatedCandidateFormats) with CandidateAllocationRepository
     with RandomSelection with ReactiveRepositoryHelpers with CommonBSONDocuments {
 

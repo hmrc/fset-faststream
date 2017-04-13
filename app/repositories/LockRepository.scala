@@ -49,7 +49,7 @@ trait LockRepository {
 }
 
 class LockMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Lock, String]("locks", mongo, LockFormats.format, implicitly[Format[String]]) with LockRepository {
+  extends ReactiveRepository[Lock, String](CollectionNames.LOCKS, mongo, LockFormats.format, implicitly[Format[String]]) with LockRepository {
   private val DuplicateKey = 11000
 
   import LockFormats._

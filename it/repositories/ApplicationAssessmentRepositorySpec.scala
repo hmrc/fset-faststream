@@ -26,7 +26,7 @@ import testkit.MongoRepositorySpec
 class ApplicationAssessmentRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
-  val collectionName = "application-assessment"
+  val collectionName = CollectionNames.APPLICATION_ASSESSMENT
   def repository = new ApplicationAssessmentMongoRepository()
 
   "Application Assessment repository" should {

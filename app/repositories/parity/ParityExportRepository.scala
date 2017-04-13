@@ -51,7 +51,7 @@ trait ParityExportRepository extends RandomSelection with CommonBSONDocuments wi
 }
 
 class ParityExportMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     Commands.Implicits.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats
   ) with ParityExportRepository with CommonBSONDocuments {
 

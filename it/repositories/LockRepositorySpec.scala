@@ -22,7 +22,7 @@ import testkit.MongoRepositorySpec
 class LockRepositorySpec extends MongoRepositorySpec {
   val lockTimeout = new Duration(1000L)
 
-  override val collectionName = "locks"
+  override val collectionName = CollectionNames.LOCKS
 
   def repo = new LockMongoRepository()
 

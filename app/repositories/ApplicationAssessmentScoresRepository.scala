@@ -37,7 +37,7 @@ trait ApplicationAssessmentScoresRepository {
 }
 
 class ApplicationAssessmentScoresMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[CandidateScoresAndFeedback, BSONObjectID]("application-assessment-scores", mongo,
+  extends ReactiveRepository[CandidateScoresAndFeedback, BSONObjectID](CollectionNames.APPLICATION_ASSESSMENT_SCORES, mongo,
     CandidateScoresCommands.Implicits.CandidateScoresAndFeedbackFormats, ReactiveMongoFormats.objectIdFormats)
   with ApplicationAssessmentScoresRepository with ReactiveRepositoryHelpers {
 

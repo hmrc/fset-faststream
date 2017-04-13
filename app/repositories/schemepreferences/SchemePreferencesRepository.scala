@@ -21,7 +21,7 @@ import model.SchemeType.SchemeType
 import model.SelectedSchemes
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
-import repositories.ReactiveRepositoryHelpers
+import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -37,7 +37,7 @@ trait SchemePreferencesRepository {
 }
 
 class SchemePreferencesMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[SelectedSchemes, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[SelectedSchemes, BSONObjectID](CollectionNames.APPLICATION, mongo,
     SelectedSchemes.selectedSchemesFormat, ReactiveMongoFormats.objectIdFormats)
     with SchemePreferencesRepository with ReactiveRepositoryHelpers {
 

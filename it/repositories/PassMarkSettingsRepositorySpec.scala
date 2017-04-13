@@ -35,7 +35,7 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   val newPassMarkThresholds = Phase1PassMarkThresholds(PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d))
   val newPassMarks = List(Phase1PassMark(Finance, newPassMarkThresholds))
   def passMarkSettingsRepo = phase1PassMarkSettingsRepository
-  val collectionName = "phase1-pass-mark-settings"
+  val collectionName = CollectionNames.PHASE1_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: Phase1PassMarkSettings, newPassMarks: List[Phase1PassMark], newVersion: String, newDate:
   DateTime, newUser: String): Phase1PassMarkSettings = {
@@ -53,7 +53,7 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   val newPassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(30d, 80d))
   val newPassMarks = List(Phase2PassMark(Finance, newPassMarkThresholds))
   def passMarkSettingsRepo = phase2PassMarkSettingsRepository
-  val collectionName = "phase2-pass-mark-settings"
+  val collectionName = CollectionNames.PHASE2_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: Phase2PassMarkSettings, newPassMarks: List[Phase2PassMark], newVersion: String, newDate:
     DateTime, newUser: String): Phase2PassMarkSettings = {
@@ -71,7 +71,7 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   val newPassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(30d, 80d))
   val newPassMarks = List(Phase3PassMark(Finance, newPassMarkThresholds))
   def passMarkSettingsRepo = phase3PassMarkSettingsRepository
-  val collectionName = "phase3-pass-mark-settings"
+  val collectionName = CollectionNames.PHASE3_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: Phase3PassMarkSettings, newPassMarks: List[Phase3PassMark], newVersion: String, newDate:
   DateTime, newUser: String): Phase3PassMarkSettings = {

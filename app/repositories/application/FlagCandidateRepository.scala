@@ -38,7 +38,7 @@ trait FlagCandidateRepository {
 }
 
 class FlagCandidateMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[FlagCandidate, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[FlagCandidate, BSONObjectID](CollectionNames.APPLICATION, mongo,
     FlagCandidate.FlagCandidateFormats, ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository
     with ReactiveRepositoryHelpers {
 

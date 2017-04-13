@@ -4,12 +4,13 @@ import model.Exceptions.PartnerGraduateProgrammesNotFound
 import model.persisted.PartnerGraduateProgrammesExamples
 import reactivemongo.bson.{ BSONArray, BSONDocument }
 import reactivemongo.json.ImplicitBSONHandlers
+import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class PartnerGraduateProgrammesRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
-  override val collectionName = "application"
+  override val collectionName = CollectionNames.APPLICATION
 
   def repository = new PartnerGraduateProgrammesMongoRepository
 

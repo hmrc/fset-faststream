@@ -1,6 +1,7 @@
 package scheduler.clustering
 
 import config.ScheduledJobConfig
+import repositories.CollectionNames
 import scheduler.BasicJobConfig
 import testkit.MongoRepositorySpec
 
@@ -9,7 +10,7 @@ import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
 class SingleInstanceScheduledJobSpec extends MongoRepositorySpec {
-  val collectionName = "locks"
+  val collectionName = CollectionNames.LOCKS
   "SingeInstanceScheduledJob isRunning" should {
     "be true when executing" in {
       val promise = Promise[Unit]

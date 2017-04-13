@@ -25,7 +25,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   import ImplicitBSONHandlers._
 
-  val collectionName = "application"
+  val collectionName = CollectionNames.APPLICATION
   override val additionalCollections = List("phase2-pass-mark-settings")
 
   def phase2TestEvaluationService = new EvaluatePhase2ResultService {

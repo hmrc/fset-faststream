@@ -21,7 +21,7 @@ import model.persisted.AssistanceDetails
 import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.ReactiveRepositoryHelpers
+import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -35,17 +35,17 @@ trait AssistanceDetailsRepository {
 }
 
 class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[AssistanceDetails, BSONObjectID]("application", mongo,
+  extends ReactiveRepository[AssistanceDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
     AssistanceDetails.assistanceDetailsFormat, ReactiveMongoFormats.objectIdFormats) with AssistanceDetailsRepository
     with ReactiveRepositoryHelpers {
 
-  val AssistanceDetailsCollection = "assistance-details"
+  val AssistanceDetailsDocumentKey = "assistance-details"
 
   override def update(applicationId: String, userId: String, ad: AssistanceDetails): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId, "userId" -> userId)
     val updateBSON = BSONDocument("$set" -> BSONDocument(
       "progress-status.assistance-details" -> true,
-      AssistanceDetailsCollection -> ad
+      AssistanceDetailsDocumentKey -> ad
     ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating assistance details",
@@ -56,11 +56,11 @@ class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
 
   override def find(applicationId: String): Future[AssistanceDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument(AssistanceDetailsCollection -> 1, "_id" -> 0)
+    val projection = BSONDocument(AssistanceDetailsDocumentKey -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument](AssistanceDetailsCollection).isDefined =>
-        document.getAs[AssistanceDetails](AssistanceDetailsCollection).get
+      case Some(document) if document.getAs[BSONDocument](AssistanceDetailsDocumentKey).isDefined =>
+        document.getAs[AssistanceDetails](AssistanceDetailsDocumentKey).get
       case _ => throw AssistanceDetailsNotFound(applicationId)
     }
   }

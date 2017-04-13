@@ -9,7 +9,7 @@ class MediaRepositorySpec extends MongoRepositorySpec {
 
   import ImplicitBSONHandlers._
 
-  override val collectionName = "media"
+  override val collectionName = CollectionNames.MEDIA
 
   def repository = new MediaMongoRepository()
 

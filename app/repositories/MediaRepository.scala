@@ -40,7 +40,7 @@ trait MediaRepository {
 }
 
 class MediaMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Media, BSONObjectID]("media", mongo,
+  extends ReactiveRepository[Media, BSONObjectID](CollectionNames.MEDIA, mongo,
     mediaFormat, ReactiveMongoFormats.objectIdFormats) with MediaRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
   override def create(addMedia: Media): Future[Unit] = insert(addMedia).map { _ => ()

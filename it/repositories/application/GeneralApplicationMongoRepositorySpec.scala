@@ -29,7 +29,7 @@ import model.Commands.Candidate
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.command.ProgressResponse
 import model.persisted._
-import repositories.CommonBSONDocuments
+import repositories.{ CollectionNames, CommonBSONDocuments }
 import repositories.onlinetesting.{ Phase1TestMongoRepository, Phase2TestMongoRepository }
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
@@ -39,7 +39,7 @@ import scala.concurrent.Await
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonBSONDocuments {
 
-  val collectionName = "application"
+  val collectionName = CollectionNames.APPLICATION
 
   def repository = new GeneralApplicationMongoRepository(GBTimeZoneService, cubiksGatewayConfig)
   def phase1TestRepo = new Phase1TestMongoRepository(DateTimeFactory)

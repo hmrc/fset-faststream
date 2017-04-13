@@ -26,7 +26,7 @@ import testkit.MongoRepositorySpec
 
 class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar {
 
-  override val collectionName = "questionnaire"
+  override val collectionName = CollectionNames.QUESTIONNAIRE
 
   "The Questionnaire Repo" should {
     "create collection, append questions to the application and overwrite existing questions" in new TestFixture {
