@@ -96,12 +96,13 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     collection.find(query).cursor[BSONDocument]().collect[List](MicroserviceAppConfig.maxNumberOfDocuments).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
+      val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(false)
       val address = root.getAs[Address]("address").get
       val postCode = root.getAs[PostCode]("postCode")
       val phone = root.getAs[PhoneNumber]("phone")
       val email = root.getAs[String]("email").get
 
-      ContactDetailsWithId(id, address, postCode, email, phone)
+      ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
     })
   }
 
@@ -123,12 +124,13 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
+      val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(false)
       val address = root.getAs[Address]("address").get
       val postCode = root.getAs[PostCode]("postCode")
       val phone = root.getAs[PhoneNumber]("phone")
       val email = root.getAs[String]("email").get
 
-      ContactDetailsWithId(id, address, postCode, email, phone)
+      ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
     })
   }
 
@@ -138,12 +140,13 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
+      val outsideUk = root.getAs[Boolean]("outsideUk").get
       val address = root.getAs[Address]("address").get
       val postCode = root.getAs[PostCode]("postCode")
       val phone = root.getAs[PhoneNumber]("phone")
       val email = root.getAs[String]("email").get
 
-      ContactDetailsWithId(id, address, postCode, email, phone)
+      ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
     })
   }
 

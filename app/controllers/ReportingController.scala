@@ -21,6 +21,7 @@ import model.Commands._
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsWithId
 import model.report.{ DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels, _ }
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.ReportingRepository
@@ -184,14 +185,18 @@ trait ReportingController extends BaseController {
         val userId = appTimeToOffer.userId
         val application = appsByUserId(userId)
         val appId = application.applicationId
-        val email = candidatesByUserId.get(userId).map(_.email)
+        val contactDetails = candidatesByUserId.get(userId)
+        val email = contactDetails.map(_.email)
         val diversityReportItem = DiversityReportItem(
           ApplicationForDiversityReportItem.create(application),
           questionnairesByAppId.get(appId),
           mediasByUserId.get(userId).map(m => MediaReportItem(m.media))
         )
 
-        TimeToOfferItem(appTimeToOffer, email, diversityReportItem)
+        val (postCode, outsideUk) = contactDetails.map(cd => (cd.postCode, cd.outsideUk)).getOrElse((None, false))
+        val indicator = indicatorRepository.calculateFsacIndicator(postCode, outsideUk).getOrElse("Unknown")
+
+        TimeToOfferItem(appTimeToOffer, email, diversityReportItem, indicator)
       }
     }
     reports.map { list =>

@@ -22,8 +22,10 @@ import model.command._
 import model.persisted._
 import model.report._
 import model.{ ApplicationStatus, _ }
+import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.Format
+import play.api.Logger
+import play.api.libs.json.{ Format, Json }
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
@@ -464,7 +466,11 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     }
 
     def getLegacyDate(doc: BSONDocument, status: ApplicationStatus): Option[DateTime] = {
-      doc.getAs[BSONDocument]("progress-status-dates").flatMap(_.getAs[DateTime](status.toLowerCase))
+      doc.getAs[BSONDocument]("progress-status-dates").flatMap { x =>
+        x.getAs[String](status.toString.toLowerCase).map { dateString =>
+          DateTime.parse(dateString, DateTimeFormat.forPattern("YYYY-MM-dd"))
+        }
+      }
     }
 
     val query = BSONDocument("$and" ->
@@ -483,6 +489,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       "userId" -> true,
       "personal-details" -> true,
       "progress-status" -> true,
+      "progress-status-dates" -> true,
       "progress-status-timestamp" -> true,
       "personal-details.firstName" -> true,
       "personal-details.lastName" -> true,
@@ -504,6 +511,12 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
         val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.UPDATE_EXPORTED).orElse(
           getLegacyDate(doc, ApplicationStatus.UPDATE_EXPORTED)
         )
+
+        if (userId == "fd352163-3030-4aad-9217-71f7b5787547") {
+          Logger.warn("==== Looking up " + userId)
+          Logger.warn("Sub = " + getLegacyDate(doc, ApplicationStatus.SUBMITTED))
+          Logger.warn(">>>>>>" + Json.toJson(doc.getAs[BSONDocument]("progress-status-dates")))
+        }
 
         TimeToOfferPartialItem(
           userId,

@@ -24,6 +24,7 @@ case class ContactDetailsWithId(
                                  userId: String,
                                  address: Address,
                                  postCode: Option[PostCode],
+                                 outsideUk: Boolean,
                                  email: String,
                                  phone: Option[PhoneNumber]
                                )
