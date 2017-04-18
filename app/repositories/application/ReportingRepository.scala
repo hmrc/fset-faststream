@@ -466,9 +466,9 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     }
 
     def getLegacyDate(doc: BSONDocument, status: ApplicationStatus): Option[DateTime] = {
-      doc.getAs[BSONDocument]("progress-status-dates").flatMap { x =>
-        x.getAs[String](status.toString.toLowerCase).map { dateString =>
-          DateTime.parse(dateString, DateTimeFormat.forPattern("YYYY-MM-dd"))
+      doc.getAs[BSONDocument]("progress-status-dates").flatMap { legacyDates =>
+        legacyDates.getAs[String](status.toString.toLowerCase).map { legacyDateString =>
+          DateTime.parse(legacyDateString, DateTimeFormat.forPattern("YYYY-MM-dd"))
         }
       }
     }

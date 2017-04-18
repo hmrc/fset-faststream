@@ -21,7 +21,6 @@ import model.Commands._
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsWithId
 import model.report.{ DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels, _ }
-import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.ReportingRepository
