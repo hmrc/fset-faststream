@@ -512,12 +512,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
           getLegacyDate(doc, ApplicationStatus.UPDATE_EXPORTED)
         )
 
-        if (userId == "fd352163-3030-4aad-9217-71f7b5787547") {
-          Logger.warn("==== Looking up " + userId)
-          Logger.warn("Sub = " + getLegacyDate(doc, ApplicationStatus.SUBMITTED))
-          Logger.warn(">>>>>>" + Json.toJson(doc.getAs[BSONDocument]("progress-status-dates")))
-        }
-
         TimeToOfferPartialItem(
           userId,
           fullName,
