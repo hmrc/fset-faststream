@@ -58,9 +58,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "Reporting controller create adjustment report" must {
     "return the adjustment report when we execute adjustment reports" in new TestFixture {
       when(mockContactDetailsRepository.findAll).thenReturn(Future.successful(List(
-        ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None),
-        ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None),
-        ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), "joe@bloggs.com", None)
+        ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), false, "joe@bloggs.com", None),
+        ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), false, "joe@bloggs.com", None),
+        ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), false, "joe@bloggs.com", None)
       )))
       when(reportingRepositoryMock.adjustmentReport(frameworkId)).thenReturn(SuccessfulAdjustmentReportResponse)
       val controller = new TestableReportingController
@@ -118,10 +118,10 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       when(mockContactDetailsRepository.findAll).thenReturn(
         Future.successful(List(
-          ContactDetailsWithId(userId = "userId1", address = Address("1 Test Street"), postCode = Some("QQ1 1QQ"),
+          ContactDetailsWithId(userId = "userId1", address = Address("1 Test Street"), postCode = Some("QQ1 1QQ"), false,
             email = "blah@blah.com", phone = Some("07707717711")
           ),
-            ContactDetailsWithId(userId = "userId2", address = Address("1 Fake Street"), postCode = Some("QQ1 1QQ"),
+            ContactDetailsWithId(userId = "userId2", address = Address("1 Fake Street"), postCode = Some("QQ1 1QQ"), false,
               email = "blah@blah.com", phone = Some("07707727722")
           )
       )))
@@ -557,8 +557,10 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     val SuccessfulFindByUserIdsResponse = Future.successful(
       List(
-        ContactDetailsWithId(userId = "user1", address = Address(line1 = "line1"), postCode = None, email = "joe.bloggs@test.com", phone = None),
-        ContactDetailsWithId(userId = "user2", address = Address(line1 = "line1"), postCode = None, email = "bill.bloggs@test.com", phone = None)
+        ContactDetailsWithId(userId = "user1", address = Address(line1 = "line1"), postCode = None,
+          email = "joe.bloggs@test.com", outsideUk = false, phone = None),
+        ContactDetailsWithId(userId = "user2", address = Address(line1 = "line1"), postCode = None,
+          email = "bill.bloggs@test.com", outsideUk = false, phone = None)
       )
     )
 
