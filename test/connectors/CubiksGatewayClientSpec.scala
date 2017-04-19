@@ -17,7 +17,6 @@
 package connectors
 
 import config.WSHttp
-import connectors.ExchangeObjects.Implicits._
 import connectors.ExchangeObjects._
 import mockws.MockWS
 import model.Exceptions.ConnectorException

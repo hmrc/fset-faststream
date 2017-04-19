@@ -18,7 +18,6 @@ package connectors
 
 import config.MicroserviceAppConfig._
 import config.WSHttp
-import connectors.ExchangeObjects.Implicits._
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration }
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.Implicits._

@@ -16,7 +16,7 @@
 
 package model
 
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 case class Adjustments(
   adjustments: Option[List[String]],
@@ -24,19 +24,16 @@ case class Adjustments(
   etray: Option[AdjustmentDetail],
   video: Option[AdjustmentDetail]
 )
+object Adjustments { implicit val adjustmentsFormat: OFormat[Adjustments] = Json.format[Adjustments] }
 
 case class AdjustmentDetail(
   timeNeeded: Option[Int] = None,
   invigilatedInfo: Option[String] = None,
   otherInfo: Option[String] = None
 )
+object AdjustmentDetail { implicit val adjustmentDetailFormat: OFormat[AdjustmentDetail] = Json.format[AdjustmentDetail] }
 
 case class AdjustmentsComment(
   comment: String
 )
-
-object Adjustments{
-  implicit val adjustmentDetailFormat = Json.format[AdjustmentDetail]
-  implicit val adjustmentsFormat = Json.format[Adjustments]
-  implicit val adjustmentsCommentFormat = Json.format[AdjustmentsComment]
-}
+object AdjustmentsComment { implicit val adjustmentsCommentFormat: OFormat[AdjustmentsComment] = Json.format[AdjustmentsComment] }

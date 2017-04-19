@@ -20,10 +20,6 @@ import connectors.ExchangeObjects.ReportNorm
 import model.PersistedObjects.CandidateTestReport
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import play.api.libs.json.Json
-import model.Adjustments._
-import connectors.ExchangeObjects.Implicits.reportNormFormat
-import model.Commands.Implicits._
-import connectors.ExchangeObjects.Implicits._
 
 object OnlineTestCommands {
 

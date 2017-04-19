@@ -18,7 +18,6 @@ package connectors
 
 import config.WSHttp
 import connectors.AuthProviderClient._
-import connectors.ExchangeObjects.Implicits._
 import connectors.ExchangeObjects._
 import model.Exceptions.{ ConnectorException, EmailTakenException }
 import model.exchange.SimpleTokenResponse

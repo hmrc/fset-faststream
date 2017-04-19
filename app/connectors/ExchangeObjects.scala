@@ -19,64 +19,82 @@ package connectors
 import java.util.UUID
 
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.Json
+import play.api.libs.json.{ Format, Json, OFormat }
 
 object ExchangeObjects {
 
   val frameworkId = "FastStream-2016"
 
-  case class UserEmail(to: List[String], templateId: String, parameters: Map[String, String])
+  case class SendFsetMailRequest(
+    to: List[String],
+    templateId: String,
+    parameters: Map[String, String],
+    force: Boolean = false,
+    eventUrl: Option[String] = None,
+    onSendUrl: Option[String] = None,
+    auditData: Map[String, String] = Map.empty
+  )
+
+  object SendFsetMailRequest {
+    implicit val format: Format[SendFsetMailRequest] = Json.format[SendFsetMailRequest]
+  }
 
   case class Candidate(firstName: String, lastName: String, preferredName: Option[String], email: String, userId: String)
+  object Candidate { implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate] }
 
   // Cubiks Gateway Requests
   case class RegisterApplicant(firstName: String, lastName: String, email: String)
-  case class InviteApplicant(scheduleID: Int, userId: Int, scheduleCompletionURL: String, resultsURL: Option[String] = None,
-                             timeAdjustments: List[TimeAdjustments] = Nil)
+  object RegisterApplicant { implicit val registerApplicantFormat: OFormat[RegisterApplicant] = Json.format[RegisterApplicant] }
+
 
   case class TimeAdjustments(assessmentId: Int,
     sectionId: Int,
     absoluteTime: Int
   )
+  object TimeAdjustments { implicit val timeAdjustmentsFormat: OFormat[TimeAdjustments] = Json.format[TimeAdjustments] }
+
+  case class InviteApplicant(scheduleID: Int, userId: Int, scheduleCompletionURL: String, resultsURL: Option[String] = None,
+                             timeAdjustments: List[TimeAdjustments] = Nil)
+  object InviteApplicant { implicit val inviteApplicantFormat: OFormat[InviteApplicant] = Json.format[InviteApplicant] }
 
   case class ReportNorm(assessmentId: Int, normId: Int)
+  object ReportNorm { implicit val reportNormFormat: OFormat[ReportNorm] = Json.format[ReportNorm] }
 
   // Cubiks Gateway Response
   case class Registration(userId: Int)
+  object Registration { implicit val registrationFormat: OFormat[Registration] = Json.format[Registration] }
+
   case class Invitation(userId: Int,
     email: String, accessCode: String, logonUrl: String, authenticateUrl: String,
     participantScheduleId: Int
   )
+  object Invitation { implicit val invitationFormat: OFormat[Invitation] = Json.format[Invitation] }
 
   case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: DateTime, expirationDate: Option[LocalDate])
+  object AllocationDetails { implicit val allocationDetailsFormat: OFormat[AllocationDetails] = Json.format[AllocationDetails] }
 
   case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, role: String, service: String)
+  object AddUserRequest { implicit val addUserRequestFormat: OFormat[AddUserRequest] = Json.format[AddUserRequest] }
+
   case class UserResponse(firstName: String, lastName: String, preferredName: Option[String],
     isActive: Boolean, userId: UUID, email: String, lockStatus: String, role: String)
+  object UserResponse { implicit val userResponseFormat: OFormat[UserResponse] = Json.format[UserResponse] }
+
   case class ActivateEmailRequest(email: String, token: String, service: String)
+  object ActivateEmailRequest { implicit val activateEmailRequestFormat: OFormat[ActivateEmailRequest] = Json.format[ActivateEmailRequest] }
 
   // Find by first/last
   case class FindByFirstNameRequest(roles: List[String], firstName: String)
-  case class FindByLastNameRequest(roles: List[String], lastName: String)
-  case class FindByFirstNameLastNameRequest(roles: List[String], firstName: String, lastName: String)
-
-  object Implicits {
-    implicit val userEmailFormat = Json.format[UserEmail]
-    implicit val candidateFormat = Json.format[Candidate]
-    implicit val registrationFormat = Json.format[Registration]
-    implicit val registerApplicantFormat = Json.format[RegisterApplicant]
-    implicit val timeAdjustmentsFormat = Json.format[TimeAdjustments]
-    implicit val inviteApplicantFormat = Json.format[InviteApplicant]
-    implicit val invitationFormat = Json.format[Invitation]
-    implicit val reportNormFormat = Json.format[ReportNorm]
-    implicit val allocationDetailsFormat = Json.format[AllocationDetails]
-
-    implicit val addUserRequestFormat = Json.format[AddUserRequest]
-    implicit val userResponseFormat = Json.format[UserResponse]
-    implicit val activateEmailRequestFormat = Json.format[ActivateEmailRequest]
-
-    implicit val findByFirstNameRequestFormat = Json.format[FindByFirstNameRequest]
-    implicit val findByLastNameRequestFormat = Json.format[FindByLastNameRequest]
-    implicit val findByFirstNameLastNameRequestFormat = Json.format[FindByFirstNameLastNameRequest]
+  object FindByFirstNameRequest { implicit val findByFirstNameRequestFormat: OFormat[FindByFirstNameRequest] =
+    Json.format[FindByFirstNameRequest]
   }
+
+  case class FindByLastNameRequest(roles: List[String], lastName: String)
+  object FindByLastNameRequest { implicit val findByLastNameRequestFormat: OFormat[FindByLastNameRequest] = Json.format[FindByLastNameRequest] }
+
+  case class FindByFirstNameLastNameRequest(roles: List[String], firstName: String, lastName: String)
+  object FindByFirstNameLastNameRequest { implicit val findByFirstNameLastNameRequestFormat: OFormat[FindByFirstNameLastNameRequest] =
+    Json.format[FindByFirstNameLastNameRequest]
+  }
+
 }
