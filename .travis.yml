@@ -1,5 +1,4 @@
-
-sudo: false
+dist: trusty
 language: scala
 scala:
 - 2.11.8
@@ -13,6 +12,4 @@ cache:
 addons:
   apt:
     source:
-    - mongodb-3.0-precise
-    packages:
-    - mongodb-org-server
+      mongodb-3.2.0-precise
