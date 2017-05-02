@@ -19,6 +19,7 @@ package scheduler.parity
 import config.ScheduledJobConfig
 import model.EmptyRequestHeader
 import model.ApplicationStatus.{ ApplicationStatus, READY_FOR_EXPORT, READY_TO_UPDATE }
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -45,9 +46,13 @@ trait ParityExportJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedule
   implicit val requestHeader = EmptyRequestHeader
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    Logger.warn("=== Starting export scheduler")
     service.nextApplicationsForExport(jobBatchSize, READY_FOR_EXPORT).flatMap { applicationList =>
+      Logger.warn("=== Applications to export: " + applicationList.map(_.applicationId))
       val exportFuts = applicationList.map(applicationReadyForExport => service.exportApplication(applicationReadyForExport.applicationId))
-      Future.sequence(exportFuts).map(_ => ())
+      val res = Future.sequence(exportFuts).map(_ => ())
+      Logger.warn("=== Done")
+      res
     }
   }
 }
