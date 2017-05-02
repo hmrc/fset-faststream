@@ -30,6 +30,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.parity.{ ApplicationReadyForExport, ParityExportRepository }
 import services.application.ApplicationService
 import services.events.{ EventService, EventSink }
+import services.parity.ParityExportService.ParityExportException
 import services.reporting.{ SocioEconomicCalculator, SocioEconomicScoreCalculator }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -48,6 +49,8 @@ object ParityExportService extends ParityExportService {
   val socioEconomicCalculator = SocioEconomicCalculator
   val appRepository = applicationRepository
   val applicationService = ApplicationService
+
+  case class ParityExportException(msg: String, throwable: Throwable) extends Exception(msg, throwable)
 }
 
 trait ParityExportService extends EventSink {
@@ -68,25 +71,29 @@ trait ParityExportService extends EventSink {
 
   def exportApplication(applicationId: String)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    for {
+    (for {
       exportJson <- generateExportJson(applicationId)
       _ <- parityGatewayClient.createExport(exportJson)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, EXPORTED)
     } yield {
       AuditEvents.ApplicationExported("applicationId" -> applicationId) ::
       DataStoreEvents.ApplicationExported(applicationId) :: Nil
+    }).recover {
+      case ex => throw ParityExportException(s"Failed during candidate export for application id $applicationId", ex)
     }
   }
 
   def updateExportApplication(applicationId: String)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    for {
+    (for {
       exportJson <- generateExportJson(applicationId)
       _ <- parityGatewayClient.updateExport(exportJson)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, UPDATE_EXPORTED)
     } yield {
       AuditEvents.ApplicationExportUpdated("applicationId" -> applicationId) ::
       DataStoreEvents.ApplicationExportUpdated(applicationId) :: Nil
+    }).recover {
+      case ex => throw ParityExportException(s"Failed during candidate update export for application id $applicationId", ex)
     }
   }
 

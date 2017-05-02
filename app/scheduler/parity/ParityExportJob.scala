@@ -46,13 +46,10 @@ trait ParityExportJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedule
   implicit val requestHeader = EmptyRequestHeader
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    Logger.warn("=== Starting export scheduler")
     service.nextApplicationsForExport(jobBatchSize, READY_FOR_EXPORT).flatMap { applicationList =>
-      Logger.warn("=== Applications to export: " + applicationList.map(_.applicationId))
+      Logger.debug("Exporting application ids to Parity: " + applicationList.map(_.applicationId))
       val exportFuts = applicationList.map(applicationReadyForExport => service.exportApplication(applicationReadyForExport.applicationId))
-      val res = Future.sequence(exportFuts).map(_ => ())
-      Logger.warn("=== Done")
-      res
+      Future.sequence(exportFuts).map(_ => ()).recover { case ex => throw ex }
     }
   }
 }
