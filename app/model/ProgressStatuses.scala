@@ -100,11 +100,14 @@ object ProgressStatuses {
   case object PHASE3_TESTS_FAILED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
   case object PHASE3_TESTS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
 
+  // Edip and Sdip status only
   case object PHASE1_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
+
   case object PHASE3_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
   case object FAST_PASS_ACCEPTED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
 
   case object EXPORTED extends ProgressStatus(ApplicationStatus.EXPORTED)
+  case object READY_TO_UPDATE extends ProgressStatus(ApplicationStatus.READY_TO_UPDATE)
   case object UPDATE_EXPORTED extends ProgressStatus(ApplicationStatus.UPDATE_EXPORTED)
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
@@ -127,7 +130,6 @@ object ProgressStatuses {
     case object PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED
   }
-
 
   @deprecated("This status is not used in Faststream", "24/10/2016")
   case object FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FAILED_TO_ATTEND)
