@@ -198,21 +198,28 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       "_id" -> 0
     )
 
+    def progressStatusDateFallback(applicationStatus: ApplicationStatus, document: BSONDocument) = {
+      document.getAs[BSONDocument]("progress-status-dates")
+        .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))
+    }
+
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) =>
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val progressStatusTimeStampDoc = document.getAs[BSONDocument]("progress-status-timestamp")
         val progressStatusTimeStamp = progressStatusTimeStampDoc.flatMap { timestamps =>
-            val latestProgressStatus = timestamps.elements.filter(
-              _._1.startsWith(applicationStatus)
-            ).maxBy(element => timestamps.getAs[DateTime](element._1).get)
+          val relevantProgressStatuses = timestamps.elements.filter(_._1.startsWith(applicationStatus))
 
-            timestamps.getAs[DateTime](latestProgressStatus._1)
+          if (relevantProgressStatuses.nonEmpty) {
+            val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element._1).get)
+            timestamps.getAs[DateTime](latestRelevantProgressStatus._1)
+          } else {
+            progressStatusDateFallback(applicationStatus, document)
+          }
         }
           .orElse(
-            document.getAs[BSONDocument]("progress-status-dates")
-              .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))
+            progressStatusDateFallback(applicationStatus, document)
           )
         val submissionDeadline = document.getAs[DateTime]("submissionDeadline")
         ApplicationStatusDetails(applicationStatus, applicationRoute, progressStatusTimeStamp, submissionDeadline)
