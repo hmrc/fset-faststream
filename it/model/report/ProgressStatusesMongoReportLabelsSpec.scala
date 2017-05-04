@@ -25,6 +25,7 @@ class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
     PHASE1_TESTS_SECOND_REMINDER -> "phase1_tests_second_reminder",
     PHASE2_TESTS_FIRST_REMINDER -> "phase2_tests_first_reminder",
     PHASE2_TESTS_SECOND_REMINDER -> "phase2_tests_second_reminder",
+    READY_TO_UPDATE -> "registered",
     ONLINE_TEST_FAILED_NOTIFIED -> "registered",
     AWAITING_ALLOCATION -> "registered",
     ALLOCATION_CONFIRMED -> "registered",
