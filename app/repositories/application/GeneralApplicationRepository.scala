@@ -19,6 +19,7 @@ package repositories.application
 import java.util.UUID
 import java.util.regex.Pattern
 
+import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
 import config.CubiksGatewayConfig
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
@@ -35,7 +36,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ Format, JsNumber, JsObject }
 import reactivemongo.api.{ DB, QueryOpts, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, _ }
+import reactivemongo.bson.{ BSONDocument, document, _ }
 import reactivemongo.json.collection.JSONBatchCommands.JSONCountCommand
 import repositories._
 import scheduler.fixer.FixBatch
@@ -201,8 +202,14 @@ class GeneralApplicationMongoRepository(timeZoneService: TimeZoneService,
       case Some(document) =>
         val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
-        val progressStatusTimeStamp = document.getAs[BSONDocument]("progress-status-timestamp")
-          .flatMap(_.getAs[DateTime](applicationStatus))
+        val progressStatusTimeStampDoc = document.getAs[BSONDocument]("progress-status-timestamp")
+        val progressStatusTimeStamp = progressStatusTimeStampDoc.flatMap { timestamps =>
+            val latestProgressStatus = timestamps.elements.filter(
+              _._1.startsWith(applicationStatus)
+            ).maxBy(element => timestamps.getAs[DateTime](element._1).get)
+
+            timestamps.getAs[DateTime](latestProgressStatus._1)
+        }
           .orElse(
             document.getAs[BSONDocument]("progress-status-dates")
               .flatMap(_.getAs[LocalDate](applicationStatus.toLowerCase).map(_.toDateTimeAtStartOfDay))

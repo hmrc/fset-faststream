@@ -16,7 +16,8 @@
 
 package services.testdata.onlinetests
 
-import model.ProgressStatuses.{ PHASE1_TESTS_FAILED, PHASE2_TESTS_FAILED, PHASE3_TESTS_FAILED, ProgressStatus }
+import connectors.testdata.ExchangeObjects
+import model.ProgressStatuses._
 import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
 import repositories._
@@ -28,6 +29,7 @@ import services.testdata.onlinetests.phase3.Phase3TestsResultsReceivedStatusGene
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object Phase1TestsFailedStatusGenerator extends TestsFailedStatusGenerator {
   val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
@@ -51,7 +53,9 @@ trait TestsFailedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
   val failedStatus: ProgressStatus
 
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int,
+               generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier,
+                                                 rh: RequestHeader): Future[ExchangeObjects.DataGenerationResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, failedStatus)

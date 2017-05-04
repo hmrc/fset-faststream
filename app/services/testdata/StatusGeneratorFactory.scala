@@ -44,8 +44,6 @@ object StatusGeneratorFactory {
         case IN_PROGRESS_SCHEME_PREFERENCES => InProgressSchemePreferencesStatusGenerator
         // IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES should be deprecatedc
         case IN_PROGRESS_PARTNER_GRADUATE_PROGRAMMES => InProgressPartnerGraduateProgrammesStatusGenerator
-        // IN_PROGRESS_SCHEME_PREFERENCES should be deprecated, look below, look below
-        case IN_PROGRESS_SCHEME_PREFERENCES => InProgressAssistanceDetailsStatusGenerator
         case IN_PROGRESS_QUESTIONNAIRE => InProgressQuestionnaireStatusGenerator
         // IN_PROGRESS_PREVIEW should be deprecated, look below
         case IN_PROGRESS_PREVIEW => InProgressPreviewStatusGenerator
@@ -71,6 +69,7 @@ object StatusGeneratorFactory {
         case (READY_FOR_EXPORT) => ReadyForExportStatusGenerator
         case (EXPORTED) => ExportedStatusGenerator
       }
+      case (SUBMITTED, Some(ProgressStatuses.SUBMITTED)) => SubmittedStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PERSONAL_DETAILS)) => InProgressPersonalDetailsStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.SCHEME_PREFERENCES)) => InProgressSchemePreferencesStatusGenerator
       case (IN_PROGRESS, Some(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES)) => InProgressPartnerGraduateProgrammesStatusGenerator
@@ -89,6 +88,7 @@ object StatusGeneratorFactory {
       // The next two cases are deprecated: PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED
       case (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED)) => Phase1TestsPassedStatusGenerator
       case (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED)) => Phase1TestsFailedStatusGenerator
+      case (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED)) => Phase1TestsFailedNotifiedStatusGenerator
 
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_INVITED)) => Phase2TestsInvitedStatusGenerator
       case (PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_STARTED)) => Phase2TestsStartedStatusGenerator
@@ -103,6 +103,7 @@ object StatusGeneratorFactory {
       // The next two cases are deprecated: PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED
       case (PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED)) => Phase2TestsPassedStatusGenerator
       case (PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED)) => Phase2TestsFailedStatusGenerator
+      case (PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED)) => Phase2TestsFailedNotifiedStatusGenerator
 
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_INVITED)) => Phase3TestsInvitedStatusGenerator
       case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_STARTED)) => Phase3TestsStartedStatusGenerator
@@ -117,8 +118,11 @@ object StatusGeneratorFactory {
       // The next two cases are deprecated: PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED
       case (PHASE3_TESTS_PASSED, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => Phase3TestsPassedStatusGenerator
       case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => Phase3TestsFailedStatusGenerator
+      case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED)) => Phase3TestsFailedNotifiedStatusGenerator
       case (READY_FOR_EXPORT, _) => ReadyForExportStatusGenerator
+      case (READY_TO_UPDATE, _) => ReadyToUpdateStatusGenerator
       case (EXPORTED, _) => ExportedStatusGenerator
+      case (UPDATE_EXPORTED, _) => UpdateExportedStatusGenerator
 
       case _ => throw InvalidApplicationStatusAndProgressStatusException(s"status ${generatorConfig.statusData.applicationStatus}" +
         s" and progress status ${generatorConfig.statusData.progressStatus} is not valid or not supported")

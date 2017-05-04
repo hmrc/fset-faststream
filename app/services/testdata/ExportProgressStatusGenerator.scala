@@ -16,6 +16,8 @@
 
 package services.testdata
 
+import model.ApplicationStatus
+import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses._
 import model.command.testdata.GeneratorConfig
 import play.api.mvc.RequestHeader
@@ -26,19 +28,31 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object ReadyForExportStatusGenerator extends SetProgressStatusGenerator {
+object ReadyForExportStatusGenerator extends ExportProgressStatusGenerator {
   val previousStatusGenerator = Phase3TestsPassedStatusGenerator
   val appRepository = applicationRepository
   val progressStatus = PHASE3_TESTS_SUCCESS_NOTIFIED
 }
 
-object ExportedStatusGenerator extends SetProgressStatusGenerator {
+object ReadyToUpdateStatusGenerator extends ExportProgressStatusGenerator {
+  val previousStatusGenerator = ExportedStatusGenerator
+  val appRepository = applicationRepository
+  val progressStatus = READY_TO_UPDATE
+}
+
+object ExportedStatusGenerator extends ExportProgressStatusGenerator {
   val previousStatusGenerator = ReadyForExportStatusGenerator
   val appRepository = applicationRepository
   val progressStatus = EXPORTED
 }
 
-trait SetProgressStatusGenerator extends ConstructiveGenerator {
+object UpdateExportedStatusGenerator extends ExportProgressStatusGenerator {
+  val previousStatusGenerator = ReadyToUpdateStatusGenerator
+  val appRepository = applicationRepository
+  val progressStatus = UPDATE_EXPORTED
+}
+
+trait ExportProgressStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
   val progressStatus: ProgressStatus
 
