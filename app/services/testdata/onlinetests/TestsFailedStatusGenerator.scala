@@ -53,9 +53,8 @@ trait TestsFailedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
   val failedStatus: ProgressStatus
 
-  def generate(generationId: Int,
-               generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier,
-                                                 rh: RequestHeader): Future[ExchangeObjects.DataGenerationResponse] = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[ExchangeObjects.DataGenerationResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, failedStatus)
