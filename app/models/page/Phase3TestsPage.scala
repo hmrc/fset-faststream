@@ -18,7 +18,6 @@ package models.page
 
 import models.Adjustments
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormatterBuilder
 
 case class Phase3TestsPage(expirationDate: DateTime,
                             started: Boolean,
@@ -30,40 +29,7 @@ case class Phase3TestsPage(expirationDate: DateTime,
 
   def isCompleted: Boolean = completed
 
-  def getDuration: String = durationFromNow(expirationDate)
-
-  def getExpireDateTime: String = {
-
-    val dateTimeFormat = new DateTimeFormatterBuilder()
-      .appendClockhourOfHalfday(1)
-      .appendLiteral(":")
-      .appendMinuteOfHour(2)
-      .appendHalfdayOfDayText()
-      .appendLiteral(" on ")
-      .appendDayOfMonth(1)
-      .appendLiteral(" ")
-      .appendMonthOfYearText()
-      .appendLiteral(" ")
-      .appendYear(4, 4)
-      .toFormatter
-
-    dateTimeFormat.print(expirationDate)
-  }
-
-  def getExpireDate: String = {
-
-    val dateTimeFormat = new DateTimeFormatterBuilder()
-      .appendDayOfMonth(1)
-      .appendLiteral(" ")
-      .appendMonthOfYearText()
-      .appendLiteral(" ")
-      .appendYear(4, 4)
-      .toFormatter
-
-    dateTimeFormat.print(expirationDate)
-  }
-
-  def isInvigilatedVideoApproved = adjustments exists (_.isInvigilatedVideoApproved)
+  def isInvigilatedVideoApproved: Boolean = adjustments exists (_.isInvigilatedVideoApproved)
 }
 
 object Phase3TestsPage {

@@ -59,6 +59,8 @@ class DurationFormatterSpec extends PlaySpec {
 
     val durationFormatter = new DurationFormatter {
       private[page] override def now = self.now
+
+      override def expirationDate: DateTime = self.now
     }
   }
 }
