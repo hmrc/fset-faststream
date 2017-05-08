@@ -286,31 +286,7 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       )
     )
   }
-
   //scalastyle:on method.length
-  @deprecated
-  private def registerAndInviteApplicant(application: OnlineTestApplication, emailAddress: String, interviewId: Int, invitationDate: DateTime,
-                                         expirationDate: DateTime
-                                        )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
-    val customCandidateId = "FSCND-" + tokenFactory.generateUUID()
-
-    for {
-      candidateId <- registerApplicant(application, emailAddress, customCandidateId)
-      invitation <- inviteApplicant(application, interviewId, candidateId)
-    } yield {
-      LaunchpadTest(interviewId = interviewId,
-        usedForResults = true,
-        testUrl = invitation.testUrl,
-        token = invitation.customInviteId,
-        candidateId = candidateId,
-        customCandidateId = invitation.customCandidateId,
-        invitationDate = invitationDate,
-        startedDateTime = None,
-        completedDateTime = None,
-        callbacks = LaunchpadTestCallbacks()
-      )
-    }
-  }
 
   def markAsStarted(launchpadInviteId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {

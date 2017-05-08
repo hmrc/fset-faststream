@@ -70,7 +70,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       expirationDate = generatorConfig.phase3TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
       tests = List(launchpad)
     )
-    
+
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       phase3TestApplication = OnlineTestApplication(
@@ -88,7 +88,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
       _ <- p3Repository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase3TestGroup)
       testGroup <- p3Repository.getTestGroup(phase3TestApplication.applicationId)
     } yield {
-      val phase3TestGroupResponse = TestResponse(testId = launchpad.interviewId, token = launchpad.token,
+      val phase3TestGroupResponse = TestResponse(testId = launchpad.interviewId, testType = "video", token = launchpad.token,
         testUrl = testGroup.get.tests.find(_.usedForResults).get.testUrl)
 
       candidateInPreviousStatus.copy(

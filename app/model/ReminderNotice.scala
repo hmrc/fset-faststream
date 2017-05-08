@@ -17,6 +17,7 @@
 package model
 
 import model.ProgressStatuses._
+import model.ReminderNotice.UnrecognisedReminderNoticeProgressStatusException
 
 import scala.concurrent.duration.{ DAYS, HOURS, TimeUnit }
 
@@ -33,10 +34,11 @@ sealed case class ReminderNotice(hoursBeforeReminder: Int, progressStatuses: Pro
     case PHASE2_TESTS_FIRST_REMINDER => (DAYS, Phase_2)
     case PHASE3_TESTS_SECOND_REMINDER => (HOURS, Phase_3)
     case PHASE3_TESTS_FIRST_REMINDER => (DAYS, Phase_3)
+    case status => throw UnrecognisedReminderNoticeProgressStatusException(s"$status is an unrecognised progress status " +
+      s"for reminder notices")
   }
 
-  val timeUnit: TimeUnit = timeUnitAndPhase._1
-  val phase: String = timeUnitAndPhase._2
+  val (timeUnit, phase) = timeUnitAndPhase
 }
 
 object Phase1FirstReminder extends ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
@@ -45,3 +47,7 @@ object Phase2FirstReminder extends ReminderNotice(72, PHASE2_TESTS_FIRST_REMINDE
 object Phase2SecondReminder extends ReminderNotice(24, PHASE2_TESTS_SECOND_REMINDER)
 object Phase3FirstReminder extends ReminderNotice(72, PHASE3_TESTS_FIRST_REMINDER)
 object Phase3SecondReminder extends ReminderNotice(24, PHASE3_TESTS_SECOND_REMINDER)
+
+object ReminderNotice {
+  case class UnrecognisedReminderNoticeProgressStatusException(msg: String) extends Exception(msg)
+}

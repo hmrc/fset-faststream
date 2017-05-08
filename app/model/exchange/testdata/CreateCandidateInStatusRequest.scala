@@ -51,9 +51,10 @@ case class Phase1TestDataRequest(
   start: Option[String] = None,
   expiry: Option[String] = None,
   completion: Option[String] = None,
-  tscore: Option[String] = None,
+  bqtscore: Option[String] = None,
+  sjqtscore: Option[String] = None,
   passmarkEvaluation: Option[PassmarkEvaluation] = None
-) extends TestDatesRequest with TestResultRequest
+) extends TestDatesRequest
 
 object Phase1TestDataRequest {
   implicit val phase1TestDataFormat = Json.format[Phase1TestDataRequest]
