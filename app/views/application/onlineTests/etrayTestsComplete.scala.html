@@ -11,12 +11,17 @@
             <div class="panel-indent">
                 <p>Once your results are ready we'll send you an email letting you know
                     the outcome. Make sure you check your junk inbox.</p>
-                <p><a href="@feedbackUrl" target="_blank" rel="external">Give feedback?</a> (30 second survey)</p>
-                @if(user.isDefined){
-                    <p><a href="@routes.HomeController.present()">Return to home</a>. Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a>.</p>
+                @if(user.isDefined) {
+                    <a href="@routes.HomeController.present()" class="button">Continue</a>
+                    <p>Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a></p>
                 } else {
-                    <p>You've been signed out. <a href="@routes.SignInController.signIn">Sign in</a> to return to your home page.</p>
+                    <p>You've been signed out. <a href="@routes.SignInController.signIn">Sign in</a>
+                        to return to your home page.</p>
                 }
+
+                <p>
+                    <a href="@feedbackUrl" target="_blank" rel="external">Give feedback?</a> (30 second survey)
+                </p>
             </div>
         </div>
     </section>
