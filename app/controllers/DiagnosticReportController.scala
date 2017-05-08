@@ -16,8 +16,10 @@
 
 package controllers
 
+import akka.stream.scaladsl.Source
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.streams.Streams
 import play.api.mvc.Action
 import repositories._
 import repositories.application.DiagnosticReportingRepository
@@ -44,6 +46,7 @@ trait DiagnosticReportController extends BaseController {
   }
 
   def getAllApplications = Action { implicit request =>
-    Ok.chunked(drRepository.findAll())
+    val response = Source.fromPublisher(Streams.enumeratorToPublisher(drRepository.findAll()))
+    Ok.chunked(response)
   }
 }
