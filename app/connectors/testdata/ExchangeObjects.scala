@@ -46,7 +46,7 @@ object ExchangeObjects {
 
   case class TestGroupResponse(tests: List[TestResponse])
 
-  case class TestResponse(testId: Int, token: String, testUrl: String)
+  case class TestResponse(testId: Int, testType: String, token: String, testUrl: String)
 
 
   object Implicits {

@@ -89,7 +89,8 @@ trait TestDataGeneratorController extends BaseController {
         start = Some("2340-01-01"),
         expiry = Some("2340-01-29"),
         completion = Some("2340-01-16"),
-        tscore = Some("80")
+        bqtscore = Some("80"),
+        sjqtscore = Some("70")
       )),
       phase2TestData = Some(Phase2TestDataRequest(
         start = Some("2340-01-01"),

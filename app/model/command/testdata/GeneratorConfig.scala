@@ -78,18 +78,20 @@ case class Phase1TestData(
   start: Option[DateTime] = None,
   expiry: Option[DateTime] = None,
   completion: Option[DateTime] = None,
-  tscore: Option[Double] = None,
+  bqtscore: Option[Double] = None,
+  sjqtscore: Option[Double] = None,
   passmarkEvaluation: Option[PassmarkEvaluation] = None
-) extends TestDates with TestResult
+) extends TestDates
 
 object Phase1TestData {
-  def apply(o: model.exchange.testdata.Phase1TestDataRequest): Phase1TestData = {
+  def apply(testDataRequest: model.exchange.testdata.Phase1TestDataRequest): Phase1TestData = {
     Phase1TestData(
-      start = o.start.map(DateTime.parse),
-      expiry = o.expiry.map(DateTime.parse),
-      completion = o.completion.map(DateTime.parse),
-      tscore = o.tscore.map(_.toDouble),
-      passmarkEvaluation = o.passmarkEvaluation
+      start = testDataRequest.start.map(DateTime.parse),
+      expiry = testDataRequest.expiry.map(DateTime.parse),
+      completion = testDataRequest.completion.map(DateTime.parse),
+      bqtscore = testDataRequest.bqtscore.map(_.toDouble),
+      sjqtscore = testDataRequest.sjqtscore.map(_.toDouble),
+      passmarkEvaluation = testDataRequest.passmarkEvaluation
     )
   }
 }
