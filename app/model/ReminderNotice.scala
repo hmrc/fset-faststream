@@ -38,8 +38,7 @@ sealed case class ReminderNotice(hoursBeforeReminder: Int, progressStatuses: Pro
       s"for reminder notices")
   }
 
-  val timeUnit: TimeUnit = timeUnitAndPhase._1
-  val phase: String = timeUnitAndPhase._2
+  val (timeUnit, phase) = timeUnitAndPhase
 }
 
 object Phase1FirstReminder extends ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
