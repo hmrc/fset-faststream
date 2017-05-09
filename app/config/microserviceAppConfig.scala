@@ -16,8 +16,13 @@
 
 package config
 
+import java.io.File
+
+import com.github.ghik.silencer.silent
+import com.typesafe.config.ConfigFactory
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
+import play.api.Play
 import play.api.Play.{ configuration, current }
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.config.{ RunMode, ServicesConfig }
@@ -134,26 +139,44 @@ object MicroserviceAppConfig extends MicroserviceAppConfig
 
 trait MicroserviceAppConfig extends ServicesConfig with RunMode {
   import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-  lazy val app = play.api.Play.current
-  lazy val emailConfig = configuration.underlying.as[EmailConfig]("microservice.services.email")
-  lazy val frameworksConfig = configuration.underlying.as[FrameworksConfig]("microservice.frameworks")
-  lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
-  lazy val cubiksGatewayConfig = configuration.underlying.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
-  lazy val launchpadGatewayConfig = configuration.underlying.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
-  lazy val parityGatewayConfig = configuration.underlying.as[ParityGatewayConfig]("microservice.services.parity-gateway")
-  lazy val maxNumberOfDocuments = configuration.underlying.as[Int]("maxNumberOfDocuments")
+  @silent lazy val app = play.api.Play.current
+  @silent lazy val underlyingConfiguration = configuration.underlying
+
+  lazy val appName = app.configuration.getString("appName").get
+
+  lazy val emailConfig = underlyingConfiguration.as[EmailConfig]("microservice.services.email")
+  lazy val frameworksConfig = underlyingConfiguration.as[FrameworksConfig]("microservice.frameworks")
+  lazy val userManagementConfig = underlyingConfiguration.as[UserManagementConfig]("microservice.services.user-management")
+  lazy val cubiksGatewayConfig = underlyingConfiguration.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val launchpadGatewayConfig = underlyingConfiguration.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
+  lazy val parityGatewayConfig = underlyingConfiguration.as[ParityGatewayConfig]("microservice.services.parity-gateway")
+  lazy val maxNumberOfDocuments = underlyingConfiguration.as[Int]("maxNumberOfDocuments")
 
   lazy val assessmentCentresLocationsConfig =
-    configuration.underlying.as[AssessmentCentresLocationsConfig]("scheduling.online-testing.assessment-centres-locations")
+    underlyingConfiguration.as[AssessmentCentresLocationsConfig]("scheduling.online-testing.assessment-centres-locations")
   lazy val assessmentCentresConfig =
-    configuration.underlying.as[AssessmentCentresConfig]("scheduling.online-testing.assessment-centres")
+    underlyingConfiguration.as[AssessmentCentresConfig]("scheduling.online-testing.assessment-centres")
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
-    configuration.underlying
+    underlyingConfiguration
       .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")
 
   lazy val fixerJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.online-testing.fixer-job")
+    underlyingConfiguration.as[ScheduledJobConfig]("scheduling.online-testing.fixer-job")
 
   lazy val parityExportJobConfig =
-    configuration.underlying.as[ScheduledJobConfig]("scheduling.parity-export-job")
+    underlyingConfiguration.as[ScheduledJobConfig]("scheduling.parity-export-job")
+
+  private val secretsFileCubiksUrlKey = "microservice.services.cubiks-gateway.testdata.url"
+  lazy val testDataGeneratorCubiksSecret = app.configuration.getString(secretsFileCubiksUrlKey).
+    getOrElse(fetchSecretConfigKeyFromFile("cubiks.url"))
+
+  private def fetchSecretConfigKeyFromFile(key: String): String = {
+    val path = System.getProperty("user.home") + "/.csr/.secrets"
+    val testConfig = ConfigFactory.parseFile(new File(path))
+    if (testConfig.isEmpty) {
+      throw new IllegalArgumentException(s"No key found at '$secretsFileCubiksUrlKey' and .secrets file does not exist.")
+    } else {
+      testConfig.getString(s"testdata.$key")
+    }
+  }
 }

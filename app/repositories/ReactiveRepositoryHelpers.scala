@@ -62,7 +62,7 @@ trait ReactiveRepositoryHelpers {
     }
   }
 
-  private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean = false,
+  private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean,
                                               notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult) = {
     if (result.ok) {
       if (result.n == 1) {

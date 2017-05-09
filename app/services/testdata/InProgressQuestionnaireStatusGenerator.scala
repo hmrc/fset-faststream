@@ -16,13 +16,13 @@
 
 package services.testdata
 
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import model.command.testdata.GeneratorConfig
+import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -42,8 +42,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
     val didYouLiveInUkBetween14and18Answer = Random.yesNo
     def getWhatWasYourHomePostCodeWhenYouWere14 = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
-        Some(PersistedQuestion("What was your home postcode when you were 14?",
-          PersistedAnswer(Some(Random.homePostcode), None, None)))
+        Some(QuestionnaireQuestion("What was your home postcode when you were 14?",
+          QuestionnaireAnswer(Some(Random.homePostcode), None, None)))
       } else {
         None
       }
@@ -51,8 +51,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getSchoolName14to16Answer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
-        Some(PersistedQuestion("Aged 14 to 16 what was the name of your school?",
-          PersistedAnswer(Some(Random.age14to16School), None, None)))
+        Some(QuestionnaireQuestion("Aged 14 to 16 what was the name of your school?",
+          QuestionnaireAnswer(Some(Random.age14to16School), None, None)))
       } else {
         None
       }
@@ -60,8 +60,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getSchoolName16to18Answer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
-        Some(PersistedQuestion("Aged 16 to 18 what was the name of your school?",
-          PersistedAnswer(Some(Random.age16to18School), None, None)))
+        Some(QuestionnaireQuestion("Aged 16 to 18 what was the name of your school?",
+          QuestionnaireAnswer(Some(Random.age16to18School), None, None)))
       } else {
         None
       }
@@ -69,8 +69,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getFreeSchoolMealsAnswer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
-        Some(PersistedQuestion("Were you at any time eligible for free school meals?",
-          PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
+        Some(QuestionnaireQuestion("Were you at any time eligible for free school meals?",
+          QuestionnaireAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
       } else {
         None
       }
@@ -78,16 +78,16 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getHaveDegreeAnswer = {
       if (generatorConfig.isCivilServant) {
-        Some(PersistedQuestion("Do you have a degree?",
-          PersistedAnswer(Some(if (generatorConfig.hasDegree) { "Yes" } else { "No" }), None, None))
+        Some(QuestionnaireQuestion("Do you have a degree?",
+          QuestionnaireAnswer(Some(if (generatorConfig.hasDegree) { "Yes" } else { "No" }), None, None))
         )
       } else { None }
     }
 
     def getUniversityAnswer = {
       if (generatorConfig.hasDegree) {
-        Some(PersistedQuestion("What is the name of the university you received your degree from?",
-          PersistedAnswer(Some(Random.university._2), None, None)))
+        Some(QuestionnaireQuestion("What is the name of the university you received your degree from?",
+          QuestionnaireAnswer(Some(Random.university._2), None, None)))
       } else {
         None
       }
@@ -95,8 +95,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getUniversityDegreeCategoryAnswer = {
       if (generatorConfig.hasDegree) {
-        Some(PersistedQuestion("Which category best describes your degree?",
-          PersistedAnswer(Some(Random.degreeCategory._2), None, None)))
+        Some(QuestionnaireQuestion("Which category best describes your degree?",
+          QuestionnaireAnswer(Some(Random.degreeCategory._2), None, None)))
       } else {
         None
       }
@@ -106,18 +106,18 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getParentsOccupationDetail(parentsOccupation: String) = {
       if (parentsOccupation == "Employed") {
-        Some(PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-          PersistedAnswer(Some(Random.parentsOccupationDetails), None, None)))
+        Some(QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+          QuestionnaireAnswer(Some(Random.parentsOccupationDetails), None, None)))
       } else {
-        Some(PersistedQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-          PersistedAnswer(Some(parentsOccupation), None, None)))
+        Some(QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+          QuestionnaireAnswer(Some(parentsOccupation), None, None)))
       }
     }
 
     def getEmployeedOrSelfEmployeed(parentsOccupation: String) = {
       if (parentsOccupation == "Employed") {
-        Some(PersistedQuestion("Did they work as an employee or were they self-employed?",
-          PersistedAnswer(Some(Random.employeeOrSelf), None, None)))
+        Some(QuestionnaireQuestion("Did they work as an employee or were they self-employed?",
+          QuestionnaireAnswer(Some(Random.employeeOrSelf), None, None)))
       } else {
         None
       }
@@ -125,8 +125,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getSizeParentsEmployeer(parentsOccupation: String) = {
       if (parentsOccupation == "Employed") {
-        Some(PersistedQuestion("Which size would best describe their place of work?",
-          PersistedAnswer(Some(Random.sizeParentsEmployeer), None, None)))
+        Some(QuestionnaireQuestion("Which size would best describe their place of work?",
+          QuestionnaireAnswer(Some(Random.sizeParentsEmployeer), None, None)))
       } else {
         None
       }
@@ -134,19 +134,19 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
 
     def getSuperviseEmployees(parentsOccupation: String) = {
       if (parentsOccupation == "Employed") {
-        Some(PersistedQuestion("Did they supervise employees?",
-          PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
+        Some(QuestionnaireQuestion("Did they supervise employees?",
+          QuestionnaireAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
       } else {
         None
       }
     }
 
     def getAllQuestionnaireQuestions(parentsOccupation: String) = List(
-      Some(PersistedQuestion("I understand this won't affect my application", PersistedAnswer(Some(Random.yesNo), None, None))),
-      Some(PersistedQuestion("What is your gender identity?", PersistedAnswer(Some(Random.gender), None, None))),
-      Some(PersistedQuestion("What is your sexual orientation?", PersistedAnswer(Some(Random.sexualOrientation), None, None))),
-      Some(PersistedQuestion("What is your ethnic group?", PersistedAnswer(Some(Random.ethnicGroup), None, None))),
-      Some(PersistedQuestion("Did you live in the UK between the ages of 14 and 18?", PersistedAnswer(
+      Some(QuestionnaireQuestion("I understand this won't affect my application", QuestionnaireAnswer(Some(Random.yesNo), None, None))),
+      Some(QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some(Random.gender), None, None))),
+      Some(QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some(Random.sexualOrientation), None, None))),
+      Some(QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some(Random.ethnicGroup), None, None))),
+      Some(QuestionnaireQuestion("Did you live in the UK between the ages of 14 and 18?", QuestionnaireAnswer(
         Some(didYouLiveInUkBetween14and18Answer), None, None))
       ),
       getWhatWasYourHomePostCodeWhenYouWere14,
@@ -156,8 +156,8 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       getHaveDegreeAnswer,
       getUniversityAnswer,
       getUniversityDegreeCategoryAnswer,
-      Some(PersistedQuestion("Do you have a parent or guardian that has completed a university degree course or equivalent?",
-        PersistedAnswer(Some(Random.yesNoPreferNotToSay), None, None))
+      Some(QuestionnaireQuestion("Do you have a parent or guardian that has completed a university degree course or equivalent?",
+        QuestionnaireAnswer(Some(Random.yesNoPreferNotToSay), None, None))
       ),
       getParentsOccupationDetail(parentsOccupation),
       getEmployeedOrSelfEmployeed(parentsOccupation),

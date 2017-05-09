@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package services.reporting
+package model.persisted
 
-import model.persisted.QuestionnaireAnswer
+import play.api.libs.json.Json
 
-trait Calculable {
-  def calculateAsInt(answers: Map[String, QuestionnaireAnswer]): Int
-  def calculate(answers: Map[String, String]): String
+case class QuestionnaireQuestion(question: String, answer: QuestionnaireAnswer)
+object QuestionnaireQuestion {
+  implicit val questionFormats = Json.format[QuestionnaireQuestion]
 }

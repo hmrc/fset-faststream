@@ -18,7 +18,6 @@ package services.testdata
 
 import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.ApplicationRoute
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository

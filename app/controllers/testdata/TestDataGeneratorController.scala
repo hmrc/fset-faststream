@@ -19,6 +19,7 @@ package controllers.testdata
 import java.io.File
 
 import com.typesafe.config.ConfigFactory
+import config.MicroserviceAppConfig
 import connectors.AuthProviderClient
 import connectors.testdata.ExchangeObjects.Implicits._
 import model.Exceptions.EmailTakenException
@@ -27,8 +28,8 @@ import model.exchange.testdata._
 import model._
 import model.persisted.PassmarkEvaluation
 import play.api.Play
-import play.api.libs.json.{ JsObject, JsString, Json }
-import play.api.mvc.{ Action, RequestHeader }
+import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
+import play.api.mvc.{ Action, AnyContent, RequestHeader }
 import services.testdata._
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -120,7 +121,7 @@ trait TestDataGeneratorController extends BaseController {
   }
   // scalastyle:on method.length
 
-  def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String) = Action.async { implicit request =>
+  def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String], role: String): Action[AnyContent] = Action.async { implicit request =>
     try {
       TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, AuthProviderClient.getRole(role)).map { candidates =>
         Ok(Json.toJson(candidates))
@@ -131,21 +132,9 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  val secretsFileCubiksUrlKey = "microservice.services.cubiks-gateway.testdata.url"
-  lazy val cubiksUrlFromConfig = Play.current.configuration.getString(secretsFileCubiksUrlKey)
-    .getOrElse(fetchSecretConfigKeyFromFile("cubiks.url"))
+  private lazy val cubiksUrlFromConfig: String = MicroserviceAppConfig.testDataGeneratorCubiksSecret
 
-  private def fetchSecretConfigKeyFromFile(key: String): String = {
-    val path = System.getProperty("user.home") + "/.csr/.secrets"
-    val testConfig = ConfigFactory.parseFile(new File(path))
-    if (testConfig.isEmpty) {
-      throw new IllegalArgumentException(s"No key found at '$secretsFileCubiksUrlKey' and .secrets file does not exist.")
-    } else {
-      testConfig.getString(s"testdata.$key")
-    }
-  }
-
-  def createCandidatesInStatusPOST(numberToGenerate: Int) = Action.async(parse.json) { implicit request =>
+  def createCandidatesInStatusPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateInStatusRequest] { body =>
       createCandidateInStatus(GeneratorConfig.apply(cubiksUrlFromConfig, body), numberToGenerate)
     }

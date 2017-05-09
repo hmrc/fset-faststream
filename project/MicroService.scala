@@ -58,7 +58,9 @@ trait MicroService {
       retrieveManaged := true,
       scalacOptions += "-feature",
       // Currently don't enable warning in value discard in tests until ScalaTest 3
-      scalacOptions in (Compile, compile) += "-Ywarn-value-discard")
+      scalacOptions in(Compile, compile) += "-Ywarn-value-discard",
+      scalacOptions in(Compile, compile) += "-Xlint:-missing-interpolator,_",
+      scalacOptions in(Compile, compile) += "-Ywarn-unused")
     .settings(sources in (Compile, doc) := Seq.empty)
     .settings(HeaderPlugin.settingsFor(IntegrationTest))
     .configs(IntegrationTest)

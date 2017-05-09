@@ -16,23 +16,23 @@
 
 package mocks
 
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.QuestionnaireReportItem
 import repositories.QuestionnaireRepository
 
 import scala.concurrent.Future
 
-object QuestionnaireInMemoryRepository extends QuestionnaireRepository with InMemoryStorage[List[PersistedQuestion]] {
+object QuestionnaireInMemoryRepository extends QuestionnaireRepository with InMemoryStorage[List[QuestionnaireQuestion]] {
 
-  override def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit] = {
+  override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = {
     inMemoryRepo.put(applicationId, inMemoryRepo.getOrElse(applicationId, List()) ++ questions)
     Future.successful(())
   }
 
   override def notFound(applicationId: String) = throw QuestionnaireNotFound(applicationId)
 
-  override def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]] =
-    Future.successful(Map.empty[String, PersistedAnswer])
+  override def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]] =
+    Future.successful(Map.empty[String, QuestionnaireAnswer])
 
   override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] =
     Future.successful(Map.empty[String, QuestionnaireReportItem])

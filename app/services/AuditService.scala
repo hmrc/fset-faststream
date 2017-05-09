@@ -16,7 +16,7 @@
 
 package services
 
-import config.MicroserviceAuditConnector
+import config.{ MicroserviceAppConfig, MicroserviceAuditConnector }
 import play.api.Play
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.audit.AuditExtensions.auditHeaderCarrier
@@ -45,6 +45,6 @@ trait AuditService {
 }
 
 object AuditService extends AuditService {
-  private[services] val appName = Play.current.configuration.getString("appName").get
+  private[services] val appName = MicroserviceAppConfig.appName
   private[services] val auditFacade: Audit = new Audit(appName, MicroserviceAuditConnector)
 }

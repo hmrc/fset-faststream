@@ -199,7 +199,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     )) //.futureValue
   }
 
-  private def createSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false,
+  private def createSingleApplication(id: Int, onlyAwaitingAllocation: Boolean,
                                       locationsAndRegions: Seq[(String, String)]): Future[Unit] = {
     val document = buildSingleApplication(id, onlyAwaitingAllocation, locationsAndRegions)
 
@@ -226,7 +226,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     progress
   }
 
-  private def buildSingleApplication(id: Int, onlyAwaitingAllocation: Boolean = false, locationsAndRegions: Seq[(String, String)]) = {
+  private def buildSingleApplication(id: Int, onlyAwaitingAllocation: Boolean, locationsAndRegions: Seq[(String, String)]) = {
     val personalDetails = createPersonalDetails(id, onlyAwaitingAllocation)
     val frameworks = createLocations(id, onlyAwaitingAllocation, locationsAndRegions)
     val assistance = createAssistance(id, onlyAwaitingAllocation)
@@ -256,7 +256,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     f.map(d => document ++ d).getOrElse(document)
   }
 
-  private def createAssistance(id: Int, buildAlways: Boolean = false) = id match {
+  private def createAssistance(id: Int, buildAlways: Boolean) = id match {
     case x if x % 7 == 0 && !buildAlways => None
     case _ =>
       Some(BSONDocument(
@@ -270,7 +270,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       ))
   }
 
-  private def createPersonalDetails(id: Int, buildAlways: Boolean = false) = id match {
+  private def createPersonalDetails(id: Int, buildAlways: Boolean) = id match {
     case x if x % 5 == 0 && !buildAlways => None
     case _ =>
       Some(BSONDocument(
@@ -283,7 +283,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       ))
   }
 
-  private def createLocations(id: Int, buildAlways: Boolean = false, regionsAndLocations: Seq[(String, String)] ) = id match {
+  private def createLocations(id: Int, buildAlways: Boolean, regionsAndLocations: Seq[(String, String)] ) = id match {
     case x if x % 11 == 0 && !buildAlways => None
     case _ =>
       val firstLocationRegion = chooseOne(regionsAndLocations)
@@ -315,7 +315,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       }
   }
 
-  private def createOnlineTests(id: Int, buildAlways: Boolean = false) = id match {
+  private def createOnlineTests(id: Int, buildAlways: Boolean) = id match {
     case x if x % 12 == 0 && !buildAlways => None
     case _ =>
       Some(BSONDocument(
