@@ -13,13 +13,33 @@
 <section @if(!isLastSection){ class="section-border" } >
     <h2 class="heading-medium">Contact details</h2>
 
-    <div class="form-group">
-        @checkbox(form("outsideUk")) {
-            My address is outside the UK
-        }
+    <form id="findAddressForm">
+        <div class="form-group form-group-compound">
+            <label for="post-code-search" class="form-label">Enter your postcode</label>
+            <input type="text" id="post-code-search" class="form-control form-control-large">
+            <div id="invalidPostcodeWrapper" style="display: none">
+                <p id="invalidPostcode" class="no-btm-margin">Postcode is not valid</p>
+            </div>
+            <div id="addressesNotFoundWrapper" style="display: none">
+                <p id="invalidPostcode" class="no-btm-margin">No addresses found for post code</p>
+            </div>
+        </div>
+        <div class="form-group">
+            <a href="#" class="button" id="findAddressBtn">Find address</a>
+            <p><a href="#" id="addressManualLink">Or enter address manually</a></p>
+        </div>
+    </form>
+
+    <div class="form-group toggle-content" id="addressSelectorContainer" style="display: none">
+        <h3 class="heading-small">Select your address</h3>
+        <div class="scrolling-panel max-height-6ish text">
+            <ul class="list-text" id="addressSelectorList">
+            </ul>
+        </div>
     </div>
 
-    <div id="addressManualInput">
+
+    <div id="addressManualInput" class="disabled">
         @*
          * The id for the line1 needs to be provided explicitly because otherwise the field is generated
          * with underscore in it. This is making the validation error-link unclickable when address line 1 is omitted.
@@ -61,6 +81,12 @@
             'class -> "form-control",
             '_class -> (if(!isOutsideUk) "toggle-content" else ""),
             '_showConstraints -> false)(helpers.CSRFieldConstructor.myFields, messages)
+    </div>
+
+    <div class="form-group">
+        @checkbox(form("outsideUk")) {
+            My address is outside the UK
+        }
     </div>
 
     @helper.inputText(form("phone"),
