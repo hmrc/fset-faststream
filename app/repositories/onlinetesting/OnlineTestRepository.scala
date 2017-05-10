@@ -123,7 +123,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     throw CannotFindTestByCubiksId(s"Cannot find test group by token: $token")
   }
 
-  private def phaseTestProfileByQuery(query: BSONDocument, phase: String = "PHASE1"): Future[Option[T]] = {
+  private def phaseTestProfileByQuery(query: BSONDocument, phase: String): Future[Option[T]] = {
     val projection = BSONDocument(s"testGroups.$phase" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map { optDocument =>

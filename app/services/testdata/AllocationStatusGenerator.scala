@@ -59,12 +59,6 @@ trait AllocationStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-    val newStatus = if (generatorConfig.confirmedAllocation) {
-      ALLOCATION_CONFIRMED
-    } else {
-      ALLOCATION_UNCONFIRMED
-    }
-
     AllocationStatusGenerator.SlotFindingLockObj.synchronized {
       for {
         candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)

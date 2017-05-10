@@ -39,6 +39,7 @@ trait AwaitingAllocationStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
+    /*
     def getEvaluationResult(candidate: DataGenerationResponse): RuleCategoryResult = {
       RuleCategoryResult(
         generatorConfig.loc1scheme1Passmark.getOrElse(Random.passmark),
@@ -47,7 +48,7 @@ trait AwaitingAllocationStatusGenerator extends ConstructiveGenerator {
         None,
         None
       )
-    }
+    }*/
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
