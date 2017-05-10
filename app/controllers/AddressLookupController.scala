@@ -47,7 +47,7 @@ abstract class AddressLookupController(addressLookupClient: AddressLookupClient,
 
   def addressLookupById(id: String): Action[AnyContent] = CSRSecureAction(EditPersonalDetailsAndContinueRole) {
     implicit request => implicit cachedData =>
-    addressLookupClient.findByAddressId(id, None).map( address => Ok(Json.toJson(address)))
+    addressLookupClient.findByAddressId(id, None).map( address => Ok(Json.toJson(address)) )
   }
 }
 

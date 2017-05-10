@@ -101,7 +101,7 @@ case class Address(lines: List[String],
   /** Gets a single-line representation, excluding the country. */
   def printable: String = printable(", ")
 
-  def line1: String = lines.lift(0).getOrElse("")
+  def line1: String = lines.headOption.getOrElse("")
 
   def line2: String = lines.lift(1).getOrElse("")
 
