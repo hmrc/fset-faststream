@@ -77,7 +77,8 @@ object ExchangeObjects {
   object AddUserRequest { implicit val addUserRequestFormat: OFormat[AddUserRequest] = Json.format[AddUserRequest] }
 
   case class UserResponse(firstName: String, lastName: String, preferredName: Option[String],
-    isActive: Boolean, userId: UUID, email: String, lockStatus: String, role: String)
+                          isActive: Boolean, userId: String, email: String, disabled: Boolean, lockStatus: String,
+                          role: String, service: String, phoneNumber: Option[String], detailsConfirmed: Option[Boolean])
   object UserResponse { implicit val userResponseFormat: OFormat[UserResponse] = Json.format[UserResponse] }
 
   case class ActivateEmailRequest(email: String, token: String, service: String)
