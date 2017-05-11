@@ -13,15 +13,11 @@
 <section @if(!isLastSection){ class="section-border" } >
     <h2 class="heading-medium">Contact details</h2>
 
-    <form id="findAddressForm">
-        <div class="form-group form-group-compound">
+        <div id="postCodeEntry" class="form-group form-group-compound">
             <label for="post-code-search" class="form-label">Enter your postcode</label>
             <input type="text" id="post-code-search" class="form-control form-control-large">
-            <div id="invalidPostcodeWrapper" style="display: none">
-                <p id="invalidPostcode" class="no-btm-margin">Postcode is not valid</p>
-            </div>
-            <div id="addressesNotFoundWrapper" style="display: none">
-                <p id="invalidPostcode" class="no-btm-margin">No addresses found for post code</p>
+            <div id="postCodeErrorWrapper" style="display: none">
+                <p id="postCodeError" class="no-btm-margin"></p>
             </div>
         </div>
         <div class="form-group">
@@ -31,7 +27,6 @@
             </a>
             <p><a href="#" id="addressManualLink">Or enter address manually</a></p>
         </div>
-    </form>
 
     <div class="form-group toggle-content" id="addressSelectorContainer" style="display: none">
         <h3 class="heading-small">Select your address</h3>

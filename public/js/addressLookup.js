@@ -15,18 +15,10 @@ $(function () {
     });
   });
 
-  jQuery.fn.scrollTo = function (elem, speed) {
-    $(this).animate({
-      scrollTop: $(this).scrollTop() - $(this).offset().top + $(elem).offset().top
-    }, speed === undefined ? 1000 : speed);
-    return this;
-  };
-
   $("#findAddressBtn").on("click", function (event) {
     event.preventDefault();
     $("#addressSelectorList").empty();
-    $("#invalidPostcodeWrapper").slideUp(300);
-    $('#addressesNotFoundWrapper').slideUp(300);
+    hidePostCodeError();
     addressSearchByPostcode($("#post-code-search").val());
     return false;
   });
@@ -50,13 +42,7 @@ $(function () {
       addressSelector.slideDown("slow");
       showResultsLink(result.length);
 
-    }).fail(function (xhr, textStatus, error) {
-      if (xhr.status === BAD_REQUEST) {
-        showInvalidPostcodePanel();
-      } else if (xhr.status === NOT_FOUND) {
-        showAddressesNotFoundPanel();
-      }
-    });
+    }).fail(postCodeSearchFailHander);
   }
 
   function showResultsLink(num) {
@@ -70,24 +56,27 @@ $(function () {
     link.removeClass("hidden");
   }
 
+  function postCodeSearchFailHander(xhr, textStauts, error) {
+    if (xhr.status === BAD_REQUEST) {
+      showPostCodeError("Post code is not valid")
+    } else if (xhr.status === NOT_FOUND) {
+      showPostCodeError("No addresses found")
+    }
+  }
+
   function getAddressById(id, successFunction) {
-    $.getJSON(addressLookupUrlBase + id,  successFunction).fail(function (xhr, textStatus, error) {
-      // Should never get here (TM)
-      // as we should always get the ID from a previous address search
-      if (xhr.status === BAD_REQUEST) {
-        showInvalidPostcodePanel();
-      } else if (xhr.status === NOT_FOUND) {
-        showAddressesNotFoundPanel();
-      }
-    });
+    $.getJSON(addressLookupUrlBase + id,  successFunction).fail(postCodeSearchFailHander);
   }
 
-  function showAddressesNotFoundPanel() {
-    $('#addressesNotFoundWrapper').slideDown(300);
+  function showPostCodeError(text) {
+    $('#postCodeError').text(text);
+    $('#postCodeEntry').addClass("has-an-error input-validation-error");
+    $('#postCodeErrorWrapper').slideDown(300);
   }
 
-  function showInvalidPostcodePanel() {
-    $('#invalidPostcodeWrapper').slideDown(300);
+  function hidePostCodeError() {
+    $('#postCodeEntry').removeClass("has-an-error input-validation-error");
+    $('#postCodeErrorWrapper').slideUp(300);
   }
 
   function populateAddressFields(addressRecord) {
