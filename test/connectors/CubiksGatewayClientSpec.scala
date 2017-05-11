@@ -100,24 +100,6 @@ class CubiksGatewayClientSpec extends UnitSpec with ShortTimeout {
     }
   }
 
-  "download pdf report" should {
-    "return a ConnectorException when cubiks gateway returns HTTP status Bad Gateway" in new GatewayTest {
-      setupPDFWSMock()
-      val result = cubiksGatewayClient.downloadPdfReport(44444)
-      result.failed.futureValue mustBe a[ConnectorException]
-    }
-    "throw an Exception when there is an exception when calling cubiks gateway" in new GatewayTest {
-      setupPDFWSMock()
-      val result = cubiksGatewayClient.downloadPdfReport(55555)
-      result.failed.futureValue mustBe an[Exception]
-    }
-    "request a report" in new GatewayTest {
-      setupPDFWSMock()
-      val result = cubiksGatewayClient.downloadPdfReport(66666)
-      result.futureValue must be(samplePDFValue)
-    }
-  }
-
   trait GatewayTest {
     implicit val hc = HeaderCarrier()
     val mockWSHttp = mock[WSHttp]

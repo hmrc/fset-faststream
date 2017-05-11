@@ -25,7 +25,6 @@ import model.OnlineTestCommands.Implicits._
 import model.OnlineTestCommands.TestResult
 import model.PassmarkPersistedObjects.{ AssessmentCentrePassMarkInfo, AssessmentCentrePassMarkScheme }
 import model.PassmarkPersistedObjects.Implicits._
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
 import model.SchemeType.SchemeType
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
@@ -33,6 +32,7 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 import model.command.{ AssessmentCentre, ProgressResponse }
 import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.{ CandidateProgressReportItem, QuestionnaireReportItem }
 
 //scalastyle:off
@@ -235,8 +235,8 @@ object Commands {
     implicit val reportFormat = Json.format[Report]
     implicit val preferencesWithContactDetailsFormat = Json.format[PreferencesWithContactDetails]
 
-    implicit def fromCommandToPersistedQuestion(q: Question): PersistedQuestion =
-      PersistedQuestion(q.question, PersistedAnswer(q.answer.answer, q.answer.otherDetails, q.answer.unknown))
+    implicit def fromCommandToPersistedQuestion(q: Question): QuestionnaireQuestion =
+      QuestionnaireQuestion(q.question, QuestionnaireAnswer(q.answer.answer, q.answer.otherDetails, q.answer.unknown))
 
     implicit val onlineTestDetailsFormat = Json.format[OnlineTestDetails]
     implicit val onlineTestFormat = Json.format[OnlineTest]

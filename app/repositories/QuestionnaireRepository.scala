@@ -16,8 +16,7 @@
 
 package repositories
 
-import model.PersistedObjects
-import model.PersistedObjects.{ PersistedAnswer, PersistedQuestion }
+import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
 import reactivemongo.api.{ DB, ReadPreference }
@@ -32,18 +31,18 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 trait QuestionnaireRepository {
-  def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit]
-  def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]]
+  def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit]
+  def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]]
   def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]]
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
 }
 
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
-  extends ReactiveRepository[PersistedAnswer, BSONObjectID](CollectionNames.QUESTIONNAIRE, mongo,
-    PersistedObjects.Implicits.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
+  extends ReactiveRepository[QuestionnaireAnswer, BSONObjectID](CollectionNames.QUESTIONNAIRE, mongo,
+    QuestionnaireAnswer.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
     with ReactiveRepositoryHelpers with BaseBSONReader {
 
-  override def addQuestions(applicationId: String, questions: List[PersistedQuestion]): Future[Unit] = {
+  override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = {
 
     val appId = "applicationId" -> applicationId
 
@@ -56,14 +55,14 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     ) map validator
   }
 
-  override def findQuestions(applicationId: String): Future[Map[String, PersistedAnswer]] = {
+  override def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]] = {
     find(applicationId).map { questions =>
       (for {
         q <- questions
       } yield {
         val answer = q.answer
         q.question -> answer
-      }).toMap[String, PersistedAnswer]
+      }).toMap[String, QuestionnaireAnswer]
     }
   }
 
@@ -87,22 +86,22 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     queryResult.map(_.toMap)
   }
 
-  private[repositories] def find(applicationId: String): Future[List[PersistedQuestion]] = {
+  private[repositories] def find(applicationId: String): Future[List[QuestionnaireQuestion]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("questions" -> 1, "_id" -> 0)
 
-    case class Questions(questions: Map[String, PersistedAnswer])
+    case class Questions(questions: Map[String, QuestionnaireAnswer])
 
     implicit object SearchFormat extends Format[Questions] {
       def reads(json: JsValue): JsResult[Questions] = JsSuccess(Questions(
-        (json \ "questions").as[Map[String, PersistedAnswer]]
+        (json \ "questions").as[Map[String, QuestionnaireAnswer]]
       ))
 
       def writes(s: Questions): JsValue = ???
     }
 
     collection.find(query, projection).one[Questions].map {
-      case Some(q) => q.questions.map((q: (String, PersistedAnswer)) => PersistedQuestion(q._1, q._2)).toList
+      case Some(q) => q.questions.map((q: (String, QuestionnaireAnswer)) => QuestionnaireQuestion(q._1, q._2)).toList
       case None => List()
     }
   }

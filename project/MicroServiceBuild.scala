@@ -54,6 +54,8 @@ private object AppDependencies {
     "org.webjars" % "bootstrap" % "3.1.1",
     "org.webjars" % "jquery" % "1.11.0",
     "net.ceedubs" %% "ficus" % ficus,
+    compilerPlugin("com.github.ghik" %% "silencer-plugin" % "0.5"),
+    "com.github.ghik" %% "silencer-lib" % "0.5",
     "org.yaml" % "snakeyaml" % "1.16",
     "com.jsuereth" %% "scala-arm" % "1.4",
     filters,

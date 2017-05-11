@@ -201,7 +201,7 @@ trait ApplicationAssessmentService {
   private def candidateEmailAddress(userId: String): Future[String] =
     cdRepository.find(userId).map(_.email)
 
-  private def auditNotified(event: String, application: ApplicationForNotification, emailAddress: Option[String] = None): Unit = {
+  private def auditNotified(event: String, application: ApplicationForNotification, emailAddress: Option[String]): Unit = {
     // Only log user ID (not email).
     Logger.info(s"$event for user ${application.userId}")
     auditService.logEventNoRequest(

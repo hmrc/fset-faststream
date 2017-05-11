@@ -16,6 +16,7 @@
 
 package config
 
+import com.github.ghik.silencer.silent
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import play.api.{ Application, Configuration, Play }
@@ -27,7 +28,7 @@ import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 
 object ControllerConfiguration extends ControllerConfig with MicroserviceFilterSupport {
-  lazy val controllerConfigs: Config = Play.current.configuration.underlying.as[Config]("controllers")
+  @silent lazy val controllerConfigs: Config = Play.current.configuration.underlying.as[Config]("controllers")
 }
 
 object MicroserviceAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport {

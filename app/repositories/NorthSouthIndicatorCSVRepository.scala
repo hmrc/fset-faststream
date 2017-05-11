@@ -16,6 +16,7 @@
 
 package repositories
 
+import com.github.ghik.silencer.silent
 import model.report.CandidateProgressReportItem
 import model.{ ApplicationRoute, FSACIndicator }
 import play.api.Play
@@ -31,7 +32,7 @@ object NorthSouthIndicatorCSVRepository extends NorthSouthIndicatorCSVRepository
 
   override private[repositories] val fsacIndicators: Map[String, FSACIndicator] =  {
 
-    val input = managed(Play.application.resourceAsStream(CsvFileName).get)
+    @silent val input = managed(Play.application.resourceAsStream(CsvFileName).get)
     input.acquireAndGet { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines.map(parseLine).toList
       val headers = rawData.head

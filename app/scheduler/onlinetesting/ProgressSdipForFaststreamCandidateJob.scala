@@ -34,9 +34,6 @@ trait ProgressSdipForFaststreamCandidateJob extends SingleInstanceScheduledJob[B
   val service: Phase1TestService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val rh = EmptyRequestHeader
-    implicit val hc = new HeaderCarrier()
-
     service.nextSdipFaststreamCandidateReadyForSdipProgression.flatMap {
       case Some(o) => service.progressSdipFaststreamCandidateForSdip(o)
       case None => Future.successful(())

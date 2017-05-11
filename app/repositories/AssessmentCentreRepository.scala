@@ -18,6 +18,7 @@ package repositories
 
 import java.util
 
+import com.github.ghik.silencer.silent
 import model.Exceptions.{ NoSuchVenueDateException, NoSuchVenueException }
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
@@ -60,12 +61,12 @@ trait AssessmentCentreRepositoryImpl extends AssessmentCentreRepository {
   val assessmentCentresConfigPath: String
 
   private lazy val locationsAndAssessmentCentreMappingCached = Future.successful {
-    val input = managed(Play.application.resourceAsStream(assessmentCentresLocationsPath).get)
+    @silent val input = managed(Play.application.resourceAsStream(assessmentCentresLocationsPath).get)
     input.acquireAndGet(file => asMapOfObjects(new Yaml().load(file)))
   }
 
   private lazy val assessmentCentreCapacitiesCached = Future.successful {
-    val input = managed(Play.application.resourceAsStream(assessmentCentresConfigPath).get)
+    @silent val input = managed(Play.application.resourceAsStream(assessmentCentresConfigPath).get)
     input.acquireAndGet(file => asAssessmentCentreCapacity(new Yaml().load(file)))
   }
 
