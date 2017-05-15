@@ -27,9 +27,11 @@ case class UserResponse(
   isActive: Boolean,
   userId: UniqueIdentifier,
   email: String,
+  disabled: Boolean,
   lockStatus: String,
   role: String,
-  service: String = "faststream"
+  service: String = "faststream",
+  phoneNumber: Option[String]
 )
 
 object UserResponse {

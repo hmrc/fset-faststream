@@ -105,7 +105,7 @@ class CsrCredentialsProviderSpec extends UnitSpec {
 
     val credentials = Credentials(Id, Password)
     val userResponse = UserResponse(FirstName, LastName, Some(PreferredName), isActive = true, UserId,
-      Email, "", Role, ServiceName)
+      Email, false, "", Role, ServiceName, None)
 
     class TestCsrCredentialsProvider(signInResponse: Future[UserResponse] = Future.successful(userResponse),
                                      failedLoginResponse: Future[UserResponse] = Future.successful(userResponse))

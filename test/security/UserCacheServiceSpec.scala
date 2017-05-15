@@ -71,8 +71,11 @@ class UserCacheServiceSpec extends UnitSpec {
       isActive = true,
       testUserId,
       "barry@smith.com",
+      false,
       "UNLOCKED",
-      "candidate"
+      "candidate",
+      "faststream",
+      None
     )
     val testApplicationResponse = ApplicationResponse(
       testApplicationId,

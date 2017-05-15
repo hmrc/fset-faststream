@@ -43,7 +43,8 @@ class UserManagementClientSpec extends UnitWithAppSpec with ConnectorSpec {
              |  "isActive":true,
              |  "lockStatus":"UNLOCKED",
              |  "role":"candidate",
-             |  "service":"faststream"
+             |  "service":"faststream",
+             |  "disabled":false
              |}
         """.stripMargin
         )
