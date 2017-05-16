@@ -45,6 +45,8 @@ case class ApplicationRouteFrontendConfig(timeZone: Option[String], startNewAcco
                                           blockNewAccountsDate: Option[LocalDateTime],
                                           blockApplicationsDate: Option[LocalDateTime])
 
+case class AddressLookupConfig(url: String)
+
 object ApplicationRouteFrontendConfig {
   def read(timeZone: Option[String], startNewAccountsDate: Option[String], blockNewAccountsDate: Option[String],
            blockApplicationsDate: Option[String]): ApplicationRouteFrontendConfig = {
@@ -66,6 +68,7 @@ trait AppConfig {
   val userManagementConfig: UserManagementConfig
   val faststreamConfig: FaststreamConfig
   val applicationRoutesFrontend: Map[ApplicationRoute, ApplicationRouteState]
+  val addressLookupConfig: AddressLookupConfig
 }
 
 object FrontendAppConfig extends AppConfig with ServicesConfig {
@@ -87,6 +90,8 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
   override lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
   override lazy val faststreamConfig = configuration.underlying.as[FaststreamConfig]("microservice.services.faststream")
+
+  override lazy val addressLookupConfig = configuration.underlying.as[AddressLookupConfig]("microservice.services.address-lookup")
 
   override lazy val applicationRoutesFrontend = Map(
     Faststream -> loadAppRouteConfig("faststream"),

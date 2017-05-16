@@ -17,7 +17,6 @@
 package models.page
 
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormatterBuilder
 
 case class Phase1TestsPage(
   expirationDate: DateTime,
@@ -33,39 +32,6 @@ case class Phase1TestsPage(
     case (Some(anSjq), Some(aBq)) => anSjq.completed && aBq.completed
     case (Some(anSjq), None) => anSjq.completed
     case _ => false
-  }
-
-  def getDuration: String = durationFromNow(expirationDate)
-
-  def getExpireDateTime: String = {
-
-    val dateTimeFormat = new DateTimeFormatterBuilder()
-      .appendClockhourOfHalfday(1)
-      .appendLiteral(":")
-      .appendMinuteOfHour(2)
-      .appendHalfdayOfDayText()
-      .appendLiteral(" on ")
-      .appendDayOfMonth(1)
-      .appendLiteral(" ")
-      .appendMonthOfYearText()
-      .appendLiteral(" ")
-      .appendYear(4, 4)
-      .toFormatter
-
-    dateTimeFormat.print(expirationDate)
-  }
-
-  def getExpireDate: String = {
-
-    val dateTimeFormat = new DateTimeFormatterBuilder()
-      .appendDayOfMonth(1)
-      .appendLiteral(" ")
-      .appendMonthOfYearText()
-      .appendLiteral(" ")
-      .appendYear(4, 4)
-      .toFormatter
-
-    dateTimeFormat.print(expirationDate)
   }
 }
 

@@ -18,7 +18,6 @@ package models.page
 
 import models.Adjustments
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormatterBuilder
 
 case class Phase2TestsPage(expirationDate: DateTime,
                            etray: Option[CubiksTestPage],
@@ -29,40 +28,7 @@ case class Phase2TestsPage(expirationDate: DateTime,
 
   def isCompleted: Boolean = etray.exists(_.completed)
 
-  def getDuration: String = durationFromNow(expirationDate)
-
-  def getExpireDateTime: String = {
-
-    val dateTimeFormat = new DateTimeFormatterBuilder()
-      .appendClockhourOfHalfday(1)
-      .appendLiteral(":")
-      .appendMinuteOfHour(2)
-      .appendHalfdayOfDayText()
-      .appendLiteral(" on ")
-      .appendDayOfMonth(1)
-      .appendLiteral(" ")
-      .appendMonthOfYearText()
-      .appendLiteral(" ")
-      .appendYear(4, 4)
-      .toFormatter
-
-    dateTimeFormat.print(expirationDate)
-  }
-
-  def getExpireDate: String = {
-
-    val dateTimeFormat = new DateTimeFormatterBuilder()
-      .appendDayOfMonth(1)
-      .appendLiteral(" ")
-      .appendMonthOfYearText()
-      .appendLiteral(" ")
-      .appendYear(4, 4)
-      .toFormatter
-
-    dateTimeFormat.print(expirationDate)
-  }
-
-  def isInvigilatedETrayApproved = adjustments exists (_.isInvigilatedETrayApproved)
+  def isInvigilatedETrayApproved: Boolean = adjustments exists (_.isInvigilatedETrayApproved)
 }
 
 object Phase2TestsPage {
