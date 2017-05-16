@@ -28,6 +28,8 @@ import play.api.Play
 import play.api.Play.{ configuration, current }
 import uk.gov.hmrc.play.config.ServicesConfig
 
+case class AuthConfig(host: String, port: Int, serviceName: String)
+
 case class EmailConfig(url: EmailUrl, templates: EmailTemplates)
 
 case class EmailUrl(host: String, sendEmail: String)
@@ -60,6 +62,7 @@ trait AppConfig {
   val reportAProblemPartialUrl: String
   val reportAProblemNonJSUrl: String
   val emailConfig: EmailConfig
+  val authConfig: AuthConfig
   val userManagementConfig: UserManagementConfig
   val faststreamConfig: FaststreamConfig
   val applicationRoutesFrontend: Map[ApplicationRoute, ApplicationRouteState]
@@ -80,6 +83,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   override lazy val reportAProblemNonJSUrl = s"$contactHost/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier"
 
   override lazy val emailConfig = configuration.underlying.as[EmailConfig]("microservice.services.email")
+  override lazy val authConfig = configuration.underlying.as[AuthConfig](s"microservice.services.auth")
 
   override lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
   override lazy val faststreamConfig = configuration.underlying.as[FaststreamConfig]("microservice.services.faststream")

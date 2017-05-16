@@ -30,7 +30,7 @@ case class UserResponse(
   disabled: Boolean,
   lockStatus: String,
   role: String,
-  service: String = "faststream",
+  service: String,
   phoneNumber: Option[String]
 )
 

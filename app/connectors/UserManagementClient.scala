@@ -16,7 +16,7 @@
 
 package connectors
 
-import config.CSRHttp
+import config.{ CSRHttp, FrontendAppConfig }
 import connectors.exchange._
 import connectors.UserManagementClient._
 import models.UniqueIdentifier
@@ -28,7 +28,7 @@ import scala.concurrent.Future
 trait UserManagementClient {
 
   private val role = "candidate" // We have only one role for this application
-  private val ServiceName: String = "faststream"
+  private lazy val ServiceName = FrontendAppConfig.authConfig.serviceName
 
   val http: CSRHttp
 
