@@ -17,15 +17,16 @@
 package models.page
 
 import org.joda.time.{ DateTime, Period, PeriodType }
-import org.joda.time.format.PeriodFormatterBuilder
+import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 
 trait DurationFormatter {
+
+  def expirationDate: DateTime
 
   private[page] def now = DateTime.now
 
   def durationFromNow(date: DateTime): String = {
     val period = new Period(now, date).normalizedStandard(PeriodType.yearMonthDayTime())
-
     val periodFormat = new PeriodFormatterBuilder()
       .appendYears()
       .appendSuffix(" year", " years")
@@ -43,4 +44,25 @@ trait DurationFormatter {
 
     periodFormat print period
   }
+
+  def getDuration: String = durationFromNow(expirationDate)
+
+  private val expireTimeFormatter = new DateTimeFormatterBuilder()
+      .appendClockhourOfHalfday(1)
+      .appendLiteral(":")
+      .appendMinuteOfHour(2)
+      .appendHalfdayOfDayText()
+
+  private val expireDateFormatter =  new DateTimeFormatterBuilder()
+      .appendDayOfMonth(1)
+      .appendLiteral(" ")
+      .appendMonthOfYearText()
+      .appendLiteral(" ")
+      .appendYear(4, 4)
+
+  def getExpireTime: String = expireTimeFormatter.toFormatter.print(expirationDate).replace("PM", "pm").replace("AM", "am")
+
+  def getExpireDateTime: String = expireTimeFormatter.append(expireDateFormatter.toFormatter).toFormatter.print(expirationDate)
+
+  def getExpireDate: String = expireDateFormatter.toFormatter.print(expirationDate)
 }
