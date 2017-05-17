@@ -56,7 +56,14 @@ $(function () {
     link.removeClass("hidden");
   }
 
+  function hideResultsLink() {
+    var link = $("#addressesFound");
+    link.text("");
+    link.addClass("hidden");
+  }
+
   function postCodeSearchFailHander(xhr, textStauts, error) {
+    hideResultsLink();
     if (xhr.status === BAD_REQUEST) {
       showPostCodeError("Post code is not valid")
     } else if (xhr.status === NOT_FOUND) {
