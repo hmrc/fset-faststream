@@ -16,18 +16,21 @@
 
 package model.report
 
+import model.ApplicationRoute.ApplicationRoute
 import play.api.libs.json.Json
 
-case class ApplicationForEdipReport(userId: String,
-                                    progressStatus: Option[String],
-                                    firstName: Option[String],
-                                    lastName: Option[String],
-                                    preferredName: Option[String],
-                                    guaranteedInterviewScheme: Option[Boolean],
-                                    behaviouralTScore: Option[Double],
-                                    situationalTScore: Option[Double]
+case class ApplicationForSdipEdipReport(
+  applicationRoute: ApplicationRoute,
+  userId: String,
+  progressStatus: Option[String],
+  firstName: Option[String],
+  lastName: Option[String],
+  preferredName: Option[String],
+  guaranteedInterviewScheme: Option[Boolean],
+  behaviouralTScore: Option[Double],
+  situationalTScore: Option[Double]
 )
 
-object ApplicationForEdipReport {
-  implicit val applicationForEdipReportFormat = Json.format[ApplicationForEdipReport]
+object ApplicationForSdipEdipReport {
+  implicit val applicationForEdipReportFormat = Json.format[ApplicationForSdipEdipReport]
 }

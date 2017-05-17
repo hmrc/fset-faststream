@@ -21,19 +21,17 @@ import connectors.AuthProviderClient
 import connectors.ExchangeObjects.Candidate
 import controllers.ReportingController
 import mocks._
-import mocks.application.ReportingInMemoryRepository
-import model.Commands._
 import model._
-import model.persisted.{ ContactDetails, ContactDetailsWithId }
-import model.report.{ CandidateProgressReportItem, _ }
+import model.persisted.ContactDetailsWithId
+import model.report.{CandidateProgressReportItem, _}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.{ JsArray, Json }
+import play.api.libs.json.{JsArray, Json}
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories.application.ReportingRepository
+import repositories._
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.{ ApplicationAssessmentScoresRepository, MediaRepository, NorthSouthIndicatorCSVRepository, QuestionnaireRepository, contactdetails }
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -41,7 +39,7 @@ import scala.language.postfixOps
 
 class ReportingControllerSpec extends UnitWithAppSpec {
 
-  val mockContactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
+  val mockContactDetailsRepository: ContactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
   val reportingRepositoryMock: ReportingRepository = mock[ReportingRepository]
   val authProviderClientMock: AuthProviderClient = mock[AuthProviderClient]
 
@@ -58,9 +56,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "Reporting controller create adjustment report" must {
     "return the adjustment report when we execute adjustment reports" in new TestFixture {
       when(mockContactDetailsRepository.findAll).thenReturn(Future.successful(List(
-        ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), false, "joe@bloggs.com", None),
-        ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), false, "joe@bloggs.com", None),
-        ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), false, "joe@bloggs.com", None)
+        ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", None),
+        ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", None),
+        ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", None)
       )))
       when(reportingRepositoryMock.adjustmentReport(frameworkId)).thenReturn(SuccessfulAdjustmentReportResponse)
       val controller = new TestableReportingController
@@ -91,13 +89,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     }
 
     "return no adjustments if there's no data on the server" in new TestFixture {
-      val controller = new TestableReportingController {
-        override val reportingRepository = new ReportingInMemoryRepository {
-          override def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]] = {
-            Future.successful(List.empty[AdjustmentReportItem])
-          }
-        }
-      }
+      val controller = new TestableReportingController
+      when(controller.reportingRepository.adjustmentReport(frameworkId)).thenReturn(Future.successful(Nil))
       val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run
 
       val finalResult = contentAsJson(result).as[JsArray].value
@@ -118,10 +111,10 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       when(mockContactDetailsRepository.findAll).thenReturn(
         Future.successful(List(
-          ContactDetailsWithId(userId = "userId1", address = Address("1 Test Street"), postCode = Some("QQ1 1QQ"), false,
+          ContactDetailsWithId(userId = "userId1", address = Address("1 Test Street"), postCode = Some("QQ1 1QQ"), outsideUk = false,
             email = "blah@blah.com", phone = Some("07707717711")
           ),
-            ContactDetailsWithId(userId = "userId2", address = Address("1 Fake Street"), postCode = Some("QQ1 1QQ"), false,
+            ContactDetailsWithId(userId = "userId2", address = Address("1 Fake Street"), postCode = Some("QQ1 1QQ"), outsideUk = false,
               email = "blah@blah.com", phone = Some("07707727722")
           )
       )))
@@ -147,7 +140,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "Reporting controller edip report" must {
     "return the edip report in a happy path scenario" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.applicationsForEdipReport(frameworkId)).thenReturn(SuccessfulEdipReportResponse)
+      when(reportingRepositoryMock.applicationsForSdipEdipReport(frameworkId, List(ApplicationRoute.Edip)))
+        .thenReturn(SuccessfulEdipReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(SuccessfulFindByUserIdsResponse)
 
       val result = underTest.edipReport(frameworkId)(candidateProgressRequest(frameworkId)).run
@@ -157,7 +151,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       json mustBe a[Seq[_]]
       json.size mustBe 2
 
-      val reportItem1 = json(0)
+      val reportItem1 = json.head
       (reportItem1 \ "progressStatus").asOpt[String] mustBe Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}")
       (reportItem1 \ "firstName").asOpt[String] mustBe Some("Joe")
       (reportItem1 \ "lastName").asOpt[String] mustBe Some("Bloggs")
@@ -180,7 +174,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     "throw an exception if no contact details are fetched" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.applicationsForEdipReport(frameworkId)).thenReturn(SuccessfulEdipReportResponse)
+      when(reportingRepositoryMock.applicationsForSdipEdipReport(frameworkId, List(ApplicationRoute.Edip)))
+        .thenReturn(SuccessfulEdipReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(Future.successful(List.empty[ContactDetailsWithId]))
 
       val result = underTest.edipReport(frameworkId)(candidateProgressRequest(frameworkId)).run
@@ -203,7 +198,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       json mustBe a[Seq[_]]
       json.size mustBe 2
 
-      val reportItem1 = json(0)
+      val reportItem1 = json.head
       (reportItem1 \ "firstName").asOpt[String] mustBe Some("Joe")
       (reportItem1 \ "lastName").asOpt[String] mustBe Some("Bloggs")
       (reportItem1 \ "email").asOpt[String] mustBe Some("joe.bloggs@test.com")
@@ -247,7 +242,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       finalResult mustBe a[Seq[_]]
       finalResult.size must be(4)
 
-      val user1 = finalResult(0)
+      val user1 = finalResult.head
       (user1 \ "userId").asOpt[String] mustBe Some("user1")
       (user1 \ "fsacIndicator").asOpt[String] mustBe Some("Newcastle")
 
@@ -533,10 +528,12 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     val SuccessfulEdipReportResponse = Future.successful(
       List(
-        ApplicationForEdipReport(userId = "user1", progressStatus = Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}"),
+        ApplicationForSdipEdipReport(applicationRoute = ApplicationRoute.Edip, userId = "user1",
+          progressStatus = Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}"),
           firstName = Some("Joe"), lastName = Some("Bloggs"),
           preferredName = Some("Joey"), guaranteedInterviewScheme = None, behaviouralTScore = None, situationalTScore = None),
-        ApplicationForEdipReport(userId = "user2", progressStatus = Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}"),
+        ApplicationForSdipEdipReport(applicationRoute = ApplicationRoute.Edip, userId = "user2",
+          progressStatus = Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}"),
           firstName = Some("Bill"), lastName = Some("Bloggs"), preferredName = Some("Billy"),
           guaranteedInterviewScheme = Some(true), behaviouralTScore = Some(10.0), situationalTScore = Some(11.0))
       )

@@ -60,7 +60,9 @@ trait ReportingRepository {
 
   def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]]
 
-  def applicationsForEdipReport(frameworkId: String): Future[List[ApplicationForEdipReport]]
+  def applicationsForSdipEdipReport(frameworkId: String,
+    applicationRoutes: List[ApplicationRoute.ApplicationRoute]
+  ): Future[List[ApplicationForSdipEdipReport]]
 
   def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]]
 
@@ -101,11 +103,13 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     reportQueryWithProjectionsBSON[CandidateProgressReportItem](query, projection)
   }
 
-  override def applicationsForEdipReport(frameworkId: String): Future[List[ApplicationForEdipReport]] = {
+  override def applicationsForSdipEdipReport(frameworkId: String,
+      applicationRoutes: List[ApplicationRoute.ApplicationRoute]
+  ): Future[List[ApplicationForSdipEdipReport]] = {
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
-        BSONDocument("applicationRoute" -> "Edip"),
+        BSONDocument("applicationRoute" -> BSONDocument("$in" -> applicationRoutes)),
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_COMPLETED}" -> true),
         BSONDocument("personal-details" -> BSONDocument("$exists" -> true)),
         BSONDocument("assistance-details" -> BSONDocument("$exists" -> true)),
@@ -113,8 +117,10 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       ))
 
     val projection = BSONDocument(
+      "_id" -> false,
       "applicationId" -> true,
       "userId" -> true,
+      "applicationRoute" -> true,
       "personal-details.firstName" -> true,
       "personal-details.lastName" -> true,
       "personal-details.preferredName" -> true,
@@ -123,7 +129,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       "testGroups" -> true
     )
 
-    reportQueryWithProjectionsBSON[ApplicationForEdipReport](query, projection)
+    reportQueryWithProjectionsBSON[ApplicationForSdipEdipReport](query, projection)
   }
 
   override def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]] = {

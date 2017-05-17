@@ -36,7 +36,7 @@ import repositories.{ BaseBSONReader, CommonBSONDocuments }
 
 trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
-  implicit val toReportWithPersonalDetails = bsonReader {
+  implicit val toReportWithPersonalDetails: BSONDocumentReader[ReportWithPersonalDetails] = bsonReader {
     (doc: BSONDocument) => {
       val fr = doc.getAs[BSONDocument]("framework-preferences")
       val fr1 = fr.flatMap(_.getAs[BSONDocument]("firstLocation"))
@@ -80,7 +80,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
-  implicit val toCandidateProgressReportItem = bsonReader {
+  implicit val toCandidateProgressReportItem: BSONDocumentReader[CandidateProgressReportItem] = bsonReader {
     (doc: BSONDocument) => {
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
       val schemes = schemesDoc.flatMap(_.getAs[List[SchemeType]]("schemes"))
@@ -128,9 +128,11 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
-  implicit val toApplicationForEdipReport = bsonReader {
+  implicit val toApplicationForEdipReport: BSONDocumentReader[ApplicationForSdipEdipReport] = bsonReader {
     (doc: BSONDocument) => {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
+      val route = doc.getAs[ApplicationRoute.ApplicationRoute]("applicationRoute")
+        .getOrElse(throw new Exception(s"Application route not set for $applicationId"))
       val userId = doc.getAs[String]("userId").getOrElse("")
       val progressResponse = toProgressResponse(applicationId).read(doc)
 
@@ -146,7 +148,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val behaviouralTScore = testResults.behavioural.flatMap(_.tScore)
       val situationalTScore = testResults.situational.flatMap(_.tScore)
 
-      ApplicationForEdipReport(
+      ApplicationForSdipEdipReport(
+        applicationRoute = route,
         userId = userId,
         progressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(progressResponse)),
         firstName = firstName,
@@ -159,7 +162,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
-  implicit val toApplicationForAnalyticalSchemesReport = bsonReader {
+  implicit val toApplicationForAnalyticalSchemesReport: BSONDocumentReader[ApplicationForAnalyticalSchemesReport] = bsonReader {
     (doc: BSONDocument) => {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val userId = doc.getAs[String]("userId").getOrElse("")
@@ -195,7 +198,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
-  implicit val toApplicationForDiversityReport = bsonReader {
+  implicit val toApplicationForDiversityReport: BSONDocumentReader[ApplicationForDiversityReport] = bsonReader {
     (doc: BSONDocument) => {
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
       val onlineAdjustmentsKey = if(applicationRoute == ApplicationRoute.Edip) { "needsSupportForPhoneInterview" }
@@ -224,7 +227,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
-  implicit val toApplicationForOnlineTestPassMarkReport = bsonReader {
+  implicit val toApplicationForOnlineTestPassMarkReport: BSONDocumentReader[ApplicationForOnlineTestPassMarkReport] = bsonReader {
     (doc: BSONDocument) => {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
