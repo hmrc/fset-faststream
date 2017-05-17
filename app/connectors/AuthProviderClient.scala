@@ -16,7 +16,7 @@
 
 package connectors
 
-import config.WSHttp
+import config.{ MicroserviceAppConfig, WSHttp }
 import connectors.AuthProviderClient._
 import connectors.ExchangeObjects._
 import model.Exceptions.{ ConnectorException, EmailTakenException }
@@ -55,7 +55,7 @@ trait AuthProviderClient {
     throw new UserRoleDoesNotExistException(s"No such role: $roleName")
   )
 
-  private val ServiceName = "faststream"
+  private lazy val ServiceName = MicroserviceAppConfig.authConfig.serviceName
 
   import config.MicroserviceAppConfig.userManagementConfig._
 
