@@ -20,10 +20,11 @@ import connectors.AuthProviderClient
 import model.Commands._
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsWithId
-import model.report.{ DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels, _ }
+import model.report._
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
-import repositories.application.ReportingRepository
+import repositories.application.{ ReportingMongoRepository, ReportingRepository }
+import repositories.contactdetails.ContactDetailsMongoRepository
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -31,12 +32,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object ReportingController extends ReportingController {
-  val reportingRepository = repositories.reportingRepository
-  val contactDetailsRepository = repositories.faststreamContactDetailsRepository
-  val questionnaireRepository = repositories.questionnaireRepository
-  val assessmentScoresRepository = repositories.applicationAssessmentScoresRepository
-  val mediaRepository = repositories.mediaRepository
-  val indicatorRepository = repositories.northSouthIndicatorRepository
+  val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
+  val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
+  val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
+  val assessmentScoresRepository: ApplicationAssessmentScoresMongoRepository = repositories.applicationAssessmentScoresRepository
+  val mediaRepository: MediaMongoRepository = repositories.mediaRepository
+  val indicatorRepository: _root_.repositories.NorthSouthIndicatorCSVRepository.type = repositories.northSouthIndicatorRepository
   val authProviderClient = AuthProviderClient
 }
 
@@ -52,32 +53,29 @@ trait ReportingController extends BaseController {
   val indicatorRepository: NorthSouthIndicatorCSVRepository
   val authProviderClient: AuthProviderClient
 
-  def edipReport(frameworkId: String) = Action.async { implicit request =>
-    val applicationsFut = reportingRepository.applicationsForEdipReport(frameworkId)
-    val reportFut = for {
-      applications <- applicationsFut
+  def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+    for {
+      applications <- reportingRepository.applicationsForInternshipReport(frameworkId)
       contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(cdList => contactDetailsToMap(cdList))
     } yield {
-      buildEdipReportItems(applications, contactDetails)
-    }
-    reportFut.map { report =>
-      Ok(Json.toJson(report))
+      Ok(Json.toJson(buildInternshipReportItems(applications, contactDetails)))
     }
   }
 
   private def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
 
-  private def buildEdipReportItems(applications: List[ApplicationForEdipReport],
-                                   contactDetailsMap: Map[String, ContactDetailsWithId]): List[EdipReportItem] = {
+  private def buildInternshipReportItems(applications: List[ApplicationForInternshipReport],
+    contactDetailsMap: Map[String, ContactDetailsWithId]
+  ): List[InternshipReportItem] = {
     applications.map { application =>
       val contactDetails = contactDetailsMap.getOrElse(application.userId,
         throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
       )
-      EdipReportItem(application, contactDetails)
+      InternshipReportItem(application, contactDetails)
     }
   }
 
-  def analyticalSchemesReport(frameworkId: String) = Action.async { implicit request =>
+  def analyticalSchemesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val applicationsFut = reportingRepository.applicationsForAnalyticalSchemesReport(frameworkId)
     val reportFut = for {
       applications <- applicationsFut
@@ -100,7 +98,7 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def adjustmentReport(frameworkId: String) = Action.async { implicit request =>
+  def adjustmentReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports =
       for {
         applications <- reportingRepository.adjustmentReport(frameworkId)
@@ -120,7 +118,7 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def candidateProgressReport(frameworkId: String) = Action.async { implicit request =>
+  def candidateProgressReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val candidatesFut: Future[List[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
     val postCodesFut: Future[Map[String, String]] = contactDetailsRepository.findAllPostcodes()
 
@@ -130,7 +128,7 @@ trait ReportingController extends BaseController {
     } yield Ok(Json.toJson(report))
   }
 
-  def candidateDeferralReport(frameworkId: String) = Action.async { implicit request =>
+  def candidateDeferralReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     for {
       eventualCandidates <- reportingRepository.candidateDeferralReport(frameworkId)
       eventualContactDetails <- contactDetailsRepository.findAll
@@ -154,7 +152,7 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def diversityReport(frameworkId: String) = Action.async { implicit request =>
+  def diversityReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports = for {
       applications <- reportingRepository.diversityReport(frameworkId)
       questionnaires <- questionnaireRepository.findAllForDiversityReport
@@ -172,7 +170,7 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def timeToOfferReport(frameworkId: String) = Action.async { implicit request =>
+  def timeToOfferReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports = for {
       applicationsForTimeToOffer <- reportingRepository.candidatesForTimeToOfferReport
       appsByUserId <- reportingRepository.diversityReport(frameworkId).map(_.groupBy(_.userId).mapValues(_.head))
@@ -203,7 +201,7 @@ trait ReportingController extends BaseController {
     }
   }
 
-  def onlineTestPassMarkReport(frameworkId: String) = Action.async { implicit request =>
+  def onlineTestPassMarkReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports =
       for {
         applications <- reportingRepository.onlineTestPassMarkReport(frameworkId)
@@ -220,15 +218,15 @@ trait ReportingController extends BaseController {
   }
 
   // This method is not used at this moment
-  def nonSubmittedAppsReport(frameworkId: String) =
+  def nonSubmittedAppsReport(frameworkId: String): Action[AnyContent] =
     preferencesAndContactReports(nonSubmittedOnly = true)(frameworkId)
 
   // This method is not used at this moment
-  def createPreferencesAndContactReports(frameworkId: String) =
+  def createPreferencesAndContactReports(frameworkId: String): Action[AnyContent] =
     preferencesAndContactReports(nonSubmittedOnly = false)(frameworkId)
 
   // This method is not used at this moment
-  def applicationAndUserIdsReport(frameworkId: String) = Action.async { implicit request =>
+  def applicationAndUserIdsReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     reportingRepository.allApplicationAndUserIds(frameworkId).map { list =>
       Ok(Json.toJson(list))
     }
