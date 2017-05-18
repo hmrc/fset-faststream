@@ -54,35 +54,25 @@ trait ReportingController extends BaseController {
   val indicatorRepository: NorthSouthIndicatorCSVRepository
   val authProviderClient: AuthProviderClient
 
-  def edipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
-    sdipEdipReport(frameworkId, List(ApplicationRoute.Edip)).map ( report => Ok(Json.toJson(report)) )
-  }
-
-  def sdipEdipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
-    sdipEdipReport(frameworkId, List(ApplicationRoute.Edip, ApplicationRoute.Sdip)).map( report =>
-      Ok(Json.toJson(report))
-    )
-  }
-
-  private def sdipEdipReport(frameworkId: String,
-    applicationRoute: List[ApplicationRoute.ApplicationRoute]
-  ): Future[List[SdipEdipReportItem]] = for {
-    applications <- reportingRepository.applicationsForSdipEdipReport(frameworkId, applicationRoute)
-    contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(cdList => contactDetailsToMap(cdList))
-  } yield {
-    buildSdipEdipReportItems(applications, contactDetails)
+  def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+    for {
+      applications <- reportingRepository.applicationsForInternshipReport(frameworkId)
+      contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(cdList => contactDetailsToMap(cdList))
+    } yield {
+      Ok(Json.toJson(buildInternshipReportItems(applications, contactDetails)))
+    }
   }
 
   private def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
 
-  private def buildSdipEdipReportItems(applications: List[ApplicationForSdipEdipReport],
+  private def buildInternshipReportItems(applications: List[ApplicationForInternshipReport],
     contactDetailsMap: Map[String, ContactDetailsWithId]
-  ): List[SdipEdipReportItem] = {
+  ): List[InternshipReportItem] = {
     applications.map { application =>
       val contactDetails = contactDetailsMap.getOrElse(application.userId,
         throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
       )
-      SdipEdipReportItem(application, contactDetails)
+      InternshipReportItem(application, contactDetails)
     }
   }
 

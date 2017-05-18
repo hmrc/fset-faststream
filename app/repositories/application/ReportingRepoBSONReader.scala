@@ -128,7 +128,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     }
   }
 
-  implicit val toApplicationForEdipReport: BSONDocumentReader[ApplicationForSdipEdipReport] = bsonReader {
+  implicit val toApplicationForInternshipReport: BSONDocumentReader[ApplicationForInternshipReport] = bsonReader {
     (doc: BSONDocument) => {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val route = doc.getAs[ApplicationRoute.ApplicationRoute]("applicationRoute")
@@ -148,7 +148,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val behaviouralTScore = testResults.behavioural.flatMap(_.tScore)
       val situationalTScore = testResults.situational.flatMap(_.tScore)
 
-      ApplicationForSdipEdipReport(
+      ApplicationForInternshipReport(
         applicationRoute = route,
         userId = userId,
         progressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(progressResponse)),

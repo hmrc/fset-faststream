@@ -19,7 +19,7 @@ package model.report
 import model.ApplicationRoute.ApplicationRoute
 import play.api.libs.json.Json
 
-case class ApplicationForSdipEdipReport(
+case class ApplicationForInternshipReport(
   applicationRoute: ApplicationRoute,
   userId: String,
   progressStatus: Option[String],
@@ -31,6 +31,6 @@ case class ApplicationForSdipEdipReport(
   situationalTScore: Option[Double]
 )
 
-object ApplicationForSdipEdipReport {
-  implicit val applicationForEdipReportFormat = Json.format[ApplicationForSdipEdipReport]
+object ApplicationForInternshipReport {
+  implicit val applicationForInternshipReportFormat = Json.format[ApplicationForInternshipReport]
 }

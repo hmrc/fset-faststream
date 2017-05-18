@@ -137,14 +137,13 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  "Reporting controller edip report" must {
-    "return the edip report in a happy path scenario" in new TestFixture {
+  "Reporting controller internship report" must {
+    "return the report in a happy path scenario" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.applicationsForSdipEdipReport(frameworkId, List(ApplicationRoute.Edip)))
-        .thenReturn(SuccessfulEdipReportResponse)
+      when(reportingRepositoryMock.applicationsForInternshipReport(frameworkId)).thenReturn(SuccessfulInternshipReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(SuccessfulFindByUserIdsResponse)
 
-      val result = underTest.edipReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+      val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run
 
       val json = contentAsJson(result).as[JsArray].value
 
@@ -152,6 +151,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       json.size mustBe 2
 
       val reportItem1 = json.head
+      (reportItem1 \ "applicationRoute").asOpt[String] mustBe Some("Edip")
       (reportItem1 \ "progressStatus").asOpt[String] mustBe Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}")
       (reportItem1 \ "firstName").asOpt[String] mustBe Some("Joe")
       (reportItem1 \ "lastName").asOpt[String] mustBe Some("Bloggs")
@@ -161,7 +161,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       (reportItem1 \ "behaviouralTScore").asOpt[String] mustBe None
       (reportItem1 \ "situationalTScore").asOpt[String] mustBe None
 
-      val reportItem2 = json(1)
+      val reportItem2 = json.last
+      (reportItem2 \ "applicationRoute").asOpt[String] mustBe Some("Sdip")
       (reportItem2 \ "progressStatus").asOpt[String] mustBe Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}")
       (reportItem2 \ "firstName").asOpt[String] mustBe Some("Bill")
       (reportItem2 \ "lastName").asOpt[String] mustBe Some("Bloggs")
@@ -174,11 +175,10 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     "throw an exception if no contact details are fetched" in new TestFixture {
       val underTest = new TestableReportingController
-      when(reportingRepositoryMock.applicationsForSdipEdipReport(frameworkId, List(ApplicationRoute.Edip)))
-        .thenReturn(SuccessfulEdipReportResponse)
+      when(reportingRepositoryMock.applicationsForInternshipReport(frameworkId)).thenReturn(SuccessfulInternshipReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(Future.successful(List.empty[ContactDetailsWithId]))
 
-      val result = underTest.edipReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+      val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run
 
       result.failed.futureValue.isInstanceOf[IllegalStateException] mustBe true
       result.failed.futureValue.getMessage mustBe "No contact details found for user Id = user1"
@@ -526,13 +526,13 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       )
     )
 
-    val SuccessfulEdipReportResponse = Future.successful(
+    val SuccessfulInternshipReportResponse = Future.successful(
       List(
-        ApplicationForSdipEdipReport(applicationRoute = ApplicationRoute.Edip, userId = "user1",
+        ApplicationForInternshipReport(applicationRoute = ApplicationRoute.Edip, userId = "user1",
           progressStatus = Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}"),
           firstName = Some("Joe"), lastName = Some("Bloggs"),
           preferredName = Some("Joey"), guaranteedInterviewScheme = None, behaviouralTScore = None, situationalTScore = None),
-        ApplicationForSdipEdipReport(applicationRoute = ApplicationRoute.Edip, userId = "user2",
+        ApplicationForInternshipReport(applicationRoute = ApplicationRoute.Sdip, userId = "user2",
           progressStatus = Some(s"${ProgressStatuses.PHASE1_TESTS_COMPLETED}"),
           firstName = Some("Bill"), lastName = Some("Bloggs"), preferredName = Some("Billy"),
           guaranteedInterviewScheme = Some(true), behaviouralTScore = Some(10.0), situationalTScore = Some(11.0))
@@ -587,8 +587,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    def edipReportRequest(frameworkId: String) = {
-      FakeRequest(Helpers.GET, controllers.routes.ReportingController.edipReport(frameworkId).url, FakeHeaders(), "")
+    def internshipReportRequest(frameworkId: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.ReportingController.internshipReport(frameworkId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
 

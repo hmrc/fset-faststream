@@ -20,7 +20,7 @@ import model.ApplicationRoute.ApplicationRoute
 import model.persisted.ContactDetailsWithId
 import play.api.libs.json.Json
 
-case class SdipEdipReportItem(
+case class InternshipReportItem(
   applicationRoute: ApplicationRoute,
   progressStatus: Option[String],
   firstName: Option[String],
@@ -32,9 +32,9 @@ case class SdipEdipReportItem(
   situationalTScore: Option[String]
 )
 
-case object SdipEdipReportItem {
-  def apply(application: ApplicationForSdipEdipReport, contactDetails: ContactDetailsWithId): SdipEdipReportItem = {
-    SdipEdipReportItem(
+case object InternshipReportItem {
+  def apply(application: ApplicationForInternshipReport, contactDetails: ContactDetailsWithId): InternshipReportItem = {
+    InternshipReportItem(
       applicationRoute = application.applicationRoute,
       progressStatus = application.progressStatus,
       firstName = application.firstName,
@@ -47,5 +47,5 @@ case object SdipEdipReportItem {
     )
   }
 
-  implicit val mailingListExtractReportItemFormat = Json.format[SdipEdipReportItem]
+  implicit val internshipReportItemFormat = Json.format[InternshipReportItem]
 }

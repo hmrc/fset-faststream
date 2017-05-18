@@ -60,9 +60,7 @@ trait ReportingRepository {
 
   def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]]
 
-  def applicationsForSdipEdipReport(frameworkId: String,
-    applicationRoutes: List[ApplicationRoute.ApplicationRoute]
-  ): Future[List[ApplicationForSdipEdipReport]]
+  def applicationsForInternshipReport(frameworkId: String): Future[List[ApplicationForInternshipReport]]
 
   def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]]
 
@@ -103,13 +101,13 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     reportQueryWithProjectionsBSON[CandidateProgressReportItem](query, projection)
   }
 
-  override def applicationsForSdipEdipReport(frameworkId: String,
-      applicationRoutes: List[ApplicationRoute.ApplicationRoute]
-  ): Future[List[ApplicationForSdipEdipReport]] = {
+  override def applicationsForInternshipReport(frameworkId: String): Future[List[ApplicationForInternshipReport]] = {
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
-        BSONDocument("applicationRoute" -> BSONDocument("$in" -> applicationRoutes)),
+        BSONDocument("$or" -> BSONArray(
+          ApplicationRoute.Edip, ApplicationRoute.Sdip
+        )),
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_COMPLETED}" -> true),
         BSONDocument("personal-details" -> BSONDocument("$exists" -> true)),
         BSONDocument("assistance-details" -> BSONDocument("$exists" -> true)),
@@ -129,7 +127,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       "testGroups" -> true
     )
 
-    reportQueryWithProjectionsBSON[ApplicationForSdipEdipReport](query, projection)
+    reportQueryWithProjectionsBSON[ApplicationForInternshipReport](query, projection)
   }
 
   override def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]] = {
