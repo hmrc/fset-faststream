@@ -17,16 +17,15 @@
 package controllers
 
 import connectors.AuthProviderClient
-import model.ApplicationRoute
 import model.Commands._
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsWithId
-import model.report.{DiversityReportItem, OnlineTestPassMarkReportItem, ProgressStatusesReportLabels, _}
+import model.report._
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Request}
-import repositories.application.{ReportingMongoRepository, ReportingRepository}
+import play.api.mvc.{ Action, AnyContent, Request }
+import repositories.application.{ ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
-import repositories.{QuestionnaireRepository, _}
+import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
