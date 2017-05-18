@@ -16,22 +16,26 @@
 
 package model.report
 
+import model.ApplicationRoute.ApplicationRoute
 import model.persisted.ContactDetailsWithId
 import play.api.libs.json.Json
 
-case class EdipReportItem(progressStatus: Option[String],
-                          firstName: Option[String],
-                          lastName: Option[String],
-                          preferredName: Option[String],
-                          email: Option[String],
-                          guaranteedInterviewScheme: Option[String],
-                          behaviouralTScore: Option[String],
-                          situationalTScore: Option[String]
-                         )
+case class InternshipReportItem(
+  applicationRoute: ApplicationRoute,
+  progressStatus: Option[String],
+  firstName: Option[String],
+  lastName: Option[String],
+  preferredName: Option[String],
+  email: Option[String],
+  guaranteedInterviewScheme: Option[String],
+  behaviouralTScore: Option[String],
+  situationalTScore: Option[String]
+)
 
-case object EdipReportItem {
-  def apply(application: ApplicationForEdipReport, contactDetails: ContactDetailsWithId): EdipReportItem = {
-    EdipReportItem(
+case object InternshipReportItem {
+  def apply(application: ApplicationForInternshipReport, contactDetails: ContactDetailsWithId): InternshipReportItem = {
+    InternshipReportItem(
+      applicationRoute = application.applicationRoute,
       progressStatus = application.progressStatus,
       firstName = application.firstName,
       lastName = application.lastName,
@@ -43,5 +47,5 @@ case object EdipReportItem {
     )
   }
 
-  implicit val mailingListExtractReportItemFormat = Json.format[EdipReportItem]
+  implicit val internshipReportItemFormat = Json.format[InternshipReportItem]
 }
