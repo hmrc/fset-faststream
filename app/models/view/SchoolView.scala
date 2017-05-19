@@ -31,15 +31,15 @@ object SchoolView {
   implicit class SchoolImplicits(school:School) {
     def toSchoolView: SchoolView = {
       val address = school match {
-        case _ if school.address1.exists(_.trim.nonEmpty) => school.address1
-        case _ if school.address2.exists(_.trim.nonEmpty) => school.address2
-        case _ if school.address3.exists(_.trim.nonEmpty) => school.address3
+        case _ if school.addressLine1.exists(_.trim.nonEmpty) => school.addressLine1
+        case _ if school.addressLine2.exists(_.trim.nonEmpty) => school.addressLine2
+        case _ if school.addressLine3.exists(_.trim.nonEmpty) => school.addressLine3
         case _ => None
       }
       val label = List(
         school.name,
         address.getOrElse(""),
-        school.address4.getOrElse(""),
+        school.addressLine4.getOrElse(""),
         school.postCode.getOrElse("")
       ).filter(_.nonEmpty).mkString(", ")
 

@@ -18,8 +18,8 @@ package connectors.exchange
 
 import play.api.libs.json.Json
 
-case class School(typeId: String, id:String, name:String, address1: Option[String] = None, address2: Option[String] = None,
-                  address3: Option[String] = None, address4: Option[String] = None, postCode: Option[String] = None,
+case class School(typeId: String, id:String, name:String, addressLine1: Option[String] = None, addressLine2: Option[String] = None,
+                  addressLine3: Option[String] = None, addressLine4: Option[String] = None, postCode: Option[String] = None,
                   phaseOfEducation: Option[String] = None, typeOfEstablishment: Option[String] = None)
 
 object School {
