@@ -148,10 +148,15 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val behaviouralTScore = testResults.behavioural.flatMap(_.tScore)
       val situationalTScore = testResults.situational.flatMap(_.tScore)
 
+      // FDH to only return the statuses relevant to SDIP for an SdipFaststream candidate.
+      val modifiedProgressResponse = progressResponse.copy(phase2ProgressResponse = Phase2ProgressResponse(),
+        phase3ProgressResponse = Phase3ProgressResponse()
+      )
+
       ApplicationForInternshipReport(
         applicationRoute = route,
         userId = userId,
-        progressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(progressResponse)),
+        progressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(modifiedProgressResponse)),
         firstName = firstName,
         lastName = lastName,
         preferredName = preferredName,
