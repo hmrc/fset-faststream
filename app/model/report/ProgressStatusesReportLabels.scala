@@ -47,6 +47,10 @@ trait ProgressStatusesReportLabels {
     (progress.phase1ProgressResponse.phase1TestsSuccessNotified, 185, Phase1TestsSuccessNotified),
     (progress.phase1ProgressResponse.phase1TestsFailed, 190, Phase1TestsFailed),
     (progress.phase1ProgressResponse.phase1TestsFailedNotified, 195, Phase1TestsFailedNotified),
+    (progress.phase1ProgressResponse.sdipFSSuccessful, 181, SdipFaststreamPassed),
+    (progress.phase1ProgressResponse.sdipFSSuccessfulNotified, 182, SdipFaststreamPassedNotified),
+    (progress.phase1ProgressResponse.sdipFSFailed, 191, SdipFaststreamFailed),
+    (progress.phase1ProgressResponse.sdipFSFailedNotified, 192, SdipFaststreamFailedNotified),
     (progress.phase2ProgressResponse.phase2TestsInvited, 200, Phase2TestsInvited),
     (progress.phase2ProgressResponse.phase2TestsFirstReminder, 210, Phase2TestsFirstReminder),
     (progress.phase2ProgressResponse.phase2TestsSecondReminder, 220, Phase2TestsSecondReminder),
@@ -122,6 +126,10 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val SubmittedProgress = "submitted"
   val WithdrawnProgress = "withdrawn"
   val Phase1TestsInvited = "phase1_tests_invited"
+  val SdipFaststreamPassed = "phase1_tests_sdip_faststream_passed"
+  val SdipFaststreamPassedNotified = "sdip_passed_notified"
+  val SdipFaststreamFailed = "sdip_failed"
+  val SdipFaststreamFailedNotified = "sdip_failed_notified"
   val Phase1TestsFirstReminder = "phase1_tests_first_reminder"
   val Phase1TestsSecondReminder = "phase1_tests_second_reminder"
   val Phase1TestsStarted = "phase1_tests_started"
