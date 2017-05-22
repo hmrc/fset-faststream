@@ -150,7 +150,10 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
       // FDH to only return the statuses relevant to SDIP for an SdipFaststream candidate.
       val modifiedProgressResponse = progressResponse.copy(phase2ProgressResponse = Phase2ProgressResponse(),
-        phase3ProgressResponse = Phase3ProgressResponse()
+        phase3ProgressResponse = Phase3ProgressResponse(),
+        // if they've failed SDIP then we don't care if they've been exported for Faststream
+        exported = if (progressResponse.phase1ProgressResponse.sdipFSFailed) false else progressResponse.exported,
+        updateExported = if (progressResponse.phase1ProgressResponse.sdipFSFailed) false else progressResponse.updateExported
       )
 
       ApplicationForInternshipReport(
