@@ -114,3 +114,6 @@ PUT         /application/:applicationId/issue                            control
 DELETE      /application/:applicationId/issue                            controllers.FlagCandidateController.remove(applicationId: String)
 
 GET         /schools                                                     controllers.SchoolsController.getSchools(term: String)
+
+# Assessment Centres
+GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)
