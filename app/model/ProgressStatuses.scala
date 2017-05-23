@@ -159,6 +159,9 @@ object ProgressStatuses {
   // Reflection is generally 'A bad thing' but in this case it ensures that all progress statues are taken into account
   // Had considered an implementation with a macro, but that would need defining in another compilation unit
   // As it is a val in a object, it is only run once upon startup
+
+  // TODO  this does NOT contain all the statuses as it cannot instantiate the SDIP statuses,
+  // so we're a few progress statuses short of an application anywhere we're using this list.
   private[model] val allStatuses: Seq[ProgressStatus] = {
     import scala.reflect.runtime.universe._
     val mirror = runtimeMirror(this.getClass.getClassLoader)
