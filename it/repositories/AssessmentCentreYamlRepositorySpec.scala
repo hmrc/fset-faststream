@@ -67,7 +67,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
       val capacityDate = venue.capacityDates.head
       capacityDate.amCapacity mustBe 6
       capacityDate.pmCapacity mustBe 6
-      capacityDate.date.toString(DateFormat) mustBe "24/5/17"
+      capacityDate.date.toString(DateFormat) mustBe "24/5/18"
     }
 
     "reject invalid configuration" in {
@@ -118,7 +118,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
       val venue = assessmentCapacity.venues(1)
       venue.venueName mustBe "London (FSAC) 1"
       venue.venueDescription mustBe "FSAC"
-      val capacityDate = venue.capacityDates.find(_.date == new LocalDate("2016-07-04")).get
+      val capacityDate = venue.capacityDates.find(_.date == new LocalDate("2017-07-04")).get
       capacityDate.amCapacity mustBe 6
       capacityDate.pmCapacity mustBe 6
     }
