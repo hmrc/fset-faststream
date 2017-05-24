@@ -105,8 +105,6 @@ trait CommonBSONDocuments extends BaseBSONReader {
           submitted = getProgress(ProgressStatuses.SUBMITTED.key),
           fastPassAccepted = getProgress(ProgressStatuses.FAST_PASS_ACCEPTED.key),
           withdrawn = getProgress(ProgressStatuses.WITHDRAWN.key),
-          sdipFSFailed = getProgress(FailedSdipFsTestType.progressStatus),
-          sdipFSSuccessful = getProgress(SuccessfulSdipFsTestType.progressStatus),
           applicationArchived = getProgress(ProgressStatuses.APPLICATION_ARCHIVED.key),
           phase1ProgressResponse = Phase1ProgressResponse(
             phase1TestsInvited = getProgress(ProgressStatuses.PHASE1_TESTS_INVITED.key),
@@ -120,7 +118,11 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase1TestsPassed = getProgress(ProgressStatuses.PHASE1_TESTS_PASSED.key),
             phase1TestsSuccessNotified = getProgress(ProgressStatuses.PHASE1_TESTS_SUCCESS_NOTIFIED.key),
             phase1TestsFailed = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED.key),
-            phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key)
+            phase1TestsFailedNotified = getProgress(ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED.key),
+            sdipFSFailed = getProgress(FailedSdipFsTestType.progressStatus),
+            sdipFSFailedNotified = getProgress(FailedSdipFsTestType.notificationProgress),
+            sdipFSSuccessful = getProgress(SuccessfulSdipFsTestType.progressStatus),
+            sdipFSSuccessfulNotified = getProgress(SuccessfulSdipFsTestType.notificationProgress)
           ),
           phase2ProgressResponse = Phase2ProgressResponse(
             phase2TestsInvited = getProgress(ProgressStatuses.PHASE2_TESTS_INVITED.key),

@@ -106,7 +106,9 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
         BSONDocument("$or" -> BSONArray(
-          ApplicationRoute.Edip, ApplicationRoute.Sdip
+          BSONDocument("applicationRoute" -> ApplicationRoute.Edip),
+          BSONDocument("applicationRoute" -> ApplicationRoute.Sdip),
+          BSONDocument("applicationRoute" ->  ApplicationRoute.SdipFaststream)
         )),
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_COMPLETED}" -> true),
         BSONDocument("personal-details" -> BSONDocument("$exists" -> true)),

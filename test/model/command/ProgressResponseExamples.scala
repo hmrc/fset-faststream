@@ -20,47 +20,19 @@ import java.util.UUID
 
 object ProgressResponseExamples {
   val Initial = ProgressResponse(applicationId = UUID.randomUUID().toString,
-    personalDetails = false,
-    schemePreferences = false,
-    partnerGraduateProgrammes = false,
-    assistanceDetails = false,
-    preview = false,
     questionnaire = Nil,
-    submitted = false,
-    withdrawn = false,
-    sdipFSFailed = false,
-    sdipFSSuccessful = false,
-    phase1ProgressResponse = Phase1ProgressResponse(
-      phase1TestsInvited = false,
-      phase1TestsStarted = false,
-      phase1TestsCompleted = false,
-      phase1TestsExpired = false,
-      phase1TestsResultsReady = false,
-      phase1TestsResultsReceived = false,
-      phase1TestsPassed = false,
-      phase1TestsFailed = false
-    ),
-    phase2ProgressResponse = Phase2ProgressResponse(phase2TestsInvited = false,
-      phase2TestsStarted = false,
-      phase2TestsCompleted = false,
-      phase2TestsExpired = false,
-      phase2TestsResultsReceived = false
-    ),
-    phase3ProgressResponse = Phase3ProgressResponse(phase3TestsInvited = false,
-      phase3TestsStarted = false,
-      phase3TestsCompleted = false,
-      phase3TestsExpired = false,
-      phase3TestsResultsReceived = false
-    ),
-    failedToAttend = false
+    phase1ProgressResponse = Phase1ProgressResponse(),
+    phase2ProgressResponse = Phase2ProgressResponse(),
+    phase3ProgressResponse = Phase3ProgressResponse()
   )
-  val InProgress = Initial.copy(personalDetails = true)
-  val InPersonalDetails = Initial.copy(personalDetails = true)
-  val InSchemePreferences = InPersonalDetails.copy(schemePreferences = true)
-  val InPartnerGraduateProgrammes = InSchemePreferences.copy(partnerGraduateProgrammes = true)
-  val InAssistanceDetails = InPartnerGraduateProgrammes.copy(assistanceDetails = true)
-  val InQuestionnaire = InAssistanceDetails.copy(questionnaire = List("start_questionnaire", "diversity_questionnaire",
+
+  val InProgress: ProgressResponse = Initial.copy(personalDetails = true)
+  val InPersonalDetails: ProgressResponse = Initial.copy(personalDetails = true)
+  val InSchemePreferences: ProgressResponse = InPersonalDetails.copy(schemePreferences = true)
+  val InPartnerGraduateProgrammes: ProgressResponse = InSchemePreferences.copy(partnerGraduateProgrammes = true)
+  val InAssistanceDetails: ProgressResponse = InPartnerGraduateProgrammes.copy(assistanceDetails = true)
+  val InQuestionnaire: ProgressResponse = InAssistanceDetails.copy(questionnaire = List("start_questionnaire", "diversity_questionnaire",
     "education_questionnaire", "occupation_questionnaire"))
-  val InPreview = InQuestionnaire.copy(preview = true)
-  val InSubmit = InPreview.copy(submitted = true)
+  val InPreview: ProgressResponse = InQuestionnaire.copy(preview = true)
+  val InSubmit: ProgressResponse = InPreview.copy(submitted = true)
 }
