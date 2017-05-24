@@ -33,7 +33,7 @@ object OnlineTestCommands {
                                    lastName: String,
                                    eTrayAdjustments: Option[AdjustmentDetail],
                                    videoInterviewAdjustments: Option[AdjustmentDetail]) {
-    def isInvigilatedETray = needsOnlineAdjustments && eTrayAdjustments.exists(_.invigilatedInfo.isDefined)
+    def isInvigilatedETray = eTrayAdjustments.exists(_.invigilatedInfo.isDefined)
     def isInvigilatedVideo = videoInterviewAdjustments.exists(_.invigilatedInfo.isDefined)
   }
 
