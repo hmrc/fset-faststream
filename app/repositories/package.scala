@@ -15,6 +15,7 @@
  */
 
 import factories.DateTimeFactory
+import model.AssessorAvailabilityPersistedObjects.AssessorAvailability
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
@@ -78,6 +79,7 @@ package object repositories {
   lazy val eventMongoRepository = new EventMongoRepository
   lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
+  lazy val assessorAvailabilityRepository = new AssessorAvailabilityMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
@@ -146,15 +148,34 @@ package object repositories {
     }
   }
 
-implicit object OFormatHelper {
-  def oFormat[T](implicit format:Format[T]) : OFormat[T] = {
-    val oFormat: OFormat[T] = new OFormat[T](){
-      override def writes(o: T): JsObject = format.writes(o).as[JsObject]
-      override def reads(json: JsValue): JsResult[T] = format.reads(json)
+  implicit object BSONMapOfListOfLocalDateHandler extends BSONHandler[BSONDocument, Map[String, List[LocalDate]]] {
+    override def write(map: Map[String, List[LocalDate]]): BSONDocument = {
+      val elements = map.toStream.map {
+        case (key, value) =>
+          val dates = value.map(date => BSONString(date.toString("yyyy-MM-dd")))
+          key -> BSONArray(dates)
+      }
+      BSONDocument(elements)
     }
-    oFormat
+
+    override def read(bson: BSONDocument): Map[String, List[LocalDate]] = {
+      val elements = bson.elements.map {
+        case (key, value) =>
+          key -> value.seeAsTry[List[LocalDate]].get
+      }
+      elements.toMap
+    }
   }
-}
+
+  implicit object OFormatHelper {
+    def oFormat[T](implicit format:Format[T]) : OFormat[T] = {
+      val oFormat: OFormat[T] = new OFormat[T](){
+        override def writes(o: T): JsObject = format.writes(o).as[JsObject]
+        override def reads(json: JsValue): JsResult[T] = format.reads(json)
+      }
+      oFormat
+    }
+  }
 
   implicit val withdrawHandler: BSONHandler[BSONDocument, WithdrawApplication] = Macros.handler[WithdrawApplication]
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
@@ -175,6 +196,8 @@ implicit object OFormatHelper {
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
   implicit val adjustmentDetailHandler: BSONHandler[BSONDocument, AdjustmentDetail] = Macros.handler[AdjustmentDetail]
+  implicit val assessorAvailabilityHandler: BSONHandler[BSONDocument, AssessorAvailability] =
+    Macros.handler[AssessorAvailability]
 
   def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
