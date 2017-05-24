@@ -69,16 +69,16 @@ trait AssessmentScheduleController extends BaseController {
 
   def getAssessmentScheduleDatesByRegion(region: String): Action[AnyContent] = Action.async { implicit request =>
      acRepository.assessmentCentreCapacities.map { schedule =>
-       val toRet = schedule
-         .filter(location => location.locationName == region)
-         .flatMap(location =>
-           location.venues.flatMap(venue =>
+       val dates = schedule
+         .filter(scheduleRegion => scheduleRegion.locationName == region)
+         .flatMap(scheduleRegion =>
+           scheduleRegion.venues.flatMap(venue =>
              venue.capacityDates.map(capacityDates =>
                capacityDates.date
              )
            )
          ).distinct.sorted
-       Ok(Json.toJson(toRet))
+       Ok(Json.toJson(dates))
      }
   }
 
