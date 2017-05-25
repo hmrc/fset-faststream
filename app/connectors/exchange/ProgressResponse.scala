@@ -37,7 +37,11 @@ case class Phase1ProgressResponse(
   phase1TestsResultsReady: Boolean = false,
   phase1TestsResultsReceived: Boolean = false,
   phase1TestsPassed: Boolean = false,
-  phase1TestsFailed: Boolean = false
+  phase1TestsFailed: Boolean = false,
+  sdipFSFailed: Boolean = false,
+  sdipFSFailedNotified: Boolean = false,
+  sdipFSSuccessful: Boolean = false,
+  sdipFSSuccessfulNotified: Boolean = false
  )
 
 case class Phase2ProgressResponse(
@@ -75,8 +79,6 @@ case class ProgressResponse(
   questionnaire: List[String] = Nil,
   submitted: Boolean = false,
   withdrawn: Boolean = false,
-  sdipFSFailed: Boolean = false,
-  sdipFSSuccessful: Boolean = false,
   phase1ProgressResponse: Phase1ProgressResponse = Phase1ProgressResponse(),
   phase2ProgressResponse: Phase2ProgressResponse = Phase2ProgressResponse(),
   phase3ProgressResponse: Phase3ProgressResponse = Phase3ProgressResponse(),
