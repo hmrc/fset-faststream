@@ -149,13 +149,15 @@ package object repositories {
   }
 
   implicit object BSONMapOfListOfLocalDateHandler extends BSONHandler[BSONDocument, Map[String, List[LocalDate]]] {
+    import Producer._
+
     override def write(map: Map[String, List[LocalDate]]): BSONDocument = {
-      val elements = map.toStream.map {
+      val elements = map.map {
         case (key, value) =>
-          val dates = value.map(date => BSONString(date.toString("yyyy-MM-dd")))
-          key -> BSONArray(dates)
-      }
-      BSONDocument(elements)
+          nameValue2Producer(key -> value)
+      }.toSeq
+
+      BSONDocument(elements:_*)
     }
 
     override def read(bson: BSONDocument): Map[String, List[LocalDate]] = {
