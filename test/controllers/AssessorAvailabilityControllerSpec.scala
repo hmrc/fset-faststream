@@ -24,6 +24,7 @@ import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import services.assessoravailability.AssessorAvailabilityService
+import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -47,7 +48,7 @@ class AssessorAvailabilityControllerSpec extends UnitWithAppSpec {
 
   "find" should {
     "return an assessor's availability" in {
-      when(mockAssessorAvailabilityService.find(UserId)).thenReturn(Future.successful(AssessorAvailabilityInBothLondonAndNewcastle))
+      when(mockAssessorAvailabilityService.find(UserId)).thenReturnAsync(AssessorAvailabilityInBothLondonAndNewcastle)
       val response = controller.find(UserId)(fakeRequest)
       status(response) mustBe OK
       contentAsJson(response) mustBe Json.toJson[AssessorAvailability](AssessorAvailabilityInBothLondonAndNewcastle)
