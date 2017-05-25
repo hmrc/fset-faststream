@@ -19,7 +19,7 @@ package controllers
 import model.Exceptions.AssessorAvailabilityNotFoundException
 import model.exchange.AssessorAvailability
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{ Action, AnyContent }
 import services.assessoravailability.AssessorAvailabilityService
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -45,6 +45,14 @@ trait AssessorAvailabilityController extends BaseController {
       Ok(Json.toJson(availability))
     } recover {
       case e: AssessorAvailabilityNotFoundException => NotFound(s"Cannot find assessor availability userId: ${e.userId}")
+    }
+  }
+
+  def countSubmitted(): Action[AnyContent] = Action.async { implicit request =>
+    assessorAvailabilityService.countSubmitted().map { count =>
+      Ok(Json.obj("size" -> count))
+    } recover {
+      case ex: Throwable => InternalServerError("Could not retrieve a count of submitted assessor availabilities")
     }
   }
 }

@@ -71,18 +71,18 @@ GET         /diagnostic/user/:userId                                     control
 GET         /diagnostic/all-users                                        controllers.DiagnosticReportController.getAllApplications
 DELETE      /diagnostic/application/:applicationId/eTray                 controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
 DELETE      /diagnostic/application/:applicationId/progress/:progress    controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
-DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation  controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
+DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
 PUT         /diagnostic/application/:applicationId/fastPassPromotion     controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
 
-GET         /online-test/phase1/candidate/:applicationId        controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
-GET         /online-test/phase2/candidate/:applicationId        controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
-GET         /online-test/phase3/candidate/:applicationId        controllers.OnlineTestController.getPhase3OnlineTest(applicationId: String)
-POST        /online-test/candidate/:userId/status               controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
-POST        /online-test/phase1/reset/:applicationId            controllers.OnlineTestController.resetPhase1OnlineTests(applicationId: String)
-POST        /online-test/phase2/reset/:applicationId            controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
-POST        /online-test/phase3/reset/:applicationId            controllers.OnlineTestController.resetPhase3OnlineTest(applicationId: String)
+GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
+GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
+GET         /online-test/phase3/candidate/:applicationId                 controllers.OnlineTestController.getPhase3OnlineTest(applicationId: String)
+POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
+POST        /online-test/phase1/reset/:applicationId                     controllers.OnlineTestController.resetPhase1OnlineTests(applicationId: String)
+POST        /online-test/phase2/reset/:applicationId                     controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
+POST        /online-test/phase3/reset/:applicationId                     controllers.OnlineTestController.resetPhase3OnlineTest(applicationId: String)
 
-POST        /online-test/phase2/verifyAccessCode                controllers.OnlineTestController.verifyAccessCode()
+POST        /online-test/phase2/verifyAccessCode                         controllers.OnlineTestController.verifyAccessCode()
 
 PUT         /cubiks/:cubiksUserId/start                                  controllers.CubiksTestsController.start(cubiksUserId: Int)
 PUT         /cubiks/:cubiksUserId/complete                               controllers.CubiksTestsController.complete(cubiksUserId: Int)
@@ -114,8 +114,9 @@ DELETE      /application/:applicationId/issue                            control
 
 GET         /schools                                                     controllers.SchoolsController.getSchools(term: String)
 
-POST        /assessor-availability/:userId                               controllers.AssessorAvailabilityController.save(userId: String)
-GET         /assessor-availability/:userId                               controllers.AssessorAvailabilityController.find(userId: String)
+POST        /assessor-availability/save/:userId                          controllers.AssessorAvailabilityController.save(userId: String)
+GET         /assessor-availability/find/:userId                          controllers.AssessorAvailabilityController.find(userId: String)
+GET         /assessor-availability/countSubmitted                        controllers.AssessorAvailabilityController.countSubmitted()
 
 # Assessment Centres
 GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)

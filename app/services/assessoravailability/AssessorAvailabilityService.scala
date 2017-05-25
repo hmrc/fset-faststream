@@ -47,4 +47,8 @@ trait AssessorAvailabilityService {
       }
     }
   }
+
+  def countSubmitted(): Future[Int] = {
+    aaRepository.countSubmitted
+  }
 }
