@@ -21,8 +21,9 @@ import model.command.PersonalDetails
 import model.persisted.{ ContactDetails, PersonalDetails }
 import repositories._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
-import repositories.NorthSouthIndicatorCSVRepository.calculateFsacIndicator
+import repositories.csv.FSACIndicatorCSVRepository.find
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.csv.FSACIndicatorCSVRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.AuditService
 
@@ -33,6 +34,7 @@ object PersonalDetailsService extends PersonalDetailsService {
   val pdRepository = faststreamPersonalDetailsRepository
   val cdRepository = faststreamContactDetailsRepository
   val csedRepository = civilServiceExperienceDetailsRepository
+  val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
   val auditService = AuditService
 }
 
@@ -40,6 +42,7 @@ trait PersonalDetailsService {
   val pdRepository: PersonalDetailsRepository
   val cdRepository: ContactDetailsRepository
   val csedRepository: CivilServiceExperienceDetailsRepository
+  val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
   val auditService: AuditService
 
   def update(applicationId: String, userId: String, personalDetails: model.command.PersonalDetails): Future[Unit] = {
@@ -77,7 +80,7 @@ trait PersonalDetailsService {
       civilServiceExperienceDetails <- civilServiceExperienceDetailsFut
     } yield model.command.PersonalDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
       contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
-      calculateFsacIndicator(contactDetails.postCode, contactDetails.outsideUk),
+      fsacIndicatorCSVRepository.find(contactDetails.postCode, contactDetails.outsideUk),
       contactDetails.country, contactDetails.phone, civilServiceExperienceDetails, personalDetails.edipCompleted)
   }
 

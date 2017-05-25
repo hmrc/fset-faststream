@@ -24,6 +24,7 @@ import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.csv.FSACIndicatorCSVRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.AuditService
 import testkit.{ ShortTimeout, UnitWithAppSpec }
@@ -34,12 +35,14 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
   val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
   val mockContactDetailsRepository = mock[ContactDetailsRepository]
   val mockCivilServiceExperienceDetailsRepository = mock[CivilServiceExperienceDetailsRepository]
+  val mockFSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
   val mockAuditService = mock[AuditService]
 
   val service = new PersonalDetailsService {
     val pdRepository = mockPersonalDetailsRepository
     val cdRepository = mockContactDetailsRepository
     val csedRepository = mockCivilServiceExperienceDetailsRepository
+    val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mockFSACIndicatorCSVRepository
     val auditService = mockAuditService
   }
 
@@ -69,6 +72,7 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
       when(mockContactDetailsRepository.find(UserId)).thenReturn(Future.successful(ContactDetailsUK))
       when(mockCivilServiceExperienceDetailsRepository.find(AppId)
       ).thenReturn(Future.successful(Some(CivilServiceExperienceDetails(applicable = false))))
+      when(mockFSACIndicatorCSVRepository.find(any(), any())).thenReturn(Some("London"))
 
       val response = service.find(AppId, UserId).futureValue
 
@@ -80,6 +84,7 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
       when(mockContactDetailsRepository.find(UserId)).thenReturn(Future.successful(ContactDetailsUK))
       when(mockCivilServiceExperienceDetailsRepository.find(AppId)
       ).thenReturn(Future.successful(Some(CivilServiceExperienceDetails(applicable = false))))
+      when(mockFSACIndicatorCSVRepository.find(any(), any())).thenReturn(Some("London"))
 
       val response = service.find(AppId, UserId).futureValue
 

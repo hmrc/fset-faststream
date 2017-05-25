@@ -25,6 +25,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import repositories.application.{ ReportingMongoRepository, ReportingRepository }
 import repositories.contactdetails.ContactDetailsMongoRepository
+import repositories.csv.FSACIndicatorCSVRepository
 import repositories.{ QuestionnaireRepository, _ }
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -37,7 +38,7 @@ object ReportingController extends ReportingController {
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresMongoRepository = repositories.applicationAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
-  val indicatorRepository: _root_.repositories.NorthSouthIndicatorCSVRepository.type = repositories.northSouthIndicatorRepository
+  val fsacIndicatorRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorRepository
   val authProviderClient = AuthProviderClient
 }
 
@@ -50,7 +51,7 @@ trait ReportingController extends BaseController {
   val questionnaireRepository: QuestionnaireRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresRepository
   val mediaRepository: MediaRepository
-  val indicatorRepository: NorthSouthIndicatorCSVRepository
+  val fsacIndicatorRepository: FSACIndicatorCSVRepository
   val authProviderClient: AuthProviderClient
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -120,11 +121,15 @@ trait ReportingController extends BaseController {
 
   def candidateProgressReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val candidatesFut: Future[List[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
+
+    // TODO MIGUEL: Once we store the fsac indicator in application collection, we can retrieve that in reportingRepository
+    // and forget about retrieving the postCodes here and we can also avoid the enrich method below and have that logic
+    // in the reportingRepo. That should make things clearer.
     val postCodesFut: Future[Map[String, String]] = contactDetailsRepository.findAllPostcodes()
 
     for{
       (candidates, postCodes) <- candidatesFut.zip(postCodesFut)
-      report <- enrichReport(candidates, postCodes)
+      report <- enrichCandidateProgressReportWithFSACIndicator(candidates, postCodes)
     } yield Ok(Json.toJson(report))
   }
 
@@ -191,7 +196,7 @@ trait ReportingController extends BaseController {
         )
 
         val (postCode, outsideUk) = contactDetails.map(cd => (cd.postCode, cd.outsideUk)).getOrElse((None, false))
-        val indicator = indicatorRepository.calculateFsacIndicator(postCode, outsideUk).getOrElse("Unknown")
+        val indicator = fsacIndicatorRepository.find(postCode, outsideUk).getOrElse("Unknown")
 
         TimeToOfferItem(appTimeToOffer, email, diversityReportItem, indicator)
       }
@@ -232,11 +237,11 @@ trait ReportingController extends BaseController {
     }
   }
 
-  private def enrichReport(candidates: List[CandidateProgressReportItem], postcodes: Map[String, String]):
+  private def enrichCandidateProgressReportWithFSACIndicator(candidates: List[CandidateProgressReportItem], postcodes: Map[String, String]):
     Future[List[CandidateProgressReportItem]] = {
 
     Future.successful(candidates.map(candidate => candidate.copy(
-      fsacIndicator = indicatorRepository.calculateFsacIndicatorForReports(postcodes.get(candidate.userId), candidate))))
+      fsacIndicator = fsacIndicatorRepository.findForCandidateProgressReport(postcodes.get(candidate.userId), candidate))))
   }
 
   // This method is not used at this moment
