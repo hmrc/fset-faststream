@@ -82,7 +82,6 @@ POST        /online-test/phase1/reset/:applicationId            controllers.Onli
 POST        /online-test/phase2/reset/:applicationId            controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
 POST        /online-test/phase3/reset/:applicationId            controllers.OnlineTestController.resetPhase3OnlineTest(applicationId: String)
 
-
 POST        /online-test/phase2/verifyAccessCode                controllers.OnlineTestController.verifyAccessCode()
 
 PUT         /cubiks/:cubiksUserId/start                                  controllers.CubiksTestsController.start(cubiksUserId: Int)
@@ -114,6 +113,9 @@ PUT         /application/:applicationId/issue                            control
 DELETE      /application/:applicationId/issue                            controllers.FlagCandidateController.remove(applicationId: String)
 
 GET         /schools                                                     controllers.SchoolsController.getSchools(term: String)
+
+POST        /assessor-availability/:userId                               controllers.AssessorAvailabilityController.save(userId: String)
+GET         /assessor-availability/:userId                               controllers.AssessorAvailabilityController.find(userId: String)
 
 # Assessment Centres
 GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)

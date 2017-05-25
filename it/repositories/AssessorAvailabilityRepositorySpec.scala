@@ -27,7 +27,7 @@ class AssessorAvailabilityRepositorySpec extends MongoRepositorySpec {
       )
       repository.save(availability).futureValue
 
-      val result = repository.tryGet(userId).futureValue
+      val result = repository.find(userId).futureValue
       result.get mustBe availability
     }
 
@@ -37,14 +37,14 @@ class AssessorAvailabilityRepositorySpec extends MongoRepositorySpec {
         Map("london" -> List(new LocalDate(2017, 9, 11)), "newcastle" -> List(new LocalDate(2017, 9, 12))))
       repository.save(availability).futureValue
 
-      val result = repository.tryGet(userId).futureValue
+      val result = repository.find(userId).futureValue
       result.get mustBe availability
 
       val updated = AssessorAvailability(userId,
         Map("london" -> List(new LocalDate(2017, 9, 11)), "newcastle" -> List(new LocalDate(2017, 9, 12))))
       repository.save(updated).futureValue
 
-      val updatedResult = repository.tryGet(userId).futureValue
+      val updatedResult = repository.find(userId).futureValue
       updatedResult.get mustBe updated
     }
   }

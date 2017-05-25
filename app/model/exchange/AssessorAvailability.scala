@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package model
+package model.exchange
 
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
-object AssessorAvailabilityPersistedObjects {
+case class AssessorAvailability(availability: Map[String, List[LocalDate]])
 
-  case class AssessorAvailability(userId: String, availability: Map[String, List[LocalDate]])
-
-  object Implicits {
-    implicit val persistedAssessorAvailabilityFormat = Json.format[AssessorAvailability]
-  }
+object AssessorAvailability {
+  implicit val assessorAvailabilityFormat = Json.format[AssessorAvailability]
 }

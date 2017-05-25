@@ -28,7 +28,7 @@ import scala.concurrent.Future
 
 trait AssessorAvailabilityRepository {
 
-  def tryGet(userId: String): Future[Option[AssessorAvailability]]
+  def find(userId: String): Future[Option[AssessorAvailability]]
 
   def save(settings: AssessorAvailability): Future[Unit]
 }
@@ -40,7 +40,7 @@ class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats) with AssessorAvailabilityRepository {
   //scalastyle:on
 
-  override def tryGet(userId: String): Future[Option[AssessorAvailability]] = {
+  override def find(userId: String): Future[Option[AssessorAvailability]] = {
     val query = BSONDocument(
       "userId" -> userId
     )
@@ -54,8 +54,6 @@ class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
 
   override def save(assessorAvailability: AssessorAvailability): Future[Unit] = {
     val query = BSONDocument("userId" -> assessorAvailability.userId)
-    val doc = assessorAvailabilityHandler.write(assessorAvailability)
-
     val saveBson: BSONDocument = BSONDocument("$set" -> assessorAvailability)
     val insertIfNoRecordFound = true
 
