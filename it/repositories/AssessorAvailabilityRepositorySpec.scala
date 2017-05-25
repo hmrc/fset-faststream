@@ -1,6 +1,6 @@
 package repositories
 
-import model.AssessorAvailabilityPersistedObjects.AssessorAvailability
+import model.persisted.AssessorAvailability
 import org.joda.time.LocalDate
 import testkit.MongoRepositorySpec
 
