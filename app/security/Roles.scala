@@ -358,9 +358,10 @@ object RoleUtils {
 
   def isSdipFaststream(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.SdipFaststream)
 
-  def isSdipFaststreamFailed(implicit user: CachedData): Boolean = user.application.fold(false)(_.progress.sdipFSFailed)
+  def isSdipFaststreamFailed(implicit user: CachedData): Boolean = user.application.fold(false)(_.progress.phase1TestProgress.sdipFSFailed)
 
-  def isSdipFaststreamSuccessful(implicit user: CachedData): Boolean = user.application.fold(false)(_.progress.sdipFSSuccessful)
+  def isSdipFaststreamSuccessful(implicit user: CachedData): Boolean =
+    user.application.fold(false)(_.progress.phase1TestProgress.sdipFSSuccessful)
 
   def isFaststream(implicit user: Option[CachedData]): Boolean = user.forall(u => isFaststream(u))
 

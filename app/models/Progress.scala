@@ -31,7 +31,11 @@ case class Phase1TestProgress(
   phase1TestsResultsReady: Boolean = false,
   phase1TestsResultsReceived: Boolean = false,
   phase1TestsPassed: Boolean = false,
-  phase1TestsFailed: Boolean = false
+  phase1TestsFailed: Boolean = false,
+  sdipFSFailed: Boolean = false,
+  sdipFSFailedNotified: Boolean = false,
+  sdipFSSuccessful: Boolean = false,
+  sdipFSSuccessfulNotified: Boolean = false
  )
 
 case class Phase2TestProgress(
@@ -71,8 +75,6 @@ case class Progress(
   occupationQuestionnaire: Boolean = false,
   submitted: Boolean = false,
   withdrawn: Boolean = false,
-  sdipFSFailed: Boolean = false,
-  sdipFSSuccessful: Boolean = false,
   phase1TestProgress: Phase1TestProgress = Phase1TestProgress(),
   phase2TestProgress: Phase2TestProgress = Phase2TestProgress(),
   phase3TestProgress: Phase3TestProgress = Phase3TestProgress(),
@@ -105,8 +107,6 @@ object Progress {
       occupationQuestionnaire = progressResponse.questionnaire.contains("occupation_questionnaire"),
       submitted = progressResponse.submitted,
       withdrawn = progressResponse.withdrawn,
-      sdipFSFailed = progressResponse.sdipFSFailed,
-      sdipFSSuccessful = progressResponse.sdipFSSuccessful,
       phase1TestProgress = Phase1TestProgress(
         phase1TestsInvited = progressResponse.phase1ProgressResponse.phase1TestsInvited,
         phase1TestsStarted  = progressResponse.phase1ProgressResponse.phase1TestsStarted,
@@ -117,7 +117,11 @@ object Progress {
         phase1TestsResultsReady = progressResponse.phase1ProgressResponse.phase1TestsResultsReady,
         phase1TestsResultsReceived = progressResponse.phase1ProgressResponse.phase1TestsResultsReceived,
         phase1TestsPassed = progressResponse.phase1ProgressResponse.phase1TestsPassed,
-        phase1TestsFailed = progressResponse.phase1ProgressResponse.phase1TestsFailed
+        phase1TestsFailed = progressResponse.phase1ProgressResponse.phase1TestsFailed,
+        sdipFSFailed = progressResponse.phase1ProgressResponse.sdipFSFailed,
+        sdipFSFailedNotified = progressResponse.phase1ProgressResponse.sdipFSFailedNotified,
+        sdipFSSuccessful = progressResponse.phase1ProgressResponse.sdipFSSuccessful,
+        sdipFSSuccessfulNotified = progressResponse.phase1ProgressResponse.sdipFSSuccessfulNotified
       ),
       phase2TestProgress = Phase2TestProgress(
         phase2TestsInvited = progressResponse.phase2ProgressResponse.phase2TestsInvited,
