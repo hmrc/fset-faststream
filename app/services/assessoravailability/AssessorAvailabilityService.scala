@@ -30,7 +30,7 @@ trait AssessorAvailabilityService {
   val aaRepository: AssessorAvailabilityRepository
 
   def save(userId: String, assessorAvailability: model.exchange.AssessorAvailability): Future[Unit] = {
-    val assessorAvailabilityToPersist = model.AssessorAvailabilityPersistedObjects.AssessorAvailability(
+    val assessorAvailabilityToPersist = model.persisted.AssessorAvailability(
       userId, assessorAvailability.availability)
 
     for {
@@ -43,7 +43,7 @@ trait AssessorAvailabilityService {
       availabilityOpt <- aaRepository.find(userId)
     } yield {
       availabilityOpt.fold( throw AssessorAvailabilityNotFoundException(userId) ) {
-        availability => model.exchange.AssessorAvailability(availability.availability)
+        availability => model.exchange.AssessorAvailability(availability.userId, availability.availability)
       }
     }
   }

@@ -15,7 +15,7 @@
  */
 
 import factories.DateTimeFactory
-import model.AssessorAvailabilityPersistedObjects.AssessorAvailability
+import model.persisted.AssessorAvailability
 import model.CandidateScoresCommands.{ CandidateScoreFeedback, CandidateScores, CandidateScoresAndFeedback }
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate

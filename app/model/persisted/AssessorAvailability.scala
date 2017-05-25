@@ -19,9 +19,8 @@ package model.persisted
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
-case class AssessorAvailability(userId: String, availableDates: List[LocalDate])
+case class AssessorAvailability(userId: String, availability: Map[String, List[LocalDate]])
 
 object AssessorAvailability {
-  import repositories.BSONLocalDateHandler
   implicit val persistedAssessorAvailabilityFormat = Json.format[AssessorAvailability]
 }

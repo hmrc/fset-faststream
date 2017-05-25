@@ -19,7 +19,7 @@ package model.exchange
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
-case class AssessorAvailability(availability: Map[String, List[LocalDate]])
+case class AssessorAvailability(userId: String, availability: Map[String, List[LocalDate]])
 
 object AssessorAvailability {
   implicit val assessorAvailabilityFormat = Json.format[AssessorAvailability]

@@ -16,8 +16,7 @@
 
 package repositories
 
-import model.AssessorAvailabilityPersistedObjects.AssessorAvailability
-import model.AssessorAvailabilityPersistedObjects
+import model.persisted.AssessorAvailability
 import reactivemongo.api.DB
 import reactivemongo.bson._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -35,8 +34,8 @@ trait AssessorAvailabilityRepository {
 
 //scalastyle:off
 class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[AssessorAvailabilityPersistedObjects.AssessorAvailability, BSONObjectID](CollectionNames.ASSESSOR_AVAILABILITY, mongo,
-    AssessorAvailabilityPersistedObjects.Implicits.persistedAssessorAvailabilityFormat,
+  extends ReactiveRepository[AssessorAvailability, BSONObjectID](CollectionNames.ASSESSOR_AVAILABILITY, mongo,
+    AssessorAvailability.persistedAssessorAvailabilityFormat,
     ReactiveMongoFormats.objectIdFormats) with AssessorAvailabilityRepository {
   //scalastyle:on
 
