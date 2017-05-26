@@ -29,7 +29,7 @@ import services.testdata.faker.DataFaker.Random
 case class AssistanceDetails(
   hasDisability: String = Random.yesNoPreferNotToSay,
   hasDisabilityDescription: String = Random.hasDisabilityDescription,
-  setGis: Boolean = Random.bool,
+  setGis: Boolean = false,
   onlineAdjustments: Boolean = Random.bool,
   onlineAdjustmentsDescription: String = Random.onlineAdjustmentsDescription,
   assessmentCentreAdjustments: Boolean = Random.bool,
