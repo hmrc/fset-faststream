@@ -28,6 +28,7 @@ import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.AssessmentScheduleCommands.Implicits.ApplicationForAssessmentAllocationResultFormats
 import model.Commands.Implicits.applicationAssessmentFormat
 import model.Exceptions.NotFoundException
+import model.command.AssessmentCentreAllocation
 import model.{ Commands, ProgressStatuses }
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
@@ -82,26 +83,31 @@ trait AssessmentScheduleController extends BaseController {
      }
   }
 
-  /*
+
+  // TODO: uncomment all comments line in this method when implementing assessment centre schedule
+  // Remove dummy data lines under comments in some cases
   private def calculateUsedCapacity(assessments: Option[List[AssessmentCentreAllocation]], sessionCapacity: Int,
     minViableAttendees: Int, preferredAttendeeMargin: Int): UsedCapacity = {
-    assessments.map { sessionSlots =>
-      UsedCapacity(sessionSlots.size, sessionSlots.count(x => x.confirmed), minViableAttendees, preferredAttendeeMargin)
-    }.getOrElse(
-      UsedCapacity(usedCapacity = 0, confirmedAttendees = 0, minViableAttendees, preferredAttendeeMargin)
-    )
+    //assessments.map { sessionSlots =>
+      //UsedCapacity(sessionSlots.size, sessionSlots.count(x => x.confirmed), minViableAttendees, preferredAttendeeMargin)
+    //}.getOrElse(
+      // UsedCapacity(usedCapacity = 0, confirmedAttendees = 0, minViableAttendees, preferredAttendeeMargin)
+      UsedCapacity(usedCapacity = 0, false) // dummy data line
+    //)
   }
 
+  // TODO: uncomment all comments line in this method when implementing assessment centre schedule.
+  // Remove dummy data lines under comments in some cases.
   def getAssessmentSchedule: Action[AnyContent] = Action.async { implicit request =>
-    val assessments = aaRepository.findAll.map(_.groupBy(x => (x.venue, x.date, x.session)))
+    // val assessments = aaRepository.findAll.map(_.groupBy(x => (x.venue, x.date, x.session)))
 
     for {
-      assessmentMap <- assessments
+      // assessmentMap <- assessments
       assessmentCentreCapacities <- acRepository.assessmentCentreCapacities
     } yield {
       val schedule = Schedule(
         assessmentCentreCapacities.map(assessmentCentreCapacity =>
-          Location(
+          Region(
             assessmentCentreCapacity.locationName,
             assessmentCentreCapacity.venues.map(venue =>
               Venue(
@@ -110,12 +116,16 @@ trait AssessmentScheduleController extends BaseController {
                   UsedCapacityDate(
                     capacityDate.date,
                     calculateUsedCapacity(
-                      assessmentMap.get((venue.venueName, capacityDate.date, "AM")),
-                      capacityDate.amCapacity, capacityDate.amMinViableAttendees, capacityDate.amPreferredAttendeeMargin
+                      //assessmentMap.get((venue.venueName, capacityDate.date, "AM")),
+                      None,
+                      // capacityDate.amCapacity, capacityDate.amMinViableAttendees, capacityDate.amPreferredAttendeeMargin
+                      capacityDate.amCapacity, 0, 0 // dummy data line
                     ),
                     calculateUsedCapacity(
-                      assessmentMap.get((venue.venueName, capacityDate.date, "PM")),
-                      capacityDate.pmCapacity, capacityDate.pmMinViableAttendees, capacityDate.pmPreferredAttendeeMargin
+                      // assessmentMap.get((venue.venueName, capacityDate.date, "PM")),
+                      None,
+                      // capacityDate.pmCapacity, capacityDate.pmMinViableAttendees, capacityDate.pmPreferredAttendeeMargin
+                      capacityDate.pmCapacity, 0, 0 // dummy data line
                     )
                   ))
               ))
@@ -125,6 +135,7 @@ trait AssessmentScheduleController extends BaseController {
     }
   }
 
+  /*
   def getAssessmentCentreCapacities(venue: String): Action[AnyContent] = Action.async { implicit request =>
     val venueDecoded = URLDecoder.decode(venue, "UTF-8")
     val today = LocalDate.now()
