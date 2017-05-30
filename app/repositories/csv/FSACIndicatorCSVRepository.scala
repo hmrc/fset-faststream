@@ -56,62 +56,19 @@ object FSACIndicatorCSVRepository extends FSACIndicatorCSVRepository {
     }
   }
 
-  override def findForCandidateProgressReport(postcode: Option[String], candidate: CandidateProgressReportItem): Option[FSACIndicator] = {
-    if(candidate.applicationRoute != ApplicationRoute.Faststream) { None }
-    else if (candidate.progress.contains("registered")) { None }
-    else if (postcode.isEmpty) { Some(DefaultIndicator) }
-    else { find(postcode) }
-  }
-
   private def find(postcode: Option[String]): Option[FSACIndicator] = {
     postcode.flatMap(postCodeVal => {
       val postCodeUpperCase = postCodeVal.takeWhile(!_.isDigit).toUpperCase
       indicators.get(postCodeUpperCase).fold[Option[FSACIndicator]](Some(DefaultIndicator))(indicator => Some(indicator))
     })
   }
-
-  // TODO MIGUEL: Deprecated
-  override def findAsString(postcode: Option[String], outsideUk: Boolean): Option[String] = {
-    (postcode, outsideUk) match {
-      case (None, false) => None
-      case (None, true) => Some(DefaultIndicatorAsString)
-      case (aPostcode, false) => findAsString(aPostcode)
-      case _ => Some(DefaultIndicatorAsString)
-    }
-  }
-
-  // TODO MIGUEL: Deprecated
-  override def findAsStringForCandidateProgressReport(postcode: Option[String], candidate: CandidateProgressReportItem): Option[String] = {
-    if(candidate.applicationRoute != ApplicationRoute.Faststream) { None }
-    else if (candidate.progress.contains("registered")) { None }
-    else if (postcode.isEmpty) { Some(DefaultIndicatorAsString) }
-    else { findAsString(postcode) }
-  }
-
-  // TODO MIGUEL: Deprecated
-  private def findAsString(postcode: Option[String]): Option[String] = {
-    postcode.flatMap(postCodeVal => {
-      val key = postCodeVal.takeWhile(!_.isDigit).toUpperCase
-      indicators.get(key).fold[Option[String]](Some(DefaultIndicatorAsString))(indicator => Some(indicator.assessmentCentre))
-    })
-  }
-
 }
 
 trait FSACIndicatorCSVRepository extends CsvHelper {
   val FSACIndicatorVersion = "1"
-
-  // TODO MIGUEL: Deprecated
-  val DefaultIndicatorAsString = "London"
   val DefaultIndicator = FSACIndicator("London", "London")
 
   private[repositories] val indicators: Map[String, FSACIndicator]
 
   def find(postcode: Option[String], outsideUk: Boolean): Option[FSACIndicator]
-  def findForCandidateProgressReport(postcode: Option[String], candidate: CandidateProgressReportItem): Option[FSACIndicator]
-
-  // TODO MIGUEL: Deprecated
-  def findAsString(postcode: Option[String], outsideUk: Boolean): Option[String]
-  // TODO MIGUEL: Deprecated
-  def findAsStringForCandidateProgressReport(postcode: Option[String], candidate: CandidateProgressReportItem): Option[String]
 }

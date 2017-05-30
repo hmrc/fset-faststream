@@ -20,8 +20,7 @@ import play.api.libs.json.Json
 
 case class TimeToOfferItem(timeToOffer: TimeToOfferPartialItem,
                            email: Option[String],
-                           applicationInfo: DiversityReportItem,
-                           indicator: String)
+                           applicationInfo: DiversityReportItem)
 
 object TimeToOfferItem {
   implicit val timeToOfferItemFormat = Json.format[TimeToOfferItem]

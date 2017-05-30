@@ -19,11 +19,9 @@ package services.personaldetails
 import model.ApplicationStatus._
 import model.Exceptions.FSACCSVIndicatorNotFound
 import model.FSACIndicator
-import model.command.PersonalDetails
-import model.persisted.{ ContactDetails, PersonalDetails }
+import model.persisted.{ ContactDetails }
 import repositories._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
-import repositories.csv.FSACIndicatorCSVRepository.findAsString
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.fsacindicator.FSACIndicatorRepository

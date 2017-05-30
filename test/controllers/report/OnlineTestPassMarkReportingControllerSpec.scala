@@ -106,7 +106,7 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
       val questionnaireRepository = mockQuestionRepository
       val assessmentScoresRepository = mock[ApplicationAssessmentScoresRepository]
       val mediaRepository: MediaRepository = mockMediaRepository
-      val fsacIndicatorRepository: FSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
+      val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
       val authProviderClient = mock[AuthProviderClient]
     }
 

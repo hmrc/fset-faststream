@@ -104,10 +104,10 @@ trait ParityExportService extends EventSink {
     for {
       applicationDoc <- parityExRepository.getApplicationForExport(applicationId)
       userId = (applicationDoc \ "userId").as[String]
+      fsacIndicator = (applicationDoc \ "fsac-indicator" \ "assessmentCentre").as[String]
       contactDetails <- cdRepository.find(userId)
       mediaOpt <- mRepository.find(userId)
       diversityQuestions <- qRepository.findQuestions(applicationId)
-      fsacIndicator = fsacIndicatorCSVRepository.find(contactDetails.postCode, contactDetails.outsideUk).get
       sesScore = socioEconomicCalculator.calculateAsInt(diversityQuestions)
       passedSchemes <- applicationService.getPassedSchemes(userId, ExchangeObjects.frameworkId)
     } yield {
@@ -131,7 +131,7 @@ trait ParityExportService extends EventSink {
               mediaObj ++
               Json.obj("contact-details" -> contactDetails) ++
               Json.obj("diversity-questionnaire" -> Json.obj("questions" -> diversityQuestionsObj, "scoring" -> Json.obj("ses" -> sesScore))) ++
-              Json.obj("assessment-location" -> fsacIndicator.assessmentCentre) ++
+              Json.obj("assessment-location" -> fsacIndicator) ++
               Json.obj("results" -> Json.obj("passed-schemes" -> passedSchemes))
         }
       ) andThen (__ \ "testGroups").json.prune

@@ -24,7 +24,8 @@ case class TimeToOfferPartialItem(userId: String,
                                   preferredName: Option[String],
                                   submittedDate: Option[DateTime],
                                   exportedDate: Option[DateTime],
-                                  updateExported: Option[DateTime])
+                                  updateExported: Option[DateTime],
+                                  fsacIndicator: Option[String])
 
 object TimeToOfferPartialItem {
   implicit val timeToOfferPartialItemFormat = Json.format[TimeToOfferPartialItem]

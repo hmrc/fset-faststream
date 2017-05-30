@@ -96,7 +96,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       "assistance-details" -> "1",
       "civil-service-experience-details" -> "1",
       "applicationId" -> "1",
-      "progress-status" -> "2"
+      "progress-status" -> "2",
+      "fsac-indicator.assessmentCentre" -> 1
     )
     reportQueryWithProjectionsBSON[CandidateProgressReportItem](query, projection)
   }
@@ -502,7 +503,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
       "progress-status-timestamp" -> true,
       "personal-details.firstName" -> true,
       "personal-details.lastName" -> true,
-      "personal-details.preferredName" -> true
+      "personal-details.preferredName" -> true,
+      "fsac-indicator.assessmentCentre" -> true
     )
 
     collection.find(query, projection).cursor[BSONDocument]().collect[List]().map {
@@ -520,6 +522,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
         val maybeUpdateExportedTimestamp = getDate(doc, ApplicationStatus.UPDATE_EXPORTED).orElse(
           getLegacyDate(doc, ApplicationStatus.UPDATE_EXPORTED)
         )
+        val fsacIndicatorDoc = doc.getAs[BSONDocument]("fsac-indicator")
+        val assessmentCentre = fsacIndicatorDoc.flatMap(_.getAs[String]("assessmentCentre"))
 
         TimeToOfferPartialItem(
           userId,
@@ -527,7 +531,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
           preferredName,
           maybeSubmittedTimestamp,
           maybeExportedTimestamp,
-          maybeUpdateExportedTimestamp
+          maybeUpdateExportedTimestamp,
+          assessmentCentre
         )
       }
     }
