@@ -24,12 +24,12 @@ import model.command.WithdrawApplication
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import play.modules.reactivemongo.MongoDbConnection
-import repositories.application._
-import repositories.onlinetesting._
-import services.GBTimeZoneService
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
+import repositories.application._
+import repositories.onlinetesting._
+import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
@@ -39,6 +39,7 @@ import repositories.parity.ParityExportMongoRepository
 import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
+import repositories.fsacindicator.{ FSACIndicatorMongoRepository, FSACIndicatorRepository }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -64,7 +65,8 @@ package object repositories {
   lazy val faststreamPhase2EvaluationRepository = new onlinetesting.Phase2EvaluationMongoRepository()
   lazy val faststreamPhase3EvaluationRepository = new onlinetesting.Phase3EvaluationMongoRepository(launchpadGatewayConfig, DateTimeFactory)
   lazy val schoolsRepository = SchoolsCSVRepository
-  lazy val fsacIndicatorRepository = FSACIndicatorCSVRepository
+  lazy val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
+  lazy val fsacIndicatorRepository = new FSACIndicatorMongoRepository
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
   lazy val applicationRepository = new GeneralApplicationMongoRepository(timeZoneService, cubiksGatewayConfig)

@@ -16,7 +16,7 @@
 
 package model.command
 
-import model.{ Address, CivilServiceExperienceDetails }
+import model.{ Address, CivilServiceExperienceDetails, FSACIndicator }
 import model.Commands.{ PhoneNumber, PostCode }
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
@@ -29,7 +29,7 @@ case class PersonalDetails(firstName: String,
                            outsideUk: Boolean,
                            address: Address,
                            postCode: Option[PostCode],
-                           fsacIndicator: Option[String],
+                           fsacIndicator: Option[FSACIndicator],
                            country: Option[String],
                            phone: PhoneNumber,
                            civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],

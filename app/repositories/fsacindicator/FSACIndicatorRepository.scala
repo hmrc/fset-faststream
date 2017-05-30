@@ -41,6 +41,17 @@ class FSACIndicatorMongoRepository(implicit mongo: () => DB)
 
   val FSACIndicatorDocumentKey = "fsac-indicator"
 
+  override def find(applicationId: String): Future[FSACIndicator] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument(FSACIndicatorDocumentKey -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(document) if document.getAs[BSONDocument](FSACIndicatorDocumentKey).isDefined =>
+        document.getAs[FSACIndicator](FSACIndicatorDocumentKey).get
+      case _ => throw FSACIndicatorNotFound(applicationId)
+    }
+  }
+
   override def update(applicationId: String, userId: String, indicator: FSACIndicator): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId, "userId" -> userId)
     val updateBSON = BSONDocument("$set" -> BSONDocument(
@@ -51,16 +62,5 @@ class FSACIndicatorMongoRepository(implicit mongo: () => DB)
       CannotUpdateFSACIndicator(userId))
 
     collection.update(query, updateBSON) map validator
-  }
-
-  override def find(applicationId: String): Future[FSACIndicator] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument(FSACIndicatorDocumentKey -> 1, "_id" -> 0)
-
-    collection.find(query, projection).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument](FSACIndicatorDocumentKey).isDefined =>
-        document.getAs[FSACIndicator](FSACIndicatorDocumentKey).get
-      case _ => throw FSACIndicatorNotFound(applicationId)
-    }
   }
 }

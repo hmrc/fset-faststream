@@ -48,6 +48,8 @@ object Exceptions {
 
   case class FSACIndicatorNotFound(applicationId: String) extends Exception(applicationId)
 
+  case class FSACCSVIndicatorNotFound(applicationId: String) extends Exception(applicationId)
+
   case class ContactDetailsNotFound(userId: String) extends Exception(userId)
 
   case class ContactDetailsNotFoundForEmail() extends Exception

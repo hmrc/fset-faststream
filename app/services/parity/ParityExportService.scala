@@ -46,7 +46,7 @@ object ParityExportService extends ParityExportService {
   val mRepository = mediaRepository
   val cdRepository = faststreamContactDetailsRepository
   val qRepository = questionnaireRepository
-  val fsacIndicatorCSVRepository = fsacIndicatorRepository
+  val fsacIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
   val socioEconomicCalculator = SocioEconomicCalculator
   val appRepository = applicationRepository
   val applicationService = ApplicationService
@@ -131,7 +131,7 @@ trait ParityExportService extends EventSink {
               mediaObj ++
               Json.obj("contact-details" -> contactDetails) ++
               Json.obj("diversity-questionnaire" -> Json.obj("questions" -> diversityQuestionsObj, "scoring" -> Json.obj("ses" -> sesScore))) ++
-              Json.obj("assessment-location" -> fsacIndicator) ++
+              Json.obj("assessment-location" -> fsacIndicator.assessmentCentre) ++
               Json.obj("results" -> Json.obj("passed-schemes" -> passedSchemes))
         }
       ) andThen (__ \ "testGroups").json.prune

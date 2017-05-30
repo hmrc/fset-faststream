@@ -38,7 +38,7 @@ object ReportingController extends ReportingController {
   val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
   val assessmentScoresRepository: ApplicationAssessmentScoresMongoRepository = repositories.applicationAssessmentScoresRepository
   val mediaRepository: MediaMongoRepository = repositories.mediaRepository
-  val fsacIndicatorRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorRepository
+  val fsacIndicatorRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
   val authProviderClient = AuthProviderClient
 }
 
@@ -196,7 +196,7 @@ trait ReportingController extends BaseController {
         )
 
         val (postCode, outsideUk) = contactDetails.map(cd => (cd.postCode, cd.outsideUk)).getOrElse((None, false))
-        val indicator = fsacIndicatorRepository.find(postCode, outsideUk).getOrElse("Unknown")
+        val indicator = fsacIndicatorRepository.findAsString(postCode, outsideUk).getOrElse("Unknown")
 
         TimeToOfferItem(appTimeToOffer, email, diversityReportItem, indicator)
       }
@@ -237,11 +237,12 @@ trait ReportingController extends BaseController {
     }
   }
 
+  // TODO MIGUEL: Eventually we are not going to need this.
   private def enrichCandidateProgressReportWithFSACIndicator(candidates: List[CandidateProgressReportItem], postcodes: Map[String, String]):
     Future[List[CandidateProgressReportItem]] = {
 
     Future.successful(candidates.map(candidate => candidate.copy(
-      fsacIndicator = fsacIndicatorRepository.findForCandidateProgressReport(postcodes.get(candidate.userId), candidate))))
+      fsacIndicator = fsacIndicatorRepository.findAsStringForCandidateProgressReport(postcodes.get(candidate.userId), candidate))))
   }
 
   // This method is not used at this moment

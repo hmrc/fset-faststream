@@ -17,11 +17,17 @@
 package model.persisted
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import repositories.csv.FSACIndicatorCSVRepository
+import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
 case class FSACIndicator(area: String, assessmentCentre: String, version: String)
 
 object FSACIndicator {
   implicit val jsonFormat = Json.format[FSACIndicator]
   implicit val bsonFormat = Macros.handler[FSACIndicator]
+
+  def apply(indicator: model.FSACIndicator): FSACIndicator = {
+    FSACIndicator(indicator.area, indicator.assessmentCentre,
+      FSACIndicatorCSVRepository.FSACIndicatorVersion)
+  }
 }
