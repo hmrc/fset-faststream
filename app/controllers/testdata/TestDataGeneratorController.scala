@@ -70,6 +70,15 @@ trait TestDataGeneratorController extends BaseController {
         postCode = Some("QQ1 1QQ"),
         country = Some("America")
       )),
+      diversityDetails = Some(DiversityDetailsRequest(
+        genderIdentity = Some("Female"),
+        sexualOrientation = Some("Straight"),
+        ethnicity = Some("White"),
+        universityAttended = Some("W01-USW"),
+        parentalEmployment = Some("Traditional professional"),
+        parentalEmployedOrSelfEmployed = Some("Employed"),
+        parentalCompanySize = Some("Small (1 to 24 employees)")
+      )),
       assistanceDetails = Some(AssistanceDetailsRequest(
         hasDisability = Some("false"),
         hasDisabilityDescription = Some(Random.hasDisabilityDescription),
@@ -81,6 +90,7 @@ trait TestDataGeneratorController extends BaseController {
       )),
       schemeTypes = Some(List(SchemeType.Commercial, SchemeType.European, SchemeType.DigitalAndTechnology)),
       isCivilServant = Some(Random.bool),
+      hasFastPass = Some(true),
       hasDegree = Some(Random.bool),
       region = Some("region"),
       loc1scheme1EvaluationResult = Some("loc1 scheme1 result1"),

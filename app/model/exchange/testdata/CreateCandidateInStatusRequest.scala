@@ -20,7 +20,7 @@ import model.Adjustments
 import model.ApplicationRoute.ApplicationRoute
 import model.SchemeType.SchemeType
 import model.persisted.PassmarkEvaluation
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 case class AssistanceDetailsRequest(hasDisability: Option[String] = None,
   hasDisabilityDescription: Option[String] = None,
@@ -34,7 +34,21 @@ case class AssistanceDetailsRequest(hasDisability: Option[String] = None,
 )
 
 object AssistanceDetailsRequest {
-  implicit val assistanceDetailsRequestFormat = Json.format[AssistanceDetailsRequest]
+  implicit val assistanceDetailsRequestFormat: OFormat[AssistanceDetailsRequest] = Json.format[AssistanceDetailsRequest]
+}
+
+case class DiversityDetailsRequest(
+  genderIdentity: Option[String] = None,
+  sexualOrientation: Option[String] = None,
+  ethnicity: Option[String] = None,
+  universityAttended: Option[String] = None,
+  parentalEmployment: Option[String] = None,
+  parentalEmployedOrSelfEmployed: Option[String] = None,
+  parentalCompanySize: Option[String] = None
+)
+
+object DiversityDetailsRequest {
+  implicit val diversityDetailsRequestFormat: OFormat[DiversityDetailsRequest] = Json.format[DiversityDetailsRequest]
 }
 
 trait TestDatesRequest {
@@ -57,7 +71,7 @@ case class Phase1TestDataRequest(
 ) extends TestDatesRequest
 
 object Phase1TestDataRequest {
-  implicit val phase1TestDataFormat = Json.format[Phase1TestDataRequest]
+  implicit val phase1TestDataFormat: OFormat[Phase1TestDataRequest] = Json.format[Phase1TestDataRequest]
 }
 
 case class Phase2TestDataRequest(
@@ -69,7 +83,7 @@ case class Phase2TestDataRequest(
 ) extends TestDatesRequest with TestResultRequest
 
 object Phase2TestDataRequest {
-  implicit val phase2TestDataFormat = Json.format[Phase2TestDataRequest]
+  implicit val phase2TestDataFormat: OFormat[Phase2TestDataRequest] = Json.format[Phase2TestDataRequest]
 }
 
 case class Phase3TestDataRequest(
@@ -83,7 +97,7 @@ case class Phase3TestDataRequest(
 ) extends TestDatesRequest
 
 object Phase3TestDataRequest {
-  implicit val phase3TestDataFormat = Json.format[Phase3TestDataRequest]
+  implicit val phase3TestDataFormat: OFormat[Phase3TestDataRequest] = Json.format[Phase3TestDataRequest]
 }
 
 case class PersonalDataRequest(
@@ -98,7 +112,7 @@ case class PersonalDataRequest(
 )
 
 object PersonalDataRequest {
-  implicit val personalDataFormat = Json.format[PersonalDataRequest]
+  implicit val personalDataFormat: OFormat[PersonalDataRequest] = Json.format[PersonalDataRequest]
 }
 
 case class StatusDataRequest(
@@ -109,15 +123,17 @@ case class StatusDataRequest(
 )
 
 object StatusDataRequest{
-  implicit def statusDataFormat = Json.format[StatusDataRequest]
+  implicit def statusDataFormat: OFormat[StatusDataRequest] = Json.format[StatusDataRequest]
 }
 
 case class CreateCandidateInStatusRequest(
   statusData: StatusDataRequest = new StatusDataRequest,
   personalData: Option[PersonalDataRequest],
+  diversityDetails: Option[DiversityDetailsRequest],
   assistanceDetails: Option[AssistanceDetailsRequest],
   schemeTypes: Option[List[SchemeType]],
   isCivilServant: Option[Boolean],
+  hasFastPass: Option[Boolean],
   hasDegree: Option[Boolean],
   region: Option[String],
   loc1scheme1EvaluationResult: Option[String],
@@ -130,18 +146,21 @@ case class CreateCandidateInStatusRequest(
 )
 
 object CreateCandidateInStatusRequest {
-  implicit val createCandidateInStatusRequestFormat = Json.format[CreateCandidateInStatusRequest]
+  implicit val createCandidateInStatusRequestFormat: OFormat[CreateCandidateInStatusRequest] = Json.format[CreateCandidateInStatusRequest]
 
   def create(status: String, progressStatus: Option[String], applicationRoute: Option[ApplicationRoute]): CreateCandidateInStatusRequest = {
     CreateCandidateInStatusRequest(
       statusData = StatusDataRequest(
         applicationStatus = status,
         progressStatus = progressStatus,
-        applicationRoute = applicationRoute.map(_.toString)),
+        applicationRoute = applicationRoute.map(_.toString)
+      ),
+      diversityDetails = None,
       assistanceDetails = None,
       personalData = None,
       schemeTypes = None,
       isCivilServant = None,
+      hasFastPass = None,
       hasDegree = None,
       region = None,
       loc1scheme1EvaluationResult = None,

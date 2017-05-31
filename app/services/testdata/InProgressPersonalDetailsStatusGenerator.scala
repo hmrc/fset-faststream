@@ -82,7 +82,14 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
     def getCivilServiceExperienceDetails(candidateInformation: DataGenerationResponse) = {
       if (generatorConfig.isCivilServant) {
-        CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
+        if (generatorConfig.hasFastPass) {
+          CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
+            Some(InternshipType.SDIPCurrentYear :: Nil), fastPassReceived = Some(true), fastPassAccepted = Some(true),
+            certificateNumber = Some(Random.number().toString)
+          )
+        } else {
+          CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
+        }
       } else {
         CivilServiceExperienceDetails(applicable = false)
       }
@@ -98,7 +105,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       _ <- cdRepository.update(candidateInPreviousStatus.userId, cd)
       _ <- fpdRepository.update(candidateInPreviousStatus.applicationId.get, fpd)
     } yield {
-      candidateInPreviousStatus.copy(personalDetails = Some(pd), contactDetails = Some(cd))
+      candidateInPreviousStatus.copy(personalDetails = Some(pd), contactDetails = Some(cd), civilServantDetails = Some(fpd))
     }
   }
   //scalastyle:off method.length
