@@ -48,5 +48,18 @@ class AssessorAvailabilityRepositorySpec extends MongoRepositorySpec {
       val updatedResult = repository.find(userId).futureValue
       updatedResult.get mustBe updated
     }
+
+    "count submitted availabilities" in {
+      val availability = AssessorAvailability("user1",
+        Map("london" -> List(new LocalDate(2017, 9, 11)), "newcastle" -> List(new LocalDate(2017, 9, 12))))
+      val availability2 = availability.copy(userId = "user2")
+
+      repository.save(availability).futureValue
+      repository.save(availability2).futureValue
+
+      val result = repository.countSubmitted.futureValue
+
+      result mustBe 2
+    }
   }
 }

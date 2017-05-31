@@ -28,6 +28,7 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
+import testkit.MockitoImplicits._
 
 class AssessorAvailabilityControllerSpec extends UnitWithAppSpec {
   val mockAssessorAvailabilityService = mock[AssessorAvailabilityService]
@@ -58,6 +59,22 @@ class AssessorAvailabilityControllerSpec extends UnitWithAppSpec {
       when(mockAssessorAvailabilityService.find(UserId)).thenReturn(Future.failed(AssessorAvailabilityNotFoundException(UserId)))
       val response = controller.find(UserId)(fakeRequest)
       status(response) mustBe NOT_FOUND
+    }
+  }
+
+  "count submitted" should {
+    "return zero if there are none submitted" in {
+      when(mockAssessorAvailabilityService.countSubmitted()).thenReturnAsync(0)
+      val response = controller.countSubmitted()(fakeRequest)
+      status(response) mustBe OK
+      contentAsJson(response) mustBe Json.obj("size" -> 0)
+    }
+
+    "return five if there are five submitted" in {
+      when(mockAssessorAvailabilityService.countSubmitted()).thenReturnAsync(5)
+      val response = controller.countSubmitted()(fakeRequest)
+      status(response) mustBe OK
+      contentAsJson(response) mustBe Json.obj("size" -> 5)
     }
   }
 }

@@ -29,6 +29,8 @@ trait AssessorAvailabilityRepository {
 
   def find(userId: String): Future[Option[AssessorAvailability]]
   def save(settings: AssessorAvailability): Future[Unit]
+
+  def countSubmitted: Future[Int]
 }
 
 class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
@@ -54,5 +56,9 @@ class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
     val insertIfNoRecordFound = true
 
     collection.update(query, saveBson, upsert = insertIfNoRecordFound).map( _ => () )
+  }
+
+  override def countSubmitted: Future[Int] = {
+    collection.count()
   }
 }
