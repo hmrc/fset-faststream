@@ -114,8 +114,9 @@ package object repositories {
       ("session", Ascending), ("slot", Ascending)), unique = true)),
     applicationAssessmentRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
-    applicationAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true))
+    applicationAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
+    assessorAvailabilityRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true))
   )), 20 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
