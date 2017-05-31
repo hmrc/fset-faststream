@@ -35,6 +35,20 @@ trait QuestionnaireRepository {
   def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]]
   def findForOnlineTestPassMarkReport: Future[Map[String, QuestionnaireReportItem]]
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
+
+
+  val GenderQuestionText = "What is your gender identity?"
+  val SexualOrientationQuestionText = "What is your sexual orientation?"
+  val EthnicityQuestionText = "What is your ethnic group?"
+  val UniversityQuestionText = "What is the name of the university you received your degree from?"
+  val EmploymentStatusQuestionText = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
+  val ParentEmployedOrSelfEmployedQuestionText = "Did they work as an employee or were they self-employed?"
+  val ParentCompanySizeQuestionText = "Which size would best describe their place of work?"
+
+  val DontKnowAnswerText = "I don't know/prefer not to say"
+  val EmployedAnswerText = "Employed"
+  val UnemployedAnswerText = "Unemployed"
+  val UnknownAnswerText = "Unknown"
 }
 
 class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
@@ -70,8 +84,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     // We need to ensure that the candidates have completed the last page of the questionnaire
     // however, only the first question on the employment page is mandatory, as if the answer is
     // unemployed, they don't need to answer other questions
-    val firstEmploymentQuestion = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
-    val query = BSONDocument(s"questions.$firstEmploymentQuestion" -> BSONDocument("$exists" -> BSONBoolean(true)))
+    val query = BSONDocument(s"questions.$EmploymentStatusQuestionText" -> BSONDocument("$exists" -> BSONBoolean(true)))
     findAllAsReportItem(query)
   }
 
@@ -112,27 +125,27 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
     def getAnswer(question: String): Option[String] = {
       val questionDoc = questionsDoc.flatMap(_.getAs[BSONDocument](question))
       questionDoc.flatMap(_.getAs[String]("answer")).orElse(
-        questionDoc.flatMap(_.getAs[Boolean]("unknown")).map { unknown => if (unknown) { "I don't know/prefer not to say"} else {""}})
+        questionDoc.flatMap(_.getAs[Boolean]("unknown")).map { unknown => if (unknown) { DontKnowAnswerText } else {""}})
     }
     val applicationId = document.getAs[String]("applicationId").get
-    val gender = getAnswer("What is your gender identity?")
-    val sexualOrientation = getAnswer("What is your sexual orientation?")
-    val ethnicity = getAnswer("What is your ethnic group?")
+    val gender = getAnswer(GenderQuestionText)
+    val sexualOrientation = getAnswer(SexualOrientationQuestionText)
+    val ethnicity = getAnswer(EthnicityQuestionText)
 
-    val university = getAnswer("What is the name of the university you received your degree from?")
+    val university = getAnswer(UniversityQuestionText)
 
-    val employmentStatus = getAnswer("When you were 14, what kind of work did your highest-earning parent or guardian do?")
-    val isEmployed = employmentStatus.exists (s => !s.startsWith("Unemployed") && !s.startsWith("Unknown"))
+    val employmentStatus = getAnswer(EmploymentStatusQuestionText)
+    val isEmployed = employmentStatus.exists (s => !s.startsWith(UnemployedAnswerText) && !s.startsWith(UnknownAnswerText))
 
-    val parentEmploymentStatus = if (isEmployed) Some("Employed") else employmentStatus
+    val parentEmploymentStatus = if (isEmployed) Some(EmployedAnswerText) else employmentStatus
     val parentOccupation = if (isEmployed) employmentStatus else None
 
-    val parentEmployedOrSelf = getAnswer("Did they work as an employee or were they self-employed?")
-    val parentCompanySize = getAnswer("Which size would best describe their place of work?")
+    val parentEmployedOrSelf = getAnswer(ParentEmployedOrSelfEmployedQuestionText)
+    val parentCompanySize = getAnswer(ParentCompanySizeQuestionText)
 
     val qAndA = questionsDoc.toList.flatMap(_.elements).map {
       case (question, _) =>
-        val answer = getAnswer(question).getOrElse("Unknown")
+        val answer = getAnswer(question).getOrElse(UnknownAnswerText)
         (question, answer)
     }.toMap
 

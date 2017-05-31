@@ -29,7 +29,7 @@ import services.testdata.faker.DataFaker.Random
 case class AssistanceDetails(
   hasDisability: String = Random.yesNoPreferNotToSay,
   hasDisabilityDescription: String = Random.hasDisabilityDescription,
-  setGis: Boolean = Random.bool,
+  setGis: Boolean = false,
   onlineAdjustments: Boolean = Random.bool,
   onlineAdjustmentsDescription: String = Random.onlineAdjustmentsDescription,
   assessmentCentreAdjustments: Boolean = Random.bool,
@@ -54,6 +54,32 @@ object AssistanceDetails {
       phoneAdjustmentsDescription = o.phoneAdjustmentsDescription.getOrElse(default.phoneAdjustmentsDescription)
     )
   }
+}
+
+case class DiversityDetails(
+  genderIdentity: String = Random.gender,
+  sexualOrientation: String = Random.sexualOrientation,
+  ethnicity: String = Random.ethnicGroup,
+  universityAttended: String = Random.university._2,
+  parentalEmployedOrSelfEmployed: String = Random.parentsOccupation,
+  parentalEmployment: Option[String] = Some(Random.parentsOccupationDetails),
+  parentalCompanySize: Option[String] = Some(Random.sizeParentsEmployeer)
+)
+
+object DiversityDetails {
+  def apply(o: model.exchange.testdata.DiversityDetailsRequest): DiversityDetails = {
+    val default = DiversityDetails()
+    DiversityDetails(
+      genderIdentity = o.genderIdentity.getOrElse(default.genderIdentity),
+      sexualOrientation = o.sexualOrientation.getOrElse(default.sexualOrientation),
+      ethnicity = o.ethnicity.getOrElse(default.ethnicity),
+      universityAttended = o.universityAttended.getOrElse(default.universityAttended),
+      parentalEmployedOrSelfEmployed = o.parentalEmployedOrSelfEmployed.getOrElse(default.parentalEmployedOrSelfEmployed),
+      parentalEmployment = o.parentalEmployment,
+      parentalCompanySize = o.parentalCompanySize
+    )
+  }
+
 }
 
 trait TestDates {
@@ -192,10 +218,12 @@ object StatusData {
 
 case class GeneratorConfig(statusData: StatusData,
   personalData: PersonalData = PersonalData(),
+  diversityDetails: DiversityDetails = DiversityDetails(),
   assistanceDetails: AssistanceDetails = AssistanceDetails(),
   cubiksUrl: String,
   schemeTypes: Option[List[SchemeType]] = None,
   isCivilServant: Boolean = Random.bool,
+  hasFastPass: Boolean = Random.bool,
   hasDegree: Boolean = Random.bool,
   region: Option[String] = None,
   loc1scheme1Passmark: Option[Result] = None,
@@ -215,6 +243,7 @@ object GeneratorConfig {
     GeneratorConfig(
       statusData = statusData,
       personalData = o.personalData.map(PersonalData(_, generatorId)).getOrElse(PersonalData()),
+      diversityDetails = o.diversityDetails.map(DiversityDetails(_)).getOrElse(DiversityDetails()),
       assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
       cubiksUrl = cubiksUrlFromConfig,
       schemeTypes = o.schemeTypes,

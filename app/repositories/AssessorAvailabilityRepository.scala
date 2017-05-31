@@ -28,18 +28,15 @@ import scala.concurrent.Future
 trait AssessorAvailabilityRepository {
 
   def find(userId: String): Future[Option[AssessorAvailability]]
-
   def save(settings: AssessorAvailability): Future[Unit]
 
   def countSubmitted: Future[Int]
 }
 
-//scalastyle:off
 class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[AssessorAvailability, BSONObjectID](CollectionNames.ASSESSOR_AVAILABILITY, mongo,
     AssessorAvailability.persistedAssessorAvailabilityFormat,
     ReactiveMongoFormats.objectIdFormats) with AssessorAvailabilityRepository {
-  //scalastyle:on
 
   override def find(userId: String): Future[Option[AssessorAvailability]] = {
     val query = BSONDocument(
