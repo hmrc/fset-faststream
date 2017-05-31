@@ -11,12 +11,13 @@ class AssessorAvailabilityRepositorySpec extends MongoRepositorySpec {
   def repository = new AssessorAvailabilityMongoRepository()
 
   "Assessor availability repository" should {
-    "create indexes for the repository" ignore {
+    "create indexes for the repository" in {
       val repo = repositories.assessorAvailabilityRepository
 
       val indexes = indexesWithFields(repo)
       indexes must contain (List("_id"))
-      indexes.size mustBe 1
+      indexes must contain (List("userId"))
+      indexes.size mustBe 2
     }
 
     "create and fetch the assessor availability" in {
