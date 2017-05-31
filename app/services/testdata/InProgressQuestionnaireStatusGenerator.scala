@@ -16,20 +16,22 @@
 
 package services.testdata
 
+import connectors.testdata.ExchangeObjects
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
+import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.play.http.HeaderCarrier
-import model.command.testdata.GeneratorConfig
+import model.command.testdata.{ DiversityDetails, GeneratorConfig }
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object InProgressQuestionnaireStatusGenerator extends InProgressQuestionnaireStatusGenerator {
   override val previousStatusGenerator = InProgressAssistanceDetailsStatusGenerator
-  override val appRepository = applicationRepository
-  override val qRepository = questionnaireRepository
+  override val appRepository: GeneralApplicationMongoRepository = applicationRepository
+  override val qRepository: QuestionnaireMongoRepository = questionnaireRepository
 }
 
 trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
@@ -37,9 +39,11 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
   val qRepository: QuestionnaireRepository
 
   // scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: GeneratorConfig)
+    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[ExchangeObjects.DataGenerationResponse] = {
 
     val didYouLiveInUkBetween14and18Answer = Random.yesNo
+
     def getWhatWasYourHomePostCodeWhenYouWere14 = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion("What was your home postcode when you were 14?",
@@ -87,7 +91,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
     def getUniversityAnswer = {
       if (generatorConfig.hasDegree) {
         Some(QuestionnaireQuestion("What is the name of the university you received your degree from?",
-          QuestionnaireAnswer(Some(Random.university._2), None, None)))
+          QuestionnaireAnswer(Some(generatorConfig.diversityDetails.universityAttended), None, None)))
       } else {
         None
       }
@@ -102,19 +106,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-    def getParentsOccupation = Random.parentsOccupation
-
-    def getParentsOccupationDetail(parentsOccupation: String) = {
-      if (parentsOccupation == "Employed") {
-        Some(QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-          QuestionnaireAnswer(Some(Random.parentsOccupationDetails), None, None)))
-      } else {
-        Some(QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-          QuestionnaireAnswer(Some(parentsOccupation), None, None)))
-      }
-    }
-
-    def getEmployeedOrSelfEmployeed(parentsOccupation: String) = {
+    def getEmployedOrSelfEmployed(parentsOccupation: String) = {
       if (parentsOccupation == "Employed") {
         Some(QuestionnaireQuestion("Did they work as an employee or were they self-employed?",
           QuestionnaireAnswer(Some(Random.employeeOrSelf), None, None)))
@@ -123,29 +115,23 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       }
     }
 
-    def getSizeParentsEmployeer(parentsOccupation: String) = {
-      if (parentsOccupation == "Employed") {
-        Some(QuestionnaireQuestion("Which size would best describe their place of work?",
-          QuestionnaireAnswer(Some(Random.sizeParentsEmployeer), None, None)))
-      } else {
-        None
-      }
+  def getSizeParentsEmployer(occupation: Option[String]) = occupation.map { occ =>
+      QuestionnaireQuestion("Which size would best describe their place of work?",
+        QuestionnaireAnswer(Some(occ), None, None))
     }
 
-    def getSuperviseEmployees(parentsOccupation: String) = {
-      if (parentsOccupation == "Employed") {
+    def getSuperviseEmployees(parentsOccupation: Option[String]) = parentsOccupation.flatMap { occ =>
+      if (occ == "Employed") {
         Some(QuestionnaireQuestion("Did they supervise employees?",
           QuestionnaireAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
-      } else {
-        None
-      }
+      } else { None }
     }
 
-    def getAllQuestionnaireQuestions(parentsOccupation: String) = List(
+    def getAllQuestionnaireQuestions(dd: DiversityDetails) = List(
       Some(QuestionnaireQuestion("I understand this won't affect my application", QuestionnaireAnswer(Some(Random.yesNo), None, None))),
-      Some(QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some(Random.gender), None, None))),
-      Some(QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some(Random.sexualOrientation), None, None))),
-      Some(QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some(Random.ethnicGroup), None, None))),
+      Some(QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some(dd.genderIdentity), None, None))),
+      Some(QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some(dd.sexualOrientation), None, None))),
+      Some(QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some(dd.ethnicity), None, None))),
       Some(QuestionnaireQuestion("Did you live in the UK between the ages of 14 and 18?", QuestionnaireAnswer(
         Some(didYouLiveInUkBetween14and18Answer), None, None))
       ),
@@ -159,21 +145,24 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       Some(QuestionnaireQuestion("Do you have a parent or guardian that has completed a university degree course or equivalent?",
         QuestionnaireAnswer(Some(Random.yesNoPreferNotToSay), None, None))
       ),
-      getParentsOccupationDetail(parentsOccupation),
-      getEmployeedOrSelfEmployeed(parentsOccupation),
-      getSizeParentsEmployeer(parentsOccupation),
-      getSuperviseEmployees(parentsOccupation)
+      Some(QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+        QuestionnaireAnswer(dd.parentalEmployment, None, None))),
+      getEmployedOrSelfEmployed(dd.parentalEmployedOrSelfEmployed),
+      getSizeParentsEmployer(dd.parentalEmployment),
+      getSuperviseEmployees(dd.parentalEmployment)
     ).filter(_.isDefined).map { someItem => someItem.get }
+
+    val questions = getAllQuestionnaireQuestions(generatorConfig.diversityDetails)
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- qRepository.addQuestions(candidateInPreviousStatus.applicationId.get, getAllQuestionnaireQuestions(getParentsOccupation))
+      _ <- qRepository.addQuestions(candidateInPreviousStatus.applicationId.get, questions)
       _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "start_questionnaire")
       _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "education_questionnaire")
       _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "diversity_questionnaire")
       _ <- appRepository.updateQuestionnaireStatus(candidateInPreviousStatus.applicationId.get, "occupation_questionnaire")
     } yield {
-      candidateInPreviousStatus
+      candidateInPreviousStatus.copy(diversityDetails = Some(questions))
     }
   }
 
