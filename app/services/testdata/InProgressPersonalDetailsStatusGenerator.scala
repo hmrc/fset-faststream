@@ -18,14 +18,9 @@ package services.testdata
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
 import model._
-import model.command.testdata.GeneratorConfig
-import model.persisted.{ ContactDetails, PersonalDetails }
+import model.command.testdata.{ GeneratorConfig, PersonalData }
 import play.api.mvc.RequestHeader
-import repositories._
-import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
-import repositories.contactdetails.ContactDetailsRepository
-import repositories.personaldetails.PersonalDetailsRepository
-import repositories.schemepreferences.SchemePreferencesRepository
+import services.personaldetails.PersonalDetailsService
 import services.testdata.faker.DataFaker.Random
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -33,17 +28,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object InProgressPersonalDetailsStatusGenerator extends InProgressPersonalDetailsStatusGenerator {
   override val previousStatusGenerator = CreatedStatusGenerator
-  override val pdRepository = faststreamPersonalDetailsRepository
-  override val cdRepository = faststreamContactDetailsRepository
-  override val fpdRepository = civilServiceExperienceDetailsRepository
-  override val spRepository = schemePreferencesRepository
+  override val pdService = PersonalDetailsService
 }
 
 trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
-  val pdRepository: PersonalDetailsRepository
-  val cdRepository: ContactDetailsRepository
-  val fpdRepository: CivilServiceExperienceDetailsRepository
-  val spRepository: SchemePreferencesRepository
+  val pdService: PersonalDetailsService
 
   //scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: GeneratorConfig)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
@@ -56,49 +45,47 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         }
       }
 
-      PersonalDetails(
+      def getOutsideUK(personalData: PersonalData) = {
+        personalData.country.isDefined
+      }
+
+      def getCivilServiceExperienceDetails(candidateInformation: DataGenerationResponse) = {
+        if (generatorConfig.isCivilServant) {
+          CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
+        } else {
+          CivilServiceExperienceDetails(applicable = false)
+        }
+      }
+
+      model.command.GeneralDetails(
         candidateInformation.firstName,
         candidateInformation.lastName,
         generatorConfig.personalData.getPreferredName,
+        candidateInformation.email,
         generatorConfig.personalData.dob,
-        getEdipCompleted
-      )
-    }
-
-    def getContactDetails(candidateInformation: DataGenerationResponse) = {
-      ContactDetails(
-        outsideUk = false,
+        outsideUk = getOutsideUK(generatorConfig.personalData),
         Address("123, Fake street"),
         if (generatorConfig.personalData.country.isEmpty) {
           generatorConfig.personalData.postCode.orElse(Some(Random.postCode))
         } else {
           None
         },
+        None,
         generatorConfig.personalData.country,
-        candidateInformation.email,
-        "07770 774 914"
+        "07770 774 914",
+        Some(getCivilServiceExperienceDetails(candidateInformation)),
+        getEdipCompleted,
+        Some(true)
       )
-    }
-
-    def getCivilServiceExperienceDetails(candidateInformation: DataGenerationResponse) = {
-      if (generatorConfig.isCivilServant) {
-        CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
-      } else {
-        CivilServiceExperienceDetails(applicable = false)
-      }
     }
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      pd = getPersonalDetails(candidateInPreviousStatus)
-      cd = getContactDetails(candidateInPreviousStatus)
-      fpd = getCivilServiceExperienceDetails(candidateInPreviousStatus)
-      _ <- pdRepository.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId,
-        pd, List(model.ApplicationStatus.CREATED), model.ApplicationStatus.IN_PROGRESS)
-      _ <- cdRepository.update(candidateInPreviousStatus.userId, cd)
-      _ <- fpdRepository.update(candidateInPreviousStatus.applicationId.get, fpd)
+      pdRequest = getPersonalDetails(candidateInPreviousStatus)
+      _ <- pdService.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId, pdRequest)
+      pd <- pdService.find(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId)
     } yield {
-      candidateInPreviousStatus.copy(personalDetails = Some(pd), contactDetails = Some(cd))
+      candidateInPreviousStatus.copy(personalDetails = Some(pd))
     }
   }
   //scalastyle:off method.length

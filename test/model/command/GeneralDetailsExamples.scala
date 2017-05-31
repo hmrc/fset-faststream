@@ -20,11 +20,11 @@ import org.joda.time.LocalDate
 import model.AddressExamples._
 import model.{ CivilServiceExperienceDetails, FSACIndicator }
 
-object UpdatePersonalDetailsExamples {
-  val CandidateContactDetailsUK = PersonalDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
+object GeneralDetailsExamples {
+  val CandidateContactDetailsUK = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
     outsideUk = false, FullAddress, Some("A1 B23"), Some(FSACIndicator("London", "London")), None, "1234567890",
     Some(CivilServiceExperienceDetails(applicable = false)), None, Some(true))
-  val CandidateContactDetailsUKSdip = PersonalDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
+  val CandidateContactDetailsUKSdip = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
     outsideUk = false, FullAddress, Some("A1 B23"), Some(FSACIndicator("London", "London")), None, "1234567890",
     Some(CivilServiceExperienceDetails(applicable = false)), Some(true), Some(true))
 }

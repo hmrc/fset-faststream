@@ -17,7 +17,7 @@
 package services.personaldetails
 
 import model.{ ApplicationStatus, CivilServiceExperienceDetails }
-import model.command.UpdatePersonalDetailsExamples._
+import model.command.GeneralDetailsExamples._
 import model.persisted.ContactDetailsExamples._
 import model.persisted.FSACIndicator
 import model.persisted.PersonalDetailsExamples._

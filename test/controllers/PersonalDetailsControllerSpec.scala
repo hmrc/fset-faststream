@@ -17,8 +17,8 @@
 package controllers
 
 import model.Exceptions._
-import model.command.PersonalDetails
-import model.command.UpdatePersonalDetailsExamples._
+import model.command.GeneralDetails
+import model.command.GeneralDetailsExamples._
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -92,7 +92,7 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
       when(mockCandidateDetailsService.find(AppId, UserId)).thenReturn(Future.successful(CandidateContactDetailsUK))
       val response = controller.find(UserId, AppId)(fakeRequest)
       status(response) mustBe OK
-      contentAsJson(response) mustBe Json.toJson[PersonalDetails](CandidateContactDetailsUK)
+      contentAsJson(response) mustBe Json.toJson[GeneralDetails](CandidateContactDetailsUK)
     }
 
     "return Not Found when contact details cannot be found" in {

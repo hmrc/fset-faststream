@@ -48,7 +48,7 @@ trait PersonalDetailsService {
   val fsacIndicatorRepository: FSACIndicatorRepository
   val auditService: AuditService
 
-  def find(applicationId: String, userId: String): Future[model.command.PersonalDetails] = {
+  def find(applicationId: String, userId: String): Future[model.command.GeneralDetails] = {
     val personalDetailsFut = pdRepository.find(applicationId)
     val contactDetailsFut = cdRepository.find(userId)
     val fsacIndicatorFut = fsacIndicatorRepository.find(applicationId)
@@ -59,13 +59,13 @@ trait PersonalDetailsService {
       contactDetails <- contactDetailsFut
       fsacIndicator <- fsacIndicatorFut
       civilServiceExperienceDetails <- civilServiceExperienceDetailsFut
-    } yield model.command.PersonalDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
+    } yield model.command.GeneralDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
       contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
       Some(FSACIndicator(fsacIndicator)), contactDetails.country, contactDetails.phone, civilServiceExperienceDetails,
       personalDetails.edipCompleted)
   }
 
-  def update(applicationId: String, userId: String, personalDetails: model.command.PersonalDetails): Future[Unit] = {
+  def update(applicationId: String, userId: String, personalDetails: model.command.GeneralDetails): Future[Unit] = {
     val personalDetailsToPersist = model.persisted.PersonalDetails(personalDetails.firstName,
       personalDetails.lastName, personalDetails.preferredName, personalDetails.dateOfBirth, personalDetails.edipCompleted)
     val contactDetails = ContactDetails(personalDetails.outsideUk, personalDetails.address, personalDetails.postCode,
