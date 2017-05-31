@@ -51,7 +51,14 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
       def getCivilServiceExperienceDetails(candidateInformation: DataGenerationResponse) = {
         if (generatorConfig.isCivilServant) {
-          CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
+          if (generatorConfig.hasFastPass) {
+            CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
+              Some(InternshipType.SDIPCurrentYear :: Nil), fastPassReceived = Some(true), fastPassAccepted = Some(true),
+              certificateNumber = Some(Random.number().toString)
+            )
+          } else {
+            CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant), None, None, None)
+          }
         } else {
           CivilServiceExperienceDetails(applicable = false)
         }
@@ -85,7 +92,8 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       _ <- pdService.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId, pdRequest)
       pd <- pdService.find(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId)
     } yield {
-      candidateInPreviousStatus.copy(personalDetails = Some(pd))
+      // TODO MIGUEL: CivilServiceExperienceDetails is not part of PersonalDetails
+      candidateInPreviousStatus.copy(personalDetails = Some(pd), civilServantDetails = pd.civilServiceExperienceDetails)
     }
   }
   //scalastyle:off method.length

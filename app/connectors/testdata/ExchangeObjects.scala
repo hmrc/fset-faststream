@@ -19,7 +19,8 @@ package connectors.testdata
 import model.Commands.ApplicationAssessment
 import model.persisted.{ AssistanceDetails, ContactDetails }
 import model.command.GeneralDetails
-import model.{ Adjustments, SelectedSchemes }
+import model.persisted._
+import model.{ Adjustments, CivilServiceExperienceDetails, SelectedSchemes }
 import play.api.libs.json.Json
 
 object ExchangeObjects {
@@ -33,8 +34,8 @@ object ExchangeObjects {
                                      lastName: String,
                                      mediaReferrer: Option[String] = None,
                                      personalDetails: Option[GeneralDetails] = None,
-                                     isCivilServant: Option[Boolean] = None,
-                                     //contactDetails: Option[ContactDetails] = None,
+                                     diversityDetails: Option[List[QuestionnaireQuestion]] = None,
+                                     civilServantDetails: Option[CivilServiceExperienceDetails] = None,
                                      assistanceDetails: Option[AssistanceDetails] = None,
                                      phase1TestGroup: Option[TestGroupResponse] = None,
                                      phase2TestGroup: Option[TestGroupResponse] = None,
