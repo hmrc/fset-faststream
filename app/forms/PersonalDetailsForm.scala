@@ -162,6 +162,7 @@ object PersonalDetailsForm {
         outsideUk.getOrElse(false),
         address,
         postCode.map(p => PostCodeMapping.formatPostcode(p)),
+        fsacIndicator = None, // It is calculated in the backend.
         country,
         phone,
         civilServiceExperienceDetails,
