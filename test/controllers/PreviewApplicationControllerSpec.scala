@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PartnerGraduateProgrammesNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.exchange.{ AssistanceDetailsExamples, PartnerGraduateProgrammesExamples, PersonalDetailsExamples, SchemePreferencesExamples }
+import connectors.exchange.{ AssistanceDetailsExamples, PartnerGraduateProgrammesExamples, GeneralDetailsExamples, SchemePreferencesExamples }
 import connectors.{ ApplicationClient, SchemeClient }
 import forms.AssistanceDetailsFormExamples
 import models.SecurityUserExamples._
@@ -68,7 +68,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExamples.SdipAdjustments))
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(PersonalDetailsExamples.SdipFullDetailsWithEdipCompleted))
+        .thenReturn(Future.successful(GeneralDetailsExamples.SdipFullDetailsWithEdipCompleted))
 
       val result = controller(currentCandidateWithSdipApp).present()(fakeRequest)
       status(result) must be(OK)
@@ -140,7 +140,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     val mockUserService = mock[UserCacheService]
 
     when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
+      .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
     when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(SchemePreferencesExamples.DefaultSelectedSchemes))
     when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))

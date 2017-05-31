@@ -19,9 +19,9 @@ package connectors.exchange
 import mappings.AddressExamples._
 import org.joda.time.LocalDate
 
-object PersonalDetailsExamples {
-  val FullDetails = PersonalDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
+object GeneralDetailsExamples {
+  val FullDetails = GeneralDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
     FullAddress, Some("postCode"), None, None, Some("1234567"), Some(CivilServiceExperienceDetails(applicable = false)), None, None)
-  val SdipFullDetailsWithEdipCompleted = PersonalDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
+  val SdipFullDetailsWithEdipCompleted = GeneralDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
     FullAddress, Some("postCode"), None, None, Some("1234567"), Some(CivilServiceExperienceDetails(applicable = false)), Some(true), None)
 }

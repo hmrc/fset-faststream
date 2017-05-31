@@ -16,7 +16,7 @@
 
 package forms
 
-import connectors.exchange.{ CivilServiceExperienceDetails, PersonalDetails }
+import connectors.exchange.{ CivilServiceExperienceDetails, GeneralDetails }
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping._
@@ -153,7 +153,7 @@ object PersonalDetailsForm {
 
     def toExchange(email: String, updateApplicationStatus: Option[Boolean],
                    overrideEdipCompleted: Option[Boolean] = None) = {
-      PersonalDetails(
+      GeneralDetails(
         firstName,
         lastName,
         preferredName,
