@@ -37,10 +37,16 @@ trait AssessorAvailabilityService {
         case Some(existing) =>
           val mergedAvailability = existing.availability ++ assessorAvailability.availability
           val assessorAvailabilityToPersist = model.persisted.AssessorAvailability(userId, mergedAvailability)
-          aaRepository.save(assessorAvailabilityToPersist).map(_ => ())
+          aaRepository.save(assessorAvailabilityToPersist).map{
+            play.api.Logger.error(s"**** SUCCESSFULLY SAVED AVAILABILITY FOR userId = $userId (SERVICE)")
+            _ => ()
+          }
         case _ =>
           val assessorAvailabilityToPersist = model.persisted.AssessorAvailability(userId, assessorAvailability.availability)
-          aaRepository.save(assessorAvailabilityToPersist).map(_ => ())
+          aaRepository.save(assessorAvailabilityToPersist).map{
+            play.api.Logger.error(s"**** SUCCESSFULLY SAVED AVAILABILITY FOR userId = $userId (SERVICE)")
+            _ => ()
+          }
       }
     }
   }

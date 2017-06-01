@@ -66,6 +66,7 @@ trait ReactiveRepositoryHelpers {
                                               notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult) = {
     if (result.ok) {
       if (result.n == 1) {
+        play.api.Logger.error(s"**** SUCCESSFULLY SAVED AVAILABILITY FOR userId = $id (REPOSITORY)")
         ()
       } else if (result.n == 0 && ignoreNotFound) {
         val msg = s"Failed to find record whilst $actionDesc for id: $id"
