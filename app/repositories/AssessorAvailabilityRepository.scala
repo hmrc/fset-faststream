@@ -36,7 +36,7 @@ trait AssessorAvailabilityRepository {
 class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[AssessorAvailability, BSONObjectID](CollectionNames.ASSESSOR_AVAILABILITY, mongo,
     AssessorAvailability.persistedAssessorAvailabilityFormat,
-    ReactiveMongoFormats.objectIdFormats) with AssessorAvailabilityRepository {
+    ReactiveMongoFormats.objectIdFormats) with AssessorAvailabilityRepository with ReactiveRepositoryHelpers {
 
   override def find(userId: String): Future[Option[AssessorAvailability]] = {
     val query = BSONDocument(
@@ -55,7 +55,8 @@ class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
     val saveBson: BSONDocument = BSONDocument("$set" -> assessorAvailability)
     val insertIfNoRecordFound = true
 
-    collection.update(query, saveBson, upsert = insertIfNoRecordFound).map( _ => () )
+    val availabilityValidator = singleUpdateValidator(assessorAvailability.userId, actionDesc = "saveAvailability")
+    collection.update(query, saveBson, upsert = insertIfNoRecordFound) map availabilityValidator
   }
 
   override def countSubmitted: Future[Int] = {
