@@ -43,7 +43,7 @@
                     <p>Your schemes will appear here as you select them from the list</p>
                 </div>
             </div>
-            @for(i <- 0 until SelectedSchemesForm.VisibleSchemes.size) {
+            @for(i <- SelectedSchemesForm.VisibleSchemes.indices) {
                 <input type="hidden" id="scheme_@i" name="scheme_@i" value='@selectedSchemes(i).getOrElse("")' />
             }
             <ol id="selectedPrefList" class="list-text">
