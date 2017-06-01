@@ -134,7 +134,7 @@ trait ParityExportService extends EventSink {
               Json.obj("assessment-location" -> fsacIndicator) ++
               Json.obj("results" -> Json.obj("passed-schemes" -> passedSchemes))
         }
-      ) andThen (__ \ "testGroups").json.prune
+      ) andThen (__ \ "testGroups").json.prune andThen (__ \ "fsac-indicator").json.prune
 
       val appDoc = applicationDoc.transform(applicationTransformer).get
 
@@ -142,7 +142,7 @@ trait ParityExportService extends EventSink {
         __.json.update(__.read[JsObject].map { o => o ++ Json.obj("token" -> parityGatewayConfig.upstreamAuthToken) })
 
       val finalDoc = Json.toJson("{}").transform(rootTransformer)
-
+      
       // TODO: Validate against json schema
       // finalDoc.get.validate()
 
