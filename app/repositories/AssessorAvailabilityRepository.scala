@@ -17,8 +17,11 @@
 package repositories
 
 import model.persisted.AssessorAvailability
+import play.api.libs.json.Json
+import play.api.libs.json.Json.JsValueWrapper
 import reactivemongo.api.DB
 import reactivemongo.bson._
+import services.assessoravailability.AssessorAvailabilityService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -59,6 +62,11 @@ class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
   }
 
   override def countSubmitted: Future[Int] = {
-    collection.count()
+    val fields: List[(String, JsValueWrapper)] = AssessorAvailabilityService.regions.map { region =>
+      s"availability.$region" -> Json.toJsFieldJsValueWrapper(Json.obj("$exists" -> true))
+    }
+    val query = Json.obj(fields:_*)
+
+    collection.count(Some(query))
   }
 }

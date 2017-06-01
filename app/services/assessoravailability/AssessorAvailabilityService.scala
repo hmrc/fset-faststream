@@ -29,6 +29,8 @@ object AssessorAvailabilityService extends AssessorAvailabilityService {
 trait AssessorAvailabilityService {
   val aaRepository: AssessorAvailabilityRepository
 
+  val regions = List("london", "newcastle")
+
   def save(userId: String, assessorAvailability: model.exchange.AssessorAvailability): Future[Unit] = {
     for {
       availabilityOpt <- aaRepository.find(userId)
