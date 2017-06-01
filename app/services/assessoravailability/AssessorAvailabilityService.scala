@@ -24,12 +24,18 @@ import scala.concurrent.Future
 
 object AssessorAvailabilityService extends AssessorAvailabilityService {
   val aaRepository: AssessorAvailabilityMongoRepository = assessorAvailabilityRepository
+  val assessmentCentreYamlRepository: AssessmentCentreRepository = AssessmentCentreYamlRepository
 }
 
 trait AssessorAvailabilityService {
   val aaRepository: AssessorAvailabilityRepository
+  val assessmentCentreYamlRepository: AssessmentCentreRepository
 
-  val regions = List("london", "newcastle")
+  lazy val regions: Future[Set[String]] = assessmentCentreYamlRepository.assessmentCentreCapacities.map(
+    _.map(
+      _.regionName.toLowerCase
+    ).toSet
+  )
 
   def save(userId: String, assessorAvailability: model.exchange.AssessorAvailability): Future[Unit] = {
     for {
