@@ -29,10 +29,10 @@ object AssessmentScheduleExchangeObjects {
   case class Venue(name: String, usedCapacityDates: List[UsedCapacityDate])
   object Venue { implicit val format: OFormat[Venue] = Json.format[Venue] }
 
-  case class Location(name: String, venues: List[Venue])
-  object Location { implicit val format: OFormat[Location] = Json.format[Location] }
+  case class Region(name: String, venues: List[Venue])
+  object Region { implicit val format: OFormat[Region] = Json.format[Region] }
 
-  case class Schedule(locations: List[Location])
+  case class Schedule(regions: List[Region])
   object Schedule { implicit val format: OFormat[Schedule] = Json.format[Schedule] }
 
   case class VenueAllocation(date: LocalDate, amSlotsBooked: List[Int], pmSlotsBooked: List[Int])
