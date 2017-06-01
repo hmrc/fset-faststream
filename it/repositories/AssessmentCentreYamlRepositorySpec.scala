@@ -62,12 +62,12 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
       val assessmentCapacity = capacities.head
       assessmentCapacity.locationName mustBe "London"
       val venue = assessmentCapacity.venues.head
-      venue.venueName mustBe "London (Berkeley House)"
-      venue.venueDescription mustBe "Berkeley House"
+      venue.venueName mustBe "London (FSAC) 1"
+      venue.venueDescription mustBe "FSAC"
       val capacityDate = venue.capacityDates.head
       capacityDate.amCapacity mustBe 6
       capacityDate.pmCapacity mustBe 6
-      capacityDate.date.toString(DateFormat) mustBe "24/5/18"
+      capacityDate.date.toString(DateFormat) mustBe "3/5/18"
     }
 
     "reject invalid configuration" in {
@@ -90,7 +90,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
     }
 
     "Throw NoSuchVenueDateException when there are no sessions on the specified date" in {
-        val exception = AssessmentCentreYamlRepository.assessmentCentreCapacityDate("London (Berkeley House)",
+        val exception = AssessmentCentreYamlRepository.assessmentCentreCapacityDate("London (FSAC) 1",
           LocalDate.parse("2010-04-01")).failed.futureValue
         exception mustBe a[NoSuchVenueDateException]
     }
@@ -116,7 +116,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
       val assessmentCapacity = capacities.head
       assessmentCapacity.locationName mustBe "London"
       val venue = assessmentCapacity.venues(1)
-      venue.venueName mustBe "London (FSAC) 1"
+      venue.venueName mustBe "London (FSAC) 2"
       venue.venueDescription mustBe "FSAC"
       val capacityDate = venue.capacityDates.find(_.date == new LocalDate("2017-07-04")).get
       capacityDate.amCapacity mustBe 6
