@@ -37,7 +37,7 @@
     </div>
 
 
-    <div id="addressManualInput" class="disabled">
+    <div id="addressManualInput" class=@{if(isOutsideUk) "" else "disabled"}>
         @*
          * The id for the line1 needs to be provided explicitly because otherwise the field is generated
          * with underscore in it. This is making the validation error-link unclickable when address line 1 is omitted.
