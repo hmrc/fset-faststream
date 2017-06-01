@@ -34,11 +34,9 @@ trait AssessorAvailabilityController extends BaseController {
   val assessorAvailabilityService: AssessorAvailabilityService
 
   def save(userId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[AssessorAvailability] { availability => assessorAvailabilityService.save(userId, availability).map { _ =>
-        play.api.Logger.error(s"**** SUCCESSFULLY SAVED AVAILABILITY FOR userId = $userId (CONTROLLER)")
+    withJsonBody[AssessorAvailability] { availability => assessorAvailabilityService.save(userId, availability).map ( _ =>
         Ok(s"I was called with userId: $userId")
-      }
-    }
+    )}
   }
 
   def find(userId: String) = Action.async { implicit request =>
