@@ -63,13 +63,11 @@ class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
   }
 
   override def countSubmitted: Future[Int] = {
-    (for {
-      regions <- AssessorAvailabilityService.regions
-    } yield {
+    AssessorAvailabilityService.regions.map { regions =>
       regions.map { region =>
         s"availability.$region" -> Json.toJsFieldJsValueWrapper(Json.obj("$exists" -> true))
       }
-    }).flatMap { fields =>
+    }.flatMap { fields =>
       val query = Json.obj(fields.toSeq: _*)
       collection.count(Some(query))
     }
