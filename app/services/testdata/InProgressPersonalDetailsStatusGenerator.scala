@@ -92,8 +92,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       _ <- pdService.update(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId, pdRequest)
       pd <- pdService.find(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.userId)
     } yield {
-      // TODO MIGUEL: CivilServiceExperienceDetails is not part of PersonalDetails
-      candidateInPreviousStatus.copy(personalDetails = Some(pd), civilServantDetails = pd.civilServiceExperienceDetails)
+      candidateInPreviousStatus.copy(personalDetails = Some(pd))
     }
   }
   //scalastyle:off method.length

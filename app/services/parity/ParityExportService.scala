@@ -142,7 +142,7 @@ trait ParityExportService extends EventSink {
         __.json.update(__.read[JsObject].map { o => o ++ Json.obj("token" -> parityGatewayConfig.upstreamAuthToken) })
 
       val finalDoc = Json.toJson("{}").transform(rootTransformer)
-      
+
       // TODO: Validate against json schema
       // finalDoc.get.validate()
 

@@ -35,7 +35,6 @@ object ExchangeObjects {
                                      mediaReferrer: Option[String] = None,
                                      personalDetails: Option[GeneralDetails] = None,
                                      diversityDetails: Option[List[QuestionnaireQuestion]] = None,
-                                     civilServantDetails: Option[CivilServiceExperienceDetails] = None,
                                      assistanceDetails: Option[AssistanceDetails] = None,
                                      phase1TestGroup: Option[TestGroupResponse] = None,
                                      phase2TestGroup: Option[TestGroupResponse] = None,
