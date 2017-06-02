@@ -60,7 +60,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
       val capacities = AssessmentCentreYamlRepository.assessmentCentreCapacities.futureValue
       capacities must not be empty
       val assessmentCapacity = capacities.head
-      assessmentCapacity.locationName mustBe "London"
+      assessmentCapacity.regionName mustBe "London"
       val venue = assessmentCapacity.venues.head
       venue.venueName mustBe "London (FSAC) 1"
       venue.venueDescription mustBe "FSAC"
@@ -114,7 +114,7 @@ class AssessmentCentreYamlRepositorySpec extends UnitWithAppSpec {
       val capacities = repo.assessmentCentreCapacities.futureValue
       capacities must not be empty
       val assessmentCapacity = capacities.head
-      assessmentCapacity.locationName mustBe "London"
+      assessmentCapacity.regionName mustBe "London"
       val venue = assessmentCapacity.venues(1)
       venue.venueName mustBe "London (FSAC) 2"
       venue.venueDescription mustBe "FSAC"

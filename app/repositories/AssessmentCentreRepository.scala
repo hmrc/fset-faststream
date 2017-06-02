@@ -32,7 +32,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class AssessmentCentreLocation(locationName: String, venues: List[AssessmentCentreVenue])
+case class AssessmentCentreLocation(regionName: String, venues: List[AssessmentCentreVenue])
 
 case class AssessmentCentreVenue(venueName: String, venueDescription: String, capacityDates: List[AssessmentCentreVenueCapacityDate])
 
