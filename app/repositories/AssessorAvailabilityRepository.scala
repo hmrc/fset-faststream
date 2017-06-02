@@ -17,8 +17,11 @@
 package repositories
 
 import model.persisted.AssessorAvailability
+import play.api.libs.json.Json
+import play.api.libs.json.Json.JsValueWrapper
 import reactivemongo.api.DB
 import reactivemongo.bson._
+import services.assessoravailability.AssessorAvailabilityService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -28,6 +31,7 @@ import scala.concurrent.Future
 trait AssessorAvailabilityRepository {
 
   def find(userId: String): Future[Option[AssessorAvailability]]
+
   def save(settings: AssessorAvailability): Future[Unit]
 
   def countSubmitted: Future[Int]
@@ -55,10 +59,17 @@ class AssessorAvailabilityMongoRepository(implicit mongo: () => DB)
     val saveBson: BSONDocument = BSONDocument("$set" -> assessorAvailability)
     val insertIfNoRecordFound = true
 
-    collection.update(query, saveBson, upsert = insertIfNoRecordFound).map( _ => () )
+    collection.update(query, saveBson, upsert = insertIfNoRecordFound).map(_ => ())
   }
 
   override def countSubmitted: Future[Int] = {
-    collection.count()
+    AssessorAvailabilityService.regions.map { regions =>
+      regions.map { region =>
+        s"availability.$region" -> Json.toJsFieldJsValueWrapper(Json.obj("$exists" -> true))
+      }
+    }.flatMap { fields =>
+      val query = Json.obj(fields.toSeq: _*)
+      collection.count(Some(query))
+    }
   }
 }
