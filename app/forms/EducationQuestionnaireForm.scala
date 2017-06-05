@@ -42,6 +42,10 @@ object EducationQuestionnaireForm {
         "schoolName16to18", "preferNotSay_schoolName16to18", Some(256))),
       "schoolId16to18" -> of(schoolIdFormatter("schoolName16to18")),
       "preferNotSay_schoolName16to18" -> optional(checked(Messages("error.required.schoolName16to18"))),
+      "schoolType14to16" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay(
+         "liveInUkBetween14and18", "schoolType14to16", "preferNotSay_schoolType", Some(256)
+      )),
+      "preferNotSay_schoolType" -> optional(checked(Messages("error.required.schoolName14to16"))),
       "freeSchoolMeals" -> of(requiredFormatterWithMaxLengthCheck("liveInUKBetween14and18", "freeSchoolMeals", Some(256))),
       "isCandidateCivilServant" -> Mappings.nonEmptyTrimmedText("error.isCandidateCivilServant.required", 31),
       "haveDegree" -> of(requiredFormatterWithMaxLengthCheck("isCandidateCivilServant", "haveDegree", Some(31))),
@@ -68,23 +72,25 @@ object EducationQuestionnaireForm {
   }
 
   case class Data(
-                   liveInUKBetween14and18: String,
-                   postcode: Option[String],
-                   preferNotSayPostcode: Option[Boolean],
-                   schoolName14to16: Option[String],
-                   schoolId14to16: Option[String],
-                   preferNotSaySchoolName14to16: Option[Boolean],
-                   schoolName16to18: Option[String],
-                   schoolId16to18: Option[String],
-                   preferNotSaySchoolName16to18: Option[Boolean],
-                   freeSchoolMeals: Option[String],
-                   isCandidateCivilServant: String,
-                   haveDegree: Option[String],
-                   university: Option[String],
-                   preferNotSayUniversity: Option[Boolean],
-                   universityDegreeCategory: Option[String],
-                   preferNotSayUniversityDegreeCategory: Option[Boolean]
-                 ) {
+    liveInUKBetween14and18: String,
+    postcode: Option[String],
+    preferNotSayPostcode: Option[Boolean],
+    schoolName14to16: Option[String],
+    schoolId14to16: Option[String],
+    preferNotSaySchoolName14to16: Option[Boolean],
+    schoolName16to18: Option[String],
+    schoolId16to18: Option[String],
+    preferNotSaySchoolName16to18: Option[Boolean],
+    schoolType14to16: Option[String],
+    preferNotSaySchoolType: Option[Boolean],
+    freeSchoolMeals: Option[String],
+    isCandidateCivilServant: String,
+    haveDegree: Option[String],
+    university: Option[String],
+    preferNotSayUniversity: Option[Boolean],
+    universityDegreeCategory: Option[String],
+    preferNotSayUniversityDegreeCategory: Option[Boolean]
+  ) {
 
 
     def exchange(): Questionnaire = {
@@ -104,6 +110,7 @@ object EducationQuestionnaireForm {
         if (liveInUKBetween14and18 == "Yes") {
           List(Question(Messages("postcode.question"), getAnswer(postcode, preferNotSayPostcode)),
             Question(Messages("schoolName14to16.question"), getAnswer(schoolName14to16, preferNotSaySchoolName14to16, schoolId14to16)),
+            Question(Messages("schoolType14to16.question"), getAnswer(schoolType14to16, preferNotSaySchoolType)),
             Question(Messages("schoolName16to18.question"), getAnswer(schoolName16to18, preferNotSaySchoolName16to18, schoolId16to18)),
             Question(Messages("freeSchoolMeals.question"), freeSchoolMealAnswer))
         } else {

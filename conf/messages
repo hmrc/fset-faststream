@@ -238,6 +238,7 @@ ethnicity.question = What is your ethnic group?
 liveInUKBetween14and18.question = Did you live in the UK between the ages of 14 and 18?
 postcode.question = What was your home postcode when you were 14?
 schoolName14to16.question = Aged 14 to 16 what was the name of your school?
+schoolType14to16.question = Which type of school was this?
 schoolName16to18.question = Aged 16 to 18 what was the name of your school or college?
 freeSchoolMeals.question = Were you at any time eligible for free school meals?
 haveDegree.question = Do you have a degree?
