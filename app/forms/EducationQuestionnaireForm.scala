@@ -38,14 +38,14 @@ object EducationQuestionnaireForm {
         "schoolName14to16", "preferNotSay_schoolName14to16", Some(256))),
       "schoolId14to16" -> of(schoolIdFormatter("schoolName14to16")),
       "preferNotSay_schoolName14to16" -> optional(checked(Messages("error.required.schoolName14to16"))),
+      "schoolType14to16" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay(
+         "liveInUKBetween14and18", "schoolType14to16", "preferNotSay_schoolType", Some(256)
+      )),
+      "preferNotSay_schoolType" -> optional(checked(Messages("error.required.schoolType14to16"))),
       "schoolName16to18" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
         "schoolName16to18", "preferNotSay_schoolName16to18", Some(256))),
       "schoolId16to18" -> of(schoolIdFormatter("schoolName16to18")),
       "preferNotSay_schoolName16to18" -> optional(checked(Messages("error.required.schoolName16to18"))),
-      "schoolType14to16" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay(
-         "liveInUkBetween14and18", "schoolType14to16", "preferNotSay_schoolType", Some(256)
-      )),
-      "preferNotSay_schoolType" -> optional(checked(Messages("error.required.schoolName14to16"))),
       "freeSchoolMeals" -> of(requiredFormatterWithMaxLengthCheck("liveInUKBetween14and18", "freeSchoolMeals", Some(256))),
       "isCandidateCivilServant" -> Mappings.nonEmptyTrimmedText("error.isCandidateCivilServant.required", 31),
       "haveDegree" -> of(requiredFormatterWithMaxLengthCheck("isCandidateCivilServant", "haveDegree", Some(31))),
@@ -78,11 +78,11 @@ object EducationQuestionnaireForm {
     schoolName14to16: Option[String],
     schoolId14to16: Option[String],
     preferNotSaySchoolName14to16: Option[Boolean],
+    schoolType14to16: Option[String],
+    preferNotSaySchoolType: Option[Boolean],
     schoolName16to18: Option[String],
     schoolId16to18: Option[String],
     preferNotSaySchoolName16to18: Option[Boolean],
-    schoolType14to16: Option[String],
-    preferNotSaySchoolType: Option[Boolean],
     freeSchoolMeals: Option[String],
     isCandidateCivilServant: String,
     haveDegree: Option[String],
@@ -151,6 +151,7 @@ object EducationQuestionnaireForm {
         this.copy(
           postcode = sanitizeValueWithPreferNotToSay(postcode, preferNotSayPostcode),
           schoolName14to16 = sanitizeValueWithPreferNotToSay(schoolName14to16, preferNotSaySchoolName14to16),
+          schoolType14to16 = sanitizeValueWithPreferNotToSay(schoolType14to16, preferNotSaySchoolType),
           schoolName16to18 = sanitizeValueWithPreferNotToSay(schoolName16to18, preferNotSaySchoolName16to18)
         )
       } else {
@@ -159,6 +160,8 @@ object EducationQuestionnaireForm {
           preferNotSayPostcode = None,
           schoolName14to16 = None,
           preferNotSaySchoolName14to16 = None,
+          schoolType14to16 = None,
+          preferNotSaySchoolType = None,
           schoolName16to18 = None,
           preferNotSaySchoolName16to18 = None,
           freeSchoolMeals = None)

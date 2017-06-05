@@ -214,6 +214,7 @@ error.postcodeQ.required = You must tell us what your postcode was between the a
 error.postcodeQ.invalid = You''ve entered an invalid postcode
 error.schoolName14to16.required = You must tell us what the name of your school was aged 14 to 16, or choose ''prefer not to say''
 error.schoolName14to16.maxLength = The school name must be less than 256 characters
+error.schoolType14to16.required = You must tell us which type of school you attended aged 14 to 16, or choose ''prefer not to say''
 error.schoolName16to18.required = You must tell us what the name of your school was aged 16 to 18, or choose ''prefer not to say''
 error.schoolName16to18.maxLength = The school or college name must be less than 256 characters
 error.freeSchoolMeals.required = You must tell us if you were eligible for free school meals, or choose ''prefer not to say''

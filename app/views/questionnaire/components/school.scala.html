@@ -36,10 +36,14 @@
                 options = Seq("A state-run or state-funded school - Selective on academic, faith or other grounds" -> "A state-run or state-funded school - Selective on academic, faith or other grounds",
                     "A state-run or state-funded school - Non-selective" -> "A state-run or state-funded school - Non-selective",
                     "Independent or fee-paying school - Bursary" -> "Independent or fee-paying school - Bursary",
-                    "Independent or fee-paying school - No Bursary" -> "Independent or fee-paying school - No Bursary",
-                    "Unknown/prefer not to say" -> "I don't know/prefer not to say"
+                    "Independent or fee-paying school - No Bursary" -> "Independent or fee-paying school - No Bursary"
                 )
             )
+            <div class="form-group">
+                @checkbox(questionnaireForm("preferNotSay_schoolType"), Some("schoolType14to16")) {
+                    I don't know/prefer not to say
+            }
+            </div>
         </div>
     </section>
     <section>
