@@ -17,6 +17,8 @@
 package connectors.testdata
 
 import model.Commands.ApplicationAssessment
+import model.persisted.{ AssistanceDetails, ContactDetails }
+import model.command.GeneralDetails
 import model.persisted._
 import model.{ Adjustments, CivilServiceExperienceDetails, SelectedSchemes }
 import play.api.libs.json.Json
@@ -24,25 +26,23 @@ import play.api.libs.json.Json
 object ExchangeObjects {
 
   case class DataGenerationResponse(
-    generationId: Int,
-    userId: String,
-    applicationId: Option[String],
-    email: String,
-    firstName: String,
-    lastName: String,
-    mediaReferrer: Option[String] = None,
-    personalDetails: Option[PersonalDetails] = None,
-    diversityDetails: Option[List[QuestionnaireQuestion]] = None,
-    civilServantDetails: Option[CivilServiceExperienceDetails] = None,
-    contactDetails: Option[ContactDetails] = None,
-    assistanceDetails: Option[AssistanceDetails] = None,
-    phase1TestGroup: Option[TestGroupResponse] = None,
-    phase2TestGroup: Option[TestGroupResponse] = None,
-    phase3TestGroup: Option[TestGroupResponse] = None,
-    applicationAssessment: Option[ApplicationAssessment] = None,
-    schemePreferences: Option[SelectedSchemes] = None,
-    accessCode: Option[String] = None,
-    adjustmentInformation: Option[Adjustments] = None
+                                     generationId: Int,
+                                     userId: String,
+                                     applicationId: Option[String],
+                                     email: String,
+                                     firstName: String,
+                                     lastName: String,
+                                     mediaReferrer: Option[String] = None,
+                                     personalDetails: Option[GeneralDetails] = None,
+                                     diversityDetails: Option[List[QuestionnaireQuestion]] = None,
+                                     assistanceDetails: Option[AssistanceDetails] = None,
+                                     phase1TestGroup: Option[TestGroupResponse] = None,
+                                     phase2TestGroup: Option[TestGroupResponse] = None,
+                                     phase3TestGroup: Option[TestGroupResponse] = None,
+                                     applicationAssessment: Option[ApplicationAssessment] = None,
+                                     schemePreferences: Option[SelectedSchemes] = None,
+                                     accessCode: Option[String] = None,
+                                     adjustmentInformation: Option[Adjustments] = None
   )
 
   case class TestGroupResponse(tests: List[TestResponse])

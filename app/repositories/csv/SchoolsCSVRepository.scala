@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package repositories
+package repositories.csv
 
 import model.School
-import play.api.Play
 import resource._
 
 import scala.concurrent.Future
 import scala.io.Source
+import play.api.Play
 
 trait SchoolsRepository {
   def schools: Future[List[School]]

@@ -18,6 +18,7 @@ package services.schools
 
 import model.School
 import repositories._
+import repositories.csv.SchoolsRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

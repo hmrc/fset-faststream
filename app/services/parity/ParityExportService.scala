@@ -27,6 +27,7 @@ import play.api.libs.json._
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
+import repositories.csv.FSACIndicatorCSVRepository
 import repositories.parity.{ ApplicationReadyForExport, ParityExportRepository }
 import services.application.ApplicationService
 import services.events.{ EventService, EventSink }
@@ -45,7 +46,7 @@ object ParityExportService extends ParityExportService {
   val mRepository = mediaRepository
   val cdRepository = faststreamContactDetailsRepository
   val qRepository = questionnaireRepository
-  val northSouthRepository = northSouthIndicatorRepository
+  val fsacIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
   val socioEconomicCalculator = SocioEconomicCalculator
   val appRepository = applicationRepository
   val applicationService = ApplicationService
@@ -61,7 +62,7 @@ trait ParityExportService extends EventSink {
   val mRepository: MediaRepository
   val cdRepository: contactdetails.ContactDetailsRepository
   val qRepository: QuestionnaireRepository
-  val northSouthRepository: NorthSouthIndicatorCSVRepository
+  val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
   val applicationService: ApplicationService
   val socioEconomicCalculator: SocioEconomicScoreCalculator
   val appRepository: GeneralApplicationRepository
@@ -103,10 +104,10 @@ trait ParityExportService extends EventSink {
     for {
       applicationDoc <- parityExRepository.getApplicationForExport(applicationId)
       userId = (applicationDoc \ "userId").as[String]
+      fsacIndicator = (applicationDoc \ "fsac-indicator" \ "assessmentCentre").as[String]
       contactDetails <- cdRepository.find(userId)
       mediaOpt <- mRepository.find(userId)
       diversityQuestions <- qRepository.findQuestions(applicationId)
-      northSouthIndicator = northSouthRepository.calculateFsacIndicator(contactDetails.postCode, contactDetails.outsideUk).get
       sesScore = socioEconomicCalculator.calculateAsInt(diversityQuestions)
       passedSchemes <- applicationService.getPassedSchemes(userId, ExchangeObjects.frameworkId)
     } yield {
@@ -130,10 +131,10 @@ trait ParityExportService extends EventSink {
               mediaObj ++
               Json.obj("contact-details" -> contactDetails) ++
               Json.obj("diversity-questionnaire" -> Json.obj("questions" -> diversityQuestionsObj, "scoring" -> Json.obj("ses" -> sesScore))) ++
-              Json.obj("assessment-location" -> northSouthIndicator) ++
+              Json.obj("assessment-location" -> fsacIndicator) ++
               Json.obj("results" -> Json.obj("passed-schemes" -> passedSchemes))
         }
-      ) andThen (__ \ "testGroups").json.prune
+      ) andThen (__ \ "testGroups").json.prune andThen (__ \ "fsac-indicator").json.prune
 
       val appDoc = applicationDoc.transform(applicationTransformer).get
 

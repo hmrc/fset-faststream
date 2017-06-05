@@ -1,4 +1,4 @@
-package repositories
+package repositories.csv
 
 import testkit.{ ShortTimeout, UnitWithAppSpec }
 
