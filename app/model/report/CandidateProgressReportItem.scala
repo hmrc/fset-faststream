@@ -25,7 +25,7 @@ case class CandidateProgressReportItem(userId: String, applicationId: String, pr
                                        assessmentCentreAdjustments: Option[String], phoneAdjustments: Option[String],
                                        gis: Option[String], civilServant: Option[String], fastTrack: Option[String], edip: Option[String],
                                        sdipPrevious: Option[String], sdip: Option[String],
-                                       fastPassCertificate: Option[String], fsacIndicator: Option[String], applicationRoute: ApplicationRoute)
+                                       fastPassCertificate: Option[String], assessmentCentre: Option[String], applicationRoute: ApplicationRoute)
 
 object CandidateProgressReportItem {
   implicit val candidateProgressReportFormat = Json.format[CandidateProgressReportItem]

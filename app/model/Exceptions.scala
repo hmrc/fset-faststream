@@ -34,6 +34,8 @@ object Exceptions {
 
   case class CannotUpdateContactDetails(userId: String) extends Exception(userId)
 
+  case class CannotUpdateFSACIndicator(userId: String) extends Exception(userId)
+
   case class CannotUpdateSchemePreferences(applicationId: String) extends Exception(applicationId)
 
   case class CannotUpdatePartnerGraduateProgrammes(applicationId: String) extends Exception(applicationId)
@@ -43,6 +45,10 @@ object Exceptions {
   case class CannotUpdatePreview(applicationId: String) extends Exception(applicationId)
 
   case class PersonalDetailsNotFound(applicationId: String) extends Exception(applicationId)
+
+  case class FSACIndicatorNotFound(applicationId: String) extends Exception(applicationId)
+
+  case class FSACCSVIndicatorNotFound(applicationId: String) extends Exception(applicationId)
 
   case class ContactDetailsNotFound(userId: String) extends Exception(userId)
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package repositories
+package repositories.csv
 
 trait CsvHelper {
 

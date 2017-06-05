@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package repositories
+package repositories.csv
 
-import com.github.ghik.silencer.silent
 import model.report.CandidateProgressReportItem
 import model.{ ApplicationRoute, FSACIndicator }
-import play.api.Play
 import resource._
+import com.github.ghik.silencer.silent
+import play.api.Play
 
 import scala.io.Source
 
-object NorthSouthIndicatorCSVRepository extends NorthSouthIndicatorCSVRepository {
-  private val CsvFileName = "North_South_indicator_lookup_for_FSAC.csv"
+object FSACIndicatorCSVRepository extends FSACIndicatorCSVRepository {
+  private val CsvFileName = "FSAC_indicator_lookup_by_postcode.csv"
   override def expectedNumberOfHeaders = 3
 
   import play.api.Play.current
 
-  override private[repositories] val fsacIndicators: Map[String, FSACIndicator] =  {
-
+  override private[repositories] val indicators: Map[String, FSACIndicator] =  {
     @silent val input = managed(Play.application.resourceAsStream(CsvFileName).get)
     input.acquireAndGet { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines.map(parseLine).toList
@@ -48,34 +47,28 @@ object NorthSouthIndicatorCSVRepository extends NorthSouthIndicatorCSVRepository
     }
   }
 
-  override def calculateFsacIndicator(postcode: Option[String], outsideUk: Boolean): Option[String] = {
+  override def find(postcode: Option[String], outsideUk: Boolean): Option[FSACIndicator] = {
     (postcode, outsideUk) match {
       case (None, false) => None
       case (None, true) => Some(DefaultIndicator)
-      case (aPostcode, false) => getFsacIndicator(aPostcode)
+      case (aPostcode, false) => find(aPostcode)
       case _ => Some(DefaultIndicator)
     }
   }
 
-  override def calculateFsacIndicatorForReports(postcode: Option[String], candidate: CandidateProgressReportItem): Option[String] = {
-    if(candidate.applicationRoute != ApplicationRoute.Faststream) { None }
-    else if (candidate.progress.contains("registered")) { None }
-    else if (postcode.isEmpty) { Some(DefaultIndicator) }
-    else { getFsacIndicator(postcode) }
-  }
-
-  private def getFsacIndicator(postcode: Option[String]): Option[String] = {
-    postcode.flatMap(pc => {
-      val key = pc.takeWhile(!_.isDigit).toUpperCase
-      fsacIndicators.get(key).fold[Option[String]](Some(DefaultIndicator))(indicator => Some(indicator.assessmentCentre))
+  private def find(postcode: Option[String]): Option[FSACIndicator] = {
+    postcode.flatMap(postCodeVal => {
+      val postCodeUpperCase = postCodeVal.takeWhile(!_.isDigit).toUpperCase
+      indicators.get(postCodeUpperCase).fold[Option[FSACIndicator]](Some(DefaultIndicator))(indicator => Some(indicator))
     })
   }
-
 }
 
-trait NorthSouthIndicatorCSVRepository extends CsvHelper {
-  val DefaultIndicator = "London"
-  private[repositories] val fsacIndicators: Map[String, FSACIndicator]
-  def calculateFsacIndicator(postcode: Option[String], outsideUk: Boolean): Option[String]
-  def calculateFsacIndicatorForReports(postcode: Option[String], candidate: CandidateProgressReportItem): Option[String]
+trait FSACIndicatorCSVRepository extends CsvHelper {
+  val FSACIndicatorVersion = "1"
+  val DefaultIndicator = FSACIndicator("London", "London")
+
+  private[repositories] val indicators: Map[String, FSACIndicator]
+
+  def find(postcode: Option[String], outsideUk: Boolean): Option[FSACIndicator]
 }

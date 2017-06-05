@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package model.report
+package model.persisted
 
 import play.api.libs.json.Json
+import repositories.csv.FSACIndicatorCSVRepository
+import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
-case class TimeToOfferItem(timeToOffer: TimeToOfferPartialItem,
-                           email: Option[String],
-                           applicationInfo: DiversityReportItem)
+case class FSACIndicator(area: String, assessmentCentre: String, version: String)
 
-object TimeToOfferItem {
-  implicit val timeToOfferItemFormat = Json.format[TimeToOfferItem]
+object FSACIndicator {
+  implicit val jsonFormat = Json.format[FSACIndicator]
+  implicit val bsonFormat = Macros.handler[FSACIndicator]
+
+  def apply(indicator: model.FSACIndicator): FSACIndicator = {
+    FSACIndicator(indicator.area, indicator.assessmentCentre,
+      FSACIndicatorCSVRepository.FSACIndicatorVersion)
+  }
 }

@@ -23,15 +23,16 @@ import controllers.ReportingController
 import mocks._
 import model._
 import model.persisted.ContactDetailsWithId
-import model.report.{CandidateProgressReportItem, _}
+import model.report.{ CandidateProgressReportItem, _ }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.{ JsArray, Json }
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest, Helpers}
+import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository
 import repositories._
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.csv.FSACIndicatorCSVRepository
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -49,7 +50,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     override val questionnaireRepository: QuestionnaireRepository = QuestionnaireInMemoryRepository
     override val assessmentScoresRepository: ApplicationAssessmentScoresRepository = ApplicationAssessmentScoresInMemoryRepository
     override val mediaRepository: MediaRepository = MediaInMemoryRepository
-    override val indicatorRepository = NorthSouthIndicatorCSVRepository
+    override val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
     override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
   }
 
@@ -233,46 +234,33 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     "return the progress report in an happy path scenario" in new TestFixture {
       val underTest = new TestableReportingController
       when(reportingRepositoryMock.candidateProgressReport(frameworkId)).thenReturn(SuccessfulProgressReportResponse)
-      when(mockContactDetailsRepository.findAllPostcodes()).thenReturn(SuccessfulFindAllPostCodeResponse)
 
-      val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+      val response = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
 
-      val finalResult = contentAsJson(result).as[JsArray].value
+      val result = contentAsJson(response).as[List[CandidateProgressReportItem]]
 
-      finalResult mustBe a[Seq[_]]
-      finalResult.size must be(4)
+      result.size must be(4)
 
-      val user1 = finalResult.head
-      (user1 \ "userId").asOpt[String] mustBe Some("user1")
-      (user1 \ "fsacIndicator").asOpt[String] mustBe Some("Newcastle")
+      val user1 = result.head
+      user1.userId mustBe "user1"
+      user1.assessmentCentre mustBe Some("London")
 
-      val user2 = finalResult(1) // because it's "registered"
-      (user2 \ "userId").asOpt[String] mustBe Some("user2")
-      (user2 \ "fsacIndicator").asOpt[String] mustBe None
+      val user2 = result(1)
+      user2.userId mustBe "user2"
+      user2.assessmentCentre mustBe None
 
-      val user3 = finalResult(2) // because edip candidate
-      (user3 \ "userId").asOpt[String] mustBe Some("user3")
-      (user3 \ "fsacIndicator").asOpt[String] mustBe None
+      val user3 = result(2)
+      user3.userId mustBe "user3"
+      user3.assessmentCentre mustBe None
 
-      val user4 = finalResult(3) // because with no postcode we use the default fsac (London)
-      (user4 \ "userId").asOpt[String] mustBe Some("user4")
-      (user4 \ "fsacIndicator").asOpt[String] mustBe Some("London")
+      val user4 = result(3)
+      user4.userId mustBe "user4"
+      user4.assessmentCentre mustBe Some("Newcastle")
     }
 
     "return a failed future with the expected throwable when candidateProgressReport fails" in new TestFixture {
       val underTest = new TestableReportingController
       when(reportingRepositoryMock.candidateProgressReport(frameworkId)).thenReturn(GenericFailureResponse)
-      when(mockContactDetailsRepository.findAllPostcodes()).thenReturn(SuccessfulFindAllPostCodeResponse)
-
-      val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
-
-      result.failed.futureValue mustBe Error
-    }
-
-    "return a failed future with the expected throwable when findAllPostcodes fails" in new TestFixture {
-      val underTest = new TestableReportingController
-      when(reportingRepositoryMock.candidateProgressReport(frameworkId)).thenReturn(SuccessfulProgressReportResponse)
-      when(mockContactDetailsRepository.findAllPostcodes()).thenReturn(GenericFailureResponse)
 
       val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
 
@@ -509,7 +497,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       List(
         CandidateProgressReportItem("user1", "app1", Some("submitted"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
+          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("London"),
           ApplicationRoute.Faststream),
         CandidateProgressReportItem("user2", "app2", Some("registered"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
@@ -521,7 +509,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           ApplicationRoute.Edip),
         CandidateProgressReportItem("user4", "app4", Some("submitted"),
           List(SchemeType.DiplomaticService, SchemeType.GovernmentOperationalResearchService), Some("Yes"),
-          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
+          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("Newcastle"),
           ApplicationRoute.Faststream)
       )
     )

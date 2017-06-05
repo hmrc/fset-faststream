@@ -122,9 +122,12 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         case _ => None
       }
 
+      val fsacIndicatorDoc = doc.getAs[BSONDocument]("fsac-indicator")
+      val assessmentCentre = fsacIndicatorDoc.flatMap(_.getAs[String]("assessmentCentre"))
+
       CandidateProgressReportItem(userId, applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
         schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, phoneAdjustments, gis, civilServant,
-        fastTrack, edipReportColumn, sdipPrevious, sdip, fastPassCertificate, None, applicationRoute)
+        fastTrack, edipReportColumn, sdipPrevious, sdip, fastPassCertificate, assessmentCentre, applicationRoute)
     }
   }
 
