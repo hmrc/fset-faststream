@@ -38,18 +38,14 @@ trait AssessorAvailabilityService {
   )
 
   def save(userId: String, assessorAvailability: model.exchange.AssessorAvailability): Future[Unit] = {
-    for {
-      availabilityOpt <- aaRepository.find(userId)
-    } yield {
-      availabilityOpt match {
-        case Some(existing) =>
-          val mergedAvailability = existing.availability ++ assessorAvailability.availability
-          val assessorAvailabilityToPersist = model.persisted.AssessorAvailability(userId, mergedAvailability)
-          aaRepository.save(assessorAvailabilityToPersist).map(_ => ())
-        case _ =>
-          val assessorAvailabilityToPersist = model.persisted.AssessorAvailability(userId, assessorAvailability.availability)
-          aaRepository.save(assessorAvailabilityToPersist).map(_ => ())
-      }
+    aaRepository.find(userId).flatMap {
+      case Some(existing) =>
+        val mergedAvailability = existing.availability ++ assessorAvailability.availability
+        val assessorAvailabilityToPersist = model.persisted.AssessorAvailability(userId, mergedAvailability)
+        aaRepository.save(assessorAvailabilityToPersist).map( _ => () )
+      case _ =>
+        val assessorAvailabilityToPersist = model.persisted.AssessorAvailability(userId, assessorAvailability.availability)
+        aaRepository.save(assessorAvailabilityToPersist).map( _ => () )
     }
   }
 
