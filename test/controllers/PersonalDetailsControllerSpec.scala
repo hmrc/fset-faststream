@@ -19,7 +19,7 @@ package controllers
 import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
 import config.{ CSRCache, CSRHttp, SecurityEnvironmentImpl }
 import connectors.ApplicationClient.PersonalDetailsNotFound
-import connectors.exchange.{ CivilServiceExperienceDetailsExamples, PersonalDetailsExamples, SelectedSchemes }
+import connectors.exchange.{ CivilServiceExperienceDetailsExamples, GeneralDetailsExamples, SelectedSchemes }
 import connectors.{ ApplicationClient, SchemeClient, UserManagementClient }
 import forms.PersonalDetailsFormExamples._
 import models.ApplicationData.ApplicationStatus
@@ -113,13 +113,13 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
     "load personal details page for the already created personal details" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
+        .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
 
       val result = controller.present()(fakeRequest)
 
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
-      content must include(s"""name="preferredName" value="${PersonalDetailsExamples.FullDetails.preferredName}"""")
+      content must include(s"""name="preferredName" value="${GeneralDetailsExamples.FullDetails.preferredName}"""")
       content must include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
     }
 
@@ -137,13 +137,13 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
     "load edip personal details page for the already created personal details" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
+        .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
 
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
 
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
-      content must include(s"""name="preferredName" value="${PersonalDetailsExamples.FullDetails.preferredName}"""")
+      content must include(s"""name="preferredName" value="${GeneralDetailsExamples.FullDetails.preferredName}"""")
       content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
     }
 
@@ -162,13 +162,13 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
 
     "load sdip personal details page for the already created personal details" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(PersonalDetailsExamples.FullDetails))
+        .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
 
       val result = controller(currentCandidateWithSdipApp).present()(fakeRequest)
 
       assertPageTitle(result, "Personal details")
       val content = contentAsString(result)
-      content must include(s"""name="preferredName" value="${PersonalDetailsExamples.FullDetails.preferredName}"""")
+      content must include(s"""name="preferredName" value="${GeneralDetailsExamples.FullDetails.preferredName}"""")
       content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
       content must include ("""<input name="edipCompleted" type="radio"""")
     }
