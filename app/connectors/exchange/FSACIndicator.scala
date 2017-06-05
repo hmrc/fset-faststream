@@ -16,12 +16,10 @@
 
 package connectors.exchange
 
-import mappings.AddressExamples._
-import org.joda.time.LocalDate
+import play.api.libs.json.Json
 
-object PersonalDetailsExamples {
-  val FullDetails = PersonalDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), None, Some("1234567"), Some(CivilServiceExperienceDetails(applicable = false)), None, None)
-  val SdipFullDetailsWithEdipCompleted = PersonalDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), None, Some("1234567"), Some(CivilServiceExperienceDetails(applicable = false)), Some(true), None)
+final case class FSACIndicator(area: String, assessmentCentre: String)
+
+object FSACIndicator {
+  implicit val fsacIndicatorFormat = Json.format[FSACIndicator]
 }

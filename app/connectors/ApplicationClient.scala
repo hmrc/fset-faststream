@@ -21,7 +21,7 @@ import java.net.URLEncoder
 import config.CSRHttp
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.PartnerGraduateProgrammes._
-import connectors.exchange.PersonalDetails._
+import connectors.exchange.GeneralDetails._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
 import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
@@ -86,7 +86,7 @@ trait ApplicationClient {
     }
   }
 
-  def updatePersonalDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, personalDetails: PersonalDetails)
+  def updatePersonalDetails(applicationId: UniqueIdentifier, userId: UniqueIdentifier, personalDetails: GeneralDetails)
                            (implicit hc: HeaderCarrier) = {
     http.POST(
       s"${url.host}${url.base}/personal-details/$userId/$applicationId",
@@ -100,7 +100,7 @@ trait ApplicationClient {
 
   def getPersonalDetails(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
     http.GET(s"${url.host}${url.base}/personal-details/$userId/$applicationId").map { response =>
-      response.json.as[PersonalDetails]
+      response.json.as[GeneralDetails]
     } recover {
       case e: NotFoundException => throw new PersonalDetailsNotFound()
     }

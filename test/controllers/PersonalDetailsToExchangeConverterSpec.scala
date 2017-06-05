@@ -16,7 +16,7 @@
 
 package controllers
 
-import connectors.exchange.PersonalDetails
+import connectors.exchange.GeneralDetails
 import forms.PersonalDetailsFormExamples._
 
 class PersonalDetailsToExchangeConverterSpec extends UnitSpec {
@@ -26,7 +26,7 @@ class PersonalDetailsToExchangeConverterSpec extends UnitSpec {
     "convert uk address, and remove country" in {
       val result = converter.toExchange(ValidUKAddressForm.copy(country = Some("France")), "email@email.com", Some(true))
 
-      result mustBe PersonalDetails(
+      result mustBe GeneralDetails(
         ValidUKAddressForm.firstName,
         ValidUKAddressForm.lastName,
         ValidUKAddressForm.preferredName,
@@ -35,7 +35,8 @@ class PersonalDetailsToExchangeConverterSpec extends UnitSpec {
         outsideUk = false,
         ValidUKAddressForm.address,
         postCode = ValidUKAddressForm.postCode,
-        country = None,
+        None,
+        None,
         ValidUKAddressForm.phone,
         ValidUKAddressForm.civilServiceExperienceDetails,
         None,
@@ -46,7 +47,7 @@ class PersonalDetailsToExchangeConverterSpec extends UnitSpec {
     "convert non uk address, and remove post code" in {
       val result = converter.toExchange(ValidNonUKAddressForm.copy(postCode = Some("1A 2BC")), "email@email.com", Some(true))
 
-      result mustBe PersonalDetails(
+      result mustBe GeneralDetails(
         ValidNonUKAddressForm.firstName,
         ValidNonUKAddressForm.lastName,
         ValidNonUKAddressForm.preferredName,
@@ -55,7 +56,8 @@ class PersonalDetailsToExchangeConverterSpec extends UnitSpec {
         outsideUk = true,
         ValidNonUKAddressForm.address,
         postCode = None,
-        country = ValidNonUKAddressForm.country,
+        None,
+        ValidNonUKAddressForm.country,
         ValidNonUKAddressForm.phone,
         ValidNonUKAddressForm.civilServiceExperienceDetails,
         None,
