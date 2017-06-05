@@ -71,7 +71,7 @@ trait AssessmentScheduleController extends BaseController {
   def getAssessmentScheduleDatesByRegion(region: String): Action[AnyContent] = Action.async { implicit request =>
      acRepository.assessmentCentreCapacities.map { schedule =>
        val dates = schedule
-         .filter(scheduleRegion => scheduleRegion.locationName == region)
+         .filter(scheduleRegion => scheduleRegion.regionName == region)
          .flatMap(scheduleRegion =>
            scheduleRegion.venues.flatMap(venue =>
              venue.capacityDates.map(capacityDates =>
@@ -108,7 +108,7 @@ trait AssessmentScheduleController extends BaseController {
       val schedule = Schedule(
         assessmentCentreCapacities.map(assessmentCentreCapacity =>
           Region(
-            assessmentCentreCapacity.locationName,
+            assessmentCentreCapacity.regionName,
             assessmentCentreCapacity.venues.map(venue =>
               Venue(
                 venue.venueName,
