@@ -80,12 +80,12 @@ trait TestDataGeneratorController extends BaseController {
         parentalCompanySize = Some("Small (1 to 24 employees)")
       )),
       assistanceDetails = Some(AssistanceDetailsRequest(
-        hasDisability = Some("false"),
+        hasDisability = Some("Yes"),
         hasDisabilityDescription = Some(Random.hasDisabilityDescription),
-        setGis = Some(false),
-        onlineAdjustments = Some(false),
+        setGis = Some(true),
+        onlineAdjustments = Some(true),
         onlineAdjustmentsDescription = Some(Random.onlineAdjustmentsDescription),
-        assessmentCentreAdjustments = Some(false),
+        assessmentCentreAdjustments = Some(true),
         assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
       )),
       schemeTypes = Some(List(SchemeType.Commercial, SchemeType.European, SchemeType.DigitalAndTechnology)),
@@ -145,8 +145,8 @@ trait TestDataGeneratorController extends BaseController {
   private lazy val cubiksUrlFromConfig: String = MicroserviceAppConfig.testDataGeneratorCubiksSecret
 
   def createCandidatesInStatusPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[CreateCandidateInStatusRequest] { body =>
-      createCandidateInStatus(GeneratorConfig.apply(cubiksUrlFromConfig, body), numberToGenerate)
+    withJsonBody[CreateCandidateInStatusRequest] { createRequest =>
+      createCandidateInStatus(GeneratorConfig.apply(cubiksUrlFromConfig, createRequest), numberToGenerate)
     }
   }
 

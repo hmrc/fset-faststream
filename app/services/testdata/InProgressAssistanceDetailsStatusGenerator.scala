@@ -85,7 +85,8 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       } else {
         None
       }
-    val phoneAdjustmentsFinalValue = config.assistanceDetails.phoneAdjustments
+    val phoneAdjustmentsFinalValue = if (config.statusData.applicationRoute == ApplicationRoute.Edip ||
+      config.statusData.applicationRoute == ApplicationRoute.Sdip) { config.assistanceDetails.phoneAdjustments } else { false }
     val phoneAdjustmentsDescriptionFinalValue =
       if (phoneAdjustmentsFinalValue) {
         Some(config.assistanceDetails.phoneAdjustmentsDescription)
