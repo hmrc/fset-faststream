@@ -37,7 +37,7 @@ object TestDataGeneratorService extends TestDataGeneratorService {
 
 trait TestDataGeneratorService extends MongoDbConnection {
 
-  def clearDatabase()(implicit hc: HeaderCarrier): Future[Unit] = {
+  def clearDatabase(generateDefaultAssessor: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       _ <- db().drop()
       _ <- AuthProviderClient.removeAllUsers()
@@ -56,7 +56,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
       _ <- RegisteredStatusGenerator.createUser(
         1,
         "test_assessor@mailinator.com", "CSR Test", "Assessor", Some("TestServiceManager"), AuthProviderClient.AssessorRole
-      )
+      ) if generateDefaultAssessor
       _ <- RegisteredStatusGenerator.createUser(
         1,
         "test_qac@mailinator.com", "CSR Test", "QAC", Some("TestServiceManager"), AuthProviderClient.QacRole
