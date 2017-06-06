@@ -58,7 +58,7 @@ trait AdjustmentsManagementService extends EventSink {
           _ <- appRepository.confirmAdjustments(applicationId, adjustmentInformation)
         } yield {
           val hasNewAdjustments = adjustmentInformation.adjustments.exists(_.nonEmpty)
-          val hasPreviousAdjustments = previousAdjustments.nonEmpty
+          val hasPreviousAdjustments = previousAdjustments.flatMap(_.adjustmentsConfirmed).getOrElse(false)
 
           val events = if (hasNewAdjustments || hasPreviousAdjustments) {
             createEmailEvents(candidate, adjustmentInformation, hasPreviousAdjustments, cd) :: adjustmentsDataStoreAndAuditEvents
