@@ -30,6 +30,21 @@
             I don't know/prefer not to say
         }
         </div>
+        <div class="text">
+            <p class="form-label">Which type of school was this?</p>
+            @radioBox(questionnaireForm("schoolType14to16"),
+                options = Seq("A state-run or state-funded school - Selective on academic, faith or other grounds" -> "A state-run or state-funded school - Selective on academic, faith or other grounds",
+                    "A state-run or state-funded school - Non-selective" -> "A state-run or state-funded school - Non-selective",
+                    "Independent or fee-paying school - Bursary" -> "Independent or fee-paying school - Bursary",
+                    "Independent or fee-paying school - No Bursary" -> "Independent or fee-paying school - No Bursary"
+                )
+            )
+            <div class="form-group">
+                @checkbox(questionnaireForm("preferNotSay_schoolType"), Some("schoolType14to16")) {
+                    I don't know/prefer not to say
+            }
+            </div>
+        </div>
     </section>
     <section>
         <div class="form-group form-group-compound">
