@@ -202,6 +202,15 @@ object DataFaker {
 
     def age14to16School = randOne(List("Blue Bees School", "Green Goblins School", "Magenta Monkeys School", "Zany Zebras School"))
 
+    def schoolType14to16 = randOne(List(
+      "stateRunOrFunded-selective",
+      "stateRunOrFunded-nonSelective",
+      "indyOrFeePaying-bursary",
+      "indyOrFeePaying-noBursary"
+    ))
+
+
+
     def age16to18School = randOne(List("Advanced Skills School", "Extremely Advanced School", "A-Level Specialist School", "14 to 18 School"))
 
     // scalastyle:off method.length

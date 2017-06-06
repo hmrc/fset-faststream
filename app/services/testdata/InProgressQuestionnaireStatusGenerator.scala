@@ -62,6 +62,12 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       }
     }
 
+    def getSchoolType14to16Answer = if (didYouLiveInUkBetween14and18Answer == "Yes") {
+      Some(QuestionnaireQuestion("What type of school was this?",
+        QuestionnaireAnswer(Some(Random.schoolType14to16), None, None))
+      )
+    } else { None }
+
     def getSchoolName16to18Answer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion("Aged 16 to 18 what was the name of your school?",
@@ -137,6 +143,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator {
       ),
       getWhatWasYourHomePostCodeWhenYouWere14,
       getSchoolName14to16Answer,
+      getSchoolType14to16Answer,
       getSchoolName16to18Answer,
       getFreeSchoolMealsAnswer,
       getHaveDegreeAnswer,
