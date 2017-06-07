@@ -21,7 +21,6 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import config.MicroserviceAppConfig
 import connectors.AuthProviderClient
-import connectors.testdata.ExchangeObjects.Implicits._
 import model.Exceptions.EmailTakenException
 import model.command.testdata.GeneratorConfig
 import model.exchange.testdata._

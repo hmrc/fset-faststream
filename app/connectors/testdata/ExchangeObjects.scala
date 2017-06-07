@@ -17,11 +17,11 @@
 package connectors.testdata
 
 import model.Commands.ApplicationAssessment
-import model.persisted.{ AssistanceDetails, ContactDetails }
+import model.persisted.AssistanceDetails
 import model.command.GeneralDetails
 import model.persisted._
-import model.{ Adjustments, CivilServiceExperienceDetails, SelectedSchemes }
-import play.api.libs.json.Json
+import model.{ Adjustments, SelectedSchemes }
+import play.api.libs.json.{ Json, OFormat }
 
 object ExchangeObjects {
 
@@ -45,16 +45,14 @@ object ExchangeObjects {
                                      adjustmentInformation: Option[Adjustments] = None
   )
 
-  case class TestGroupResponse(tests: List[TestResponse])
+  object DataGenerationResponse {
+    implicit val dataGenerationResponseFormat: OFormat[DataGenerationResponse] = Json.format[DataGenerationResponse]
+  }
+
+  case class TestGroupResponse(tests: List[TestResponse], schemeResult: Option[PassmarkEvaluation])
+  object TestGroupResponse { implicit val testGroupResponseFormat: OFormat[TestGroupResponse] = Json.format[TestGroupResponse] }
 
   case class TestResponse(testId: Int, testType: String, token: String, testUrl: String)
+  object TestResponse { implicit val testResponseFormat: OFormat[TestResponse] = Json.format[TestResponse] }
 
-
-  object Implicits {
-
-    import model.Commands.Implicits._
-    implicit val testResponseFormat = Json.format[TestResponse]
-    implicit val testGroupResponseFormat = Json.format[TestGroupResponse]
-    implicit val dataGenerationResponseFormat = Json.format[DataGenerationResponse]
-  }
 }

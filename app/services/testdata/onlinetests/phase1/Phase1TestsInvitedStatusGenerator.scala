@@ -81,7 +81,8 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
           List(TestResponse(sjq.cubiksUserId, "sjq", sjq.token, sjq.testUrl)) ++
           bq.map { b =>
             List(TestResponse(b.cubiksUserId, "bq", b.token, b.testUrl))
-          }.getOrElse(Nil)
+          }.getOrElse(Nil),
+          None
         )
       ))
     }
