@@ -37,10 +37,18 @@ object TestDataGeneratorService extends TestDataGeneratorService {
 
 trait TestDataGeneratorService extends MongoDbConnection {
 
-  def clearDatabase(generateDefaultAssessor: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def clearDatabase(generateDefaultRoles: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       _ <- db().drop()
       _ <- AuthProviderClient.removeAllUsers()
+      _ <- generateRoles() if generateDefaultRoles
+    } yield {
+      ()
+    }
+  }
+
+  def generateRoles()(implicit hc: HeaderCarrier): Future[Unit] = {
+    for {
       _ <- RegisteredStatusGenerator.createUser(
         1,
         "test_service_manager_1@mailinator.com", "CSR Test", "Tech Admin", Some("TestServiceManager"), AuthProviderClient.TechnicalAdminRole
@@ -56,14 +64,12 @@ trait TestDataGeneratorService extends MongoDbConnection {
       _ <- RegisteredStatusGenerator.createUser(
         1,
         "test_assessor@mailinator.com", "CSR Test", "Assessor", Some("TestServiceManager"), AuthProviderClient.AssessorRole
-      ) if generateDefaultAssessor
+      )
       _ <- RegisteredStatusGenerator.createUser(
         1,
         "test_qac@mailinator.com", "CSR Test", "QAC", Some("TestServiceManager"), AuthProviderClient.QacRole
       )
-    } yield {
-      ()
-    }
+    } yield { () }
   }
 
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String],
