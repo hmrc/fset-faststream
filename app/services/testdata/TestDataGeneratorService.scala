@@ -37,17 +37,17 @@ object TestDataGeneratorService extends TestDataGeneratorService {
 
 trait TestDataGeneratorService extends MongoDbConnection {
 
-  def clearDatabase(generateDefaultRoles: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def clearDatabase(generateDefaultUsers: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       _ <- db().drop()
       _ <- AuthProviderClient.removeAllUsers()
-      _ <- generateRoles() if generateDefaultRoles
+      _ <- generateUsers() if generateDefaultUsers
     } yield {
       ()
     }
   }
 
-  def generateRoles()(implicit hc: HeaderCarrier): Future[Unit] = {
+  def generateUsers()(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       _ <- RegisteredStatusGenerator.createUser(
         1,
