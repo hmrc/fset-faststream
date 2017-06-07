@@ -42,9 +42,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
       _ <- db().drop()
       _ <- AuthProviderClient.removeAllUsers()
       _ <- generateUsers() if generateDefaultUsers
-    } yield {
-      ()
-    }
+    } yield ()
   }
 
   def generateUsers()(implicit hc: HeaderCarrier): Future[Unit] = {
