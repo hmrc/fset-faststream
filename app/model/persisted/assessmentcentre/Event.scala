@@ -15,9 +15,10 @@
  */
 
 package model.persisted.assessmentcentre
-import model.persisted.assessmentcentre.SkillType.SkillType
-import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONMapHandler, BSONMapSkillTypeHandler }
+
+import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONMapHandler }
 import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 /**
@@ -32,8 +33,9 @@ case class Event(eventType: String,
                  attendeeSafetyMargin: Int,
                  startTime: DateTime,
                  endTime: DateTime,
-                 skillRequirements: Map[SkillType, Int])
+                 skillRequirements: Map[String, Int])
 
 object Event {
+  implicit val eventFormat = Json.format[Event]
   implicit val eventHandler = Macros.handler[Event]
 }

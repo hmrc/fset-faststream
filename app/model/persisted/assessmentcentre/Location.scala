@@ -16,6 +16,7 @@
 
 package model.persisted.assessmentcentre
 
+import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 /**
@@ -24,5 +25,6 @@ import reactivemongo.bson.Macros
 case class Location(name: String, venues: Seq[Venue])
 
 object Location {
+  implicit val locationFormat = Json.format[Location]
   implicit val locationHandler = Macros.handler[Location]
 }
