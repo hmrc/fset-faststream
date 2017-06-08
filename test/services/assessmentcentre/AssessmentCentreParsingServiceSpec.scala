@@ -10,10 +10,12 @@ import scala.concurrent.Future
   */
 class AssessmentCentreParsingServiceSpec extends BaseServiceSpec {
   "processCentres" must {
-    "successfully save the file contents" in new TestFixture {
+    "successfully saves and loads the file contents" in new TestFixture {
       val events = service.processCentres().futureValue
+
       events.size mustBe 2
-      // TODO: Don't stop here!
+      events.head.eventType mustBe "FSAC"
+      events(1).skillRequirements.getOrElse("QUALITY_ASSURANCE_COORDINATOR", "--") mustBe 0
     }
   }
 
