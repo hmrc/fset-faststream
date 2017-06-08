@@ -33,11 +33,11 @@ object SkillType extends Enumeration {
 
   implicit val SkillTypeFormat = new Format[SkillType] {
     def reads(json: JsValue) = JsSuccess(SkillType.withName(json.as[String].toUpperCase()))
-    def writes(myEnum: SkillType) = JsString(myEnum.toString)
+    def writes(skillType: SkillType) = JsString(skillType.toString)
   }
 
   implicit object BSONEnumHandler extends BSONHandler[BSONString, SkillType] {
     def read(doc: BSONString) = SkillType.withName(doc.value.toUpperCase())
-    def write(stats: SkillType) = BSON.write(stats.toString)
+    def write(skillType: SkillType) = BSON.write(skillType.toString)
   }
 }

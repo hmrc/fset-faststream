@@ -34,8 +34,6 @@ import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
-import model.persisted.assessmentcentre.SkillType
-import model.persisted.assessmentcentre.SkillType.SkillType
 import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.parity.ParityExportMongoRepository
@@ -43,6 +41,7 @@ import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Ph
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.fsacindicator.{ FSACIndicatorMongoRepository, FSACIndicatorRepository }
+import repositories.assessmentcentre.AssessmentEventsMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -85,6 +84,7 @@ package object repositories {
   lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorAvailabilityRepository = new AssessorAvailabilityMongoRepository()
+  lazy val assessmentEventsRepository = new AssessmentEventsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
@@ -121,7 +121,9 @@ package object repositories {
 
     applicationAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
-    assessorAvailabilityRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true))
+    assessorAvailabilityRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
+
+    assessmentEventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending)), unique = false))
   )), 20 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
@@ -149,24 +151,6 @@ package object repositories {
       val elements = bson.elements.map { tuple =>
         // assume that all values in the document are BSONDocuments
         tuple._1 -> tuple._2.seeAsTry[Int].get
-      }
-      elements.toMap
-    }
-  }
-
-  implicit object BSONMapSkillTypeHandler extends BSONHandler[BSONDocument, Map[SkillType, Int]] {
-    override def write(map: Map[SkillType, Int]): BSONDocument = {
-      val elements = map.toStream.map { tuple =>
-        tuple._1.toString -> BSONInteger(tuple._2)
-      }
-      BSONDocument(elements)
-    }
-
-    override def read(bson: BSONDocument): Map[SkillType, Int] = {
-      val elements = bson.elements.map { tuple =>
-        // assume that all values in the document are BSONDocuments
-        //TODO: Ensure exception is handled
-        SkillType.withName(tuple._1) -> tuple._2.seeAsTry[Int].get
       }
       elements.toMap
     }
