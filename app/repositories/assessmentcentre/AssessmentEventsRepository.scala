@@ -16,7 +16,7 @@
 
 package repositories.assessmentcentre
 
-import model.persisted.assessmentcentre.{ Event, Location }
+import model.persisted.assessmentcentre.Event
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.CollectionNames
@@ -35,8 +35,8 @@ trait AssessmentEventsRepository {
 
 
 class AssessmentEventsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Location, BSONObjectID](CollectionNames.ASSESSMENT_EVENTS,
-    mongo, Location.locationFormat, ReactiveMongoFormats.objectIdFormats)
+  extends ReactiveRepository[Event, BSONObjectID](CollectionNames.ASSESSMENT_EVENTS,
+    mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
   with AssessmentEventsRepository {
 
   override def save(event: Event): Future[Unit] = {

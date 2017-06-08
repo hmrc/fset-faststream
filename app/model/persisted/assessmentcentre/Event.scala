@@ -16,8 +16,8 @@
 
 package model.persisted.assessmentcentre
 
-import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONMapHandler }
-import org.joda.time.{ DateTime, LocalDate }
+import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONMapHandler, BSONLocalTimeHandler }
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
@@ -27,12 +27,14 @@ import reactivemongo.bson.Macros
 
 
 case class Event(eventType: String,
+                 location: String,
+                 venue: String,
                  date: LocalDate,
                  capacity: Int,
                  minViableAttendees: Int,
                  attendeeSafetyMargin: Int,
-                 startTime: DateTime,
-                 endTime: DateTime,
+                 startTime: LocalTime,
+                 endTime: LocalTime,
                  skillRequirements: Map[String, Int])
 
 object Event {
