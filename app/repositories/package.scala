@@ -23,7 +23,7 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
 import model.command.WithdrawApplication
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -137,6 +137,12 @@ package object repositories {
     def read(time: BSONString) = LocalDate.parse(time.value)
 
     def write(jdtime: LocalDate) = BSONString(jdtime.toString("yyyy-MM-dd"))
+  }
+
+  implicit object BSONLocalTimeHandler extends BSONHandler[BSONString, LocalTime] {
+    def read(time: BSONString) = LocalTime.parse(time.value)
+
+    def write(jdtime: LocalTime) = BSONString(jdtime.toString("HH:mm"))
   }
 
   implicit object BSONMapHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
