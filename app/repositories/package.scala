@@ -34,6 +34,8 @@ import services.GBTimeZoneService
 import services.reporting.SocioEconomicScoreCalculator
 import config.MicroserviceAppConfig._
 import model.AdjustmentDetail
+import model.persisted.assessmentcentre.SkillType
+import model.persisted.assessmentcentre.SkillType.SkillType
 import play.api.libs.json._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import repositories.parity.ParityExportMongoRepository
@@ -144,6 +146,24 @@ package object repositories {
       val elements = bson.elements.map { tuple =>
         // assume that all values in the document are BSONDocuments
         tuple._1 -> tuple._2.seeAsTry[Int].get
+      }
+      elements.toMap
+    }
+  }
+
+  implicit object BSONMapSkillTypeHandler extends BSONHandler[BSONDocument, Map[SkillType, Int]] {
+    override def write(map: Map[SkillType, Int]): BSONDocument = {
+      val elements = map.toStream.map { tuple =>
+        tuple._1.toString -> BSONInteger(tuple._2)
+      }
+      BSONDocument(elements)
+    }
+
+    override def read(bson: BSONDocument): Map[SkillType, Int] = {
+      val elements = bson.elements.map { tuple =>
+        // assume that all values in the document are BSONDocuments
+        //TODO: Ensure exception is handled
+        SkillType.withName(tuple._1) -> tuple._2.seeAsTry[Int].get
       }
       elements.toMap
     }
