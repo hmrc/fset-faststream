@@ -27,7 +27,7 @@ import scala.language.implicitConversions
 object SkillType extends Enumeration {
   type SkillType = Value
 
-  val ASSESSOR, EXERCISE_MARKER, QUALITY_ASSURANCE_COORDINATOR, SIFTER = Value
+  val ASSESSOR, DEPARTMENTAL_ASSESSOR, CHAIR, EXERCISE_MARKER, QUALITY_ASSURANCE_COORDINATOR, SIFTER = Value
 
   implicit def toString(SkillType: SkillType): String = SkillType.toString
 
