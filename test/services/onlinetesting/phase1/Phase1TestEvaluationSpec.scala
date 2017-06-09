@@ -71,7 +71,8 @@ class Phase1TestEvaluationSpec extends BaseServiceSpec with TableDrivenPropertyC
     (List(Generalist),    20.0,                     None,                      List(Red)),   // sjq = R, bq = - = R
     (List(Generalist),    25.0,                     None,                      List(Red)),   // sjq = R, bq = - = R
     (List(Generalist),    80.0,                     None,                      List(Green)), // sjq = G, bq = - = G
-    (List(Generalist),    85.0,                     None,                      List(Green))  // sjq = G, bq = - = G
+    (List(Generalist),    85.0,                     None,                      List(Green)), // sjq = G, bq = - = G
+    (List(Generalist),    45.0,                     None,                      List(Green))  // sjq = G, bq = - = G
   )
   // format: ON
 
