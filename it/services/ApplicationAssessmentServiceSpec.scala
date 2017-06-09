@@ -177,8 +177,6 @@ class ApplicationAssessmentServiceSpec extends MongoRepositorySpec with MockitoS
           actualSchemes(s) must be(expectedSchemes(s))
         }
       }
-
-
     }
 
     loadTests.foreach { t =>

@@ -19,7 +19,6 @@ package services.onlinetesting
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.exchange.passmarksettings.PassMarkThreshold
 
-
 trait OnlineTestResultsCalculator {
 
   def evaluateTestResult(threshold: PassMarkThreshold)(tScore: Option[Double]): Result = {
@@ -27,7 +26,7 @@ trait OnlineTestResultsCalculator {
     val passmark = threshold.passThreshold
     tScore match {
       case Some(score) if score >= passmark => Green
-      case Some(score) if score <= failmark => Red
+      case Some(score) if score < failmark => Red
       case Some(_) => Amber
       case _ => throw new IllegalArgumentException("Score not found")
     }
@@ -41,5 +40,4 @@ trait OnlineTestResultsCalculator {
       case _ if results.forall(_ == Green) => Green
     }
   }
-
 }
