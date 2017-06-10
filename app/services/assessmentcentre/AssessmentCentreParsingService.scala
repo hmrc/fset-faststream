@@ -18,8 +18,8 @@ package services.assessmentcentre
 
 import common.FutureEx
 import model.persisted.assessmentcentre.Event
-import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.LocalDate
 import play.api.Play
 import resource._
 
@@ -27,11 +27,7 @@ import scala.concurrent.Future
 import scala.util.{ Failure, Try }
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object AssessmentCentreParsingService extends AssessmentEventFileProvider
-
-/**
-  * Created by fayimora on 08/06/2017.
-  */
+object AssessmentCentreParsingService extends AssessmentCentreParsingService with AssessmentEventFileProvider
 
 trait AssessmentEventFileProvider {
   val fileContents: Future[List[String]] = Future.successful {

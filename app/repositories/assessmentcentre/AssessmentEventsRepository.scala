@@ -18,7 +18,7 @@ package repositories.assessmentcentre
 
 import model.persisted.assessmentcentre.Event
 import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import reactivemongo.bson.BSONObjectID
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -26,20 +26,17 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * Created by fayimora on 08/06/2017.
-  */
 trait AssessmentEventsRepository {
-  def save(event: Event): Future[Unit]
+  def save(events: List[Event]): Future[Unit]
 }
-
 
 class AssessmentEventsMongoRepository(implicit mongo: () => DB)
   extends ReactiveRepository[Event, BSONObjectID](CollectionNames.ASSESSMENT_EVENTS,
     mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
   with AssessmentEventsRepository {
 
-  override def save(event: Event): Future[Unit] = {
-    collection.insert(event).map(_ => ())
+  override def save(events: List[Event]): Future[Unit] = {
+    collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
+      .map(_ => ())
   }
 }
