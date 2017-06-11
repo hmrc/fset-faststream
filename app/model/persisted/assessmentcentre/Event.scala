@@ -21,11 +21,6 @@ import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-/**
-  * Created by fayimora on 08/06/2017.
-  */
-
-
 case class Event(eventType: String,
                  location: String,
                  venue: String,

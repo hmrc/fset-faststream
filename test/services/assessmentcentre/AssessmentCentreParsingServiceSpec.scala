@@ -5,9 +5,6 @@ import services.BaseServiceSpec
 
 import scala.concurrent.Future
 
-/**
-  * Created by fayimora on 08/06/2017.
-  */
 class AssessmentCentreParsingServiceSpec extends BaseServiceSpec {
   "processCentres" must {
     "successfully saves and loads the file contents" in new GoodTestFixture {

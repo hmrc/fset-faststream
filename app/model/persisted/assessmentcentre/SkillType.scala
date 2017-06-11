@@ -21,9 +21,6 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 import scala.language.implicitConversions
 
-/**
-  * Created by fayimora on 08/06/2017.
-  */
 object SkillType extends Enumeration {
   type SkillType = Value
 
