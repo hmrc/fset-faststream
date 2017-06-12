@@ -104,12 +104,22 @@ object ProgressStatuses {
   case object PHASE1_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
 
   case object PHASE3_TESTS_SUCCESS_NOTIFIED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
-  case object FAST_PASS_ACCEPTED extends ProgressStatus(ApplicationStatus.READY_FOR_EXPORT)
 
-  case object EXPORTED extends ProgressStatus(ApplicationStatus.EXPORTED)
-  case object READY_TO_UPDATE extends ProgressStatus(ApplicationStatus.READY_TO_UPDATE)
-  case object UPDATE_EXPORTED extends ProgressStatus(ApplicationStatus.UPDATE_EXPORTED)
+  case object AWAITING_ASSESSMENT_CENTRE_ALLOCATION extends ProgressStatus(ApplicationStatus.AWAITING_ASSESSMENT_CENTRE_ALLOCATION)
+
+  case object ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.ALLOCATION_CONFIRMED)
+  case object ASSESSMENT_CENTNRE_ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ALLOCATION_UNCONFIRMED)
+
   case object APPLICATION_ARCHIVED extends ProgressStatus(ApplicationStatus.ARCHIVED)
+
+  case object FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FAILED_TO_ATTEND)
+  case object ASSESSMENT_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.ASSESSMENT_SCORES_ENTERED)
+  case object ASSESSMENT_SCORES_ACCEPTED extends ProgressStatus(ApplicationStatus.ASSESSMENT_SCORES_ACCEPTED)
+  case object AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION extends ProgressStatus(ApplicationStatus.AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
+  case object ASSESSMENT_CENTRE_PASSED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED)
+  case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED)
+  case object ASSESSMENT_CENTRE_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED_NOTIFIED)
+  case object ASSESSMENT_CENTRE_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED_NOTIFIED)
 
   def getProgressStatusForSdipFsSuccess(applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_PASSED extends ProgressStatus(applicationStatus)
@@ -130,31 +140,6 @@ object ProgressStatuses {
     case object PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED
   }
-
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FAILED_TO_ATTEND)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object ASSESSMENT_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.ASSESSMENT_SCORES_ENTERED)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object ASSESSMENT_SCORES_ACCEPTED extends ProgressStatus(ApplicationStatus.ASSESSMENT_SCORES_ACCEPTED)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION extends ProgressStatus(ApplicationStatus.AWAITING_ASSESSMENT_CENTRE_RE_EVALUATION)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object ASSESSMENT_CENTRE_PASSED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object ASSESSMENT_CENTRE_FAILED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object ASSESSMENT_CENTRE_PASSED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_PASSED_NOTIFIED)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object ASSESSMENT_CENTRE_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE_FAILED_NOTIFIED)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object ALLOCATION_CONFIRMED extends ProgressStatus(ApplicationStatus.ALLOCATION_CONFIRMED)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object ALLOCATION_UNCONFIRMED extends ProgressStatus(ApplicationStatus.ALLOCATION_UNCONFIRMED)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object AWAITING_ALLOCATION extends ProgressStatus(ApplicationStatus.AWAITING_ALLOCATION)
-  @deprecated("This status is not used in Faststream", "24/10/2016")
-  case object ONLINE_TEST_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.ONLINE_TEST_FAILED_NOTIFIED)
 
   def nameToProgressStatus(name: String) = nameToProgressStatusMap(name.toLowerCase)
 
