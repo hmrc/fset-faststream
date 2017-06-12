@@ -1,18 +1,18 @@
 package repositories
 
-import model.persisted.AssessorAvailability
+import model.persisted.Assessor
 import org.joda.time.LocalDate
 import testkit.MongoRepositorySpec
 
 class AssessorAvailabilityRepositorySpec extends MongoRepositorySpec {
 
-  override val collectionName = CollectionNames.ASSESSOR_AVAILABILITY
+  override val collectionName = CollectionNames.ASSESSOR
 
-  def repository = new AssessorAvailabilityMongoRepository()
+  def repository = new AssessorMongoRepository()
 
   "Assessor availability repository" should {
     "create indexes for the repository" in {
-      val repo = repositories.assessorAvailabilityRepository
+      val repo = repositories.assessorRepository
 
       val indexes = indexesWithFields(repo)
       indexes must contain (List("_id"))
@@ -22,7 +22,7 @@ class AssessorAvailabilityRepositorySpec extends MongoRepositorySpec {
 
     "create and fetch the assessor availability" in {
       val userId = "123"
-      val availability = AssessorAvailability(userId, Map(
+      val availability = Assessor(userId, Map(
         "london" -> List(new LocalDate(2017, 9, 1), new LocalDate(2017, 9, 2)),
         "newcastle" -> List(new LocalDate(2017, 9, 10), new LocalDate(2017, 9, 11)))
       )
@@ -34,14 +34,14 @@ class AssessorAvailabilityRepositorySpec extends MongoRepositorySpec {
 
     "update the assessor availability" in {
       val userId = "123"
-      val availability = AssessorAvailability(userId,
+      val availability = Assessor(userId,
         Map("london" -> List(new LocalDate(2017, 9, 11)), "newcastle" -> List(new LocalDate(2017, 9, 12))))
       repository.save(availability).futureValue
 
       val result = repository.find(userId).futureValue
       result.get mustBe availability
 
-      val updated = AssessorAvailability(userId,
+      val updated = Assessor(userId,
         Map("london" -> List(new LocalDate(2017, 9, 11)), "newcastle" -> List(new LocalDate(2017, 9, 12))))
       repository.save(updated).futureValue
 
@@ -50,14 +50,14 @@ class AssessorAvailabilityRepositorySpec extends MongoRepositorySpec {
     }
 
     "count submitted availabilities" in {
-      val availability = AssessorAvailability("user1",
+      val availability = Assessor("user1",
         Map("london" -> List(new LocalDate(2017, 9, 11)), "newcastle" -> List(new LocalDate(2017, 9, 12))))
       val availability2 = availability.copy(userId = "user2")
 
       repository.save(availability).futureValue
       repository.save(availability2).futureValue
 
-      val result = repository.countSubmitted.futureValue
+      val result = repository.countSubmittedAvailability.futureValue
 
       result mustBe 2
     }

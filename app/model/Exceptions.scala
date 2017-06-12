@@ -98,7 +98,7 @@ object Exceptions {
 
   case class ExpiredTestForTokenException(m: String) extends Exception(m)
 
-  case class AssessorAvailabilityNotFoundException(userId: String) extends Exception(userId)
+  case class AssessorNotFoundException(userId: String) extends Exception(userId)
 }
 
 // scalastyle:on number.of.methods
