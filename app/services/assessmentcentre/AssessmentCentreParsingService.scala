@@ -17,6 +17,7 @@
 package services.assessmentcentre
 
 import common.FutureEx
+import factories.UUIDFactory
 import model.persisted.assessmentcentre.Event
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.LocalDate
@@ -80,6 +81,7 @@ trait AssessmentCentreParsingService {
               }.toMap
 
             Event(
+              id = UUIDFactory.generateUUID(),
               eventType = eventType,
               location = location,
               venue = venue,

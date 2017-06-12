@@ -16,12 +16,13 @@
 
 package model.persisted.assessmentcentre
 
-import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONMapHandler, BSONLocalTimeHandler }
+import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapHandler }
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-case class Event(eventType: String,
+case class Event(id: String,
+                 eventType: String,
                  location: String,
                  venue: String,
                  date: LocalDate,
