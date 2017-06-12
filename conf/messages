@@ -52,7 +52,6 @@ Fast Stream before the deadline.
 error.faststream.becomes.sdip.test.expired = Unfortunately, you didn''t complete your online exercises for the Civil Service \
 Fast Stream before the deadline.
 error.faststream.becomes.sdip.withdrew = Unfortunately, you withdrew your Civil Service Fast Stream application.
-error.notfaststream = Sorry, you don''t have a Civil Service Fast Stream application
 
 # Reset password form
 reset.code.wrong-format = The password reset code must be 7 characters

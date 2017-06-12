@@ -39,14 +39,6 @@ import scala.concurrent.Future
 class ConsiderForSdipControllerSpec extends BaseControllerSpec {
 
   "present" should {
-    "display warning message when application route is not faststream" in new TestFixture {
-      val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
-
-      status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustBe Some(routes.HomeController.present().url)
-      flash(result).data mustBe Map("warning" -> "Sorry, you don't have a Civil Service Fast Stream application")
-    }
-
     "display dashboard with sdip eligibility info when faststream application is not submitted" in new TestFixture {
       val result = controller(currentCandidateWithApp).present()(fakeRequest)
       val content = contentAsString(result)
