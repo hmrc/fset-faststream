@@ -30,6 +30,7 @@ trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
   def evaluate(schemes: List[SchemeType], launchpadTestResult: ReviewedCallbackRequest,
                phase2SchemesEvaluation: List[SchemeEvaluationResult],
                passmark: Phase3PassMarkSettings): List[SchemeEvaluationResult] = {
+
     for {
       schemeToEvaluate <- schemes
       schemePassmark <- passmark.schemes find (_.schemeName == schemeToEvaluate)

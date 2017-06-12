@@ -176,11 +176,11 @@ object Commands {
                        preferredName: Option[String], dateOfBirth: Option[LocalDate], address: Option[Address], postCode: Option[PostCode],
                        country: Option[String], applicationRoute: Option[ApplicationRoute], applicationStatus: Option[String]) {
 
-    def name = preferredName.getOrElse(firstName.getOrElse(""))
+    def name: String = preferredName.getOrElse(firstName.getOrElse(""))
   }
 
   case class ApplicationAssessment(applicationId: String, venue: String, date: LocalDate, session: String, slot: Int, confirmed: Boolean) {
-    val assessmentDateTime = {
+    val assessmentDateTime: DateTime = {
       // TODO This should be configurable in the future, but hardcoding it in the fasttrack service is the lesser of the evils at the moment
       // FSET-471 was an emergency last minute fix
       if (venue == "Manchester" || venue == "London (Berkeley House)") {
@@ -208,56 +208,57 @@ object Commands {
     def expireDate: LocalDate = date.minusDays(11)
   }
 
+  object ApplicationAssessment { implicit val applicationAssessmentFormat: OFormat[ApplicationAssessment] = Json.format[ApplicationAssessment] }
+
   case class AssessmentCentrePassMarkSettingsResponse(
                                                        schemes: List[AssessmentCentrePassMarkScheme],
                                                        info: Option[AssessmentCentrePassMarkInfo]
                                                      )
 
   object Implicits {
-    implicit val addressFormat = Json.format[Address]
-    implicit val applicationAddedFormat = Json.format[ApplicationResponse]
-    implicit val passMarkSettingsCreateResponseFormat = Json.format[PassMarkSettingsCreateResponse]
-    implicit val personalDetailsAddedFormat = Json.format[PersonalDetailsAdded]
+    implicit val addressFormat: OFormat[Address] = Json.format[Address]
+    implicit val applicationAddedFormat: OFormat[ApplicationResponse] = Json.format[ApplicationResponse]
+    implicit val passMarkSettingsCreateResponseFormat: OFormat[PassMarkSettingsCreateResponse] = Json.format[PassMarkSettingsCreateResponse]
+    implicit val personalDetailsAddedFormat: OFormat[PersonalDetailsAdded] = Json.format[PersonalDetailsAdded]
     implicit val createApplicationRequestFormat: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]
 
-    implicit val answerFormat = Json.format[Answer]
-    implicit val questionFormat = Json.format[Question]
-    implicit val questionnaireFormat = Json.format[Questionnaire]
-    implicit val previewFormat = Json.format[PreviewRequest]
+    implicit val answerFormat: OFormat[Answer] = Json.format[Answer]
+    implicit val questionFormat: OFormat[Question] = Json.format[Question]
+    implicit val questionnaireFormat: OFormat[Questionnaire] = Json.format[Questionnaire]
+    implicit val previewFormat: OFormat[PreviewRequest] = Json.format[PreviewRequest]
 
-    implicit val submissionDeadlineFormat = Json.format[OverrideSubmissionDeadlineRequest]
+    implicit val submissionDeadlineFormat: OFormat[OverrideSubmissionDeadlineRequest] = Json.format[OverrideSubmissionDeadlineRequest]
 
-    implicit val tooManyEntriesFormat = Json.format[TooManyEntries]
-    implicit val noResultsReturnedFormat = Json.format[NoResultsReturned]
+    implicit val tooManyEntriesFormat: OFormat[TooManyEntries] = Json.format[TooManyEntries]
+    implicit val noResultsReturnedFormat: OFormat[NoResultsReturned] = Json.format[NoResultsReturned]
 
-    implicit val searchCandidateFormat = Json.format[SearchCandidate]
-    implicit val candidateFormat = Json.format[Candidate]
-    implicit val reportFormat = Json.format[Report]
-    implicit val preferencesWithContactDetailsFormat = Json.format[PreferencesWithContactDetails]
+    implicit val searchCandidateFormat: OFormat[SearchCandidate] = Json.format[SearchCandidate]
+    implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate]
+    implicit val reportFormat: OFormat[Report] = Json.format[Report]
+    implicit val preferencesWithContactDetailsFormat: OFormat[PreferencesWithContactDetails] = Json.format[PreferencesWithContactDetails]
 
     implicit def fromCommandToPersistedQuestion(q: Question): QuestionnaireQuestion =
       QuestionnaireQuestion(q.question, QuestionnaireAnswer(q.answer.answer, q.answer.otherDetails, q.answer.unknown))
 
-    implicit val onlineTestDetailsFormat = Json.format[OnlineTestDetails]
-    implicit val onlineTestFormat = Json.format[OnlineTest]
-    implicit val onlineTestStatusFormat = Json.format[OnlineTestStatus]
-    implicit val userIdWrapperFormat = Json.format[UserIdWrapper]
+    implicit val onlineTestDetailsFormat: OFormat[OnlineTestDetails] = Json.format[OnlineTestDetails]
+    implicit val onlineTestFormat: OFormat[OnlineTest] = Json.format[OnlineTest]
+    implicit val onlineTestStatusFormat: OFormat[OnlineTestStatus] = Json.format[OnlineTestStatus]
+    implicit val userIdWrapperFormat: OFormat[UserIdWrapper] = Json.format[UserIdWrapper]
 
-    implicit val assessmentCentreAllocationReportFormat = Json.format[AssessmentCentreAllocationReport]
-    implicit val candidateAwaitingAllocationFormat = Json.format[CandidateAwaitingAllocation]
+    implicit val assessmentCentreAllocationReportFormat: OFormat[AssessmentCentreAllocationReport] = Json.format[AssessmentCentreAllocationReport]
+    implicit val candidateAwaitingAllocationFormat: OFormat[CandidateAwaitingAllocation] = Json.format[CandidateAwaitingAllocation]
 
-    implicit val applicationAssessmentFormat = Json.format[ApplicationAssessment]
-    implicit val phoneAndEmailFormat = Json.format[PhoneAndEmail]
-    implicit val reportWithPersonalDetailsFormat = Json.format[ReportWithPersonalDetails]
-    implicit val assessmentCentrePassMarkSettingsResponseFormat = Json.format[AssessmentCentrePassMarkSettingsResponse]
-    implicit val passMarkEvaluationSchemes = Json.format[OnlineTestPassmarkEvaluationSchemes]
-    implicit val applicationPreferencesFormat = Json.format[ApplicationPreferences]
-    implicit val assessmentResultsReportFormat = Json.format[AssessmentResultsReport]
-    implicit val personalInfoFormat = Json.format[PersonalInfo]
-    implicit val schemeEvaluationFormat = Json.format[SchemeEvaluation]
-    implicit val candidateScoresSummaryFormat = Json.format[CandidateScoresSummary]
-    implicit val applicationPreferencesWithTestResultsFormat = Json.format[ApplicationPreferencesWithTestResults]
-    implicit val assessmentCentreCandidatesReportFormat = Json.format[AssessmentCentreCandidatesReport]
+    implicit val phoneAndEmailFormat: OFormat[PhoneAndEmail] = Json.format[PhoneAndEmail]
+    implicit val reportWithPersonalDetailsFormat: OFormat[ReportWithPersonalDetails] = Json.format[ReportWithPersonalDetails]
+    implicit val assessmentCentrePassMarkSettingsResponseFormat: OFormat[AssessmentCentrePassMarkSettingsResponse] = Json.format[AssessmentCentrePassMarkSettingsResponse]
+    implicit val passMarkEvaluationSchemes: OFormat[OnlineTestPassmarkEvaluationSchemes] = Json.format[OnlineTestPassmarkEvaluationSchemes]
+    implicit val applicationPreferencesFormat: OFormat[ApplicationPreferences] = Json.format[ApplicationPreferences]
+    implicit val assessmentResultsReportFormat: OFormat[AssessmentResultsReport] = Json.format[AssessmentResultsReport]
+    implicit val personalInfoFormat: OFormat[PersonalInfo] = Json.format[PersonalInfo]
+    implicit val schemeEvaluationFormat: OFormat[SchemeEvaluation] = Json.format[SchemeEvaluation]
+    implicit val candidateScoresSummaryFormat: OFormat[CandidateScoresSummary] = Json.format[CandidateScoresSummary]
+    implicit val applicationPreferencesWithTestResultsFormat: OFormat[ApplicationPreferencesWithTestResults] = Json.format[ApplicationPreferencesWithTestResults]
+    implicit val assessmentCentreCandidatesReportFormat: OFormat[AssessmentCentreCandidatesReport] = Json.format[AssessmentCentreCandidatesReport]
   }
 
 }
