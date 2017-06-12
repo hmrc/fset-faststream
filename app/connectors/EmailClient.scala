@@ -16,9 +16,12 @@
 
 package connectors
 
+import java.time.ZoneId
+import java.util.TimeZone
+
 import config.{ EmailConfig, WSHttp }
 import connectors.ExchangeObjects._
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalDateTime }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -215,13 +218,16 @@ object EmailDateFormatter {
 
   def toDate(date: LocalDate): String = date.toString("d MMMM yyyy")
 
+  protected def toLondonLocalDateTime(dateTime: DateTime): LocalDateTime =
+    dateTime.toDateTime(DateTimeZone.forTimeZone(TimeZone.getTimeZone("Europe/London"))).toLocalDateTime
+
   def toExpiryTime(dateTime: DateTime): String = {
-    dateTime.toString("d MMMM yyyy 'at' h:mma")
+    toLondonLocalDateTime(dateTime).toString("d MMMM yyyy 'at' h:mma")
       .replace("AM", "am").replace("PM", "pm") // Joda time has no easy way to change the case of AM/PM
   }
 
   def toConfirmTime(dateTime: DateTime): String = {
-    dateTime.toString("d MMMM yyyy, h:mma")
+    toLondonLocalDateTime(dateTime).toString("d MMMM yyyy, h:mma")
       .replace("AM", "am").replace("PM", "pm") // Joda time has no easy way to change the case of AM/PM
   }
 
