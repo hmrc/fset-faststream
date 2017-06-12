@@ -33,7 +33,7 @@ class AssessmentEventsControllerSpec extends UnitWithAppSpec {
       when(mockAssessmentCentreParsingService.processCentres()).thenReturn(Future.successful(events))
       when(mockAssessmentEventsRepo.save(events)).thenReturn(Future.successful(()))
 
-      val res = controller.uploadAssessmentEvents()(FakeRequest())
+      val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe CREATED
     }
 
@@ -41,7 +41,7 @@ class AssessmentEventsControllerSpec extends UnitWithAppSpec {
       when(mockAssessmentCentreParsingService.processCentres()).thenReturn(Future.successful(events))
       when(mockAssessmentEventsRepo.save(events)).thenReturn(Future.failed(new Exception))
 
-      val res = controller.uploadAssessmentEvents()(FakeRequest())
+      val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
     }
 
@@ -49,7 +49,7 @@ class AssessmentEventsControllerSpec extends UnitWithAppSpec {
       when(mockAssessmentCentreParsingService.processCentres()).thenReturn(Future.failed(new Exception))
       when(mockAssessmentEventsRepo.save(events)).thenReturn(Future.successful(()))
 
-      val res = controller.uploadAssessmentEvents()(FakeRequest())
+      val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
     }
   }

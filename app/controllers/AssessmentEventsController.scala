@@ -33,7 +33,7 @@ trait AssessmentEventsController extends BaseController {
   val assessmentEventsRepository: AssessmentEventsRepository
   val assessmentCenterParsingService: AssessmentCentreParsingService
 
-  def uploadAssessmentEvents() = Action.async { implicit request =>
+  def saveAssessmentEvents() = Action.async { implicit request =>
     assessmentCenterParsingService.processCentres().flatMap{ events =>
       Logger.debug("Events have been processed!")
       assessmentEventsRepository.save(events)
