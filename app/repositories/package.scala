@@ -23,7 +23,7 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.PassmarkPersistedObjects._
 import model.command.WithdrawApplication
 import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -41,6 +41,7 @@ import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Ph
 import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
 import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
 import repositories.fsacindicator.{ FSACIndicatorMongoRepository, FSACIndicatorRepository }
+import repositories.assessmentcentre.AssessmentEventsMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -83,6 +84,7 @@ package object repositories {
   lazy val parityExportRepository = new ParityExportMongoRepository(DateTimeFactory)
   lazy val flagCandidateRepository = new FlagCandidateMongoRepository
   lazy val assessorAvailabilityRepository = new AssessorAvailabilityMongoRepository()
+  lazy val assessmentEventsRepository = new AssessmentEventsMongoRepository()
 
   // Below repositories will be deleted as they are valid only for Fasttrack
   lazy val frameworkRepository = new FrameworkYamlRepository()
@@ -119,7 +121,10 @@ package object repositories {
 
     applicationAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
 
-    assessorAvailabilityRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true))
+    assessorAvailabilityRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
+
+    assessmentEventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending),
+      ("location", Ascending), ("venue", Ascending)), unique = false))
   )), 20 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
@@ -133,6 +138,12 @@ package object repositories {
     def read(time: BSONString) = LocalDate.parse(time.value)
 
     def write(jdtime: LocalDate) = BSONString(jdtime.toString("yyyy-MM-dd"))
+  }
+
+  implicit object BSONLocalTimeHandler extends BSONHandler[BSONString, LocalTime] {
+    def read(time: BSONString) = LocalTime.parse(time.value)
+
+    def write(jdtime: LocalTime) = BSONString(jdtime.toString("HH:mm"))
   }
 
   implicit object BSONMapHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
