@@ -37,6 +37,6 @@ trait AssessmentEventsController extends BaseController {
     assessmentCenterParsingService.processCentres().flatMap{ events =>
       Logger.debug("Events have been processed!")
       assessmentEventsRepository.save(events)
-    }.map { _ => Created }.recover { case _ => UnprocessableEntity }
+    }.map(_ => Created).recover { case _ => UnprocessableEntity }
   }
 }
