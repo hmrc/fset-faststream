@@ -131,8 +131,7 @@ class EducationQuestionnaireFormSpec extends UnitWithAppSpec {
       questionList(1).answer.unknown mustBe Some(true)
       questionList(2).answer.answer mustBe None
       questionList(2).answer.unknown mustBe Some(true)
-      questionList(3).answer.answer mustBe None
-      questionList(3).answer.unknown mustBe Some(true)
+      questionList(3).answer.answer mustBe Some("I don't know/prefer not to say")
       questionList(4).answer.answer mustBe None
       questionList(4).answer.unknown mustBe Some(true)
       questionList(5).answer.answer mustBe None
