@@ -53,9 +53,16 @@ class AssessmentEventsControllerSpec extends UnitWithAppSpec {
       status(res) mustBe UNPROCESSABLE_ENTITY
     }
 
-    "return OK with events" in new TestFixture {
+    "return OK with all events" in new TestFixture {
       when(mockAssessmentEventsRepo.fetchEvents(eventTypeOpt = None, venueTypeOpt = None)).thenReturn(Future.successful(List()))
       val res = controller.fetchEvents(eventTypeOpt = None, venueTypeOpt = None)(FakeRequest())
+      status(res) mustBe OK
+    }
+
+    "return OK with filtered events" in new TestFixture {
+      val fsacEventOpt = Some("fsac")
+      when(mockAssessmentEventsRepo.fetchEvents(eventTypeOpt = fsacEventOpt, venueTypeOpt = None)).thenReturn(Future.successful(List()))
+      val res = controller.fetchEvents(eventTypeOpt = fsacEventOpt, venueTypeOpt = None)(FakeRequest())
       status(res) mustBe OK
     }
   }
