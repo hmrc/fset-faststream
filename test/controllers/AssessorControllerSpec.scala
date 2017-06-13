@@ -17,14 +17,14 @@
 package controllers
 
 import model.Exceptions._
-import model.exchange.AssessorAvailability
-import model.exchange.assessoravailability.AssessorAvailabilityExamples._
-import org.mockito.ArgumentMatchers._
+import model.exchange.{ Assessor, AssessorAvailability }
+import model.exchange.assessor.AssessorAvailabilityExamples._
+import model.exchange.assessor.AssessorExamples
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import services.assessoravailability.AssessorService
-import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
@@ -37,13 +37,39 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     override val assessorService = mockAssessorService
   }
 
-  "save details" should {
+  "save assessor" should {
+    "return OK when save is successful" in {
+      val Request = fakeRequest(AssessorExamples.Assessor1)
+      when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(Future.successful(()))
+      val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
+      status(response) mustBe OK
+    }
+  }
+
+  "add availability" should {
     val Request = fakeRequest(AssessorAvailabilityInBothLondonAndNewcastle)
 
     "return Ok when save is successful" in {
       when(mockAssessorService.addAvailability(any[String], any[AssessorAvailability])).thenReturn(emptyFuture)
       val response = controller.addAvailability(UserId)(Request)
       status(response) mustBe OK
+    }
+  }
+
+  "find assessor" should {
+    "return Assessor when is successful" in {
+      when(mockAssessorService.findAssessor(eqTo(AssessorExamples.UserId1))).thenReturn(Future.successful(AssessorExamples.Assessor1))
+      val response = controller.findAssessor(AssessorExamples.UserId1)(fakeRequest)
+      status(response) mustBe OK
+      verify(mockAssessorService).findAssessor(eqTo(AssessorExamples.UserId1))
+      contentAsJson(response) mustBe Json.toJson[Assessor](AssessorExamples.Assessor1)
+    }
+
+    "return Not Found when assessor cannot be found" in {
+      when(mockAssessorService.findAssessor(UserId)).thenReturn(Future.failed(AssessorNotFoundException(UserId)))
+      val response = controller.findAssessor(UserId)(fakeRequest)
+      status(response) mustBe NOT_FOUND
+      verify(mockAssessorService).findAssessor(eqTo(UserId))
     }
   }
 

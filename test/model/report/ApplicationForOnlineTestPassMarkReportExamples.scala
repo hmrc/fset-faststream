@@ -16,9 +16,9 @@
 
 package model.report
 
-import model.{ ApplicationRoute, SchemeType }
 import model.persisted.ApplicationForOnlineTestPassMarkReport
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
+import model.{ ApplicationRoute, SchemeType }
 
 import scala.util.Random
 

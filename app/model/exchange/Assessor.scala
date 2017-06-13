@@ -23,6 +23,8 @@ case class Assessor(userId: String, skills: List[String], civilServant: Boolean)
 
 object Assessor {
   implicit val assessorFormat = Json.format[Assessor]
+
+  def apply(assessor: model.persisted.Assessor): Assessor = Assessor(assessor.userId, assessor.skills, assessor.civilServant)
 }
 
 
@@ -30,4 +32,7 @@ case class AssessorAvailability(userId: String, availability: Map[String, List[L
 
 object AssessorAvailability {
   implicit val assessorAvailabilityFormat = Json.format[AssessorAvailability]
+
+  def apply(assessor: model.persisted.Assessor): AssessorAvailability = AssessorAvailability(assessor.userId, assessor.availability)
+
 }

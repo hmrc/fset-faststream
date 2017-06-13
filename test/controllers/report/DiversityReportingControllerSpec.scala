@@ -23,7 +23,7 @@ import model.persisted.MediaExamples
 import model.report.{ DiversityReportItem, DiversityReportItemExamples, QuestionnaireReportItemExamples }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import persisted.ApplicationForDiversityReportExamples
+import model.persisted.ApplicationForDiversityReportExamples
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.ReportingRepository

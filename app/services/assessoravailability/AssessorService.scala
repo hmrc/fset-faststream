@@ -79,7 +79,7 @@ trait AssessorService {
       assessorOpt <- assessorRepository.find(userId)
     } yield {
       assessorOpt.fold( throw AssessorNotFoundException(userId) ) {
-        assessor => model.exchange.Assessor(assessor.userId, assessor.skills, assessor.civilServant)
+        assessor => model.exchange.Assessor.apply(assessor)
       }
     }
   }

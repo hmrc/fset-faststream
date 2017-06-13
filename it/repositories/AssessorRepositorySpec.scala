@@ -15,8 +15,8 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       val repo = repositories.assessorRepository
 
       val indexes = indexesWithFields(repo)
-      indexes must contain (List("_id"))
-      indexes must contain (List("userId"))
+      indexes must contain(List("_id"))
+      indexes must contain(List("userId"))
       indexes.size mustBe 2
     }
 
@@ -41,8 +41,8 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       val result = repository.find(userId).futureValue
       result.get mustBe assessor
 
-      val updated = Assessor(userId, List("assessor", "qac"), true,
-        Map("london" -> List(new LocalDate(2017, 9, 11)), "newcastle" -> List(new LocalDate(2017, 9, 12))))
+      val updated = Assessor(userId, List("assessor", "qac", "chair"), true,
+        Map("london" -> List(new LocalDate(2017, 9, 11), new LocalDate(2017, 10, 11)), "newcastle" -> List(new LocalDate(2017, 9, 12))))
       repository.save(updated).futureValue
 
       val updatedResult = repository.find(userId).futureValue
