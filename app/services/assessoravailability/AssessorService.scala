@@ -42,15 +42,15 @@ trait AssessorService {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>
         // TODO: If we change skills, we have to decide if we want to reset the availability
-        val assessorAvailabilityToPersist = model.persisted.Assessor(
+        val assessorToPersist = model.persisted.Assessor(
           userId, assessor.skills, assessor.civilServant, existing.availability
         )
-        assessorRepository.save(assessorAvailabilityToPersist).map( _ => () )
+        assessorRepository.save(assessorToPersist).map( _ => () )
       case _ =>
-        val assessorAvailabilityToPersist = model.persisted.Assessor(
+        val assessorToPersist = model.persisted.Assessor(
           userId, assessor.skills, assessor.civilServant, Map.empty[String, List[LocalDate]]
         )
-        assessorRepository.save(assessorAvailabilityToPersist).map( _ => () )
+        assessorRepository.save(assessorToPersist).map( _ => () )
     }
   }
 
