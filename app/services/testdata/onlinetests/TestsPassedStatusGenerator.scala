@@ -17,12 +17,14 @@
 package services.testdata.onlinetests
 
 import connectors.testdata.ExchangeObjects.DataGenerationResponse
+import factories.UUIDFactory
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED, PHASE2_TESTS_PASSED, PHASE3_TESTS_PASSED, ProgressStatus }
 import model.command.testdata.GeneratorConfig
-import model.persisted.PassmarkEvaluation
+import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.onlinetesting.OnlineTestEvaluationRepository
+import repositories.application.GeneralApplicationMongoRepository
+import repositories.onlinetesting.{ OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository, Phase2EvaluationMongoRepository, Phase3EvaluationMongoRepository }
 import services.testdata.ConstructiveGenerator
 import services.testdata.onlinetests.phase1.Phase1TestsResultsReceivedStatusGenerator
 import services.testdata.onlinetests.phase2.Phase2TestsResultsReceivedStatusGenerator
@@ -34,46 +36,74 @@ import scala.concurrent.Future
 
 object Phase1TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
-  val evaluationRepository = faststreamPhase1EvaluationRepository
+  val evaluationRepository: Phase1EvaluationMongoRepository = faststreamPhase1EvaluationRepository
   val passedStatus = PHASE1_TESTS_PASSED
 
-  def passmarkEvaluation(generatorConfig: GeneratorConfig) =
+  def passmarkEvaluation(generatorConfig: GeneratorConfig, dgr: DataGenerationResponse): PassmarkEvaluation = {
     generatorConfig.phase1TestData.flatMap(_.passmarkEvaluation)
-      .getOrElse(PassmarkEvaluation("", None, Nil))
+      .getOrElse {
+        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme, "Green"))).getOrElse(Nil)
+        val passmarkVersion = UUIDFactory.generateUUID().toString
+        PassmarkEvaluation(passmarkVersion, None, schemeEvaluation)
+      }
+  }
+
+  def updateGenerationResponse(dgr: DataGenerationResponse, pme: PassmarkEvaluation): DataGenerationResponse = dgr.copy(
+    phase1TestGroup = dgr.phase1TestGroup.map( p1 => p1.copy(schemeResult = Some(pme)))
+  )
 }
 
 object Phase2TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   val previousStatusGenerator = Phase2TestsResultsReceivedStatusGenerator
-  val evaluationRepository = faststreamPhase2EvaluationRepository
+  val evaluationRepository: Phase2EvaluationMongoRepository = faststreamPhase2EvaluationRepository
   val passedStatus = PHASE2_TESTS_PASSED
 
-  def passmarkEvaluation(generatorConfig: GeneratorConfig) =
+  def passmarkEvaluation(generatorConfig: GeneratorConfig, dgr: DataGenerationResponse): PassmarkEvaluation =
     generatorConfig.phase2TestData.flatMap(_.passmarkEvaluation)
-      .getOrElse(PassmarkEvaluation("", None, Nil))
+      .getOrElse {
+        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme, "Green"))).getOrElse(Nil)
+        val passmarkVersion = UUIDFactory.generateUUID().toString
+        PassmarkEvaluation(passmarkVersion, dgr.phase1TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)), schemeEvaluation)
+      }
+
+  def updateGenerationResponse(dgr: DataGenerationResponse, pme: PassmarkEvaluation): DataGenerationResponse = dgr.copy(
+    phase2TestGroup = dgr.phase2TestGroup.map( p2 => p2.copy(schemeResult = Some(pme)))
+  )
 }
 
 object Phase3TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   val previousStatusGenerator = Phase3TestsResultsReceivedStatusGenerator
-  val evaluationRepository = faststreamPhase3EvaluationRepository
-  val appRepository = applicationRepository
+  val evaluationRepository: Phase3EvaluationMongoRepository = faststreamPhase3EvaluationRepository
+  val appRepository: GeneralApplicationMongoRepository = applicationRepository
   val passedStatus = PHASE3_TESTS_PASSED
 
-  def passmarkEvaluation(generatorConfig: GeneratorConfig) =
+  def passmarkEvaluation(generatorConfig: GeneratorConfig, dgr: DataGenerationResponse): PassmarkEvaluation =
     generatorConfig.phase3TestData.flatMap(_.passmarkEvaluation)
-      .getOrElse(PassmarkEvaluation("", None, Nil))
+      .getOrElse {
+        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme, "Green"))).getOrElse(Nil)
+        val passmarkVersion = UUIDFactory.generateUUID().toString
+        PassmarkEvaluation(passmarkVersion, dgr.phase2TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)), schemeEvaluation)
+      }
+
+  def updateGenerationResponse(dgr: DataGenerationResponse, pme: PassmarkEvaluation): DataGenerationResponse = dgr.copy(
+    phase3TestGroup = dgr.phase3TestGroup.map( p3 => p3.copy(schemeResult = Some(pme)))
+  )
 }
 
 trait TestsPassedStatusGenerator extends ConstructiveGenerator {
   val evaluationRepository: OnlineTestEvaluationRepository
   val passedStatus: ProgressStatus
-  def passmarkEvaluation(generatorConfig: GeneratorConfig): PassmarkEvaluation
+  def passmarkEvaluation(generatorConfig: GeneratorConfig, dgr: DataGenerationResponse): PassmarkEvaluation
+  def updateGenerationResponse(dgr: DataGenerationResponse, pme: PassmarkEvaluation): DataGenerationResponse
 
   def generate(generationId: Int, generatorConfig: GeneratorConfig)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[DataGenerationResponse] = {
-    for {
-      candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- evaluationRepository.savePassmarkEvaluation(candidate.applicationId.getOrElse(""),
-        passmarkEvaluation(generatorConfig), Some(passedStatus))
-    } yield candidate
+
+    previousStatusGenerator.generate(generationId, generatorConfig).flatMap { candidate =>
+      val evaluation = passmarkEvaluation(generatorConfig, candidate)
+      evaluationRepository.savePassmarkEvaluation(candidate.applicationId.getOrElse(""), evaluation, Some(passedStatus)).map { _ =>
+        updateGenerationResponse(candidate, evaluation)
+      }
+    }
   }
 }

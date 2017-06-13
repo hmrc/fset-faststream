@@ -124,3 +124,6 @@ GET         /assessor-availability/countSubmitted                        control
 # Assessment Centres
 GET         /assessment-centre-dates/region/:region                      controllers.AssessmentScheduleController.getAssessmentScheduleDatesByRegion(region: String)
 GET         /assessment-schedule                                         controllers.AssessmentScheduleController.getAssessmentSchedule
+
+# Assessment Events
+POST        /assessment-events/save                                      controllers.AssessmentEventsController.saveAssessmentEvents()

@@ -26,7 +26,6 @@ import connectors.ExchangeObjects.AllocationDetails
 import connectors.{ CSREmailClient, EmailClient }
 import model.AssessmentScheduleCommands.ApplicationForAssessmentAllocationResult
 import model.AssessmentScheduleCommands.Implicits.ApplicationForAssessmentAllocationResultFormats
-import model.Commands.Implicits.applicationAssessmentFormat
 import model.Exceptions.NotFoundException
 import model.command.AssessmentCentreAllocation
 import model.{ Commands, ProgressStatuses }

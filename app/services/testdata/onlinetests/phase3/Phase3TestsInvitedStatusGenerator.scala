@@ -92,7 +92,7 @@ trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
         testUrl = testGroup.get.tests.find(_.usedForResults).get.testUrl)
 
       candidateInPreviousStatus.copy(
-        phase3TestGroup = Some(TestGroupResponse(List(phase3TestGroupResponse)))
+        phase3TestGroup = Some(TestGroupResponse(List(phase3TestGroupResponse), None))
       )
     }
   }

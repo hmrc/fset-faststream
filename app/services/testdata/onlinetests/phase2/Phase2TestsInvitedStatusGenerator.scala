@@ -76,7 +76,7 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
       val etray = phase2TestGroup.tests.head
 
       candidateInPreviousStatus.copy(
-        phase2TestGroup = Some(TestGroupResponse(List(TestResponse(etray.cubiksUserId, "etray", etray.token, etray.testUrl)))),
+        phase2TestGroup = Some(TestGroupResponse(List(TestResponse(etray.cubiksUserId, "etray", etray.token, etray.testUrl)), None)),
         accessCode = etray.invigilatedAccessCode
       )
     }
