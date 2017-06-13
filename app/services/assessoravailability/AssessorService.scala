@@ -24,7 +24,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object AssessorService extends AssessorService {
-  val assessorRepository: AssessorMongoRepository = assessorRepository
+  val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
   val assessmentCentreYamlRepository: AssessmentCentreRepository = AssessmentCentreYamlRepository
 }
 
