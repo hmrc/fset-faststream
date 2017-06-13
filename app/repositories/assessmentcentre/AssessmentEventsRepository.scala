@@ -28,7 +28,7 @@ import scala.concurrent.Future
 
 trait AssessmentEventsRepository {
   def save(events: List[Event]): Future[Unit]
-  def fetchEvents() : Future[List[Event]]
+  def fetchEvents(eventTypeOpt: Option[String], venueTypeOpt: Option[String]) : Future[List[Event]]
 }
 
 class AssessmentEventsMongoRepository(implicit mongo: () => DB)
@@ -41,5 +41,14 @@ class AssessmentEventsMongoRepository(implicit mongo: () => DB)
       .map(_ => ())
   }
 
-  override def fetchEvents(): Future[List[Event]] = collection.find(BSONDocument()).cursor[Event]().collect[List]()
+  override def fetchEvents(eventTypeOpt: Option[String], venueTypeOpt: Option[String]): Future[List[Event]] = {
+    val query = (eventTypeOpt, venueTypeOpt) match {
+      case (Some(e), Some(v)) => BSONDocument("eventType" -> e, "venue" -> v)
+      case (Some(e), None) => BSONDocument("eventType" -> e)
+      case (None, Some(v)) => BSONDocument("venue" -> v)
+      case (None, None) => BSONDocument()
+    }
+    collection.find(query).cursor[Event]().collect[List]()
+  }
+
 }

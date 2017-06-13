@@ -54,8 +54,8 @@ class AssessmentEventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return OK with events" in new TestFixture {
-      when(mockAssessmentEventsRepo.fetchEvents()).thenReturn(Future.successful(List()))
-      val res = controller.fetchEvents()(FakeRequest())
+      when(mockAssessmentEventsRepo.fetchEvents(eventTypeOpt = None, venueTypeOpt = None)).thenReturn(Future.successful(List()))
+      val res = controller.fetchEvents(eventTypeOpt = None, venueTypeOpt = None)(FakeRequest())
       status(res) mustBe OK
     }
   }

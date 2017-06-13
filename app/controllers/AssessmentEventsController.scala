@@ -41,7 +41,8 @@ trait AssessmentEventsController extends BaseController {
     }.map(_ => Created).recover { case _ => UnprocessableEntity }
   }
 
-  def fetchEvents() = Action.async { implicit request =>
-    assessmentEventsRepository.fetchEvents().map(events => Ok(Json.toJson(events)))
+  def fetchEvents(eventTypeOpt: Option[String], venueTypeOpt: Option[String]) = Action.async { implicit request =>
+    assessmentEventsRepository.fetchEvents(eventTypeOpt, venueTypeOpt)
+      .map(events => Ok(Json.toJson(events)))
   }
 }
