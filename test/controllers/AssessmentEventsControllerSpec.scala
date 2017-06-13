@@ -52,6 +52,12 @@ class AssessmentEventsControllerSpec extends UnitWithAppSpec {
       val res = controller.saveAssessmentEvents()(FakeRequest())
       status(res) mustBe UNPROCESSABLE_ENTITY
     }
+
+    "return OK with events" in new TestFixture {
+      when(mockAssessmentEventsRepo.fetchEvents()).thenReturn(Future.successful(List()))
+      val res = controller.fetchEvents()(FakeRequest())
+      status(res) mustBe OK
+    }
   }
 
   trait TestFixture extends TestFixtureBase {
