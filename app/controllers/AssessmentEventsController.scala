@@ -17,6 +17,7 @@
 package controllers
 
 import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc.Action
 import repositories.assessmentcentre.AssessmentEventsRepository
 import services.assessmentcentre._
@@ -38,5 +39,9 @@ trait AssessmentEventsController extends BaseController {
       Logger.debug("Events have been processed!")
       assessmentEventsRepository.save(events)
     }.map(_ => Created).recover { case _ => UnprocessableEntity }
+  }
+
+  def fetchEvents() = Action.async { implicit request =>
+    assessmentEventsRepository.fetchEvents().map(events => Ok(Json.toJson(events)))
   }
 }

@@ -18,7 +18,7 @@ package repositories.assessmentcentre
 
 import model.persisted.assessmentcentre.Event
 import reactivemongo.api.DB
-import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -28,6 +28,7 @@ import scala.concurrent.Future
 
 trait AssessmentEventsRepository {
   def save(events: List[Event]): Future[Unit]
+  def fetchEvents() : Future[List[Event]]
 }
 
 class AssessmentEventsMongoRepository(implicit mongo: () => DB)
@@ -39,4 +40,6 @@ class AssessmentEventsMongoRepository(implicit mongo: () => DB)
     collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
       .map(_ => ())
   }
+
+  override def fetchEvents(): Future[List[Event]] = collection.find(BSONDocument()).cursor[Event]().collect[List]()
 }

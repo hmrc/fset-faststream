@@ -124,3 +124,4 @@ GET         /assessment-schedule                                         control
 
 # Assessment Events
 POST        /assessment-events/save                                      controllers.AssessmentEventsController.saveAssessmentEvents()
+GET         /assessment-events/fetchEvents                               controllers.AssessmentEventsController.fetchEvents()

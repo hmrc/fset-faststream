@@ -18,7 +18,7 @@ package services.assessmentcentre
 
 import common.FutureEx
 import factories.UUIDFactory
-import model.persisted.assessmentcentre.Event
+import model.persisted.assessmentcentre.{ Event, EventType }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.LocalDate
 import play.api.Play
@@ -63,7 +63,7 @@ trait AssessmentCentreParsingService {
         case (line, idx) =>
           val tryRes = Try {
             val items = line.split(", ?", -1)
-            val eventType = items.head
+            val eventType = EventType.withName(items.head.replaceAll("\\s", "_").toUpperCase)
             val location = items(1)
             val venue = items(2)
             val date = LocalDate.parse(items(3), DateTimeFormat.forPattern("dd/MM/yy"))
