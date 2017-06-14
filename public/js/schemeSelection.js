@@ -1,7 +1,7 @@
 $(function () {
   var schemePrefArray = ['Empty'];
   var firstEmptyPosition = $.inArray('Empty', schemePrefArray);
-  var maxSchemes = 6;
+  var maxSchemes = 3;
   var numberOfSchemas = $('[data-schemename]').length;
 
   function getGetOrdinal(n) {
