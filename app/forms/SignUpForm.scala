@@ -152,6 +152,7 @@ object SignUpForm {
       "agree" -> checked(Messages("agree.accept")),
       "faststreamEligible" -> boolean,
       "edipEligible" -> boolean,
+      "sdipConsider" -> boolean,
       "sdipEligible" -> boolean,
       "hasAppliedToFaststream" -> optional(boolean)
     )(Data.apply)(Data.unapply)
@@ -196,6 +197,7 @@ object SignUpForm {
     agree: Boolean,
     faststreamEligible: Boolean,
     edipEligible: Boolean,
+    sdipConsider: Boolean,
     sdipEligible: Boolean,
     hasAppliedToFaststream: Option[Boolean]
   )

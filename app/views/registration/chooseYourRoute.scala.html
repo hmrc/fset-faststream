@@ -32,6 +32,27 @@
                 </ul>
                 @yesNoQuestion(form("faststreamEligible"), question = "Are you eligible to apply for the Civil Service Fast Stream?",
                 noMessage = Some("You must be eligible to apply for the Civil Service Fast Stream."))
+
+                <div class="panel-indent text">If you're eligible, you can also apply to be considered for the Summer Diversity Internship Programme (SDIP). </div>
+
+
+                @yesNoRadioWithNestedTogglePanel(form("sdipConsider"),
+                                                 '_label -> "Do you want to be considered for SDIP?") {
+                <div id="sdipConsider-panel-yes" class="toggle-content">
+                    <h3 class="heading-medium">To be considered for SDIP, confirm the following statements are true</h3>
+                    <ul id="eligibility-list" class="para-btm-margin text">
+                        <li>I'm either from a Black, Asian and Minority Ethnic (BAME)
+                          or socially/economically disadvantaged background, or
+                          disabled</li>
+                        <li>I'm in the final 2 years at university</li>
+                        <li>I qualify to apply according to the <a href="http://www.faststream.gov.uk/summer-diversity-internship-programme/" rel="external" target="_blank">eligibility requirements</a></li>
+                    </ul>
+
+                    @yesNoQuestion(form("sdipEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
+                                   noMessage = Some("You must be eligible to apply for the Summer Diversity Internship Programme."))
+                </div>
+                }
+
             } else {
                 <div class="panel-info standard-panel">
                     <p class="text">Unfortunately, applications for the Civil Service Fast Stream are now closed.</p>

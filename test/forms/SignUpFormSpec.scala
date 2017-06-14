@@ -160,6 +160,7 @@ case class SignupFormGenerator(
   applicationRoute: Option[ApplicationRoute.ApplicationRoute] = Some(ApplicationRoute.Faststream),
   faststreamEligible: Boolean = true,
   edipEligible: Boolean = false,
+  sdipConsider: Boolean = false,
   sdipEligible: Boolean = false,
   hasAppliedToFaststream: Option[Boolean] = None
 ) {
@@ -177,6 +178,7 @@ case class SignupFormGenerator(
     agree,
     faststreamEligible,
     edipEligible,
+    sdipConsider,
     sdipEligible,
     hasAppliedToFaststream
   )
@@ -194,6 +196,7 @@ case class SignupFormGenerator(
     "applicationRoute" -> applicationRoute.map(_.toString).getOrElse(""),
     "faststreamEligible" -> data.faststreamEligible.toString,
     "edipEligible" -> data.edipEligible.toString,
+    "sdipConsider" -> data.sdipConsider.toString,
     "sdipEligible" -> data.sdipEligible.toString
   ) ++ data.hasAppliedToFaststream.map( x => "hasAppliedToFaststream" -> x.toString )
 
