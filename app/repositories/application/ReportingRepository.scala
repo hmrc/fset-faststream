@@ -354,7 +354,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("frameworkId" -> frameworkId),
-        BSONDocument("applicationStatus" -> "AWAITING_ALLOCATION")
+        BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       ))
 
     val projection = BSONDocument(
@@ -552,7 +552,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService)(implicit mongo:
     val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
     val latestProgressStatus = ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses)
 
-    UserApplicationProfile(userId, latestProgressStatus, firstName, lastName, dob, exportedToParity = candidateProgressStatuses.exported)
+    UserApplicationProfile(userId, latestProgressStatus, firstName, lastName, dob)
   }
 
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {

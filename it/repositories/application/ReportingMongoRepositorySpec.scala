@@ -408,9 +408,9 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     "return all candidates with personal-details" in {
       val user1 = UserApplicationProfile("1", PHASE3_TESTS_PASSED_NOTIFIED.key.toLowerCase, "first1", "last1",
-        factories.DateTimeFactory.nowLocalDate, exportedToParity = true)
+        factories.DateTimeFactory.nowLocalDate)
       val user2 = UserApplicationProfile("2", SUBMITTED.key.toLowerCase, "first2", "last2",
-        factories.DateTimeFactory.nowLocalDate, exportedToParity = false)
+        factories.DateTimeFactory.nowLocalDate)
       create(user1)
       create(user2)
       createWithoutPersonalDetails("3", PHASE3_TESTS_INVITED.key)
