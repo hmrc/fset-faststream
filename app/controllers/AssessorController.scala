@@ -36,13 +36,13 @@ trait AssessorController extends BaseController {
 
   def saveAssessor(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Assessor] { assessor => assessorService.saveAssessor(userId, assessor).map (_ =>
-      Ok(s"I was called with userId: $userId")
+      Ok(s"$userId")
     )}
   }
 
   def addAvailability(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[AssessorAvailability] { availability => assessorService.addAvailability(userId, availability).map (_ =>
-        Ok(s"I was called with userId: $userId")
+        Ok
     )}
   }
 
